@@ -1,117 +1,10 @@
-import json
 import os
 import requests
 import re
+from UiDataModel import *
+from mapper import LOGICAL_MODEL_TO_PROFILE
 
-ontology_server_address = "https://ontoserver.imi.uni-luebeck.de/fhir/"
-
-
-class ComplexEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, TerminologyEntry):
-            return obj.__dict__  # <-----
-        return json.JSONEncoder.default(self, obj)
-
-
-class CategoryEntry:
-    def __init__(self, category_id, display, german_display, path):
-        self.category_id = category_id
-        self.display = display
-        self.german_display = german_display
-        self.path = path
-        self.children = []
-        self.shortDisplay = german_display[0]
-
-    def __str__(self):
-        output = ""
-        for _, var in vars(self).items():
-            output += " " + str(var)
-        return output
-
-    def to_json(self):
-        return json.dumps(self, default=lambda o: self.del_none(
-            self.del_keys(o.__dict__, ["path"])),
-                          sort_keys=True, indent=4)
-
-    @staticmethod
-    def del_keys(d, keys):
-        for k in keys:
-            d.pop(k, None)
-        return d
-
-    def del_none(self, d):
-        """
-        Delete keys with the value ``None`` in a dictionary, recursively.
-
-        This alters the input so you may wish to ``copy`` the dict first.
-        """
-        for key, value in list(d.items()):
-            if value is None:
-                del d[key]
-            elif isinstance(value, dict):
-                self.del_none(value)
-        return d  # For convenience
-
-    def to_java_init(self):
-        return f"new CategoryEntry(\"{self.category_id}\", \"{self.german_display}\"),"
-
-
-class TermCode:
-    def __init__(self, system, code, display, version=None):
-        self.system = system
-        self.code = code
-        self.version = version
-        self.display = display
-
-    def __lt__(self, other):
-        self.display < other.display
-
-    def __repr__(self):
-        return self.display + " " + self.code + " " + self.system
-
-
-class ValueDefinition:
-    def __init__(self, value_type):
-        self.valueType = value_type
-        self.selectableConcepts = []
-
-
-class TerminologyEntry:
-    def __init__(self, term_code, terminology_type):
-        self.termCode = term_code
-        self.terminologyType = terminology_type
-        self.children = []
-        # This is the preferred display this might be the same as self.termCode.display but doesnt have to.
-        # This is necessary for termCodes that do not have a german translation. Coding it inside the termCode would
-        # result in a contradiction
-        self.preferredDisplay = self.termCode.display
-        self.leaf = False
-        self.selectable: False
-        self.timeRestrictionAllowed: False
-        self.valueDefinition = None
-
-    def __lt__(self, other):
-        self.germanDisplay < self.germanDisplay
-
-    def __repr__(self):
-        return self.termCode.code
-
-    def del_none(self, d):
-        """
-        Delete keys with the value ``None`` in a dictionary, recursively.
-
-        This alters the input so you may wish to ``copy`` the dict first.
-        """
-        for key, value in list(d.items()):
-            if value is None:
-                del d[key]
-            elif isinstance(value, dict):
-                self.del_none(value)
-        return d  # For convenience
-
-    def to_json(self):
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
-
+ONTOLOGY_SERVER_ADDRESS = "https://ontoserver.imi.uni-luebeck.de/fhir/"
 
 def to_upper_camel_case(string):
     result = ""
@@ -119,36 +12,71 @@ def to_upper_camel_case(string):
         result += substring.capitalize()
     return result
 
-
 def resolve_terminology_entry_profile(terminology_entry):
+    name = LOGICAL_MODEL_TO_PROFILE.get(to_upper_camel_case(terminology_entry.display)) \
+        if to_upper_camel_case(terminology_entry.display) in LOGICAL_MODEL_TO_PROFILE else to_upper_camel_case(terminology_entry.display)
+    found = False
     for filename in os.listdir("geccoDataset"):
-        if to_upper_camel_case(terminology_entry.display) in filename:
+        if name in filename and filename.startswith("Profile"):
+            found = True
             with open("geccoDataset/" + filename) as profile_file:
                 profile_data = json.load(profile_file)
                 if profile_data["type"] == "Condition":
                     for element in profile_data["differential"]["element"]:
                         if element["path"] == "Condition.code.coding":
-                            value_set = element["binding"]["valueSet"]
-                            terminology_entry.children += (
-                                get_termcodes_from_value_set(value_set))
-                elif profile_data["type"] == "Observable":
-                    pass
+                            if "binding" in element:
+                                value_set = element["binding"]["valueSet"]
+                                terminology_entry.children += (
+                                    get_termcodes_from_value_set(value_set))
+                elif profile_data["type"] == "Observation":
+                    for element in profile_data["differential"]["element"]:
+                        if element["path"] == "Observation.value[x]":
+                            if "type" in element:
+                                for element_type in element["type"]:
+                                    if element_type["code"] == "CodeableConcept":
+                                        if "binding" in element:
+                                            print(element["binding"]["valueSet"])
+                                            value_set = element["binding"]["valueSet"]
+                                            value_definition = ValueDefinition("concept")
+                                            value_definition.selectableConcepts += get_termcodes_from_value_set(value_set)
+                                            terminology_entry.valueDefinitions.append(value_definition)
+    if not found:
+        print(to_upper_camel_case(terminology_entry.display))
 
 
-# This gets the Terminology Tree
+# TODO: We only want to use a single coding system. The different coding systems need to be prioratized
+# We do not want to expand is-A relations of snomed or we need a tree structure , but we cant gain the information
+# needed to create a tree structure
 def get_termcodes_from_value_set(value_set):
+    icd10_result = []
+    snomed_result = []
     result = []
-    response = requests.get(f"{ontology_server_address}ValueSet/$expand?url={value_set}")
+    response = requests.get(f"{ONTOLOGY_SERVER_ADDRESS}ValueSet/$expand?url={value_set}&includeDesignations=true")
     if response.status_code == 200:
         value_set_data = response.json()
         for contains in value_set_data["expansion"]["contains"]:
-            if contains["system"] != "http://fhir.de/CodeSystem/dimdi/icd-10-gm":
-                continue
             system = contains["system"]
             code = contains["code"]
             display = contains["display"]
-            result.append(TermCode(system, code, display))
-    return to_icd_tree(result)
+            term_code = TermCode(system, code, display)
+            if system == "http://fhir.de/CodeSystem/dimdi/icd-10-gm":
+                icd10_result.append(term_code)
+            elif system == "http://snomed.info/sct":
+                if "designation" in contains:
+                    for designation in contains["designation"]:
+                        if designation["language"] == "de-DE":
+                            if "use" in designation:
+                                term_code.code = designation["use"]["code"]
+                            term_code.display = designation["value"]
+                snomed_result.append(term_code)
+            else:
+                result.append(term_code)
+    if icd10_result:
+        return to_icd_tree(icd10_result)
+    elif snomed_result:
+        return snomed_result
+    else:
+        return result
 
 
 # TODO: REFACTOR OR DETAILED DESCRIPTION!
@@ -170,7 +98,7 @@ def to_icd_tree(termcodes):
 
     result = []
 
-    for subcategory_four_digit_entry in subcategories_four_digit:
+    for subcategory_four_digit_entry in sorted(subcategories_four_digit):
         parent_found = False
         for subcategory_three_digit_entry in subcategories_three_digit:
             if subcategory_three_digit_entry == subcategory_four_digit_entry.termCode.code[:-1]:
@@ -179,7 +107,7 @@ def to_icd_tree(termcodes):
         if not parent_found:
             result.append(subcategory_four_digit_entry)
 
-    for subcategory_three_digit_entry in subcategories_three_digit:
+    for subcategory_three_digit_entry in sorted(subcategories_three_digit):
         parent_found = False
         for category_entry in categories:
             if category_entry == subcategory_three_digit_entry.termCode.code[:-2]:
@@ -188,7 +116,7 @@ def to_icd_tree(termcodes):
         if not parent_found:
             result.append(subcategory_three_digit_entry)
 
-    for category_entry in categories:
+    for category_entry in sorted(categories):
         parent_found = False
         for group_entry in groups:
             if int(group_entry.termCode.code[-2:]) >= int(category_entry.termCode.code[1:]) >= int(
@@ -199,7 +127,7 @@ def to_icd_tree(termcodes):
         if not parent_found:
             result.append(category_entry)
 
-    result += groups
+    result += sorted(groups)
 
     return result
 
@@ -209,14 +137,19 @@ def get_allowed_values():
 
 
 def add_terminology_entry_to_category(element, categories, terminology_type):
-    for category_path in categories:
-        if category_path in element["base"]["path"]:
-            equivalent_concept_codes = []
-            for code in element["code"]:
-                equivalent_concept_codes.append(
-                    TermCode(code["system"], code["code"], code["display"],
-                             code["version"] if "version" in code else None))
-            terminology_entry = TerminologyEntry(equivalent_concept_codes, terminology_type)
+    for category_entry in categories:
+        if category_entry.path in element["base"]["path"]:
+            term_codes = []
+            if "code" in element:
+                for code in element["code"]:
+                    term_codes.append(TermCode(code["system"], code["code"], code["display"],
+                                               code["version"] if "version" in code else None))
+            term_code = term_codes[0] if term_codes else None
+            for term_code_entry in term_codes:
+                if term_code_entry.system == "http://fhir.de/CodeSystem/dimdi/icd-10-gm":
+                    term_code == term_code_entry
+                    break
+            terminology_entry = TerminologyEntry(term_code, terminology_type)
             terminology_entry.display = element["short"]
             resolve_terminology_entry_profile(terminology_entry)
             for extension in element["_short"]["extension"]:
@@ -226,13 +159,13 @@ def add_terminology_entry_to_category(element, categories, terminology_type):
                         next_value_is_german_display_content = nested_extension["valueCode"] == "de-DE"
                         continue
                     elif next_value_is_german_display_content:
-                        terminology_entry.germanDisplay = nested_extension["valueMarkdown"]
-            categories[category_path].terminologyEntries.append(terminology_entry)
+                        terminology_entry.display = nested_extension["valueMarkdown"]
+            category_entry.children.append(terminology_entry)
 
 
 def get_categories():
     with open("geccoDataset/StructureDefinition-LogicalModel-GECCO.json", encoding="utf-8") as json_file:
-        categories = dict()
+        categories = []
         data = json.load(json_file)
         for element in data["snapshot"]["element"]:
             try:
@@ -243,23 +176,43 @@ def get_categories():
                     for extension in element["_short"]["extension"]:
                         for nested_extension in extension["extension"]:
                             if "valueMarkdown" in nested_extension:
-                                categories[element["base"]["path"]] = (CategoryEntry(element["id"], element["short"],
-                                                                                     nested_extension["valueMarkdown"],
-                                                                                     element["base"]["path"]))
-                elif element["type"][0]["code"] == "CodeableConcept":
-                    add_terminology_entry_to_category(element, categories, "CodeableConcept")
-                elif element["type"][0]["code"] == "Quantity":
-                    add_terminology_entry_to_category(element, categories, "CodeableConcept")
-                elif element["type"][0]["code"] == "date":
-                    add_terminology_entry_to_category(element, categories, "CodeableConcept")
-                else:
-                    print(element["type"][0]["code"])
+                                categories.append(CategoryEntry(str(uuid.uuid4()),
+                                                                nested_extension["valueMarkdown"],
+                                                                element["base"]["path"]))
             except KeyError:
                 continue
         return categories
 
 
+def create_category_terminology_entry(category_entry):
+    result = TerminologyEntry(None, "Category", category_entry.entryId)
+    result.display = category_entry.display
+    result.path = category_entry.path
+    return result
+
+
+def create_terminology_definition_for(categories):
+    category_terminology_entries = []
+    for category_entry in categories:
+        category_terminology_entries.append(create_category_terminology_entry(category_entry))
+    with open("geccoDataset/StructureDefinition-LogicalModel-GECCO.json", encoding="utf-8") as json_file:
+        data = json.load(json_file)
+        for element in data["snapshot"]["element"]:
+            if "type" in element:
+                if element["type"][0]["code"] == "BackboneElement":
+                    continue
+                elif element["type"][0]["code"] == "CodeableConcept":
+                    add_terminology_entry_to_category(element, category_terminology_entries, "CodeableConcept")
+                elif element["type"][0]["code"] == "Quantity":
+                    add_terminology_entry_to_category(element, category_terminology_entries, "Quantity")
+                elif element["type"][0]["code"] == "date":
+                    add_terminology_entry_to_category(element, category_terminology_entries, "date")
+                else:
+                    raise Exception(f"Unknown element {element['type'][0]['code']}")
+    return category_terminology_entries
+
+
 if __name__ == '__main__':
-    for category in get_categories().values():
-        f = open("result/" + category.german_display.replace("/", "") + ".json", 'w')
+    for category in create_terminology_definition_for(get_categories()):
+        f = open("result/" + category.display.replace("/", "") + ".json", 'w')
         f.write(category.to_json())
