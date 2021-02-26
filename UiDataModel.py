@@ -63,8 +63,14 @@ class ValueDefinition:
         self.selectableConcepts = []
         self.allowedUnits = []
         self.precision = None
-        self.min = None
-        self.max = None
+        self.min = 0
+        self.max = 100000000
+
+
+class Unit:
+    def __init__(self, display, code):
+        self.display = display
+        self.code = code
 
 
 class TerminologyEntry(object):
