@@ -424,7 +424,7 @@ def get_categories():
 
 
 def create_category_terminology_entry(category_entry):
-    result = TerminologyEntry(None, "Category", category_entry.entryId)
+    result = TerminologyEntry(None, "Category")
     result.display = category_entry.display
     result.path = category_entry.path
     return result

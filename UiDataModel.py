@@ -76,8 +76,8 @@ class Unit:
 class TerminologyEntry(object):
     DO_NOT_SERIALIZE = ["terminologyType", "path", "DO_NOT_SERIALIZE"]
 
-    def __init__(self, term_code, terminology_type, entry_id=str(uuid.uuid4()), leaf=False, selectable=False):
-        self.id = entry_id
+    def __init__(self, term_code, terminology_type, leaf=False, selectable=False):
+        self.id = str(uuid.uuid4())
         self.termCode = term_code
         self.terminologyType = terminology_type
         self.path = None
