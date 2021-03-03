@@ -61,7 +61,7 @@ LOGICAL_MODEL_TO_PROFILE = {
     "InterventionalStudiesParticipation": "InterventionalClinicalTrialParticipation.json",
     "Dialysis/Hemofiltration": "Dialysis",
     "EcmoTherapy": "Extracorporeal-membrane-oxygenation",
-    "IsThePatientInTheIntensiveCareUnit": "PatientInICU",
+    "IsThePatientInTheIntensiveCareUnit?": "PatientInICU",
     "VentilationTherapy": "RespiratoryTherapies",
     "Paco2": "GasPanel-PaCO2",
     "Pao2": "GasPanel-PaO2",

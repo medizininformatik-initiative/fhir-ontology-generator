@@ -62,9 +62,9 @@ class ValueDefinition:
         self.type = value_type
         self.selectableConcepts = []
         self.allowedUnits = []
-        self.precision = None
-        self.min = 0
-        self.max = 100000000
+        self.precision = 1
+        self.min = None
+        self.max = None
 
 
 class Unit:
@@ -76,14 +76,14 @@ class Unit:
 class TerminologyEntry(object):
     DO_NOT_SERIALIZE = ["terminologyType", "path", "DO_NOT_SERIALIZE"]
 
-    def __init__(self, term_code, terminology_type, entry_id=str(uuid.uuid4())):
+    def __init__(self, term_code, terminology_type, entry_id=str(uuid.uuid4()), leaf=False, selectable=False):
         self.id = entry_id
         self.termCode = term_code
         self.terminologyType = terminology_type
         self.path = None
         self.children = []
-        self.leaf = False
-        self.selectable = False
+        self.leaf = leaf
+        self.selectable = selectable
         self.timeRestrictionAllowed = False
         self.valueDefinitions = []
         self.display = (self.termCode.display if self.termCode else None)
