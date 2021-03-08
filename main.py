@@ -3,6 +3,7 @@ import requests
 import re
 from UiDataModel import *
 from mapper import LOGICAL_MODEL_TO_PROFILE
+from termEntryToExcel import to_excel
 
 IGNORE_LIST = ["Date of birth", "History of travel", "Resuscitation order", "Immunization status",
                "SARS-CoV-2 (COVID-19) IgG IA Ql", "Sars-cov-2(covid-19)IggIaQl", "SARS-CoV-2 (COVID-19) IgG IA Qn",
@@ -229,7 +230,10 @@ def get_termentries_from_onto_server(canonical_address_value_set):
             system = contains["system"]
             code = contains["code"]
             display = contains["display"]
-            term_code = TermCode(system, code, display)
+            version = None
+            if version in contains:
+                version = contains["version"]
+            term_code = TermCode(system, code, display, version)
             terminology_entry = TerminologyEntry(term_code, "CodeableConcept", leaf=True, selectable=True)
             if system == "http://fhir.de/CodeSystem/dimdi/icd-10-gm":
                 icd10_result.append(term_code)
@@ -454,7 +458,9 @@ def create_terminology_definition_for(categories):
 if __name__ == '__main__':
     others = TerminologyEntry(None, "CategoryEntry")
     others.display = "Andere"
-    for category in create_terminology_definition_for(get_categories()):
+    category_entries = create_terminology_definition_for(get_categories())
+    to_excel(category_entries)
+    for category in category_entries:
         if category in IGNORE_CATEGORIES:
             continue
         if category.display in MAIN_CATEGORIES:
