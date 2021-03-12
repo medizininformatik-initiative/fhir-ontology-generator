@@ -3,9 +3,14 @@ from UiDataModel import TerminologyEntry
 from geccoToUI import create_terminology_definition_for, get_categories, IGNORE_CATEGORIES, MAIN_CATEGORIES
 from termEntryToExcel import to_excel
 from queryTermCodeMapper import to_term_code_node
+import os
+from os import path
 
 
 if __name__ == '__main__':
+    if not path.exists("de.gecco#1.0.3/package/"):
+        os.system("fhir install de.gecco 1.0.3 --here")
+
     others = TerminologyEntry(None, "CategoryEntry", selectable=False)
     others.display = "Andere"
     category_entries = create_terminology_definition_for(get_categories())
