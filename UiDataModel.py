@@ -74,9 +74,9 @@ class Unit:
 
 
 class TerminologyEntry(object):
-    DO_NOT_SERIALIZE = ["terminologyType", "path", "DO_NOT_SERIALIZE"]
+    DO_NOT_SERIALIZE = ["terminologyType", "path", "DO_NOT_SERIALIZE", "fhirMapperType"]
 
-    def __init__(self, term_code, terminology_type, leaf=False, selectable=False):
+    def __init__(self, term_code, terminology_type, leaf=False, selectable=True):
         self.id = str(uuid.uuid4())
         self.termCode = term_code
         self.terminologyType = terminology_type
@@ -87,6 +87,7 @@ class TerminologyEntry(object):
         self.timeRestrictionAllowed = False
         self.valueDefinitions = []
         self.display = (self.termCode.display if self.termCode else None)
+        self.fhirMapperType = None
 
     def __lt__(self, other):
         return self.termCode < other.termCode
