@@ -113,7 +113,8 @@ def generate_map(categories):
                 result.append(str_to_class(class_name)(terminology.termCode))
                 result += generate_child_entries(terminology.children, class_name)
             else:
-                print(terminology)
+                pass
+                #print(terminology)
     return result
 
 

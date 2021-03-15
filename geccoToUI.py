@@ -4,6 +4,8 @@ import re
 from UiDataModel import *
 from mapper import LOGICAL_MODEL_TO_PROFILE
 
+GECCO_DATA_SET = "geccoDataSet/de.gecco#1.0.3/package"
+
 IGNORE_LIST = ["Date of birth", "History of travel", "Resuscitation order", "Immunization status",
                "SARS-CoV-2 (COVID-19) IgG IA Ql", "Sars-cov-2(covid-19)IggIaQl", "SARS-CoV-2 (COVID-19) IgG IA Qn",
                "Sars-cov-2(covid-19)IggIaQn", "SARS-CoV-2 (COVID-19) IgM IA Ql", "Sars-cov-2(covid-19)IgmIaQl",
@@ -165,10 +167,10 @@ def resolve_terminology_entry_profile(terminology_entry):
         if to_upper_camel_case(terminology_entry.display) in LOGICAL_MODEL_TO_PROFILE else to_upper_camel_case(
         terminology_entry.display)
     found = False
-    for filename in os.listdir("de.gecco#1.0.3/package"):
+    for filename in os.listdir("%s" % GECCO_DATA_SET):
         if name in filename and filename.startswith("Profile"):
             found = True
-            with open("de.gecco#1.0.3/package/" + filename) as profile_file:
+            with open(GECCO_DATA_SET + "/" + filename) as profile_file:
                 profile_data = json.load(profile_file)
                 if profile_data["type"] == "Condition":
                     # Corner case
@@ -194,14 +196,14 @@ def resolve_terminology_entry_profile(terminology_entry):
                     raise UnknownHandlingException(profile_data["type"])
         elif name in filename and filename.startswith("Extension"):  #
             found = True
-            with open("de.gecco#1.0.3/package/" + filename) as profile_file:
+            with open(GECCO_DATA_SET + "/" + filename) as profile_file:
                 profile_data = json.load(profile_file)
                 if filename == "Extension-EthnicGroup.json":
                     translate_ethnic_group(profile_data, terminology_entry)
                 elif filename == "Extension-Age.json":
                     pass
     if not found:
-        # pass
+        #pass
         print(to_upper_camel_case(terminology_entry.display))
 
 
@@ -443,7 +445,7 @@ def get_german_display(element):
 
 
 def get_categories():
-    with open("de.gecco#1.0.3/package/StructureDefinition-LogicalModel-GECCO.json", encoding="utf-8") as json_file:
+    with open(f"{GECCO_DATA_SET}/StructureDefinition-LogicalModel-GECCO.json", encoding="utf-8") as json_file:
         categories = []
         data = json.load(json_file)
         for element in data["snapshot"]["element"]:
@@ -474,7 +476,7 @@ def create_terminology_definition_for(categories):
     category_terminology_entries = []
     for category_entry in categories:
         category_terminology_entries.append(create_category_terminology_entry(category_entry))
-    with open("de.gecco#1.0.3/package/StructureDefinition-LogicalModel-GECCO.json", encoding="utf-8") as json_file:
+    with open(f"{GECCO_DATA_SET}/StructureDefinition-LogicalModel-GECCO.json", encoding="utf-8") as json_file:
         data = json.load(json_file)
         for element in data["snapshot"]["element"]:
             if "type" in element:
