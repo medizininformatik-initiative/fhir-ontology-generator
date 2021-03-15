@@ -1,7 +1,6 @@
 from MapperDataModel import generate_map
 from UiDataModel import TerminologyEntry
-from geccoToUI import create_terminology_definition_for, get_categories, IGNORE_CATEGORIES, MAIN_CATEGORIES, \
-    GECCO_DATA_SET
+from geccoToUI import create_terminology_definition_for, get_categories, IGNORE_CATEGORIES, MAIN_CATEGORIES
 from termEntryToExcel import to_excel
 from queryTermCodeMapper import to_term_code_node
 import os, errno

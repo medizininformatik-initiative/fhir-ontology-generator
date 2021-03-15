@@ -1,4 +1,3 @@
-import os
 import csv
 
 from UiDataModel import TermCode, TerminologyEntry

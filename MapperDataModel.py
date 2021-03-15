@@ -1,4 +1,4 @@
-from UiDataModel import TermCode, del_keys, del_none
+from UiDataModel import del_keys, del_none
 import json
 import sys
 
