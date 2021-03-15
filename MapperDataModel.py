@@ -24,6 +24,14 @@ class MapEntry:
             del_keys(o.__dict__, self.DO_NOT_SERIALIZE)), sort_keys=True, indent=4)
 
 
+class MapEntryList:
+    def __init__(self):
+        self.entries = []
+
+    def to_json(self):
+        return json.dumps(self, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)
+
+
 class QuantityObservationMapEntry(MapEntry):
     def __init__(self, term_code):
         self.termCodeSearchParameter = "code"
@@ -105,16 +113,16 @@ def generate_child_entries(children, class_name):
 
 
 def generate_map(categories):
-    result = []
+    result = MapEntryList()
     for category in categories:
         for terminology in category.children:
             if terminology.fhirMapperType:
                 class_name = terminology.fhirMapperType + "MapEntry"
-                result.append(str_to_class(class_name)(terminology.termCode))
-                result += generate_child_entries(terminology.children, class_name)
+                result.entries.append(str_to_class(class_name)(terminology.termCode))
+                result.entries += generate_child_entries(terminology.children, class_name)
             else:
                 pass
-                #print(terminology)
+                # print(terminology)
     return result
 
 
