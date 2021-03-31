@@ -11,6 +11,8 @@ def del_none(dictionary):
     for key, value in list(dictionary.items()):
         if value is None:
             del dictionary[key]
+        elif value is []:
+            del dictionary[key]
         elif isinstance(value, dict):
             del_none(value)
     return dictionary
@@ -49,6 +51,12 @@ class TermCode:
         self.code = code
         self.version = version
         self.display = display
+
+    def __eq__(self, other):
+        return self.system == other.system and self.code == other.code
+
+    def __hash__(self):
+        return hash(self.system + self.code)
 
     def __lt__(self, other):
         return self.code < other.code
@@ -98,3 +106,12 @@ class TerminologyEntry(object):
     def to_json(self):
         return json.dumps(self, default=lambda o: del_none(
             del_keys(o.__dict__, self.DO_NOT_SERIALIZE)), sort_keys=True, indent=4)
+
+
+def prune_terminology_tree(tree_node, max_depth):
+    if max_depth != 0:
+        for child in tree_node.children:
+            prune_terminology_tree(child, max_depth-1)
+    else:
+        tree_node.children = []
+        tree_node.leaf = True

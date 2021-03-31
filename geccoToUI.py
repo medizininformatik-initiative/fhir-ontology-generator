@@ -238,7 +238,7 @@ def get_termentries_from_onto_server(canonical_address_value_set):
             else:
                 result.append(terminology_entry)
     if icd10_result:
-        return to_reduced_icd_tree(icd10_result)
+        return to_icd_tree(icd10_result)
     elif result:
         return sorted(result)
     else:
@@ -292,13 +292,13 @@ def get_groups_categories_subcategories(termcodes):
 
     for termcode in termcodes:
         if re.match("[A-Z][0-9][0-9]-[A-Z][0-9][0-9]$", termcode.code):
-            groups.add(TerminologyEntry(termcode, "CodeableConcept", leaf=True, selectable=False))
+            groups.add(TerminologyEntry(termcode, "CodeableConcept", leaf=True))
         elif re.match("[A-Z][0-9][0-9]$", termcode.code):
-            categories.add(TerminologyEntry(termcode, "CodeableConcept", leaf=True, selectable=True))
+            categories.add(TerminologyEntry(termcode, "CodeableConcept", leaf=True))
         elif re.match("[A-Z][0-9][0-9]\.[0-9]$", termcode.code):
-            subcategories_three_digit.add(TerminologyEntry(termcode, "CodeableConcept", leaf=True, selectable=True))
+            subcategories_three_digit.add(TerminologyEntry(termcode, "CodeableConcept", leaf=True))
         elif re.match("[A-Z][0-9][0-9]\.[0-9][0-9]$", termcode.code):
-            terminology_entry = TerminologyEntry(termcode, "CodeableConcept", leaf=True, selectable=True)
+            terminology_entry = TerminologyEntry(termcode, "CodeableConcept", leaf=True)
             subcategories_four_digit.add(terminology_entry)
     return groups, categories, subcategories_three_digit, subcategories_four_digit
 
@@ -414,7 +414,7 @@ def get_term_code(element):
             term_code == term_code_entry
             break
     if not term_code:
-        term_code = TermCode("num.codex", "undefined", element["short"])
+        term_code = TermCode("num.codex", element["short"], element["short"])
     return term_code
 
 
@@ -466,7 +466,8 @@ def get_categories():
 
 
 def create_category_terminology_entry(category_entry):
-    result = TerminologyEntry(None, "Category", selectable=False)
+    termCode = TermCode("num.codex", category_entry.display, category_entry.display)
+    result = TerminologyEntry(termCode, "Category", selectable=False)
     result.display = category_entry.display
     result.path = category_entry.path
     return result
@@ -476,6 +477,7 @@ def create_terminology_definition_for(categories):
     category_terminology_entries = []
     for category_entry in categories:
         category_terminology_entries.append(create_category_terminology_entry(category_entry))
+        print(create_category_terminology_entry(category_entry).termCode)
     with open(f"{GECCO_DATA_SET}/StructureDefinition-LogicalModel-GECCO.json", encoding="utf-8") as json_file:
         data = json.load(json_file)
         for element in data["snapshot"]["element"]:
@@ -491,3 +493,4 @@ def create_terminology_definition_for(categories):
                 else:
                     raise Exception(f"Unknown element {element['type'][0]['code']}")
     return category_terminology_entries
+

@@ -1,6 +1,8 @@
 from UiDataModel import del_keys, del_none, TerminologyEntry, TermCode
 import json
 
+term_codes_in_tree = set()
+
 
 def to_term_code_node(category_entries):
     root = TermCodeNode(TermCode("", "", ""))
@@ -15,7 +17,7 @@ class TermCodeNode:
     def __init__(self, *args):
         if isinstance(args[0], TerminologyEntry):
             terminology_entry = args[0]
-            self.termCode = terminology_entry.termCode if terminology_entry.termCode else None
+            self.termCode = terminology_entry.termCode
             self.children = self.get_term_codes(terminology_entry)
         elif isinstance(args[0], TermCode):
             self.termCode = args[0]
@@ -27,8 +29,12 @@ class TermCodeNode:
         for child in terminology_entry.children:
             for valueDefinition in child.valueDefinitions:
                 for selectableConcept in valueDefinition.selectableConcepts:
-                    result.append(TermCodeNode(selectableConcept))
-            result.append(TermCodeNode(child))
+                    if selectableConcept not in term_codes_in_tree:
+                        result.append(TermCodeNode(selectableConcept))
+                        term_codes_in_tree.add(selectableConcept)
+            if child.termCode not in term_codes_in_tree:
+                result.append(TermCodeNode(child))
+                term_codes_in_tree.add(child.termCode)
         return result
 
     def to_json(self):
