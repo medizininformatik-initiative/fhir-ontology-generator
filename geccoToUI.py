@@ -20,7 +20,7 @@ IGNORE_CATEGORIES = ["Studieneinschluss / Einschlusskriterien "]
 
 MAIN_CATEGORIES = ["Anamnese / Risikofaktoren", "Demographie", "Laborwerte", "Therapie"]
 
-ONTOLOGY_SERVER_ADDRESS = "https://ontoserver.imi.uni-luebeck.de/fhir/"
+ONTOLOGY_SERVER_ADDRESS = os.environ.get('ONTOLOGY_SERVER_ADDRESS')
 
 
 class UnknownHandlingException(Exception):
@@ -83,12 +83,12 @@ def translate_medication_statement(profile_data, terminology_entry):
 
 
 def translate_observation(profile_data, terminology_entry):
+    is_concept_value = False
     for element in profile_data["differential"]["element"]:
-        concept = False
         if "type" in element:
             if element["path"] == "Observation.value[x]" and element["type"][0]["code"] == "CodeableConcept":
                 terminology_entry.fhirMapperType = "ConceptObservation"
-                concept = True
+                is_concept_value = True
                 if "binding" in element:
                     value_set = element["binding"]["valueSet"]
                     value_definition = ValueDefinition("concept")
@@ -101,7 +101,7 @@ def translate_observation(profile_data, terminology_entry):
             if element["path"] == "Observation.value[x]" and element["sliceName"] == "valueCodeableConcept" or \
                     element["path"] == "Observation.value[x].coding":
                 terminology_entry.fhirMapperType = "ConceptObservation"
-                concept = True
+                is_concept_value = True
                 if "binding" in element:
                     value_set = element["binding"]["valueSet"]
                     value_definition = ValueDefinition("concept")
@@ -110,18 +110,18 @@ def translate_observation(profile_data, terminology_entry):
                     terminology_entry.leaf = True
                     terminology_entry.selectable = True
                     break
-    if not concept:
+    if not is_concept_value:
         terminology_entry.fhirMapperType = "QuantityObservation"
 
 
-def translate_procedure(profile_data, terminology_entry):
+def translate_procedure(_profile_data, terminology_entry):
     terminology_entry.fhirMapperType = "Procedure"
     terminology_entry.leaf = True
     terminology_entry.selectable = True
 
 
 def translate_immunization(profile_data, terminology_entry):
-    terminology_entry = "Immunization"
+    terminology_entry.fhirMapperType = "Immunization"
     for element in profile_data["differential"]["element"]:
         if "type" in element:
             if element["path"] == "Immunization.vaccineCode.coding":  # and element["slicingName"] == "atc":
@@ -203,7 +203,6 @@ def resolve_terminology_entry_profile(terminology_entry):
                 elif filename == "Extension-Age.json":
                     pass
     if not found:
-        #pass
         print(to_upper_camel_case(terminology_entry.display))
 
 
@@ -215,7 +214,8 @@ def get_termentries_from_onto_server(canonical_address_value_set):
     snomed_result = []
     result = []
     response = requests.get(
-        f"{ONTOLOGY_SERVER_ADDRESS}ValueSet/$expand?url={canonical_address_value_set}&includeDesignations=true")
+        f"{ONTOLOGY_SERVER_ADDRESS}ValueSet/$expand?url={canonical_address_value_set}"
+        f"&includeDesignations=true&system-version=http://fhir.de/CodeSystem/dimdi/icd-10-gm%7C2020")
     if response.status_code == 200:
         value_set_data = response.json()
         for contains in value_set_data["expansion"]["contains"]:
@@ -237,6 +237,9 @@ def get_termentries_from_onto_server(canonical_address_value_set):
                 snomed_result.append(terminology_entry)
             else:
                 result.append(terminology_entry)
+    else:
+        #TODO better Exception
+        raise(Exception("HTTP Error"))
     if icd10_result:
         return to_icd_tree(icd10_result)
     elif result:
@@ -295,9 +298,9 @@ def get_groups_categories_subcategories(termcodes):
             groups.add(TerminologyEntry(termcode, "CodeableConcept", leaf=True))
         elif re.match("[A-Z][0-9][0-9]$", termcode.code):
             categories.add(TerminologyEntry(termcode, "CodeableConcept", leaf=True))
-        elif re.match("[A-Z][0-9][0-9]\.[0-9]$", termcode.code):
+        elif re.match("[A-Z][0-9][0-9]\\.[0-9]$", termcode.code):
             subcategories_three_digit.add(TerminologyEntry(termcode, "CodeableConcept", leaf=True))
-        elif re.match("[A-Z][0-9][0-9]\.[0-9][0-9]$", termcode.code):
+        elif re.match("[A-Z][0-9][0-9]\\.[0-9][0-9]$", termcode.code):
             terminology_entry = TerminologyEntry(termcode, "CodeableConcept", leaf=True)
             subcategories_four_digit.add(terminology_entry)
     return groups, categories, subcategories_three_digit, subcategories_four_digit
@@ -399,6 +402,7 @@ def add_terminology_entry_to_category(element, categories, terminology_type):
                 terminology_entry.leaf = True
                 terminology_entry.selectable = True
                 terminology_entry.valueDefinitions.append(get_value_definition(element))
+            print(terminology_entry.children)
             category_entry.children.append(terminology_entry)
 
 
@@ -410,8 +414,8 @@ def get_term_code(element):
                                        code["version"] if "version" in code else None))
     term_code = term_codes[0] if term_codes else None
     for term_code_entry in term_codes:
-        if term_code_entry.system == "http://fhir.de/CodeSystem/dimdi/icd-10-gm":
-            term_code == term_code_entry
+        if term_code_entry.system == "http://snomed.info/sct":
+            term_code = term_code_entry
             break
     if not term_code:
         term_code = TermCode("num.codex", element["short"], element["short"])
@@ -466,8 +470,8 @@ def get_categories():
 
 
 def create_category_terminology_entry(category_entry):
-    termCode = TermCode("num.codex", category_entry.display, category_entry.display)
-    result = TerminologyEntry(termCode, "Category", selectable=False)
+    term_code = TermCode("num.codex", category_entry.display, category_entry.display)
+    result = TerminologyEntry(term_code, "Category", selectable=False)
     result.display = category_entry.display
     result.path = category_entry.path
     return result
@@ -477,7 +481,6 @@ def create_terminology_definition_for(categories):
     category_terminology_entries = []
     for category_entry in categories:
         category_terminology_entries.append(create_category_terminology_entry(category_entry))
-        print(create_category_terminology_entry(category_entry).termCode)
     with open(f"{GECCO_DATA_SET}/StructureDefinition-LogicalModel-GECCO.json", encoding="utf-8") as json_file:
         data = json.load(json_file)
         for element in data["snapshot"]["element"]:
@@ -493,4 +496,3 @@ def create_terminology_definition_for(categories):
                 else:
                     raise Exception(f"Unknown element {element['type'][0]['code']}")
     return category_terminology_entries
-

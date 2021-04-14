@@ -4,7 +4,9 @@ import sys
 
 
 class FixedCriteria:
-    def __init__(self, criteria_type, search_parameter, fhir_path, value=[]):
+    def __init__(self, criteria_type, search_parameter, fhir_path, value=None):
+        if value is None:
+            value = []
         self.type = criteria_type
         self.value = value
         self.fhirPath = fhir_path
@@ -14,13 +16,13 @@ class FixedCriteria:
 class MapEntry:
     DO_NOT_SERIALIZE = ["DO_NOT_SERIALIZE"]
 
-    def __init__(self, term_code, fhir_resource_type, term_code_target, value_target=None, value_fhir_path=None, fixed_criteria=[]):
+    def __init__(self, term_code):
         self.key = term_code
-        self.termCodeSearchParameter = term_code_target
-        self.valueSearchParameter = value_target
-        self.fhirResourceType = fhir_resource_type
-        self.fixedCriteria = fixed_criteria
-        self.valueFhirPath = value_fhir_path
+        self.termCodeSearchParameter = None
+        self.valueSearchParameter = None
+        self.fhirResourceType = None
+        self.fixedCriteria = []
+        self.valueFhirPath = None
 
     def __eq__(self, other):
         return self.key == other.key
@@ -57,78 +59,83 @@ class MapEntryList:
 
 class QuantityObservationMapEntry(MapEntry):
     def __init__(self, term_code):
+        super().__init__(term_code)
         self.termCodeSearchParameter = "code"
         self.valueSearchParameter = "value-quantity"
         self.fhirResourceType = "Observation"
-        self.key = term_code
         self.fixedCriteria = []
 
 
 class ConceptObservationMapEntry(MapEntry):
     def __init__(self, term_code):
+        super().__init__(term_code)
         self.termCodeSearchParameter = "code"
         self.valueSearchParameter = "value-concept"
         self.fhirResourceType = "Observation"
-        self.key = term_code
         self.fixedCriteria = []
 
 
 class ConditionMapEntry(MapEntry):
     def __init__(self, term_code):
+        super().__init__(term_code)
         self.termCodeSearchParameter = "code"
         self.valueSearchParameter = None
         self.fhirResourceType = "Condition"
         confirmed = TermCode("http://terminology.hl7.org/CodeSystem/condition-ver-status", "confirmed", "confirmed")
         self.fixedCriteria = [FixedCriteria("coding", "verification-status", "verificationStatus", [confirmed])]
-        self.key = term_code
 
 
 class ProcedureMapEntry(MapEntry):
     def __init__(self, term_code):
+        super().__init__(term_code)
         self.termCodeSearchParameter = "code"
         self.valueSearchParameter = None
         self.fhirResourceType = "Procedure"
-        self.fixedCriteria = [FixedCriteria("code", "status", "status", ["completed", "in-progress"])]
-        self.key = term_code
+        completed = TermCode("http://hl7.org/fhir/event-status", "completed", "completed")
+        in_progress = TermCode("http://hl7.org/fhir/event-status", "in-progress", "in-progress")
+        self.fixedCriteria = [FixedCriteria("code", "status", "status", [completed, in_progress])]
 
 
 class SymptomMapEntry(MapEntry):
     def __init__(self, term_code):
+        super().__init__(term_code)
         self.termCodeSearchParameter = "code"
         self.valueSearchParameter = "severity"
         self.valueFhirPath = "severity"
         self.fhirResourceType = "Condition"
         confirmed = TermCode("http://terminology.hl7.org/CodeSystem/condition-ver-status", "confirmed", "confirmed")
         self.fixedCriteria = [FixedCriteria("coding", "verification-status", "verificationStatus", [confirmed])]
-        self.key = term_code
 
 
 class MedicationStatementMapEntry(MapEntry):
     def __init__(self, term_code):
+        super().__init__(term_code)
         self.termCodeSearchParameter = "code"
         self.fhirResourceType = "MedicationStatement"
         self.valueSearchParameter = None
-        self.fixedCriteria = [FixedCriteria("code", "status", "status", ["active", "completed"])]
-        self.key = term_code
+        active = TermCode("http://hl7.org/fhir/CodeSystem/medication-statement-status", "active", "active")
+        completed = TermCode("http://hl7.org/fhir/CodeSystem/medication-statement-status", "completed", "completed")
+        self.fixedCriteria = [FixedCriteria("code", "status", "status", [active, completed])]
 
 
 class ImmunizationMapEntry(MapEntry):
     def __init__(self, term_code):
+        super().__init__(term_code)
         self.termCodeSearchParameter = "vaccine-code"
         self.valueFhirPath = "vaccineCode"
         self.fhirResourceType = "Immunization"
         self.valueSearchParameter = None
-        self.fixedCriteria = [FixedCriteria("code", "status", "status", ["completed"])]
-        self.key = term_code
+        completed = TermCode("http://hl7.org/fhir/event-status", "completed", "completed")
+        self.fixedCriteria = [FixedCriteria("code", "status", "status", completed)]
 
 
 class DiagnosticReportMapEntry(MapEntry):
     def __init__(self, term_code):
+        super().__init__(term_code)
         self.termCodeSearchParameter = "code"
         self.fhirResourceType = "DiagnosticReport"
         self.valueSearchParameter = None
         self.fixedCriteria = []
-        self.key = term_code
 
 
 def generate_child_entries(children, class_name):
