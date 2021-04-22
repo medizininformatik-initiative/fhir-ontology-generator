@@ -6,7 +6,7 @@ from mapper import LOGICAL_MODEL_TO_PROFILE
 
 GECCO_DATA_SET = "geccoDataSet/de.gecco#1.0.3/package"
 
-IGNORE_LIST = ["Date of birth", "History of travel", "Resuscitation order", "Immunization status",
+IGNORE_LIST = ["Date of birth", "History of travel", "Resuscitation order",
                "SARS-CoV-2 (COVID-19) IgG IA Ql", "Sars-cov-2(covid-19)IggIaQl", "SARS-CoV-2 (COVID-19) IgG IA Qn",
                "Sars-cov-2(covid-19)IggIaQn", "SARS-CoV-2 (COVID-19) IgM IA Ql", "Sars-cov-2(covid-19)IgmIaQl",
                "SARS-CoV-2 (COVID-19) IgM IA Qn", "Sars-cov-2(covid-19)IgmIaQn", "SARS-CoV-2 (COVID-19) IgA IA Ql",
@@ -123,16 +123,12 @@ def translate_procedure(_profile_data, terminology_entry):
 def translate_immunization(profile_data, terminology_entry):
     terminology_entry.fhirMapperType = "Immunization"
     for element in profile_data["differential"]["element"]:
-        if "type" in element:
-            if element["path"] == "Immunization.vaccineCode.coding":  # and element["slicingName"] == "atc":
-                if "binding" in element:
-                    value_set = element["binding"]["valueSet"]
-                    value_definition = ValueDefinition("concept")
-                    value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
-                    terminology_entry.valueDefinitions.append(value_definition)
-                    terminology_entry.leaf = True
-                    terminology_entry.selectable = True
-                    break
+        if element["id"] == "Immunization.vaccineCode.coding:snomed":  # and element["slicingName"] == "atc":
+            if "binding" in element:
+                value_set = element["binding"]["valueSet"]
+                terminology_entry.children += (get_termentries_from_onto_server(value_set))
+                terminology_entry.selectable = False
+                break
 
 
 def translate_ethnic_group(profile_data, terminology_entry):
@@ -166,6 +162,7 @@ def resolve_terminology_entry_profile(terminology_entry):
     name = LOGICAL_MODEL_TO_PROFILE.get(to_upper_camel_case(terminology_entry.display)) \
         if to_upper_camel_case(terminology_entry.display) in LOGICAL_MODEL_TO_PROFILE else to_upper_camel_case(
         terminology_entry.display)
+    print(name)
     found = False
     for filename in os.listdir("%s" % GECCO_DATA_SET):
         if name in filename and filename.startswith("Profile"):
@@ -215,7 +212,8 @@ def get_termentries_from_onto_server(canonical_address_value_set):
     result = []
     response = requests.get(
         f"{ONTOLOGY_SERVER_ADDRESS}ValueSet/$expand?url={canonical_address_value_set}"
-        f"&includeDesignations=true&system-version=http://fhir.de/CodeSystem/dimdi/icd-10-gm%7C2020")
+        f"&includeDesignations=true&system-version=http://fhir.de/CodeSystem/dimdi/icd-10-gm%7C2020&"
+        f"system-version=http://fhir.de/CodeSystem/dimdi/atc%7Catcgm2021")
     if response.status_code == 200:
         value_set_data = response.json()
         for contains in value_set_data["expansion"]["contains"]:
@@ -238,8 +236,9 @@ def get_termentries_from_onto_server(canonical_address_value_set):
             else:
                 result.append(terminology_entry)
     else:
-        #TODO better Exception
-        raise(Exception("HTTP Error"))
+        print(canonical_address_value_set)
+        # TODO better Exception
+        raise (Exception("HTTP Error"))
     if icd10_result:
         return to_icd_tree(icd10_result)
     elif result:
@@ -402,7 +401,6 @@ def add_terminology_entry_to_category(element, categories, terminology_type):
                 terminology_entry.leaf = True
                 terminology_entry.selectable = True
                 terminology_entry.valueDefinitions.append(get_value_definition(element))
-            print(terminology_entry.children)
             category_entry.children.append(terminology_entry)
 
 

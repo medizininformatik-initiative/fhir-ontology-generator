@@ -126,7 +126,7 @@ class ImmunizationMapEntry(MapEntry):
         self.fhirResourceType = "Immunization"
         self.valueSearchParameter = None
         completed = TermCode("http://hl7.org/fhir/event-status", "completed", "completed")
-        self.fixedCriteria = [FixedCriteria("code", "status", "status", completed)]
+        self.fixedCriteria = [FixedCriteria("code", "status", "status", [completed])]
 
 
 class DiagnosticReportMapEntry(MapEntry):
