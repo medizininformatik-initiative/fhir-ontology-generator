@@ -6,17 +6,20 @@ from mapper import LOGICAL_MODEL_TO_PROFILE
 
 GECCO_DATA_SET = "geccoDataSet/de.gecco#1.0.3/package"
 
-IGNORE_LIST = ["Date of birth", "History of travel", "Resuscitation order",
-               "SARS-CoV-2 (COVID-19) IgG IA Ql", "Sars-cov-2(covid-19)IggIaQl", "SARS-CoV-2 (COVID-19) IgG IA Qn",
-               "Sars-cov-2(covid-19)IggIaQn", "SARS-CoV-2 (COVID-19) IgM IA Ql", "Sars-cov-2(covid-19)IgmIaQl",
-               "SARS-CoV-2 (COVID-19) IgM IA Qn", "Sars-cov-2(covid-19)IgmIaQn", "SARS-CoV-2 (COVID-19) IgA IA Ql",
-               "Sars-cov-2(covid-19)IgaIaQl", "SARS-CoV-2 (COVID-19) IgA IA Qn", "Sars-cov-2(covid-19)IgaIaQn",
-               "SARS-CoV-2 (COVID-19) Ab IA Ql", "Sars-cov-2(covid-19)AbIaQl", "SARS-CoV-2 (COVID-19) Ab IA Qn",
-               "Sars-cov-2(covid-19)AbIaQn", "Ventilation therapy", "Is the patient in the intensive care unit?",
-               "Radiological findings", "Respiratory outcome", "Follow-up swab result",
-               "Study enrolment due to Covid-19", "Interventional studies participation", "Severity", "SOFA-Score"]
+"""
+    Date of birth requires date selection in the ui
+    History of travel is very complex
+    ResuscitationOrder Consent is not mappable for fhir search
+    RespiratoryOutcome needs special handling its a condition but has a value in the verification status:
+        Confirmed -> Patient dependent on ventilator 
+        Refuted -> Patient not dependent on ventilator 
+    Radiological findings has a ValueSet that is not expandable
+    Severity is handled within Symptoms
+"""
+IGNORE_LIST = ["Date of birth",  "Resuscitation order", "RespiratoryOutcome",
+               "Radiological findings", "Severity"]
 
-IGNORE_CATEGORIES = ["Studieneinschluss / Einschlusskriterien "]
+IGNORE_CATEGORIES = []
 
 MAIN_CATEGORIES = ["Anamnese / Risikofaktoren", "Demographie", "Laborwerte", "Therapie"]
 
@@ -82,9 +85,17 @@ def translate_medication_statement(profile_data, terminology_entry):
                 break
 
 
+def update_termcode_to_match_pattern_coding(terminology_entry, element):
+    if terminology_entry.termCode.system == "num.codex":
+        if element["path"] == "Observation.code.coding" and "patternCoding" in element:
+            terminology_entry.termCode.code = element["patternCoding"]["code"]
+            terminology_entry.termCode.system = element["patternCoding"]["system"]
+
+
 def translate_observation(profile_data, terminology_entry):
     is_concept_value = False
     for element in profile_data["differential"]["element"]:
+        update_termcode_to_match_pattern_coding(terminology_entry, element)
         if "type" in element:
             if element["path"] == "Observation.value[x]" and element["type"][0]["code"] == "CodeableConcept":
                 terminology_entry.fhirMapperType = "ConceptObservation"
@@ -147,23 +158,27 @@ def translate_ethnic_group(profile_data, terminology_entry):
 def translate_diagnostic_report(profile_data, terminology_entry):
     terminology_entry.fhirMapperType = "DiagnosticReport"
     for element in profile_data["differential"]["element"]:
-        if element["path"] == "DiagnosticReport.conclusionCode":
-            if "binding" in element:
-                value_set = element["binding"]["valueSet"]
-                value_definition = ValueDefinition("concept")
-                value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
-                terminology_entry.valueDefinitions.append(value_definition)
-                terminology_entry.leaf = True
-                terminology_entry.selectable = True
-                break
+        if element["path"] == "DiagnosticReport.conclusionCode" and "binding" in element:
+            value_set = element["binding"]["valueSet"]
+            value_definition = ValueDefinition("concept")
+            value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
+            terminology_entry.valueDefinitions.append(value_definition)
+            terminology_entry.leaf = True
+            terminology_entry.selectable = True
+            break
+
+
+def translate_consent(profile_data, terminology_entry):
+    pass
 
 
 def resolve_terminology_entry_profile(terminology_entry):
     name = LOGICAL_MODEL_TO_PROFILE.get(to_upper_camel_case(terminology_entry.display)) \
         if to_upper_camel_case(terminology_entry.display) in LOGICAL_MODEL_TO_PROFILE else to_upper_camel_case(
         terminology_entry.display)
-    print(name)
     found = False
+    if "Resuscitation" in name:
+        print(name)
     for filename in os.listdir("%s" % GECCO_DATA_SET):
         if name in filename and filename.startswith("Profile"):
             found = True
@@ -184,7 +199,7 @@ def resolve_terminology_entry_profile(terminology_entry):
                 elif profile_data["type"] == "Immunization":
                     translate_immunization(profile_data, terminology_entry)
                 elif profile_data["type"] == "Consent":
-                    pass
+                    translate_consent(profile_data, terminology_entry)
                 elif profile_data["type"] == "DiagnosticReport":
                     translate_diagnostic_report(profile_data, terminology_entry)
                 elif profile_data["type"] == "MedicationStatement":
@@ -200,7 +215,7 @@ def resolve_terminology_entry_profile(terminology_entry):
                 elif filename == "Extension-Age.json":
                     pass
     if not found:
-        print(to_upper_camel_case(terminology_entry.display))
+        print(to_upper_camel_case(terminology_entry.display) + "Not found!")
 
 
 # TODO: We only want to use a single coding system. The different coding systems need to be prioratized
@@ -398,10 +413,18 @@ def add_terminology_entry_to_category(element, categories, terminology_type):
             resolve_terminology_entry_profile(terminology_entry)
             terminology_entry.display = get_german_display(element) if get_german_display(element) else element["short"]
             if terminology_type == "Quantity":
+                if terminology_entry.fhirMapperType == "ConceptObservation":
+                    terminology_entry.fhirMapperType = "QuantityObservation"
                 terminology_entry.leaf = True
                 terminology_entry.selectable = True
                 terminology_entry.valueDefinitions.append(get_value_definition(element))
-            category_entry.children.append(terminology_entry)
+            if terminology_entry.display == category_entry.display:
+                # Resolves issue like : -- Symptoms                 --Symptoms
+                #                           -- Symptoms     --->      -- Coughing
+                #                              -- Coughing
+                category_entry.children += terminology_entry.children
+            else:
+                category_entry.children.append(terminology_entry)
 
 
 def get_term_code(element):

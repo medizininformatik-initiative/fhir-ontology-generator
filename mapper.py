@@ -10,7 +10,7 @@ LOGICAL_MODEL_TO_PROFILE = {
     "RespiratoryTherapy": "RespiratoryTherapies",
     "ImmunizationStatus": "Immunization",
     "ResuscitationOrder": "DoNotResuscitateOrder",
-    # TODO: Are there more Values that are only diffentiated by their type
+    # TODO: Are there more Values that are only differentiated by their type
     "ImagingProcedures": "Procedure-Radiology",
     "RadiologicalFindings": "DiagnosticReport-Radiology",
     "BiologicalSex": "SexAssignedAtBirth",
@@ -42,15 +42,16 @@ LOGICAL_MODEL_TO_PROFILE = {
     "NatriureticPeptide.bProhormoneN-terminal": "ObservationLab",
     "Fibrinogen": "ObservationLab",
     "Sars-cov-2-rt-pcr": "SARS-CoV-2-RT-PCR",
-    # TODO: How to map these?
-    #"Sars-cov-2(covid-19)IggIaQl": "",
-    #"Sars-cov-2(covid-19)IggIaQn": "",
-    #"Sars-cov-2(covid-19)IgmIaQl": "",
-    #"Sars-cov-2(covid-19)IgmIaQn": "",
-    #"Sars-cov-2(covid-19)IgaIaQl": "",
-    #"Sars-cov-2(covid-19)IgaIaQn": "",
-    #"Sars-cov-2(covid-19)AbIaQl": "",
-    #"Sars-cov-2(covid-19)AbIaQn": "",
+    # TODO: How to map these? DOUBLE CHECK!!!
+    "Sars-cov-2(covid-19)IggIaQl": "SarsCoV2IgGSerPlQlIA",
+    "Sars-cov-2(covid-19)IggIaQn": "SarsCoV2IgGSerPlIAaCnc",
+    "Sars-cov-2(covid-19)IgmIaQl": "SarsCoV2IgMSerPlQlIA",
+    "Sars-cov-2(covid-19)IgmIaQn": "SarsCoV2IgMSerPlIAaCnc",
+    "Sars-cov-2(covid-19)IgaIaQl": "SarsCoV2IgASerPlQlIA",
+    "Sars-cov-2(covid-19)IgaIaQn": "SarsCoV2IgASerPlIAaCnc",
+    # Typo in GECCO lowercase v in Cov!
+    "Sars-cov-2(covid-19)AbIaQl": "SarsCov2AbSerPlQlIA",
+    "Sars-cov-2(covid-19)AbIaQn": "SarsCoV2AbSerPlIAaCnc",
     "Covid-19Therapy": "PharmacologicalTherapy",
     "AceInhibitors": "PharmacologicalTherapyACEInhibitors",
     "Anticoagulation": "PharmacologicalTherapyAnticoagulants",
