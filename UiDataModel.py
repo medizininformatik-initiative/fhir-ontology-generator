@@ -82,11 +82,15 @@ class Unit:
 
 
 class TerminologyEntry(object):
-    DO_NOT_SERIALIZE = ["terminologyType", "path", "DO_NOT_SERIALIZE", "fhirMapperType"]
+    DO_NOT_SERIALIZE = ["terminologyType", "path", "DO_NOT_SERIALIZE", "fhirMapperType", "termCodes"]
 
-    def __init__(self, term_code, terminology_type, leaf=False, selectable=True):
+    def __init__(self, term_codes, terminology_type, leaf=False, selectable=True):
         self.id = str(uuid.uuid4())
-        self.termCode = term_code
+        self.termCodes = term_codes
+        self.termCode = term_codes[0]
+        for code in self.termCodes:
+            if code.system == "http://snomed.info/sct":
+                self.termCode = code
         self.terminologyType = terminology_type
         self.path = None
         self.children = []

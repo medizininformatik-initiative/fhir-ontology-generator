@@ -16,7 +16,7 @@ GECCO_DATA_SET = "geccoDataSet/de.gecco#1.0.3/package"
     Radiological findings has a ValueSet that is not expandable
     Severity is handled within Symptoms
 """
-IGNORE_LIST = ["Date of birth",  "Resuscitation order", "RespiratoryOutcome",
+IGNORE_LIST = ["Date of birth", "Resuscitation order", "RespiratoryOutcome",
                "Radiological findings", "Severity"]
 
 IGNORE_CATEGORIES = []
@@ -121,8 +121,28 @@ def translate_observation(profile_data, terminology_entry):
                     terminology_entry.leaf = True
                     terminology_entry.selectable = True
                     break
+    # TODO: Check if redundant!
+    if terminology_entry.fhirMapperType == "ConceptObservation":
+        terminology_entry.fhirMapperType = "QuantityObservation"
     if not is_concept_value:
         terminology_entry.fhirMapperType = "QuantityObservation"
+    if terminology_entry.terminologyType == "Quantity":
+        terminology_entry.leaf = True
+        terminology_entry.selectable = True
+
+
+def translate_laboratory_values(_profile_data, terminology_entry: TerminologyEntry):
+    if terminology_entry.terminologyType == "Quantity":
+        for code in terminology_entry.termCodes:
+            entry = TerminologyEntry([code], terminology_entry.terminologyType)
+            entry.leaf = True
+            entry.selectable = True
+            entry.fhirMapperType = "QuantityObservation"
+            entry.valueDefinitions = terminology_entry.valueDefinitions
+            terminology_entry.children.append(entry)
+        terminology_entry.fhirMapperType = "QuantityObservation"
+        terminology_entry.selectable = False
+        terminology_entry.leaf = False
 
 
 def translate_procedure(_profile_data, terminology_entry):
@@ -191,7 +211,11 @@ def resolve_terminology_entry_profile(terminology_entry):
                     else:
                         translate_condition(profile_data, terminology_entry)
                 elif profile_data["type"] == "Observation":
-                    translate_observation(profile_data, terminology_entry)
+                    # Corner case
+                    if name == "ObservationLab":
+                        translate_laboratory_values(profile_data, terminology_entry)
+                    else:
+                        translate_observation(profile_data, terminology_entry)
                 elif profile_data["type"] == "date":
                     pass
                 elif profile_data["type"] == "Procedure":
@@ -239,7 +263,7 @@ def get_termentries_from_onto_server(canonical_address_value_set):
             if version in contains:
                 version = contains["version"]
             term_code = TermCode(system, code, display, version)
-            terminology_entry = TerminologyEntry(term_code, "CodeableConcept", leaf=True, selectable=True)
+            terminology_entry = TerminologyEntry([term_code], "CodeableConcept", leaf=True, selectable=True)
             if system == "http://fhir.de/CodeSystem/dimdi/icd-10-gm":
                 icd10_result.append(term_code)
             elif system == "http://snomed.info/sct":
@@ -309,13 +333,13 @@ def get_groups_categories_subcategories(termcodes):
 
     for termcode in termcodes:
         if re.match("[A-Z][0-9][0-9]-[A-Z][0-9][0-9]$", termcode.code):
-            groups.add(TerminologyEntry(termcode, "CodeableConcept", leaf=True))
+            groups.add(TerminologyEntry([termcode], "CodeableConcept", leaf=True))
         elif re.match("[A-Z][0-9][0-9]$", termcode.code):
-            categories.add(TerminologyEntry(termcode, "CodeableConcept", leaf=True))
+            categories.add(TerminologyEntry([termcode], "CodeableConcept", leaf=True))
         elif re.match("[A-Z][0-9][0-9]\\.[0-9]$", termcode.code):
-            subcategories_three_digit.add(TerminologyEntry(termcode, "CodeableConcept", leaf=True))
+            subcategories_three_digit.add(TerminologyEntry([termcode], "CodeableConcept", leaf=True))
         elif re.match("[A-Z][0-9][0-9]\\.[0-9][0-9]$", termcode.code):
-            terminology_entry = TerminologyEntry(termcode, "CodeableConcept", leaf=True)
+            terminology_entry = TerminologyEntry([termcode], "CodeableConcept", leaf=True)
             subcategories_four_digit.add(terminology_entry)
     return groups, categories, subcategories_three_digit, subcategories_four_digit
 
@@ -334,6 +358,7 @@ def add_category_entries_to_groups_or_result(groups, categories, result):
             result.append(category_entry)
 
 
+# Deprecated
 def to_reduced_icd_tree(termcodes):
     groups, categories, subcategories_three_digit, subcategories_four_digit = \
         get_groups_categories_subcategories(termcodes)
@@ -358,7 +383,6 @@ def to_reduced_icd_tree(termcodes):
     return result
 
 
-# TODO: REFACTOR OR DETAILED DESCRIPTION!
 def to_icd_tree(termcodes):
     groups, categories, subcategories_three_digit, subcategories_four_digit = \
         get_groups_categories_subcategories(termcodes)
@@ -404,20 +428,17 @@ def add_subcategories_three_digit_to_category_or_result(subcategories_three_digi
 def add_terminology_entry_to_category(element, categories, terminology_type):
     for category_entry in categories:
         if category_entry.path in element["base"]["path"]:
-            terminology_entry = TerminologyEntry(get_term_code(element), terminology_type)
+            terminology_entry = TerminologyEntry(get_term_codes(element), terminology_type)
             # We use the english display to resolve after we switch to german.
             terminology_entry.display = element["short"]
             if terminology_entry.display in IGNORE_LIST:
                 continue
             # TODO: Refactor don't do this here?!
-            resolve_terminology_entry_profile(terminology_entry)
-            terminology_entry.display = get_german_display(element) if get_german_display(element) else element["short"]
-            if terminology_type == "Quantity":
-                if terminology_entry.fhirMapperType == "ConceptObservation":
-                    terminology_entry.fhirMapperType = "QuantityObservation"
-                terminology_entry.leaf = True
-                terminology_entry.selectable = True
+            if terminology_entry.terminologyType == "Quantity":
                 terminology_entry.valueDefinitions.append(get_value_definition(element))
+            resolve_terminology_entry_profile(terminology_entry)
+
+            terminology_entry.display = get_german_display(element) if get_german_display(element) else element["short"]
             if terminology_entry.display == category_entry.display:
                 # Resolves issue like : -- Symptoms                 --Symptoms
                 #                           -- Symptoms     --->      -- Coughing
@@ -427,20 +448,15 @@ def add_terminology_entry_to_category(element, categories, terminology_type):
                 category_entry.children.append(terminology_entry)
 
 
-def get_term_code(element):
+def get_term_codes(element):
     term_codes = []
     if "code" in element:
         for code in element["code"]:
             term_codes.append(TermCode(code["system"], code["code"], code["display"],
                                        code["version"] if "version" in code else None))
-    term_code = term_codes[0] if term_codes else None
-    for term_code_entry in term_codes:
-        if term_code_entry.system == "http://snomed.info/sct":
-            term_code = term_code_entry
-            break
-    if not term_code:
-        term_code = TermCode("num.codex", element["short"], element["short"])
-    return term_code
+    if not term_codes:
+        term_codes.append(TermCode("num.codex", element["short"], element["short"]))
+    return term_codes
 
 
 def get_value_definition(element):
@@ -491,7 +507,7 @@ def get_categories():
 
 
 def create_category_terminology_entry(category_entry):
-    term_code = TermCode("num.codex", category_entry.display, category_entry.display)
+    term_code = [TermCode("num.codex", category_entry.display, category_entry.display)]
     result = TerminologyEntry(term_code, "Category", selectable=False)
     result.display = category_entry.display
     result.path = category_entry.path

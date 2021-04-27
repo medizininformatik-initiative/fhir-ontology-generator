@@ -43,7 +43,7 @@ def download_gecco_profile():
 
 if __name__ == '__main__':
     download_gecco_profile()
-    othersTermCode = TermCode("num.codex", "Andere", "Andere")
+    othersTermCode = [TermCode("num.codex", "Andere", "Andere")]
     others = TerminologyEntry(othersTermCode, "CategoryEntry", selectable=False)
     others.display = "Andere"
     category_entries = create_terminology_definition_for(get_categories())
