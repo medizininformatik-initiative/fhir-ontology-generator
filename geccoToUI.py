@@ -122,11 +122,11 @@ def translate_observation(profile_data, terminology_entry):
                     terminology_entry.selectable = True
                     break
     # TODO: Check if redundant!
-    if terminology_entry.fhirMapperType == "ConceptObservation":
-        terminology_entry.fhirMapperType = "QuantityObservation"
     if not is_concept_value:
         terminology_entry.fhirMapperType = "QuantityObservation"
     if terminology_entry.terminologyType == "Quantity":
+        if terminology_entry.fhirMapperType == "ConceptObservation":
+            terminology_entry.fhirMapperType = "QuantityObservation"
         terminology_entry.leaf = True
         terminology_entry.selectable = True
 
