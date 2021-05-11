@@ -1,8 +1,8 @@
 import os
 import requests
-import re
+import csv
 from UiDataModel import *
-from mapper import LOGICAL_MODEL_TO_PROFILE
+from LogicalModelToProfile import LOGICAL_MODEL_TO_PROFILE
 
 GECCO_DATA_SET = "geccoDataSet/de.gecco#1.0.3/package"
 
@@ -16,6 +16,7 @@ GECCO_DATA_SET = "geccoDataSet/de.gecco#1.0.3/package"
     Radiological findings has a ValueSet that is not expandable
     Severity is handled within Symptoms
 """
+
 IGNORE_LIST = ["Date of birth", "Resuscitation order", "RespiratoryOutcome",
                "Radiological findings", "Severity"]
 
@@ -36,6 +37,56 @@ def to_upper_camel_case(string):
     for substring in string.split(" "):
         result += substring.capitalize()
     return result
+
+
+def resolve_terminology_entry_profile(terminology_entry):
+    name = LOGICAL_MODEL_TO_PROFILE.get(to_upper_camel_case(terminology_entry.display)) \
+        if to_upper_camel_case(terminology_entry.display) in LOGICAL_MODEL_TO_PROFILE else to_upper_camel_case(
+        terminology_entry.display)
+    found = False
+    for filename in os.listdir("%s" % GECCO_DATA_SET):
+        if name in filename and filename.startswith("Profile"):
+            found = True
+            with open(GECCO_DATA_SET + "/" + filename) as profile_file:
+                profile_data = json.load(profile_file)
+                if profile_data["type"] == "Condition":
+                    # Corner case
+                    if profile_data["name"] == "SymptomsCovid19":
+                        translate_symptom(profile_data, terminology_entry)
+                    else:
+                        translate_condition(profile_data, terminology_entry)
+                elif profile_data["type"] == "Observation":
+                    # Corner case
+                    if name == "ObservationLab":
+                        translate_laboratory_values(profile_data, terminology_entry)
+                    elif name == "BloodPressure":
+                        translate_blood_pressure(profile_data, terminology_entry)
+                    else:
+                        translate_observation(profile_data, terminology_entry)
+                elif profile_data["type"] == "date":
+                    pass
+                elif profile_data["type"] == "Procedure":
+                    translate_procedure(profile_data, terminology_entry)
+                elif profile_data["type"] == "Immunization":
+                    translate_immunization(profile_data, terminology_entry)
+                elif profile_data["type"] == "Consent":
+                    translate_consent(profile_data, terminology_entry)
+                elif profile_data["type"] == "DiagnosticReport":
+                    translate_diagnostic_report(profile_data, terminology_entry)
+                elif profile_data["type"] == "MedicationStatement":
+                    translate_medication_statement(profile_data, terminology_entry)
+                else:
+                    raise UnknownHandlingException(profile_data["type"])
+        elif name in filename and filename.startswith("Extension"):  #
+            found = True
+            with open(GECCO_DATA_SET + "/" + filename) as profile_file:
+                profile_data = json.load(profile_file)
+                if filename == "Extension-EthnicGroup.json":
+                    translate_ethnic_group(profile_data, terminology_entry)
+                elif filename == "Extension-Age.json":
+                    pass
+    if not found:
+        print(to_upper_camel_case(terminology_entry.display) + "Not found!")
 
 
 def translate_condition(profile_data, terminology_entry):
@@ -67,6 +118,7 @@ def translate_symptom(profile_data, terminology_entry):
                 value_set = element["binding"]["valueSet"]
                 children = get_termentries_from_onto_server(value_set)
                 for child in children:
+                    child.fhirMapperType = "Symptom"
                     value_definition = ValueDefinition("concept")
                     value_definition.selectableConcepts += get_termcodes_from_onto_server(severity_vs)
                     child.valueDefinitions.append(value_definition)
@@ -124,6 +176,7 @@ def translate_observation(profile_data, terminology_entry):
     # TODO: Check if redundant!
     if not is_concept_value:
         terminology_entry.fhirMapperType = "QuantityObservation"
+        terminology_entry.terminologyType = "Quantity"
     if terminology_entry.terminologyType == "Quantity":
         if terminology_entry.fhirMapperType == "ConceptObservation":
             terminology_entry.fhirMapperType = "QuantityObservation"
@@ -188,58 +241,12 @@ def translate_diagnostic_report(profile_data, terminology_entry):
             break
 
 
-def translate_consent(profile_data, terminology_entry):
+def translate_consent(_profile_data, _terminology_entry):
     pass
 
 
-def resolve_terminology_entry_profile(terminology_entry):
-    name = LOGICAL_MODEL_TO_PROFILE.get(to_upper_camel_case(terminology_entry.display)) \
-        if to_upper_camel_case(terminology_entry.display) in LOGICAL_MODEL_TO_PROFILE else to_upper_camel_case(
-        terminology_entry.display)
-    found = False
-    if "Resuscitation" in name:
-        print(name)
-    for filename in os.listdir("%s" % GECCO_DATA_SET):
-        if name in filename and filename.startswith("Profile"):
-            found = True
-            with open(GECCO_DATA_SET + "/" + filename) as profile_file:
-                profile_data = json.load(profile_file)
-                if profile_data["type"] == "Condition":
-                    # Corner case
-                    if profile_data["name"] == "SymptomsCovid19":
-                        translate_symptom(profile_data, terminology_entry)
-                    else:
-                        translate_condition(profile_data, terminology_entry)
-                elif profile_data["type"] == "Observation":
-                    # Corner case
-                    if name == "ObservationLab":
-                        translate_laboratory_values(profile_data, terminology_entry)
-                    else:
-                        translate_observation(profile_data, terminology_entry)
-                elif profile_data["type"] == "date":
-                    pass
-                elif profile_data["type"] == "Procedure":
-                    translate_procedure(profile_data, terminology_entry)
-                elif profile_data["type"] == "Immunization":
-                    translate_immunization(profile_data, terminology_entry)
-                elif profile_data["type"] == "Consent":
-                    translate_consent(profile_data, terminology_entry)
-                elif profile_data["type"] == "DiagnosticReport":
-                    translate_diagnostic_report(profile_data, terminology_entry)
-                elif profile_data["type"] == "MedicationStatement":
-                    translate_medication_statement(profile_data, terminology_entry)
-                else:
-                    raise UnknownHandlingException(profile_data["type"])
-        elif name in filename and filename.startswith("Extension"):  #
-            found = True
-            with open(GECCO_DATA_SET + "/" + filename) as profile_file:
-                profile_data = json.load(profile_file)
-                if filename == "Extension-EthnicGroup.json":
-                    translate_ethnic_group(profile_data, terminology_entry)
-                elif filename == "Extension-Age.json":
-                    pass
-    if not found:
-        print(to_upper_camel_case(terminology_entry.display) + "Not found!")
+def translate_blood_pressure(_profile_data, _terminology_entry):
+    pass
 
 
 # TODO: We only want to use a single coding system. The different coding systems need to be prioratized
@@ -260,7 +267,7 @@ def get_termentries_from_onto_server(canonical_address_value_set):
             code = contains["code"]
             display = contains["display"]
             version = None
-            if version in contains:
+            if "version" in contains:
                 version = contains["version"]
             term_code = TermCode(system, code, display, version)
             terminology_entry = TerminologyEntry([term_code], "CodeableConcept", leaf=True, selectable=True)
@@ -278,6 +285,7 @@ def get_termentries_from_onto_server(canonical_address_value_set):
         print(canonical_address_value_set)
         # TODO better Exception
         raise (Exception("HTTP Error"))
+    # Order matters here!
     if icd10_result:
         return to_icd_tree(icd10_result)
     elif result:
@@ -346,16 +354,20 @@ def get_groups_categories_subcategories(termcodes):
 
 def add_category_entries_to_groups_or_result(groups, categories, result):
     for category_entry in sorted(categories):
-        parent_found = False
-        for group_entry in groups:
-            if int(group_entry.termCode.code[-2:]) >= int(category_entry.termCode.code[1:]) >= int(
-                    group_entry.termCode.code[1:2]) and \
-                    category_entry.termCode.code[0] == group_entry.termCode.code[0]:
-                group_entry.children.append(category_entry)
-                group_entry.leaf = False
-                parent_found = True
-        if not parent_found:
+        if group_entry := get_parent_group(category_entry, groups):
+            group_entry.children.append(category_entry)
+            group_entry.leaf = False
+        else:
             result.append(category_entry)
+
+
+def get_parent_group(category_entry, groups):
+    for group_entry in sorted(groups, key=lambda x: get_range_size(x)):
+        if int(group_entry.termCode.code[-2:]) >= int(category_entry.termCode.code[1:]) >= int(
+                group_entry.termCode.code[1:3]) and \
+                category_entry.termCode.code[0] == group_entry.termCode.code[0]:
+            return group_entry
+    return None
 
 
 # Deprecated
@@ -395,9 +407,45 @@ def to_icd_tree(termcodes):
 
     add_category_entries_to_groups_or_result(groups, categories, result)
 
+    groups = structure_groups_to_tree(groups)
+
     result += sorted(groups)
 
     return result
+
+
+def get_range_size(terminology_entry):
+    if terminology_entry:
+        return int(terminology_entry.termCode.code[-2:]) - int(terminology_entry.termCode.code[1:3])
+    else:
+        return 10000
+
+
+def structure_groups_to_tree(groups):
+    def within_range_of(terminology_entry, other_terminology_entry):
+        if terminology_entry.termCode.code == other_terminology_entry.termCode.code:
+            return False
+        return ((int(other_terminology_entry.termCode.code[1:3]) <= int(terminology_entry.termCode.code[1:3]) <=
+                 int(other_terminology_entry.termCode.code[-2:])) and
+                (int(other_terminology_entry.termCode.code[1:3]) <= int(terminology_entry.termCode.code[-2:]) <=
+                 int(other_terminology_entry.termCode.code[-2:])))
+
+    groups_list = list(groups)
+    groups_list.sort(key=lambda x: get_range_size(x))
+    to_be_removed_groups = set()
+    for group_entry in groups_list:
+        parent_group = None
+        for other_group_entry in groups_list:
+            if within_range_of(group_entry, other_group_entry) and get_range_size(other_group_entry) < \
+                    get_range_size(parent_group):
+                parent_group = other_group_entry
+        if parent_group:
+            parent_group.children.append(group_entry)
+            parent_group.children.sort()
+            parent_group.leaf = False
+            to_be_removed_groups.add(group_entry)
+    groups = groups - to_be_removed_groups
+    return groups
 
 
 def add_subcategories_four_digit_to_subcategories_three_digit_or_result(subcategories_four_digit,
@@ -425,6 +473,7 @@ def add_subcategories_three_digit_to_category_or_result(subcategories_three_digi
             result.append(subcategory_three_digit_entry)
 
 
+# element from Logical Model
 def add_terminology_entry_to_category(element, categories, terminology_type):
     for category_entry in categories:
         if category_entry.path in element["base"]["path"]:
@@ -434,10 +483,9 @@ def add_terminology_entry_to_category(element, categories, terminology_type):
             if terminology_entry.display in IGNORE_LIST:
                 continue
             # TODO: Refactor don't do this here?!
+            resolve_terminology_entry_profile(terminology_entry)
             if terminology_entry.terminologyType == "Quantity":
                 terminology_entry.valueDefinitions.append(get_value_definition(element))
-            resolve_terminology_entry_profile(terminology_entry)
-
             terminology_entry.display = get_german_display(element) if get_german_display(element) else element["short"]
             if terminology_entry.display == category_entry.display:
                 # Resolves issue like : -- Symptoms                 --Symptoms
@@ -533,3 +581,19 @@ def create_terminology_definition_for(categories):
                 else:
                     raise Exception(f"Unknown element {element['type'][0]['code']}")
     return category_terminology_entries
+
+
+def get_specimen():
+    specimen_term_code = TermCode("num.codex", "Proben", "Proben")
+    specimen_category_entry = TerminologyEntry([specimen_term_code], "Category", selectable=False, leaf=False)
+    specimen_category_entry.fhirMapperType = "Specimen"
+
+    with open('NAPKON_Typen_SCT_CODEX.CSV', mode='r') as csv_file:
+        csv_reader = csv.DictReader(csv_file, delimiter=";")
+        for row in csv_reader:
+            term_code = TermCode(row["System"], row["Code"], row["Display"])
+            specimen_child = TerminologyEntry([term_code], "CodeableConcept", selectable=True, leaf=True)
+            specimen_child.fhirMapperType = "Specimen"
+            specimen_child.display = row["guiDisplay"]
+            specimen_category_entry.children.append(specimen_child)
+    return specimen_category_entry

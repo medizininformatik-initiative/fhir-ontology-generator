@@ -138,6 +138,16 @@ class DiagnosticReportMapEntry(MapEntry):
         self.fixedCriteria = []
 
 
+class SpecimenMapEntry(MapEntry):
+    def __init__(self, term_code):
+        super().__init__(term_code)
+        self.termCodeSearchParameter = "type"
+        self.fhirResourceType = "Specimen"
+        self.valueSearchParameter = None
+        available = TermCode("http://hl7.org/fhir/ValueSet/specimen-status", "available", "Available")
+        self.fixedCriteria = [FixedCriteria("code", "status", "status", [available])]
+
+
 def generate_child_entries(children, class_name):
     result = set()
     for child in children:
@@ -157,7 +167,7 @@ def generate_map(categories):
             else:
                 pass
                 # TODO: Once Age and Ethnic Group are handled throw here
-                # print(terminology)
+                print(terminology)
     return result
 
 

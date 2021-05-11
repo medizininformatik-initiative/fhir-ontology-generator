@@ -27,6 +27,7 @@ class TermCodeNode:
     def get_term_codes(terminology_entry: TerminologyEntry):
         result = []
         for child in terminology_entry.children:
+            # FIXME Double check if this is necessary
             for valueDefinition in child.valueDefinitions:
                 for selectableConcept in valueDefinition.selectableConcepts:
                     if selectableConcept not in term_codes_in_tree:

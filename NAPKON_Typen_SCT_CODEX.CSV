@@ -1,0 +1,14 @@
+guiDisplay;Code;Display;System
+Blut;119297000;Blood specimen (specimen)|;http://snomed.info/sct
+Serum;119364003;Serum specimen (specimen);http://snomed.info/sct
+Buffy coat;258587000;Buffy coat (specimen);http://snomed.info/sct
+Plasma;119361006;Plasma specimen (specimen);http://snomed.info/sct
+EDTA-Plasma;708049000;Plasma specimen with ethylenediamine tetraacetic acid (specimen);http://snomed.info/sct
+Citrat-Plasma;708048008;Plasma specimen with citrate (specimen);http://snomed.info/sct
+PBMCs;404798000;Peripheral blood mononuclear cell (cell);http://snomed.info/sct
+Nasen/Rachen-Abstrich;472881004;Swab from pharynx (specimen);http://snomed.info/sct
+Urin (Überstand);122575003;Urine specimen (specimen);http://snomed.info/sct
+Urin (Sediment);122567009;Urine sediment specimen (specimen);http://snomed.info/sct
+Endotrachealsekret;119307008;Specimen from endotracheal tube (specimen);http://snomed.info/sct
+Bronchoalveolar lavage;258607008;Bronchoalveolar lavage fluid sample (specimen);http://snomed.info/sct
+Saliva;119342007;Saliva specimen (specimen);http://snomed.info/sct

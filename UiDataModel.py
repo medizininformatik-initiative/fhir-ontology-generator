@@ -1,4 +1,5 @@
 import json
+import re
 import uuid
 
 
@@ -115,7 +116,10 @@ class TerminologyEntry(object):
 def prune_terminology_tree(tree_node, max_depth):
     if max_depth != 0:
         for child in tree_node.children:
-            prune_terminology_tree(child, max_depth-1)
+            if re.match("[A-Z][0-9][0-9]-[A-Z][0-9][0-9]$", child.termCode.code):
+                prune_terminology_tree(child, max_depth)
+            else:
+                prune_terminology_tree(child, max_depth-1)
     else:
         tree_node.children = []
         tree_node.leaf = True

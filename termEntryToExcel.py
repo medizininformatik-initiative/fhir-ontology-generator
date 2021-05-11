@@ -28,7 +28,7 @@ def get_terminology_entry_row(terminology_entry: TerminologyEntry):
     return result
 
 
-def to_excel(category_list):
+def to_csv(category_list):
     def add_terminology_entry(terminology_entry: TerminologyEntry):
         sheet.writerow(get_terminology_entry_row(terminology_entry))
         for child in terminology_entry.children:
