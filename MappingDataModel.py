@@ -148,6 +148,42 @@ class SpecimenMapEntry(MapEntry):
         self.fixedCriteria = [FixedCriteria("code", "status", "status", [available])]
 
 
+class EthnicGroupMapEntry(MapEntry):
+    def __init__(self, term_code):
+        super().__init__(term_code)
+        self.valueSearchParameter = "gecco-ethnicGroup"
+        self.fhirResourceType = "Patient"
+
+
+class AgeMapEntry(MapEntry):
+    def __init__(self, term_code):
+        super().__init__(term_code)
+        self.valueSearchParameter = "gecco-age"
+        self.fhirResourceType = "Patient"
+
+
+class BloodPressureMapEntry(MapEntry):
+    def __init__(self, term_code):
+        super().__init__(term_code)
+        self.termCodeSearchParameter = "component-code"
+        self.valueSearchParameter = "component-value-quantity"
+        self.fhirResourceType = "Observation"
+        blood_pressure_loinc = TermCode("http://loinc.org", "85354-9",
+                                        "Blood pressure panel with all children optional")
+        blood_pressure_snomed = TermCode("http://snomed.info/sct", "75367002", "Blood pressure (observable entity)")
+        self.fixedCriteria = [FixedCriteria("code", "code", "code", [blood_pressure_loinc, blood_pressure_snomed])]
+
+
+class HistoryOfTravelMapEntry(MapEntry):
+    def __init__(self, term_code):
+        super().__init__(term_code)
+        self.termCodeSearchParameter = "code"
+        self.valueSearchParameter = "component-value-concept"
+        self.fhirResourceType = "Observation"
+        country_of_travel = TermCode("http://loinc.org", "94651-7", "Country of travel")
+        self.fixedCriteria = [FixedCriteria("code", "component-code", "component-code", [country_of_travel])]
+
+
 def generate_child_entries(children, class_name):
     result = set()
     for child in children:

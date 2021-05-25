@@ -61,6 +61,8 @@ def resolve_terminology_entry_profile(terminology_entry):
                         translate_laboratory_values(profile_data, terminology_entry)
                     elif name == "BloodPressure":
                         translate_blood_pressure(profile_data, terminology_entry)
+                    elif name == "HistoryOfTravel":
+                        translate_history_of_travel(profile_data, terminology_entry)
                     else:
                         translate_observation(profile_data, terminology_entry)
                 elif profile_data["type"] == "date":
@@ -84,7 +86,7 @@ def resolve_terminology_entry_profile(terminology_entry):
                 if filename == "Extension-EthnicGroup.json":
                     translate_ethnic_group(profile_data, terminology_entry)
                 elif filename == "Extension-Age.json":
-                    pass
+                    translate_age(profile_data, terminology_entry)
     if not found:
         print(to_upper_camel_case(terminology_entry.display) + "Not found!")
 
@@ -222,6 +224,7 @@ def translate_immunization(profile_data, terminology_entry):
 
 
 def translate_ethnic_group(profile_data, terminology_entry):
+    terminology_entry.fhirMapperType = "EthnicGroup"
     for element in profile_data["differential"]["element"]:
         if element["path"] == "Extension.value[x]":
             if "binding" in element:
@@ -232,6 +235,13 @@ def translate_ethnic_group(profile_data, terminology_entry):
                 terminology_entry.leaf = True
                 terminology_entry.selectable = True
                 break
+
+
+def translate_age(_profile_data, terminology_entry):
+    terminology_entry.fhirMapperType = "Age"
+    terminology_entry.fhirMapperType = "QuantityObservation"
+    terminology_entry.selectable = True
+    terminology_entry.leaf = True
 
 
 def translate_diagnostic_report(profile_data, terminology_entry):
@@ -251,9 +261,26 @@ def translate_consent(_profile_data, _terminology_entry):
     pass
 
 
-def translate_blood_pressure(_profile_data, _terminology_entry):
-    pass
+def translate_blood_pressure(_profile_data, terminology_entry):
+    terminology_entry.fhirMapperType = "BloodPressure"
+    terminology_entry.selectable = True
+    terminology_entry.leaf = True
 
+
+def translate_history_of_travel(profile_data, terminology_entry):
+    terminology_entry.fhirMapperType = "HistoryOfTravel"
+    terminology_entry.selectable = True
+    terminology_entry.leaf = True
+    for element in profile_data["differential"]["element"]:
+        if element["id"] == "Observation.component:Country.value[x]":
+            if "binding" in element:
+                value_set = element["binding"]["valueSet"]
+                value_definition = ValueDefinition("concept")
+                value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
+                terminology_entry.valueDefinitions.append(value_definition)
+                terminology_entry.leaf = True
+                terminology_entry.selectable = True
+                break
 
 # TODO: We only want to use a single coding system. The different coding systems need to be prioratized
 # We do not want to expand is-A relations of snomed or we need a tree structure , but we cant gain the information
