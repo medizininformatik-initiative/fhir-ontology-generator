@@ -134,7 +134,7 @@ class DiagnosticReportMapEntry(MapEntry):
         super().__init__(term_code)
         self.termCodeSearchParameter = "code"
         self.fhirResourceType = "DiagnosticReport"
-        self.valueSearchParameter = None
+        self.valueSearchParameter = "conclusion"
         self.fixedCriteria = []
 
 
@@ -151,14 +151,14 @@ class SpecimenMapEntry(MapEntry):
 class EthnicGroupMapEntry(MapEntry):
     def __init__(self, term_code):
         super().__init__(term_code)
-        self.valueSearchParameter = "gecco-ethnicGroup"
+        self.valueSearchParameter = "codex-ethnicity"
         self.fhirResourceType = "Patient"
 
 
 class AgeMapEntry(MapEntry):
     def __init__(self, term_code):
         super().__init__(term_code)
-        self.valueSearchParameter = "gecco-age"
+        self.valueSearchParameter = "codex-age"
         self.fhirResourceType = "Patient"
 
 
@@ -182,6 +182,14 @@ class HistoryOfTravelMapEntry(MapEntry):
         self.fhirResourceType = "Observation"
         country_of_travel = TermCode("http://loinc.org", "94651-7", "Country of travel")
         self.fixedCriteria = [FixedCriteria("code", "component-code", "component-code", [country_of_travel])]
+
+
+class ResuscitationStatusMapEntry(MapEntry):
+    def __init__(self, term_code):
+        super().__init__(term_code)
+        self.termCodeSearchParameter = "category"
+        self.valueSearchParameter = "mii-consent-code"
+        self.fhirResourceType = "Consent"
 
 
 def generate_child_entries(children, class_name):

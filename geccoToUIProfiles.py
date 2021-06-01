@@ -8,17 +8,14 @@ GECCO_DATA_SET = "geccoDataSet/de.gecco#1.0.3/package"
 
 """
     Date of birth requires date selection in the ui
-    History of travel is very complex
     ResuscitationOrder Consent is not mappable for fhir search
     RespiratoryOutcome needs special handling its a condition but has a value in the verification status:
         Confirmed -> Patient dependent on ventilator 
         Refuted -> Patient not dependent on ventilator 
-    Radiological findings has a ValueSet that is not expandable
     Severity is handled within Symptoms
 """
 
-IGNORE_LIST = ["Date of birth", "Resuscitation order", "RespiratoryOutcome",
-               "Radiological findings", "Severity"]
+IGNORE_LIST = ["Date of birth", "RespiratoryOutcome", "Severity"]
 
 IGNORE_CATEGORIES = []
 
@@ -239,7 +236,6 @@ def translate_ethnic_group(profile_data, terminology_entry):
 
 def translate_age(_profile_data, terminology_entry):
     terminology_entry.fhirMapperType = "Age"
-    terminology_entry.fhirMapperType = "QuantityObservation"
     terminology_entry.selectable = True
     terminology_entry.leaf = True
 
@@ -257,8 +253,18 @@ def translate_diagnostic_report(profile_data, terminology_entry):
             break
 
 
-def translate_consent(_profile_data, _terminology_entry):
-    pass
+def translate_consent(profile_data, terminology_entry):
+    terminology_entry.fhirMapperType = "ResuscitationStatus"
+    terminology_entry.selectable = True
+    terminology_entry.leaf = True
+    for element in profile_data["differential"]["element"]:
+        if element["id"] == "Consent.provision.code":
+            if "binding" in element:
+                value_set = element["binding"]["valueSet"]
+                value_definition = ValueDefinition("concept")
+                value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
+                terminology_entry.valueDefinitions.append(value_definition)
+                break
 
 
 def translate_blood_pressure(_profile_data, terminology_entry):
@@ -281,6 +287,7 @@ def translate_history_of_travel(profile_data, terminology_entry):
                 terminology_entry.leaf = True
                 terminology_entry.selectable = True
                 break
+
 
 # TODO: We only want to use a single coding system. The different coding systems need to be prioratized
 # We do not want to expand is-A relations of snomed or we need a tree structure , but we cant gain the information
@@ -348,7 +355,7 @@ def get_termcodes_from_onto_server(canonical_address_value_set):
             elif system == "http://snomed.info/sct":
                 if "designation" in contains:
                     for designation in contains["designation"]:
-                        if designation["language"] == "de-DE":
+                        if "language" in designation and designation["language"] == "de-DE":
                             term_code.display = designation["value"]
                 snomed_result.append(term_code)
             else:
