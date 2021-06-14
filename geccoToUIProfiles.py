@@ -4,7 +4,7 @@ import csv
 from UiDataModel import *
 from LogicalModelToProfile import LOGICAL_MODEL_TO_PROFILE
 
-GECCO_DATA_SET = "geccoDataSet/de.gecco#1.0.3/package"
+GECCO_DATA_SET = "geccoDataSet/de.gecco#1.0.4/package"
 
 """
     Date of birth requires date selection in the ui
@@ -50,6 +50,9 @@ def resolve_terminology_entry_profile(terminology_entry):
                     # Corner case
                     if profile_data["name"] == "SymptomsCovid19":
                         translate_symptom(profile_data, terminology_entry)
+                    # Corner case
+                    elif profile_data["name"] == "DiagnosisCovid19":
+                        translate_diagnosis_covid_19(profile_data, terminology_entry)
                     else:
                         translate_condition(profile_data, terminology_entry)
                 elif profile_data["type"] == "Observation":
@@ -60,6 +63,11 @@ def resolve_terminology_entry_profile(terminology_entry):
                         translate_blood_pressure(profile_data, terminology_entry)
                     elif name == "HistoryOfTravel":
                         translate_history_of_travel(profile_data, terminology_entry)
+                    elif profile_data["name"] == "PaCO2" or profile_data["name"] == "PaO2" or profile_data[
+                        "name"] == "PH":
+                        translate_gas_panel(profile_data, terminology_entry)
+                    elif name == "SOFA":
+                        translate_sofa(profile_data, terminology_entry)
                     else:
                         translate_observation(profile_data, terminology_entry)
                 elif profile_data["type"] == "date":
@@ -69,7 +77,11 @@ def resolve_terminology_entry_profile(terminology_entry):
                 elif profile_data["type"] == "Immunization":
                     translate_immunization(profile_data, terminology_entry)
                 elif profile_data["type"] == "Consent":
-                    translate_consent(profile_data, terminology_entry)
+                    # Corner case Resuscitation
+                    if profile_data["name"] == "DoNotResuscitateOrder":
+                        translate_resuscitation(profile_data, terminology_entry)
+                    else:
+                        translate_consent(profile_data, terminology_entry)
                 elif profile_data["type"] == "DiagnosticReport":
                     translate_diagnostic_report(profile_data, terminology_entry)
                 elif profile_data["type"] == "MedicationStatement":
@@ -98,11 +110,20 @@ def translate_condition(profile_data, terminology_entry):
                     get_termentries_from_onto_server(value_set))
                 # FIXME: Incorrect break multiple valuesets are allowed but this is currently a work around
                 break
-        elif element["path"] == "Condition.stage.summary.coding":
+
+
+def translate_diagnosis_covid_19(profile_data, terminology_entry):
+    terminology_entry.fhirMapperType = "DiagnosisCovid19"
+    for element in profile_data["differential"]["element"]:
+        parse_term_code(terminology_entry, element, "Condition.code.coding")
+        if element["path"] == "Condition.stage.summary.coding":
             if "binding" in element:
                 value_set = element["binding"]["valueSet"]
-                terminology_entry.children += (
-                    get_termentries_from_onto_server(value_set))
+                value_definition = ValueDefinition("concept")
+                value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
+                terminology_entry.valueDefinitions.append(value_definition)
+                terminology_entry.leaf = True
+                terminology_entry.selectable = True
                 # FIXME: Incorrect break multiple valuesets are allowed but this is currently a work around
                 break
 
@@ -177,10 +198,21 @@ def translate_observation(profile_data, terminology_entry):
         terminology_entry.fhirMapperType = "QuantityObservation"
         terminology_entry.terminologyType = "Quantity"
     if terminology_entry.terminologyType == "Quantity":
-        if terminology_entry.fhirMapperType == "ConceptObservation":
-            terminology_entry.fhirMapperType = "QuantityObservation"
+        terminology_entry.fhirMapperType = "QuantityObservation"
         terminology_entry.leaf = True
         terminology_entry.selectable = True
+
+
+def translate_gas_panel(profile_data, terminology_entry):
+    for element in profile_data["differential"]["element"]:
+        if element["path"] == "Observation.code.coding" and "patternCoding" in element:
+            term_code = TermCode(element["patternCoding"]["system"], element["patternCoding"]["code"],
+                                 element["sliceName"])
+            child = TerminologyEntry([term_code], "Quantity", leaf=True, selectable=True)
+            terminology_entry.children.append(child)
+    terminology_entry.leaf = False
+    terminology_entry.selectable = False
+    terminology_entry.fhirMapperType = "QuantityObservation"
 
 
 def translate_laboratory_values(_profile_data, terminology_entry: TerminologyEntry):
@@ -195,6 +227,15 @@ def translate_laboratory_values(_profile_data, terminology_entry: TerminologyEnt
         terminology_entry.fhirMapperType = "QuantityObservation"
         terminology_entry.selectable = False
         terminology_entry.leaf = False
+
+
+def translate_sofa(profile_data, terminology_entry):
+    for element in profile_data["differential"]["element"]:
+        update_termcode_to_match_pattern_coding(terminology_entry, element)
+    terminology_entry.fhirMapperType = "Sofa"
+    terminology_entry.selectable = True
+    terminology_entry.leaf = True
+    terminology_entry.terminologyType = "Qunatity"
 
 
 def translate_procedure(profile_data, terminology_entry):
@@ -243,6 +284,7 @@ def translate_age(_profile_data, terminology_entry):
 def translate_diagnostic_report(profile_data, terminology_entry):
     terminology_entry.fhirMapperType = "DiagnosticReport"
     for element in profile_data["differential"]["element"]:
+        parse_term_code(terminology_entry, element, "DiagnosticReport.code.coding")
         if element["path"] == "DiagnosticReport.conclusionCode" and "binding" in element:
             value_set = element["binding"]["valueSet"]
             value_definition = ValueDefinition("concept")
@@ -253,7 +295,31 @@ def translate_diagnostic_report(profile_data, terminology_entry):
             break
 
 
+def parse_term_code(terminology_entry, element, path):
+    if element["path"] == path and "patternCoding" in element:
+        if "system" in element["patternCoding"] and "code" in element["patternCoding"]:
+            term_code = TermCode(element["patternCoding"]["system"], element["patternCoding"]["code"],
+                                 terminology_entry.termCode.display)
+            terminology_entry.termCodes.append(term_code)
+            terminology_entry.termCode = term_code
+
+
+# TODO
 def translate_consent(profile_data, terminology_entry):
+    terminology_entry.fhirMapperType = "Consent"
+    terminology_entry.selectable = True
+    terminology_entry.leaf = True
+    for element in profile_data["differential"]["element"]:
+        if element["id"] == "Consent.provision.code":
+            if "binding" in element:
+                value_set = element["binding"]["valueSet"]
+                value_definition = ValueDefinition("concept")
+                value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
+                terminology_entry.valueDefinitions.append(value_definition)
+                break
+
+
+def translate_resuscitation(profile_data, terminology_entry):
     terminology_entry.fhirMapperType = "ResuscitationStatus"
     terminology_entry.selectable = True
     terminology_entry.leaf = True
@@ -361,6 +427,7 @@ def get_termcodes_from_onto_server(canonical_address_value_set):
             else:
                 result.append(term_code)
     else:
+        print(canonical_address_value_set)
         return []
     # TODO: Workaround
     if result and result[0].display == "Hispanic or Latino":
@@ -526,6 +593,9 @@ def add_terminology_entry_to_category(element, categories, terminology_type):
             resolve_terminology_entry_profile(terminology_entry)
             if terminology_entry.terminologyType == "Quantity":
                 terminology_entry.valueDefinitions.append(get_value_definition(element))
+                # FIXME: This is only a quick workaround for GasPanel values.
+                for child in terminology_entry.children:
+                    child.valueDefinitions.append(get_value_definition(element))
             terminology_entry.display = get_german_display(element) if get_german_display(element) else element["short"]
             if terminology_entry.display == category_entry.display:
                 # Resolves issue like : -- Symptoms                 --Symptoms
@@ -577,7 +647,7 @@ def get_categories():
     with open(f"{GECCO_DATA_SET}/StructureDefinition-LogicalModel-GECCO.json", encoding="utf-8") as json_file:
         categories = []
         data = json.load(json_file)
-        for element in data["snapshot"]["element"]:
+        for element in data["differential"]["element"]:
             try:
                 # ignore Gecco base element:
                 if element["base"]["path"] == "forschungsdatensatz_gecco.gecco":
@@ -608,7 +678,7 @@ def create_terminology_definition_for(categories):
         category_terminology_entries.append(create_category_terminology_entry(category_entry))
     with open(f"{GECCO_DATA_SET}/StructureDefinition-LogicalModel-GECCO.json", encoding="utf-8") as json_file:
         data = json.load(json_file)
-        for element in data["snapshot"]["element"]:
+        for element in data["differential"]["element"]:
             if "type" in element:
                 if element["type"][0]["code"] == "BackboneElement":
                     continue

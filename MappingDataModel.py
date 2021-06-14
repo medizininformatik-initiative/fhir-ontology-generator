@@ -62,6 +62,7 @@ class QuantityObservationMapEntry(MapEntry):
         super().__init__(term_code)
         self.termCodeSearchParameter = "code"
         self.valueSearchParameter = "value-quantity"
+        self.valueFhirPath = "valueQuantity"
         self.fhirResourceType = "Observation"
         self.fixedCriteria = []
 
@@ -71,6 +72,7 @@ class ConceptObservationMapEntry(MapEntry):
         super().__init__(term_code)
         self.termCodeSearchParameter = "code"
         self.valueSearchParameter = "value-concept"
+        self.valueFhirPath = "valueConcept"
         self.fhirResourceType = "Observation"
         self.fixedCriteria = []
 
@@ -135,6 +137,17 @@ class DiagnosticReportMapEntry(MapEntry):
         self.termCodeSearchParameter = "code"
         self.fhirResourceType = "DiagnosticReport"
         self.valueSearchParameter = "conclusion"
+        self.valueFhirPath = "conclusion"
+        self.fixedCriteria = []
+
+
+class DiagnosisCovid19MapEntry(MapEntry):
+    def __init__(self, term_code):
+        super().__init__(term_code)
+        self.termCodeSearchParameter = "code"
+        self.fhirResourceType = "Condition"
+        self.valueSearchParameter = "stage"
+        self.valueFhirPath = "stage.summary"
         self.fixedCriteria = []
 
 
@@ -152,6 +165,7 @@ class EthnicGroupMapEntry(MapEntry):
     def __init__(self, term_code):
         super().__init__(term_code)
         self.valueSearchParameter = "codex-ethnicity"
+        self.valueFhirPath = "extension.ethnicGroup"
         self.fhirResourceType = "Patient"
 
 
@@ -159,21 +173,24 @@ class AgeMapEntry(MapEntry):
     def __init__(self, term_code):
         super().__init__(term_code)
         self.valueSearchParameter = "codex-age"
+        self.valueFhirPath = "extension.age"
         self.fhirResourceType = "Patient"
 
 
+# FIXME: component-code-value-quantity
 class BloodPressureMapEntry(MapEntry):
     def __init__(self, term_code):
         super().__init__(term_code)
-        self.termCodeSearchParameter = "component-code"
-        self.valueSearchParameter = "component-value-quantity"
+        self.termCodeSearchParameter = "component-code-value-quantity"
+        self.valueSearchParameter = "component-code-value-concept"
         self.fhirResourceType = "Observation"
         blood_pressure_loinc = TermCode("http://loinc.org", "85354-9",
                                         "Blood pressure panel with all children optional")
         blood_pressure_snomed = TermCode("http://snomed.info/sct", "75367002", "Blood pressure (observable entity)")
-        self.fixedCriteria = [FixedCriteria("code", "code", "code", [blood_pressure_loinc, blood_pressure_snomed])]
+        self.fixedCriteria = [FixedCriteria("coding", "code", "code", [blood_pressure_loinc, blood_pressure_snomed])]
 
 
+# FIXME: component-code-value-quantity
 class HistoryOfTravelMapEntry(MapEntry):
     def __init__(self, term_code):
         super().__init__(term_code)
@@ -181,15 +198,33 @@ class HistoryOfTravelMapEntry(MapEntry):
         self.valueSearchParameter = "component-value-concept"
         self.fhirResourceType = "Observation"
         country_of_travel = TermCode("http://loinc.org", "94651-7", "Country of travel")
-        self.fixedCriteria = [FixedCriteria("code", "component-code", "component-code", [country_of_travel])]
+        self.fixedCriteria = [FixedCriteria("coding", "component-code", "component-code", [country_of_travel])]
 
 
 class ResuscitationStatusMapEntry(MapEntry):
     def __init__(self, term_code):
         super().__init__(term_code)
         self.termCodeSearchParameter = "category"
-        self.valueSearchParameter = "mii-consent-code"
+        self.valueSearchParameter = "mii-provision-code"
+        self.valueFhirPath = "provision.code"
         self.fhirResourceType = "Consent"
+
+
+class ConsentMapEntry(MapEntry):
+    def __init__(self, term_code):
+        super().__init__(term_code)
+        self.termCodeSearchParameter = "mii-provision-provision-code-type"
+        self.valueFhirPath = "mii-provision-provision-code-type"
+        self.fhirResourceType = "Consent"
+
+
+class SofaMapEntry(MapEntry):
+    def __init__(self, term_code):
+        super().__init__(term_code)
+        self.termCodeSearchParameter = "code"
+        self.valueSearchParameter = "mii-value-integer"
+        self.fhirResourceType = "Observation"
+        self.valueFhirPath = "valueInteger"
 
 
 def generate_child_entries(children, class_name):
@@ -211,7 +246,7 @@ def generate_map(categories):
             else:
                 pass
                 # TODO: Once Age and Ethnic Group are handled throw here
-                print(terminology)
+                # print(terminology)
     return result
 
 
