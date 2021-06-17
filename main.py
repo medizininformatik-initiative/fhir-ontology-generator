@@ -8,7 +8,7 @@ from jsonschema import validate
 from MappingDataModel import generate_map
 from UiDataModel import TerminologyEntry, prune_terminology_tree, TermCode
 from geccoToUIProfiles import create_terminology_definition_for, get_categories, IGNORE_CATEGORIES, MAIN_CATEGORIES, \
-    get_specimen
+    get_specimen, get_consent
 from termCodeTree import to_term_code_node
 from termEntryToExcel import to_csv
 
@@ -71,14 +71,14 @@ def generate_ui_profiles(entries):
         if category in IGNORE_CATEGORIES:
             continue
         if category.display in MAIN_CATEGORIES:
-            f = open("ui-profiles/" + category.display.replace("/ ", "") + ".json", 'w')
+            f = open("ui-profiles/" + category.display.replace("/ ", "") + ".json", 'w', encoding="utf-8")
             f.write(category.to_json())
             f.close()
             f = open("ui-profiles/" + category.display.replace("/ ", "") + ".json", 'r')
             validate(instance=json.load(f), schema=json.load(open("schema/ui-profile-schema.json")))
         else:
             others.children.append(category)
-    f = open("ui-profiles/" + others.display + ".json", 'w')
+    f = open("ui-profiles/" + others.display + ".json", 'w', encoding="utf-8")
     f.write(others.to_json())
     f.close()
     f = open("ui-profiles/" + others.display + ".json", 'r')
@@ -88,8 +88,9 @@ def generate_ui_profiles(entries):
 if __name__ == '__main__':
     download_gecco_profile()
     category_entries = create_terminology_definition_for(get_categories())
-    # TODO: ones the specimen profiles are declared use them instead!
+    # TODO: ones the specimen and consent profiles are declared use them instead!
     category_entries.append(get_specimen())
+    category_entries.append(get_consent())
     generate_term_code_mapping(category_entries)
     generate_term_code_tree(category_entries)
     for entry in category_entries:

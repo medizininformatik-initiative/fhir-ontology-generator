@@ -19,7 +19,7 @@ IGNORE_LIST = ["Date of birth", "RespiratoryOutcome", "Severity"]
 
 IGNORE_CATEGORIES = []
 
-MAIN_CATEGORIES = ["Anamnese / Risikofaktoren", "Demographie", "Laborwerte", "Therapie"]
+MAIN_CATEGORIES = ["Anamnese / Risikofaktoren", "Demographie", "Einwilligung", "Laborwerte", "Therapie", "Bioproben"]
 
 ONTOLOGY_SERVER_ADDRESS = os.environ.get('ONTOLOGY_SERVER_ADDRESS')
 
@@ -110,6 +110,17 @@ def translate_condition(profile_data, terminology_entry):
                     get_termentries_from_onto_server(value_set))
                 # FIXME: Incorrect break multiple valuesets are allowed but this is currently a work around
                 break
+            elif "patternCoding" in element:
+                code = element["patternCoding"]["code"]
+                # FIXME: Working with differential is not sufficient here.
+                system = element["patternCoding"]["system"] if "system" in element[
+                    "patternCoding"] else "http://snomed.info/sct"
+                display = get_term_code_display_from_onto_server(system, code)
+                terminology_entry.leaf = False
+                terminology_entry.selectable = False
+                term_code = TermCode(system, code, display)
+                child = TerminologyEntry([term_code], "CodeableConcept", leaf=True, selectable=True)
+                terminology_entry.children.append(child)
 
 
 def translate_diagnosis_covid_19(profile_data, terminology_entry):
@@ -166,34 +177,35 @@ def update_termcode_to_match_pattern_coding(terminology_entry, element):
 
 def translate_observation(profile_data, terminology_entry):
     is_concept_value = False
-    for element in profile_data["differential"]["element"]:
-        update_termcode_to_match_pattern_coding(terminology_entry, element)
-        if "type" in element:
-            if element["path"] == "Observation.value[x]" and element["type"][0]["code"] == "CodeableConcept":
-                terminology_entry.fhirMapperType = "ConceptObservation"
-                is_concept_value = True
-                if "binding" in element:
-                    value_set = element["binding"]["valueSet"]
-                    value_definition = ValueDefinition("concept")
-                    value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
-                    terminology_entry.valueDefinitions.append(value_definition)
-                    terminology_entry.leaf = True
-                    terminology_entry.selectable = True
-                    break
-        elif "sliceName" in element:
-            if element["path"] == "Observation.value[x]" and element["sliceName"] == "valueCodeableConcept" or \
-                    element["path"] == "Observation.value[x].coding":
-                terminology_entry.fhirMapperType = "ConceptObservation"
-                is_concept_value = True
-                if "binding" in element:
-                    value_set = element["binding"]["valueSet"]
-                    value_definition = ValueDefinition("concept")
-                    value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
-                    terminology_entry.valueDefinitions.append(value_definition)
-                    terminology_entry.leaf = True
-                    terminology_entry.selectable = True
-                    break
-    # TODO: Check if redundant!
+    # TODO: THIS IS AWFUL REFACTOR!!!
+    if terminology_entry.terminologyType != "Quantity":
+        for element in profile_data["differential"]["element"]:
+            update_termcode_to_match_pattern_coding(terminology_entry, element)
+            if "type" in element:
+                if element["path"] == "Observation.value[x]" and element["type"][0]["code"] == "CodeableConcept":
+                    terminology_entry.fhirMapperType = "ConceptObservation"
+                    is_concept_value = True
+                    if "binding" in element:
+                        value_set = element["binding"]["valueSet"]
+                        value_definition = ValueDefinition("concept")
+                        value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
+                        terminology_entry.valueDefinitions.append(value_definition)
+                        terminology_entry.leaf = True
+                        terminology_entry.selectable = True
+                        break
+            elif "sliceName" in element:
+                if element["path"] == "Observation.value[x]" and element["sliceName"] == "valueCodeableConcept" or \
+                        element["path"] == "Observation.value[x].coding":
+                    terminology_entry.fhirMapperType = "ConceptObservation"
+                    is_concept_value = True
+                    if "binding" in element:
+                        value_set = element["binding"]["valueSet"]
+                        value_definition = ValueDefinition("concept")
+                        value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
+                        terminology_entry.valueDefinitions.append(value_definition)
+                        terminology_entry.leaf = True
+                        terminology_entry.selectable = True
+                        break
     if not is_concept_value:
         terminology_entry.fhirMapperType = "QuantityObservation"
         terminology_entry.terminologyType = "Quantity"
@@ -222,7 +234,7 @@ def translate_laboratory_values(_profile_data, terminology_entry: TerminologyEnt
             entry.leaf = True
             entry.selectable = True
             entry.fhirMapperType = "QuantityObservation"
-            entry.valueDefinitions = terminology_entry.valueDefinitions
+            entry.valueDefinitions = []
             terminology_entry.children.append(entry)
         terminology_entry.fhirMapperType = "QuantityObservation"
         terminology_entry.selectable = False
@@ -235,7 +247,7 @@ def translate_sofa(profile_data, terminology_entry):
     terminology_entry.fhirMapperType = "Sofa"
     terminology_entry.selectable = True
     terminology_entry.leaf = True
-    terminology_entry.terminologyType = "Qunatity"
+    terminology_entry.terminologyType = "Quantity"
 
 
 def translate_procedure(profile_data, terminology_entry):
@@ -324,6 +336,10 @@ def translate_resuscitation(profile_data, terminology_entry):
     terminology_entry.selectable = True
     terminology_entry.leaf = True
     for element in profile_data["differential"]["element"]:
+        if element["id"] == "Consent.category.coding.system":
+            terminology_entry.termCode.system = element["fixedUri"]
+        if element["id"] == "Consent.category.coding.code":
+            terminology_entry.termCode.code = element["fixedCode"]
         if element["id"] == "Consent.provision.code":
             if "binding" in element:
                 value_set = element["binding"]["valueSet"]
@@ -355,10 +371,25 @@ def translate_history_of_travel(profile_data, terminology_entry):
                 break
 
 
+def get_term_code_display_from_onto_server(system, code):
+    response = requests.get(f"{ONTOLOGY_SERVER_ADDRESS}CodeSystem/$lookup?system={system}&code={code}")
+    if response.status_code == 200:
+        response_data = response.json()
+        for parameter in response_data["parameter"]:
+            if name := parameter.get("name"):
+                if name == "display":
+                    return parameter.get("valueString") if parameter.get("valueString") else ""
+    return ""
+
+
 # TODO: We only want to use a single coding system. The different coding systems need to be prioratized
 # We do not want to expand is-A relations of snomed or we need a tree structure , but we cant gain the information
 # needed to create a tree structure
 def get_termentries_from_onto_server(canonical_address_value_set):
+    # In Gecco 1.04 all icd10 elements with children got removed this brings them back. Requires matching valuesets on
+    # Ontoserver
+    if "icd" in canonical_address_value_set:
+        canonical_address_value_set = canonical_address_value_set + "-with-parent"
     icd10_result = []
     snomed_result = []
     result = []
@@ -440,6 +471,31 @@ def get_termcodes_from_onto_server(canonical_address_value_set):
         return sorted(snomed_result)
 
 
+# Deprecated
+def to_reduced_icd_tree(termcodes):
+    groups, categories, subcategories_three_digit, subcategories_four_digit = \
+        get_groups_categories_subcategories(termcodes)
+
+    result = []
+
+    for subcategory_four_digit_entry in sorted(subcategories_four_digit):
+
+        if not any(subcategory_three_digit_entry.termCode.code == subcategory_four_digit_entry.termCode.code[:-1] for
+                   subcategory_three_digit_entry in subcategories_three_digit):
+            result.append(subcategory_four_digit_entry)
+
+    for subcategory_three_digit_entry in sorted(subcategories_three_digit):
+        if not any(category_entry.termCode.code == subcategory_three_digit_entry.termCode.code[:-2] for
+                   category_entry in categories):
+            result.append(subcategory_three_digit_entry)
+
+    add_category_entries_to_groups_or_result(groups, categories, result)
+
+    result += sorted(groups)
+
+    return result
+
+
 def get_groups_categories_subcategories(termcodes):
     groups = set()
     categories = set()
@@ -477,31 +533,6 @@ def get_parent_group(category_entry, groups):
     return None
 
 
-# Deprecated
-def to_reduced_icd_tree(termcodes):
-    groups, categories, subcategories_three_digit, subcategories_four_digit = \
-        get_groups_categories_subcategories(termcodes)
-
-    result = []
-
-    for subcategory_four_digit_entry in sorted(subcategories_four_digit):
-
-        if not any(subcategory_three_digit_entry.termCode.code == subcategory_four_digit_entry.termCode.code[:-1] for
-                   subcategory_three_digit_entry in subcategories_three_digit):
-            result.append(subcategory_four_digit_entry)
-
-    for subcategory_three_digit_entry in sorted(subcategories_three_digit):
-        if not any(category_entry.termCode.code == subcategory_three_digit_entry.termCode.code[:-2] for
-                   category_entry in categories):
-            result.append(subcategory_three_digit_entry)
-
-    add_category_entries_to_groups_or_result(groups, categories, result)
-
-    result += sorted(groups)
-
-    return result
-
-
 def to_icd_tree(termcodes):
     groups, categories, subcategories_three_digit, subcategories_four_digit = \
         get_groups_categories_subcategories(termcodes)
@@ -517,6 +548,8 @@ def to_icd_tree(termcodes):
     groups = structure_groups_to_tree(groups)
 
     result += sorted(groups)
+
+    result = sorted(result)
 
     return result
 
@@ -690,11 +723,15 @@ def create_terminology_definition_for(categories):
                     add_terminology_entry_to_category(element, category_terminology_entries, "date")
                 else:
                     raise Exception(f"Unknown element {element['type'][0]['code']}")
+        print(category_terminology_entries)
+    for category_entry in category_terminology_entries:
+        category_entry.children = sorted(category_entry.children)
+        print(category_entry.children)
     return category_terminology_entries
 
 
 def get_specimen():
-    specimen_term_code = TermCode("num.codex", "Proben", "Proben")
+    specimen_term_code = TermCode("num.codex", "Bioproben", "Bioproben")
     specimen_category_entry = TerminologyEntry([specimen_term_code], "Category", selectable=False, leaf=False)
     specimen_category_entry.fhirMapperType = "Specimen"
 
@@ -707,3 +744,24 @@ def get_specimen():
             specimen_child.display = row["guiDisplay"]
             specimen_category_entry.children.append(specimen_child)
     return specimen_category_entry
+
+
+def get_consent():
+    consent_term_code = TermCode("num.codex", "Einwilligung", "Einwilligung")
+    consent_category_entry = TerminologyEntry([consent_term_code], "Category", selectable=False, leaf=False)
+    consent_category_entry.fhirMapperType = "Consent"
+    with open('CONSENT_PROVISIONS.CSV', mode='r', encoding="utf-8") as csv_file:
+        csv_reader = csv.DictReader(csv_file, delimiter=";")
+        for row in csv_reader:
+            term_code = TermCode(row["System"], row["Code"], row["Display"])
+            consent_child = TerminologyEntry([term_code], "CodeableConcept", selectable=True, leaf=True)
+            consent_child.fhirMapperType = "Consent"
+            consent_child.display = row["guiDisplay"]
+            value_definition = ValueDefinition("concept")
+            value_definition.selectableConcepts.append(
+                TermCode("http://hl7.org/fhir/consent-provision-type", "permit", "permit"))
+            value_definition.selectableConcepts.append(
+                TermCode("http://hl7.org/fhir/consent-provision-type", "deny", "deny"))
+            consent_child.valueDefinitions.append(value_definition)
+            consent_category_entry.children.append(consent_child)
+    return consent_category_entry

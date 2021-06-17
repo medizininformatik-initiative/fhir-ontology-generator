@@ -60,7 +60,7 @@ class TermCode:
         return hash(self.system + self.code)
 
     def __lt__(self, other):
-        return self.code < other.code
+        return self.display < other.display
 
     def __repr__(self):
         return self.display + " " + self.code + " " + self.system
@@ -103,6 +103,8 @@ class TerminologyEntry(object):
         self.fhirMapperType = None
 
     def __lt__(self, other):
+        if self.display and other.display:
+            return self.display < other.display
         return self.termCode < other.termCode
 
     def __repr__(self):

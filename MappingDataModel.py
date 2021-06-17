@@ -214,6 +214,7 @@ class ConsentMapEntry(MapEntry):
     def __init__(self, term_code):
         super().__init__(term_code)
         self.termCodeSearchParameter = "mii-provision-provision-code-type"
+        self.valueSearchParameter = "mii-provision-provision-code-type"
         self.valueFhirPath = "mii-provision-provision-code-type"
         self.fhirResourceType = "Consent"
 

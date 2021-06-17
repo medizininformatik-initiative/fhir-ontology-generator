@@ -7,4 +7,4 @@ Biomaterialien: Entnahme geringer zusätzlicher Mengen (Punkt 3.2);2.16.840.1.11
 Erneute Kontaktaufnahme: Zusätzliche wissenschaftliche Fragen, neue Forschungsvorhaben/Studien, Verknüpfung mit anderen Datenbanken (Punkt 4.1);2.16.840.1.113883.3.1937.777.24.5.1.19;gee_kontaktaufnahme;urn:oid:2.16.840.1.113883.3.1937.777.24.5.1
 Erneute Kontaktaufnahme: Information über medizinische Zusatzbefunde (Punkt 4.2);2.16.840.1.113883.3.1937.777.24.5.1.23;gee_kontaktaufnahme_zusatzbefunde;urn:oid:2.16.840.1.113883.3.1937.777.24.5.1
 Nutzung im Rahmen von NUM-CODEX: Nutzung auf der zentralen Datenplattform (Punkt Z1);2.16.840.1.113883.3.1937.777.24.5.1.34;gee_projekt_codex;urn:oid:2.16.840.1.113883.3.1937.777.24.5.1
-Nutzung im Rahmen von NUM-CODEX: Weitergabe in L�nder ohne angemessenes Datenschutzniveau (Punkt Z1.1);2.16.840.1.113883.3.1937.777.24.5.1.37;gee_projekt_codex_zusatz;urn:oid:2.16.840.1.113883.3.1937.777.24.5.1
+Nutzung im Rahmen von NUM-CODEX: Weitergabe in Länder ohne angemessenes Datenschutzniveau (Punkt Z1.1);2.16.840.1.113883.3.1937.777.24.5.1.37;gee_projekt_codex_zusatz;urn:oid:2.16.840.1.113883.3.1937.777.24.5.1
