@@ -1,0 +1,10 @@
+guiDisplay;Code;Display;System
+Erhebung, Verarbeitung und wissenschaftliche Nutzung (Punkte 1.1 - 1.3);2.16.840.1.113883.3.1937.777.24.5.1.1;gee_erhebung_verarbeitung;urn:oid:2.16.840.1.113883.3.1937.777.24.5.1
+Krankenkassendaten: Rückwirkend für die Daten der vergangenen 5 Kalenderjahre (Punkt 2.1);2.16.840.1.113883.3.1937.777.24.5.1.7;gee_krankenkassendaten_retro;urn:oid:2.16.840.1.113883.3.1937.777.24.5.1
+Krankenkassendaten: Ab dem Datum der Unterschrift über einen Zeitraum von 5 Jahren (Punkt 2.2);2.16.840.1.113883.3.1937.777.24.5.1.10;gee_krankenkassendaten_pro;urn:oid:2.16.840.1.113883.3.1937.777.24.5.1
+Biomaterialien: Einwilligung in die Gewinnung, Lagerung und wissenschaftliche Nutzung (Punkte 3.1 - 3.3);2.16.840.1.113883.3.1937.777.24.5.1.14;gee_biomaterialien;urn:oid:2.16.840.1.113883.3.1937.777.24.5.1
+Biomaterialien: Entnahme geringer zusätzlicher Mengen (Punkt 3.2);2.16.840.1.113883.3.1937.777.24.5.1.31;gee_biomaterialien_zusaetzlich;urn:oid:2.16.840.1.113883.3.1937.777.24.5.1
+Erneute Kontaktaufnahme: Zusätzliche wissenschaftliche Fragen, neue Forschungsvorhaben/Studien, Verknüpfung mit anderen Datenbanken (Punkt 4.1);2.16.840.1.113883.3.1937.777.24.5.1.19;gee_kontaktaufnahme;urn:oid:2.16.840.1.113883.3.1937.777.24.5.1
+Erneute Kontaktaufnahme: Information über medizinische Zusatzbefunde (Punkt 4.2);2.16.840.1.113883.3.1937.777.24.5.1.23;gee_kontaktaufnahme_zusatzbefunde;urn:oid:2.16.840.1.113883.3.1937.777.24.5.1
+Nutzung im Rahmen von NUM-CODEX: Nutzung auf der zentralen Datenplattform (Punkt Z1);2.16.840.1.113883.3.1937.777.24.5.1.34;gee_projekt_codex;urn:oid:2.16.840.1.113883.3.1937.777.24.5.1
+Nutzung im Rahmen von NUM-CODEX: Weitergabe in L�nder ohne angemessenes Datenschutzniveau (Punkt Z1.1);2.16.840.1.113883.3.1937.777.24.5.1.37;gee_projekt_codex_zusatz;urn:oid:2.16.840.1.113883.3.1937.777.24.5.1
