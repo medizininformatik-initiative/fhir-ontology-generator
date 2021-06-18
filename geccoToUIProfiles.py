@@ -165,7 +165,7 @@ def translate_medication_statement(profile_data, terminology_entry):
                 value_set = element["binding"]["valueSet"]
                 terminology_entry.children += (
                     get_termentries_from_onto_server(value_set))
-                break
+    terminology_entry.children = sorted(terminology_entry.children)
 
 
 def update_termcode_to_match_pattern_coding(terminology_entry, element):
@@ -252,13 +252,14 @@ def translate_sofa(profile_data, terminology_entry):
 
 def translate_procedure(profile_data, terminology_entry):
     terminology_entry.fhirMapperType = "Procedure"
-    terminology_entry.leaf = False
+    terminology_entry.leaf = True
     terminology_entry.selectable = True
     for element in profile_data["differential"]["element"]:
         if element["id"] == "Procedure.code.coding:sct":
             if "binding" in element:
                 value_set = element["binding"]["valueSet"]
                 terminology_entry.children += (get_termentries_from_onto_server(value_set))
+                terminology_entry.leaf = False
                 break
 
 

@@ -12,6 +12,7 @@ from geccoToUIProfiles import create_terminology_definition_for, get_categories,
 from termCodeTree import to_term_code_node
 from termEntryToExcel import to_csv
 
+
 GECCO_VERSION = "de.gecco 1.0.4"
 GECCO_DIRECTORY = "de.gecco#1.0.4"
 MII_LAB_VERSION = "de.medizininformatikinitiative.kerndatensatz.laborbefund 1.0.2"
