@@ -33,7 +33,7 @@ def to_csv(category_list):
         sheet.writerow(get_terminology_entry_row(terminology_entry))
         for child in terminology_entry.children:
             add_terminology_entry(child)
-        for definition in terminology_entry.valueDefinitions:
+        for definition in terminology_entry.valueDefinition:
             for concept in definition.selectableConcepts:
                 sheet.writerow(get_termcode_row(concept))
 

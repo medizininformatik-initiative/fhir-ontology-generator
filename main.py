@@ -13,8 +13,8 @@ from geccoToUIProfiles import create_terminology_definition_for, get_gecco_categ
 from termCodeTree import to_term_code_node
 from termEntryToExcel import to_csv
 
-GECCO = "de.gecco 1.0.4"
-GECCO_DIRECTORY = "de.gecco#1.0.4"
+GECCO = "de.gecco 1.0.5"
+GECCO_DIRECTORY = "de.gecco#1.0.5"
 MII_CASE = "de.medizininformatikinitiative.kerndatensatz.fall 1.0.1"
 MII_DIAGNOSE = "de.medizininformatikinitiative.kerndatensatz.diagnose 1.0.4"
 MII_LAB = "de.medizininformatikinitiative.kerndatensatz.laborbefund 1.0.6"
@@ -25,6 +25,7 @@ MII_SPECIMEN = "de.medizininformatikinitiative.kerndatensatz.biobank 0.9.0"
 core_data_sets = [MII_CASE, MII_DIAGNOSE, MII_LAB, MII_MEDICATION, MII_PERSON, MII_PROCEDURE, MII_SPECIMEN, GECCO]
 
 
+# FIXME:
 def mkdir_if_not_exists(directory):
     if not path.isdir(f"./{directory}"):
         try:
@@ -94,7 +95,7 @@ def generate_term_code_tree(entries):
 
 def generate_ui_profiles(entries):
     gecco_term_code = [TermCode("num.codex", "GECCO", "GECCO")]
-    gecco = TerminologyEntry(gecco_term_code, "CategoryEntry", selectable=False)
+    gecco = TerminologyEntry(gecco_term_code, "CategoryEntry", leaf=False, selectable=False)
     gecco.display = "GECCO"
     for category in entries:
         if category in IGNORE_CATEGORIES:
@@ -104,14 +105,14 @@ def generate_ui_profiles(entries):
             f.write(category.to_json())
             f.close()
             f = open("ui-profiles/" + category.display.replace("/ ", "") + ".json", 'r')
-            validate(instance=json.load(f), schema=json.load(open("schema/ui-profile-schema.json")))
+            # validate(instance=json.load(f), schema=json.load(open("schema/ui-profile-schema.json")))
         else:
             gecco.children.append(category)
     f = open("ui-profiles/" + gecco.display + ".json", 'w', encoding="utf-8")
     f.write(gecco.to_json())
     f.close()
     f = open("ui-profiles/" + gecco.display + ".json", 'r')
-    validate(instance=json.load(f), schema=json.load(open("schema/ui-profile-schema.json")))
+    # validate(instance=json.load(f), schema=json.load(open("schema/ui-profile-schema.json")))
 
 
 def generate_result_folder():
@@ -127,9 +128,8 @@ if __name__ == '__main__':
     # generate_snapshots()
     # ------------------------------------------------------------
     for data_set in core_data_sets:
-        if data_set != GECCO and data_set != MII_SPECIMEN:
+        if data_set != GECCO:
             module_name = data_set.split(' ')[0].split(".")[-1].capitalize()
-            print(module_name)
             module_code = TermCode("num.abide", module_name, module_name)
             module_category_entry = TerminologyEntry([module_code], "Category", selectable=False, leaf=False)
             data_set = data_set.replace(" ", "#")
@@ -153,14 +153,12 @@ if __name__ == '__main__':
             f.write(module_category_entry.to_json())
             f.close()
 
-    # generate_gecco
+    # generate gecco
     category_entries = create_terminology_definition_for(get_gecco_categories())
     # TODO: ones the specimen and consent profiles are declared use them instead!
     category_entries.append(get_specimen())
     category_entries.append(get_consent())
-    generate_term_code_mapping(category_entries)
-    generate_term_code_tree(category_entries)
-    for entry in category_entries:
-        prune_terminology_tree(entry, 2)
-    to_csv(category_entries)
+    #generate_term_code_mapping(category_entries)
+    #generate_term_code_tree(category_entries)
+    #to_csv(category_entries)
     generate_ui_profiles(category_entries)

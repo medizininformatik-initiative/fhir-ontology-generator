@@ -3,8 +3,9 @@ import requests
 import csv
 from UiDataModel import *
 from LogicalModelToProfile import LOGICAL_MODEL_TO_PROFILE
+from valueSetToRoots import get_root_and_node_concepts, create_vs_tree
 
-GECCO_DATA_SET = "core_data_sets/de.gecco#1.0.4/package"
+GECCO_DATA_SET = "core_data_sets/de.gecco#1.0.5/package"
 
 """
     Date of birth requires date selection in the ui
@@ -38,6 +39,132 @@ def to_upper_camel_case(string):
     return result
 
 
+def get_gecco_categories():
+    # categories are BackboneElements within the Logicalmodel
+    with open(f"{GECCO_DATA_SET}/StructureDefinition-LogicalModel-GECCO.json", encoding="utf-8") as json_file:
+        categories = []
+        data = json.load(json_file)
+        for element in data["differential"]["element"]:
+            try:
+                # ignore Gecco base element:
+                if element["base"]["path"] == "forschungsdatensatz_gecco.gecco":
+                    continue
+                if element["type"][0]["code"] == "BackboneElement":
+                    add_category(categories, element)
+            except KeyError:
+                pass
+        return categories
+
+
+def add_category(categories, element):
+    for extension in element["_short"]["extension"]:
+        for nested_extension in extension["extension"]:
+            if "valueMarkdown" in nested_extension:
+                categories.append(CategoryEntry(str(uuid.uuid4()),
+                                                nested_extension["valueMarkdown"],
+                                                element["base"]["path"]))
+
+
+def create_terminology_definition_for(categories):
+    category_terminology_entries = []
+    for category_entry in categories:
+        category_terminology_entries.append(create_category_terminology_entry(category_entry))
+    with open(f"{GECCO_DATA_SET}/StructureDefinition-LogicalModel-GECCO.json", encoding="utf-8") as json_file:
+        data = json.load(json_file)
+        for element in data["differential"]["element"]:
+            if "type" in element:
+                if element["type"][0]["code"] == "BackboneElement":
+                    continue
+                elif element["type"][0]["code"] == "CodeableConcept":
+                    add_terminology_entry_to_category(element, category_terminology_entries, "CodeableConcept")
+                elif element["type"][0]["code"] == "Quantity":
+                    add_terminology_entry_to_category(element, category_terminology_entries, "Quantity")
+                elif element["type"][0]["code"] == "date":
+                    add_terminology_entry_to_category(element, category_terminology_entries, "date")
+                else:
+                    raise Exception(f"Unknown element {element['type'][0]['code']}")
+    for category_entry in category_terminology_entries:
+        category_entry.children = sorted(category_entry.children)
+    return category_terminology_entries
+
+
+def create_category_terminology_entry(category_entry):
+    term_code = [TermCode("num.codex", category_entry.display, category_entry.display)]
+    result = TerminologyEntry(term_code, "Category", leaf=False, selectable=False)
+    result.path = category_entry.path
+    return result
+
+
+# element from Logical Model
+def add_terminology_entry_to_category(element, categories, terminology_type):
+    for category_entry in categories:
+        # same path -> sub element of that category
+        if category_entry.path in element["base"]["path"]:
+            terminology_entry = TerminologyEntry(get_term_codes(element), terminology_type)
+            # We use the english display to resolve after we switch to german.
+            terminology_entry.display = element["short"]
+            if terminology_entry.display in IGNORE_LIST:
+                continue
+            # TODO: Refactor don't do this here?!
+            resolve_terminology_entry_profile(terminology_entry)
+            if terminology_entry.terminologyType == "Quantity":
+                if terminology_entry.display == "Age":
+                    print(get_value_definition(element).allowedUnits)
+                terminology_entry.valueDefinitions.append(get_value_definition(element))
+                # FIXME: This is only a quick workaround for GasPanel values.
+                for child in terminology_entry.children:
+                    child.valueDefinitions.append(get_value_definition(element))
+            terminology_entry.display = get_german_display(element) if get_german_display(element) else element["short"]
+            if terminology_entry.display == category_entry.display:
+                # Resolves issue like : -- Symptoms                 --Symptoms
+                #                           -- Symptoms     --->      -- Coughing
+                #                              -- Coughing
+                category_entry.children += terminology_entry.children
+            else:
+                category_entry.children.append(terminology_entry)
+            break
+
+
+def get_term_codes(element):
+    # TODO: CHECK IF WE SHOULD ALWAYS USE NUM CODES HERE!
+    term_codes = []
+    if "code" in element:
+        for code in element["code"]:
+            term_codes.append(TermCode(code["system"], code["code"], code["display"],
+                                       code["version"] if "version" in code else None))
+    if not term_codes:
+        term_codes.append(TermCode("num.codex", element["short"], element["short"]))
+    return term_codes
+
+
+def get_value_definition(element):
+    value_definition = ValueDefinition("quantity")
+    if "extension" in element:
+        for extension in element["extension"]:
+            if extension["url"] == "http://hl7.org/fhir/StructureDefinition/elementdefinition-allowedUnits":
+                if "valueCodeableConcept" in extension:
+                    value_codeable_concept = extension["valueCodeableConcept"]
+                    if "coding" in value_codeable_concept:
+                        for coding in value_codeable_concept["coding"]:
+                            if coding["system"] == "http://unitsofmeasure.org/" or \
+                                    coding["system"] == "http://unitsofmeasure.org":
+                                value_definition.allowedUnits.append(Unit(coding["code"], coding["code"]))
+    return value_definition
+
+
+def get_german_display(element):
+    for extension in element["_short"]["extension"]:
+        next_value_is_german_display_content = False
+        for nested_extension in extension["extension"]:
+            if nested_extension["url"] == "lang":
+                next_value_is_german_display_content = nested_extension["valueCode"] == "de-DE"
+                continue
+            elif next_value_is_german_display_content:
+                return nested_extension["valueMarkdown"]
+    return None
+
+
+# One giant switch case for all possible Profiles
 def resolve_terminology_entry_profile(terminology_entry, data_set=GECCO_DATA_SET):
     name = LOGICAL_MODEL_TO_PROFILE.get(to_upper_camel_case(terminology_entry.display)) \
         if to_upper_camel_case(terminology_entry.display) in LOGICAL_MODEL_TO_PROFILE else to_upper_camel_case(
@@ -105,16 +232,13 @@ def resolve_terminology_entry_profile(terminology_entry, data_set=GECCO_DATA_SET
                 elif filename == "Extension-Age.json":
                     translate_age(profile_data, terminology_entry)
     if not found:
-        print(to_upper_camel_case(terminology_entry.display) + " Not found! " + data_set )
+        print(to_upper_camel_case(terminology_entry.display) + " Not found! " + data_set)
 
 
 def translate_organization(_profile_data, _terminology_entry):
     pass
 
 
-# Cache to translate specimen
-cache_wihtout = dict()
-cache_with = dict()
 
 
 def translate_specimen(profile_data, terminology_entry):
@@ -122,73 +246,66 @@ def translate_specimen(profile_data, terminology_entry):
     terminology_entry.fhirMapperType = "Specimen"
     terminology_entry.termCode.code = "123038009"
     terminology_entry.termCode.display = "Specimen"
+    terminology_entry.termCode.system = "http://snomed.info/sct"
     terminology_entry.display = "Specimen"
-    terminology_entry.system = "http://snomed.info/sct"
-    for element in profile_data["snapshot"]["element"]:
-        if element["path"] == "Specimen.type.coding":
-            if "binding" in element:
-                value_set = element["binding"]["valueSet"]
-                terminology_entry.children += get_ecl_direct_children_with_children("123038009")
-                terminology_entry.children += get_ecl_direct_children_without_children("123038009")
-    terminology_entry.children = sorted(terminology_entry.children)
-    cache_wihtout.clear()
-    cache_with.clear()
+    # cache_without.clear()
+    # cache_with.clear()
 
 
-def get_ecl_direct_children_without_children(snomed_code):
-    if snomed_code not in cache_wihtout:
-        cache_wihtout[snomed_code] = get_ecl_direct_children_without_children_from_server(snomed_code)
-    return cache_wihtout[snomed_code]
+# def get_ecl_direct_children_without_children(snomed_code):
+#     if snomed_code not in cache_without:
+#         cache_without[snomed_code] = get_ecl_direct_children_without_children_from_server(snomed_code)
+#     return cache_without[snomed_code]
+#
+#
+# def get_ecl_direct_children_without_children_from_server(snomed_code):
+#     result = []
+#     response = requests.get(ONTOLOGY_SERVER_ADDRESS + "ValueSet/$expand?url=http://snomed.info/sct?fhir_vs=ecl/"
+#                             + "<! " + snomed_code + "MINUS >! (<! (<!" + snomed_code + "))")
+#     # FIXME: Make a method for this!!
+#     if response.status_code == 200:
+#         value_set_data = response.json()
+#         if "contains" in value_set_data["expansion"]:
+#             for contains in value_set_data["expansion"]["contains"]:
+#                 system = contains["system"]
+#                 code = contains["code"]
+#                 display = contains["display"]
+#                 version = None
+#                 if "version" in contains:
+#                     version = contains["version"]
+#                 term_code = TermCode(system, code, display, version)
+#                 terminology_entry = TerminologyEntry([term_code], "CodeableConcept", leaf=True, selectable=True)
+#                 result.append(terminology_entry)
+#     return result
 
 
-def get_ecl_direct_children_without_children_from_server(snomed_code):
-    result = []
-    response = requests.get(ONTOLOGY_SERVER_ADDRESS + "ValueSet/$expand?url=http://snomed.info/sct?fhir_vs=ecl/"
-                            + "<! " + snomed_code + "MINUS >! (<! (<!" + snomed_code + "))")
-    # FIXME: Make a method for this!!
-    if response.status_code == 200:
-        value_set_data = response.json()
-        if "contains" in value_set_data["expansion"]:
-            for contains in value_set_data["expansion"]["contains"]:
-                system = contains["system"]
-                code = contains["code"]
-                display = contains["display"]
-                version = None
-                if "version" in contains:
-                    version = contains["version"]
-                term_code = TermCode(system, code, display, version)
-                terminology_entry = TerminologyEntry([term_code], "CodeableConcept", leaf=True, selectable=True)
-                result.append(terminology_entry)
-    return result
+# def get_ecl_direct_children_with_children(snomed_code):
+#     if snomed_code not in cache_with:
+#         cache_with[snomed_code] = get_ecl_direct_children_with_children_from_server(snomed_code)
+#     return cache_with[snomed_code]
 
 
-def get_ecl_direct_children_with_children(snomed_code):
-    if snomed_code not in cache_with:
-        cache_with[snomed_code] = get_ecl_direct_children_with_children_from_server(snomed_code)
-    return cache_with[snomed_code]
-
-
-def get_ecl_direct_children_with_children_from_server(snomed_code):
-    result = []
-    response = requests.get(ONTOLOGY_SERVER_ADDRESS + "ValueSet/$expand?url=http://snomed.info/sct?fhir_vs=ecl/"
-                            + ">! (<! (<!" + snomed_code + ")) AND <! " + snomed_code)
-    if response.status_code == 200:
-        value_set_data = response.json()
-        if "contains" in value_set_data["expansion"]:
-            for contains in value_set_data["expansion"]["contains"]:
-                system = contains["system"]
-                code = contains["code"]
-                display = contains["display"]
-                version = None
-                if "version" in contains:
-                    version = contains["version"]
-                term_code = TermCode(system, code, display, version)
-                terminology_entry = TerminologyEntry([term_code], "CodeableConcept", leaf=False, selectable=True)
-                terminology_entry.children += get_ecl_direct_children_without_children(code)
-                terminology_entry.children += get_ecl_direct_children_with_children(code)
-                terminology_entry.children = sorted(terminology_entry.children)
-                result.append(terminology_entry)
-    return result
+# def get_ecl_direct_children_with_children_from_server(snomed_code):
+#     result = []
+#     response = requests.get(ONTOLOGY_SERVER_ADDRESS + "ValueSet/$expand?url=http://snomed.info/sct?fhir_vs=ecl/"
+#                             + ">! (<! (<!" + snomed_code + ")) AND <! " + snomed_code)
+#     if response.status_code == 200:
+#         value_set_data = response.json()
+#         if "contains" in value_set_data["expansion"]:
+#             for contains in value_set_data["expansion"]["contains"]:
+#                 system = contains["system"]
+#                 code = contains["code"]
+#                 display = contains["display"]
+#                 version = None
+#                 if "version" in contains:
+#                     version = contains["version"]
+#                 term_code = TermCode(system, code, display, version)
+#                 terminology_entry = TerminologyEntry([term_code], "CodeableConcept", leaf=False, selectable=True)
+#                 terminology_entry.children += get_ecl_direct_children_without_children(code)
+#                 terminology_entry.children += get_ecl_direct_children_with_children(code)
+#                 terminology_entry.children = sorted(terminology_entry.children)
+#                 result.append(terminology_entry)
+#     return result
 
 
 def translate_substance(_profile_data, _terminology_entry):
@@ -335,10 +452,8 @@ def translate_laboratory_values(_profile_data, terminology_entry: TerminologyEnt
     if terminology_entry.terminologyType == "Quantity":
         for code in terminology_entry.termCodes:
             entry = TerminologyEntry([code], terminology_entry.terminologyType)
-            entry.leaf = True
-            entry.selectable = True
             entry.fhirMapperType = "QuantityObservation"
-            entry.valueDefinitions = []
+            entry.valueDefinition = []
             terminology_entry.children.append(entry)
         terminology_entry.fhirMapperType = "QuantityObservation"
         terminology_entry.selectable = False
@@ -360,7 +475,7 @@ def translate_procedure(profile_data, terminology_entry):
     terminology_entry.selectable = True
     for element in profile_data["snapshot"]["element"]:
         if "id" in element and element["id"] == "Procedure.code.coding:sct":
-            if "patternCoding":
+            if "patternCoding" in element:
                 parse_term_code(terminology_entry, element, "Procedure.code.coding")
                 break
             if "binding" in element:
@@ -373,8 +488,8 @@ def translate_procedure(profile_data, terminology_entry):
 def translate_immunization(profile_data, terminology_entry):
     terminology_entry.fhirMapperType = "Immunization"
     for element in profile_data["snapshot"]["element"]:
-        if "id" in element and element[
-            "id"] == "Immunization.vaccineCode.coding:snomed":  # and element["slicingName"] == "atc":
+        if "id" in element and element["id"] == "Immunization.vaccineCode.coding:snomed":
+            # and element["slicingName"] == "atc":
             if "binding" in element:
                 value_set = element["binding"]["valueSet"]
                 terminology_entry.children += (get_termentries_from_onto_server(value_set))
@@ -411,7 +526,7 @@ def translate_diagnostic_report(profile_data, terminology_entry):
             value_definition = ValueDefinition("concept")
             value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
             terminology_entry.valueDefinitions.append(value_definition)
-            terminology_entry.leaf = True
+            terminology_entry.leaf = False
             terminology_entry.selectable = True
             break
 
@@ -455,6 +570,7 @@ def translate_resuscitation(profile_data, terminology_entry):
                 value_definition = ValueDefinition("concept")
                 value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
                 terminology_entry.valueDefinitions.append(value_definition)
+                terminology_entry.leaf = False
                 break
 
 
@@ -475,11 +591,12 @@ def translate_history_of_travel(profile_data, terminology_entry):
                 value_definition = ValueDefinition("concept")
                 value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
                 terminology_entry.valueDefinitions.append(value_definition)
-                terminology_entry.leaf = True
+                terminology_entry.leaf = False
                 terminology_entry.selectable = True
                 break
 
 
+# TODO duplicated code in valueSetToRoots
 def get_term_code_display_from_onto_server(system, code):
     response = requests.get(f"{ONTOLOGY_SERVER_ADDRESS}CodeSystem/$lookup?system={system}&code={code}")
     if response.status_code == 200:
@@ -491,24 +608,82 @@ def get_term_code_display_from_onto_server(system, code):
     return ""
 
 
-# TODO: We only want to use a single coding system. The different coding systems need to be prioratized
-# We do not want to expand is-A relations of snomed or we need a tree structure , but we cant gain the information
-# needed to create a tree structure
-def get_termentries_from_onto_server(canonical_address_value_set):
-    # In Gecco 1.04 all icd10 elements with children got removed this brings them back. Requires matching valuesets on
-    # Ontoserver
-    if "icd" in canonical_address_value_set:
-        canonical_address_value_set = canonical_address_value_set + "-with-parent"
-    icd10_result = []
-    snomed_result = []
-    result = []
-    response = requests.get(
-        f"{ONTOLOGY_SERVER_ADDRESS}ValueSet/$expand?url={canonical_address_value_set}"
-        f"&includeDesignations=true&system-version=http://fhir.de/CodeSystem/dimdi/icd-10-gm%7C2021&"
-        f"system-version=http://fhir.de/CodeSystem/dimdi/atc%7Catcgm2021")
+def add_children_from_vs(terminology_entry: TerminologyEntry, value_set, with_child_children):
+    # TODO 1.0.5 should fix this:
+    term_code = terminology_entry.termCode
+    # TODO 1.0.5 should fix this:
+    if (term_code.system == "http://fhir.de/CodeSystem/bfarm/atc") or (term_code.system == \
+            "http://fhir.de/CodeSystem/dimdi/icd-10-gm"):
+        term_code.version = "2021"
+    # TODO: Refactor
+    if term_code.version:
+        body = {
+            "resourceType": "ValueSet",
+            "compose": {
+                "include": [{
+                    "system": f"{term_code.system}",
+                    "version": f"{term_code.version}",
+                    "filter": [{
+                        "property": "parent",
+                        "op": "=",
+                        "value": f"{term_code.code}"
+                    }],
+                    "valueSet": f"{value_set}"
+
+                }],
+                "exclude": [{
+                    "system": f"{term_code.system}",
+                    "version": f"{term_code.version}",
+                    "filter": [{
+                        "property": "child",
+                        "op": "exists",
+                        "value": "true" if with_child_children else "false"
+                    }]
+                }]
+            }
+        }
+    else:
+        body = {
+            "resourceType": "ValueSet",
+            "compose": {
+                "include": [{
+                    "system": f"{term_code.system}",
+                    "filter": [{
+                        "property": "parent",
+                        "op": "=",
+                        "value": f"{term_code.code}"
+                    }],
+                    "valueSet": f"{value_set}"
+
+                }],
+                "exclude": [{
+                    "system": f"{term_code.system}",
+                    "filter": [{
+                        "property": "child",
+                        "op": "exists",
+                        "value": "true" if with_child_children else "false"
+                    }]
+                }]
+            }
+        }
+    headers = {"Content-type": "application/fhir+json"}
+    response = requests.post(f"{ONTOLOGY_SERVER_ADDRESS}ValueSet/$expand", json=body, headers=headers)
+    print(response.content)
+    for code in value_set_json_to_term_code_set(response):
+        print("HERE")
+        entry = TerminologyEntry([code], terminology_entry.terminologyType, leaf=not with_child_children,
+                                 selectable=True)
+        if with_child_children:
+            add_children_from_vs(entry, value_set, True)
+            add_children_from_vs(entry, value_set, False)
+        terminology_entry.children.append(entry)
+
+
+def value_set_json_to_term_code_set(response):
+    term_codes = set()
     if response.status_code == 200:
         value_set_data = response.json()
-        if "contains" in value_set_data["expansion"]:
+        if "expansion" in value_set_data and "contains" in value_set_data["expansion"]:
             for contains in value_set_data["expansion"]["contains"]:
                 system = contains["system"]
                 code = contains["code"]
@@ -517,35 +692,79 @@ def get_termentries_from_onto_server(canonical_address_value_set):
                 if "version" in contains:
                     version = contains["version"]
                 term_code = TermCode(system, code, display, version)
-                terminology_entry = TerminologyEntry([term_code], "CodeableConcept", leaf=True, selectable=True)
-                if system == "http://fhir.de/CodeSystem/dimdi/icd-10-gm":
-                    icd10_result.append(term_code)
-                elif system == "http://snomed.info/sct":
-                    if "designation" in contains:
-                        for designation in contains["designation"]:
-                            if designation["language"] == "de-DE":
-                                term_code.display = designation["value"]
-                    snomed_result.append(terminology_entry)
-                else:
-                    result.append(terminology_entry)
-    else:
-        print(response.content)
-        print(canonical_address_value_set)
-        # TODO better Exception
-        raise (Exception("HTTP Error"))
-    # Order matters here!
-    if icd10_result:
-        return to_icd_tree(icd10_result)
-    elif result:
-        return sorted(result)
-    else:
-        return sorted(snomed_result)
+                term_codes.add(term_code)
+    return term_codes
+
+
+# TODO: We only want to use a single coding system. The different coding systems need to be prioratized
+# We do not want to expand is-A relations of snomed or we need a tree structure , but we cant gain the information
+# needed to create a tree structure
+def get_termentries_from_onto_server(canonical_address_value_set):
+    if canonical_address_value_set == "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/ValueSet/diagnoses-sct" or canonical_address_value_set == "https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/ValueSet/procedures-sct":
+        return []
+    print(canonical_address_value_set)
+    # In Gecco 1.04 all icd10 elements with children got removed this brings them back. Requires matching valuesets on
+    # Ontoserver
+    if "icd" in canonical_address_value_set:
+        canonical_address_value_set = canonical_address_value_set + "-with-parent"
+    result = create_vs_tree(canonical_address_value_set)
+    print("finished")
+    return result
+    # roots_and_nodes = get_root_and_node_concepts(canonical_address_value_set)
+    # for root_or_node in roots_and_nodes:
+    #     if not root_or_node.leaf:
+    #         add_children_from_vs(root_or_node, canonical_address_value_set, False)
+    #         add_children_from_vs(root_or_node, canonical_address_value_set, True)
+    # return roots_and_nodes
+
+    # icd10_result = []
+    # snomed_result = []
+    # result = []
+    # response = requests.get(
+    #     f"{ONTOLOGY_SERVER_ADDRESS}ValueSet/$expand?url={canonical_address_value_set}"
+    #     f"&includeDesignations=true&system-version=http://fhir.de/CodeSystem/dimdi/icd-10-gm%7C2021&"
+    #     f"system-version=http://fhir.de/CodeSystem/dimdi/atc%7Catcgm2021")
+    # if response.status_code == 200:
+    #     value_set_data = response.json()
+    #     if "contains" in value_set_data["expansion"]:
+    #         for contains in value_set_data["expansion"]["contains"]:
+    #             system = contains["system"]
+    #             code = contains["code"]
+    #             display = contains["display"]
+    #             version = None
+    #             if "version" in contains:
+    #                 version = contains["version"]
+    #             term_code = TermCode(system, code, display, version)
+    #             terminology_entry = TerminologyEntry([term_code], "CodeableConcept", leaf=True, selectable=True)
+    #             if system == "http://fhir.de/CodeSystem/dimdi/icd-10-gm":
+    #                 icd10_result.append(term_code)
+    #             elif system == "http://snomed.info/sct":
+    #                 if "designation" in contains:
+    #                     for designation in contains["designation"]:
+    #                         if designation["language"] == "de-DE":
+    #                             term_code.display = designation["value"]
+    #                 snomed_result.append(terminology_entry)
+    #             else:
+    #                 result.append(terminology_entry)
+    # else:
+    #     print(response.content)
+    #     print(canonical_address_value_set)
+    #     # TODO better Exception
+    #     raise (Exception("HTTP Error"))
+    # # Order matters here!
+    # if icd10_result:
+    #     return icd10_result
+    # elif result:
+    #     return sorted(result)
+    # else:
+    #     return sorted(snomed_result)
 
 
 # TODO: We only want to use a single coding system. The different coding systems need to be prioratized
 # We do not want to expand is-A relations of snomed or we need a tree structure , but we cant gain the information
 # needed to create a tree structure
 def get_termcodes_from_onto_server(canonical_address_value_set):
+    print(canonical_address_value_set)
     icd10_result = []
     snomed_result = []
     result = []
@@ -553,23 +772,26 @@ def get_termcodes_from_onto_server(canonical_address_value_set):
         f"{ONTOLOGY_SERVER_ADDRESS}ValueSet/$expand?url={canonical_address_value_set}&includeDesignations=true")
     if response.status_code == 200:
         value_set_data = response.json()
-        for contains in value_set_data["expansion"]["contains"]:
-            system = contains["system"]
-            code = contains["code"]
-            display = contains["display"]
-            term_code = TermCode(system, code, display)
-            if system == "http://fhir.de/CodeSystem/dimdi/icd-10-gm":
-                icd10_result.append(term_code)
-            elif system == "http://snomed.info/sct":
-                if "designation" in contains:
-                    for designation in contains["designation"]:
-                        if "language" in designation and designation["language"] == "de-DE":
-                            term_code.display = designation["value"]
-                snomed_result.append(term_code)
-            else:
-                result.append(term_code)
+        if "contains" in value_set_data["expansion"]:
+            for contains in value_set_data["expansion"]["contains"]:
+                system = contains["system"]
+                code = contains["code"]
+                display = contains["display"]
+                term_code = TermCode(system, code, display)
+                if system == "http://fhir.de/CodeSystem/dimdi/icd-10-gm":
+                    icd10_result.append(term_code)
+                elif system == "http://snomed.info/sct":
+                    if "designation" in contains:
+                        for designation in contains["designation"]:
+                            if "language" in designation and designation["language"] == "de-DE":
+                                term_code.display = designation["value"]
+                    snomed_result.append(term_code)
+                else:
+                    result.append(term_code)
+        else:
+            return []
     else:
-        print(canonical_address_value_set)
+        print(f"{canonical_address_value_set} is empty")
         return []
     # TODO: Workaround
     if result and result[0].display == "Hispanic or Latino":
@@ -580,263 +802,6 @@ def get_termcodes_from_onto_server(canonical_address_value_set):
         return sorted(result)
     else:
         return sorted(snomed_result)
-
-
-# Deprecated
-def to_reduced_icd_tree(termcodes):
-    groups, categories, subcategories_three_digit, subcategories_four_digit = \
-        get_groups_categories_subcategories(termcodes)
-
-    result = []
-
-    for subcategory_four_digit_entry in sorted(subcategories_four_digit):
-
-        if not any(subcategory_three_digit_entry.termCode.code == subcategory_four_digit_entry.termCode.code[:-1] for
-                   subcategory_three_digit_entry in subcategories_three_digit):
-            result.append(subcategory_four_digit_entry)
-
-    for subcategory_three_digit_entry in sorted(subcategories_three_digit):
-        if not any(category_entry.termCode.code == subcategory_three_digit_entry.termCode.code[:-2] for
-                   category_entry in categories):
-            result.append(subcategory_three_digit_entry)
-
-    add_category_entries_to_groups_or_result(groups, categories, result)
-
-    result += sorted(groups)
-
-    return result
-
-
-def get_groups_categories_subcategories(termcodes):
-    groups = set()
-    categories = set()
-    subcategories_three_digit = set()
-    subcategories_four_digit = set()
-
-    for termcode in termcodes:
-        if re.match("[A-Z][0-9][0-9]-[A-Z][0-9][0-9]$", termcode.code):
-            groups.add(TerminologyEntry([termcode], "CodeableConcept", leaf=True))
-        elif re.match("[A-Z][0-9][0-9]$", termcode.code):
-            categories.add(TerminologyEntry([termcode], "CodeableConcept", leaf=True))
-        elif re.match("[A-Z][0-9][0-9]\\.[0-9]$", termcode.code):
-            subcategories_three_digit.add(TerminologyEntry([termcode], "CodeableConcept", leaf=True))
-        elif re.match("[A-Z][0-9][0-9]\\.[0-9][0-9]$", termcode.code):
-            terminology_entry = TerminologyEntry([termcode], "CodeableConcept", leaf=True)
-            subcategories_four_digit.add(terminology_entry)
-    return groups, categories, subcategories_three_digit, subcategories_four_digit
-
-
-def add_category_entries_to_groups_or_result(groups, categories, result):
-    for category_entry in sorted(categories):
-        if group_entry := get_parent_group(category_entry, groups):
-            group_entry.children.append(category_entry)
-            group_entry.leaf = False
-        else:
-            result.append(category_entry)
-
-
-def get_parent_group(category_entry, groups):
-    for group_entry in sorted(groups, key=lambda x: get_range_size(x)):
-        if int(group_entry.termCode.code[-2:]) >= int(category_entry.termCode.code[1:]) >= int(
-                group_entry.termCode.code[1:3]) and \
-                category_entry.termCode.code[0] == group_entry.termCode.code[0]:
-            return group_entry
-    return None
-
-
-def to_icd_tree(termcodes):
-    groups, categories, subcategories_three_digit, subcategories_four_digit = \
-        get_groups_categories_subcategories(termcodes)
-    result = []
-
-    add_subcategories_four_digit_to_subcategories_three_digit_or_result(subcategories_four_digit,
-                                                                        subcategories_three_digit, result)
-
-    add_subcategories_three_digit_to_category_or_result(subcategories_three_digit, categories, result)
-
-    add_category_entries_to_groups_or_result(groups, categories, result)
-
-    groups = structure_groups_to_tree(groups)
-
-    result += sorted(groups)
-
-    result = sorted(result)
-
-    return result
-
-
-def get_range_size(terminology_entry):
-    if terminology_entry:
-        return int(terminology_entry.termCode.code[-2:]) - int(terminology_entry.termCode.code[1:3])
-    else:
-        return 10000
-
-
-def structure_groups_to_tree(groups):
-    def within_range_of(terminology_entry, other_terminology_entry):
-        if terminology_entry.termCode.code == other_terminology_entry.termCode.code:
-            return False
-        return ((int(other_terminology_entry.termCode.code[1:3]) <= int(terminology_entry.termCode.code[1:3]) <=
-                 int(other_terminology_entry.termCode.code[-2:])) and
-                (int(other_terminology_entry.termCode.code[1:3]) <= int(terminology_entry.termCode.code[-2:]) <=
-                 int(other_terminology_entry.termCode.code[-2:])))
-
-    groups_list = list(groups)
-    groups_list.sort(key=lambda x: get_range_size(x))
-    to_be_removed_groups = set()
-    for group_entry in groups_list:
-        parent_group = None
-        for other_group_entry in groups_list:
-            if within_range_of(group_entry, other_group_entry) and get_range_size(other_group_entry) < \
-                    get_range_size(parent_group):
-                parent_group = other_group_entry
-        if parent_group:
-            parent_group.children.append(group_entry)
-            parent_group.children.sort()
-            parent_group.leaf = False
-            to_be_removed_groups.add(group_entry)
-    groups = groups - to_be_removed_groups
-    return groups
-
-
-def add_subcategories_four_digit_to_subcategories_three_digit_or_result(subcategories_four_digit,
-                                                                        subcategories_three_digit, result):
-    for subcategory_four_digit_entry in sorted(subcategories_four_digit):
-        parent_found = False
-        for subcategory_three_digit_entry in subcategories_three_digit:
-            if subcategory_three_digit_entry.termCode.code == subcategory_four_digit_entry.termCode.code[:-1]:
-                subcategory_three_digit_entry.children.append(subcategory_four_digit_entry)
-                subcategory_three_digit_entry.leaf = False
-                parent_found = True
-        if not parent_found:
-            result.append(subcategory_four_digit_entry)
-
-
-def add_subcategories_three_digit_to_category_or_result(subcategories_three_digit, categories, result):
-    for subcategory_three_digit_entry in sorted(subcategories_three_digit):
-        parent_found = False
-        for category_entry in categories:
-            if category_entry.termCode.code == subcategory_three_digit_entry.termCode.code[:-2]:
-                category_entry.children.append(subcategory_three_digit_entry)
-                category_entry.leaf = False
-                parent_found = True
-        if not parent_found:
-            result.append(subcategory_three_digit_entry)
-
-
-# element from Logical Model
-def add_terminology_entry_to_category(element, categories, terminology_type):
-    for category_entry in categories:
-        if category_entry.path in element["base"]["path"]:
-            terminology_entry = TerminologyEntry(get_term_codes(element), terminology_type)
-            # We use the english display to resolve after we switch to german.
-            terminology_entry.display = element["short"]
-            if terminology_entry.display in IGNORE_LIST:
-                continue
-            # TODO: Refactor don't do this here?!
-            resolve_terminology_entry_profile(terminology_entry)
-            if terminology_entry.terminologyType == "Quantity":
-                terminology_entry.valueDefinitions.append(get_value_definition(element))
-                # FIXME: This is only a quick workaround for GasPanel values.
-                for child in terminology_entry.children:
-                    child.valueDefinitions.append(get_value_definition(element))
-            terminology_entry.display = get_german_display(element) if get_german_display(element) else element["short"]
-            if terminology_entry.display == category_entry.display:
-                # Resolves issue like : -- Symptoms                 --Symptoms
-                #                           -- Symptoms     --->      -- Coughing
-                #                              -- Coughing
-                category_entry.children += terminology_entry.children
-            else:
-                category_entry.children.append(terminology_entry)
-
-
-def get_term_codes(element):
-    term_codes = []
-    if "code" in element:
-        for code in element["code"]:
-            term_codes.append(TermCode(code["system"], code["code"], code["display"],
-                                       code["version"] if "version" in code else None))
-    if not term_codes:
-        term_codes.append(TermCode("num.codex", element["short"], element["short"]))
-    return term_codes
-
-
-def get_value_definition(element):
-    value_definition = ValueDefinition("quantity")
-    if "extension" in element:
-        for extension in element["extension"]:
-            if extension["url"] == "http://hl7.org/fhir/StructureDefinition/elementdefinition-allowedUnits":
-                if "valueCodeableConcept" in extension:
-                    value_codeable_concept = extension["valueCodeableConcept"]
-                    if "coding" in value_codeable_concept:
-                        for coding in value_codeable_concept["coding"]:
-                            if coding["system"] == "http://unitsofmeasure.org/":
-                                value_definition.allowedUnits.append(Unit(coding["code"], coding["code"]))
-    return value_definition
-
-
-def get_german_display(element):
-    for extension in element["_short"]["extension"]:
-        next_value_is_german_display_content = False
-        for nested_extension in extension["extension"]:
-            if nested_extension["url"] == "lang":
-                next_value_is_german_display_content = nested_extension["valueCode"] == "de-DE"
-                continue
-            elif next_value_is_german_display_content:
-                return nested_extension["valueMarkdown"]
-    return None
-
-
-def get_gecco_categories():
-    with open(f"{GECCO_DATA_SET}/StructureDefinition-LogicalModel-GECCO.json", encoding="utf-8") as json_file:
-        categories = []
-        data = json.load(json_file)
-        for element in data["differential"]["element"]:
-            try:
-                # ignore Gecco base element:
-                if element["base"]["path"] == "forschungsdatensatz_gecco.gecco":
-                    continue
-                if element["type"][0]["code"] == "BackboneElement":
-                    for extension in element["_short"]["extension"]:
-                        for nested_extension in extension["extension"]:
-                            if "valueMarkdown" in nested_extension:
-                                categories.append(CategoryEntry(str(uuid.uuid4()),
-                                                                nested_extension["valueMarkdown"],
-                                                                element["base"]["path"]))
-            except KeyError:
-                continue
-        return categories
-
-
-def create_category_terminology_entry(category_entry):
-    term_code = [TermCode("num.codex", category_entry.display, category_entry.display)]
-    result = TerminologyEntry(term_code, "Category", selectable=False)
-    result.display = category_entry.display
-    result.path = category_entry.path
-    return result
-
-
-def create_terminology_definition_for(categories):
-    category_terminology_entries = []
-    for category_entry in categories:
-        category_terminology_entries.append(create_category_terminology_entry(category_entry))
-    with open(f"{GECCO_DATA_SET}/StructureDefinition-LogicalModel-GECCO.json", encoding="utf-8") as json_file:
-        data = json.load(json_file)
-        for element in data["differential"]["element"]:
-            if "type" in element:
-                if element["type"][0]["code"] == "BackboneElement":
-                    continue
-                elif element["type"][0]["code"] == "CodeableConcept":
-                    add_terminology_entry_to_category(element, category_terminology_entries, "CodeableConcept")
-                elif element["type"][0]["code"] == "Quantity":
-                    add_terminology_entry_to_category(element, category_terminology_entries, "Quantity")
-                elif element["type"][0]["code"] == "date":
-                    add_terminology_entry_to_category(element, category_terminology_entries, "date")
-                else:
-                    raise Exception(f"Unknown element {element['type'][0]['code']}")
-    for category_entry in category_terminology_entries:
-        category_entry.children = sorted(category_entry.children)
-    return category_terminology_entries
 
 
 def get_specimen():

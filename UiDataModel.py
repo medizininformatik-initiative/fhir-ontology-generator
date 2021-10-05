@@ -76,6 +76,12 @@ class ValueDefinition:
         self.max = None
 
 
+class AttributeDefinition(ValueDefinition):
+    def __init__(self, attribute_code, value_type):
+        super().__init__(value_type)
+        self.attributeCode = attribute_code
+
+
 class Unit:
     def __init__(self, display, code):
         self.display = display
@@ -83,9 +89,9 @@ class Unit:
 
 
 class TerminologyEntry(object):
-    DO_NOT_SERIALIZE = ["terminologyType", "path", "DO_NOT_SERIALIZE", "fhirMapperType", "termCodes"]
+    DO_NOT_SERIALIZE = ["terminologyType", "path", "DO_NOT_SERIALIZE", "fhirMapperType", "termCodes", "root"]
 
-    def __init__(self, term_codes, terminology_type, leaf=False, selectable=True):
+    def __init__(self, term_codes, terminology_type=None, leaf=True, selectable=True):
         self.id = str(uuid.uuid4())
         self.termCodes = term_codes
         self.termCode = term_codes[0]
@@ -99,8 +105,10 @@ class TerminologyEntry(object):
         self.selectable = selectable
         self.timeRestrictionAllowed = False
         self.valueDefinitions = []
+        self.attributeDefinitions = []
         self.display = (self.termCode.display if self.termCode else None)
         self.fhirMapperType = None
+        self.root = True
 
     def __lt__(self, other):
         if self.display and other.display:

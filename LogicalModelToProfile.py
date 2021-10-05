@@ -1,5 +1,3 @@
-# TODO: Need further handling:
-# DateOfBirth
 LOGICAL_MODEL_TO_PROFILE = {
     "DisordersOfCardiovascularSystem": "CardiovascularDiseases",
     "Rheumatological/immunologicalDiseases": "RheumatologicalImmunologicalDiseases",
@@ -42,7 +40,6 @@ LOGICAL_MODEL_TO_PROFILE = {
     "NatriureticPeptide.bProhormoneN-terminal": "ObservationLab",
     "Fibrinogen": "ObservationLab",
     "Sars-cov-2-rt-pcr": "SARS-CoV-2-RT-PCR",
-    # TODO: How to map these? DOUBLE CHECK!!!
     "Sars-cov-2(covid-19)IggIaQl": "SarsCoV2IgGSerPlQlIA",
     "Sars-cov-2(covid-19)IggIaQn": "SarsCoV2IgGSerPlIAaCnc",
     "Sars-cov-2(covid-19)IgmIaQl": "SarsCoV2IgMSerPlQlIA",
