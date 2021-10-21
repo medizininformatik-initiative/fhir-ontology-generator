@@ -62,7 +62,7 @@ class QuantityObservationMapEntry(MapEntry):
         super().__init__(term_code)
         self.termCodeSearchParameter = "code"
         self.valueSearchParameter = "value-quantity"
-        self.valueFhirPath = "valueQuantity"
+        self.valueFhirPath = "value"
         self.fhirResourceType = "Observation"
         self.fixedCriteria = []
 
@@ -245,9 +245,7 @@ def generate_map(categories):
                 result.entries.add(str_to_class(class_name)(terminology.termCode))
                 result.entries = result.entries.union(generate_child_entries(terminology.children, class_name))
             else:
-                pass
-                # TODO: Once Age and Ethnic Group are handled throw here
-                # print(terminology)
+                print(terminology)
     return result
 
 

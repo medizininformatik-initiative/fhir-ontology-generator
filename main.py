@@ -8,7 +8,7 @@ from jsonschema import validate
 from MappingDataModel import generate_map
 from UiDataModel import TerminologyEntry, prune_terminology_tree, TermCode
 from geccoToUIProfiles import create_terminology_definition_for, get_gecco_categories, IGNORE_CATEGORIES, \
-    MAIN_CATEGORIES, \
+    MAIN_CATEGORIES, IGNORE_LIST, \
     get_specimen, get_consent, resolve_terminology_entry_profile
 from termCodeTree import to_term_code_node
 from termEntryToExcel import to_csv
@@ -18,11 +18,11 @@ GECCO_DIRECTORY = "de.gecco#1.0.5"
 MII_CASE = "de.medizininformatikinitiative.kerndatensatz.fall 1.0.1"
 MII_DIAGNOSE = "de.medizininformatikinitiative.kerndatensatz.diagnose 1.0.4"
 MII_LAB = "de.medizininformatikinitiative.kerndatensatz.laborbefund 1.0.6"
-MII_MEDICATION = "de.medizininformatikinitiative.kerndatensatz.medikation 1.0.8"
+MII_MEDICATION = "de.medizininformatikinitiative.kerndatensatz.medikation 1.0.10"
 MII_PERSON = "de.medizininformatikinitiative.kerndatensatz.person 2.0.0-alpha2"
 MII_PROCEDURE = "de.medizininformatikinitiative.kerndatensatz.prozedur 2.0.0-alpha1"
 MII_SPECIMEN = "de.medizininformatikinitiative.kerndatensatz.biobank 0.9.0"
-core_data_sets = [MII_CASE, MII_DIAGNOSE, MII_LAB, MII_MEDICATION, MII_PERSON, MII_PROCEDURE, MII_SPECIMEN, GECCO]
+core_data_sets = [MII_DIAGNOSE, MII_LAB, MII_MEDICATION, MII_PERSON, MII_PROCEDURE, MII_SPECIMEN, GECCO]
 
 
 # FIXME:
@@ -121,12 +121,21 @@ def generate_result_folder():
     mkdir_if_not_exists("ui-profiles")
 
 
+def remove_resource_name(name_with_resource_name):
+    # order matters here!
+    resource_names = ["ProfilePatient", "Profile", "LogicalModel", "Condition", "DiagnosticReport", "Observation",
+                      "ServiceRequest", "Extension", "ResearchSubject", "Procedure"]
+    for resource_name in resource_names:
+        name_with_resource_name = name_with_resource_name.replace(resource_name, "")
+    return name_with_resource_name
+
+
 if __name__ == '__main__':
     generate_result_folder()
     # ----Time consuming: Only execute initially or on changes----
     # download_core_data_set_mii()
     # generate_snapshots()
-    # ------------------------------------------------------------
+    # ------------------------------------------------------------D
     for data_set in core_data_sets:
         if data_set != GECCO:
             module_name = data_set.split(' ')[0].split(".")[-1].capitalize()
@@ -139,11 +148,17 @@ if __name__ == '__main__':
                 with open(snapshot, encoding="UTF-8") as json_file:
                     json_data = json.load(json_file)
                     # Care parentheses matter here!
-                    if (resource_type := json_data.get("type")) and (
-                            (kind := json_data.get("kind")) and kind != "logical"):
+                    if (kind := json_data.get("kind")) and (kind == "logical"):
+                        continue
+                    if resource_type := json_data.get("type"):
                         if resource_type == "Bundle":
                             continue
-                    module_element_name = json_data.get("name")
+                        elif resource_type == "Extension":
+                            continue
+                    module_element_name = remove_resource_name(json_data.get("name"))
+                    if module_element_name in IGNORE_LIST:
+                        continue
+                    print(module_element_name)
                     module_element_code = TermCode("num.abide", module_element_name, module_element_name)
                     module_element_entry = TerminologyEntry([module_element_code], "Category", selectable=False,
                                                             leaf=False)
@@ -158,7 +173,7 @@ if __name__ == '__main__':
     # TODO: ones the specimen and consent profiles are declared use them instead!
     category_entries.append(get_specimen())
     category_entries.append(get_consent())
-    #generate_term_code_mapping(category_entries)
-    #generate_term_code_tree(category_entries)
-    #to_csv(category_entries)
+    generate_term_code_mapping(category_entries)
+    generate_term_code_tree(category_entries)
+    # to_csv(category_entries)
     generate_ui_profiles(category_entries)

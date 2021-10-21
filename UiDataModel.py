@@ -89,7 +89,8 @@ class Unit:
 
 
 class TerminologyEntry(object):
-    DO_NOT_SERIALIZE = ["terminologyType", "path", "DO_NOT_SERIALIZE", "fhirMapperType", "termCodes", "root"]
+    DO_NOT_SERIALIZE = ["terminologyType", "path", "DO_NOT_SERIALIZE", "fhirMapperType", "termCode", "valueDefinitions",
+                        "root"]
 
     def __init__(self, term_codes, terminology_type=None, leaf=True, selectable=True):
         self.id = str(uuid.uuid4())
@@ -105,6 +106,7 @@ class TerminologyEntry(object):
         self.selectable = selectable
         self.timeRestrictionAllowed = False
         self.valueDefinitions = []
+        self.valueDefinition = self.valueDefinitions[0]
         self.attributeDefinitions = []
         self.display = (self.termCode.display if self.termCode else None)
         self.fhirMapperType = None
@@ -118,18 +120,21 @@ class TerminologyEntry(object):
     def __repr__(self):
         return self.termCode.display
 
+    def __len__(self):
+        return len(self.children) + 1
+
     def to_json(self):
         return json.dumps(self, default=lambda o: del_none(
             del_keys(o.__dict__, self.DO_NOT_SERIALIZE)), sort_keys=True, indent=4)
 
 
 def prune_terminology_tree(tree_node, max_depth):
-    if max_depth != 0:# and not tree_node.fhirMapperType == "Procedure":
+    if max_depth != 0:  # and not tree_node.fhirMapperType == "Procedure":
         for child in tree_node.children:
             if re.match("[A-Z][0-9][0-9]-[A-Z][0-9][0-9]$", child.termCode.code):
                 prune_terminology_tree(child, max_depth)
             else:
-                prune_terminology_tree(child, max_depth-1)
+                prune_terminology_tree(child, max_depth - 1)
     else:
         tree_node.children = []
         tree_node.leaf = True

@@ -56,7 +56,7 @@ LOGICAL_MODEL_TO_PROFILE = {
     "TypeOfDischarge": "DischargeDisposition",
     "Follow-upSwabResult": "SARS-CoV-2-RT-PCR",
     "StudyEnrolmentDueToCovid-19": "StudyInclusionCovid19",
-    "InterventionalStudiesParticipation": "InterventionalClinicalTrialParticipation.json",
+    "InterventionalStudiesParticipation": "InterventionalClinicalTrialParticipation",
     "Dialysis/Hemofiltration": "Dialysis",
     "EcmoTherapy": "Extracorporeal-membrane-oxygenation",
     "IsThePatientInTheIntensiveCareUnit?": "PatientInICU",
@@ -68,5 +68,15 @@ LOGICAL_MODEL_TO_PROFILE = {
     "Sofa-score": "SOFA",
     "DiastolicBloodPressure": "BloodPressure",
     "SystolicBloodPressure": "BloodPressure",
-    "PeripheralOxygenSaturation": "OxygenSaturation"
+    "PeripheralOxygenSaturation": "OxygenSaturation",
+    "Laboruntersuchung": "ObservationLab",
+    "Laboranforderung": "ServiceRequestLab",
+    "Wirkstoffrelation": "wirkstoffrelation",
+    "Wirkstofftyp": "wirkstofftyp",
+    "PatientIn": "Patient",
+    "ProbandIn": "ResearchSubject",
+    "Durchfuehrungsabsicht": "durchfuehrungsabsicht",
+    "Dokumentationsdatum": "recordedDate",
+    "MedicationAdministrationMedikation": "MedicationAdministration",
+    "MedicationStatementMedikation": "MedicationStatement"
 }
