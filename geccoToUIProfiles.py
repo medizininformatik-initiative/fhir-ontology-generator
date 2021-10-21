@@ -111,12 +111,10 @@ def add_terminology_entry_to_category(element, categories, terminology_type):
             # TODO: Refactor don't do this here?!
             resolve_terminology_entry_profile(terminology_entry)
             if terminology_entry.terminologyType == "Quantity":
-                if terminology_entry.display == "Age":
-                    print(get_value_definition(element).allowedUnits)
-                terminology_entry.valueDefinitions.append(get_value_definition(element))
+                terminology_entry.valueDefinition = get_value_definition(element)
                 # FIXME: This is only a quick workaround for GasPanel values.
                 for child in terminology_entry.children:
-                    child.valueDefinitions.append(get_value_definition(element))
+                    child.valueDefinition = get_value_definition(element)
             terminology_entry.display = get_german_display(element) if get_german_display(element) else element["short"]
             if terminology_entry.display == category_entry.display:
                 # Resolves issue like : -- Symptoms                 --Symptoms
@@ -225,16 +223,10 @@ def resolve_terminology_entry_profile(terminology_entry, data_set=GECCO_DATA_SET
                     translate_medication_statement(profile_data, terminology_entry)
                 elif profile_data["type"] == "MedicationAdministration":
                     translate_medication_administration(profile_data, terminology_entry)
-                elif profile_data["type"] == "Organization":
-                    translate_organization(profile_data, terminology_entry)
                 elif profile_data["type"] == "Specimen":
                     translate_specimen(profile_data, terminology_entry)
                 elif profile_data["type"] == "Substance":
                     translate_substance(profile_data, terminology_entry)
-                elif profile_data["type"] == "Encounter":
-                    translate_encounter(profile_data, terminology_entry)
-                elif profile_data["type"] == "ServiceRequest":
-                    translate_service_request(profile_data, terminology_entry)
                 elif profile_data["type"] == "Patient":
                     translate_patient(profile_data, terminology_entry)
                 elif profile_data["type"] == "ResearchSubject":
@@ -261,38 +253,42 @@ def translate_research_subject(_profile_data, _terminology_entry):
 
 def translate_patient(profile_data, terminology_entry):
     terminology_entry.fhirMapperType = "Patient"
-    terminology_entry.leaf = True
-    terminology_entry.selectable = True
+    terminology_entry.timeRestrictionAllowed = False
     # TODO: This will be attributes!
     for element in profile_data["snapshot"]["element"]:
         if element["path"] == "Patient.gender":
-            print("GENDER")
             value_set = element["binding"]["valueSet"].split("|")[0]
-            value_definition = ValueDefinition("concept")
-            value_definition.selectableConcepts += (get_termentries_from_onto_server(value_set))
-            terminology_entry.valueDefinitions.append(value_definition)
+            gender_attribute_code = TermCode("num.abide", "gender", "Geschlecht")
+            gender_attribute = AttributeDefinition(gender_attribute_code, "concept")
+            gender_attribute.selectableConcepts += (get_termentries_from_onto_server(value_set))
+            terminology_entry.attributeDefinitions.append(gender_attribute)
 
 
-def translate_service_request(_profile_data, _terminology_entry):
-    pass
-
-
-def translate_encounter(_profile_data, _terminology_entry):
-    pass
-
-
-def translate_organization(_profile_data, _terminology_entry):
-    pass
+def inherit_parent_attributes(terminology_entry):
+    for child in terminology_entry.children:
+        child.attributeDefinitions = terminology_entry.attributeDefinitions
+        child.timeRestrictionAllowed = terminology_entry.timeRestrictionAllowed
+        if child.children:
+            inherit_parent_attributes(child)
 
 
 def translate_specimen(profile_data, terminology_entry):
-    # TODO: This should not be hard coded!
     terminology_entry.fhirMapperType = "Specimen"
+    body_site_attribute_code = TermCode("num.abide", "bodySite", "Körperstelle")
+    body_site_attribute = AttributeDefinition(attribute_code=body_site_attribute_code, value_type="concept")
+    for element in profile_data["snapshot"]["element"]:
+        if "id" in element and element["id"] == "Specimen.collection.bodySite.coding:icd-o-3":
+            if "binding" in element:
+                value_set = element["binding"]["valueSet"]
+                body_site_attribute.selectableConcepts += get_termcodes_from_onto_server(value_set)
+    terminology_entry.attributeDefinitions.append(body_site_attribute)
     for element in profile_data["snapshot"]["element"]:
         if element["path"] == "Specimen.type.coding":
             if "binding" in element:
                 value_set = element["binding"]["valueSet"]
                 terminology_entry.children += (get_termentries_from_onto_server(value_set))
+    # FIXME: BETTER HANDLING FOR "inheriting" parents attributes.
+    inherit_parent_attributes(terminology_entry)
 
 
 def translate_substance(_profile_data, _terminology_entry):
@@ -341,9 +337,10 @@ def translate_diagnosis_covid_19(profile_data, terminology_entry):
         if element["path"] == "Condition.stage.summary.coding":
             if "binding" in element:
                 value_set = element["binding"]["valueSet"]
-                value_definition = ValueDefinition("concept")
-                value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
-                terminology_entry.valueDefinitions.append(value_definition)
+                stage_code = TermCode("num.abide", "stage", "Stadium")
+                stage_attribute = AttributeDefinition(stage_code, "concept")
+                stage_attribute.selectableConcepts += get_termcodes_from_onto_server(value_set)
+                terminology_entry.attributeDefinitions.append(stage_attribute)
                 terminology_entry.leaf = True
                 terminology_entry.selectable = True
                 # FIXME: Incorrect break multiple valuesets are allowed but this is currently a work around
@@ -361,9 +358,10 @@ def translate_symptom(profile_data, terminology_entry):
                 children = get_termentries_from_onto_server(value_set)
                 for child in children:
                     child.fhirMapperType = "Symptom"
-                    value_definition = ValueDefinition("concept")
-                    value_definition.selectableConcepts += get_termcodes_from_onto_server(severity_vs)
-                    child.valueDefinitions.append(value_definition)
+                    severity_attribute_code = TermCode("num.abide", "severity", "Schweregrad")
+                    severity_attribute = AttributeDefinition(severity_attribute_code, "concept")
+                    severity_attribute.selectableConcepts += get_termcodes_from_onto_server(severity_vs)
+                    child.attributeDefinitions.append(severity_attribute)
                 terminology_entry.children += children
                 terminology_entry.leaf = False
                 break
@@ -384,7 +382,7 @@ def translate_medication_statement(profile_data, terminology_entry):
 def translate_medication_administration(_profile_data, terminology_entry):
     # This code is tailored for MedicationAdministration as defined in kerndatensatz.medikation
     # We use the Medication profile to get the codings referred to by the MedicationAdministration
-    with open(MII_MEDICATION_DATA_SET + "/" + "Medication.StructureDefinition-snapshot.json",  encoding="UTF-8")\
+    with open(MII_MEDICATION_DATA_SET + "/" + "Medication.StructureDefinition-snapshot.json", encoding="UTF-8") \
             as profile_file:
         medication_profile_data = json.load(profile_file)
         terminology_entry.display = "Medikamentenverabreichungen"
@@ -420,7 +418,7 @@ def translate_observation(profile_data, terminology_entry):
                         value_set = element["binding"]["valueSet"]
                         value_definition = ValueDefinition("concept")
                         value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
-                        terminology_entry.valueDefinitions.append(value_definition)
+                        terminology_entry.valueDefinition = value_definition
                         terminology_entry.leaf = True
                         terminology_entry.selectable = True
                         break
@@ -433,7 +431,7 @@ def translate_observation(profile_data, terminology_entry):
                         value_set = element["binding"]["valueSet"]
                         value_definition = ValueDefinition("concept")
                         value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
-                        terminology_entry.valueDefinitions.append(value_definition)
+                        terminology_entry.valueDefinition = value_definition
                         terminology_entry.leaf = True
                         terminology_entry.selectable = True
                         break
@@ -527,7 +525,7 @@ def translate_ethnic_group(profile_data, terminology_entry):
                 value_set = element["binding"]["valueSet"]
                 value_definition = ValueDefinition("concept")
                 value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
-                terminology_entry.valueDefinitions.append(value_definition)
+                terminology_entry.valueDefinition = value_definition
                 terminology_entry.leaf = True
                 terminology_entry.selectable = True
                 break
@@ -547,7 +545,7 @@ def translate_diagnostic_report(profile_data, terminology_entry):
             value_set = element["binding"]["valueSet"]
             value_definition = ValueDefinition("concept")
             value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
-            terminology_entry.valueDefinitions.append(value_definition)
+            terminology_entry.valueDefinition = value_definition
             break
 
 
@@ -571,7 +569,7 @@ def translate_consent(profile_data, terminology_entry):
                 value_set = element["binding"]["valueSet"]
                 value_definition = ValueDefinition("concept")
                 value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
-                terminology_entry.valueDefinitions.append(value_definition)
+                terminology_entry.valueDefinition = value_definition
                 break
 
 
@@ -589,7 +587,7 @@ def translate_resuscitation(profile_data, terminology_entry):
                 value_set = element["binding"]["valueSet"]
                 value_definition = ValueDefinition("concept")
                 value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
-                terminology_entry.valueDefinitions.append(value_definition)
+                terminology_entry.valueDefinition = value_definition
                 break
 
 
@@ -609,7 +607,7 @@ def translate_history_of_travel(profile_data, terminology_entry):
                 value_set = element["binding"]["valueSet"]
                 value_definition = ValueDefinition("concept")
                 value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
-                terminology_entry.valueDefinitions.append(value_definition)
+                terminology_entry.valueDefinition = value_definition
                 break
 
 
@@ -645,7 +643,7 @@ def get_consent():
                 TermCode("http://hl7.org/fhir/consent-provision-type", "permit", "permit"))
             value_definition.selectableConcepts.append(
                 TermCode("http://hl7.org/fhir/consent-provision-type", "deny", "deny"))
-            consent_child.valueDefinitions.append(value_definition)
+            consent_child.valueDefinition = value_definition
             consent_category_entry.children.append(consent_child)
     return consent_category_entry
 
@@ -683,7 +681,8 @@ def value_set_json_to_term_code_set(response):
 # We do not want to expand is-A relations of SNOMED or we need a tree structure , but we cant gain the information
 # needed to create a tree structure
 def get_termentries_from_onto_server(canonical_address_value_set):
-    if canonical_address_value_set == "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/ValueSet/diagnoses-sct":
+    if canonical_address_value_set == "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/ValueSet" \
+                                      "/diagnoses-sct":
         return []
     print(canonical_address_value_set)
     # In Gecco 1.04 all icd10 elements with children got removed this brings them back. Requires matching valuesets on
@@ -797,8 +796,8 @@ def get_terminology_entry_from_top_300_loinc(element_id, element_tree):
             terminology_entry = TerminologyEntry([term_code])
             for child in element:
                 if child.tag == "{http://schema.samply.de/mdr/common}element":
-                    terminology_entry.valueDefinitions.append(
-                        get_value_description_from_top_300_loinc(child.text, element_tree))
+                    terminology_entry.valueDefinition = get_value_description_from_top_300_loinc(child.text,
+                                                                                                 element_tree)
     return terminology_entry
 
 

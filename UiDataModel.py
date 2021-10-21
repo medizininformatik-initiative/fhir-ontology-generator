@@ -104,9 +104,8 @@ class TerminologyEntry(object):
         self.children = []
         self.leaf = leaf
         self.selectable = selectable
-        self.timeRestrictionAllowed = False
-        self.valueDefinitions = []
-        self.valueDefinition = self.valueDefinitions[0]
+        self.timeRestrictionAllowed = True
+        self.valueDefinition = None
         self.attributeDefinitions = []
         self.display = (self.termCode.display if self.termCode else None)
         self.fhirMapperType = None
@@ -126,6 +125,17 @@ class TerminologyEntry(object):
     def to_json(self):
         return json.dumps(self, default=lambda o: del_none(
             del_keys(o.__dict__, self.DO_NOT_SERIALIZE)), sort_keys=True, indent=4)
+
+    def get_leaves(self):
+        result = []
+        for child in self.children:
+            if child.children:
+                result += child.get_leaves()
+            else:
+                result += child
+        return result
+
+
 
 
 def prune_terminology_tree(tree_node, max_depth):
