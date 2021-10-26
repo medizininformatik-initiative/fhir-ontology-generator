@@ -136,8 +136,6 @@ class TerminologyEntry(object):
         return result
 
 
-
-
 def prune_terminology_tree(tree_node, max_depth):
     if max_depth != 0:  # and not tree_node.fhirMapperType == "Procedure":
         for child in tree_node.children:

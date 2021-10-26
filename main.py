@@ -130,12 +130,7 @@ def remove_resource_name(name_with_resource_name):
     return name_with_resource_name
 
 
-if __name__ == '__main__':
-    generate_result_folder()
-    # ----Time consuming: Only execute initially or on changes----
-    # download_core_data_set_mii()
-    # generate_snapshots()
-    # ------------------------------------------------------------D
+def generate_core_data_set():
     for data_set in core_data_sets:
         if data_set != GECCO:
             module_name = data_set.split(' ')[0].split(".")[-1].capitalize()
@@ -168,7 +163,14 @@ if __name__ == '__main__':
             f.write(module_category_entry.to_json())
             f.close()
 
-    # generate gecco
+
+if __name__ == '__main__':
+    generate_result_folder()
+    # ----Time consuming: Only execute initially or on changes----
+    # download_core_data_set_mii()
+    # generate_snapshots()
+    # ------------------------------------------------------------D
+    generate_core_data_set()
     category_entries = create_terminology_definition_for(get_gecco_categories())
     # TODO: ones the specimen and consent profiles are declared use them instead!
     category_entries.append(get_specimen())

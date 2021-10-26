@@ -69,7 +69,6 @@ def create_concept_map():
 
 
 def get_closure_map(term_codes):
-    closure_response = None
     body = {"resourceType": "Parameters",
             "parameter": [{"name": "name", "valueString": "closure-test"}]}
     for term_code in term_codes:
