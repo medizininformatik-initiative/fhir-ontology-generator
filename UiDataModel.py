@@ -80,6 +80,7 @@ class AttributeDefinition(ValueDefinition):
     def __init__(self, attribute_code, value_type):
         super().__init__(value_type)
         self.attributeCode = attribute_code
+        self.optional = True
 
 
 class Unit:

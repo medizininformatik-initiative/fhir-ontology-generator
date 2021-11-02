@@ -1,4 +1,6 @@
 import os
+from os import chdir
+
 import requests
 import csv
 from lxml import etree
@@ -8,6 +10,7 @@ from valueSetToRoots import create_vs_tree
 
 GECCO_DATA_SET = "core_data_sets/de.gecco#1.0.5/package"
 MII_MEDICATION_DATA_SET = "core_data_sets/de.medizininformatikinitiative.kerndatensatz.medikation#1.0.10/package"
+SPECIMEN_VS = "https://www.medizininformatik-initiative.de/fhir/abide/ValueSet/sct-specimen-type-napkon-sprec"
 
 """
     Date of birth requires date selection in the ui
@@ -26,6 +29,8 @@ IGNORE_CATEGORIES = []
 MAIN_CATEGORIES = ["Einwilligung"]
 
 ONTOLOGY_SERVER_ADDRESS = os.environ.get('ONTOLOGY_SERVER_ADDRESS')
+
+GENERATE_DUPLICATES = os.getenv("GENERATE_DUPLICATES", 'False').lower() == "true"
 
 
 class UnknownHandlingException(Exception):
@@ -193,13 +198,11 @@ def translate_patient(profile_data, terminology_entry):
     terminology_entry.timeRestrictionAllowed = False
     terminology_entry.selectable = True
     terminology_entry.leaf = True
-    for element in profile_data["snapshot"]["element"]:
-        if element["path"] == "Patient.gender":
-            value_set = element["binding"]["valueSet"].split("|")[0]
-            gender_attribute_code = TermCode("num.abide", "gender", "Geschlecht")
-            gender_attribute = AttributeDefinition(gender_attribute_code, "concept")
-            gender_attribute.selectableConcepts += (get_termentries_from_onto_server(value_set))
-            terminology_entry.attributeDefinitions.append(gender_attribute)
+    gender_attribute_code = TermCode("num.abide", "gender", "Geschlecht")
+    gender_attribute = AttributeDefinition(gender_attribute_code, "concept")
+    gender_attribute.optional = False
+    gender_attribute.selectableConcepts = (get_term_codes_by_path("Patient.gender", profile_data))
+    terminology_entry.attributeDefinitions.append(gender_attribute)
 
 
 def inherit_parent_attributes(terminology_entry):
@@ -212,15 +215,22 @@ def inherit_parent_attributes(terminology_entry):
 
 def translate_specimen(profile_data, terminology_entry):
     terminology_entry.fhirMapperType = "Specimen"
-    body_site_attribute_code = TermCode("num.abide", "bodySite", "Körperstelle")
+    terminology_entry.display = "Bioprobe"
+    status_attribute_code = TermCode("num.abide", "status", "Status")
+    status_attribute_code = AttributeDefinition(attribute_code=status_attribute_code, value_type="concept")
+    status_attribute_code.selectableConcepts = get_term_codes_by_path("Specimen.status", profile_data)
+    terminology_entry.attributeDefinitions.append(status_attribute_code)
+    body_site_attribute_code = TermCode("mii.module_specimen", "Specimen.collection.bodySite", "Entnahmeort")
     body_site_attribute = AttributeDefinition(attribute_code=body_site_attribute_code, value_type="concept")
     body_site_attribute.selectableConcepts = get_term_code_by_id("Specimen.collection.bodySite.coding:icd-o-3",
                                                                  profile_data)
     terminology_entry.attributeDefinitions.append(body_site_attribute)
-    terminology_entry.children = get_term_entries_by_path("Specimen.type.coding", profile_data)
+    terminology_entry.children = get_termentries_from_onto_server(SPECIMEN_VS)
     terminology_entry.leaf = False
-    # FIXME: BETTER HANDLING FOR "inheriting" parents attributes.
-    # inherit_parent_attributes(terminology_entry)
+    # FIXME: BETTER HANDLING FOR "inheriting" parents attributes. By Normalizing.
+    for child in terminology_entry.children:
+        child.attributeDefinitions = terminology_entry.attributeDefinitions
+        child.timeRestrictionAllowed = terminology_entry.timeRestrictionAllowed
 
 
 def translate_substance(_profile_data, _terminology_entry):
@@ -345,6 +355,7 @@ def translate_symptom(profile_data, terminology_entry):
     terminology_entry.leaf = False
     severity_attribute_code = TermCode("num.abide", "severity", "Schweregrad")
     severity_attribute = AttributeDefinition(severity_attribute_code, "concept")
+    severity_attribute.optional = False
     severity_attribute.selectableConcepts += get_termcodes_from_onto_server(severity_vs)
     terminology_entry.attributeDefinitions.append(severity_attribute)
     inherit_parent_attributes(terminology_entry)
@@ -439,7 +450,6 @@ def translate_sofa(profile_data, terminology_entry):
 
 def translate_procedure(profile_data, terminology_entry):
     terminology_entry.fhirMapperType = "Procedure"
-    print(terminology_entry)
     sct_children = get_term_entries_by_id("Procedure.code.coding:sct", profile_data)
     if sct_children and not terminology_entry.display == "ECMO therapy" and not terminology_entry.display == "Prozedur":
         terminology_entry.children = sct_children
@@ -586,8 +596,10 @@ def value_set_json_to_term_code_set(response):
 
 def get_termentries_from_onto_server(canonical_address_value_set):
     if canonical_address_value_set in ["https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/ValueSet" \
-                                      "/diagnoses-sct", "https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/ValueSet/procedures-sct"]:
+                                       "/diagnoses-sct",
+                                       "https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/ValueSet/procedures-sct"]:
         return []
+    canonical_address_value_set = canonical_address_value_set.replace("|", "&version=")
     print(canonical_address_value_set)
     # In Gecco 1.04 all icd10 elements with children got removed this brings them back. Requires matching valuesets on
     # Ontoserver
@@ -601,6 +613,7 @@ def get_termentries_from_onto_server(canonical_address_value_set):
 
 # TODO: We only want to use a single coding system. The different coding systems need to be prioritized
 def get_termcodes_from_onto_server(canonical_address_value_set):
+    canonical_address_value_set = canonical_address_value_set.replace("|", "&version=")
     print(canonical_address_value_set)
     icd10_result = []
     snomed_result = []
@@ -757,5 +770,29 @@ corner_cases = {
     "PaCO2": translate_gas_panel,
     "SOFA": translate_sofa,
     "SymptomsCovid19": translate_symptom
-
 }
+
+
+def translate_chronic_lung_diseases_with_duplicates(profile_data, terminology_entry):
+    terminology_entry.fhirMapperType = "Condition"
+    icd_code = TermCode("num.abide", "icd10-gm-concepts", "ICD10 Konzepte")
+    icd_logical = TerminologyEntry([icd_code], selectable=False, leaf=False)
+    icd_logical.children = get_term_entries_by_id("Condition.code.coding:icd10-gm", profile_data)
+    terminology_entry.children.append(icd_logical)
+    sct_code = TermCode("num.abide", "sct-concepts", "SNOMED CT Konzepte")
+    sct_logical_entry = TerminologyEntry([sct_code], selectable=False, leaf=False)
+    sct_logical_entry.children = get_term_entries_by_id("Condition.code.coding:sct", profile_data)
+    terminology_entry.children.append(sct_logical_entry)
+    terminology_entry.leaf = False
+
+
+def translate_radiology_procedures_with_duplicates(profile_data, terminology_entry):
+    terminology_entry.fhirMapperType = "Procedure"
+    terminology_entry.children += get_term_entries_by_id("Procedure.code.coding:sct", profile_data)
+    terminology_entry.children += get_term_entries_by_id("Procedure.code.coding:dicom", profile_data)
+    terminology_entry.leaf = False
+
+
+if GENERATE_DUPLICATES:
+    corner_cases["ChronicLungDiseases"] = translate_chronic_lung_diseases_with_duplicates
+    corner_cases["RadiologyProcedures"] = translate_radiology_procedures_with_duplicates

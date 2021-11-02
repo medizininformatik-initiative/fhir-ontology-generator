@@ -153,7 +153,6 @@ def generate_core_data_set():
                     module_element_name = remove_resource_name(json_data.get("name"))
                     if module_element_name in IGNORE_LIST:
                         continue
-                    print(module_element_name)
                     module_element_code = TermCode("num.abide", module_element_name, module_element_name)
                     module_element_entry = TerminologyEntry([module_element_code], "Category", selectable=False,
                                                             leaf=False)
