@@ -13,6 +13,14 @@ class FixedCriteria:
         self.searchParameter = search_parameter
 
 
+class AttributeSearchParameter:
+    def __init__(self, criteria_type, attribute_code, attribute_search_parameter, fhir_path):
+        self.attributeKey = attribute_code
+        self.attributeSearchParameter = attribute_search_parameter
+        self.attributeType = criteria_type
+        self.attributeFhirPath = fhir_path
+
+
 class MapEntry:
     DO_NOT_SERIALIZE = ["DO_NOT_SERIALIZE"]
 
@@ -20,9 +28,11 @@ class MapEntry:
         self.key = term_code
         self.termCodeSearchParameter = None
         self.valueSearchParameter = None
+        self.timeRestrictionParameter = None
         self.fhirResourceType = None
         self.fixedCriteria = []
         self.valueFhirPath = None
+        self.attributeSearchParameters = []
 
     def __eq__(self, other):
         return self.key == other.key
@@ -102,8 +112,10 @@ class SymptomMapEntry(MapEntry):
     def __init__(self, term_code):
         super().__init__(term_code)
         self.termCodeSearchParameter = "code"
-        self.valueSearchParameter = "severity"
-        self.valueFhirPath = "severity"
+        severity_attribute_code = TermCode("num.abide", "severity", "Schweregrad")
+        severity_attribute_search_parameter = AttributeSearchParameter("code", severity_attribute_code,
+                                                                       "severity", "severity")
+        self.attributeSearchParameters = [severity_attribute_search_parameter]
         self.fhirResourceType = "Condition"
         confirmed = TermCode("http://terminology.hl7.org/CodeSystem/condition-ver-status", "confirmed", "confirmed")
         self.fixedCriteria = [FixedCriteria("coding", "verification-status", "verificationStatus", [confirmed])]
@@ -117,6 +129,17 @@ class MedicationStatementMapEntry(MapEntry):
         self.valueSearchParameter = None
         active = TermCode("http://hl7.org/fhir/CodeSystem/medication-statement-status", "active", "active")
         completed = TermCode("http://hl7.org/fhir/CodeSystem/medication-statement-status", "completed", "completed")
+        self.fixedCriteria = [FixedCriteria("code", "status", "status", [active, completed])]
+
+
+class MedicationAdministrationMapEntry(MapEntry):
+    def __init__(self, term_code):
+        super().__init__(term_code)
+        self.termCodeSearchParameter = "code"
+        self.fhirResourceType = "MedicationAdministration"
+        self.valueSearchParameter = None
+        active = TermCode("http://hl7.org/fhir/CodeSystem/medication-admin-status", "active", "active")
+        completed = TermCode("http://hl7.org/fhir/CodeSystem/medication-admin-status", "completed", "completed")
         self.fixedCriteria = [FixedCriteria("code", "status", "status", [active, completed])]
 
 
@@ -146,9 +169,19 @@ class DiagnosisCovid19MapEntry(MapEntry):
         super().__init__(term_code)
         self.termCodeSearchParameter = "code"
         self.fhirResourceType = "Condition"
-        self.valueSearchParameter = "stage"
-        self.valueFhirPath = "stage.summary"
+        stage_attribute_code = TermCode("num.abide", "stage", "Stadium")
+        stage_attribute_search_parameter = AttributeSearchParameter("code", stage_attribute_code, "stage", "stage")
+        self.attributeSearchParameters = stage_attribute_search_parameter
         self.fixedCriteria = []
+
+
+class PatientMapEntry(MapEntry):
+    def __init__(self, term_code):
+        super().__init__(term_code)
+        self.fhirResourceType = "Patient"
+        gender_attribute_term_code = TermCode("num.abide", "gender", "Geschlecht")
+        gender_attribute_term_code_search_parameter = ("code", gender_attribute_term_code, "gender", "gender")
+        self.attributeSearchParameters = [gender_attribute_term_code_search_parameter]
 
 
 class SpecimenMapEntry(MapEntry):
@@ -157,8 +190,17 @@ class SpecimenMapEntry(MapEntry):
         self.termCodeSearchParameter = "type"
         self.fhirResourceType = "Specimen"
         self.valueSearchParameter = None
-        available = TermCode("http://hl7.org/fhir/ValueSet/specimen-status", "available", "Available")
-        self.fixedCriteria = [FixedCriteria("code", "status", "status", [available])]
+        # available = TermCode("http://hl7.org/fhir/ValueSet/specimen-status", "available", "Available")
+        # self.fixedCriteria = [FixedCriteria("code", "status", "status", [available])]
+        # FIXME: We need better handling of TermCodes used cross UI and Mapping this is error-prone!
+        body_site_attribute_term_code = TermCode("mii.module_specimen", "Specimen.collection.bodySite", "Entnahmeort")
+        body_site_attribute_search_parameter = AttributeSearchParameter("code", body_site_attribute_term_code,
+                                                                        "bodysite", "collection.bodySite")
+        status_attribute_term_code = TermCode("num.abide", "status", "status")
+        status_attribute_search_parameter = AttributeSearchParameter("code", status_attribute_term_code, "status",
+                                                                     "status")
+        self.attributeSearchParameters = [body_site_attribute_search_parameter, status_attribute_search_parameter]
+        self.timeRestrictionParameter = "collected"
 
 
 class EthnicGroupMapEntry(MapEntry):

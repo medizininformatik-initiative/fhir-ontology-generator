@@ -131,6 +131,7 @@ def remove_resource_name(name_with_resource_name):
 
 
 def generate_core_data_set():
+    core_data_set_modules = []
     for data_set in core_data_sets:
         if data_set != GECCO:
             module_name = data_set.split(' ')[0].split(".")[-1].capitalize()
@@ -161,6 +162,8 @@ def generate_core_data_set():
             f = open("ui-profiles/" + module_category_entry.display + ".json", 'w', encoding="utf-8")
             f.write(module_category_entry.to_json())
             f.close()
+            core_data_set_modules.append(module_category_entry)
+    return core_data_set_modules
 
 
 if __name__ == '__main__':
@@ -169,12 +172,13 @@ if __name__ == '__main__':
     # download_core_data_set_mii()
     # generate_snapshots()
     # ------------------------------------------------------------D
-    generate_core_data_set()
+    core_data_category_entries = generate_core_data_set()
     category_entries = create_terminology_definition_for(get_gecco_categories())
     # TODO: ones the specimen and consent profiles are declared use them instead!
     category_entries.append(get_specimen())
     category_entries.append(get_consent())
+    generate_ui_profiles(category_entries)
+    category_entries += core_data_category_entries
     generate_term_code_mapping(category_entries)
     generate_term_code_tree(category_entries)
     # to_csv(category_entries)
-    generate_ui_profiles(category_entries)

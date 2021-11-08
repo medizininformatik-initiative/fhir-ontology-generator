@@ -1,3 +1,4 @@
+import copy
 import json
 import re
 import uuid
@@ -20,9 +21,10 @@ def del_none(dictionary):
 
 
 def del_keys(dictionary, keys):
+    result = copy.deepcopy(dictionary)
     for k in keys:
-        dictionary.pop(k, None)
-    return dictionary
+        result.pop(k, None)
+    return result
 
 
 class CategoryEntry:

@@ -207,6 +207,7 @@ def translate_patient(profile_data, terminology_entry):
 
 def inherit_parent_attributes(terminology_entry):
     for child in terminology_entry.children:
+        child.fhirMapperType = terminology_entry.fhirMapperType
         child.attributeDefinitions = terminology_entry.attributeDefinitions
         child.timeRestrictionAllowed = terminology_entry.timeRestrictionAllowed
         if child.children:
@@ -227,10 +228,7 @@ def translate_specimen(profile_data, terminology_entry):
     terminology_entry.attributeDefinitions.append(body_site_attribute)
     terminology_entry.children = get_termentries_from_onto_server(SPECIMEN_VS)
     terminology_entry.leaf = False
-    # FIXME: BETTER HANDLING FOR "inheriting" parents attributes. By Normalizing.
-    for child in terminology_entry.children:
-        child.attributeDefinitions = terminology_entry.attributeDefinitions
-        child.timeRestrictionAllowed = terminology_entry.timeRestrictionAllowed
+    inherit_parent_attributes(terminology_entry)
 
 
 def translate_substance(_profile_data, _terminology_entry):
@@ -657,6 +655,7 @@ def get_termcodes_from_onto_server(canonical_address_value_set):
 def translate_top_300_loinc_codes(_profile_data, terminology_entry):
     top_loinc_tree = etree.parse("Top300Loinc.xml")
     lab_root = get_terminology_entry_from_top_300_loinc("11ccdc84-a237-49a5-860a-b0f65068c023", top_loinc_tree)
+    terminology_entry.fhirMapperType = "QuantityObservation"
     terminology_entry.children.append(lab_root)
     terminology_entry.leaf = False
     terminology_entry.selectable = False
