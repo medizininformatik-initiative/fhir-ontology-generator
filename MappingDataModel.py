@@ -171,7 +171,7 @@ class DiagnosisCovid19MapEntry(MapEntry):
         self.fhirResourceType = "Condition"
         stage_attribute_code = TermCode("num.abide", "stage", "Stadium")
         stage_attribute_search_parameter = AttributeSearchParameter("code", stage_attribute_code, "stage", "stage")
-        self.attributeSearchParameters = stage_attribute_search_parameter
+        self.attributeSearchParameters = [stage_attribute_search_parameter]
         self.fixedCriteria = []
 
 
@@ -180,7 +180,7 @@ class PatientMapEntry(MapEntry):
         super().__init__(term_code)
         self.fhirResourceType = "Patient"
         gender_attribute_term_code = TermCode("num.abide", "gender", "Geschlecht")
-        gender_attribute_term_code_search_parameter = ("code", gender_attribute_term_code, "gender", "gender")
+        gender_attribute_term_code_search_parameter = AttributeSearchParameter("code", gender_attribute_term_code, "gender", "gender")
         self.attributeSearchParameters = [gender_attribute_term_code_search_parameter]
 
 
