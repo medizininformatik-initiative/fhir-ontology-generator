@@ -185,15 +185,19 @@ def translate_research_subject(_profile_data, _terminology_entry):
 
 
 def translate_patient(profile_data, terminology_entry, _logical_element):
+    # Care if we make attributes children we cannot use inherit_parent_attributes! nor can we use ui-profiles.
     terminology_entry.fhirMapperType = "Patient"
     terminology_entry.timeRestrictionAllowed = False
-    terminology_entry.selectable = True
-    terminology_entry.leaf = True
+    terminology_entry.selectable = False
+    terminology_entry.leaf = False
     gender_attribute_code = TermCode("num.abide", "gender", "Geschlecht")
+    gender_entry = TerminologyEntry([gender_attribute_code])
     gender_attribute = AttributeDefinition(gender_attribute_code, "concept")
     gender_attribute.optional = False
     gender_attribute.selectableConcepts = (get_term_codes_by_path("Patient.gender", profile_data))
-    terminology_entry.attributeDefinitions.append(gender_attribute)
+    gender_entry.attributeDefinitions.append(gender_attribute)
+    gender_entry.fhirMapperType = "Patient"
+    terminology_entry.children.append(gender_entry)
 
 
 def inherit_parent_attributes(terminology_entry):
@@ -310,6 +314,7 @@ def translate_condition(profile_data, terminology_entry, _logical_element):
     if children:
         terminology_entry.leaf = False
         terminology_entry.children += children
+        inherit_parent_attributes(terminology_entry)
 
 
 def translate_dependency_on_ventilator(profile_data, terminology_entry, _logical_element):
@@ -441,6 +446,7 @@ def translate_procedure(profile_data, terminology_entry, _logical_element):
     else:
         ops_children = get_term_entries_by_id("Procedure.code.coding:ops", profile_data)
         terminology_entry.children = ops_children
+    inherit_parent_attributes(terminology_entry)
     terminology_entry.leaf = False
 
 
@@ -651,9 +657,8 @@ def get_german_display_from_designation(contains):
 
 def translate_top_300_loinc_codes(_profile_data, terminology_entry):
     top_loinc_tree = etree.parse("Top300Loinc.xml")
-    lab_root = get_terminology_entry_from_top_300_loinc("11ccdc84-a237-49a5-860a-b0f65068c023", top_loinc_tree)
     terminology_entry.fhirMapperType = "QuantityObservation"
-    terminology_entry.children.append(lab_root)
+    terminology_entry.children = get_terminology_entry_from_top_300_loinc("11ccdc84-a237-49a5-860a-b0f65068c023", top_loinc_tree).children
     terminology_entry.leaf = False
     terminology_entry.selectable = False
 
