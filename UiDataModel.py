@@ -2,6 +2,9 @@ import copy
 import json
 import re
 import uuid
+import random as rd
+
+rd.seed(42)
 
 
 def del_none(dictionary):
@@ -96,7 +99,7 @@ class TerminologyEntry(object):
                         "root"]
 
     def __init__(self, term_codes, terminology_type=None, leaf=True, selectable=True):
-        self.id = str(uuid.uuid4())
+        self.id = str(uuid.UUID(int=rd.getrandbits(128)))
         self.termCodes = term_codes
         self.termCode = term_codes[0]
         for code in self.termCodes:
