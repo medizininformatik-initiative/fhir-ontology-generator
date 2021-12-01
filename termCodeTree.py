@@ -1,7 +1,8 @@
 from UiDataModel import del_keys, del_none, TerminologyEntry, TermCode
 import json
+from sortedcontainers import SortedSet
 
-term_codes_in_tree = set()
+term_codes_in_tree = SortedSet()
 
 
 def to_term_code_node(category_entries):

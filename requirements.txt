@@ -3,3 +3,4 @@ jsonschema==3.2.0
 networkx==2.6.3
 psycopg2==2.9.1
 lxml==4.6.3
+sortedcontainers==2.4.0

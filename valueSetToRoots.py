@@ -2,6 +2,9 @@ import bisect
 import requests
 import locale
 import os
+
+from sortedcontainers import SortedSet
+
 from UiDataModel import TermCode, TerminologyEntry
 
 ONTOSERVER = os.environ.get('ONTOLOGY_SERVER_ADDRESS')
@@ -9,7 +12,7 @@ locale.setlocale(locale.LC_ALL, 'de_DE')
 
 
 def expand_value_set(url):
-    term_codes = set()
+    term_codes = SortedSet()
     response = requests.get(ONTOSERVER + f"ValueSet/$expand?url={url}")
     if response.status_code == 200:
         value_set_data = response.json()
@@ -99,7 +102,7 @@ def direct_parents(parents, input_map):
 
 
 def value_set_json_to_term_code_set(response):
-    term_codes = set()
+    term_codes = SortedSet()
     if response.status_code == 200:
         value_set_data = response.json()
         if "expansion" in value_set_data and "contains" in value_set_data["expansion"]:

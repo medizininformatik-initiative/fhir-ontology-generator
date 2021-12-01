@@ -1,3 +1,5 @@
+from sortedcontainers import SortedSet
+
 from UiDataModel import del_keys, del_none, TermCode
 import json
 import sys
@@ -40,6 +42,9 @@ class MapEntry:
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __lt__(self, other):
+        return self.key < other.key
+
     def __hash__(self):
         return hash(self.key)
 
@@ -50,14 +55,14 @@ class MapEntry:
 
 class MapEntryList:
     def __init__(self):
-        self.entries = set()
+        self.entries = SortedSet()
 
     def to_json(self):
         self.entries = list(self.entries)
         return json.dumps(self.entries, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)
 
     def get_code_systems(self):
-        code_systems = set()
+        code_systems = SortedSet()
         for entry in self.entries:
             code_systems.add(entry.key.system)
             for fixed_criteria in entry.fixedCriteria:
@@ -271,7 +276,7 @@ class SofaMapEntry(MapEntry):
 
 
 def generate_child_entries(children, class_name):
-    result = set()
+    result = SortedSet()
     for child in children:
         result.add(str_to_class(class_name)(child.termCode))
         result = result.union(generate_child_entries(child.children, class_name))
