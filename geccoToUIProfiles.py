@@ -84,12 +84,8 @@ def create_terminology_definition_for(categories):
             if "type" in element:
                 if element["type"][0]["code"] == "BackboneElement":
                     continue
-                elif element["type"][0]["code"] == "CodeableConcept":
-                    add_terminology_entry_to_category(element, category_terminology_entries, "CodeableConcept")
-                elif element["type"][0]["code"] == "Quantity":
-                    add_terminology_entry_to_category(element, category_terminology_entries, "Quantity")
-                elif element["type"][0]["code"] == "date":
-                    add_terminology_entry_to_category(element, category_terminology_entries, "date")
+                elif element["type"][0]["code"] in ["CodeableConcept", "Quantity", "date"]:
+                    add_terminology_entry_to_category(element, category_terminology_entries, element["type"][0]["code"])
                 else:
                     raise Exception(f"Unknown element {element['type'][0]['code']}")
     for category_entry in category_terminology_entries:
@@ -114,14 +110,7 @@ def add_terminology_entry_to_category(element, categories, terminology_type):
             terminology_entry.display = element["short"]
             if terminology_entry.display in IGNORE_LIST:
                 continue
-            # TODO: Refactor don't do this here?!
-            resolve_terminology_entry_profile(terminology_entry)
-            if terminology_entry.terminologyType == "Quantity":
-                terminology_entry.valueDefinition = get_value_definition(element)
-                # FIXME: This is only a quick workaround for GasPanel values.
-                for child in terminology_entry.children:
-                    child.valueDefinition = get_value_definition(element)
-            terminology_entry.display = get_german_display(element) if get_german_display(element) else element["short"]
+            resolve_terminology_entry_profile(terminology_entry, element)
             if terminology_entry.display == category_entry.display:
                 # Resolves issue like : -- Symptoms                 --Symptoms
                 #                           -- Symptoms     --->      -- Coughing
@@ -159,6 +148,26 @@ def get_value_definition(element):
     return value_definition
 
 
+def resolve_terminology_entry_profile(terminology_entry, element=None, data_set=GECCO_DATA_SET):
+    name = LOGICAL_MODEL_TO_PROFILE.get(to_upper_camel_case(terminology_entry.display)) \
+        if to_upper_camel_case(terminology_entry.display) in LOGICAL_MODEL_TO_PROFILE else to_upper_camel_case(
+        terminology_entry.display)
+    for filename in os.listdir("%s" % data_set):
+        if name in filename and "snapshot" in filename:
+            with open(data_set + "/" + filename, encoding="UTF-8") as profile_file:
+                profile_data = json.load(profile_file)
+                if profile_data["kind"] == "logical":
+                    continue
+                if profile_data["name"] in corner_cases:
+                    corner_cases.get(profile_data["name"])(profile_data, terminology_entry, element)
+                elif profile_data["type"] in profile_translation_mapping:
+                    profile_translation_mapping.get(profile_data["type"])(profile_data, terminology_entry, element)
+                else:
+                    raise UnknownHandlingException(profile_data["type"])
+    if element:
+        terminology_entry.display = get_german_display(element) if get_german_display(element) else element["short"]
+
+
 def get_german_display(element):
     for extension in element["_short"]["extension"]:
         next_value_is_german_display_content = False
@@ -171,29 +180,11 @@ def get_german_display(element):
     return None
 
 
-def resolve_terminology_entry_profile(terminology_entry, data_set=GECCO_DATA_SET):
-    name = LOGICAL_MODEL_TO_PROFILE.get(to_upper_camel_case(terminology_entry.display)) \
-        if to_upper_camel_case(terminology_entry.display) in LOGICAL_MODEL_TO_PROFILE else to_upper_camel_case(
-        terminology_entry.display)
-    for filename in os.listdir("%s" % data_set):
-        if name in filename and "snapshot" in filename:
-            with open(data_set + "/" + filename, encoding="UTF-8") as profile_file:
-                profile_data = json.load(profile_file)
-                if profile_data["kind"] == "logical":
-                    continue
-                if profile_data["name"] in corner_cases:
-                    corner_cases.get(profile_data["name"])(profile_data, terminology_entry)
-                elif profile_data["type"] in profile_translation_mapping:
-                    profile_translation_mapping.get(profile_data["type"])(profile_data, terminology_entry)
-                else:
-                    raise UnknownHandlingException(profile_data["type"])
-
-
 def translate_research_subject(_profile_data, _terminology_entry):
     pass
 
 
-def translate_patient(profile_data, terminology_entry):
+def translate_patient(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "Patient"
     terminology_entry.timeRestrictionAllowed = False
     terminology_entry.selectable = True
@@ -214,7 +205,7 @@ def inherit_parent_attributes(terminology_entry):
             inherit_parent_attributes(child)
 
 
-def translate_specimen(profile_data, terminology_entry):
+def translate_specimen(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "Specimen"
     terminology_entry.display = "Bioprobe"
     status_attribute_code = TermCode("num.abide", "status", "Status")
@@ -260,7 +251,6 @@ def update_termcode_to_match_pattern_coding(terminology_entry, element):
 
 # Ideally we would want to use [path] not the id, but using the id gives us control on which valueSet we want to use.
 def get_term_entries_by_id(element_id, profile_data):
-    value_set = ""
     for element in profile_data["snapshot"]["element"]:
         if "id" in element and element["id"] == element_id and "patternCoding" in element:
             if "code" in element["patternCoding"]:
@@ -269,13 +259,10 @@ def get_term_entries_by_id(element_id, profile_data):
         if "id" in element and element["id"] == element_id and "binding" in element:
             value_set = element["binding"]["valueSet"]
             return get_termentries_from_onto_server(value_set)
-    if value_set:
-        return get_termentries_from_onto_server(value_set)
     return []
 
 
 def get_term_entries_by_path(element_path, profile_data):
-    value_set = ""
     for element in profile_data["snapshot"]["element"]:
         if "path" in element and element["path"] == element_path and "patternCoding" in element:
             if "code" in element["patternCoding"]:
@@ -284,8 +271,6 @@ def get_term_entries_by_path(element_path, profile_data):
         if "path" in element and element["path"] == element_path and "binding" in element:
             value_set = element["binding"]["valueSet"]
             return get_termentries_from_onto_server(value_set)
-    if value_set:
-        return get_termentries_from_onto_server(value_set)
     return []
 
 
@@ -319,7 +304,7 @@ def get_term_codes_by_path(element_path, profile_data):
     return []
 
 
-def translate_condition(profile_data, terminology_entry):
+def translate_condition(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "Condition"
     children = get_term_entries_by_id("Condition.code.coding:icd10-gm", profile_data)
     if children:
@@ -327,7 +312,7 @@ def translate_condition(profile_data, terminology_entry):
         terminology_entry.children += children
 
 
-def translate_dependency_on_ventilator(profile_data, terminology_entry):
+def translate_dependency_on_ventilator(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "Condition"
     children = get_term_entries_by_id("Condition.code.coding:sct", profile_data)
     if children:
@@ -335,7 +320,7 @@ def translate_dependency_on_ventilator(profile_data, terminology_entry):
         terminology_entry.children += children
 
 
-def translate_diagnosis_covid_19(profile_data, terminology_entry):
+def translate_diagnosis_covid_19(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "DiagnosisCovid19"
     stage_code = TermCode("num.abide", "stage", "Stadium")
     stage_attribute = AttributeDefinition(stage_code, "concept")
@@ -345,7 +330,7 @@ def translate_diagnosis_covid_19(profile_data, terminology_entry):
         parse_term_code(terminology_entry, element, "Condition.code.coding")
 
 
-def translate_symptom(profile_data, terminology_entry):
+def translate_symptom(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "Symptom"
     # TODO: Refactor not hardcoded!
     severity_vs = "https://www.netzwerk-universitaetsmedizin.de/fhir/ValueSet/condition-severity"
@@ -359,13 +344,13 @@ def translate_symptom(profile_data, terminology_entry):
     inherit_parent_attributes(terminology_entry)
 
 
-def translate_medication_statement(profile_data, terminology_entry):
+def translate_medication_statement(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "MedicationStatement"
     terminology_entry.children = get_term_entries_by_path("MedicationStatement.medication[x].coding", profile_data)
     terminology_entry.leaf = False
 
 
-def translate_medication_administration(_profile_data, terminology_entry):
+def translate_medication_administration(_profile_data, terminology_entry, _logical_element):
     # This code is tailored for MedicationAdministration as defined in kerndatensatz.medikation
     # We use the Medication profile to get the codings referred to by the MedicationAdministration
     with open(MII_MEDICATION_DATA_SET + "/" + "Medication.StructureDefinition-snapshot.json", encoding="UTF-8") \
@@ -391,13 +376,12 @@ def is_concept_observation(profile_data):
     return is_concept_value
 
 
-def translate_observation(profile_data, terminology_entry):
+def translate_observation(profile_data, terminology_entry, logical_element):
     terminology_entry.leaf = True
     terminology_entry.selectable = True
     for element in profile_data["snapshot"]["element"]:
         update_termcode_to_match_pattern_coding(terminology_entry, element)
     if is_concept_observation(profile_data):
-        terminology_entry.terminologyType = "Concept"
         terminology_entry.fhirMapperType = "ConceptObservation"
         value_definition = ValueDefinition("concept")
         if selectable_concepts := get_term_codes_by_path("Observation.value[x]", profile_data):
@@ -407,10 +391,10 @@ def translate_observation(profile_data, terminology_entry):
         terminology_entry.valueDefinition = value_definition
     else:
         terminology_entry.fhirMapperType = "QuantityObservation"
-        terminology_entry.terminologyType = "Quantity"
+        terminology_entry.valueDefinition = get_value_definition(logical_element)
 
 
-def translate_gas_panel(profile_data, terminology_entry):
+def translate_gas_panel(profile_data, terminology_entry, logical_element):
     for element in profile_data["snapshot"]["element"]:
         if element["path"] == "Observation.code.coding" and "patternCoding" in element:
             term_code = TermCode(element["patternCoding"]["system"], element["patternCoding"]["code"],
@@ -420,14 +404,16 @@ def translate_gas_panel(profile_data, terminology_entry):
     terminology_entry.leaf = False
     terminology_entry.selectable = False
     terminology_entry.fhirMapperType = "QuantityObservation"
+    for child in terminology_entry.children:
+        child.valueDefinition = get_value_definition(logical_element)
 
 
-def translate_laboratory_values(_profile_data, terminology_entry: TerminologyEntry):
+def translate_laboratory_values(_profile_data, terminology_entry, logical_element):
     if terminology_entry.terminologyType == "Quantity":
         for code in terminology_entry.termCodes:
             entry = TerminologyEntry([code], terminology_entry.terminologyType)
             entry.fhirMapperType = "QuantityObservation"
-            entry.valueDefinition = []
+            entry.valueDefinition = get_value_definition(logical_element)
             terminology_entry.children.append(entry)
         terminology_entry.fhirMapperType = "QuantityObservation"
         terminology_entry.selectable = False
@@ -437,16 +423,17 @@ def translate_laboratory_values(_profile_data, terminology_entry: TerminologyEnt
         translate_top_300_loinc_codes(_profile_data, terminology_entry)
 
 
-def translate_sofa(profile_data, terminology_entry):
+def translate_sofa(profile_data, terminology_entry, logical_element):
     for element in profile_data["snapshot"]["element"]:
         update_termcode_to_match_pattern_coding(terminology_entry, element)
     terminology_entry.fhirMapperType = "Sofa"
     terminology_entry.selectable = True
     terminology_entry.leaf = True
     terminology_entry.terminologyType = "Quantity"
+    terminology_entry.valueDefinition = get_value_definition(logical_element)
 
 
-def translate_procedure(profile_data, terminology_entry):
+def translate_procedure(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "Procedure"
     sct_children = get_term_entries_by_id("Procedure.code.coding:sct", profile_data)
     if sct_children and not terminology_entry.display == "ECMO therapy" and not terminology_entry.display == "Prozedur":
@@ -457,25 +444,26 @@ def translate_procedure(profile_data, terminology_entry):
     terminology_entry.leaf = False
 
 
-def translate_immunization(profile_data, terminology_entry):
+def translate_immunization(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "Immunization"
     terminology_entry.children = get_term_entries_by_id("Immunization.vaccineCode.coding:snomed", profile_data)
     terminology_entry.leaf = False
     terminology_entry.selectable = False
 
 
-def translate_ethnic_group(profile_data, terminology_entry):
+def translate_ethnic_group(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "EthnicGroup"
     value_definition = ValueDefinition("concept")
     value_definition.selectableConcepts += get_term_codes_by_path("Extension.value[x]", profile_data)
     terminology_entry.valueDefinition = value_definition
 
 
-def translate_age(_profile_data, terminology_entry):
+def translate_age(_profile_data, terminology_entry, logical_element):
     terminology_entry.fhirMapperType = "Age"
+    terminology_entry.valueDefinition = get_value_definition(logical_element)
 
 
-def translate_diagnostic_report(profile_data, terminology_entry):
+def translate_diagnostic_report(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "DiagnosticReport"
     value_definition = ValueDefinition("concept")
     value_definition.selectableConcepts = get_term_codes_by_path("DiagnosticReport.conclusionCode", profile_data)
@@ -483,7 +471,7 @@ def translate_diagnostic_report(profile_data, terminology_entry):
 
 
 # TODO
-def translate_consent(profile_data, terminology_entry):
+def translate_consent(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "Consent"
     terminology_entry.selectable = True
     terminology_entry.leaf = True
@@ -497,7 +485,7 @@ def translate_consent(profile_data, terminology_entry):
                 break
 
 
-def translate_resuscitation(profile_data, terminology_entry):
+def translate_resuscitation(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "ResuscitationStatus"
     terminology_entry.selectable = True
     terminology_entry.leaf = True
@@ -515,11 +503,12 @@ def translate_resuscitation(profile_data, terminology_entry):
                 break
 
 
-def translate_blood_pressure(_profile_data, terminology_entry):
+def translate_blood_pressure(_profile_data, terminology_entry, logical_element):
     terminology_entry.fhirMapperType = "BloodPressure"
+    terminology_entry.valueDefinition = get_value_definition(logical_element)
 
 
-def translate_history_of_travel(profile_data, terminology_entry):
+def translate_history_of_travel(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "HistoryOfTravel"
     value_definition = ValueDefinition("concept")
     value_definition.selectableConcepts = get_term_codes_by_path("Observation.component:Country.value[x]", profile_data)
@@ -652,6 +641,14 @@ def get_termcodes_from_onto_server(canonical_address_value_set):
         return sorted(snomed_result)
 
 
+def get_german_display_from_designation(contains):
+    if "designation" in contains:
+        for designation in contains["designation"]:
+            if "language" in designation and designation["language"] == "de-DE":
+                return designation["value"]
+    return None
+
+
 def translate_top_300_loinc_codes(_profile_data, terminology_entry):
     top_loinc_tree = etree.parse("Top300Loinc.xml")
     lab_root = get_terminology_entry_from_top_300_loinc("11ccdc84-a237-49a5-860a-b0f65068c023", top_loinc_tree)
@@ -772,7 +769,7 @@ corner_cases = {
 }
 
 
-def translate_chronic_lung_diseases_with_duplicates(profile_data, terminology_entry):
+def translate_chronic_lung_diseases_with_duplicates(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "Condition"
     icd_code = TermCode("num.abide", "icd10-gm-concepts", "ICD10 Konzepte")
     icd_logical = TerminologyEntry([icd_code], selectable=False, leaf=False)
@@ -785,7 +782,7 @@ def translate_chronic_lung_diseases_with_duplicates(profile_data, terminology_en
     terminology_entry.leaf = False
 
 
-def translate_radiology_procedures_with_duplicates(profile_data, terminology_entry):
+def translate_radiology_procedures_with_duplicates(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "Procedure"
     terminology_entry.children += get_term_entries_by_id("Procedure.code.coding:sct", profile_data)
     terminology_entry.children += get_term_entries_by_id("Procedure.code.coding:dicom", profile_data)

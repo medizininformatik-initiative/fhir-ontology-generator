@@ -157,7 +157,7 @@ def generate_core_data_set():
                     module_element_code = TermCode("num.abide", module_element_name, module_element_name)
                     module_element_entry = TerminologyEntry([module_element_code], "Category", selectable=False,
                                                             leaf=False)
-                    resolve_terminology_entry_profile(module_element_entry, f"core_data_sets\\{data_set}\\package")
+                    resolve_terminology_entry_profile(module_element_entry, data_set=f"core_data_sets\\{data_set}\\package")
                     module_category_entry.children.append(module_element_entry)
             f = open("ui-profiles/" + module_category_entry.display + ".json", 'w', encoding="utf-8")
             f.write(module_category_entry.to_json())
