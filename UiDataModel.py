@@ -16,10 +16,13 @@ def del_none(dictionary):
     for key, value in list(dictionary.items()):
         if value is None:
             del dictionary[key]
-        elif value is []:
-            del dictionary[key]
         elif isinstance(value, dict):
             del_none(value)
+        elif isinstance(value, list):
+            if not value:
+                del dictionary[key]
+            for element in value:
+                del_none(element.__dict__)
     return dictionary
 
 
@@ -68,7 +71,7 @@ class TermCode:
         return self.display < other.display
 
     def __repr__(self):
-        return self.display + " " + self.code + " " + self.system
+        return self.system + self.code
 
 
 class ValueDefinition:

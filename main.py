@@ -104,15 +104,18 @@ def generate_ui_profiles(entries):
             f = open("ui-profiles/" + category.display.replace("/ ", "") + ".json", 'w', encoding="utf-8")
             f.write(category.to_json())
             f.close()
-            f = open("ui-profiles/" + category.display.replace("/ ", "") + ".json", 'r')
-            # validate(instance=json.load(f), schema=json.load(open("schema/ui-profile-schema.json")))
+            validate_ui_profile(category.display.replace("/ ", ""))
         else:
             gecco.children.append(category)
     f = open("ui-profiles/" + gecco.display + ".json", 'w', encoding="utf-8")
     f.write(gecco.to_json())
     f.close()
-    f = open("ui-profiles/" + gecco.display + ".json", 'r')
-    # validate(instance=json.load(f), schema=json.load(open("schema/ui-profile-schema.json")))
+    validate_ui_profile(gecco.display)
+
+
+def validate_ui_profile(profile_name):
+    f = open("ui-profiles/" + profile_name + ".json", 'r')
+    validate(instance=json.load(f), schema=json.load(open("schema/ui-profile-schema.json")))
 
 
 def generate_result_folder():
@@ -157,7 +160,8 @@ def generate_core_data_set():
                     module_element_code = TermCode("num.abide", module_element_name, module_element_name)
                     module_element_entry = TerminologyEntry([module_element_code], "Category", selectable=False,
                                                             leaf=False)
-                    resolve_terminology_entry_profile(module_element_entry, data_set=f"core_data_sets\\{data_set}\\package")
+                    resolve_terminology_entry_profile(module_element_entry,
+                                                      data_set=f"core_data_sets\\{data_set}\\package")
                     if module_category_entry.display == module_element_entry.display:
                         # Resolves issue like : -- Prozedure                 --Prozedure
                         #                           -- Prozedure     --->      -- BILDGEBENDE DIAGNOSTIK
@@ -168,6 +172,7 @@ def generate_core_data_set():
             f = open("ui-profiles/" + module_category_entry.display + ".json", 'w', encoding="utf-8")
             f.write(module_category_entry.to_json())
             f.close()
+            validate_ui_profile(module_category_entry.display)
             core_data_set_modules.append(module_category_entry)
     return core_data_set_modules
 
@@ -184,7 +189,7 @@ if __name__ == '__main__':
     category_entries.append(get_specimen())
     category_entries.append(get_consent())
     generate_ui_profiles(category_entries)
-    category_entries += core_data_category_entries
-    generate_term_code_mapping(category_entries)
-    generate_term_code_tree(category_entries)
+    # category_entries += core_data_category_entries
+    # generate_term_code_mapping(category_entries)
+    # generate_term_code_tree(category_entries)
     # to_csv(category_entries)

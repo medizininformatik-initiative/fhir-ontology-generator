@@ -1,5 +1,4 @@
 import os
-from os import chdir
 
 import requests
 import csv
@@ -218,8 +217,8 @@ def translate_specimen(profile_data, terminology_entry, _logical_element):
     terminology_entry.attributeDefinitions.append(status_attribute_code)
     body_site_attribute_code = TermCode("mii.module_specimen", "Specimen.collection.bodySite", "Entnahmeort")
     body_site_attribute = AttributeDefinition(attribute_code=body_site_attribute_code, value_type="concept")
-    body_site_attribute.selectableConcepts = get_term_code_by_id("Specimen.collection.bodySite.coding:icd-o-3",
-                                                                 profile_data)
+    body_site_attribute.selectableConcepts = get_term_codes_by_id("Specimen.collection.bodySite.coding:icd-o-3",
+                                                                  profile_data)
     terminology_entry.attributeDefinitions.append(body_site_attribute)
     terminology_entry.children = get_termentries_from_onto_server(SPECIMEN_VS)
     terminology_entry.leaf = False
@@ -278,7 +277,7 @@ def get_term_entries_by_path(element_path, profile_data):
     return []
 
 
-def get_term_code_by_id(element_id, profile_data):
+def get_term_codes_by_id(element_id, profile_data):
     value_set = ""
     for element in profile_data["snapshot"]["element"]:
         if "id" in element and element["id"] == element_id and "patternCoding" in element:
@@ -304,7 +303,8 @@ def get_term_codes_by_path(element_path, profile_data):
             value_set = element["binding"]["valueSet"]
             return get_termcodes_from_onto_server(value_set)
     if value_set:
-        return get_termcodes_from_onto_server(value_set)
+        result = get_termcodes_from_onto_server(value_set)
+        return result
     return []
 
 
@@ -371,6 +371,11 @@ def translate_medication_administration(_profile_data, terminology_entry, _logic
 def is_concept_observation(profile_data):
     is_concept_value = False
     for element in profile_data["snapshot"]["element"]:
+        # ToDo: This is awfully implemented in the Profiles, once they fixed this issue, this first if clause can be
+        #  removed
+        if "id" in element and element["id"] == "Observation.value[x]:valueCodeableConcept":
+            if element["max"] == "0":
+                return False
         if "type" in element:
             if element["path"] == "Observation.value[x]" and element["type"][0]["code"] == "CodeableConcept":
                 return True
@@ -517,7 +522,7 @@ def translate_blood_pressure(_profile_data, terminology_entry, logical_element):
 def translate_history_of_travel(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "HistoryOfTravel"
     value_definition = ValueDefinition("concept")
-    value_definition.selectableConcepts = get_term_codes_by_path("Observation.component:Country.value[x]", profile_data)
+    value_definition.selectableConcepts = get_term_codes_by_id("Observation.component:Country.value[x]", profile_data)
     terminology_entry.valueDefinition = value_definition
 
 
@@ -588,9 +593,10 @@ def value_set_json_to_term_code_set(response):
 
 
 def get_termentries_from_onto_server(canonical_address_value_set):
-    if canonical_address_value_set in ["https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/ValueSet" \
+    if canonical_address_value_set in ["https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/ValueSet"
                                        "/diagnoses-sct",
-                                       "https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/ValueSet/procedures-sct"]:
+                                       "https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/ValueSet/"
+                                       "procedures-sct"]:
         return []
     canonical_address_value_set = canonical_address_value_set.replace("|", "&version=")
     print(canonical_address_value_set)
@@ -658,13 +664,14 @@ def get_german_display_from_designation(contains):
 def translate_top_300_loinc_codes(_profile_data, terminology_entry):
     top_loinc_tree = etree.parse("Top300Loinc.xml")
     terminology_entry.fhirMapperType = "QuantityObservation"
-    terminology_entry.children = get_terminology_entry_from_top_300_loinc("11ccdc84-a237-49a5-860a-b0f65068c023", top_loinc_tree).children
+    terminology_entry.children = get_terminology_entry_from_top_300_loinc("11ccdc84-a237-49a5-860a-b0f65068c023",
+                                                                          top_loinc_tree).children
     terminology_entry.leaf = False
     terminology_entry.selectable = False
 
 
 def get_terminology_entry_from_top_300_loinc(element_id, element_tree):
-    # TODO: Bettter namespace handling
+    # TODO: Better namespace handling
     coding_system = ""
     code = ""
     display = ""
@@ -718,6 +725,7 @@ def get_terminology_entry_from_top_300_loinc(element_id, element_tree):
 
 
 def get_value_description_from_top_300_loinc(element_id, element_tree):
+    value_definition = ValueDefinition("quantity")
     described_value_domain_id = ""
     for data_element in element_tree.xpath("/xmlns:export/xmlns:dataElement",
                                            namespaces={'xmlns': "http://schema.samply.de/mdr/common"}):
@@ -732,9 +740,8 @@ def get_value_description_from_top_300_loinc(element_id, element_tree):
                     if not child.text:
                         break
                     unit = Unit(child.text, child.text)
-                    value_definition = ValueDefinition("quantity")
                     value_definition.allowedUnits.append(unit)
-                    return value_definition
+    return value_definition
 
 
 def do_nothing(_profile_data, _terminology_entry):
@@ -769,6 +776,8 @@ corner_cases = {
     "HistoryOfTravel": translate_history_of_travel,
     "ProfileObservationLaboruntersuchung": translate_laboratory_values,
     "PaCO2": translate_gas_panel,
+    "PaO2": translate_gas_panel,
+    "PH": translate_gas_panel,
     "SOFA": translate_sofa,
     "SymptomsCovid19": translate_symptom
 }
