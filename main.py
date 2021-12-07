@@ -189,7 +189,7 @@ if __name__ == '__main__':
     category_entries.append(get_specimen())
     category_entries.append(get_consent())
     generate_ui_profiles(category_entries)
-    # category_entries += core_data_category_entries
-    # generate_term_code_mapping(category_entries)
-    # generate_term_code_tree(category_entries)
+    category_entries += core_data_category_entries
+    generate_term_code_mapping(category_entries)
+    generate_term_code_tree(category_entries)
     # to_csv(category_entries)
