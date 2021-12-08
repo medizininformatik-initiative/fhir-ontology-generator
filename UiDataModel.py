@@ -16,6 +16,9 @@ def del_none(dictionary):
     for key, value in list(dictionary.items()):
         if value is None:
             del dictionary[key]
+        elif isinstance(value, UIProfile):
+            dictionary.update(del_none(value.__dict__))
+            del dictionary[key]
         elif isinstance(value, dict):
             del_none(value)
         elif isinstance(value, list):
@@ -97,6 +100,13 @@ class Unit:
         self.code = code
 
 
+class UIProfile(object):
+    def __init__(self, name):
+        self.timeRestrictionAllowed = True
+        self.valueDefinition = None
+        self.attributeDefinitions = []
+
+
 class TerminologyEntry(object):
     DO_NOT_SERIALIZE = ["terminologyType", "path", "DO_NOT_SERIALIZE", "fhirMapperType", "termCode", "valueDefinitions",
                         "root"]
@@ -113,9 +123,7 @@ class TerminologyEntry(object):
         self.children = []
         self.leaf = leaf
         self.selectable = selectable
-        self.timeRestrictionAllowed = True
-        self.valueDefinition = None
-        self.attributeDefinitions = []
+        self.uiProfile = None
         self.display = (self.termCode.display if self.termCode else None)
         self.fhirMapperType = None
         self.root = True

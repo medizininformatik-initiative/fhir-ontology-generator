@@ -179,54 +179,12 @@ def get_german_display(element):
     return None
 
 
-def translate_research_subject(_profile_data, _terminology_entry):
-    pass
-
-
-def translate_patient(profile_data, terminology_entry, _logical_element):
-    # Care if we make attributes children we cannot use inherit_parent_attributes! nor can we use ui-profiles.
-    terminology_entry.fhirMapperType = "Patient"
-    terminology_entry.timeRestrictionAllowed = False
-    terminology_entry.selectable = False
-    terminology_entry.leaf = False
-    gender_attribute_code = TermCode("num.abide", "gender", "Geschlecht")
-    gender_entry = TerminologyEntry([gender_attribute_code])
-    gender_attribute = AttributeDefinition(gender_attribute_code, "concept")
-    gender_attribute.optional = False
-    gender_attribute.selectableConcepts = (get_term_codes_by_path("Patient.gender", profile_data))
-    gender_entry.attributeDefinitions.append(gender_attribute)
-    gender_entry.fhirMapperType = "Patient"
-    terminology_entry.children.append(gender_entry)
-
-
 def inherit_parent_attributes(terminology_entry):
     for child in terminology_entry.children:
         child.fhirMapperType = terminology_entry.fhirMapperType
-        child.attributeDefinitions = terminology_entry.attributeDefinitions
-        child.timeRestrictionAllowed = terminology_entry.timeRestrictionAllowed
+        child.uiProfile = terminology_entry.uiProfile
         if child.children:
             inherit_parent_attributes(child)
-
-
-def translate_specimen(profile_data, terminology_entry, _logical_element):
-    terminology_entry.fhirMapperType = "Specimen"
-    terminology_entry.display = "Bioprobe"
-    status_attribute_code = TermCode("num.abide", "status", "Status")
-    status_attribute_code = AttributeDefinition(attribute_code=status_attribute_code, value_type="concept")
-    status_attribute_code.selectableConcepts = get_term_codes_by_path("Specimen.status", profile_data)
-    terminology_entry.attributeDefinitions.append(status_attribute_code)
-    body_site_attribute_code = TermCode("mii.module_specimen", "Specimen.collection.bodySite", "Entnahmeort")
-    body_site_attribute = AttributeDefinition(attribute_code=body_site_attribute_code, value_type="concept")
-    body_site_attribute.selectableConcepts = get_term_codes_by_id("Specimen.collection.bodySite.coding:icd-o-3",
-                                                                  profile_data)
-    terminology_entry.attributeDefinitions.append(body_site_attribute)
-    terminology_entry.children = get_termentries_from_onto_server(SPECIMEN_VS)
-    terminology_entry.leaf = False
-    inherit_parent_attributes(terminology_entry)
-
-
-def translate_substance(_profile_data, _terminology_entry):
-    pass
 
 
 def pattern_coding_to_termcode(element):
@@ -308,8 +266,13 @@ def get_term_codes_by_path(element_path, profile_data):
     return []
 
 
+def generate_default_ui_profile(name):
+    return UIProfile(name)
+
+
 def translate_condition(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "Condition"
+    terminology_entry.uiProfile = generate_default_ui_profile(profile_data["name"])
     children = get_term_entries_by_id("Condition.code.coding:icd10-gm", profile_data)
     if children:
         terminology_entry.leaf = False
@@ -319,43 +282,58 @@ def translate_condition(profile_data, terminology_entry, _logical_element):
 
 def translate_dependency_on_ventilator(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "Condition"
+    terminology_entry.uiProfile = generate_default_ui_profile(profile_data["name"])
     children = get_term_entries_by_id("Condition.code.coding:sct", profile_data)
     if children:
         terminology_entry.leaf = False
         terminology_entry.children += children
+        inherit_parent_attributes(terminology_entry)
+
+
+def generate_diagnosis_covid_19_ui_profile(profile_data, _logical_element):
+    ui_profile = UIProfile(profile_data["name"])
+    stage_code = TermCode("num.abide", "stage", "Stadium")
+    stage_attribute = AttributeDefinition(stage_code, "concept")
+    stage_attribute.selectableConcepts = get_term_codes_by_path("Condition.stage.summary.coding", profile_data)
+    ui_profile.attributeDefinitions.append(stage_attribute)
+    return ui_profile
 
 
 def translate_diagnosis_covid_19(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "DiagnosisCovid19"
-    stage_code = TermCode("num.abide", "stage", "Stadium")
-    stage_attribute = AttributeDefinition(stage_code, "concept")
-    stage_attribute.selectableConcepts = get_term_codes_by_path("Condition.stage.summary.coding", profile_data)
-    terminology_entry.attributeDefinitions.append(stage_attribute)
+    terminology_entry.uiProfile = generate_diagnosis_covid_19_ui_profile(profile_data, _logical_element)
     for element in profile_data["snapshot"]["element"]:
         parse_term_code(terminology_entry, element, "Condition.code.coding")
 
 
-def translate_symptom(profile_data, terminology_entry, _logical_element):
-    terminology_entry.fhirMapperType = "Symptom"
-    # TODO: Refactor not hardcoded!
-    severity_vs = "https://www.netzwerk-universitaetsmedizin.de/fhir/ValueSet/condition-severity"
-    terminology_entry.children = get_term_entries_by_id("Condition.code.coding:sct", profile_data)
-    terminology_entry.leaf = False
+def generate_symptom_ui_profile(profile_data, _logical_element):
+    ui_profile = UIProfile(profile_data["name"])
     severity_attribute_code = TermCode("num.abide", "severity", "Schweregrad")
     severity_attribute = AttributeDefinition(severity_attribute_code, "concept")
     severity_attribute.optional = False
+    # TODO: Refactor not hardcoded!
+    severity_vs = "https://www.netzwerk-universitaetsmedizin.de/fhir/ValueSet/condition-severity"
     severity_attribute.selectableConcepts += get_termcodes_from_onto_server(severity_vs)
-    terminology_entry.attributeDefinitions.append(severity_attribute)
+    ui_profile.attributeDefinitions.append(severity_attribute)
+    return ui_profile
+
+
+def translate_symptom(profile_data, terminology_entry, _logical_element):
+    terminology_entry.fhirMapperType = "Symptom"
+    terminology_entry.uiProfile = generate_symptom_ui_profile(profile_data, _logical_element)
+    terminology_entry.children = get_term_entries_by_id("Condition.code.coding:sct", profile_data)
+    terminology_entry.leaf = False
     inherit_parent_attributes(terminology_entry)
 
 
 def translate_medication_statement(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "MedicationStatement"
+    terminology_entry.uiProfile = generate_default_ui_profile(profile_data["name"])
     terminology_entry.children = get_term_entries_by_path("MedicationStatement.medication[x].coding", profile_data)
     terminology_entry.leaf = False
 
 
-def translate_medication_administration(_profile_data, terminology_entry, _logical_element):
+def translate_medication_administration(profile_data, terminology_entry, _logical_element):
     # This code is tailored for MedicationAdministration as defined in kerndatensatz.medikation
     # We use the Medication profile to get the codings referred to by the MedicationAdministration
     with open(MII_MEDICATION_DATA_SET + "/" + "Medication.StructureDefinition-snapshot.json", encoding="UTF-8") \
@@ -363,6 +341,7 @@ def translate_medication_administration(_profile_data, terminology_entry, _logic
         medication_profile_data = json.load(profile_file)
         terminology_entry.display = "Medikamentenverabreichungen"
         terminology_entry.fhirMapperType = "MedicationAdministration"
+        terminology_entry.uiProfile = generate_default_ui_profile(profile_data["name"])
         terminology_entry.children = get_term_entries_by_path("Medication.code.coding", medication_profile_data)
         terminology_entry.leaf = False
         terminology_entry.children = sorted(terminology_entry.children)
@@ -386,6 +365,23 @@ def is_concept_observation(profile_data):
     return is_concept_value
 
 
+def generate_concept_observation_ui_profile(profile_data, _logical_element):
+    ui_profile = UIProfile(profile_data["name"])
+    value_definition = ValueDefinition("concept")
+    if selectable_concepts := get_term_codes_by_path("Observation.value[x]", profile_data):
+        value_definition.selectableConcepts = selectable_concepts
+    else:
+        value_definition.selectableConcepts = get_term_codes_by_path("Observation.value[x].coding", profile_data)
+    ui_profile.valueDefinition = value_definition
+    return ui_profile
+
+
+def generate_quantity_observation_ui_profile(profile_data, logical_element):
+    ui_profile = UIProfile(profile_data["name"])
+    ui_profile.valueDefinition = get_value_definition(logical_element)
+    return ui_profile
+
+
 def translate_observation(profile_data, terminology_entry, logical_element):
     terminology_entry.leaf = True
     terminology_entry.selectable = True
@@ -393,15 +389,10 @@ def translate_observation(profile_data, terminology_entry, logical_element):
         update_termcode_to_match_pattern_coding(terminology_entry, element)
     if is_concept_observation(profile_data):
         terminology_entry.fhirMapperType = "ConceptObservation"
-        value_definition = ValueDefinition("concept")
-        if selectable_concepts := get_term_codes_by_path("Observation.value[x]", profile_data):
-            value_definition.selectableConcepts = selectable_concepts
-        else:
-            value_definition.selectableConcepts = get_term_codes_by_path("Observation.value[x].coding", profile_data)
-        terminology_entry.valueDefinition = value_definition
+        terminology_entry.uiProfile = generate_concept_observation_ui_profile(profile_data, logical_element)
     else:
         terminology_entry.fhirMapperType = "QuantityObservation"
-        terminology_entry.valueDefinition = get_value_definition(logical_element)
+        terminology_entry.uiProfile = generate_quantity_observation_ui_profile(profile_data, logical_element)
 
 
 def translate_gas_panel(profile_data, terminology_entry, logical_element):
@@ -414,37 +405,36 @@ def translate_gas_panel(profile_data, terminology_entry, logical_element):
     terminology_entry.leaf = False
     terminology_entry.selectable = False
     terminology_entry.fhirMapperType = "QuantityObservation"
+    terminology_entry.uiProfile = generate_default_ui_profile("QuantityObservation")
     for child in terminology_entry.children:
-        child.valueDefinition = get_value_definition(logical_element)
+        child.uiProfile = generate_quantity_observation_ui_profile(profile_data, logical_element)
 
 
-def translate_laboratory_values(_profile_data, terminology_entry, logical_element):
+def translate_laboratory_values(profile_data, terminology_entry, logical_element):
     if terminology_entry.terminologyType == "Quantity":
         for code in terminology_entry.termCodes:
             entry = TerminologyEntry([code], terminology_entry.terminologyType)
             entry.fhirMapperType = "QuantityObservation"
-            entry.valueDefinition = get_value_definition(logical_element)
+            entry.uiProfile = generate_quantity_observation_ui_profile(profile_data, logical_element)
             terminology_entry.children.append(entry)
         terminology_entry.fhirMapperType = "QuantityObservation"
         terminology_entry.selectable = False
         terminology_entry.leaf = False
     else:
         # FIXME: Hacky Solution
-        translate_top_300_loinc_codes(_profile_data, terminology_entry)
+        translate_top_300_loinc_codes(profile_data, terminology_entry)
 
 
 def translate_sofa(profile_data, terminology_entry, logical_element):
     for element in profile_data["snapshot"]["element"]:
         update_termcode_to_match_pattern_coding(terminology_entry, element)
     terminology_entry.fhirMapperType = "Sofa"
-    terminology_entry.selectable = True
-    terminology_entry.leaf = True
-    terminology_entry.terminologyType = "Quantity"
-    terminology_entry.valueDefinition = get_value_definition(logical_element)
+    terminology_entry.uiProfile = generate_quantity_observation_ui_profile(profile_data, logical_element)
 
 
 def translate_procedure(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "Procedure"
+    terminology_entry.uiProfile = generate_default_ui_profile(profile_data["name"])
     sct_children = get_term_entries_by_id("Procedure.code.coding:sct", profile_data)
     if sct_children and not terminology_entry.display == "ECMO therapy" and not terminology_entry.display == "Prozedur":
         terminology_entry.children = sct_children
@@ -457,73 +447,142 @@ def translate_procedure(profile_data, terminology_entry, _logical_element):
 
 def translate_immunization(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "Immunization"
+    terminology_entry.uiProfile = generate_default_ui_profile(profile_data["name"])
     terminology_entry.children = get_term_entries_by_id("Immunization.vaccineCode.coding:snomed", profile_data)
     terminology_entry.leaf = False
     terminology_entry.selectable = False
 
 
-def translate_ethnic_group(profile_data, terminology_entry, _logical_element):
-    terminology_entry.fhirMapperType = "EthnicGroup"
+def generate_ethnic_group_ui_profile(profile_data, _logical_element):
+    ui_profile = UIProfile(profile_data["name"])
     value_definition = ValueDefinition("concept")
     value_definition.selectableConcepts += get_term_codes_by_path("Extension.value[x]", profile_data)
-    terminology_entry.valueDefinition = value_definition
+    ui_profile.valueDefinition = value_definition
+    return ui_profile
 
 
-def translate_age(_profile_data, terminology_entry, logical_element):
+def translate_ethnic_group(profile_data, terminology_entry, _logical_element):
+    terminology_entry.fhirMapperType = "EthnicGroup"
+    terminology_entry.uiProfile = generate_ethnic_group_ui_profile(profile_data, _logical_element)
+
+
+def translate_age(profile_data, terminology_entry, logical_element):
     terminology_entry.fhirMapperType = "Age"
-    terminology_entry.valueDefinition = get_value_definition(logical_element)
+    terminology_entry.uiProfile = generate_quantity_observation_ui_profile(profile_data, logical_element)
+
+
+def generate_diagnostic_report_ui_profile(profile_data, _logical_element):
+    ui_profile = UIProfile(profile_data["name"])
+    value_definition = ValueDefinition("concept")
+    value_definition.selectableConcepts = get_term_codes_by_path("DiagnosticReport.conclusionCode", profile_data)
+    ui_profile.valueDefinition = value_definition
+    return ui_profile
 
 
 def translate_diagnostic_report(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "DiagnosticReport"
-    value_definition = ValueDefinition("concept")
-    value_definition.selectableConcepts = get_term_codes_by_path("DiagnosticReport.conclusionCode", profile_data)
-    terminology_entry.valueDefinition = value_definition
+    terminology_entry.uiProfile = generate_diagnostic_report_ui_profile(profile_data, _logical_element)
 
 
 # TODO
-def translate_consent(profile_data, terminology_entry, _logical_element):
-    terminology_entry.fhirMapperType = "Consent"
-    terminology_entry.selectable = True
-    terminology_entry.leaf = True
+def generate_consent_ui_profile(profile_data, _logical_element):
+    ui_profile = UIProfile(profile_data["name"])
     for element in profile_data["snapshot"]["element"]:
         if element["id"] == "Consent.provision.code":
             if "binding" in element:
                 value_set = element["binding"]["valueSet"]
                 value_definition = ValueDefinition("concept")
                 value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
-                terminology_entry.valueDefinition = value_definition
-                break
+                ui_profile.valueDefinition = value_definition
+                return ui_profile
+    return ui_profile
+
+
+def translate_consent(profile_data, terminology_entry, _logical_element):
+    terminology_entry.fhirMapperType = "Consent"
+    terminology_entry.uiProfile = generate_consent_ui_profile(profile_data, _logical_element)
 
 
 def translate_resuscitation(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "ResuscitationStatus"
-    terminology_entry.selectable = True
-    terminology_entry.leaf = True
     for element in profile_data["snapshot"]["element"]:
         if element["id"] == "Consent.category.coding.system":
             terminology_entry.termCode.system = element["fixedUri"]
         if element["id"] == "Consent.category.coding.code":
             terminology_entry.termCode.code = element["fixedCode"]
-        if element["id"] == "Consent.provision.code":
-            if "binding" in element:
-                value_set = element["binding"]["valueSet"]
-                value_definition = ValueDefinition("concept")
-                value_definition.selectableConcepts += get_termcodes_from_onto_server(value_set)
-                terminology_entry.valueDefinition = value_definition
-                break
+    terminology_entry.uiProfile = generate_consent_ui_profile(profile_data, _logical_element)
 
 
-def translate_blood_pressure(_profile_data, terminology_entry, logical_element):
+def translate_blood_pressure(profile_data, terminology_entry, logical_element):
     terminology_entry.fhirMapperType = "BloodPressure"
-    terminology_entry.valueDefinition = get_value_definition(logical_element)
+    terminology_entry.uiProfile = generate_quantity_observation_ui_profile(profile_data, logical_element)
+
+
+def generate_history_of_travel_ui_profile(profile_data, _logical_element):
+    ui_profile = UIProfile(profile_data["name"])
+    value_definition = ValueDefinition("concept")
+    value_definition.selectableConcepts = get_term_codes_by_id("Observation.component:Country.value[x]", profile_data)
+    ui_profile.valueDefinition = value_definition
+    return ui_profile
 
 
 def translate_history_of_travel(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "HistoryOfTravel"
-    value_definition = ValueDefinition("concept")
-    value_definition.selectableConcepts = get_term_codes_by_id("Observation.component:Country.value[x]", profile_data)
-    terminology_entry.valueDefinition = value_definition
+    terminology_entry.uiProfile = generate_history_of_travel_ui_profile(profile_data, _logical_element)
+
+
+def translate_research_subject(_profile_data, _terminology_entry):
+    pass
+
+
+def generate_gender_ui_profile(profile_data, _logical_element):
+    ui_profile = UIProfile("Gender")
+    ui_profile.timeRestrictionAllowed = False
+    gender_attribute_code = TermCode("num.abide", "gender", "Geschlecht")
+    gender_attribute = AttributeDefinition(gender_attribute_code, "concept")
+    gender_attribute.optional = False
+    gender_attribute.selectableConcepts = (get_term_codes_by_path("Patient.gender", profile_data))
+    ui_profile.attributeDefinitions.append(gender_attribute)
+    return ui_profile
+
+
+def translate_patient(profile_data, terminology_entry, _logical_element):
+    # Care if we make attributes children we cannot use inherit_parent_attributes! nor can we use a single ui-profile.
+    terminology_entry.fhirMapperType = "Patient"
+    terminology_entry.selectable = False
+    terminology_entry.leaf = False
+    gender_code = TermCode("num.abide", "gender", "Geschlecht")
+    gender_entry = TerminologyEntry([gender_code])
+    gender_entry.fhirMapperType = "Patient"
+    gender_entry.uiProfile = generate_gender_ui_profile(profile_data, _logical_element)
+    terminology_entry.children.append(gender_entry)
+
+
+def generate_specimen_ui_profile(profile_data, _logical_element):
+    ui_profile = UIProfile("Specimen")
+    status_attribute_code = TermCode("num.abide", "status", "Status")
+    status_attribute_code = AttributeDefinition(attribute_code=status_attribute_code, value_type="concept")
+    status_attribute_code.selectableConcepts = get_term_codes_by_path("Specimen.status", profile_data)
+    ui_profile.attributeDefinitions.append(status_attribute_code)
+    body_site_attribute_code = TermCode("mii.module_specimen", "Specimen.collection.bodySite", "Entnahmeort")
+    body_site_attribute = AttributeDefinition(attribute_code=body_site_attribute_code, value_type="concept")
+    body_site_attribute.selectableConcepts = get_term_codes_by_id("Specimen.collection.bodySite.coding:icd-o-3",
+                                                                  profile_data)
+    ui_profile.attributeDefinitions.append(body_site_attribute)
+    return ui_profile
+
+
+def translate_specimen(profile_data, terminology_entry, _logical_element):
+    terminology_entry.fhirMapperType = "Specimen"
+    terminology_entry.uiProfile = generate_specimen_ui_profile(profile_data, _logical_element)
+    terminology_entry.display = "Bioprobe"
+    terminology_entry.children = get_termentries_from_onto_server(SPECIMEN_VS)
+    terminology_entry.leaf = False
+    inherit_parent_attributes(terminology_entry)
+
+
+def translate_substance(_profile_data, _terminology_entry):
+    pass
 
 
 def get_specimen():
@@ -719,9 +778,15 @@ def get_terminology_entry_from_top_300_loinc(element_id, element_tree):
             terminology_entry = TerminologyEntry([term_code])
             for child in element:
                 if child.tag == "{http://schema.samply.de/mdr/common}element":
-                    terminology_entry.valueDefinition = get_value_description_from_top_300_loinc(child.text,
-                                                                                                 element_tree)
+                    terminology_entry.uiProfile = generate_top300_loinc_ui_profile(terminology_entry, child.text,
+                                                                                   element_tree)
     return terminology_entry
+
+
+def generate_top300_loinc_ui_profile(terminology_entry, element_id, element_tree):
+    ui_profile = UIProfile(terminology_entry.display)
+    ui_profile.valueDefinition = get_value_description_from_top_300_loinc(element_id, element_tree)
+    return ui_profile
 
 
 def get_value_description_from_top_300_loinc(element_id, element_tree):
