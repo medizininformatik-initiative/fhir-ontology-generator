@@ -5,7 +5,7 @@ import os
 
 from sortedcontainers import SortedSet
 
-from UiDataModel import TermCode, TerminologyEntry
+from model.UiDataModel import TermCode, TerminologyEntry
 
 ONTOSERVER = os.environ.get('ONTOLOGY_SERVER_ADDRESS')
 locale.setlocale(locale.LC_ALL, 'de_DE')

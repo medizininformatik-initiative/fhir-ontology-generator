@@ -1,6 +1,6 @@
 import csv
 
-from UiDataModel import TermCode, TerminologyEntry
+from model.UiDataModel import TermCode, TerminologyEntry
 
 
 def as_text(value):

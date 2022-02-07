@@ -8,6 +8,7 @@ rd.seed(42)
 
 
 def del_none(dictionary):
+    import model.UIProfileModel
     """
     Delete keys with the value ``None`` in a dictionary, recursively.
 
@@ -16,8 +17,10 @@ def del_none(dictionary):
     for key, value in list(dictionary.items()):
         if value is None:
             del dictionary[key]
-        elif isinstance(value, UIProfile):
-            dictionary.update(del_none(value.__dict__))
+        elif isinstance(value, model.UIProfileModel.UIProfile):
+            ui_profile = value.__dict__.copy()
+            del ui_profile["name"]
+            dictionary.update(del_none(ui_profile))
             del dictionary[key]
         elif isinstance(value, dict):
             del_none(value)
@@ -25,7 +28,8 @@ def del_none(dictionary):
             if not value:
                 del dictionary[key]
             for element in value:
-                del_none(element.__dict__)
+                if not isinstance(element, str):
+                    del_none(element.__dict__)
     return dictionary
 
 
@@ -98,13 +102,6 @@ class Unit:
     def __init__(self, display, code):
         self.display = display
         self.code = code
-
-
-class UIProfile(object):
-    def __init__(self, name):
-        self.timeRestrictionAllowed = True
-        self.valueDefinition = None
-        self.attributeDefinitions = []
 
 
 class TerminologyEntry(object):

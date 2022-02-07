@@ -1,4 +1,4 @@
-from UiDataModel import del_keys, del_none, TerminologyEntry, TermCode
+from model.UiDataModel import del_keys, del_none, TerminologyEntry, TermCode
 import json
 from sortedcontainers import SortedSet
 
@@ -19,6 +19,8 @@ class TermCodeNode:
         if isinstance(args[0], TerminologyEntry):
             terminology_entry = args[0]
             self.termCode = terminology_entry.termCode
+            if not terminology_entry.selectable:
+                self.termCode.system = "mii.abide"
             self.children = self.get_term_codes(terminology_entry)
         elif isinstance(args[0], TermCode):
             self.termCode = args[0]

@@ -1,0 +1,175 @@
+{
+  "resourceType": "Bundle",
+  "id": "searchParams",
+  "meta": {
+    "lastUpdated": "2019-11-01T09:29:23.356+11:00"
+  },
+  "type": "transaction",
+  "entry": [
+    {
+      "fullUrl": "http://codex.de/age",
+      "resource": {
+        "resourceType": "SearchParameter",
+        "version": "0.0.1",
+        "name": "codex-age",
+        "description": "codex age",
+        "status": "active",
+        "code": "codex-age",
+        "url": "http://codex.de/age",
+        "base": [
+          "Patient"
+        ],
+        "type": "quantity",
+        "expression": "extension.where(url='https://www.netzwerk-universitaetsmedizin.de/fhir/StructureDefinition/age').extension.where(url='age').value"
+      },
+      "request": {
+        "method": "POST",
+        "url": "SearchParameter"
+      }
+    },
+    {
+      "fullUrl": "http://codex.de/ethnicity",
+      "resource": {
+        "resourceType": "SearchParameter",
+        "name": "codex-ethnicity",
+        "description": "codex ethnicity",
+        "status": "active",
+        "code": "codex-ethnicity",
+        "url": "http://codex.de/ethnicity",
+        "base": [
+          "Patient"
+        ],
+        "type": "token",
+        "expression": "extension.where(url='https://www.netzwerk-universitaetsmedizin.de/fhir/StructureDefinition/ethnic-group').value"
+      },
+      "request": {
+        "method": "POST",
+        "url": "SearchParameter"
+      }
+    },
+    {
+      "fullUrl": "http://mii.de/consent-provision-code",
+      "resource": {
+        "resourceType": "SearchParameter",
+        "url": "http://mii.de/consent-provision-code",
+        "name": "mii-provision-code",
+        "status": "active",
+        "description": "The provision code of the consent",
+        "code": "mii-provision-code",
+        "base": [
+          "Consent"
+        ],
+        "type": "token",
+        "expression": "Consent.provision.code",
+        "xpathUsage": "normal"
+      },
+      "request": {
+        "method": "POST",
+        "url": "SearchParameter"
+      }
+    },
+    {
+      "fullUrl": "http://mii.de/consent-provision-provision-code",
+      "resource": {
+        "resourceType": "SearchParameter",
+        "url": "http://mii.de/consent-provision-provision-code",
+        "name": "mii-provision-provision-code",
+        "status": "active",
+        "description": "The component code of the observation type",
+        "code": "mii-provision-provision-code",
+        "base": [
+          "Consent"
+        ],
+        "type": "token",
+        "expression": "Consent.provision.provision.code",
+        "xpathUsage": "normal"
+      },
+      "request": {
+        "method": "POST",
+        "url": "SearchParameter"
+      }
+    },
+    {
+      "fullUrl": "http://mii.de/consent-provision-provision-type",
+      "resource": {
+        "resourceType": "SearchParameter",
+        "url": "http://mii.de/consent-provision-provision-type",
+        "name": "mii-provision-provision-type",
+        "status": "active",
+        "description": "The component code of the observation type",
+        "code": "mii-provision-provision-type",
+        "base": [
+          "Consent"
+        ],
+        "type": "token",
+        "expression": "Consent.provision.provision.type",
+        "xpathUsage": "normal"
+      },
+      "request": {
+        "method": "POST",
+        "url": "SearchParameter"
+      }
+    },
+    {
+      "fullUrl": "http://mii.de/consent-provision-provision-code-type",
+      "resource": {
+        "resourceType": "SearchParameter",
+        "url": "http://mii.de/consent-provision-provision-code-type",
+        "name": "mii-provision-provision-code-type",
+        "status": "active",
+        "date": "2019-11-01T09:29:23+11:00",
+        "description": "Provision code and provision coded value parameter pair",
+        "code": "mii-provision-provision-code-type",
+        "base": [
+          "Consent"
+        ],
+        "type": "composite",
+        "expression": "Consent.provision.provision",
+        "xpathUsage": "normal",
+        "multipleOr": false,
+        "component": [
+          {
+            "definition": "http://mii.de/consent-provision-provision-code",
+            "expression": "code"
+          },
+          {
+            "definition": "http://mii.de/consent-provision-provision-type",
+            "expression": "type"
+          }
+        ]
+      },
+      "request": {
+        "method": "POST",
+        "url": "SearchParameter"
+      }
+    },
+    {
+      "fullUrl": "http://mii.de/observation-value-integer",
+      "resource": {
+        "resourceType": "SearchParameter",
+        "name": "mii-value-integer",
+        "status": "active",
+        "description": "Value integer of an observation",
+        "code": "mii-value-integer",
+        "url": "http://mii.de/observation-value-integer",
+        "base": [
+          "Observation"
+        ],
+        "type": "number",
+        "expression": "Observation.value",
+        "comparator": [
+          "eq",
+          "ne",
+          "gt",
+          "ge",
+          "lt",
+          "le"
+        ]
+      },
+      "request": {
+        "method": "POST",
+        "url": "SearchParameter"
+      }
+    }
+  ]
+}
