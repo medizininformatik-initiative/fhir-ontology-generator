@@ -2,7 +2,7 @@ import json
 import os
 
 from FHIRProfileConfiguration import *
-from model.ProfileModel import Profile
+from ProfileAnalyzer.ProfileModel import Profile
 from model.UiDataModel import TermCode, TerminologyEntry
 
 

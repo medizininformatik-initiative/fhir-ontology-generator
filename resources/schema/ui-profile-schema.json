@@ -1,0 +1,258 @@
+{
+  "$schema": "http://num.codex/draft-2/ui-profile/schema#",
+  "definitions": {
+    "unit": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "display": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "display"
+      ],
+      "additionalProperties": false
+    },
+	"termCodes": {
+		"value": {
+			"type": "array",
+			"minItems": 1,
+			"items": {"$ref": "#/definitions/termCode"}
+		}
+	},
+    "termCode": {
+      "type": "object",
+      "description": "The termCode defines a concept based on a coding system (i.e. LOINC). The triplet of code, system and version identify the concept.",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "system": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "display": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "system",
+        "display"
+      ],
+      "additionalProperties": false
+    },
+    "valueDefinition": {
+      "type": "object",
+      "description": "Defintion of the value of the criterion",
+      "properties": {
+        "type": {
+          "enum": [
+            "concept",
+            "quantity"
+          ]
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "concept"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "const": "concept"
+              },
+              "selectableConcepts": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/definitions/termCode"
+                }
+              }
+            },
+            "required": [
+              "type",
+              "selectableConcepts"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "quantity"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "const": "quantity"
+              },
+              "precision": {
+                "type": "integer"
+              },
+              "allowedUnits": {
+                "type": "array",
+                "minItems": 0,
+                "items": {
+                  "$ref": "#/definitions"
+                }
+              }
+            },
+            "required": [
+              "type",
+              "precision"
+            ]
+          }
+        }
+      ]
+    },
+    "attributeDefinition": {
+      "type": "object",
+      "description": "Defintion of the value of the criterion. Optional expresses, if the attribute is optional. The default value is true.",
+      "properties": {
+        "type": {
+          "enum": [
+            "concept",
+            "quantity"
+          ]
+        },
+        "optional":  {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "concept"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "attributeCode": {"$ref": "#/definitions/termCode"},
+              "type": {
+                "const": "concept"
+              },
+              "selectableConcepts": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/definitions/termCode"
+                }
+              }
+            },
+            "required": [
+              "attributeCode",
+              "type",
+              "selectableConcepts"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "quantity"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "attributeCode": {"$ref": "#/definitions/termCode"},
+              "type": {
+                "const": "quantity"
+              },
+              "precision": {
+                "type": "integer"
+              },
+              "allowedUnits": {
+                "type": "array",
+                "minItems": 0,
+                "items": {
+                  "$ref": "#/definitions"
+                }
+              }
+            },
+            "required": [
+              "attributeCode",
+              "type",
+              "precision"
+            ]
+          }
+        }
+      ]
+    },
+
+    "terminologyEntry": {
+      "type": "object",
+      "description": "Terminology Entry with all properties of a TermCode identified criterion",
+      "properties": {
+        "display": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string", "format": "uuid"
+        },
+        "leaf": {
+          "type": "boolean"
+        },
+        "selectable": {
+          "type": "boolean"
+        },
+        "timeRestrictionAllowed": {
+          "type": "boolean"
+        },
+        "termCodes": {
+          "$ref": "#/definitions/termCodes"
+        },
+        "children": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "$ref": "#/definitions/terminologyEntry"
+          }
+        },
+        "valueDefinition": {
+            "$ref": "#/definitions/valueDefinition"
+        },
+        "attributeDefinitions": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "$ref": "#/definitions/attributeDefinition"
+          }
+        }
+      },
+      "required": [
+        "display",
+        "id",
+        "leaf",
+        "selectable",
+        "termCodes"
+      ],
+      "additionalProperties": false
+    }
+	},
+	"$ref": "#/definitions/terminologyEntry"
+}

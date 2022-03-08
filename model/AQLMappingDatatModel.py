@@ -22,8 +22,8 @@ ValuePathList = List[ValuePathElement]
 class AQLMapEntry:
     DO_NOT_SERIALIZE = ["DO_NOT_SERIALIZE", "valueOfInterests"]
 
-    def __init__(self, term_code: TermCode, open_ehr_type: str, term_code_path: str, term_code_path_elements: str,
-                 value_path: str, value_path_elements: ValuePathList):
+    def __init__(self, term_code: TermCode, open_ehr_type, term_code_path, term_code_path_elements,
+                 value_path, value_path_elements):
         self.valueOfInterests = []
         self.key = term_code
         self.openEhrType = open_ehr_type

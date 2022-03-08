@@ -38,7 +38,7 @@ def get_term_codes_from_annotations(template, path):
 
 
 def extract_node_ids_from_path(path):
-    return re.findall(r"\[([A-Za-z0-9_]+)\]", path)
+    return re.findall(r"\[([A-Za-z0-9_]+)]", path)
 
 
 def get_open_ehr_type_attrib(element):
@@ -66,7 +66,7 @@ def get_value_path_list(template, leaf_archetype):
         if item.get("archetype_id") == leaf_archetype:
             open_ehr_type = get_open_ehr_type_attrib(item)
             leaf_path = ValuePathElement(open_ehr_type, leaf_archetype)
-            return get_full_path(content, [leaf_path])
+            return get_full_path(item, [leaf_path])
 
 
 def walk_nodes(element, node_id):
@@ -103,7 +103,6 @@ def parse_rm_element(element):
 def parse_value(element):
     for child in element.xpath("xmlns:children", namespaces={"xmlns": "http://schemas.openehr.org/v1"}):
         return get_ref_model_type(child)
-
 
 
 def get_sub_element_by_path(element, path):
@@ -184,8 +183,8 @@ def get_vs_from_rule(template, path):
 
 def generate_atemfrequenz_mapping(template):
     return generate_annotation_based_mapping(template, "[openEHR-EHR-COMPOSITION.registereintrag.v1]",
-                                      "openEHR-EHR-OBSERVATION.respiration.v2",
-                                      "/data[at0001]/events[at0002]/data[at0003]/items[at0004]")
+                                             "openEHR-EHR-OBSERVATION.respiration.v2",
+                                             "/data[at0001]/events[at0002]/data[at0003]/items[at0004]")
 
 
 def generate_beatmungswerte_mapping(template):
@@ -193,39 +192,46 @@ def generate_beatmungswerte_mapping(template):
 
 
 def generate_befundderblutgasanalyse_mapping(template):
-    return []
+    result = generate_value_set_based_mapping_with_value(template, "openEHR-EHR-CLUSTER.laboratory_test_analyte.v1",
+                                                         "/items[at0024]",
+                                                         "openEHR-EHR-CLUSTER.laboratory_test_analyte.v1",
+                                                         "/items[at0001]")
+    return result
 
 
 def generate_blutdruck_mapping(template):
     # Systolic
     systolic_mapping = generate_annotation_based_mapping(template,
-                                      "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
-                                      "openEHR-EHR-OBSERVATION.blood_pressure.v2]/data[at0001]/events[at0006]/data["
-                                      "at0003]/items[at0004]",
-                                      "openEHR-EHR-OBSERVATION.blood_pressure.v2",
-                                      "/data[at0001]/events[at0006]/data[at0003]/items[at0004]")
+                                                         "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
+                                                         "openEHR-EHR-OBSERVATION.blood_pressure.v2]/data["
+                                                         "at0001]/events[at0006]/data[ "
+                                                         "at0003]/items[at0004]",
+                                                         "openEHR-EHR-OBSERVATION.blood_pressure.v2",
+                                                         "/data[at0001]/events[at0006]/data[at0003]/items[at0004]")
     # Diastolic
     diastolic_mapping = generate_annotation_based_mapping(template,
-                                      "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
-                                      "openEHR-EHR-OBSERVATION.blood_pressure.v2]/data[at0001]/events[at0006]/data["
-                                      "at0003]/items[at0005]",
-                                      "openEHR-EHR-OBSERVATION.blood_pressure.v2",
-                                      "/data[at0001]/events[at0006]/data[at0003]/items[at0005]")
+                                                          "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
+                                                          "openEHR-EHR-OBSERVATION.blood_pressure.v2]/data["
+                                                          "at0001]/events[at0006]/data[ "
+                                                          "at0003]/items[at0005]",
+                                                          "openEHR-EHR-OBSERVATION.blood_pressure.v2",
+                                                          "/data[at0001]/events[at0006]/data[at0003]/items[at0005]")
 
     return [*systolic_mapping, *diastolic_mapping]
 
+
 def generate_dnr_anordnung_mapping(template):
     return generate_annotation_based_mapping(template,
-                                      "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
-                                      "openEHR-EHR-EVALUATION.advance_care_directive.v1]",
-                                      "openEHR-EHR-EVALUATION.advance_care_directive.v1",
-                                      "/data[at0001]/items[at0006]")
+                                             "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
+                                             "openEHR-EHR-EVALUATION.advance_care_directive.v1]",
+                                             "openEHR-EHR-EVALUATION.advance_care_directive.v1",
+                                             "/data[at0001]/items[at0006]")
 
 
 def generate_gecco_diagnose_mapping(template):
     return generate_value_set_based_mapping(template,
-                                     "openEHR-EHR-EVALUATION.problem_diagnosis.v1",
-                                     "/data[at0001]/items[at0002]")
+                                            "openEHR-EHR-EVALUATION.problem_diagnosis.v1",
+                                            "/data[at0001]/items[at0002]")
 
 
 def generate_gecco_entlassungsdaten_mapping(template):
@@ -243,44 +249,44 @@ def generate_gecco_entlassungsdaten_mapping(template):
 
 def generate_gecco_laborbefund_mapping(template):
     return generate_value_set_based_mapping_with_value(template, "openEHR-EHR-CLUSTER.laboratory_test_analyte.v1",
-                                                "/items[at0024]",
-                                                "openEHR-EHR-CLUSTER.laboratory_test_analyte.v1",
-                                                "/items[at0001]")
+                                                       "/items[at0024]",
+                                                       "openEHR-EHR-CLUSTER.laboratory_test_analyte.v1",
+                                                       "/items[at0001]")
 
 
 def generate_gecco_medikation_mapping(template):
     # COVID-19 Therapie
     return generate_value_set_based_mapping(template,
-                                     "openEHR-EHR-OBSERVATION.medication_statement.v0",
-                                     "/data[at0001]/events[at0002]/data[at0003]/items[at0006]")
+                                            "openEHR-EHR-OBSERVATION.medication_statement.v0",
+                                            "/data[at0001]/events[at0002]/data[at0003]/items[at0006]")
 
 
 def generate_gecco_personendaten_mapping(template):
     # Age
     age = generate_annotation_based_mapping(template,
-                                      "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
-                                      "openEHR-EHR-OBSERVATION.age.v0]",
-                                      "openEHR-EHR-OBSERVATION.age.v0",
-                                      "/data[at0001]/events[at0002]/data[at0003]/items[at0004]")
+                                            "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
+                                            "openEHR-EHR-OBSERVATION.age.v0]",
+                                            "openEHR-EHR-OBSERVATION.age.v0",
+                                            "/data[at0001]/events[at0002]/data[at0003]/items[at0004]")
     # Ethnic Group
     ethnic_group = generate_annotation_based_mapping(template,
-                                      "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
-                                      "openEHR-EHR-ADMIN_ENTRY.person_data.v0]/data[at0001]/items["
-                                      "openEHR-EHR-CLUSTER.ethnischer_hintergrund.v0]",
-                                      "openEHR-EHR-CLUSTER.ethnischer_hintergrund.v0",
-                                      "/items[at0002]")
+                                                     "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
+                                                     "openEHR-EHR-ADMIN_ENTRY.person_data.v0]/data[at0001]/items["
+                                                     "openEHR-EHR-CLUSTER.ethnischer_hintergrund.v0]",
+                                                     "openEHR-EHR-CLUSTER.ethnischer_hintergrund.v0",
+                                                     "/items[at0002]")
     # Gender at birth
     gender_at_birth = generate_annotation_based_mapping(template,
-                                      "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content[openEHR-EHR-EVALUATION.gender.v1]",
-                                      "openEHR-EHR-EVALUATION.gender.v1",
-                                      "/data[at0002]/items[at0019]")
+                                                        "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content[openEHR-EHR-EVALUATION.gender.v1]",
+                                                        "openEHR-EHR-EVALUATION.gender.v1",
+                                                        "/data[at0002]/items[at0019]")
     return [*age, *ethnic_group, *gender_at_birth]
 
 
 def generate_gecco_prozedur_mapping(template):
     return generate_value_set_based_mapping(template,
-                                     "openEHR-EHR-ACTION.procedure.v1",
-                                     "/description[at0001]/items[at0002]")
+                                            "openEHR-EHR-ACTION.procedure.v1",
+                                            "/description[at0001]/items[at0002]")
 
 
 def generate_gecco_radiologischerbefund_mapping(template):
@@ -300,9 +306,9 @@ def generate_gecco_radiologischerbefund_mapping(template):
 
 def generate_gecco_serologischerbefund_mapping(template):
     return generate_value_set_based_mapping_with_value(template, "openEHR-EHR-CLUSTER.laboratory_test_analyte.v1",
-                                                "/items[at0024]",
-                                                "openEHR-EHR-CLUSTER.laboratory_test_analyte.v1",
-                                                "/items[at0001]")
+                                                       "/items[at0024]",
+                                                       "openEHR-EHR-CLUSTER.laboratory_test_analyte.v1",
+                                                       "/items[at0001]")
 
 
 def generate_gecco_studienteilnahme_mapping(template):
@@ -334,7 +340,7 @@ def generate_gecco_studienteilnahme_mapping(template):
 def generate_gecco_virologischerbefund_mapping(template):
     term_code = TermCode(code="94500-6",
                          display="SARS-CoV-2 (COVID-19) RNA [Presence] in Respiratory specimen by NAA with probe "
-                                "detection",
+                                 "detection",
                          system="http://loinc.org")
     value_of_interest_archetype = "openEHR-EHR-CLUSTER.laboratory_test_analyte.v1"
     value_of_interest_path = "/items[at0001]"
@@ -347,17 +353,17 @@ def generate_gecco_virologischerbefund_mapping(template):
 
 def generate_herzfrequenz_mapping(template):
     return generate_annotation_based_mapping(template,
-                                      "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
-                                      "openEHR-EHR-OBSERVATION.pulse.v2]",
-                                      "openEHR-EHR-OBSERVATION.pulse.v2",
-                                      "/data[at0002]/events[at0003]")
+                                             "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
+                                             "openEHR-EHR-OBSERVATION.pulse.v2]",
+                                             "openEHR-EHR-OBSERVATION.pulse.v2",
+                                             "/data[at0002]/events[at0003]")
 
 
 def generate_impfstatus_mapping(template):
     # snomed
     impfstatus_snomed = generate_value_set_based_mapping(template,
-                                     "openEHR-EHR-ACTION.medication.v1",
-                                     "/description[at0017]/items[at0020]")
+                                                         "openEHR-EHR-ACTION.medication.v1",
+                                                         "/description[at0017]/items[at0020]")
     # ATC (missing in profile)
     impfstatus_atc = []
     vs = "https://www.netzwerk-universitaetsmedizin.de/fhir/ValueSet/vaccines-atc"
@@ -374,81 +380,83 @@ def generate_impfstatus_mapping(template):
 
 def generate_klinischefrailty_skala_mapping(template):
     return generate_annotation_based_mapping(template,
-                                      "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content[openEHR-EHR-OBSERVATION.clinical_frailty_scale.v1]",
-                                      "openEHR-EHR-OBSERVATION.clinical_frailty_scale.v1",
-                                      "/data[at0001]/events[at0002]/data[at0003]/items[at0004]")
+                                             "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
+                                             "openEHR-EHR-OBSERVATION.clinical_frailty_scale.v1]",
+                                             "openEHR-EHR-OBSERVATION.clinical_frailty_scale.v1",
+                                             "/data[at0001]/events[at0002]/data[at0003]/items[at0004]")
 
 
 def generate_koerpertemperatur_mapping(template):
     return generate_annotation_based_mapping(template,
-                                      "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content[openEHR-EHR-OBSERVATION.body_temperature.v2]",
-                                      "openEHR-EHR-OBSERVATION.body_temperature.v2",
-                                      "/data[at0002]/events[at0003]/data[at0001]/items[at0004]")
+                                             "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
+                                             "openEHR-EHR-OBSERVATION.body_temperature.v2]",
+                                             "openEHR-EHR-OBSERVATION.body_temperature.v2",
+                                             "/data[at0002]/events[at0003]/data[at0001]/items[at0004]")
 
 
 def generate_körpergewicht_mapping(template):
     # Using any event at birth is not supported!
     return generate_annotation_based_mapping(template,
-                                      "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
-                                      "openEHR-EHR-OBSERVATION.body_weight.v2]",
-                                      "openEHR-EHR-OBSERVATION.body_weight.v2",
-                                      "/data[at0002]/events[at0003]/data[at0001]/items[at0004]")
+                                             "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
+                                             "openEHR-EHR-OBSERVATION.body_weight.v2]",
+                                             "openEHR-EHR-OBSERVATION.body_weight.v2",
+                                             "/data[at0002]/events[at0003]/data[at0001]/items[at0004]")
 
 
 def generate_körpergröße_mapping(template):
     # No clear rule in oet
     return generate_annotation_based_mapping(template,
-                                      "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
-                                      "openEHR-EHR-OBSERVATION.height.v2]",
-                                      "openEHR-EHR-OBSERVATION.height.v2",
-                                      "/data[at0001]/events[at0002]/data[at0003]/items[at0004]")
+                                             "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
+                                             "openEHR-EHR-OBSERVATION.height.v2]",
+                                             "openEHR-EHR-OBSERVATION.height.v2",
+                                             "/data[at0001]/events[at0002]/data[at0003]/items[at0004]")
 
 
 def generate_patientauficu_mapping(template):
     return generate_annotation_based_mapping(template,
-                                      "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
-                                      "openEHR-EHR-OBSERVATION.management_screening.v0]",
-                                      "openEHR-EHR-OBSERVATION.management_screening.v0",
-                                      "/data[at0001]/events[at0002]/data[at0003]/items[at0022]/items[at0005]")
+                                             "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
+                                             "openEHR-EHR-OBSERVATION.management_screening.v0]",
+                                             "openEHR-EHR-OBSERVATION.management_screening.v0",
+                                             "/data[at0001]/events[at0002]/data[at0003]/items[at0022]/items[at0005]")
 
 
 def generate_pulsoxymetrie_mapping(template):
     return generate_annotation_based_mapping(template,
-                                      "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
-                                      "openEHR-EHR-OBSERVATION.pulse_oximetry.v1]",
-                                      "openEHR-EHR-OBSERVATION.pulse_oximetry.v1",
-                                      "/data[at0001]/events[at0002]/data[at0003]/items[at0006]")
+                                             "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
+                                             "openEHR-EHR-OBSERVATION.pulse_oximetry.v1]",
+                                             "openEHR-EHR-OBSERVATION.pulse_oximetry.v1",
+                                             "/data[at0001]/events[at0002]/data[at0003]/items[at0006]")
 
 
 def generate_raucherstatus_mapping(template):
     return generate_annotation_based_mapping(template,
-                                      "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
-                                      "openEHR-EHR-EVALUATION.tobacco_smoking_summary.v1]",
-                                      "openEHR-EHR-EVALUATION.tobacco_smoking_summary.v1",
-                                      "/data[at0001]/items[at0043]")
+                                             "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
+                                             "openEHR-EHR-EVALUATION.tobacco_smoking_summary.v1]",
+                                             "openEHR-EHR-EVALUATION.tobacco_smoking_summary.v1",
+                                             "/data[at0001]/items[at0043]")
 
 
 def generate_reisehistorie_mapping(template):
     return generate_annotation_based_mapping(template,
-                                      "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
-                                      "openEHR-EHR-ADMIN_ENTRY.travel_event.v0]",
-                                      "openEHR-EHR-ADMIN_ENTRY.travel_event.v0",
-                                      "/data[at0001]/items[at0010]/items[at0011]"
-                                      )
+                                             "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
+                                             "openEHR-EHR-ADMIN_ENTRY.travel_event.v0]",
+                                             "openEHR-EHR-ADMIN_ENTRY.travel_event.v0",
+                                             "/data[at0001]/items[at0010]/items[at0011]"
+                                             )
 
 
 def generate_sars_cov_2exposition_mapping(template):
     return generate_annotation_based_mapping(template, "[openEHR-EHR-COMPOSITION.registereintrag.v1]",
-                                      "openEHR-EHR-EVALUATION.infectious_exposure.v0",
-                                      "/data[at0001]/items[at0003]")
+                                             "openEHR-EHR-EVALUATION.infectious_exposure.v0",
+                                             "/data[at0001]/items[at0003]")
 
 
 def generate_schwangerschaftsstatus_mapping(template):
     return generate_annotation_based_mapping(template,
-                                      "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
-                                      "openEHR-EHR-OBSERVATION.pregnancy_status.v0]",
-                                      "openEHR-EHR-OBSERVATION.pregnancy_status.v0",
-                                      "/data[at0001]/events[at0002]/data[at0003]/items[at0011]")
+                                             "[openEHR-EHR-COMPOSITION.registereintrag.v1]/content["
+                                             "openEHR-EHR-OBSERVATION.pregnancy_status.v0]",
+                                             "openEHR-EHR-OBSERVATION.pregnancy_status.v0",
+                                             "/data[at0001]/events[at0002]/data[at0003]/items[at0011]")
 
 
 def generate_sofa_mapping(template):
@@ -466,9 +474,9 @@ def generate_sofa_mapping(template):
 
 def generate_symptom_mapping(template):
     return generate_value_set_based_mapping_with_value(template, "openEHR-EHR-OBSERVATION.symptom_sign.v0",
-                                                "/data[at0190]/events[at0191]/data[at0192]/items[at0001]",
-                                                "openEHR-EHR-OBSERVATION.symptom_sign.v0",
-                                                "/data[at0190]/events[at0191]/data[at0192]/items[at0021]")
+                                                       "/data[at0190]/events[at0191]/data[at0192]/items[at0001]",
+                                                       "openEHR-EHR-OBSERVATION.symptom_sign.v0",
+                                                       "/data[at0190]/events[at0191]/data[at0192]/items[at0021]")
 
 
 def generate_aql_mapping():

@@ -3,9 +3,32 @@ import json
 
 from TerminologService.ValueSetResolver import get_term_codes_by_path, get_termcodes_from_onto_server, \
     get_term_codes_by_id
-from model.UiDataModel import ValueDefinition, TermCode, AttributeDefinition, Unit
+from model.UiDataModel import TermCode
 
 UI_PROFILES = set()
+
+
+class ValueDefinition:
+    def __init__(self, value_type):
+        self.type = value_type
+        self.selectableConcepts = []
+        self.allowedUnits = []
+        self.precision = 1
+        self.min = None
+        self.max = None
+
+
+class AttributeDefinition(ValueDefinition):
+    def __init__(self, attribute_code, value_type):
+        super().__init__(value_type)
+        self.attributeCode = attribute_code
+        self.optional = True
+
+
+class Unit:
+    def __init__(self, display, code):
+        self.display = display
+        self.code = code
 
 
 def del_none(dictionary):

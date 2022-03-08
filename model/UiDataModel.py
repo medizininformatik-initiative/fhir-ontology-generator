@@ -78,7 +78,7 @@ class TermCode:
         return self.display < other.display
 
     def __repr__(self):
-        return self.system + self.code
+        return self.system + " "+ self.code
 
 
 class ValueDefinition:

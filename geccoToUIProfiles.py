@@ -251,6 +251,7 @@ def translate_immunization(profile_data, terminology_entry, _logical_element):
     terminology_entry.children = get_term_entries_by_id("Immunization.vaccineCode.coding:snomed", profile_data)
     terminology_entry.leaf = False
     terminology_entry.selectable = False
+    inherit_parent_attributes(terminology_entry)
 
 
 def translate_laboratory_values(profile_data, terminology_entry, logical_element):
@@ -280,12 +281,14 @@ def translate_medication_administration(profile_data, terminology_entry, _logica
         terminology_entry.children = get_term_entries_by_path("Medication.code.coding", medication_profile_data)
         terminology_entry.leaf = False
         terminology_entry.children = sorted(terminology_entry.children)
+        inherit_parent_attributes(terminology_entry)
 
 
 def translate_medication_statement(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "MedicationStatement"
     terminology_entry.uiProfile = generate_default_ui_profile(profile_data["name"], _logical_element)
     terminology_entry.children = get_term_entries_by_path("MedicationStatement.medication[x].coding", profile_data)
+    inherit_parent_attributes(terminology_entry)
     terminology_entry.leaf = False
 
 
@@ -428,7 +431,10 @@ def get_consent():
                 TermCode("http://hl7.org/fhir/consent-provision-type", "permit", "permit"))
             value_definition.selectableConcepts.append(
                 TermCode("http://hl7.org/fhir/consent-provision-type", "deny", "deny"))
-            consent_child.valueDefinition = value_definition
+            ui_profile = generate_default_ui_profile("Einwilligung", None)
+            ui_profile.valueDefinition = value_definition
+
+            consent_child.uiProfile = ui_profile
             consent_category_entry.children.append(consent_child)
     return consent_category_entry
 
@@ -516,7 +522,7 @@ profile_translation_mapping = {
     "Procedure": translate_procedure,
     "ResearchSubject": translate_research_subject,
     "Specimen": translate_specimen,
-    "Substance": translate_substance,
+    "Substance": translate_substance
 }
 
 corner_cases = {
@@ -546,6 +552,8 @@ def translate_chronic_lung_diseases_with_duplicates(profile_data, terminology_en
     sct_logical_entry = TerminologyEntry([sct_code], selectable=False, leaf=False)
     sct_logical_entry.children = get_term_entries_by_id("Condition.code.coding:sct", profile_data)
     terminology_entry.children.append(sct_logical_entry)
+    terminology_entry.uiProfile = generate_default_ui_profile(profile_data["name"], _logical_element)
+    inherit_parent_attributes(terminology_entry)
     terminology_entry.leaf = False
 
 
@@ -553,6 +561,8 @@ def translate_radiology_procedures_with_duplicates(profile_data, terminology_ent
     terminology_entry.fhirMapperType = "Procedure"
     terminology_entry.children += get_term_entries_by_id("Procedure.code.coding:sct", profile_data)
     terminology_entry.children += get_term_entries_by_id("Procedure.code.coding:dicom", profile_data)
+    terminology_entry.uiProfile = generate_default_ui_profile(profile_data["name"], _logical_element)
+    inherit_parent_attributes(terminology_entry)
     terminology_entry.leaf = False
 
 
