@@ -29,15 +29,15 @@ class DataBaseWriter:
     def __init__(self):
         self.db_connection = None
         try:
-            self.db_connection = psycopg2.connect(database='codex_mapping', user='codex-mapping', host='localhost',
+            self.db_connection = psycopg2.connect(database='codex_ui', user='codex-postgres', host='localhost',
                                                   password=
                                                   'codex-password')
         except Exception as e:
             print(e)
         if self.db_connection:
             self.cursor = self.db_connection.cursor()
-            self.drop_tables('TERMCODE')
-            self.drop_tables('UI_PROFILE_TABLE')
+            # self.drop_tables('TERMCODE')
+            # self.drop_tables('UI_PROFILE_TABLE')
             self.cursor.execute(create_term_code_table)
             self.cursor.execute(create_ui_profile_table)
             self.db_connection.commit()
@@ -64,7 +64,7 @@ class DataBaseWriter:
         self.cursor.execute(drop_table_command)
 
     def get_ui_profile(self, term_code):
-        self.cursor.execute("SELECT UI_Profile from UI_PROFILE_TABLE "
+        self.cursor.execute("SELECT UI_PROFILE from UI_PROFILE_TABLE "
                             "where (system = %s) and (code = %s) and (version = %s)"
                             , (term_code.system, term_code.code, term_code.version if term_code.version else ""))
         result = self.cursor.fetchall()
@@ -83,8 +83,8 @@ class DataBaseWriter:
 
 if __name__ == "__main__":
     dbw = DataBaseWriter()
-    tc = TermCode("loinc.org", "123", "test")
-    test_profile = generate_default_ui_profile("test", None)
-    dbw.insert_term_codes([tc])
-    dbw.insert_ui_profile(tc, test_profile.to_json())
+    tc = TermCode("http://fhir.de/CodeSystem/bfarm/icd-10-gm", "I61.2", "Vadadustat", "2021")
+    # test_profile = generate_default_ui_profile("test", None)
+    # dbw.insert_term_codes([tc])
+    # dbw.insert_ui_profile(tc, test_profile.to_json())
     print(dbw.get_ui_profile(tc))

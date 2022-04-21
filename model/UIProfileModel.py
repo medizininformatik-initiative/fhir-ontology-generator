@@ -169,10 +169,10 @@ def generate_quantity_observation_ui_profile(profile_data, logical_element):
 
 def generate_specimen_ui_profile(profile_data, _logical_element):
     ui_profile = UIProfile(profile_data["name"])
-    status_attribute_code = TermCode("mii.abide", "status", "Status")
-    status_attribute_code = AttributeDefinition(attribute_code=status_attribute_code, value_type="concept")
-    status_attribute_code.selectableConcepts = get_term_codes_by_path("Specimen.status", profile_data)
-    ui_profile.attributeDefinitions.append(status_attribute_code)
+    # status_attribute_code = TermCode("mii.abide", "status", "Status")
+    # status_attribute_code = AttributeDefinition(attribute_code=status_attribute_code, value_type="concept")
+    # status_attribute_code.selectableConcepts = get_term_codes_by_path("Specimen.status", profile_data)
+    # ui_profile.attributeDefinitions.append(status_attribute_code)
     body_site_attribute_code = TermCode("mii.module_specimen", "Specimen.collection.bodySite", "Entnahmeort")
     body_site_attribute = AttributeDefinition(attribute_code=body_site_attribute_code, value_type="concept")
     body_site_attribute.selectableConcepts = get_term_codes_by_id("Specimen.collection.bodySite.coding:icd-o-3",

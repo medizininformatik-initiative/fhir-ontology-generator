@@ -292,10 +292,10 @@ class SpecimenMapEntry(MapEntry):
         body_site_attribute_term_code = TermCode("mii.module_specimen", "Specimen.collection.bodySite", "Entnahmeort")
         body_site_attribute_search_parameter = AttributeSearchParameter("code", body_site_attribute_term_code,
                                                                         "bodysite", "collection.bodySite")
-        status_attribute_term_code = TermCode("mii.abide", "status", "status")
-        status_attribute_search_parameter = AttributeSearchParameter("code", status_attribute_term_code, "status",
-                                                                     "status")
-        self.attributeSearchParameters = [body_site_attribute_search_parameter, status_attribute_search_parameter]
+        # status_attribute_term_code = TermCode("mii.abide", "status", "status")
+        # status_attribute_search_parameter = AttributeSearchParameter("code", status_attribute_term_code, "status",
+        #                                                              "status")
+        self.attributeSearchParameters = [body_site_attribute_search_parameter]
         self.timeRestrictionParameter = "collected"
         self.timeRestrictionPath = "collection.collected"
 

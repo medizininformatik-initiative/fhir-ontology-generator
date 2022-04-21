@@ -475,6 +475,7 @@ def get_terminology_entry_from_top_300_loinc(element_id, element_tree):
                     terminology_entry.children.append(get_terminology_entry_from_top_300_loinc(sub.text, element_tree))
                     terminology_entry.leaf = False
                     terminology_entry.selectable = False
+                terminology_entry.children = sorted(terminology_entry.children)
                 return terminology_entry
             for slot in element.xpath("xmlns:slots/xmlns:slot",
                                       namespaces={'xmlns': "http://schema.samply.de/mdr/common"}):

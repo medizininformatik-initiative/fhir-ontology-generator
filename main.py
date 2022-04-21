@@ -178,8 +178,8 @@ if __name__ == '__main__':
     category_entries = create_terminology_definition_for(get_gecco_categories())
     # TODO: ones the consent profiles are declared use them instead!
     category_entries.append(get_consent())
-    dbw = DataBaseWriter()
-    dbw.add_ui_profiles_to_db(category_entries)
+    # dbw = DataBaseWriter()
+    # dbw.add_ui_profiles_to_db(category_entries)
     generate_ui_profiles(category_entries)
     category_entries += core_data_category_entries
     generate_term_code_mapping(category_entries)
