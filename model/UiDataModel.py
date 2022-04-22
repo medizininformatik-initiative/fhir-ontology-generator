@@ -75,10 +75,10 @@ class TermCode:
         return hash(self.system + self.code)
 
     def __lt__(self, other):
-        return self.display < other.display
+        return self.display.casefold() < other.display.casefold()
 
     def __repr__(self):
-        return self.system + " "+ self.code
+        return self.system + " " + self.code
 
 
 class ValueDefinition:
@@ -127,7 +127,7 @@ class TerminologyEntry(object):
 
     def __lt__(self, other):
         if self.display and other.display:
-            return self.display < other.display
+            return self.display.casefold() < other.display.casefold()
         return self.termCode < other.termCode
 
     def __repr__(self):
