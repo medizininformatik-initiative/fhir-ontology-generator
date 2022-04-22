@@ -160,12 +160,24 @@ def generate_core_data_set():
                         module_category_entry.children += module_element_entry.children
                     else:
                         module_category_entry.children.append(module_element_entry)
+            move_back_other(module_category_entry.children)
             f = open("ui-profiles/" + module_category_entry.display + ".json", 'w', encoding="utf-8")
             f.write(module_category_entry.to_json())
             f.close()
             validate_ui_profile(module_category_entry.display)
             core_data_set_modules.append(module_category_entry)
     return core_data_set_modules
+
+
+def move_back_other(entries):
+    entries_copy = entries.copy()
+    for entry in entries_copy:
+        for other_naming in ["Sonstige", "sonstige", "andere", "Andere", "Weitere", "Other"]:
+            if entry.termCode.display.startswith(other_naming):
+                entries.remove(entry)
+                entries.append(entry)
+        if entry.children:
+            move_back_other(entry.children)
 
 
 if __name__ == '__main__':
@@ -178,10 +190,11 @@ if __name__ == '__main__':
     category_entries = create_terminology_definition_for(get_gecco_categories())
     # TODO: ones the consent profiles are declared use them instead!
     category_entries.append(get_consent())
+    move_back_other(category_entries)
     # dbw = DataBaseWriter()
     # dbw.add_ui_profiles_to_db(category_entries)
     generate_ui_profiles(category_entries)
-    category_entries += core_data_category_entries
-    generate_term_code_mapping(category_entries)
-    generate_term_code_tree(category_entries)
+    # category_entries += core_data_category_entries
+    # generate_term_code_mapping(category_entries)
+    # generate_term_code_tree(category_entries)
     # to_csv(category_entries)
