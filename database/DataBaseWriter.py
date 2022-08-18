@@ -36,8 +36,8 @@ class DataBaseWriter:
             print(e)
         if self.db_connection:
             self.cursor = self.db_connection.cursor()
-            # self.drop_tables('TERMCODE')
-            # self.drop_tables('UI_PROFILE_TABLE')
+            self.drop_tables('TERMCODE')
+            self.drop_tables('UI_PROFILE_TABLE')
             self.cursor.execute(create_term_code_table)
             self.cursor.execute(create_ui_profile_table)
             self.db_connection.commit()
@@ -83,7 +83,8 @@ class DataBaseWriter:
 
 if __name__ == "__main__":
     dbw = DataBaseWriter()
-    tc = TermCode("http://fhir.de/CodeSystem/bfarm/icd-10-gm", "I61.2", "Vadadustat", "2021")
+
+    tc = TermCode("http://fhir.de/CodeSystem/bfarm/icd-10-gm", "C90.0", "Vadadustat", "2021")
     # test_profile = generate_default_ui_profile("test", None)
     # dbw.insert_term_codes([tc])
     # dbw.insert_ui_profile(tc, test_profile.to_json())

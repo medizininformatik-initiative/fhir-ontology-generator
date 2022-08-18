@@ -4,8 +4,6 @@ import re
 import uuid
 import random as rd
 
-rd.seed(42)
-
 
 def del_none(dictionary):
     import model.UIProfileModel

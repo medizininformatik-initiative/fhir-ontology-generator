@@ -11,15 +11,14 @@ from model.MappingDataModel import generate_map
 from model.UiDataModel import TerminologyEntry, TermCode
 from geccoToUIProfiles import create_terminology_definition_for, get_gecco_categories, IGNORE_CATEGORIES, \
     MAIN_CATEGORIES, IGNORE_LIST, \
-    get_specimen, get_consent, resolve_terminology_entry_profile, get_ui_profiles
+    get_consent, resolve_terminology_entry_profile, get_ui_profiles, profile_is_of_interest
 from model.termCodeTree import to_term_code_node
 
 
-# FIXME:
 def mkdir_if_not_exists(directory):
     if not path.isdir(f"./{directory}"):
         try:
-            os.system(f"mkdir {directory}")
+            os.mkdir(directory)
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
@@ -124,48 +123,50 @@ def remove_resource_name(name_with_resource_name):
     return name_with_resource_name
 
 
+def get_data_set_snapshots(data_set):
+    return [f"resources/core_data_sets/{data_set}/package/{f.name}" for f in
+            os.scandir(f"resources/core_data_sets/{data_set}/package") if
+            not f.is_dir() and "-snapshot" in f.name]
+
+
+def get_module_category_entry_from_module_name(module_name):
+    module_code = TermCode("mii.abide", module_name, module_name)
+    return TerminologyEntry([module_code], "Category", selectable=False, leaf=False)
+
+
 def generate_core_data_set():
     core_data_set_modules = []
-    for data_set in core_data_sets:
-        if data_set != GECCO:
-            module_name = data_set.split(' ')[0].split(".")[-1].capitalize()
-            module_code = TermCode("mii.abide", module_name, module_name)
-            module_category_entry = TerminologyEntry([module_code], "Category", selectable=False, leaf=False)
-            data_set = data_set.replace(" ", "#")
-            for snapshot in [f"resources/core_data_sets/{data_set}/package/{f.name}" for f in
-                             os.scandir(f"resources/core_data_sets/{data_set}/package") if
-                             not f.is_dir() and "-snapshot" in f.name]:
-                with open(snapshot, encoding="UTF-8") as json_file:
-                    json_data = json.load(json_file)
-                    # Care parentheses matter here!
-                    if (kind := json_data.get("kind")) and (kind == "logical"):
-                        continue
-                    if resource_type := json_data.get("type"):
-                        if resource_type == "Bundle":
-                            continue
-                        elif resource_type == "Extension":
-                            continue
-                    module_element_name = remove_resource_name(json_data.get("name"))
-                    if module_element_name in IGNORE_LIST:
-                        continue
-                    module_element_code = TermCode("mii.abide", module_element_name, module_element_name)
-                    module_element_entry = TerminologyEntry([module_element_code], "Category", selectable=False,
-                                                            leaf=False)
-                    resolve_terminology_entry_profile(module_element_entry,
-                                                      data_set=f"resources/core_data_sets/{data_set}/package")
-                    if module_category_entry.display == module_element_entry.display:
-                        # Resolves issue like : -- Prozedure                 --Prozedure
-                        #                           -- Prozedure     --->      -- BILDGEBENDE DIAGNOSTIK
-                        #                              -- BILDGEBENDE DIAGNOSTIK
-                        module_category_entry.children += module_element_entry.children
-                    else:
-                        module_category_entry.children.append(module_element_entry)
-            move_back_other(module_category_entry.children)
-            f = open("ui-profiles/" + module_category_entry.display + ".json", 'w', encoding="utf-8")
+    for data_set in [core_data_set for core_data_set in core_data_sets if core_data_set != GECCO]:
+        module_name = data_set.split(' ')[0].split(".")[-1].capitalize()
+        module_category_entry = get_module_category_entry_from_module_name(module_name)
+        data_set = data_set.replace(" ", "#")
+        for snapshot in get_data_set_snapshots(data_set):
+            with open(snapshot, encoding="UTF-8") as json_file:
+                json_data = json.load(json_file)
+                module_element_name = remove_resource_name(json_data.get("name"))
+                if not profile_is_of_interest(json_data, module_element_name):
+                    continue
+                module_element_code = TermCode("mii.abide", module_element_name, module_element_name)
+                module_element_entry = TerminologyEntry([module_element_code], "Category", selectable=False,
+                                                        leaf=False)
+                resolve_terminology_entry_profile(module_element_entry,
+                                                  data_set=f"resources/core_data_sets/{data_set}/package")
+                if module_category_entry.display == module_element_entry.display:
+                    # Resolves issue like : -- Prozedure                 --Prozedure
+                    #                           -- Prozedure     --->      -- BILDGEBENDE DIAGNOSTIK
+                    #                              -- BILDGEBENDE DIAGNOSTIK
+                    module_category_entry.children += module_element_entry.children
+                else:
+                    module_category_entry.children.append(module_element_entry)
+        move_back_other(module_category_entry.children)
+        f = open("ui-profiles/" + module_category_entry.display + ".json", 'w', encoding="utf-8")
+        if len(module_category_entry.children) == 1:
+            f.write(module_category_entry.children[0].to_json())
+        else:
             f.write(module_category_entry.to_json())
-            f.close()
-            validate_ui_profile(module_category_entry.display)
-            core_data_set_modules.append(module_category_entry)
+        f.close()
+        validate_ui_profile(module_category_entry.display)
+        core_data_set_modules.append(module_category_entry)
     return core_data_set_modules
 
 
@@ -186,15 +187,20 @@ if __name__ == '__main__':
     # download_core_data_set_mii()
     # generate_snapshots()
     # -------------------------------------------------------------
+
     core_data_category_entries = generate_core_data_set()
-    category_entries = create_terminology_definition_for(get_gecco_categories())
+
+    category_entries = []
+    if GECCO in core_data_sets:
+        category_entries = create_terminology_definition_for(get_gecco_categories())
     # TODO: ones the consent profiles are declared use them instead!
     category_entries.append(get_consent())
     move_back_other(category_entries)
-    # dbw = DataBaseWriter()
-    # dbw.add_ui_profiles_to_db(category_entries)
     generate_ui_profiles(category_entries)
-    # category_entries += core_data_category_entries
-    # generate_term_code_mapping(category_entries)
-    # generate_term_code_tree(category_entries)
+
+    category_entries += core_data_category_entries
+    dbw = DataBaseWriter()
+    dbw.add_ui_profiles_to_db(category_entries)
+    generate_term_code_mapping(category_entries)
+    generate_term_code_tree(category_entries)
     # to_csv(category_entries)

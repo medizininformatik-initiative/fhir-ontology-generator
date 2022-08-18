@@ -200,6 +200,7 @@ class ImmunizationMapEntry(MapEntry):
 class MedicationAdministrationMapEntry(MapEntry):
     def __init__(self, term_code):
         super().__init__(term_code)
+        # FIXME: medication.code is not part of MedicationAdministration
         self.termCodeSearchParameter = "medication.code"
         self.fhirResourceType = "MedicationAdministration"
         self.valueSearchParameter = None

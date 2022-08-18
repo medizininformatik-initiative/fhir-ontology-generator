@@ -71,11 +71,32 @@ def get_termcodes_from_onto_server(canonical_address_value_set, onto_server=ONTO
         return sorted(snomed_result)
 
 
+def get_answer_list_code(response):
+    if parameters := response.get("parameter"):
+        for parameter in parameters:
+            if parts := parameter.get("part"):
+                next_is_answer_list = False
+                for part in parts:
+                    if next_is_answer_list and (valueCode := part.get("valueCode")):
+                        return valueCode
+                    if (valueCode := part.get("valueCode")) and (valueCode == "answer-list"):
+                        next_is_answer_list = True
+
+
+def get_answer_list_vs(loinc_code):
+    response = requests.get(
+        f"https://ontoserver.imi.uni-luebeck.de/fhir/CodeSystem/$lookup?system=http://loinc.org&code={loinc_code.code}&property=answer-list")
+    if answer_list_code := get_answer_list_code(response.json()):
+        return "http://loinc.org/vs/" + answer_list_code
+
+
 # TODO: Refactor should only need the 2nd function
 def pattern_coding_to_termcode(element):
     code = element["patternCoding"]["code"]
     system = element["patternCoding"]["system"]
     display = get_term_code_display_from_onto_server(system, code)
+    if display.isupper():
+        display = display.title()
     term_code = TermCode(system, code, display)
     return term_code
 
@@ -84,6 +105,8 @@ def pattern_codeable_concept_to_termcode(element):
     code = element["code"]
     system = element["system"]
     display = get_term_code_display_from_onto_server(system, code)
+    if display.isupper():
+        display = display.title()
     term_code = TermCode(system, code, display)
     return term_code
 

@@ -2,7 +2,7 @@ import copy
 import json
 
 from TerminologService.ValueSetResolver import get_term_codes_by_path, get_termcodes_from_onto_server, \
-    get_term_codes_by_id
+    get_term_codes_by_id, get_answer_list_vs
 from model.UiDataModel import TermCode
 
 UI_PROFILES = set()
@@ -167,6 +167,15 @@ def generate_quantity_observation_ui_profile(profile_data, logical_element):
     return ui_profile
 
 
+def generate_age_ui_profile(profile_data, _logical_element):
+    ui_profile = UIProfile(profile_data["name"])
+    value_definition = ValueDefinition("quantity")
+    value_definition.allowedUnits = [Unit('a', 'a'), Unit('mo', 'mo'), Unit('wk', 'wk')]
+    ui_profile.valueDefinition = value_definition
+    UI_PROFILES.add(ui_profile)
+    return ui_profile
+
+
 def generate_specimen_ui_profile(profile_data, _logical_element):
     ui_profile = UIProfile(profile_data["name"])
     # status_attribute_code = TermCode("mii.abide", "status", "Status")
@@ -197,7 +206,13 @@ def generate_symptom_ui_profile(profile_data, _logical_element):
 
 def generate_top300_loinc_ui_profile(terminology_entry, element_id, element_tree):
     ui_profile = UIProfile(terminology_entry.display)
-    ui_profile.valueDefinition = get_value_description_from_top_300_loinc(element_id, element_tree)
+    # We don't know if a value definition exists, as the MIRACUM is incomplete for qualitative lab values.
+    if quantity_value_description := get_quantity_value_description_from_top_300_loinc(element_id, element_tree):
+        ui_profile.valueDefinition = quantity_value_description
+    elif concept_value_description := get_concept_value_description_for_loinc_code(terminology_entry):
+        ui_profile.valueDefinition = concept_value_description
+    else:
+        print(terminology_entry.termCode.display)
     UI_PROFILES.add(ui_profile)
     return ui_profile
 
@@ -218,7 +233,7 @@ def get_value_definition(element):
     return value_definition
 
 
-def get_value_description_from_top_300_loinc(element_id, element_tree):
+def get_quantity_value_description_from_top_300_loinc(element_id, element_tree):
     value_definition = ValueDefinition("quantity")
     described_value_domain_id = ""
     for data_element in element_tree.xpath("/xmlns:export/xmlns:dataElement",
@@ -235,7 +250,18 @@ def get_value_description_from_top_300_loinc(element_id, element_tree):
                         break
                     unit = Unit(child.text, child.text)
                     value_definition.allowedUnits.append(unit)
+    if not value_definition.allowedUnits:
+        return None
     return value_definition
+
+
+def get_concept_value_description_for_loinc_code(terminology_entry):
+    value_definition = ValueDefinition("concept")
+    value_set_url = get_answer_list_vs(terminology_entry.termCode)
+    if value_set_url:
+        value_definition.selectableConcepts = get_termcodes_from_onto_server(value_set_url)
+        return value_definition
+    return None
 
 
 def get_ui_profiles():

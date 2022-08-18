@@ -27,6 +27,8 @@ def expand_value_set(url):
             system = contains["system"]
             code = contains["code"]
             display = contains["display"]
+            if display.isupper():
+                display = display.title()
             if "version" in contains:
                 version = contains["version"]
             else:
@@ -41,8 +43,8 @@ def create_vs_tree(canonical_url):
     vs = expand_value_set(canonical_url)
     vs_dict = {term_code.code: TerminologyEntry([term_code], leaf=True, selectable=True) for term_code in vs}
     closure_map_data = get_closure_map(vs)
-    if "group" in closure_map_data:
-        for group in closure_map_data["group"]:
+    if groups := closure_map_data.get("group"):
+        for group in groups:
             subsumption_map = group["element"]
             subsumption_map = {item['code']: [target['code'] for target in item['target']] for item in subsumption_map}
             # remove non direct parents

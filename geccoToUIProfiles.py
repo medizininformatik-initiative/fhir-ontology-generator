@@ -6,6 +6,7 @@ from lxml import etree
 from FHIRProfileConfiguration import *
 from TerminologService.ValueSetResolver import get_termentries_from_onto_server, \
     get_term_entries_by_id, get_term_entries_by_path, pattern_coding_to_termcode
+from TerminologService.icd10MortalityDownloader import download_sonderverzeichnis_mortality
 from model.Exceptions import UnknownHandlingException
 from model.UIProfileModel import *
 from model.UiDataModel import *
@@ -18,6 +19,18 @@ MAIN_CATEGORIES = ["Einwilligung"]
 ONTOLOGY_SERVER_ADDRESS = os.environ.get('ONTOLOGY_SERVER_ADDRESS')
 
 GENERATE_DUPLICATES = os.getenv("GENERATE_DUPLICATES", 'False').lower() == "true"
+
+
+def is_logical_bundle_or_extension(json_data):
+    return is_logical_or_bundle(json_data) or (json_data.get("type") == "Extension")
+
+
+def is_logical_or_bundle(json_data):
+    return (json_data.get("kind") == "logical") or (json_data.get("type") == "Bundle")
+
+
+def profile_is_of_interest(json_data, module_name):
+    return (not is_logical_bundle_or_extension(json_data)) and (module_name not in IGNORE_LIST)
 
 
 def to_upper_camel_case(string):
@@ -72,6 +85,7 @@ def create_terminology_definition_for(categories):
                     raise Exception(f"Unknown element {element['type'][0]['code']}")
     for category_entry in category_terminology_entries:
         category_entry.children = sorted(category_entry.children)
+    print(category_terminology_entries)
     return category_terminology_entries
 
 
@@ -123,7 +137,7 @@ def resolve_terminology_entry_profile(terminology_entry, element=None, data_set=
         if name in filename and "snapshot" in filename:
             with open(data_set + "/" + filename, encoding="UTF-8") as profile_file:
                 profile_data = json.load(profile_file)
-                if profile_data["kind"] == "logical":
+                if is_logical_or_bundle(profile_data):
                     continue
                 # We differentiate between corner and none corner cases only for readability.
                 if profile_data["name"] in corner_cases:
@@ -131,7 +145,7 @@ def resolve_terminology_entry_profile(terminology_entry, element=None, data_set=
                 elif profile_data["type"] in profile_translation_mapping:
                     profile_translation_mapping.get(profile_data["type"])(profile_data, terminology_entry, element)
                 else:
-                    raise UnknownHandlingException(profile_data["type"])
+                    raise UnknownHandlingException(filename)
     if element:
         terminology_entry.display = get_german_display(element) if get_german_display(element) else element["short"]
 
@@ -173,12 +187,23 @@ def update_termcode_to_match_pattern_coding(terminology_entry, element):
 
 def translate_age(profile_data, terminology_entry, logical_element):
     terminology_entry.fhirMapperType = "Age"
-    terminology_entry.uiProfile = generate_quantity_observation_ui_profile(profile_data, logical_element)
+    terminology_entry.uiProfile = generate_age_ui_profile(profile_data, logical_element)
 
 
 def translate_blood_pressure(profile_data, terminology_entry, logical_element):
     terminology_entry.fhirMapperType = "BloodPressure"
     terminology_entry.uiProfile = generate_quantity_observation_ui_profile(profile_data, logical_element)
+
+
+def translate_cause_of_death(profile_data, terminology_entry, _logical_element):
+    # TODO: Corner case. Requires new Mapping Type
+    terminology_entry.fhirMapperType = "Condition"
+    terminology_entry.uiProfile = generate_default_ui_profile(profile_data["name"], _logical_element)
+    children = download_sonderverzeichnis_mortality()
+    if children:
+        terminology_entry.leaf = False
+        terminology_entry.children += children
+        inherit_parent_attributes(terminology_entry)
 
 
 def translate_condition(profile_data, terminology_entry, _logical_element):
@@ -348,7 +373,7 @@ def translate_procedure(profile_data, terminology_entry, _logical_element):
     terminology_entry.leaf = False
 
 
-def translate_research_subject(_profile_data, _terminology_entry):
+def translate_research_subject(_profile_data, _terminology_entry, _logical_element):
     pass
 
 
@@ -378,7 +403,7 @@ def translate_specimen(profile_data, terminology_entry, _logical_element):
     inherit_parent_attributes(terminology_entry)
 
 
-def translate_substance(_profile_data, _terminology_entry):
+def translate_substance(_profile_data, _terminology_entry, _logical_element):
     pass
 
 
@@ -393,8 +418,8 @@ def translate_symptom(profile_data, terminology_entry, _logical_element):
 def translate_top_300_loinc_codes(_profile_data, terminology_entry):
     top_loinc_tree = etree.parse("Top300Loinc.xml")
     terminology_entry.fhirMapperType = "QuantityObservation"
-    terminology_entry.children = get_terminology_entry_from_top_300_loinc("11ccdc84-a237-49a5-860a-b0f65068c023",
-                                                                          top_loinc_tree).children
+    terminology_entry.children = sorted(get_terminology_entry_from_top_300_loinc("11ccdc84-a237-49a5-860a-b0f65068c023",
+                                                                                 top_loinc_tree).children)
     terminology_entry.leaf = False
     terminology_entry.selectable = False
 
@@ -499,6 +524,12 @@ def get_terminology_entry_from_top_300_loinc(element_id, element_tree):
                 if child.tag == "{http://schema.samply.de/mdr/common}element":
                     terminology_entry.uiProfile = generate_top300_loinc_ui_profile(terminology_entry, child.text,
                                                                                    element_tree)
+                    # TODO: Refactor!
+                    if terminology_entry.uiProfile.valueDefinition:
+                        if terminology_entry.uiProfile.valueDefinition.type == "concept":
+                            terminology_entry.fhirMapperType = "ConceptObservation"
+                        elif terminology_entry.uiProfile.valueDefinition.type == "QuantityObservation":
+                            terminology_entry.fhirMapperType = "QuantityObservation"
     return terminology_entry
 
 
@@ -537,6 +568,7 @@ corner_cases = {
     "PaCO2": translate_gas_panel,
     "PaO2": translate_gas_panel,
     "PH": translate_gas_panel,
+    "ProfileConditionTodesursache": translate_cause_of_death,
     "ProfileObservationLaboruntersuchung": translate_laboratory_values,
     "SOFA": translate_sofa,
     "SymptomsCovid19": translate_symptom
