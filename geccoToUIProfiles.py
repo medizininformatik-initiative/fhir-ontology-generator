@@ -1,5 +1,7 @@
 import os
 
+import requests
+
 import csv
 from lxml import etree
 
@@ -14,7 +16,7 @@ from LogicalModelToProfile import LOGICAL_MODEL_TO_PROFILE
 
 IGNORE_CATEGORIES = []
 
-MAIN_CATEGORIES = ["Einwilligung"]
+MAIN_CATEGORIES = ["Einwilligung", "Bioproben"]
 
 ONTOLOGY_SERVER_ADDRESS = os.environ.get('ONTOLOGY_SERVER_ADDRESS')
 
@@ -350,14 +352,26 @@ def is_concept_observation(profile_data):
 
 def translate_patient(profile_data, terminology_entry, _logical_element):
     # Care if we make attributes children we cannot use inherit_parent_attributes! nor can we use a single ui-profile.
+
+    def get_age_entry():
+        age_code = TermCode("mii.abide", "age", "Alter")
+        age_entry = TerminologyEntry([age_code])
+        age_entry.fhirMapperType = "Patient"
+        age_entry.uiProfile = generate_age_kds_ui_profile(profile_data, _logical_element)
+        return age_entry
+
+    def get_gender_entry():
+        gender_code = TermCode("mii.abide", "gender", "Geschlecht")
+        gender_entry = TerminologyEntry([gender_code])
+        gender_entry.fhirMapperType = "Patient"
+        gender_entry.uiProfile = generate_gender_ui_profile(profile_data, _logical_element)
+        return gender_entry
+
     terminology_entry.fhirMapperType = "Patient"
     terminology_entry.selectable = False
     terminology_entry.leaf = False
-    gender_code = TermCode("mii.abide", "gender", "Geschlecht")
-    gender_entry = TerminologyEntry([gender_code])
-    gender_entry.fhirMapperType = "Patient"
-    gender_entry.uiProfile = generate_gender_ui_profile(profile_data, _logical_element)
-    terminology_entry.children.append(gender_entry)
+    terminology_entry.children.append(get_age_entry())
+    terminology_entry.children.append(get_gender_entry())
 
 
 def translate_procedure(profile_data, terminology_entry, _logical_element):
@@ -429,13 +443,25 @@ def get_specimen():
     specimen_category_entry = TerminologyEntry([specimen_term_code], "Category", selectable=False, leaf=False)
     specimen_category_entry.fhirMapperType = "Specimen"
 
-    with open('NAPKON_Typen_SCT_CODEX.CSV', mode='r') as csv_file:
-        csv_reader = csv.DictReader(csv_file, delimiter=";")
+    with open('SpecimenCodes_clean.csv', mode='r') as csv_file:
+        csv_reader = csv.DictReader(csv_file, delimiter=",")
         for row in csv_reader:
             term_code = TermCode(row["System"], row["Code"], row["Display"])
             specimen_child = TerminologyEntry([term_code], "CodeableConcept", selectable=True, leaf=True)
             specimen_child.fhirMapperType = "Specimen"
-            specimen_child.display = row["guiDisplay"]
+            specimen_child.display = row["Display"]
+            ui_profile = UIProfile("Bioprobe")
+            # status_attribute_code = TermCode("mii.abide", "status", "Status")
+            # status_attribute_code = AttributeDefinition(attribute_code=status_attribute_code, value_type="concept")
+            # status_attribute_code.selectableConcepts = get_term_codes_by_path("Specimen.status", profile_data)
+            # ui_profile.attributeDefinitions.append(status_attribute_code)
+            body_site_attribute_code = TermCode("mii.module_specimen", "Specimen.collection.bodySite", "Entnahmeort")
+            body_site_attribute = AttributeDefinition(attribute_code=body_site_attribute_code, value_type="concept")
+            body_site_attribute.selectableConcepts = get_termcodes_from_onto_server(
+                "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/ValueSet/icd-o-3-topography")
+            ui_profile.attributeDefinitions.append(body_site_attribute)
+            UI_PROFILES.add(ui_profile)
+            specimen_child.uiProfile = ui_profile
             specimen_category_entry.children.append(specimen_child)
     return specimen_category_entry
 
@@ -553,7 +579,7 @@ profile_translation_mapping = {
     "Patient": translate_patient,
     "Procedure": translate_procedure,
     "ResearchSubject": translate_research_subject,
-    "Specimen": translate_specimen,
+    "Specimen": do_nothing,
     "Substance": translate_substance
 }
 

@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template xmlns="openEHR/v1/Template">
+    <id>db294327-573b-436d-a18a-bbdbc903c5b8</id>
+    <name>KDS_Prozedur</name>
+    <description>
+        <original_author>
+            <item>
+                <key>name</key>
+                <value>Louisa Bode</value>
+            </item>
+            <item>
+                <key>organisation</key>
+                <value>MHH-Hannover</value>
+            </item>
+            <item>
+                <key>email</key>
+                <value>bode.louisa@mh-hannover.de</value>
+            </item>
+            <item>
+                <key>date</key>
+                <value>2020-09-15</value>
+            </item>
+        </original_author>
+        <lifecycle_state>published</lifecycle_state>
+        <details>
+            <purpose>Zur Erfassung von Informationen über klinische Aktivitäten.</purpose>
+            <keywords>
+                <item>Vorgehen</item>
+                <item>Aktivität</item>
+                <item>OPS</item>
+                <item>Operation</item>
+                <item>Therapie</item>
+                <item>Behandlung</item>
+            </keywords>
+            <use>Zur Darstellung von Prozeduren zu verwenden. Für spezifische Anwendungsfälle mit weiteren Details (z.B. Operationen) wird empfohlen, ein eigenes Template unter Benutzung des Archetypes ACTION.procedure zu modellieren. Für das initiale Laden der im Rahmen der MI-Initiative abgestimmten Kerndatensatzelemente zu verwenden.</use>
+            <misuse>Nicht zur Darstellung umfangreicher Details über spezifische Prozeduren, wie z.B. bildgebende Verfahren oder Operationen. Bitte dazu eigene Templates unter Nutzung des Archetypes ACTION.procedure erstellen.</misuse>
+        </details>
+        <other_details>
+            <item>
+                <key>MetaDataSet:Sample Set </key>
+                <value>Template metadata sample set </value>
+            </item>
+            <item>
+                <key>Acknowledgements</key>
+                <value/>
+            </item>
+            <item>
+                <key>Business Process Level</key>
+                <value/>
+            </item>
+            <item>
+                <key>Care setting</key>
+                <value/>
+            </item>
+            <item>
+                <key>Client group</key>
+                <value/>
+            </item>
+            <item>
+                <key>Clinical Record Element</key>
+                <value/>
+            </item>
+            <item>
+                <key>Copyright</key>
+                <value/>
+            </item>
+            <item>
+                <key>Issues</key>
+                <value/>
+            </item>
+            <item>
+                <key>Owner</key>
+                <value/>
+            </item>
+            <item>
+                <key>Sign off</key>
+                <value/>
+            </item>
+            <item>
+                <key>Speciality</key>
+                <value/>
+            </item>
+            <item>
+                <key>User roles</key>
+                <value/>
+            </item>
+            <item>
+                <key>MD5-CAM-1.0.1</key>
+                <value>858c2f2a8ad3f82c8f075dedb43d6c2c</value>
+            </item>
+            <item>
+                <key>PARENT:MD5-CAM-1.0.1</key>
+                <value>005501C1FA493A4838F5F1121F2870EC</value>
+            </item>
+            <item>
+                <key>original_language</key>
+                <value>ISO_639-1::de</value>
+            </item>
+            <item>
+                <key>sem_ver</key>
+                <value>0.1.0</value>
+            </item>
+            <item>
+                <key>build_uid</key>
+                <value/>
+            </item>
+            <item>
+                <key>original_language</key>
+                <value>ISO_639-1::de</value>
+            </item>
+        </other_details>
+    </description>
+    <annotations path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-ACTION.procedure.v1]/description[at0001]/items[at0063]">
+        <items>
+            <item>
+                <key>http://snomed.info/sct</key>
+                <value> IsA 442083009 </value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-ACTION.procedure.v1]/description[at0001]/items[at0002]">
+        <items>
+            <item>
+                <key>http://fhir.de/ValueSet/dimdi/ops</key>
+                <value>OPS</value>
+            </item>
+            <item>
+                <key>http://snomed.info/sct</key>
+                <value>DescendentOf 71388002</value>
+            </item>
+        </items>
+    </annotations>
+    <definition archetype_id="openEHR-EHR-COMPOSITION.report.v1"
+        concept_name="Bericht" name="KDS_Prozedur"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:COMPOSITION">
+        <Content archetype_id="openEHR-EHR-ACTION.procedure.v1" max="1"
+            path="/content" xsi:type="tem:ACTION">
+            <Rule max="0" min="0" path="/ism_transition[at0034]"/>
+            <Rule max="0" min="0" path="/ism_transition[at0035]"/>		
+			<Rule name="Name der Prozedur" path="/description[at0001]/items[at0002]">
+				<constraint xsi:type="tem:textConstraint">
+					<termQueryId queryName="ValueSet/$expand?url=http://fhir.de/ValueSet/bfarm/ops" terminologyID="//fhir.hl7.org/"/>
+                </constraint>
+            </Rule>
+            <Rule name="Freitextbeschreibung" path="/description[at0001]/items[at0049]"/>
+            <Rule max="0" path="/description[at0001]/items[at0070]"/>
+            <Rule max="0" path="/description[at0001]/items[at0065]"/>
+            <Rule max="0" path="/description[at0001]/items[at0058]"/>		
+			 <Rule name="Körperstelle" path="/description[at0001]/items[at0063]">
+				<constraint xsi:type="tem:textConstraint">
+					<termQueryId queryName="ValueSet/$expand?url=http://hl7.org/fhir/ValueSet/body-site" terminologyID="//fhir.hl7.org/"/>
+                </constraint>
+            </Rule>	
+			<Rule clone="true" name="Seitenlokalisation" path="/description[at0001]/items[at0063]">
+                <constraint xsi:type="tem:textConstraint">
+					<termQueryId queryName="ValueSet/$expand?url=https://fhir.kbv.de/ValueSet/KBV_VS_SFHIR_ICD_SEITENLOKALISATION" terminologyID="//fhir.hl7.org/"/>
+                </constraint>
+            </Rule>
+            <Rule max="0" path="/description[at0001]/items[at0048]"/>
+            <Rule max="0" path="/description[at0001]/items[at0069]"/>
+            <Rule max="0" path="/description[at0001]/items[at0006]"/>
+            <Rule max="0" path="/description[at0001]/items[at0066]"/>
+            <Rule max="0" path="/description[at0001]/items[at0060]"/>
+            <Rule max="0" path="/description[at0001]/items[at0061]">
+                <constraint xsi:type="tem:durationConstraint">
+                    <minMagnitude>PT0S</minMagnitude>
+                    <includesMaximum>false</includesMaximum>
+                    <includesMinimum>true</includesMinimum>
+                </constraint>
+            </Rule>
+            <Rule name="Kategorie der Prozedur" path="/description[at0001]/items[at0067]">
+				<constraint xsi:type="tem:textConstraint">
+					<termQueryId queryName="ValueSet/$expand?url=https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/ValueSet/procedures-category-sct" terminologyID="//fhir.hl7.org/"/>
+                </constraint>
+            </Rule>			   
+            <Rule name="Durchführungsabsicht" path="/description[at0001]/items[at0014]">
+               <constraint xsi:type="tem:textConstraint">
+					<termQueryId queryName="ValueSet/$expand?url=https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/ValueSet/procedures-intend" terminologyID="//fhir.hl7.org/"/>
+                </constraint>
+            </Rule>			
+            <Rule max="0" path="/protocol[at0053]/items[at0054]">
+                <constraint xsi:type="tem:multipleConstraint">
+                    <includedTypes>Text</includedTypes>
+                    <includedTypes>Identifier</includedTypes>
+                </constraint>
+            </Rule>
+            <Rule max="0" path="/protocol[at0053]/items[at0056]">
+                <constraint xsi:type="tem:multipleConstraint">
+                    <includedTypes>Text</includedTypes>
+                    <includedTypes>Identifier</includedTypes>
+                </constraint>
+            </Rule>
+        </Content>
+        <Context>
+            <Items
+                archetype_id="openEHR-EHR-CLUSTER.case_identification.v0"
+                max="1"
+                path="/context/other_context[at0001]/items[at0006]" xsi:type="tem:CLUSTER">
+                <Rule min="1" path="/items[at0001]"/>
+                <Rule max="0" path="/items[at0002]"/>
+                <Rule max="0" path="/items[at0003]"/>
+                <Rule max="0" path="/items[at0006]"/>
+            </Items>
+        </Context>
+        <Rule max="0" path="/context/other_context[at0001]/items[at0005]"/>
+    </definition>
+    <integrity_checks archetype_id="openEHR-EHR-COMPOSITION.report.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">005501C1FA493A4838F5F1121F2870EC</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-CLUSTER.case_identification.v0"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">D94F932D76D2D0389D242063ED336124</digest>
+    </integrity_checks>
+    <integrity_checks archetype_id="openEHR-EHR-ACTION.procedure.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">7976419EEFB8BFACDA7BAB23201F9BEF</digest>
+    </integrity_checks>
+</template>

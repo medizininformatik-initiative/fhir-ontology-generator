@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template xmlns="openEHR/v1/Template">
+    <id>64677565-5ad3-4dc9-b12f-0e82cd28aee7</id>
+    <name>KDS_Laborbericht</name>
+    <description>
+        <original_author>
+            <item>
+                <key>Sarah Ballout </key>
+                <value>MHH-Hannover </value>
+            </item>
+        </original_author>
+        <lifecycle_state>published</lifecycle_state>
+        <details>
+            <purpose>Zur Repräsentation von Laborbefunden entsprechend des in der Medizininformatik-Initiative abgestimmten Basismoduls Labor.</purpose>
+            <keywords>
+                <item>Laborbefund; Labor; Befund; Analyt</item>
+            </keywords>
+            <use>Für die Repräsentation eines Laborbefundes</use>
+            <misuse>Nicht zur Repräsentation von Ergebnissen spezieller Laboruntersuchungen, z.B. mikrobiologischer Befunde. 
+Nicht zur Repräsentation von Informationen zum zugehörigen Laborauftrag.</misuse>
+        </details>
+        <other_details>
+            <item>
+                <key>MetaDataSet:Sample Set </key>
+                <value>Template metadata sample set </value>
+            </item>
+            <item>
+                <key>Acknowledgements</key>
+                <value/>
+            </item>
+            <item>
+                <key>Business Process Level</key>
+                <value/>
+            </item>
+            <item>
+                <key>Care setting</key>
+                <value/>
+            </item>
+            <item>
+                <key>Client group</key>
+                <value/>
+            </item>
+            <item>
+                <key>Clinical Record Element</key>
+                <value/>
+            </item>
+            <item>
+                <key>Copyright</key>
+                <value/>
+            </item>
+            <item>
+                <key>Issues</key>
+                <value/>
+            </item>
+            <item>
+                <key>Owner</key>
+                <value/>
+            </item>
+            <item>
+                <key>Sign off</key>
+                <value/>
+            </item>
+            <item>
+                <key>Speciality</key>
+                <value/>
+            </item>
+            <item>
+                <key>User roles</key>
+                <value/>
+            </item>
+            <item>
+                <key>MD5-CAM-1.0.1</key>
+                <value>c07ae84fe799ab55111abd7497fc24c7</value>
+            </item>
+            <item>
+                <key>PARENT:MD5-CAM-1.0.1</key>
+                <value>075C04692C7FEB6DDCC2C90FBE5C9098</value>
+            </item>
+            <item>
+                <key>original_language</key>
+                <value>ISO_639-1::de</value>
+            </item>
+            <item>
+                <key>original_language</key>
+                <value>ISO_639-1::de</value>
+            </item>
+        </other_details>
+    </description>
+    <annotations path="[openEHR-EHR-COMPOSITION.report-result.v1]">
+        <items>
+            <item>
+                <key>LOINC</key>
+                <value>11502-2</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report-result.v1]/content[openEHR-EHR-OBSERVATION.laboratory_test_result.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0071]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.collection.collector</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report-result.v1]/content[openEHR-EHR-OBSERVATION.laboratory_test_result.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0070]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.collection.collector</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report-result.v1]/content[openEHR-EHR-OBSERVATION.laboratory_test_result.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0088]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.identifier</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report-result.v1]/content[openEHR-EHR-OBSERVATION.laboratory_test_result.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0013]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.collection.sourceSite</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report-result.v1]/content[openEHR-EHR-OBSERVATION.laboratory_test_result.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0001]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.accessionIdentifier</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report-result.v1]/content[openEHR-EHR-OBSERVATION.laboratory_test_result.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0034]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.receivedTime</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report-result.v1]/content[openEHR-EHR-OBSERVATION.laboratory_test_result.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0045]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.note</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report-result.v1]/content[openEHR-EHR-OBSERVATION.laboratory_test_result.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0027]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.collection.quantity</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report-result.v1]/content[openEHR-EHR-OBSERVATION.laboratory_test_result.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0007]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.collection.method</value>
+            </item>
+        </items>
+    </annotations>
+    
+    <annotations path="[openEHR-EHR-COMPOSITION.report-result.v1]/content[openEHR-EHR-OBSERVATION.laboratory_test_result.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0029]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.type</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report-result.v1]/content[openEHR-EHR-OBSERVATION.laboratory_test_result.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0087]">
+        <items>
+            <item>
+                <key>SNOMED</key>
+                <value>IsA 442083009</value>
+            </item>
+        </items>
+    </annotations>
+    
+    <annotations path="[openEHR-EHR-COMPOSITION.report-result.v1]/content[openEHR-EHR-OBSERVATION.laboratory_test_result.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.laboratory_test_analyte.v1]/items[at0001]">
+        <items>
+            <item>
+                <key>hl7v2_mapping</key>
+                <value>OBX.2, OBX.5, OBX.6, OBX.7, OBX.8</value>
+            </item>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Observation.value[x]</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report-result.v1]/content[openEHR-EHR-OBSERVATION.laboratory_test_result.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.laboratory_test_analyte.v1]/items[at0003]">
+        <items>
+            <item>
+                <key>hl7v2_mapping</key>
+                <value>NTE.3</value>
+            </item>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Observation.note</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report-result.v1]/content[openEHR-EHR-OBSERVATION.laboratory_test_result.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.laboratory_test_analyte.v1]/items[at0006]">
+        <items>
+            <item>
+                <key>hl7v2_mapping</key>
+                <value>OBX.19</value>
+            </item>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Observation.issued</value>
+            </item>
+        </items>
+    </annotations>
+    
+    <annotations path="[openEHR-EHR-COMPOSITION.report-result.v1]/content[openEHR-EHR-OBSERVATION.laboratory_test_result.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.laboratory_test_analyte.v1]/items[at0024]">
+        <items>
+            <item>
+                <key>hl7v2_mapping</key>
+                <value>OBX.3</value>
+            </item>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Observation.code</value>
+            </item>
+            <item>
+                <key>LOINC value set</key>
+                <value>LOINC {STATUS in {ACTIVE}, CLASSTYPE in {1}, CLASS exclude {CHALSKIN, H&amp;P.HX.LAB, LABORDERS, NR STATS, PATH, PATH.*, MOLPATH, MOLPATH.*, CYTO, HL7.CYTOGEN, HL7.GENETICS}}</value>
+            </item>
+            <item>
+                <key>Testmethode</key>
+                <value>Hier Testmethode mit einschließen, wenn möglich</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report-result.v1]/content[openEHR-EHR-OBSERVATION.laboratory_test_result.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.laboratory_test_analyte.v1]/items[at0005]">
+        <items>
+            <item>
+                <key>hl7v2_mapping</key>
+                <value>OBX.11</value>
+            </item>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Observation.status</value>
+            </item>
+        </items>
+    </annotations>
+    <definition archetype_id="openEHR-EHR-COMPOSITION.report-result.v1"
+        concept_name="Ergebnisbericht" name="Laborbericht"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:COMPOSITION">
+        <Content
+            archetype_id="openEHR-EHR-OBSERVATION.laboratory_test_result.v1"
+            concept_name="Laborergebnis" max="1" min="1"
+            name="Laborbefund" path="/content" xsi:type="tem:OBSERVATION">
+            <Rule max="1" min="1" path="/data[at0001]/events[at0002]"/>
+            <Rule name="Labortest-Kategorie" path="/data[at0001]/events[at0002]/data[at0003]/items[at0005]">
+                <constraint xsi:type="tem:textConstraint">
+                    <includedValues>LOINC::26436-6::laboratory</includedValues>
+                </constraint>
+            </Rule>
+            <Rule max="0" path="/data[at0001]/events[at0002]/data[at0003]/items[at0073]">
+                <constraint xsi:type="tem:multipleConstraint">
+                    <includedTypes>Coded_text</includedTypes>
+                    <includedTypes>Text</includedTypes>
+                </constraint>
+            </Rule>
+            <Rule max="0" path="/data[at0001]/events[at0002]/data[at0003]/items[at0075]"/>
+            <Rule max="0" path="/data[at0001]/events[at0002]/data[at0003]/items[at0077]"/>
+            <Rule max="0" path="/data[at0001]/events[at0002]/data[at0003]/items[at0100]"/>
+            <Rule max="0" path="/data[at0001]/events[at0002]/data[at0003]/items[at0098]"/>
+            <Rule max="0" path="/data[at0001]/events[at0002]/data[at0003]/items[at0101]"/>
+            <Rule max="0" path="/data[at0001]/events[at0002]/state[at0112]/items[at0113]"/>
+            <Rule max="0" path="/protocol[at0004]/items[at0068]">
+                <constraint xsi:type="tem:multipleConstraint">
+                    <includedTypes>Identifier</includedTypes>
+                    <includedTypes>Text</includedTypes>
+                </constraint>
+            </Rule>
+            <Rule max="1" min="1" path="/protocol[at0004]/items[at0094]"/>
+            <Rule max="0" name="Anforderung" path="/protocol[at0004]/items[at0094]/items[at0106]">
+                <constraint xsi:type="tem:textConstraint">
+                    <includedValues>Laborergebnis</includedValues>
+                </constraint>
+            </Rule>
+            <Rule max="0" path="/protocol[at0004]/items[at0094]/items[at0062]">
+                <constraint xsi:type="tem:multipleConstraint">
+                    <includedTypes>Identifier</includedTypes>
+                    <includedTypes>Text</includedTypes>
+                </constraint>
+            </Rule>
+            <Rule min="1" name="Identifikation der Laboranforderung" path="/protocol[at0004]/items[at0094]/items[at0063]">
+                <constraint xsi:type="tem:multipleConstraint">
+                    <includedTypes>Identifier</includedTypes>
+                    <includedTypes>Text</includedTypes>
+                </constraint>
+            </Rule>
+            <Rule max="0" path="/protocol[at0004]/items[at0111]"/>
+            <Rule max="0" path="/protocol[at0004]/items[at0121]">
+                <constraint xsi:type="tem:textConstraint">
+                    <termQueryId terminologyID="//snomed.info"/>
+                </constraint>
+            </Rule>
+            <Items archetype_id="openEHR-EHR-CLUSTER.specimen.v1"
+                concept_name="Probe" name="Probenmaterial"
+                path="/data[at0001]/events[at0002]/data[at0003]/items[at0065]" xsi:type="tem:CLUSTER">
+                <Rule path="/items[at0029]">                
+					<constraint xsi:type="tem:textConstraint">
+						<termQueryId queryName="ValueSet/$expand?url=http://terminology.hl7.org/ValueSet/v2-0487" terminologyID="//fhir.hl7.org/"/>
+					</constraint>
+                </Rule>
+                <Rule max="1" path="/items[at0088]"/>
+                <Rule max="0" path="/items[at0079]"/>
+				<Rule max="0" path="/items[at0098]"/>
+				<Rule max="0" path="/items[at0099]"/>				
+				 <Rule path="/items[at0097]">                
+					<constraint xsi:type="tem:textConstraint">
+						<termQueryId queryName="ValueSet/$expand?url=http://terminology.hl7.org/ValueSet/v2-0493" terminologyID="//fhir.hl7.org/"/>
+					</constraint>
+                </Rule>				
+                <Rule name="Körperstelle" path="/items[at0087]"/>
+				
+				<Rule path="/items[at0001]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Identifier</includedTypes>
+                    </constraint>
+                </Rule>
+				<Rule path="/items[at0088]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Identifier</includedTypes>
+                    </constraint>
+                </Rule>
+				<Rule  path="/items[at0070]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Identifier</includedTypes>
+                    </constraint>
+                </Rule>
+				<Rule path="/items[at0003]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Identifier</includedTypes>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0005]"/>
+                <Rule max="0" path="/items[at0067]"/>
+                <Rule max="0" path="/items[at0080]">
+                    <constraint xsi:type="tem:countConstraint">
+                        <minMagnitude>0</minMagnitude>
+                        <includesMaximum>false</includesMaximum>
+                        <includesMinimum>true</includesMinimum>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0042]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Coded_text</includedTypes>
+                        <includedTypes>Text</includedTypes>
+                    </constraint>
+                </Rule>
+                <Rule path="/items[at0041]">
+                    <constraint xsi:type="tem:textConstraint">
+						<termQueryId queryName="ValueSet/$expand?url=http://hl7.org/fhir/ValueSet/specimen-status" terminologyID="//fhir.hl7.org/"/>
+					</constraint>
+                </Rule>
+            </Items>
+            <Items
+                archetype_id="openEHR-EHR-CLUSTER.laboratory_test_analyte.v1"
+                concept_name="Laboranalyt-Ergebnis"
+                name="Pro Laboranalyt"
+                path="/data[at0001]/events[at0002]/data[at0003]/items[at0097]" xsi:type="tem:CLUSTER">
+                <Rule max="0" path="/items[at0027]"/>
+                <Rule min="1" path="/items[at0024]">
+				<constraint xsi:type="tem:textConstraint">
+						<termQueryId queryName="ValueSet/$expand?url=http://hl7.org/fhir/uv/ips/ValueSet/results-laboratory-observations-uv-ips" terminologyID="//fhir.hl7.org/"/>
+					</constraint>
+				</Rule>	
+                <Rule min="1" name="Messwert" path="/items[at0001]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Quantity</includedTypes>
+                        <includedTypes>Coded_text</includedTypes>
+						 <includedTypes>Text</includedTypes>
+                    </constraint>
+                </Rule>
+                <Rule name="Interpretation" path="/items[at0004]">
+                    <constraint xsi:type="tem:textConstraint">
+						<termQueryId queryName="ValueSet/$expand?url=http://hl7.org/fhir/ValueSet/observation-interpretation" terminologyID="//fhir.hl7.org/"/>
+					</constraint>
+                </Rule>
+                <Rule path="/items[at0028]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Text</includedTypes>
+                        <includedTypes>Coded_text</includedTypes>
+                    </constraint>
+                </Rule>
+                <Rule max="1" min="1" path="/items[at0005]">
+                    <constraint limitToList="false" xsi:type="tem:textConstraint">
+						<termQueryId queryName="ValueSet/$expand?url=http://hl7.org/fhir/ValueSet/observation-status" terminologyID="//fhir.hl7.org/"/>
+					</constraint>
+                </Rule>
+                <Rule name="Probe ID" path="/items[at0026]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Identifier</includedTypes>
+                        <includedTypes>URI</includedTypes>
+                    </constraint>
+                </Rule>
+            </Items>
+        </Content>
+        <Context>
+            <Items
+                archetype_id="openEHR-EHR-CLUSTER.case_identification.v0"
+                max="1"
+                path="/context/other_context[at0001]/items[at0006]" xsi:type="tem:CLUSTER">
+                <Rule min="1" path="/items[at0001]"/>
+                <Rule max="0" path="/items[at0002]"/>
+                <Rule max="0" path="/items[at0003]"/>
+                <Rule max="0" path="/items[at0006]"/>
+            </Items>
+        </Context>
+        <Rule name="Tree" path="/context/other_context[at0001]"/>
+        <Rule min="1" name="Bericht ID" path="/context/other_context[at0001]/items[at0002]"/>
+        <Rule min="1" path="/context/other_context[at0001]/items[at0005]">
+            <constraint xsi:type="tem:textConstraint">
+                <includedValues>registered</includedValues>
+                <includedValues>partial</includedValues>
+                <includedValues>preliminary</includedValues>
+                <includedValues>final</includedValues>
+                <includedValues>amended</includedValues>
+                <includedValues>corrected</includedValues>
+                <includedValues>appended</includedValues>
+                <includedValues>cancelled</includedValues>
+                <includedValues>entered-in-error</includedValues>
+                <includedValues>unknown</includedValues>
+            </constraint>
+        </Rule>
+    </definition>
+    <integrity_checks
+        archetype_id="openEHR-EHR-COMPOSITION.report-result.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">2A64B8463AA11FF22EA7977CDF0E9959</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-CLUSTER.case_identification.v0"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">D94F932D76D2D0389D242063ED336124</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-OBSERVATION.laboratory_test_result.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">6FF739561BD390420231096ACAD27FC3</digest>
+    </integrity_checks>
+    <integrity_checks archetype_id="openEHR-EHR-CLUSTER.specimen.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">E637F4E72B8AF6864C778C54E519ADA4</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-CLUSTER.laboratory_test_analyte.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">E28EA9DF04A9E77EB5A1E3E63A0E78D6</digest>
+    </integrity_checks>
+</template>

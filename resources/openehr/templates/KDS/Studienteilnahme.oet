@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template xmlns="openEHR/v1/Template">
+    <id>084b5bca-1ab2-4b16-9bd0-9f4dfdbbab56</id>
+    <name>Studienteilnahme</name>
+    <description>
+        <original_author>
+            <item>
+                <key>date</key>
+                <value>2019-06-26</value>
+            </item>
+            <item>
+                <key>name</key>
+                <value>Katrin Tröltzsch</value>
+            </item>
+            <item>
+                <key>organisation</key>
+                <value>Universitätsklinikum Heidelberg</value>
+            </item>
+            <item>
+                <key>email</key>
+                <value>katrin.troeltzsch@med.uni-heidelberg.de</value>
+            </item>
+        </original_author>
+        <lifecycle_state>in_development</lifecycle_state>
+        <details>
+            <purpose>Zur Darstellung von Informationen zu einer Person in Bezug auf ihre Teilnahme an einer Studie (unter Umständen, während sie PatientIn in einer Gesundheitseinrichtung ist).</purpose>
+            <keywords>
+                <item>Studie; Studienteilnehmer; ProbadIn; Forschungsvorhaben; Einwilligung</item>
+            </keywords>
+            <use>Das Template wird verwendet, um Informationen über eine Teilnahme des Patienten an einer klinischen Prüfung, Beobachtungs-, Register-, Diagnostik-, Therapiestudie oder an einem anderen medizinischen Forschungsvorhaben in der Rolle eines Studienpatienten oder Probanden strukturiert darzustellen. 
+Eine Studienteilnahme setzt voraus, dass von der Person eine freiwillige informierte Einwilligung (Einwilligung nach Aufklärung ‐„informed consent“) vor dem Beginn der Teilnahme, vorliegen muss.</use>
+            <misuse>Nicht für die Informationen über Teilnahme an Forschungsvorhaben oder Prozeduren, für die keine Einwilligung erforderlich ist.</misuse>
+        </details>
+        <other_details>
+            <item>
+                <key>licence</key>
+                <value>This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.</value>
+            </item>
+            <item>
+                <key>custodian_organisation</key>
+                <value>openEHR Foundation</value>
+            </item>
+            <item>
+                <key>original_namespace</key>
+                <value>org.openehr</value>
+            </item>
+            <item>
+                <key>original_publisher</key>
+                <value>openEHR Foundation</value>
+            </item>
+            <item>
+                <key>custodian_namespace</key>
+                <value>org.openehr</value>
+            </item>
+            <item>
+                <key>MD5-CAM-1.0.1</key>
+                <value>8867c5d88ddb39fce78b2d84d951c3ca</value>
+            </item>
+            <item>
+                <key>PARENT:MD5-CAM-1.0.1</key>
+                <value>005501C1FA493A4838F5F1121F2870EC</value>
+            </item>
+            <item>
+                <key>build_uid</key>
+                <value>b36d20b1-06a2-47a6-99cb-a9b4b2580c84</value>
+            </item>
+            <item>
+                <key>original_language</key>
+                <value>ISO_639-1::de</value>
+            </item>
+            <item>
+                <key>sem_ver</key>
+                <value>7.0.0</value>
+            </item>
+            <item>
+                <key>original_language</key>
+                <value>ISO_639-1::de</value>
+            </item>
+        </other_details>
+    </description>
+    <definition archetype_id="openEHR-EHR-COMPOSITION.report.v1"
+        concept_name="Bericht" name="Studienteilnahme"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:COMPOSITION">
+        <Content archetype_id="openEHR-EHR-ACTION.informed_consent.v0"
+            max="1" path="/content" xsi:type="tem:ACTION">
+            <Rule max="1" name="Studie" path="/description[at0001]/items[at0002]"/>
+            <Rule max="0" path="/description[at0001]/items[at0030]"/>
+            <Rule max="0" path="/description[at0001]/items[at0031]"/>
+            <Rule max="0" path="/description[at0001]/items[at0011]"/>
+            <Rule max="0" path="/description[at0001]/items[at0004]"/>
+            <Rule max="0" path="/description[at0001]/items[at0007]"/>
+            <Rule max="0" path="/description[at0001]/items[at0008]"/>
+            <Rule max="0" path="/description[at0001]/items[at0009]"/>
+            <Rule max="0" path="/description[at0001]/items[at0010]"/>
+            <Rule max="0" path="/description[at0001]/items[at0012]"/>
+            <Rule name="Kommentar zur Einwilligung" path="/description[at0001]/items[at0036]"/>
+            <Rule name="Bezeichnung des Einwilligungsdokuments" path="/protocol[at0024]/items[at0025]"/>
+            <Rule max="0" path="/protocol[at0024]/items[at0026]"/>
+            <Rule name="Name / Texttitel" path="/protocol[at0024]/items[at0033]/items[at0032]"/>
+            <Rule max="0" path="/protocol[at0024]/items[at0033]/items[at0035]"/>
+            <Items
+                archetype_id="openEHR-EHR-CLUSTER.study_participation.v1"
+                max="1" path="/description[at0001]/items[at0003]" xsi:type="tem:CLUSTER">
+                <Rule max="0" path="/items[at0001]"/>
+                <Rule max="0" path="/items[at0018]"/>
+                <Rule min="1" name="Status der Teilnahme" path="/items[at0005]"/>
+                <Rule name="Subjekt Identifizierungscode" path="/items[at0016]"/>
+                <Rule name="Kommentar zur Studienteilnahme" path="/items[at0014]"/>
+                <Items
+                    archetype_id="openEHR-EHR-CLUSTER.study_details.v1"
+                    max="1" path="/items[at0002]" xsi:type="tem:CLUSTER">
+                    <Rule name="Name der Studie" path="/items[at0001]"/>
+                    <Rule name="Studientyp (optional)" path="/items[at0003]">
+                        <constraint xsi:type="tem:textConstraint">
+                            <includedValues>local_terms::1::AMG</includedValues>
+                            <includedValues>local_terms::2::MPG</includedValues>
+                            <includedValues>local_terms::3::Anwendungsbeobachtung (AWB)</includedValues>
+                            <includedValues>local_terms::4::Registerstudie</includedValues>
+                            <includedValues>local_terms::5::Diagnostikstudie</includedValues>
+                            <includedValues>local_terms::6::Biomarker-Studie</includedValues>
+                            <includedValues>local_terms::7::Präventionsstudie</includedValues>
+                            <includedValues>local_terms::8::Epidemiologische Studie</includedValues>
+                            <includedValues>local_terms::9::Sonstige Studie</includedValues>
+                            <includedValues>local_terms::10::Unbekannt</includedValues>
+                        </constraint>
+                    </Rule>
+                    <Rule max="0" path="/items[at0033]"/>
+                    <Rule max="0" path="/items[at0013]"/>
+                    <Rule max="0" path="/items[at0010]"/>
+                    <Rule max="0" path="/items[at0015]"/>
+                    <Rule max="0" path="/items[at0016]"/>
+                    <Rule max="0" path="/items[at0017]"/>
+                    <Rule max="0" path="/items[at0018]"/>
+                    <Rule max="0" path="/items[at0019]"/>
+                    <Rule max="0" path="/items[at0020]"/>
+                    <Rule max="0" path="/items[at0005]"/>
+                </Items>
+            </Items>
+        </Content>
+        <Context>
+            <Items
+                archetype_id="openEHR-EHR-CLUSTER.case_identification.v0"
+                max="1"
+                path="/context/other_context[at0001]/items[at0006]" xsi:type="tem:CLUSTER">
+                <Rule max="0" path="/items[at0002]"/>
+                <Rule max="0" path="/items[at0003]"/>
+                <Rule max="0" path="/items[at0006]"/>
+            </Items>
+        </Context>
+        <Rule min="1" path="/context/other_context[at0001]/items[at0002]"/>
+        <Rule max="0" path="/context/other_context[at0001]/items[at0005]"/>
+    </definition>
+    <view>
+        <constraints path="[openEHR-EHR-COMPOSITION.report.v1]/context">
+            <items id="VisibleInView">
+                <value>context</value>
+            </items>
+        </constraints>
+        <constraints path="[openEHR-EHR-COMPOSITION.report.v1]/category">
+            <items id="VisibleInView">
+                <value>category</value>
+            </items>
+        </constraints>
+        <constraints path="[openEHR-EHR-COMPOSITION.report.v1]/context/other_context">
+            <items id="VisibleInView">
+                <value>other_context</value>
+            </items>
+        </constraints>
+    </view>
+    <integrity_checks archetype_id="openEHR-EHR-COMPOSITION.report.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">005501C1FA493A4838F5F1121F2870EC</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-CLUSTER.case_identification.v0"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">D94F932D76D2D0389D242063ED336124</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-ACTION.informed_consent.v0"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">7BBC86CAADB4F437CDEE78008B003763</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-CLUSTER.study_participation.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">A1E749397595691665BCF829DA0B049C</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-CLUSTER.study_details.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">4244C5EC7B82DFE4829DD920989058F8</digest>
+    </integrity_checks>
+</template>

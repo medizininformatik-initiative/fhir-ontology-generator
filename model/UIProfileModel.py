@@ -139,14 +139,29 @@ def generate_ethnic_group_ui_profile(profile_data, _logical_element):
     return ui_profile
 
 
+# TODO: generate patient ui_profile and add gender and age attribute definition
 def generate_gender_ui_profile(profile_data, _logical_element):
-    ui_profile = UIProfile(profile_data["name"])
+    # The gender profile is derived from the patient profile as the age profile therefore different names are required
+    ui_profile = UIProfile(profile_data["name"] + "_gender")
     ui_profile.timeRestrictionAllowed = False
     gender_attribute_code = TermCode("mii.abide", "gender", "Geschlecht")
     gender_attribute = AttributeDefinition(gender_attribute_code, "concept")
-    gender_attribute.optional = False
     gender_attribute.selectableConcepts = (get_term_codes_by_path("Patient.gender", profile_data))
+    gender_attribute.optional = False
     ui_profile.attributeDefinitions.append(gender_attribute)
+    UI_PROFILES.add(ui_profile)
+    return ui_profile
+
+
+def generate_age_kds_ui_profile(profile_data, _logical_element):
+    # The age profile is derived from the patient profile as the gender profile therefore different names are required
+    ui_profile = UIProfile(profile_data["name"] + "_age")
+    ui_profile.timeRestrictionAllowed = False
+    age_attribute_code = TermCode("mii.abide", "age", "Alter")
+    age_attribute = AttributeDefinition(age_attribute_code, "quantity")
+    age_attribute.allowedUnits = [Unit('a', 'a'), Unit('mo', 'mo'), Unit('wk', 'wk')]
+    age_attribute.optional = False
+    ui_profile.attributeDefinitions.append(age_attribute)
     UI_PROFILES.add(ui_profile)
     return ui_profile
 

@@ -1,8 +1,8 @@
 from sortedcontainers import SortedSet
 
+from Helper import str_to_class
 from model.UiDataModel import del_keys, del_none, TermCode
 import json
-import sys
 
 
 class FixedCriteria:
@@ -203,25 +203,28 @@ class MedicationAdministrationMapEntry(MapEntry):
         # FIXME: medication.code is not part of MedicationAdministration
         self.termCodeSearchParameter = "medication.code"
         self.fhirResourceType = "MedicationAdministration"
+
         self.valueSearchParameter = None
         active = TermCode("http://hl7.org/fhir/CodeSystem/medication-admin-status", "active", "active")
         completed = TermCode("http://hl7.org/fhir/CodeSystem/medication-admin-status", "completed", "completed")
         # self.fixedCriteria = [FixedCriteria("code", "status", "status", [active, completed])]
-        self.timeRestrictionParameter = "effective-time"
-        self.timeRestrictionPath = "effective"
+        self.timeRestrictionParameter = "date"
+        self.timeRestrictionPath = "occurence"
+        self.valueFhirPath = "medication.reference"
 
 
 class MedicationStatementMapEntry(MapEntry):
     def __init__(self, term_code):
         super().__init__(term_code)
         self.termCodeSearchParameter = "medication.code"
-        self.fhirResourceType = "MedicationStatement"
+        self.fhirResourceType = "MedicationAdministration"
         self.valueSearchParameter = None
         active = TermCode("http://hl7.org/fhir/CodeSystem/medication-statement-status", "active", "active")
         completed = TermCode("http://hl7.org/fhir/CodeSystem/medication-statement-status", "completed", "completed")
         # self.fixedCriteria = [FixedCriteria("code", "status", "status", [active, completed])]
-        self.timeRestrictionParameter = "effective"
-        self.timeRestrictionPath = "effective"
+        self.timeRestrictionParameter = "date"
+        self.timeRestrictionPath = "occurence"
+        self.valueFhirPath = "medication.reference"
 
 
 class PatientMapEntry(MapEntry):
@@ -231,7 +234,11 @@ class PatientMapEntry(MapEntry):
         gender_attribute_term_code = TermCode("mii.abide", "gender", "Geschlecht")
         gender_attribute_term_code_search_parameter = AttributeSearchParameter("code", gender_attribute_term_code,
                                                                                "gender", "gender")
-        self.attributeSearchParameters = [gender_attribute_term_code_search_parameter]
+        age_attribute_term_code = TermCode("mii.abide", "age", "Alter")
+        age_attribute_term_code_search_parameter = AttributeSearchParameter("quantity", age_attribute_term_code, "age",
+                                                                            "")
+        self.attributeSearchParameters = [age_attribute_term_code_search_parameter,
+                                          gender_attribute_term_code_search_parameter]
 
 
 class ProcedureMapEntry(MapEntry):
@@ -339,5 +346,3 @@ def generate_map(categories):
     return result
 
 
-def str_to_class(class_name):
-    return getattr(sys.modules[__name__], class_name)

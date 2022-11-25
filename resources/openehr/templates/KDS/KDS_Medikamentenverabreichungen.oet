@@ -1,0 +1,896 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template xmlns="openEHR/v1/Template">
+    <id>5377aa58-a093-4d1f-be7d-3b50eb090c07</id>
+    <name>KDS_Medikamentenverabreichungen</name>
+    <description>
+        <original_author>
+            <item>
+                <key>date</key>
+                <value>2021-03-17</value>
+            </item>
+            <item>
+                <key>name</key>
+                <value>Shilpa Aguduri</value>
+            </item>
+            <item>
+                <key>organisation</key>
+                <value>University Clinic Heidelberg</value>
+            </item>
+            <item>
+                <key>email</key>
+                <value>shilpa.aguduri@med.uni-heidelberg.de</value>
+            </item>
+        </original_author>
+        <lifecycle_state>unmanaged</lifecycle_state>
+        <details>
+            <purpose>Zur Repräsentation der Medikation, die eine Person eingenommen oder angewendet hat bzw. die einer Person verabreicht wurde. Das Template stellt die erfolgte Einnahme, Anwendung oder Verabreichung für einzelne Medikamenten dar. Dabei kann es sich sowohl um verschreibungspflichtige Medikamente, als auch um OTC-Präparate handeln, welche eine Person in Eigenverantwortung verwendet. Hierbei muss die Information über die erfolgte Einnahme, Anwendung oder Verabreichung bzw. die entsprechende Dokumentation aus gesicherter Quelle kommen.</purpose>
+            <keywords>
+                <item>Medikation; Medikamentenanwendung; Arzneimittel; Arzneimittelverabreichungen, Medikamentenverabreichungen, Kerndatensatz, Medication Administration</item>
+            </keywords>
+            <use>Zur Repräsentation von Medikamenten, die einer Person verabreicht wurden oder die eine Person eingenommen bzw. angewendet hat. Das Template dient nur zum Erfassen einzelner Einnahmen, Anwendungen oder Verabreichungen, die tatsächlich erfolgt sind.</use>
+            <misuse>Nicht zur Repräsentation spezifischer Medikamententherapie oder Medikamentenklassen, die weitere Angaben erfordern (z. B. Protokoll bei Chemotherapie). Dafür bitte eigene Templates anlegen.
+
+Nicht für die Darstellung von Medikationsplänen, unvollständigen Verabreichungsinformation, nicht gesicherter Verabreichungsinformation oder zukünftiger Verabreichungen. Dafür wird das Template KDS_Medikationseintrag verwendet.</misuse>
+        </details>
+        <other_details>
+            <item>
+                <key>licence</key>
+                <value/>
+            </item>
+            <item>
+                <key>custodian_organisation</key>
+                <value/>
+            </item>
+            <item>
+                <key>original_namespace</key>
+                <value/>
+            </item>
+            <item>
+                <key>original_publisher</key>
+                <value/>
+            </item>
+            <item>
+                <key>custodian_namespace</key>
+                <value/>
+            </item>
+            <item>
+                <key>sem_ver</key>
+                <value>5.0.1</value>
+            </item>
+            <item>
+                <key>original_language</key>
+                <value>ISO_639-1::de</value>
+            </item>
+            <item>
+                <key>MD5-CAM-1.0.1</key>
+                <value>2299c71ea512c752f1cb54fce27284af</value>
+            </item>
+            <item>
+                <key>PARENT:MD5-CAM-1.0.1</key>
+                <value>005501C1FA493A4838F5F1121F2870EC</value>
+            </item>
+            <item>
+                <key>build_uid</key>
+                <value>92e58be7-b4b5-48f7-890f-9c3f3f267f40</value>
+            </item>
+            <item>
+                <key>original_language</key>
+                <value>ISO_639-1::de</value>
+            </item>
+        </other_details>
+    </description>
+    <definition archetype_id="openEHR-EHR-COMPOSITION.report.v1"
+        concept_name="Bericht" name="KDS_Medikamentenverabreichungen"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:COMPOSITION">
+        <Content archetype_id="openEHR-EHR-ACTION.medication.v1"
+            path="/content" xsi:type="tem:ACTION">
+            <Rule max="0" path="/description[at0017]/items[at0020]"/>
+            <Rule max="0" path="/description[at0017]/items[at0132]"/>
+            <Rule max="0" path="/description[at0017]/items[at0133]"/>
+            <Rule max="0" path="/description[at0017]/items[at0043]"/>
+            <Rule max="0" path="/description[at0017]/items[at0154]"/>
+            <Rule max="0" path="/description[at0017]/items[at0155]"/>
+            <Rule max="0" path="/description[at0017]/items[at0021]"/>
+            <Rule path="/description[at0017]/items[at0140]/items[at0147]">
+               <constraint xsi:type="tem:textConstraint">
+						<termQueryId queryName="ValueSet/$expand?url=http://hl7.org/fhir/uv/ips/ValueSet/medicine-route-of-administration" terminologyID="//fhir.hl7.org/"/>
+					</constraint>
+            </Rule>
+            <Rule path="/description[at0017]/items[at0140]/items[at0141]">
+                <constraint xsi:type="tem:textConstraint">
+                    <termQueryId terminologyID="//snomed.info/sct"/>
+                </constraint>
+            </Rule>
+            <Rule max="1" path="/description[at0017]/items[at0140]/items[at0143]">
+                <constraint xsi:type="tem:textConstraint">
+                    <termQueryId terminologyID="//snomed.info/sct"/>
+                </constraint>
+            </Rule>
+            <Rule max="0" path="/description[at0017]/items[at0033]"/>
+            <Rule max="0" path="/description[at0017]/items[at0149]"/>
+            <Rule max="0" path="/description[at0017]/items[at0025]"/>
+            <Items archetype_id="openEHR-EHR-CLUSTER.medication.v1"
+                max="1" path="/description[at0017]/items[at0104]" xsi:type="tem:CLUSTER">
+                <Rule name="Arzneimittel-Name" path="/items[at0132]"/>
+                <Rule max="1" path="/items[at0071]">
+                    <constraint xsi:type="tem:textConstraint">
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::AEO::Öl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::AMP::Amp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::APA::Amp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::ASN::Salbe</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::ASO::Salbe</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::ATO::Tropf</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::ATR::AuTropf</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::AUB::AuBad</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::AUC::AuCreme</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::AUG::AuGel</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::AUS::AuSalbe</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::BAD::Bad</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::BAL::Balsam</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::BAN::Bandage</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::BEU::Beutel</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::BIN::Binden</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::BON::Bonbons</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::BPL::Platte</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::BRE::Brei</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::BTA::BrTabl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::CRE::Creme</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::DFL::Flasche</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::DIL::Dilut</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::DIS::DIS</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::DKA::Dragees</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::DOS::Spray</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::DRA::Dragees</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::DRM::Dragees</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::DSC::Schaum</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::DSS::Spray</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::EDP::Pipette</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::EIN::Einreib</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::ELE::Elektr</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::ELI::Elixier</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::EMU::Emul</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::ESS::Essenz</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::ESU::Supp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::EXT::Extrakt</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::FBE::Beutel</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::FBW::Einreib</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::FDA::Drag</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::FER::Spritze</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::FET::Salbe</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::FLA::Flasche</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::FLE::Flüss</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::FLU::Flüss</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::FMR::Tabl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::FOL::Folie</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::FRB::FRB</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::FSE::Seife</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::FTA::Tabl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::GEL::Gel</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::GLI::GLI</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::GLO::Globuli</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::GMR::Gran</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::GPA::Platte</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::GRA::Gran</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::GSE::Saft</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::GUL::Lösung</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::HAS::Handsch</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::HKM::Kaps</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::HKP::Kaps</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::HPI::InhKaps</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::HVW::Kaps</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::IFA::Amp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::IFB::Beutel</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::IFF::Flasche</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::IFK::Lösung</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::IFL::Flasche</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::IFS::Set</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::IHA::InhAmp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::IHP::InhPulv</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::IIL::Lösung</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::IKA::InhKaps</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::ILO::Lösung</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::IMP::Impl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::INF::Lösung</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::INH::Inhalat</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::INI::Flasche</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::INL::InhLös</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::INS::Tee</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::IST::Instill</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::ISU::Susp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::IUP::Spirale</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KAN::Kanüle</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KAP::Kaps</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KAT::KAT</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KDA::KauDrag</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KEG::Kegel</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KER::Kerne</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KGU::Kaug</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KII::Konz</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KKS::Supp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KLI::Klist</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KLT::KlisTbl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KMP::Kaps</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KMR::Kaps</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KOD::Kondom</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KOM::Kompr</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KON::Konz</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KPG::KombiPg</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KRI::KRI</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KSS::Supp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KSU::Supp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::KTA::KauTabl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::LAN::Lanz</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::LII::Lösung</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::LIQ::Flüss</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::LOE::Lösung</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::LOT::Lotion</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::LOV::LOV</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::LSE::Lösung</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::LTA::Tabl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::LUP::LUP</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::LUT::LuTabl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::MIL::Milch</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::MIX::Mixtur</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::MRG::RetGran</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::MRP::Pellets</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::MTA::Tabl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::MUW::MUW</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::NAG::NasGel</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::NAO::NasÖl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::NAS::NasSpr</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::NAW::NAW</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::NDS::NasSpr</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::NSA::NSalbe</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::NTR::NTropf</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::OCU::OCU</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::OEL::Öl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::OHT::OTropf</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::OVU::Ovula</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PAS::Pastill</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PEL::Pellets</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PEN::Pen</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PER::Perlen</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PFL::Pflast</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PFT::Pflast</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PHI::Pulver</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PIF::Lösung</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PII::Pulver</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PIJ::Pulver</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PIK::Pulver</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PIV::PIV</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PLE::Pulver</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PLF::PLF</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PLG::PLG</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PLH::PLH</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PLI::PLI</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PLK::PLK</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PLV::PLV</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PPL::Lösung</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PRS::PRS</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PSE::Saft</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PST::Paste</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PUD::Puder</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::PUL::Pulver</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::RED::RetDrag</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::REK::RetKaps</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::RET::RetTabl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::RGR::RetGran</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::RKA::RekKaps</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::RSC::Schaum</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::RUT::RetTabl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SAF::Saft</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SAL::Salbe</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SAM::Salbe</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SCH::Schaum</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SEI::Seife</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SHA::Shampoo</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SIR::Sirup</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SMF::SMF</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SMT::SMT</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SMU::Supp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SPA::Amp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SPF::Flasche</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SPL::Lösung</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SPR::Spray</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SRI::Spritze</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SSU::Supp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::STA::Amp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::STB::Stäbch</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::STI::Stifte</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::STR::Streif</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SUB::Subst</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SUE::Susp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SUP::Supp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SUS::Susp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SUT::SubTabl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SUV::Susp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::SWA::Schwamm</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TAB::Tabl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TAE::Tafel</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TAM::Amp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TEE::Tee</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TEI::Tropfen</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TES::Test</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TIN::Tinktur</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TKA::Tabl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TMR::Tabl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TON::Tonikum</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TPN::Tampon</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TPO::Tamp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TRA::TrAmp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TRI::TRI</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TRO::Tropfen</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TRS::TRS</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TRT::TrTabl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TSA::Saft</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TSD::TSD</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TSS::TSS</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TST::Test</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TSY::TSY</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TTR::Test</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TUB::Tube</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TUE::Tücher</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::TUP::Tupfer</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::UTA::Tabl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::VAL::VagLös</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::VAR::VagRing</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::VCR::VagCrem</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::VER::Verband</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::VGE::VagGel</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::VKA::VagKaps</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::VLI::Vlies</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::VOV::VagOvul</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::VST::VagStäb</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::VSU::VagSupp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::VTA::VagTabl</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::WAT::Watte</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::WGA::Gaze</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::WKA::Kaps</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::WKM::Kaps</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::WUE::Würfel</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::XDG::Gel</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::XDS::Spray</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::XFE::Festig.</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::XGM::Maske</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::XHS::Spül.</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::XNC::Creme</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::XPK::Pflege</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::XTC::Creme</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::ZAM::Amp</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::ZBU::Bürste</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::ZCR::Zahncr.</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::ZGE::Zahngel</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::ZKA::ZerbKps</includedValues>
+                        <includedValues>https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BMP_DARREICHUNGSFORM::ZPA::Zahnp</includedValues>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0142]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Coded_text</includedTypes>
+                        <includedTypes>Text</includedTypes>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0152]"/>
+                <Rule max="0" path="/items[at0158]"/>
+                <Rule name="Wirkstärke (Konzentration)" path="/items[at0115]">
+                    <constraint xsi:type="tem:quantityConstraint"/>
+                </Rule>
+                <Rule max="0" path="/items[at0151]"/>
+                <Rule max="0" path="/items[at0150]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Text</includedTypes>
+                        <includedTypes>Identifier</includedTypes>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0003]"/>
+                <Rule max="0" path="/items[at0139]">
+                    <constraint xsi:type="tem:quantityConstraint">
+                        <unitMagnitude>
+                            <unit>1</unit>
+                            <minMagnitude>0.0</minMagnitude>
+                            <includesMaximum>false</includesMaximum>
+                            <includesMinimum>true</includesMinimum>
+                        </unitMagnitude>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0008]"/>
+                <Rule max="0" path="/items[at0148]">
+                    <constraint xsi:type="tem:quantityConstraint">
+                        <unitMagnitude>
+                            <unit>1</unit>
+                            <minMagnitude>0.0</minMagnitude>
+                            <includesMaximum>false</includesMaximum>
+                            <includesMinimum>true</includesMinimum>
+                        </unitMagnitude>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0007]"/>
+                <Rule max="0" path="/items[at0127]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Coded_text</includedTypes>
+                        <includedTypes>Text</includedTypes>
+                    </constraint>
+                </Rule>
+                <Rule name="Rezeptur Freitextzeile" path="/items[at0133]"/>
+                <Items archetype_id="openEHR-EHR-CLUSTER.drug_class.v0"
+                    max="1" path="/items[at0141]" xsi:type="tem:CLUSTER">
+                    <Rule name="Arzneimittel-Code" path="/items[at0001]"/>
+                    <Rule default="RxNorm" path="/items[at0004]/items[at0002]">
+                        <constraint limitToList="false" xsi:type="tem:textConstraint">
+                            <includedValues>RxNorm</includedValues>
+                            <includedValues>SNOMED CT</includedValues>
+                            <includedValues>IDMP</includedValues>
+                            <includedValues>PZN</includedValues>
+                            <includedValues>ATC</includedValues>
+                        </constraint>
+                    </Rule>
+                    <Rule max="0" path="/items[at0004]/items[at0010]"/>
+                    <Rule max="0" path="/items[at0007]"/>
+                </Items>
+                <Items archetype_id="openEHR-EHR-CLUSTER.medication.v1"
+                    concept_name="Arzneimittel" max="1" name="Wirkstoff"
+                    path="/items[at0138]" xsi:type="tem:CLUSTER">
+                    <Rule name="Wirkstoff-Name" path="/items[at0132]"/>
+                    <Rule max="0" path="/items[at0071]"/>
+                    <Rule name="Wirkstofftyp" path="/items[at0142]">
+                        <constraint xsi:type="tem:textConstraint">
+                            <includedValues>Active</includedValues>
+                            <includedValues>Common</includedValues>
+                        </constraint>
+                    </Rule>
+                    <Rule name="Wirkstoffmenge" path="/items[at0152]"/>
+                    <Rule name="Zähler" path="/items[at0152]/items[at0153]">
+                        <constraint xsi:type="tem:quantityConstraint">
+                            <unitMagnitude>
+                                <unit>1</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>false</includesMinimum>
+                            </unitMagnitude>
+                        </constraint>
+                    </Rule>
+                    <Rule name="Einheit Zähler" path="/items[at0152]/items[at0004]"/>
+                    <Rule name="Nenner" path="/items[at0152]/items[at0157]">
+                        <constraint xsi:type="tem:quantityConstraint">
+                            <unitMagnitude>
+                                <unit>1</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>false</includesMinimum>
+                            </unitMagnitude>
+                        </constraint>
+                    </Rule>
+                    <Rule name="Einheit Nenner" path="/items[at0152]/items[at0005]"/>
+                    <Rule max="0" path="/items[at0158]"/>
+                    <Rule max="0" name="Wirkstoff (Konzentration)" path="/items[at0115]">
+                        <constraint xsi:type="tem:quantityConstraint"/>
+                    </Rule>
+                    <Rule max="0" path="/items[at0151]"/>
+                    <Rule max="0" path="/items[at0150]">
+                        <constraint xsi:type="tem:multipleConstraint">
+                            <includedTypes>Text</includedTypes>
+                            <includedTypes>Identifier</includedTypes>
+                        </constraint>
+                    </Rule>
+                    <Rule max="0" path="/items[at0003]"/>
+                    <Rule max="0" path="/items[at0139]">
+                        <constraint xsi:type="tem:quantityConstraint">
+                            <unitMagnitude>
+                                <unit>1</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                        </constraint>
+                    </Rule>
+                    <Rule max="0" path="/items[at0008]"/>
+                    <Rule max="0" path="/items[at0148]">
+                        <constraint xsi:type="tem:quantityConstraint">
+                            <unitMagnitude>
+                                <unit>1</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                        </constraint>
+                    </Rule>
+                    <Rule max="0" path="/items[at0007]"/>
+                    <Rule max="0" path="/items[at0127]">
+                        <constraint xsi:type="tem:multipleConstraint">
+                            <includedTypes>Coded_text</includedTypes>
+                            <includedTypes>Text</includedTypes>
+                        </constraint>
+                    </Rule>
+                    <Rule max="0" path="/items[at0133]"/>
+                    <Items
+                        archetype_id="openEHR-EHR-CLUSTER.drug_class.v0"
+                        concept_name="Arzneimittelgruppe" max="1"
+                        name="Wirkstoff-Code  (ASK, SNOMED CT, UNII, CAS)"
+                        path="/items[at0141]" xsi:type="tem:CLUSTER">
+                        <Rule name="Wirkstoff-Code" path="/items[at0001]"/>
+                        <Rule default="ASK" path="/items[at0004]/items[at0002]">
+                            <constraint limitToList="false" xsi:type="tem:textConstraint">
+                                <includedValues>ASK</includedValues>
+                                <includedValues>UNII</includedValues>
+                                <includedValues>CAS</includedValues>
+                                <includedValues>SNOMED CT</includedValues>
+                            </constraint>
+                        </Rule>
+                        <Rule max="0" path="/items[at0004]/items[at0010]"/>
+                        <Rule max="0" path="/items[at0007]"/>
+                    </Items>
+                </Items>
+            </Items>
+            <Items archetype_id="openEHR-EHR-CLUSTER.dosage.v1" max="1"
+                path="/description[at0017]/items[at0131]" xsi:type="tem:CLUSTER">
+                <Rule max="0" path="/items[at0164]">
+                    <constraint xsi:type="tem:countConstraint">
+                        <minMagnitude>1</minMagnitude>
+                        <includesMaximum>false</includesMaximum>
+                        <includesMinimum>true</includesMinimum>
+                    </constraint>
+                </Rule>
+                <Rule name="Dosis" path="/items[at0144]">
+                    <constraint xsi:type="tem:quantityConstraint">
+                        <unitMagnitude>
+                            <unit>1</unit>
+                            <minMagnitude>0.0</minMagnitude>
+                            <includesMaximum>false</includesMaximum>
+                            <includesMinimum>false</includesMinimum>
+                        </unitMagnitude>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0145]"/>
+                <Rule max="0" path="/items[at0135]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Text</includedTypes>
+                        <includedTypes>Quantity</includedTypes>
+                    </constraint>
+                </Rule>
+                <Rule name="Dosierung Freitext" path="/items[at0178]"/>
+                <Rule path="/items[at0134]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Quantity</includedTypes>
+                        <includedTypes>Text</includedTypes>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0102]">
+                    <constraint xsi:type="tem:durationConstraint">
+                        <pattern>PDTHMS</pattern>
+                        <minMagnitude>PT0H</minMagnitude>
+                        <includesMaximum>false</includesMaximum>
+                        <includesMinimum>true</includesMinimum>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0176]">
+                    <constraint xsi:type="tem:quantityConstraint">
+                        <unitMagnitude>
+                            <unit>1</unit>
+                            <minMagnitude>0.0</minMagnitude>
+                            <includesMaximum>false</includesMaximum>
+                            <includesMinimum>true</includesMinimum>
+                        </unitMagnitude>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0177]"/>
+                <Items
+                    archetype_id="openEHR-EHR-CLUSTER.timing_daily.v1"
+                    max="1" path="/items[at0037]" xsi:type="tem:CLUSTER">
+                    <Rule max="0" path="/items[at0003]">
+                        <constraint xsi:type="tem:multipleConstraint">
+                            <includedTypes>Quantity</includedTypes>
+                            <includedTypes>Interval</includedTypes>
+                        </constraint>
+                    </Rule>
+                    <Rule max="0" path="/items[at0014]">
+                        <constraint xsi:type="tem:durationConstraint">
+                            <pattern>PTHMS</pattern>
+                            <maxMagnitude>PT24H</maxMagnitude>
+                            <minMagnitude>PT0H</minMagnitude>
+                            <includesMaximum>true</includesMaximum>
+                            <includesMinimum>true</includesMinimum>
+                        </constraint>
+                    </Rule>
+                    <Rule max="1"
+                        name="Verabreichungszeitpunkt /-intervall" path="/items[at0004]">
+                        <constraint xsi:type="tem:multipleConstraint">
+                            <includedTypes>Time</includedTypes>
+                            <includedTypes>Interval</includedTypes>
+                        </constraint>
+                    </Rule>
+                    <Rule max="0" path="/items[at0027]"/>
+                    <Rule max="0" path="/items[at0023]"/>
+                    <Rule max="0" path="/items[at0024]"/>
+                    <Rule max="0" path="/items[at0025]"/>
+                    <Rule max="0" path="/items[at0039]"/>
+                    <Rule max="0" path="/items[at0035]"/>
+                </Items>
+            </Items>
+        </Content>
+        <Content archetype_id="openEHR-EHR-ACTION.medication.v1"
+            concept_name="Arzneimittelanwendung" max="0"
+            name="Ende der Arzneimittelanwendung" path="/content" xsi:type="tem:ACTION">
+            <Rule max="0" path="/description[at0017]/items[at0020]"/>
+            <Rule max="0" path="/description[at0017]/items[at0132]"/>
+            <Rule max="0" path="/description[at0017]/items[at0133]"/>
+            <Rule max="0" path="/description[at0017]/items[at0043]"/>
+            <Rule max="0" path="/description[at0017]/items[at0154]"/>
+            <Rule max="0" path="/description[at0017]/items[at0155]"/>
+            <Rule max="0" path="/description[at0017]/items[at0021]"/>
+            <Rule path="/description[at0017]/items[at0140]/items[at0147]">
+                <constraint xsi:type="tem:textConstraint">
+                    <includedValues>http://standardterms.edqm.eu::20001000::Auricular use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20002500::Buccal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20003000::Cutaneous use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20004000::Dental use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20006000::Endocervical use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20007000::Endosinusial use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20008000::Endotracheopulmonary use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20009000::Epidural use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20010000::Epilesional use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20011000::Extraamniotic use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20011500::Extracorporeal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20013500::Gastric use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20013000::Gastroenteral use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20014000::Gingival use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20015000::Haemodialysis</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20015500::Implantation</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20019500::Infiltration</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20020000::Inhalation use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20021000::Intestinal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20022000::Intraamniotic use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20023000::Intraarterial use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20024000::Intraarticular use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20025000::Intrabursal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20025500::Intracameral use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20026000::Intracardiac use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20026500::Intracartilaginous use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20027000::Intracavernous use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20027010::Intracerebral use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20080000::Intracerebroventricular use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20028000::Intracervical use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20028300::Intracholangiopancreatic use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20028500::Intracisternal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20029000::Intracoronary use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20030000::Intradermal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20031000::Intradiscal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20031500::Intraepidermal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20031700::Intraglandular use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20032000::Intralesional use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20033000::Intralymphatic use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20035000::Intramuscular use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20036000::Intraocular use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20036500::Intraosseous use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20037000::Intrapericardial use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20038000::Intraperitoneal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20039000::Intrapleural use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20039200::Intraportal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20039500::Intraprostatic use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20041000::Intrasternal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20042000::Intrathecal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20043000::Intratumoral use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20044000::Intrauterine use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20045000::Intravenous use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20046000::Intravesical use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20047000::Intravitreal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20047500::Iontophoresis</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20048000::Laryngopharyngeal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20049000::Nasal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20051000::Ocular use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20053000::Oral use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20054000::Oromucosal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20055000::Oropharyngeal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20057000::Periarticular use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20058000::Perineural use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20059000::Periodontal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20059300::Periosseous use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20059400::Peritumoral use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20059500::Posterior juxtascleral use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20061000::Rectal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20061500::Retrobulbar use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20062000::Route of administration not applicable</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20063000::Skin scarification</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20065000::Subconjunctival use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20066000::Subcutaneous use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20067000::Sublingual use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20067500::Submucosal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20081000::Subretinal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20070000::Transdermal use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20071000::Urethral use</includedValues>
+                    <includedValues>http://standardterms.edqm.eu::20072000::Vaginal use</includedValues>
+                </constraint>
+            </Rule>
+            <Rule path="/description[at0017]/items[at0140]/items[at0141]">
+                <constraint xsi:type="tem:textConstraint">
+                    <termQueryId terminologyID="//hl7.org/fhir/ValueSet/approach-site-codes"/>
+                </constraint>
+            </Rule>
+            <Rule path="/description[at0017]/items[at0140]/items[at0143]">
+                <constraint xsi:type="tem:textConstraint">
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::417924000::Apply</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::418283001::Administer</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::419385000::Use</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::419582001::Give</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::419652001::Take</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::419747000::Chew</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::420045007::Suck</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::420246001::At</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::420247005::Dosing instruction imperative</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::420295001::Only</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::420341009::Constant</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::420360002::Sniff</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::420484009::Subtract - dosing instruction fragment</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::420503003::As</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::420561004::Or</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::420604000::Finish</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::420606003::Shampoo</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::420620005::Push</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::420652005::Until gone</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::420771004::Upon</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::420806001::Per</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::420883007::Sparingly</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::420942008::Call</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::420974001::When</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421035004::To</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421066005::Place</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421067001::Then</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421134003::Inhale</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421139008::Hold</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421206002::Multiply</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421257003::Insert</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421286000::Discontinue</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421298005::Swish and swallow</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421399004::Dilute</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421463005::With</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421484000::Then discontinue</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421521009::Swallow</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421538008::Instill</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421548005::Until</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421612001::Every</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421682005::Dissolve</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421718005::Before</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421723005::Now</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421769005::Follow directions</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421803000::If</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421805007::Swish</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421829000::And</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421832002::Twice</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421939007::Follow</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421984009::Until finished</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::421994004::During</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::422033008::Divide</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::422106007::Add</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::422114001::Once</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::422145002::Inject</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::422152000::Wash</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::422219000::Sprinkle</includedValues>
+                    <includedValues>http://hl7.org/fhir/R4/valueset-administration-method-codes.html::422327006::Then stop</includedValues>
+                </constraint>
+            </Rule>
+            <Rule max="0" path="/description[at0017]/items[at0033]"/>
+            <Rule max="0" path="/description[at0017]/items[at0149]"/>
+            <Rule max="0" path="/description[at0017]/items[at0025]"/>
+            <Items archetype_id="openEHR-EHR-CLUSTER.dosage.v1" max="1"
+                path="/description[at0017]/items[at0131]" xsi:type="tem:CLUSTER">
+                <Rule max="0" path="/items[at0164]">
+                    <constraint xsi:type="tem:countConstraint">
+                        <minMagnitude>1</minMagnitude>
+                        <includesMaximum>false</includesMaximum>
+                        <includesMinimum>true</includesMinimum>
+                    </constraint>
+                </Rule>
+                <Rule name="Dosis" path="/items[at0144]">
+                    <constraint xsi:type="tem:quantityConstraint">
+                        <unitMagnitude>
+                            <unit>1</unit>
+                            <minMagnitude>0.0</minMagnitude>
+                            <includesMaximum>false</includesMaximum>
+                            <includesMinimum>true</includesMinimum>
+                        </unitMagnitude>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0145]"/>
+                <Rule max="0" path="/items[at0135]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Text</includedTypes>
+                        <includedTypes>Quantity</includedTypes>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0102]">
+                    <constraint xsi:type="tem:durationConstraint">
+                        <pattern>PDTHMS</pattern>
+                        <minMagnitude>PT0H</minMagnitude>
+                        <includesMaximum>false</includesMaximum>
+                        <includesMinimum>true</includesMinimum>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0176]">
+                    <constraint xsi:type="tem:quantityConstraint">
+                        <unitMagnitude>
+                            <unit>1</unit>
+                            <minMagnitude>0.0</minMagnitude>
+                            <includesMaximum>false</includesMaximum>
+                            <includesMinimum>true</includesMinimum>
+                        </unitMagnitude>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0177]"/>
+            </Items>
+        </Content>
+        <Context>
+            <Items
+                archetype_id="openEHR-EHR-CLUSTER.case_identification.v0"
+                max="1"
+                path="/context/other_context[at0001]/items[at0006]" xsi:type="tem:CLUSTER">
+                <Rule max="0" path="/items[at0002]"/>
+                <Rule max="0" path="/items[at0003]"/>
+                <Rule max="0" path="/items[at0006]"/>
+            </Items>
+        </Context>
+        <Rule min="1" path="/context/other_context[at0001]/items[at0005]">
+            <constraint xsi:type="tem:textConstraint">
+                <includedValues>http://terminology.hl7.org/CodeSystem/medication-admin-status::in-progress::In Progress</includedValues>
+                <includedValues>http://terminology.hl7.org/CodeSystem/medication-admin-status::not-done::Not Done</includedValues>
+                <includedValues>http://terminology.hl7.org/CodeSystem/medication-admin-status::on-hold::On Hold</includedValues>
+                <includedValues>http://terminology.hl7.org/CodeSystem/medication-admin-status::completed::Completed</includedValues>
+                <includedValues>http://terminology.hl7.org/CodeSystem/medication-admin-status::entered-in-error::Entered in Error</includedValues>
+                <includedValues>http://terminology.hl7.org/CodeSystem/medication-admin-status::stopped::Stopped</includedValues>
+                <includedValues>http://terminology.hl7.org/CodeSystem/medication-admin-status::unknown::Unknown</includedValues>
+            </constraint>
+        </Rule>
+    </definition>
+    <view>
+        <constraints path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-ACTION.medication.v1, 'Arzneimittelanwendung']/ism_transition">
+            <items id="VisibleInView">
+                <value>ism_transition</value>
+            </items>
+        </constraints>
+        <constraints path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-ACTION.medication.v1, 'Arzneimittelanwendung']/description[at0017]/items[at0140]/items">
+            <items id="VisibleInView">
+                <value>items</value>
+            </items>
+        </constraints>
+        <constraints path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-ACTION.medication.v1, 'Ende der Arzneimittelanwendung']/description[at0017]/items[at0140]/items">
+            <items id="VisibleInView">
+                <value>items</value>
+            </items>
+        </constraints>
+    </view>
+    <integrity_checks archetype_id="openEHR-EHR-COMPOSITION.report.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">005501C1FA493A4838F5F1121F2870EC</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-CLUSTER.case_identification.v0"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">D94F932D76D2D0389D242063ED336124</digest>
+    </integrity_checks>
+    <integrity_checks archetype_id="openEHR-EHR-ACTION.medication.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">F0C4134C4DCAEB8F6EBD3A9318C5B87B</digest>
+    </integrity_checks>
+    <integrity_checks archetype_id="openEHR-EHR-CLUSTER.medication.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">2AC0A5FC5AAC3D72188CB7118467A627</digest>
+    </integrity_checks>
+    <integrity_checks archetype_id="openEHR-EHR-CLUSTER.drug_class.v0"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">014E566E2D6FA001BE95EAA621A78F3A</digest>
+    </integrity_checks>
+    <integrity_checks archetype_id="openEHR-EHR-CLUSTER.dosage.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">15B1D4C3F6B3ACBEE8FA7C9EE67CD32A</digest>
+    </integrity_checks>
+    <integrity_checks archetype_id="openEHR-EHR-CLUSTER.timing_daily.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">BBF04254F8BEA1421AF2CC97A0B64624</digest>
+    </integrity_checks>
+</template>

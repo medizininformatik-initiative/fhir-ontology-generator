@@ -85,7 +85,7 @@ def get_answer_list_code(response):
 
 def get_answer_list_vs(loinc_code):
     response = requests.get(
-        f"https://ontoserver.imi.uni-luebeck.de/fhir/CodeSystem/$lookup?system=http://loinc.org&code={loinc_code.code}&property=answer-list")
+        f"{ONTOLOGY_SERVER_ADDRESS}CodeSystem/$lookup?system=http://loinc.org&code={loinc_code.code}&property=answer-list")
     if answer_list_code := get_answer_list_code(response.json()):
         return "http://loinc.org/vs/" + answer_list_code
 

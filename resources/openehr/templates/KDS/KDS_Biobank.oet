@@ -1,0 +1,1130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template xmlns="openEHR/v1/Template">
+    <id>26ede31c-4104-42a0-a893-d0d0dceb83d2</id>
+    <name>KDS_Biobank</name>
+    <description>
+        <original_author>
+            <item>
+                <key>date</key>
+                <value>2022-04-28</value>
+            </item>
+            <item>
+                <key>name</key>
+                <value>Alina Rehberg</value>
+            </item>
+            <item>
+                <key>organisation</key>
+                <value>Medizinische Hochschule Hannover</value>
+            </item>
+            <item>
+                <key>email</key>
+                <value>rehberg.alina@mh-hannover.de</value>
+            </item>
+        </original_author>
+        <lifecycle_state>unmanaged</lifecycle_state>
+        <details/>
+        <other_details>
+            <item>
+                <key>licence</key>
+                <value/>
+            </item>
+            <item>
+                <key>custodian_organisation</key>
+                <value/>
+            </item>
+            <item>
+                <key>original_namespace</key>
+                <value/>
+            </item>
+            <item>
+                <key>original_publisher</key>
+                <value/>
+            </item>
+            <item>
+                <key>custodian_namespace</key>
+                <value/>
+            </item>
+            <item>
+                <key>sem_ver</key>
+                <value>25.1.0</value>
+            </item>
+            <item>
+                <key>build_uid</key>
+                <value/>
+            </item>
+            <item>
+                <key>MD5-CAM-1.0.1</key>
+                <value>fada9d1f696a423d83f5f7f480e4fbee</value>
+            </item>
+            <item>
+                <key>PARENT:MD5-CAM-1.0.1</key>
+                <value>005501C1FA493A4838F5F1121F2870EC</value>
+            </item>
+            <item>
+                <key>original_language</key>
+                <value>ISO_639-1::en</value>
+            </item>
+            <item>
+                <key>original_language</key>
+                <value>ISO_639-1::de</value>
+            </item>
+        </other_details>
+    </description>
+    <annotations path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-EVALUATION.biospecimen_summary.v0]/data[at0001]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0071]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.collection.collector</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-EVALUATION.biospecimen_summary.v0]/data[at0001]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0070]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.collection.collector</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-EVALUATION.biospecimen_summary.v0]/data[at0001]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0088]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.identifier</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-EVALUATION.biospecimen_summary.v0]/data[at0001]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0013]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.collection.sourceSite</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-EVALUATION.biospecimen_summary.v0]/data[at0001]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0001]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.accessionIdentifier</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-EVALUATION.biospecimen_summary.v0]/data[at0001]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0034]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.receivedTime</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-EVALUATION.biospecimen_summary.v0]/data[at0001]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0045]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.note</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-EVALUATION.biospecimen_summary.v0]/data[at0001]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0027]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.collection.quantity</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-EVALUATION.biospecimen_summary.v0]/data[at0001]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0007]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.collection.method</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-EVALUATION.biospecimen_summary.v0]/data[at0001]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0029]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.type</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-EVALUATION.biospecimen_summary.v0]/data[at0001]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0029]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.type</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-EVALUATION.biospecimen_summary.v0]/data[at0001]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0007]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.collection.method</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-EVALUATION.biospecimen_summary.v0]/data[at0001]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0045]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.note</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-EVALUATION.biospecimen_summary.v0]/data[at0001]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0001]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.accessionIdentifier</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.report.v1]/content[openEHR-EHR-EVALUATION.biospecimen_summary.v0]/data[at0001]/items[openEHR-EHR-CLUSTER.specimen.v1]/items[at0088]">
+        <items>
+            <item>
+                <key>fhir_mapping</key>
+                <value>Specimen.identifier</value>
+            </item>
+        </items>
+    </annotations>
+    <definition archetype_id="openEHR-EHR-COMPOSITION.report.v1"
+        concept_name="Bericht" name="KDS_Biobank"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:COMPOSITION">
+        <Content
+            archetype_id="openEHR-EHR-EVALUATION.biospecimen_summary.v0"
+            max="1" path="/content" xsi:type="tem:EVALUATION">
+            <Rule path="/data[at0001]/items[at0002]">
+                <constraint xsi:type="tem:multipleConstraint">
+                    <includedTypes>Identifier</includedTypes>
+                    <includedTypes>Text</includedTypes>
+                </constraint>
+            </Rule>
+            <Rule path="/data[at0001]/items[at0003]">
+                <constraint xsi:type="tem:textConstraint">
+                    <includedValues>v2-0487::ABS::Abscess</includedValues>
+                    <includedValues>v2-0487::ACNE::Tissue, Acne</includedValues>
+                    <includedValues>v2-0487::ACNFLD::Fluid, Acne</includedValues>
+                    <includedValues>v2-0487::AIRS::Air Sample</includedValues>
+                    <includedValues>v2-0487::ALL::Allograft</includedValues>
+                    <includedValues>v2-0487::AMN::Amniotic fluid</includedValues>
+                    <includedValues>v2-0487::AMP::Amputation</includedValues>
+                    <includedValues>v2-0487::ANGI::Catheter Tip, Angio</includedValues>
+                    <includedValues>v2-0487::ARTC::Catheter Tip, Arterial</includedValues>
+                    <includedValues>v2-0487::ASERU::Serum, Acute</includedValues>
+                    <includedValues>v2-0487::ASP::Aspirate</includedValues>
+                    <includedValues>v2-0487::ATTE::Environment, Attest</includedValues>
+                    <includedValues>v2-0487::AUTOA::Environmental, Autoclave Ampule</includedValues>
+                    <includedValues>v2-0487::AUTOC::Environmental, Autoclave Capsule</includedValues>
+                    <includedValues>v2-0487::AUTP::Autopsy</includedValues>
+                    <includedValues>v2-0487::BBL::Blood bag</includedValues>
+                    <includedValues>v2-0487::BCYST::Cyst, Baker's</includedValues>
+                    <includedValues>v2-0487::BDY::Whole body</includedValues>
+                    <includedValues>v2-0487::BIFL::Bile Fluid</includedValues>
+                    <includedValues>v2-0487::BITE::Bite</includedValues>
+                    <includedValues>v2-0487::BLD::Whole blood</includedValues>
+                    <includedValues>v2-0487::BLDA::Blood arterial</includedValues>
+                    <includedValues>v2-0487::BLDCO::Cord blood</includedValues>
+                    <includedValues>v2-0487::BLDV::Blood venous</includedValues>
+                    <includedValues>v2-0487::BLEB::Bleb</includedValues>
+                    <includedValues>v2-0487::BLIST::Blister</includedValues>
+                    <includedValues>v2-0487::BOIL::Boil</includedValues>
+                    <includedValues>v2-0487::BON::Bone</includedValues>
+                    <includedValues>v2-0487::BONE::Bone</includedValues>
+                    <includedValues>v2-0487::BOWL::Bowel contents</includedValues>
+                    <includedValues>v2-0487::BPH::Basophils</includedValues>
+                    <includedValues>v2-0487::BPU::Blood product unit</includedValues>
+                    <includedValues>v2-0487::BRN::Burn</includedValues>
+                    <includedValues>v2-0487::BRSH::Brush</includedValues>
+                    <includedValues>v2-0487::BRTH::Breath (use EXHLD)</includedValues>
+                    <includedValues>v2-0487::BRUS::Brushing</includedValues>
+                    <includedValues>v2-0487::BUB::Bubo</includedValues>
+                    <includedValues>v2-0487::BULLA::Bulla/Bullae</includedValues>
+                    <includedValues>v2-0487::BX::Biopsy</includedValues>
+                    <includedValues>v2-0487::CALC::Calculus (=Stone)</includedValues>
+                    <includedValues>v2-0487::CARBU::Carbuncle</includedValues>
+                    <includedValues>v2-0487::CAT::Catheter</includedValues>
+                    <includedValues>v2-0487::CBITE::Bite, Cat</includedValues>
+                    <includedValues>v2-0487::CDM::Cardiac muscle</includedValues>
+                    <includedValues>v2-0487::CLIPP::Clippings</includedValues>
+                    <includedValues>v2-0487::CNJT::Conjunctiva</includedValues>
+                    <includedValues>v2-0487::CNL::Cannula</includedValues>
+                    <includedValues>v2-0487::COL::Colostrum</includedValues>
+                    <includedValues>v2-0487::CONE::Biospy, Cone</includedValues>
+                    <includedValues>v2-0487::CSCR::Scratch, Cat</includedValues>
+                    <includedValues>v2-0487::CSERU::Serum, Convalescent</includedValues>
+                    <includedValues>v2-0487::CSF::Cerebral spinal fluid</includedValues>
+                    <includedValues>v2-0487::CSITE::Catheter Insertion Site</includedValues>
+                    <includedValues>v2-0487::CSMY::Fluid, Cystostomy Tube</includedValues>
+                    <includedValues>v2-0487::CST::Fluid, Cyst</includedValues>
+                    <includedValues>v2-0487::CSVR::Blood, Cell Saver</includedValues>
+                    <includedValues>v2-0487::CTP::Catheter tip</includedValues>
+                    <includedValues>v2-0487::CUR::Curretage</includedValues>
+                    <includedValues>v2-0487::CVM::Cervical Mucus</includedValues>
+                    <includedValues>v2-0487::CVPS::Site, CVP</includedValues>
+                    <includedValues>v2-0487::CVPT::Catheter Tip, CVP</includedValues>
+                    <includedValues>v2-0487::CYN::Nodule, Cystic</includedValues>
+                    <includedValues>v2-0487::CYST::Cyst</includedValues>
+                    <includedValues>v2-0487::DBITE::Bite, Dog</includedValues>
+                    <includedValues>v2-0487::DCS::Sputum, Deep Cough</includedValues>
+                    <includedValues>v2-0487::DEC::Ulcer, Decubitus</includedValues>
+                    <includedValues>v2-0487::DEION::Environmental, Water (Deionized)</includedValues>
+                    <includedValues>v2-0487::DIA::Dialysate</includedValues>
+                    <includedValues>v2-0487::DIAF::Dialysis Fluid</includedValues>
+                    <includedValues>v2-0487::DISCHG::Discharge</includedValues>
+                    <includedValues>v2-0487::DIV::Diverticulum</includedValues>
+                    <includedValues>v2-0487::DRN::Drain</includedValues>
+                    <includedValues>v2-0487::DRNG::Drainage, Tube</includedValues>
+                    <includedValues>v2-0487::DRNGP::Drainage, Penrose</includedValues>
+                    <includedValues>v2-0487::DUFL::Duodenal fluid</includedValues>
+                    <includedValues>v2-0487::EARW::Ear wax (cerumen)</includedValues>
+                    <includedValues>v2-0487::EBRUSH::Brush, Esophageal</includedValues>
+                    <includedValues>v2-0487::EEYE::Environmental, Eye Wash</includedValues>
+                    <includedValues>v2-0487::EFF::Environmental, Effluent</includedValues>
+                    <includedValues>v2-0487::EFFUS::Effusion</includedValues>
+                    <includedValues>v2-0487::EFOD::Environmental, Food</includedValues>
+                    <includedValues>v2-0487::EISO::Environmental, Isolette</includedValues>
+                    <includedValues>v2-0487::ELT::Electrode</includedValues>
+                    <includedValues>v2-0487::ENVIR::Environmental, Unidentified Substance</includedValues>
+                    <includedValues>v2-0487::EOS::Eosinophils</includedValues>
+                    <includedValues>v2-0487::EOTH::Environmental, Other Substance</includedValues>
+                    <includedValues>v2-0487::ESOI::Environmental, Soil</includedValues>
+                    <includedValues>v2-0487::ESOS::Environmental, Solution (Sterile)</includedValues>
+                    <includedValues>v2-0487::ETA::Aspirate, Endotrach</includedValues>
+                    <includedValues>v2-0487::ETTP::Catheter Tip, Endotracheal</includedValues>
+                    <includedValues>v2-0487::ETTUB::Tube, Endotracheal</includedValues>
+                    <includedValues>v2-0487::EWHI::Environmental, Whirlpool</includedValues>
+                    <includedValues>v2-0487::EXG::Gas, exhaled (=breath)</includedValues>
+                    <includedValues>v2-0487::EXS::Shunt, External</includedValues>
+                    <includedValues>v2-0487::EXUDTE::Exudate</includedValues>
+                    <includedValues>v2-0487::FAW::Environmental, Water (Well)</includedValues>
+                    <includedValues>v2-0487::FBLOOD::Blood, Fetal</includedValues>
+                    <includedValues>v2-0487::FGA::Fluid, Abdomen</includedValues>
+                    <includedValues>v2-0487::FIB::Fibroblasts</includedValues>
+                    <includedValues>v2-0487::FIST::Fistula</includedValues>
+                    <includedValues>v2-0487::FLD::Fluid, Other</includedValues>
+                    <includedValues>v2-0487::FLT::Filter</includedValues>
+                    <includedValues>v2-0487::FLU::Fluid, Body unsp</includedValues>
+                    <includedValues>v2-0487::FLUID::Fluid</includedValues>
+                    <includedValues>v2-0487::FOLEY::Catheter Tip, Foley</includedValues>
+                    <includedValues>v2-0487::FRS::Fluid, Respiratory</includedValues>
+                    <includedValues>v2-0487::FSCLP::Scalp, Fetal</includedValues>
+                    <includedValues>v2-0487::FUR::Furuncle</includedValues>
+                    <includedValues>v2-0487::GAS::Gas</includedValues>
+                    <includedValues>v2-0487::GASA::Aspirate, Gastric</includedValues>
+                    <includedValues>v2-0487::GASAN::Antrum, Gastric</includedValues>
+                    <includedValues>v2-0487::GASBR::Brushing, Gastric</includedValues>
+                    <includedValues>v2-0487::GASD::Drainage, Gastric</includedValues>
+                    <includedValues>v2-0487::GAST::Fluid/contents, Gastric</includedValues>
+                    <includedValues>v2-0487::GENL::Genital lochia</includedValues>
+                    <includedValues>v2-0487::GENV::Genital vaginal</includedValues>
+                    <includedValues>v2-0487::GRAFT::Graft</includedValues>
+                    <includedValues>v2-0487::GRAFTS::Graft Site</includedValues>
+                    <includedValues>v2-0487::GRANU::Granuloma</includedValues>
+                    <includedValues>v2-0487::GROSH::Catheter, Groshong</includedValues>
+                    <includedValues>v2-0487::GSOL::Solution, Gastrostomy</includedValues>
+                    <includedValues>v2-0487::GSPEC::Biopsy, Gastric</includedValues>
+                    <includedValues>v2-0487::GT::Tube, Gastric</includedValues>
+                    <includedValues>v2-0487::GTUBE::Drainage Tube, Drainage (Gastrostomy)</includedValues>
+                    <includedValues>v2-0487::HAR::Hair</includedValues>
+                    <includedValues>v2-0487::HBITE::Bite, Human</includedValues>
+                    <includedValues>v2-0487::HBLUD::Blood, Autopsy</includedValues>
+                    <includedValues>v2-0487::HEMAQ::Catheter Tip, Hemaquit</includedValues>
+                    <includedValues>v2-0487::HEMO::Catheter Tip, Hemovac</includedValues>
+                    <includedValues>v2-0487::HERNI::Tissue, Herniated</includedValues>
+                    <includedValues>v2-0487::HEV::Drain, Hemovac</includedValues>
+                    <includedValues>v2-0487::HIC::Catheter, Hickman</includedValues>
+                    <includedValues>v2-0487::HYDC::Fluid, Hydrocele</includedValues>
+                    <includedValues>v2-0487::IBITE::Bite, Insect</includedValues>
+                    <includedValues>v2-0487::ICYST::Cyst, Inclusion</includedValues>
+                    <includedValues>v2-0487::IDC::Catheter Tip, Indwelling</includedValues>
+                    <includedValues>v2-0487::IHG::Gas, Inhaled</includedValues>
+                    <includedValues>v2-0487::ILEO::Drainage, Ileostomy</includedValues>
+                    <includedValues>v2-0487::ILLEG::Source of Specimen Is Illegible</includedValues>
+                    <includedValues>v2-0487::IMP::Implant</includedValues>
+                    <includedValues>v2-0487::INCI::Site, Incision/Surgical</includedValues>
+                    <includedValues>v2-0487::INFIL::Infiltrate</includedValues>
+                    <includedValues>v2-0487::INS::Insect</includedValues>
+                    <includedValues>v2-0487::INTRD::Catheter Tip, Introducer</includedValues>
+                    <includedValues>v2-0487::ISLT::Isolate</includedValues>
+                    <includedValues>v2-0487::IT::Intubation tube</includedValues>
+                    <includedValues>v2-0487::IUD::Intrauterine Device</includedValues>
+                    <includedValues>v2-0487::IVCAT::Catheter Tip, IV</includedValues>
+                    <includedValues>v2-0487::IVFLD::Fluid, IV</includedValues>
+                    <includedValues>v2-0487::IVTIP::Tubing Tip, IV</includedValues>
+                    <includedValues>v2-0487::JEJU::Drainage, Jejunal</includedValues>
+                    <includedValues>v2-0487::JNTFLD::Fluid, Joint</includedValues>
+                    <includedValues>v2-0487::JP::Drainage, Jackson Pratt</includedValues>
+                    <includedValues>v2-0487::KELOI::Lavage</includedValues>
+                    <includedValues>v2-0487::KIDFLD::Fluid, Kidney</includedValues>
+                    <includedValues>v2-0487::LAVG::Lavage, Bronhial</includedValues>
+                    <includedValues>v2-0487::LAVGG::Lavage, Gastric</includedValues>
+                    <includedValues>v2-0487::LAVGP::Lavage, Peritoneal</includedValues>
+                    <includedValues>v2-0487::LAVPG::Lavage, Pre-Bronch</includedValues>
+                    <includedValues>v2-0487::LENS1::Contact Lens</includedValues>
+                    <includedValues>v2-0487::LENS2::Contact Lens Case</includedValues>
+                    <includedValues>v2-0487::LESN::Lesion</includedValues>
+                    <includedValues>v2-0487::LIQ::Liquid, Unspecified</includedValues>
+                    <includedValues>v2-0487::LIQO::Liquid, Other</includedValues>
+                    <includedValues>v2-0487::LNA::Line arterial</includedValues>
+                    <includedValues>v2-0487::LNV::Line venous</includedValues>
+                    <includedValues>v2-0487::LSAC::Fluid, Lumbar Sac</includedValues>
+                    <includedValues>v2-0487::LYM::Lymphocytes</includedValues>
+                    <includedValues>v2-0487::MAC::Macrophages</includedValues>
+                    <includedValues>v2-0487::MAHUR::Catheter Tip, Makurkour</includedValues>
+                    <includedValues>v2-0487::MAR::Marrow</includedValues>
+                    <includedValues>v2-0487::MASS::Mass</includedValues>
+                    <includedValues>v2-0487::MBLD::Blood, Menstrual</includedValues>
+                    <includedValues>v2-0487::MEC::Meconium</includedValues>
+                    <includedValues>v2-0487::MILK::Breast milk</includedValues>
+                    <includedValues>v2-0487::MLK::Milk</includedValues>
+                    <includedValues>v2-0487::MUCOS::Mucosa</includedValues>
+                    <includedValues>v2-0487::MUCUS::Mucus</includedValues>
+                    <includedValues>v2-0487::NAIL::Nail</includedValues>
+                    <includedValues>v2-0487::NASDR::Drainage, Nasal</includedValues>
+                    <includedValues>v2-0487::NEDL::Needle</includedValues>
+                    <includedValues>v2-0487::NEPH::Site, Nephrostomy</includedValues>
+                    <includedValues>v2-0487::NGASP::Aspirate, Nasogastric</includedValues>
+                    <includedValues>v2-0487::NGAST::Drainage, Nasogastric</includedValues>
+                    <includedValues>v2-0487::NGS::Site, Naso/Gastric</includedValues>
+                    <includedValues>v2-0487::NODUL::Nodule(s)</includedValues>
+                    <includedValues>v2-0487::NSECR::Secretion, Nasal</includedValues>
+                    <includedValues>v2-0487::ORH::Other</includedValues>
+                    <includedValues>v2-0487::ORL::Lesion, Oral</includedValues>
+                    <includedValues>v2-0487::OTH::Source, Other</includedValues>
+                    <includedValues>v2-0487::PACEM::Pacemaker</includedValues>
+                    <includedValues>v2-0487::PAFL::Pancreatic fluid</includedValues>
+                    <includedValues>v2-0487::PCFL::Fluid, Pericardial</includedValues>
+                    <includedValues>v2-0487::PDSIT::Site, Peritoneal Dialysis</includedValues>
+                    <includedValues>v2-0487::PDTS::Site, Peritoneal Dialysis Tunnel</includedValues>
+                    <includedValues>v2-0487::PELVA::Abscess, Pelvic</includedValues>
+                    <includedValues>v2-0487::PENIL::Lesion, Penile</includedValues>
+                    <includedValues>v2-0487::PERIA::Abscess, Perianal</includedValues>
+                    <includedValues>v2-0487::PILOC::Cyst, Pilonidal</includedValues>
+                    <includedValues>v2-0487::PINS::Site, Pin</includedValues>
+                    <includedValues>v2-0487::PIS::Site, Pacemaker Insetion</includedValues>
+                    <includedValues>v2-0487::PLAN::Plant Material</includedValues>
+                    <includedValues>v2-0487::PLAS::Plasma</includedValues>
+                    <includedValues>v2-0487::PLB::Plasma bag</includedValues>
+                    <includedValues>v2-0487::PLC::Placenta</includedValues>
+                    <includedValues>v2-0487::PLEVS::Serum, Peak Level</includedValues>
+                    <includedValues>v2-0487::PLR::Pleural fluid (thoracentesis fluid)</includedValues>
+                    <includedValues>v2-0487::PMN::Polymorphonuclear neutrophils</includedValues>
+                    <includedValues>v2-0487::PND::Drainage, Penile</includedValues>
+                    <includedValues>v2-0487::POL::Polyps</includedValues>
+                    <includedValues>v2-0487::POPGS::Graft Site, Popliteal</includedValues>
+                    <includedValues>v2-0487::POPLG::Graft, Popliteal</includedValues>
+                    <includedValues>v2-0487::POPLV::Site, Popliteal Vein</includedValues>
+                    <includedValues>v2-0487::PORTA::Catheter, Porta</includedValues>
+                    <includedValues>v2-0487::PPP::Plasma, Platelet poor</includedValues>
+                    <includedValues>v2-0487::PROST::Prosthetic Device</includedValues>
+                    <includedValues>v2-0487::PRP::Plasma, Platelet rich</includedValues>
+                    <includedValues>v2-0487::PSC::Pseudocyst</includedValues>
+                    <includedValues>v2-0487::PUNCT::Wound, Puncture</includedValues>
+                    <includedValues>v2-0487::PUS::Pus</includedValues>
+                    <includedValues>v2-0487::PUSFR::Pustule</includedValues>
+                    <includedValues>v2-0487::PUST::Pus</includedValues>
+                    <includedValues>v2-0487::QC3::Quality Control</includedValues>
+                    <includedValues>v2-0487::RANDU::Urine, Random</includedValues>
+                    <includedValues>v2-0487::RBC::Erythrocytes</includedValues>
+                    <includedValues>v2-0487::RBITE::Bite, Reptile</includedValues>
+                    <includedValues>v2-0487::RECT::Drainage, Rectal</includedValues>
+                    <includedValues>v2-0487::RECTA::Abscess, Rectal</includedValues>
+                    <includedValues>v2-0487::RENALC::Cyst, Renal</includedValues>
+                    <includedValues>v2-0487::RENC::Fluid, Renal Cyst</includedValues>
+                    <includedValues>v2-0487::RES::Respiratory</includedValues>
+                    <includedValues>v2-0487::SAL::Saliva</includedValues>
+                    <includedValues>v2-0487::SCAR::Tissue, Keloid (Scar)</includedValues>
+                    <includedValues>v2-0487::SCLV::Catheter Tip, Subclavian</includedValues>
+                    <includedValues>v2-0487::SCROA::Abscess, Scrotal</includedValues>
+                    <includedValues>v2-0487::SECRE::Secretion(s)</includedValues>
+                    <includedValues>v2-0487::SER::Serum</includedValues>
+                    <includedValues>v2-0487::SHU::Site, Shunt</includedValues>
+                    <includedValues>v2-0487::SHUNF::Fluid, Shunt</includedValues>
+                    <includedValues>v2-0487::SHUNT::Shunt</includedValues>
+                    <includedValues>v2-0487::SITE::Site</includedValues>
+                    <includedValues>v2-0487::SKBP::Biopsy, Skin</includedValues>
+                    <includedValues>v2-0487::SKN::Skin</includedValues>
+                    <includedValues>v2-0487::SMM::Mass, Sub-Mandibular</includedValues>
+                    <includedValues>v2-0487::SMN::Seminal fluid</includedValues>
+                    <includedValues>v2-0487::SNV::Fluid, synovial (Joint fluid)</includedValues>
+                    <includedValues>v2-0487::SPRM::Spermatozoa</includedValues>
+                    <includedValues>v2-0487::SPRP::Catheter Tip, Suprapubic</includedValues>
+                    <includedValues>v2-0487::SPRPB::Cathether Tip, Suprapubic</includedValues>
+                    <includedValues>v2-0487::SPS::Environmental, Spore Strip</includedValues>
+                    <includedValues>v2-0487::SPT::Sputum</includedValues>
+                    <includedValues>v2-0487::SPTC::Sputum - coughed</includedValues>
+                    <includedValues>v2-0487::SPTT::Sputum - tracheal aspirate</includedValues>
+                    <includedValues>v2-0487::SPUT1::Sputum, Simulated</includedValues>
+                    <includedValues>v2-0487::SPUTIN::Sputum, Inducted</includedValues>
+                    <includedValues>v2-0487::SPUTSP::Sputum, Spontaneous</includedValues>
+                    <includedValues>v2-0487::STER::Environmental, Sterrad</includedValues>
+                    <includedValues>v2-0487::STL::Stool = Fecal</includedValues>
+                    <includedValues>v2-0487::STONE::Stone, Kidney</includedValues>
+                    <includedValues>v2-0487::SUBMA::Abscess, Submandibular</includedValues>
+                    <includedValues>v2-0487::SUBMX::Abscess, Submaxillary</includedValues>
+                    <includedValues>v2-0487::SUMP::Drainage, Sump</includedValues>
+                    <includedValues>v2-0487::SUP::Suprapubic Tap</includedValues>
+                    <includedValues>v2-0487::SUTUR::Suture</includedValues>
+                    <includedValues>v2-0487::SWGZ::Catheter Tip, Swan Gantz</includedValues>
+                    <includedValues>v2-0487::SWT::Sweat</includedValues>
+                    <includedValues>v2-0487::TASP::Aspirate, Tracheal</includedValues>
+                    <includedValues>v2-0487::TEAR::Tears</includedValues>
+                    <includedValues>v2-0487::THRB::Thrombocyte (platelet)</includedValues>
+                    <includedValues>v2-0487::TISS::Tissue</includedValues>
+                    <includedValues>v2-0487::TISU::Tissue ulcer</includedValues>
+                    <includedValues>v2-0487::TLC::Cathether Tip, Triple Lumen</includedValues>
+                    <includedValues>v2-0487::TRAC::Site, Tracheostomy</includedValues>
+                    <includedValues>v2-0487::TRANS::Transudate</includedValues>
+                    <includedValues>v2-0487::TSERU::Serum, Trough</includedValues>
+                    <includedValues>v2-0487::TSTES::Abscess, Testicular</includedValues>
+                    <includedValues>v2-0487::TTRA::Aspirate, Transtracheal</includedValues>
+                    <includedValues>v2-0487::TUBES::Tubes</includedValues>
+                    <includedValues>v2-0487::TUMOR::Tumor</includedValues>
+                    <includedValues>v2-0487::TZANC::Smear, Tzanck</includedValues>
+                    <includedValues>v2-0487::UDENT::Source, Unidentified</includedValues>
+                    <includedValues>v2-0487::UMED::Unknown Medicine</includedValues>
+                    <includedValues>v2-0487::UR::Urine</includedValues>
+                    <includedValues>v2-0487::URC::Urine clean catch</includedValues>
+                    <includedValues>v2-0487::URINB::Urine, Bladder Washings</includedValues>
+                    <includedValues>v2-0487::URINC::Urine, Catheterized</includedValues>
+                    <includedValues>v2-0487::URINM::Urine, Midstream</includedValues>
+                    <includedValues>v2-0487::URINN::Urine, Nephrostomy</includedValues>
+                    <includedValues>v2-0487::URINP::Urine, Pedibag</includedValues>
+                    <includedValues>v2-0487::URNS::Urine sediment</includedValues>
+                    <includedValues>v2-0487::URT::Urine catheter</includedValues>
+                    <includedValues>v2-0487::USCOP::Urine, Cystoscopy</includedValues>
+                    <includedValues>v2-0487::USPEC::Source, Unspecified</includedValues>
+                    <includedValues>v2-0487::USUB::Unkown substance</includedValues>
+                    <includedValues>v2-0487::VASTIP::Catheter Tip, Vas</includedValues>
+                    <includedValues>v2-0487::VENT::Catheter Tip, Ventricular</includedValues>
+                    <includedValues>v2-0487::VITF::Vitreous Fluid</includedValues>
+                    <includedValues>v2-0487::VOM::Vomitus</includedValues>
+                    <includedValues>v2-0487::WASH::Wash</includedValues>
+                    <includedValues>v2-0487::WASI::Washing, e.g. bronchial washing</includedValues>
+                    <includedValues>v2-0487::WAT::Water</includedValues>
+                    <includedValues>v2-0487::WB::Blood, Whole</includedValues>
+                    <includedValues>v2-0487::WBC::Leukocytes</includedValues>
+                    <includedValues>v2-0487::WEN::Wen</includedValues>
+                    <includedValues>v2-0487::WICK::Wick</includedValues>
+                    <includedValues>v2-0487::WND::Wound</includedValues>
+                    <includedValues>v2-0487::WNDA::Wound abscess</includedValues>
+                    <includedValues>v2-0487::WNDD::Wound drainage</includedValues>
+                    <includedValues>v2-0487::WNDE::Wound exudate</includedValues>
+                    <includedValues>v2-0487::WORM::Worm</includedValues>
+                    <includedValues>v2-0487::WRT::Wart</includedValues>
+                    <includedValues>v2-0487::WWA::Environmental, Water</includedValues>
+                    <includedValues>v2-0487::WWO::Environmental, Water (Ocean)</includedValues>
+                    <includedValues>v2-0487::WWT::Environmental, Water (Tap)</includedValues>
+                </constraint>
+            </Rule>
+            <Rule max="0" path="/data[at0001]/items[at0019]"/>
+            <Rule max="0" path="/data[at0001]/items[at0004]"/>
+            <Rule max="0" path="/data[at0001]/items[at0005]"/>
+            <Rule max="0" path="/data[at0001]/items[at0006]"/>
+            <Rule max="0" path="/data[at0001]/items[at0007]"/>
+            <Rule max="0" path="/data[at0001]/items[at0010]"/>
+            <Rule max="0" path="/data[at0001]/items[at0011]"/>
+            <Rule max="0" path="/data[at0001]/items[at0012]"/>
+            <Items archetype_id="openEHR-EHR-CLUSTER.specimen.v1"
+                max="1" path="/data[at0001]/items[at0008]" xsi:type="tem:CLUSTER">
+                <Rule max="0" path="/items[at0029]"/>
+                <Rule max="0" path="/items[at0098]"/>
+                <Rule path="/items[at0097]">
+                    <constraint xsi:type="tem:textConstraint">
+                        <includedValues>v2.0493::AUT::Autolyzed</includedValues>
+                        <includedValues>v2.0493::CLOT::Clotted</includedValues>
+                        <includedValues>v2.0493::CON::Contaminated</includedValues>
+                        <includedValues>v2.0493::COOL::Cool</includedValues>
+                        <includedValues>v2.0493::FROZ::Frozen</includedValues>
+                        <includedValues>v2.0493::HEM::Hemolyzed</includedValues>
+                        <includedValues>v2.0493::LIVE::Live</includedValues>
+                        <includedValues>v2.0493::ROOM::Room temperature</includedValues>
+                        <includedValues>v2.0493::SNR::Sample not received</includedValues>
+                        <includedValues>v2.0493::CFU::Centrifuged</includedValues>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0099]"/>
+                <Rule max="0" path="/items[at0001]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Identifier</includedTypes>
+                        <includedTypes>Text</includedTypes>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0088]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Identifier</includedTypes>
+                        <includedTypes>Text</includedTypes>
+                    </constraint>
+                </Rule>
+                <Rule name="Fastenstatus" path="/items[at0008]">
+                    <constraint xsi:type="tem:textConstraint">
+                        <includedValues>v2-0916::F::Patient was fasting prior to the procedure.</includedValues>
+                        <includedValues>v2-0916::NF::The patient indicated they did not fast prior to the procedure.</includedValues>
+                        <includedValues>v2-0916::NG::Not Given - Patient was not asked at the time of the procedure.</includedValues>
+                    </constraint>
+                </Rule>
+                <Rule path="/items[at0007]">
+                    <constraint xsi:type="tem:textConstraint">
+                        <includedValues>SNOMED_CT::129316008::Aspiration - action</includedValues>
+                        <includedValues>SNOMED_CT::129314006::Biopsy - action</includedValues>
+                        <includedValues>SNOMED_CT::129300006::Puncture - action</includedValues>
+                        <includedValues>SNOMED_CT::129304002::Excision - action</includedValues>
+                        <includedValues>SNOMED_CT::129323009::Scraping - action</includedValues>
+                        <includedValues>SNOMED_CT::73416001::Urine specimen collection, clean catch</includedValues>
+                        <includedValues>SNOMED_CT::225113003::Timed urine collection</includedValues>
+                        <includedValues>SNOMED_CT::70777001::Urine specimen collection, catheterized</includedValues>
+                        <includedValues>SNOMED_CT::386089008::Collection of coughed sputum</includedValues>
+                        <includedValues>SNOMED_CT::278450005::Finger-prick sampling</includedValues>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0079]"/>
+                <Rule max="0" path="/items[at0087]"/>
+                <Rule max="0" path="/items[at0005]"/>
+                <Rule max="0" path="/items[at0067]"/>
+                <Rule max="0" path="/items[at0080]">
+                    <constraint xsi:type="tem:countConstraint">
+                        <minMagnitude>0</minMagnitude>
+                        <includesMaximum>false</includesMaximum>
+                        <includesMinimum>true</includesMinimum>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0003]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Identifier</includedTypes>
+                        <includedTypes>Text</includedTypes>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0042]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Coded_text</includedTypes>
+                        <includedTypes>Text</includedTypes>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0041]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Coded_text</includedTypes>
+                        <includedTypes>Text</includedTypes>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0045]"/>
+                <Items
+                    archetype_id="openEHR-EHR-CLUSTER.specimen_container.v1"
+                    max="1" path="/items[at0085]" xsi:type="tem:CLUSTER">
+                    <Rule path="/items[at0005]">
+                        <constraint xsi:type="tem:textConstraint">
+                            <includedValues>SNOMED_CT::434711009::Specimen container</includedValues>
+                            <includedValues>SNOMED_CT::706437002::Container (physical object)</includedValues>
+                            <includedValues>SNOMED_CT::706046003::Specimen receptacle (physical object)</includedValues>
+                        </constraint>
+                    </Rule>
+                    <Rule max="0" path="/items[at0037]"/>
+                    <Rule max="0" path="/items[at0026]"/>
+                    <Rule max="0" path="/items[at0038]">
+                        <constraint xsi:type="tem:multipleConstraint">
+                            <includedTypes>Text</includedTypes>
+                            <includedTypes>Quantity</includedTypes>
+                        </constraint>
+                    </Rule>
+                </Items>
+                <Items
+                    archetype_id="openEHR-EHR-CLUSTER.specimen_preparation.v0"
+                    path="/items[at0068]" xsi:type="tem:CLUSTER">
+                    <Rule
+                        name="Datum und Zeit des Aufbereitungsschrittes - Start" path="/items[at0072]"/>			
+					<Rule  clone="true"
+                        name="Datum und Zeit des Aufbereitungsschrittes - Ende" path="/items[at0072]"/>					
+					<Rule path="/items[at0071]">	
+                        <constraint xsi:type="tem:textConstraint">
+                            <includedValues>SNOMED_CT::310076001::Chemical Pathology</includedValues>
+                            <includedValues>SNOMED_CT::310078000::Microbiology</includedValues>
+                            <includedValues>SNOMED_CT::708196005::Hematology</includedValues>
+                            <includedValues>SNOMED_CT::788124003::Histopathology</includedValues>
+                            <includedValues>SNOMED_CT::310200001::Cytology</includedValues>
+                            <includedValues>SNOMED_CT::708194008::Blood bank service</includedValues>
+                        </constraint>
+                    </Rule>
+					                    <Rule path="/items[at0071]">	
+						<constraint xsi:type="tem:textConstraint">
+							<excludedValues>local::at0078</excludedValues>
+							<excludedValues>local::at0079</excludedValues>
+							<excludedValues>local::at0080</excludedValues>
+							<excludedValues>local::at0081</excludedValues>
+							<excludedValues>local::at0082</excludedValues>
+							<excludedValues>local::at0083</excludedValues>
+						</constraint>
+					</Rule>	
+                    <Rule max="0" path="/items[at0074]"/>
+                    <Rule max="0" path="/items[at0087]"/>
+                    <Rule name="Temperaturbedingungen" path="/items[at0086]/items[at0073]"/>
+                    <Rule max="0" path="/items[at0086]/items[at0084]"/>
+                    <Rule max="0" path="/items[at0086]/items[at0075]"/>
+                    <Rule max="0" path="/items[at0086]/items[at0076]"/>
+                </Items>
+                <Items
+                    archetype_id="openEHR-EHR-CLUSTER.item_transport.v1"
+                    max="0" path="/items[at0093]" xsi:type="tem:CLUSTER"/>
+                <Items
+                    archetype_id="openEHR-EHR-CLUSTER.specimen_measurements.v1"
+                    max="1" path="/items[at0027]" xsi:type="tem:CLUSTER">
+                    <Rule max="0" path="/items[at0042]">
+                        <constraint xsi:type="tem:quantityConstraint">
+                            <unitMagnitude>
+                                <unit>mm</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                            <unitMagnitude>
+                                <unit>[ft_i]</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                            <unitMagnitude>
+                                <unit>[in_i]</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                            <unitMagnitude>
+                                <unit>um</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                            <unitMagnitude>
+                                <unit>cm</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                            <unitMagnitude>
+                                <unit>m</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                            <unitMagnitude>
+                                <unit>nm</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                        </constraint>
+                    </Rule>
+                    <Rule max="0" path="/items[at0055]">
+                        <constraint xsi:type="tem:quantityConstraint">
+                            <unitMagnitude>
+                                <unit>mm</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                            <unitMagnitude>
+                                <unit>[ft_i]</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                            <unitMagnitude>
+                                <unit>[in_i]</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                            <unitMagnitude>
+                                <unit>um</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                            <unitMagnitude>
+                                <unit>cm</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                            <unitMagnitude>
+                                <unit>m</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                            <unitMagnitude>
+                                <unit>nm</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                        </constraint>
+                    </Rule>
+                    <Rule max="0" path="/items[at0020]">
+                        <constraint xsi:type="tem:quantityConstraint">
+                            <unitMagnitude>
+                                <unit>ug</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                            <unitMagnitude>
+                                <unit>g</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                            <unitMagnitude>
+                                <unit>ng</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                            <unitMagnitude>
+                                <unit>mg</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                            <unitMagnitude>
+                                <unit>[oz_av]</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                            <unitMagnitude>
+                                <unit>kg</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                            <unitMagnitude>
+                                <unit>[lb_av]</unit>
+                                <minMagnitude>0.0</minMagnitude>
+                                <includesMaximum>false</includesMaximum>
+                                <includesMinimum>true</includesMinimum>
+                            </unitMagnitude>
+                        </constraint>
+                    </Rule>
+                </Items>
+                <Items
+                    archetype_id="openEHR-EHR-CLUSTER.anatomical_location.v1"
+                    concept_name="Anatomische Lokalisation" max="1"
+                    name="BodySite Code sct" path="/items[at0013]" xsi:type="tem:CLUSTER">
+                    <Rule name="Body site code" path="/items[at0001]"/>
+                    <Rule max="0" path="/items[at0065]"/>
+                    <Rule max="0" path="/items[at0002]"/>
+                    <Rule max="0" path="/items[at0064]">
+                        <constraint xsi:type="tem:multipleConstraint">
+                            <includedTypes>Coded_text</includedTypes>
+                            <includedTypes>Text</includedTypes>
+                        </constraint>
+                    </Rule>
+                    <Rule max="0" path="/items[at0055]">
+                        <constraint xsi:type="tem:multipleConstraint">
+                            <includedTypes>Coded_text</includedTypes>
+                            <includedTypes>Text</includedTypes>
+                        </constraint>
+                    </Rule>
+                    <Rule max="0" path="/items[at0023]"/>
+                </Items>
+                <Items
+                    archetype_id="openEHR-EHR-CLUSTER.anatomical_location.v1"
+                    concept_name="Anatomische Lokalisation" max="1"
+                    name="BodySite Code icd-o-3" path="/items[at0013]" xsi:type="tem:CLUSTER">
+                    <Rule name="Body site code" path="/items[at0001]"/>
+                    <Rule max="0" path="/items[at0065]"/>
+                    <Rule max="0" path="/items[at0002]"/>
+                    <Rule max="0" path="/items[at0064]">
+                        <constraint xsi:type="tem:multipleConstraint">
+                            <includedTypes>Coded_text</includedTypes>
+                            <includedTypes>Text</includedTypes>
+                        </constraint>
+                    </Rule>
+                    <Rule max="0" path="/items[at0055]">
+                        <constraint xsi:type="tem:multipleConstraint">
+                            <includedTypes>Coded_text</includedTypes>
+                            <includedTypes>Text</includedTypes>
+                        </constraint>
+                    </Rule>
+                    <Rule max="0" path="/items[at0023]"/>
+                </Items>
+                <Items archetype_id="openEHR-EHR-CLUSTER.person.v1"
+                    concept_name="Person" max="1"
+                    name="Angaben zum Probenehmer" path="/items[at0071]" xsi:type="tem:CLUSTER">
+                    <Rule max="0" path="/items[at0011]"/>
+                </Items>
+            </Items>
+            <Items archetype_id="openEHR-EHR-CLUSTER.biobank_storage.v0"
+                max="1" path="/data[at0001]/items[at0009]" xsi:type="tem:CLUSTER">
+                <Rule path="/items[at0002]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Identifier</includedTypes>
+                        <includedTypes>Text</includedTypes>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0003]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Identifier</includedTypes>
+                        <includedTypes>Text</includedTypes>
+                    </constraint>
+                </Rule>
+                <Rule max="0" path="/items[at0005]">
+                    <constraint xsi:type="tem:multipleConstraint">
+                        <includedTypes>Identifier</includedTypes>
+                        <includedTypes>Text</includedTypes>
+                    </constraint>
+                </Rule>
+                <Items
+                    archetype_id="openEHR-EHR-CLUSTER.organisation.v1"
+                    max="1" path="/items[at0004]" xsi:type="tem:CLUSTER">
+                    <Rule name="Rolle" path="/items[at0004]"/>
+                    <Rule max="0" path="/items[at0019]"/>
+                    <Items archetype_id="openEHR-EHR-CLUSTER.address.v1"
+                        max="1" path="/items[at0005]" xsi:type="tem:CLUSTER">
+                        <Rule max="0" path="/items[at0007]">
+                            <constraint xsi:type="tem:quantityConstraint">
+                                <unitMagnitude>
+                                    <unit>deg</unit>
+                                    <maxMagnitude>90.0</maxMagnitude>
+                                    <minMagnitude>-90.0</minMagnitude>
+                                    <includesMaximum>true</includesMaximum>
+                                    <includesMinimum>true</includesMinimum>
+                                </unitMagnitude>
+                            </constraint>
+                        </Rule>
+                        <Rule max="0" path="/items[at0008]">
+                            <constraint xsi:type="tem:quantityConstraint">
+                                <unitMagnitude>
+                                    <unit>deg</unit>
+                                    <maxMagnitude>180.0</maxMagnitude>
+                                    <minMagnitude>-180.0</minMagnitude>
+                                    <includesMaximum>true</includesMaximum>
+                                    <includesMinimum>true</includesMinimum>
+                                </unitMagnitude>
+                            </constraint>
+                        </Rule>
+                        <Rule max="0" path="/items[at0009]">
+                            <constraint xsi:type="tem:quantityConstraint"/>
+                        </Rule>
+                        <Rule max="0" path="/items[at0019]"/>
+                        <Rule max="0" path="/items[at0010]">
+                            <constraint xsi:type="tem:multipleConstraint">
+                                <includedTypes>Coded_text</includedTypes>
+                                <includedTypes>Text</includedTypes>
+                            </constraint>
+                        </Rule>
+                        <Rule max="0" path="/items[at0014]">
+                            <constraint xsi:type="tem:multipleConstraint">
+                                <includedTypes>Coded_text</includedTypes>
+                                <includedTypes>Text</includedTypes>
+                            </constraint>
+                        </Rule>
+                        <Rule max="0" path="/items[at0018]"/>
+                    </Items>
+                    <Items archetype_id="openEHR-EHR-CLUSTER.person.v1"
+                        max="1" path="/items[at0002]" xsi:type="tem:CLUSTER">
+                        <Rule max="0" path="/items[at0011]"/>
+                        <Rule max="0" path="/items[at0003]">
+                            <constraint xsi:type="tem:multipleConstraint">
+                                <includedTypes>Identifier</includedTypes>
+                                <includedTypes>Text</includedTypes>
+                            </constraint>
+                        </Rule>
+                        <Rule max="0" path="/items[at0004]"/>
+                        <Rule max="0" path="/items[at0010]"/>
+                        <Items
+                            archetype_id="openEHR-EHR-CLUSTER.structured_name.v1"
+                            max="1" path="/items[at0002]" xsi:type="tem:CLUSTER"/>
+                        <Items
+                            archetype_id="openEHR-EHR-CLUSTER.electronic_communication.v1"
+                            max="1" path="/items[at0006]" xsi:type="tem:CLUSTER">
+                            <Rule max="0" path="/items[at0003]">
+                                <constraint xsi:type="tem:multipleConstraint">
+                                    <includedTypes>Text</includedTypes>
+                                    <includedTypes>Coded_text</includedTypes>
+                                </constraint>
+                            </Rule>
+                            <Rule max="0" path="/items[at0004]"/>
+                        </Items>
+                        <Items
+                            archetype_id="openEHR-EHR-CLUSTER.address.v1"
+                            max="1" path="/items[at0005]" xsi:type="tem:CLUSTER">
+                            <Rule max="0" path="/items[at0007]">
+                                <constraint xsi:type="tem:quantityConstraint">
+                                    <unitMagnitude>
+                                    <unit>deg</unit>
+                                    <maxMagnitude>90.0</maxMagnitude>
+                                    <minMagnitude>-90.0</minMagnitude>
+                                    <includesMaximum>true</includesMaximum>
+                                    <includesMinimum>true</includesMinimum>
+                                    </unitMagnitude>
+                                </constraint>
+                            </Rule>
+                            <Rule max="0" path="/items[at0008]">
+                                <constraint xsi:type="tem:quantityConstraint">
+                                    <unitMagnitude>
+                                    <unit>deg</unit>
+                                    <maxMagnitude>180.0</maxMagnitude>
+                                    <minMagnitude>-180.0</minMagnitude>
+                                    <includesMaximum>true</includesMaximum>
+                                    <includesMinimum>true</includesMinimum>
+                                    </unitMagnitude>
+                                </constraint>
+                            </Rule>
+                            <Rule max="0" path="/items[at0009]">
+                                <constraint xsi:type="tem:quantityConstraint"/>
+                            </Rule>
+                            <Rule max="0" path="/items[at0019]"/>
+                            <Rule max="0" path="/items[at0010]">
+                                <constraint xsi:type="tem:multipleConstraint">
+                                    <includedTypes>Coded_text</includedTypes>
+                                    <includedTypes>Text</includedTypes>
+                                </constraint>
+                            </Rule>
+                            <Rule max="0" path="/items[at0014]">
+                                <constraint xsi:type="tem:multipleConstraint">
+                                    <includedTypes>Coded_text</includedTypes>
+                                    <includedTypes>Text</includedTypes>
+                                </constraint>
+                            </Rule>
+                            <Rule max="0" path="/items[at0018]"/>
+                        </Items>
+                    </Items>
+                    <Items
+                        archetype_id="openEHR-EHR-CLUSTER.electronic_communication.v1"
+                        max="1" path="/items[at0022]" xsi:type="tem:CLUSTER">
+                        <Rule max="0" path="/items[at0003]">
+                            <constraint xsi:type="tem:multipleConstraint">
+                                <includedTypes>Text</includedTypes>
+                                <includedTypes>Coded_text</includedTypes>
+                            </constraint>
+                        </Rule>
+                        <Rule max="0" path="/items[at0004]"/>
+                    </Items>
+                </Items>
+            </Items>
+            <Items
+                archetype_id="openEHR-EHR-CLUSTER.specimen_container.v1"
+                max="0" path="/data[at0001]/items[at0009]" xsi:type="tem:CLUSTER">
+                <Items
+                    archetype_id="openEHR-EHR-CLUSTER.specimen_container.v1"
+                    max="1" path="/items[at0029]" xsi:type="tem:CLUSTER"/>
+            </Items>
+        </Content>
+        <Content
+            archetype_id="openEHR-EHR-EVALUATION.problem_diagnosis.v1"
+            max="0" path="/content" xsi:type="tem:EVALUATION"/>
+        <Context>
+            <Items
+                archetype_id="openEHR-EHR-CLUSTER.case_identification.v0"
+                max="1"
+                path="/context/other_context[at0001]/items[at0006]" xsi:type="tem:CLUSTER">
+                <Rule max="0" path="/items[at0002]"/>
+                <Rule max="0" path="/items[at0003]"/>
+                <Rule max="0" path="/items[at0006]"/>
+            </Items>
+        </Context>
+        <Rule path="/context/other_context[at0001]/items[at0005]">
+            <constraint xsi:type="tem:textConstraint">
+                <includedValues>specimen-status::available::Available</includedValues>
+                <includedValues>specimen-status::unavailable::Unavailable</includedValues>
+                <includedValues>specimen-status::unsatisfactory::Unsatisfactory</includedValues>
+                <includedValues>specimen-status::entered-in-error::Entered in Error</includedValues>
+            </constraint>
+        </Rule>
+    </definition>
+    <integrity_checks archetype_id="openEHR-EHR-COMPOSITION.report.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">005501C1FA493A4838F5F1121F2870EC</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-CLUSTER.case_identification.v0"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">D94F932D76D2D0389D242063ED336124</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-EVALUATION.biospecimen_summary.v0"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">258FEA0784B0A4564F3EEACE5743AB0B</digest>
+    </integrity_checks>
+    <integrity_checks archetype_id="openEHR-EHR-CLUSTER.specimen.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">E637F4E72B8AF6864C778C54E519ADA4</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-CLUSTER.specimen_container.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">86469A298616E7CE233B12A8019966B0</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-CLUSTER.specimen_preparation.v0"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">C90F6FADFEB1D1C3AE7A8B590EF3C854</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-CLUSTER.item_transport.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">EBB583DE22FE245E3A2A686E2CD7A206</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-CLUSTER.specimen_measurements.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">3469A60230040CB30E2DAFD00B6CE775</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-CLUSTER.anatomical_location.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">62823A86BC1C2B02574125E21F5DECCB</digest>
+    </integrity_checks>
+    <integrity_checks archetype_id="openEHR-EHR-CLUSTER.person.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">F1B417CBAE0A0D6B70856C5909865044</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-CLUSTER.biobank_storage.v0"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">BABBDC122A1E40862A8A1A85BAC92C24</digest>
+    </integrity_checks>
+    <integrity_checks archetype_id="openEHR-EHR-CLUSTER.organisation.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">5DFD0809E7CD46EA0712A590C68F545B</digest>
+    </integrity_checks>
+    <integrity_checks archetype_id="openEHR-EHR-CLUSTER.address.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">2133C3C9ED943180AF0FD5076B412AD5</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-CLUSTER.structured_name.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">A4D707D0D454BFB769D4ECF76F5EA736</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-CLUSTER.electronic_communication.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">631B12227B6F857367CA40D256DD814A</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-EVALUATION.problem_diagnosis.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">86372236E61A02A1C3905BA9033C255F</digest>
+    </integrity_checks>
+</template>

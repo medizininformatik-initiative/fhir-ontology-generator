@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template xmlns="openEHR/v1/Template">
+    <id>e90d1b02-c0d7-4b06-b997-6e81b283944d</id>
+    <name>Sonstiger Versorgungsfall</name>
+    <description>
+        <lifecycle_state>published</lifecycle_state>
+        <details>
+            <purpose>Zur Repräsentation der administrativen Daten eines nicht-stationären Falls eines Patienten innerhalb einer Gesundheitseinrichtung. Für alle Fälle geeignet, die nicht durch eine reguläre Aufnahme und Entlassung beschrieben werden.</purpose>
+            <keywords>
+                <item>Versorgungsfall</item>
+                <item>Fall</item>
+                <item>Encounter</item>
+                <item>Kerndatensatz</item>
+                <item>Ambulant</item>
+                <item>Prästationär</item>
+                <item>Nachstationär</item>
+            </keywords>
+            <use>Für die Abbildung prästationärer, nachstationärer, ambulanter oder sonstiger Aufenthalte eines Patienten in einer Gesundheitseinrichtung.</use>
+            <misuse>Nicht zur Repräsentation eines einzelnen Aufenthalts eines Patienten auf einer Station zu verwenden. 
+Nicht zur Repräsentation eines stationären Versorgungsfalls mit regulärer Patientenaufnahme und -entlassung zu verwenden. Bitte das Template "Stationärer Versorgungsfall" dafür verwenden.
+	 	  </misuse>
+        </details>
+        <other_details>
+            <item>
+                <key>MetaDataSet:Sample Set </key>
+                <value>Template metadata sample set </value>
+            </item>
+            <item>
+                <key>Acknowledgements</key>
+                <value/>
+            </item>
+            <item>
+                <key>Business Process Level</key>
+                <value/>
+            </item>
+            <item>
+                <key>Care setting</key>
+                <value/>
+            </item>
+            <item>
+                <key>Client group</key>
+                <value/>
+            </item>
+            <item>
+                <key>Clinical Record Element</key>
+                <value/>
+            </item>
+            <item>
+                <key>Copyright</key>
+                <value/>
+            </item>
+            <item>
+                <key>Issues</key>
+                <value/>
+            </item>
+            <item>
+                <key>Owner</key>
+                <value/>
+            </item>
+            <item>
+                <key>Sign off</key>
+                <value/>
+            </item>
+            <item>
+                <key>Speciality</key>
+                <value/>
+            </item>
+            <item>
+                <key>User roles</key>
+                <value/>
+            </item>
+            <item>
+                <key>MD5-CAM-1.0.1</key>
+                <value>c9707a5a1d271c94b617869ac9b80586</value>
+            </item>
+            <item>
+                <key>PARENT:MD5-CAM-1.0.1</key>
+                <value>AFFFB351A3113D61F0822FEBDF5F42E3</value>
+            </item>
+            <item>
+                <key>original_language</key>
+                <value>ISO_639-1::de</value>
+            </item>
+            <item>
+                <key>sem_ver</key>
+                <value>5.0.0</value>
+            </item>
+            <item>
+                <key>build_uid</key>
+                <value/>
+            </item>
+            <item>
+                <key>original_language</key>
+                <value>ISO_639-1::de</value>
+            </item>
+        </other_details>
+    </description>
+    <annotations path="[openEHR-EHR-COMPOSITION.fall.v1]/context/other_context[at0001]/items[at0011]">
+        <items>
+            <item>
+                <key>fhir</key>
+                <value>Encounter.partOf</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.fall.v1]/context/other_context[at0001]/items[at0010]">
+        <items>
+            <item>
+                <key>fhir</key>
+                <value>Encounter.status</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.fall.v1]/context/other_context[at0001]/items[openEHR-EHR-CLUSTER.organization.v0]">
+        <items>
+            <item>
+                <key>fhir</key>
+                <value>Organization</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.fall.v1]/context/other_context[at0001]/items[openEHR-EHR-CLUSTER.organization.v0]/items[at0051]">
+        <items>
+            <item>
+                <key>fhir</key>
+                <value>Organization.type</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.fall.v1]/context/other_context[at0001]/items[openEHR-EHR-CLUSTER.organization.v0]/items[at0050]">
+        <items>
+            <item>
+                <key>fhir</key>
+                <value>Organization.active</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.fall.v1]/context/other_context[at0001]/items[openEHR-EHR-CLUSTER.organization.v0]/items[at0052]">
+        <items>
+            <item>
+                <key>fhir</key>
+                <value>Organization.name</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.fall.v1]/context/other_context[at0001]/items[openEHR-EHR-CLUSTER.organization.v0]/items[at0024]">
+        <items>
+            <item>
+                <key>fhir</key>
+                <value>Organization.identifier</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.fall.v1]/context/other_context[at0001]/items[openEHR-EHR-CLUSTER.organization.v0]/items[at0047]">
+        <items>
+            <item>
+                <key>fhir</key>
+                <value>Organization.address</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.fall.v1]/context/other_context[at0001]/items[openEHR-EHR-CLUSTER.organization.v0]/items[at0051]">
+        <items>
+            <item>
+                <key>fhir</key>
+                <value>Organization.type</value>
+            </item>
+        </items>
+    </annotations>
+    <annotations path="[openEHR-EHR-COMPOSITION.fall.v1]/context/other_context[at0001]/items[openEHR-EHR-CLUSTER.organization.v0]/items[at0024]">
+        <items>
+            <item>
+                <key>fhir</key>
+                <value>Organization.identifier</value>
+            </item>
+        </items>
+    </annotations>
+    <definition archetype_id="openEHR-EHR-COMPOSITION.fall.v1"
+        concept_name="Fall" name="Sonstiger Versorgungsfall"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:COMPOSITION">
+        <Content
+            archetype_id="openEHR-EHR-ADMIN_ENTRY.hospitalization.v0"
+            concept_name="Aufenthaltsdaten" max="1" min="1"
+            name="Versorgungsaufenthalt" path="/content" xsi:type="tem:ADMIN_ENTRY">
+            <Rule max="0" path="/data[at0001]/items[at0003]"/>
+            <Rule min="1" path="/data[at0001]/items[at0004]"/>
+            <Rule max="0" path="/data[at0001]/items[at0009]"/>
+        </Content>
+        <Context>
+            <Items archetype_id="openEHR-EHR-CLUSTER.organization.v0"
+                concept_name="Organisationseinheit"
+                name="Fachliche Organisationseinheit"
+                path="/context/other_context[at0001]/items[at0012]" xsi:type="tem:CLUSTER">
+                <Rule path="/items[at0051]">
+                    <constraint limitToList="false" xsi:type="tem:textConstraint">
+                        <includedValues>local_terms::prov::Healthcare Provider</includedValues>
+                        <includedValues>local_terms::dept::Hospital Department</includedValues>
+                    </constraint>
+                </Rule>
+                <Rule path="/items[at0024]">
+                    <constraint limitToList="false" xsi:type="tem:textConstraint">
+                        <termQueryId
+                            queryName="ValueSet/$expand?url=http://fhir.de/ValueSet/dkgev/Fachabteilungsschluessel-erweitert" terminologyID="//fhir.hl7.org/"/>
+			        </constraint>
+                </Rule>
+            </Items>
+        </Context>
+        <Rule path="/context/other_context[at0001]/items[at0005]">
+            <constraint limitToList="false" xsi:type="tem:textConstraint">
+                <termQueryId
+                    queryName="ValueSet/$expand?url=http://fhir.de/ValueSet/kontaktebene-de" terminologyID="//fhir.hl7.org/"/>
+            </constraint>
+        </Rule>
+        <Rule path="/context/other_context[at0001]/items[at0004]">
+            <constraint limitToList="false" xsi:type="tem:textConstraint">
+                <includedValues>local_terms::AMB::Ambulant (ambulatory)</includedValues>
+                <includedValues>local_terms::PRENC::Prästationär (pre-admission)</includedValues>
+                <includedValues>local_terms::VR::Virtuell (virtual)</includedValues>
+                <includedValues>local_terms::HH::Stationsäquivalent (home health)</includedValues>
+            </constraint>
+        </Rule>
+        <Rule path="/context/other_context[at0001]/items[at0010]">
+            <constraint limitToList="false" xsi:type="tem:textConstraint">
+                <termQueryId
+                    queryName="ValueSet/$expand?url=http://fhir.de/ValueSet/EncounterStatusDe" terminologyID="//fhir.hl7.org/"/>
+            </constraint>
+        </Rule>
+        <Rule min="1" name="Fall-Kennung" path="/context/other_context[at0001]/items[at0003]"/>
+    </definition>
+    <integrity_checks archetype_id="openEHR-EHR-COMPOSITION.fall.v1"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">AFFFB351A3113D61F0822FEBDF5F42E3</digest>
+    </integrity_checks>
+    <integrity_checks archetype_id="openEHR-EHR-CLUSTER.organization.v0"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">D89C6BDB7361A3527154105AF319A685</digest>
+    </integrity_checks>
+    <integrity_checks
+        archetype_id="openEHR-EHR-ADMIN_ENTRY.hospitalization.v0"
+        xmlns:tem="openEHR/v1/Template"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="tem:ArchetypeIntegrity">
+        <digest id="MD5-CAM-1.0.1">4EA959CABC892EC9D75CFEFFA69A2BC1</digest>
+    </integrity_checks>
+</template>

@@ -10,7 +10,7 @@ from model.MappingDataModel import MapEntryList
 from model.UiDataModel import TermCode
 from model.AQLMappingDatatModel import AQLMapEntry, ValuePathElement
 
-COLOGNE_ONTO_SERVER = "https://ontoserver.imi.uni-luebeck.de/koeln/fhir/"
+ONTO_SERVER = os.environ.get('ONTOLOGY_SERVER_ADDRESS')
 
 
 def get_term_codes_from_annotations(template, path):
@@ -31,7 +31,7 @@ def get_term_codes_from_annotations(template, path):
                         else:
                             raise Exception(f"Unknown tag for {k_or_v}")
                         if code and display:
-                            systems = get_system_from_code(code, COLOGNE_ONTO_SERVER)
+                            systems = get_system_from_code(code, ONTO_SERVER)
                             if len(systems) == 1:
                                 results.append(TermCode(systems[0], code, display))
     return results
@@ -144,7 +144,7 @@ def generate_value_set_based_mapping(template, value_of_interest_archetype, valu
         path, open_ehr_type = get_open_ehr_type(value_of_interest_archetype, value_of_interest_path)
         value_path_list = get_value_path_list(template, value_of_interest_archetype)
         value_path = value_of_interest_path + f"/{path}"
-        for term_code in get_termcodes_from_onto_server(vs, COLOGNE_ONTO_SERVER):
+        for term_code in get_termcodes_from_onto_server(vs, ONTO_SERVER):
             entry = AQLMapEntry(term_code, open_ehr_type, value_path, value_path_list, None, None)
             result.append(entry)
     return result
@@ -160,7 +160,7 @@ def generate_value_set_based_mapping_with_value(template, term_code_archetype, t
         path, value_open_ehr_type = get_open_ehr_type(value_archetype, value_path)
         value_path_list = get_value_path_list(template, value_archetype)
         value_value_path = value_path + f"/{path}"
-        for term_code in get_termcodes_from_onto_server(vs, COLOGNE_ONTO_SERVER):
+        for term_code in get_termcodes_from_onto_server(vs, ONTO_SERVER):
             entry = AQLMapEntry(term_code, tc_open_ehr_type, tc_value_path, tc_path_list, value_value_path,
                                 value_path_list)
             result.append(entry)
@@ -369,7 +369,7 @@ def generate_impfstatus_mapping(template):
     vs = "https://www.netzwerk-universitaetsmedizin.de/fhir/ValueSet/vaccines-atc"
     value_of_interest_archetype = "openEHR-EHR-ACTION.medication.v1"
     value_of_interest_path = "/description[at0017]/items[at0020]"
-    for term_code in get_termcodes_from_onto_server(vs, COLOGNE_ONTO_SERVER):
+    for term_code in get_termcodes_from_onto_server(vs, ONTO_SERVER):
         path, open_ehr_type = get_open_ehr_type(value_of_interest_archetype, value_of_interest_path)
         value_path_list = get_value_path_list(template, value_of_interest_archetype)
         value_path = value_of_interest_path + f"/{path}"
@@ -481,8 +481,8 @@ def generate_symptom_mapping(template):
 
 def generate_aql_mapping():
     result = MapEntryList()
-    for filename in os.listdir("resources/openehr/templates"):
-        ehr_template = etree.parse(f"resources\\openehr\\templates\\{filename}")
+    for filename in os.listdir("resources/openehr/templates/GECCO"):
+        ehr_template = etree.parse(f"resources\\openehr\\templates\\GECCO\\{filename}")
         name = ehr_template.xpath("/xmlns:template/xmlns:name", namespaces={"xmlns": "openEHR/v1/Template"})[
             0].text
         if name in template_translation_mapping:
