@@ -1,6 +1,7 @@
+import sys
+
 from sortedcontainers import SortedSet
 
-from Helper import str_to_class
 from model.UiDataModel import del_keys, del_none, TermCode
 import json
 
@@ -323,6 +324,10 @@ class SymptomMapEntry(MapEntry):
         self.timeRestrictionPath = "onset"
 
 
+def str_to_class(class_name):
+    return getattr(sys.modules[__name__], class_name)
+
+
 def generate_child_entries(children, class_name):
     result = SortedSet()
     for child in children:
@@ -344,5 +349,3 @@ def generate_map(categories):
             else:
                 print(terminology)
     return result
-
-

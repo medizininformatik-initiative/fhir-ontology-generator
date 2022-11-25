@@ -3,10 +3,6 @@ import sys
 from model.UiDataModel import TermCode
 
 
-def str_to_class(class_name):
-    return getattr(sys.modules[__name__], class_name)
-
-
 def traverse_tree(result, node):
     if children := node.get("children"):
         for child in children:
