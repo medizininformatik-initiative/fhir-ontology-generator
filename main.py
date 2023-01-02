@@ -3,19 +3,29 @@ import json
 import os
 import shutil
 from os import path
+from typing import List
+
 from jsonschema import validate
 
 from FHIRProfileConfiguration import *
 from database.DataBaseWriter import DataBaseWriter
 from model.MappingDataModel import generate_map
-from model.UiDataModel import TerminologyEntry, TermCode
-from geccoToUIProfiles import create_terminology_definition_for, get_gecco_categories, IGNORE_CATEGORIES, \
+from model.UiDataModel import TermEntry, TermCode
+from FHIRProfileToUIProfiles import create_terminology_definition_for, get_gecco_categories, IGNORE_CATEGORIES, \
     MAIN_CATEGORIES, IGNORE_LIST, \
     get_consent, resolve_terminology_entry_profile, get_ui_profiles, profile_is_of_interest, get_specimen
 from model.termCodeTree import to_term_code_node
+import argparse
+
+from termEntryToExcel import to_csv
 
 
-def mkdir_if_not_exists(directory):
+def mkdir_if_not_exists(directory: str):
+    """
+    Creates a directory if it does not exist
+    :param directory: name of the directory
+    :raises OSError: if the directory could not be created
+    """
     if not path.isdir(f"./{directory}"):
         try:
             os.mkdir(directory)
@@ -25,6 +35,10 @@ def mkdir_if_not_exists(directory):
 
 
 def download_core_data_set_mii():
+    """
+    Downloads the core data set from the MII and saves the profiles in the resources/core_data_sets folder
+    """
+
     def add_observation_lab_from_mii_to_gecco():
         os.system(f"fhir install {MII_LAB} --here")
         # TODO not hardcoded
@@ -43,6 +57,9 @@ def download_core_data_set_mii():
 
 
 def generate_snapshots():
+    """
+    Generates the snapshots for all the profiles in the resources/core_data_sets folder
+    """
     data_set_folders = [f.path for f in os.scandir("resources/core_data_sets") if f.is_dir()]
     saved_path = os.getcwd()
     for folder in data_set_folders:
@@ -56,7 +73,12 @@ def generate_snapshots():
         os.chdir(saved_path)
 
 
-def is_structured_definition(file):
+def is_structured_definition(file: str) -> bool:
+    """
+    Checks if a file is a structured definition
+    :param file: potential structured definition
+    :return: true if the file is a structured definition else false
+    """
     with open(file, encoding="UTF-8") as json_file:
         json_data = json.load(json_file)
         if json_data.get("resourceType") == "StructureDefinition":
@@ -64,17 +86,26 @@ def is_structured_definition(file):
         return False
 
 
-def generate_term_code_mapping(entries):
+def generate_term_code_mapping(entries: List[TermEntry]):
+    """
+    Generates the term code mapping for the given entries and saves it in the mapping folder
+    :param entries: TermEntries to generate the mapping for
+    """
     map_entries = generate_map(entries)
     map_entries_file = open("mapping/" + "codex-term-code-mapping.json", 'w')
     map_entries_file.write(map_entries.to_json())
     map_entries_file.close()
-    map_entries_file = open("mapping/" + "codex-term-code-mapping.json", 'r')
+    # map_entries_file = open("mapping/" + "codex-term-code-mapping.json", 'r')
     # validate(instance=json.load(map_entries_file), schema=json.load(open(
     #     "resources/schema/term-code-mapping-schema.json")))
 
 
-def generate_term_code_tree(entries):
+def generate_term_code_tree(entries: List[TermEntry]):
+    """
+    Generates the term code tree for the given entries and saves it in the mapping folder
+    :param entries:
+    :return:
+    """
     term_code_tree = to_term_code_node(entries)
     term_code_file = open("mapping/" + "codex-code-tree.json", 'w')
     term_code_file.write(term_code_tree.to_json())
@@ -83,9 +114,13 @@ def generate_term_code_tree(entries):
     validate(instance=json.load(term_code_file), schema=json.load(open("resources/schema/codex-code-tree-schema.json")))
 
 
-def generate_ui_profiles(entries):
+def generate_ui_profiles(entries: List[TermEntry]):
+    """
+    Generates the ui profiles for the given entries and saves them in the ui-profiles folder
+    :param entries: Terminology entries to generate the ui profiles for
+    """
     gecco_term_code = [TermCode("num.codex", "GECCO", "GECCO")]
-    gecco = TerminologyEntry(gecco_term_code, "CategoryEntry", leaf=False, selectable=False)
+    gecco = TermEntry(gecco_term_code, "CategoryEntry", leaf=False, selectable=False)
     gecco.display = "GECCO"
     for category in entries:
         if category in IGNORE_CATEGORIES:
@@ -103,12 +138,22 @@ def generate_ui_profiles(entries):
     validate_ui_profile(gecco.display)
 
 
-def validate_ui_profile(profile_name):
+def validate_ui_profile(profile_name: str):
+    """
+    Validates the ui profile with the given name against the ui profile schema
+    :param profile_name: name of the ui profile
+    :raises: jsonschema.exceptions.ValidationError if the ui profile is not valid
+             jsonschema.exceptions.SchemaError if the ui profile schema is not valid
+    """
     f = open("ui-profiles/" + profile_name + ".json", 'r')
     validate(instance=json.load(f), schema=json.load(open("resources/schema/ui-profile-schema.json")))
 
 
 def generate_result_folder():
+    """
+    Generates the mapping, csv and ui-profiles folder if they do not exist in the result folder
+    :return:
+    """
     mkdir_if_not_exists("mapping")
     mkdir_if_not_exists("csv")
     mkdir_if_not_exists("ui-profiles")
@@ -131,7 +176,7 @@ def get_data_set_snapshots(data_set):
 
 def get_module_category_entry_from_module_name(module_name):
     module_code = TermCode("mii.abide", module_name, module_name)
-    return TerminologyEntry([module_code], "Category", selectable=False, leaf=False)
+    return TermEntry([module_code], "Category", selectable=False, leaf=False)
 
 
 def generate_core_data_set():
@@ -147,8 +192,8 @@ def generate_core_data_set():
                 if not profile_is_of_interest(json_data, module_element_name):
                     continue
                 module_element_code = TermCode("mii.abide", module_element_name, module_element_name)
-                module_element_entry = TerminologyEntry([module_element_code], "Category", selectable=False,
-                                                        leaf=False)
+                module_element_entry = TermEntry([module_element_code], "Category", selectable=False,
+                                                 leaf=False)
                 resolve_terminology_entry_profile(module_element_entry,
                                                   data_set=f"resources/core_data_sets/{data_set}/package")
                 if module_category_entry.display == module_element_entry.display:
@@ -159,18 +204,30 @@ def generate_core_data_set():
                 else:
                     module_category_entry.children.append(module_element_entry)
         move_back_other(module_category_entry.children)
-        f = open("ui-profiles/" + module_category_entry.display + ".json", 'w', encoding="utf-8")
-        if len(module_category_entry.children) == 1:
-            f.write(module_category_entry.children[0].to_json())
-        else:
-            f.write(module_category_entry.to_json())
-        f.close()
+        write_cds_ui_profile(module_category_entry)
         validate_ui_profile(module_category_entry.display)
         core_data_set_modules.append(module_category_entry)
     return core_data_set_modules
 
 
+def write_cds_ui_profile(module_category_entry):
+    """
+    Writes the ui profile for the given module category entry to the ui-profiles folder
+    :param module_category_entry: name of the module category entry
+    """
+    f = open("ui-profiles/" + module_category_entry.display + ".json", 'w', encoding="utf-8")
+    if len(module_category_entry.children) == 1:
+        f.write(module_category_entry.children[0].to_json())
+    else:
+        f.write(module_category_entry.to_json())
+    f.close()
+
+
 def move_back_other(entries):
+    """
+    Entries are sorted alphabetically. This method moves the entries that express "Other" to the end of the list
+    :param entries: list of entries
+    """
     entries_copy = entries.copy()
     for entry in entries_copy:
         for other_naming in ["Sonstige", "sonstige", "andere", "Andere", "Weitere", "Other"]:
@@ -181,11 +238,27 @@ def move_back_other(entries):
             move_back_other(entry.children)
 
 
+def configure_args_parser():
+    """
+    Configures the argument parser
+    :return: the configured argument parser
+    """
+    arg_parser = argparse.ArgumentParser(description='Generate the UI-Profile for the MII-ABIDE project.')
+    arg_parser.add_argument('--generate_snapshot', action='store_true')
+    arg_parser.add_argument('--generate_csv', action='store_true')
+    return arg_parser
+
+
 if __name__ == '__main__':
+    parser = configure_args_parser()
+    args = parser.parse_args()
+
     generate_result_folder()
+
     # ----Time consuming: Only execute initially or on changes----
-    # download_core_data_set_mii()
-    # generate_snapshots()
+    if args.generate_snapshot:
+        download_core_data_set_mii()
+        generate_snapshots()
     # -------------------------------------------------------------
 
     core_data_category_entries = generate_core_data_set()
@@ -204,7 +277,8 @@ if __name__ == '__main__':
     dbw.add_ui_profiles_to_db(category_entries)
     generate_term_code_mapping(category_entries)
     generate_term_code_tree(category_entries)
-    # to_csv(category_entries)
+    if args.generate_csv:
+        to_csv(category_entries)
 
     # dump data from db with
     # docker exec -t 7ac5bfb77395 pg_dump --dbname="codex_ui" --username=codex-postgres

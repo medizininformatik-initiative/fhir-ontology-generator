@@ -1,6 +1,6 @@
 import csv
 
-from model.UiDataModel import TermCode, TerminologyEntry
+from model.UiDataModel import TermCode, TermEntry
 
 
 def as_text(value):
@@ -20,7 +20,7 @@ def get_termcode_row(terminology_code: TermCode):
     return [system, code, version, display]
 
 
-def get_terminology_entry_row(terminology_entry: TerminologyEntry):
+def get_terminology_entry_row(terminology_entry: TermEntry):
     result = ["UNDEFINED", "UNDEFINED", "UNDEFINED", "UNDEFINED"]
     if terminology_entry.termCode:
         result = get_termcode_row(terminology_entry.termCode)
@@ -29,7 +29,7 @@ def get_terminology_entry_row(terminology_entry: TerminologyEntry):
 
 
 def to_csv(category_list):
-    def add_terminology_entry(terminology_entry: TerminologyEntry):
+    def add_terminology_entry(terminology_entry: TermEntry):
         sheet.writerow(get_terminology_entry_row(terminology_entry))
         for child in terminology_entry.children:
             add_terminology_entry(child)

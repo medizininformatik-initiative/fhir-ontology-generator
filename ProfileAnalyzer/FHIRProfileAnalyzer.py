@@ -3,7 +3,7 @@ import os
 
 from FHIRProfileConfiguration import *
 from ProfileAnalyzer.ProfileModel import Profile
-from model.UiDataModel import TermCode, TerminologyEntry
+from model.UiDataModel import TermCode, TermEntry
 
 
 def remove_resource_name(name_with_resource_name):
@@ -37,8 +37,8 @@ def generate_profiles_for_fhir_dataset():
                 if module_element_name in IGNORE_LIST:
                     continue
                 module_element_code = TermCode("mii.abide", module_element_name, module_element_name)
-                module_element_entry = TerminologyEntry([module_element_code], "Category", selectable=False,
-                                                        leaf=False)
+                module_element_entry = TermEntry([module_element_code], "Category", selectable=False,
+                                                 leaf=False)
                 profiles.append(Profile.generate_profile(module_element_entry, json_data))
     return profiles
 

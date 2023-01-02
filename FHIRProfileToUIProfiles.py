@@ -1,47 +1,54 @@
 import os
 
-import requests
-
 import csv
 from lxml import etree
 
 from FHIRProfileConfiguration import *
-from TerminologService.ValueSetResolver import get_termentries_from_onto_server, \
+from Helper import to_upper_camel_case
+from TerminologService.ValueSetResolver import get_term_entries_from_onto_server, \
     get_term_entries_by_id, get_term_entries_by_path, pattern_coding_to_termcode
 from TerminologService.icd10MortalityDownloader import download_sonderverzeichnis_mortality
 from model.Exceptions import UnknownHandlingException
 from model.UIProfileModel import *
 from model.UiDataModel import *
+from model import ResourceQueryingMetaData
 from LogicalModelToProfile import LOGICAL_MODEL_TO_PROFILE
 
 IGNORE_CATEGORIES = []
 
 MAIN_CATEGORIES = ["Einwilligung", "Bioproben"]
 
-ONTOLOGY_SERVER_ADDRESS = os.environ.get('ONTOLOGY_SERVER_ADDRESS')
-
 GENERATE_DUPLICATES = os.getenv("GENERATE_DUPLICATES", 'False').lower() == "true"
 
 
-def is_logical_bundle_or_extension(json_data):
+def is_logical_bundle_or_extension(json_data: dict) -> bool:
+    """
+    evaluates if the FHIR json data is a logical model, bundle or extension
+    :param json_data: FHIR json data
+    :return: true if the json data is a logical model, bundle or extension else false
+    """
     return is_logical_or_bundle(json_data) or (json_data.get("type") == "Extension")
 
 
-def is_logical_or_bundle(json_data):
+def is_logical_or_bundle(json_data: dict) -> bool:
+    """
+    evaluates if the FHIR json data is a logical model or bundle
+    :param json_data: FHIR json data
+    :return: true if the json data is a logical model or bundle else false
+    """
     return (json_data.get("kind") == "logical") or (json_data.get("type") == "Bundle")
 
 
-def profile_is_of_interest(json_data, module_name):
+def profile_is_of_interest(json_data: dict, module_name: str) -> bool:
+    """
+    evaluates if the FHIR json data is of interest. The data is not of interest if it is a logical model, bundle or
+    extension or is part of the IGNORE_LIST
+    :param json_data: FHIR json data
+    :param module_name: name of the module
+    :return: true if the json data is not a logical model, bundle or extension and module_name is not part of the
+    IGNORE_LIST else false
+    """
     return (not is_logical_bundle_or_extension(json_data)) and (module_name not in IGNORE_LIST)
-
-
-def to_upper_camel_case(string):
-    result = ""
-    if re.match("([A-Z][a-z0-9]+)+", string) and " " not in string:
-        return string
-    for substring in string.split(" "):
-        result += substring.capitalize()
-    return result
 
 
 def get_gecco_categories():
@@ -93,7 +100,7 @@ def create_terminology_definition_for(categories):
 
 def create_category_terminology_entry(category_entry):
     term_code = [TermCode("mii.abide", category_entry.display, category_entry.display)]
-    result = TerminologyEntry(term_code, "Category", leaf=False, selectable=False)
+    result = TermEntry(term_code, "Category", leaf=False, selectable=False)
     result.path = category_entry.path
     return result
 
@@ -103,7 +110,7 @@ def add_terminology_entry_to_category(element, categories, terminology_type):
     for category_entry in categories:
         # same path -> sub element of that category
         if category_entry.path in element["base"]["path"]:
-            terminology_entry = TerminologyEntry(get_term_codes(element), terminology_type)
+            terminology_entry = TermEntry(get_term_codes(element), terminology_type)
             # We use the english display to resolve after we switch to german.
             terminology_entry.display = element["short"]
             if terminology_entry.display in IGNORE_LIST:
@@ -257,7 +264,7 @@ def translate_gas_panel(profile_data, terminology_entry, logical_element):
         if element["path"] == "Observation.code.coding" and "patternCoding" in element:
             term_code = TermCode(element["patternCoding"]["system"], element["patternCoding"]["code"],
                                  element["sliceName"])
-            child = TerminologyEntry([term_code], "Quantity", leaf=True, selectable=True)
+            child = TermEntry([term_code], "Quantity", leaf=True, selectable=True)
             terminology_entry.children.append(child)
     terminology_entry.leaf = False
     terminology_entry.selectable = False
@@ -284,7 +291,7 @@ def translate_immunization(profile_data, terminology_entry, _logical_element):
 def translate_laboratory_values(profile_data, terminology_entry, logical_element):
     if terminology_entry.terminologyType == "Quantity":
         for code in terminology_entry.termCodes:
-            entry = TerminologyEntry([code], terminology_entry.terminologyType)
+            entry = TermEntry([code], terminology_entry.terminologyType)
             entry.fhirMapperType = "QuantityObservation"
             entry.uiProfile = generate_quantity_observation_ui_profile(profile_data, logical_element)
             terminology_entry.children.append(entry)
@@ -355,14 +362,14 @@ def translate_patient(profile_data, terminology_entry, _logical_element):
 
     def get_age_entry():
         age_code = TermCode("mii.abide", "age", "Alter")
-        age_entry = TerminologyEntry([age_code])
+        age_entry = TermEntry([age_code])
         age_entry.fhirMapperType = "Patient"
         age_entry.uiProfile = generate_age_kds_ui_profile(profile_data, _logical_element)
         return age_entry
 
     def get_gender_entry():
         gender_code = TermCode("mii.abide", "gender", "Geschlecht")
-        gender_entry = TerminologyEntry([gender_code])
+        gender_entry = TermEntry([gender_code])
         gender_entry.fhirMapperType = "Patient"
         gender_entry.uiProfile = generate_gender_ui_profile(profile_data, _logical_element)
         return gender_entry
@@ -412,7 +419,7 @@ def translate_specimen(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "Specimen"
     terminology_entry.uiProfile = generate_specimen_ui_profile(profile_data, _logical_element)
     terminology_entry.display = "Bioprobe"
-    terminology_entry.children = get_termentries_from_onto_server(SPECIMEN_VS)
+    terminology_entry.children = get_term_entries_from_onto_server(SPECIMEN_VS)
     terminology_entry.leaf = False
     inherit_parent_attributes(terminology_entry)
 
@@ -440,14 +447,14 @@ def translate_top_300_loinc_codes(_profile_data, terminology_entry):
 
 def get_specimen():
     specimen_term_code = TermCode("mii.abide", "Bioproben", "Bioproben")
-    specimen_category_entry = TerminologyEntry([specimen_term_code], "Category", selectable=False, leaf=False)
+    specimen_category_entry = TermEntry([specimen_term_code], "Category", selectable=False, leaf=False)
     specimen_category_entry.fhirMapperType = "Specimen"
 
     with open('SpecimenCodes_clean.csv', mode='r') as csv_file:
         csv_reader = csv.DictReader(csv_file, delimiter=",")
         for row in csv_reader:
             term_code = TermCode(row["System"], row["Code"], row["Display"])
-            specimen_child = TerminologyEntry([term_code], "CodeableConcept", selectable=True, leaf=True)
+            specimen_child = TermEntry([term_code], "CodeableConcept", selectable=True, leaf=True)
             specimen_child.fhirMapperType = "Specimen"
             specimen_child.display = row["Display"]
             ui_profile = UIProfile("Bioprobe")
@@ -468,13 +475,13 @@ def get_specimen():
 
 def get_consent():
     consent_term_code = TermCode("mii.abide", "Einwilligung", "Einwilligung")
-    consent_category_entry = TerminologyEntry([consent_term_code], "Category", selectable=False, leaf=False)
+    consent_category_entry = TermEntry([consent_term_code], "Category", selectable=False, leaf=False)
     consent_category_entry.fhirMapperType = "Consent"
     with open('CONSENT_PROVISIONS.CSV', mode='r', encoding="utf-8") as csv_file:
         csv_reader = csv.DictReader(csv_file, delimiter=";")
         for row in csv_reader:
             term_code = TermCode(row["System"], row["Code"], row["Display"])
-            consent_child = TerminologyEntry([term_code], "CodeableConcept", selectable=True, leaf=True)
+            consent_child = TermEntry([term_code], "CodeableConcept", selectable=True, leaf=True)
             consent_child.fhirMapperType = "Consent"
             consent_child.display = row["guiDisplay"]
             value_definition = ValueDefinition("concept")
@@ -521,7 +528,7 @@ def get_terminology_entry_from_top_300_loinc(element_id, element_tree):
                         display = designation.text
             if subs := element.xpath("xmlns:sub", namespaces={'xmlns': "http://schema.samply.de/mdr/common"}):
                 term_code = TermCode("nun.abide", display, display)
-                terminology_entry = TerminologyEntry([term_code])
+                terminology_entry = TermEntry([term_code])
                 for sub in subs:
                     terminology_entry.children.append(get_terminology_entry_from_top_300_loinc(sub.text, element_tree))
                     terminology_entry.leaf = False
@@ -545,7 +552,7 @@ def get_terminology_entry_from_top_300_loinc(element_id, element_tree):
                         code = child.text
                         next_is_code = False
             term_code = TermCode(coding_system, code, display)
-            terminology_entry = TerminologyEntry([term_code])
+            terminology_entry = TermEntry([term_code])
             for child in element:
                 if child.tag == "{http://schema.samply.de/mdr/common}element":
                     terminology_entry.uiProfile = generate_top300_loinc_ui_profile(terminology_entry, child.text,
@@ -604,11 +611,11 @@ corner_cases = {
 def translate_chronic_lung_diseases_with_duplicates(profile_data, terminology_entry, _logical_element):
     terminology_entry.fhirMapperType = "Condition"
     icd_code = TermCode("mii.abide", "icd10-gm-concepts", "ICD10 Konzepte")
-    icd_logical = TerminologyEntry([icd_code], selectable=False, leaf=False)
+    icd_logical = TermEntry([icd_code], selectable=False, leaf=False)
     icd_logical.children = get_term_entries_by_id("Condition.code.coding:icd10-gm", profile_data)
     terminology_entry.children.append(icd_logical)
     sct_code = TermCode("mii.abide", "sct-concepts", "SNOMED CT Konzepte")
-    sct_logical_entry = TerminologyEntry([sct_code], selectable=False, leaf=False)
+    sct_logical_entry = TermEntry([sct_code], selectable=False, leaf=False)
     sct_logical_entry.children = get_term_entries_by_id("Condition.code.coding:sct", profile_data)
     terminology_entry.children.append(sct_logical_entry)
     terminology_entry.uiProfile = generate_default_ui_profile(profile_data["name"], _logical_element)

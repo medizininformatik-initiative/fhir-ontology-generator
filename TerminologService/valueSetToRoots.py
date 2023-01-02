@@ -1,19 +1,25 @@
 import bisect
+from typing import List
+
 import requests
 import locale
-import os
 
 from sortedcontainers import SortedSet
 
-from model.UiDataModel import TermCode, TerminologyEntry
+from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS
+from model.UiDataModel import TermCode, TermEntry
 
-ONTOSERVER = os.environ.get('ONTOLOGY_SERVER_ADDRESS')
 locale.setlocale(locale.LC_ALL, 'de_DE')
 
 
-def expand_value_set(url):
+def expand_value_set(url: str):
+    """
+    Expands a value set and returns a set of term codes contained in the value set.
+    :param url: canonical url of the value set
+    :return: sorted set of the term codes contained in the value set
+    """
     term_codes = SortedSet()
-    response = requests.get(ONTOSERVER + f"ValueSet/$expand?url={url}")
+    response = requests.get(TERMINOLOGY_SERVER_ADDRESS + f"ValueSet/$expand?url={url}")
     if response.status_code == 200:
         value_set_data = response.json()
         global_version = None
@@ -35,33 +41,39 @@ def expand_value_set(url):
                 version = global_version
             term_code = TermCode(system, code, display, version)
             term_codes.add(term_code)
+    else:
+        raise Exception(response.status_code, response.content)
     return term_codes
 
 
-def create_vs_tree(canonical_url):
+def create_vs_tree(canonical_url: str):
+    """
+    Creates a tree of the value set hierarchy utilizing the closure operation.
+    :param canonical_url:
+    :return: Sorted term_entry roots of the value set hierarchy
+    """
     create_concept_map()
     vs = expand_value_set(canonical_url)
-    vs_dict = {term_code.code: TerminologyEntry([term_code], leaf=True, selectable=True) for term_code in vs}
+    vs_dict = {term_code.code: TermEntry([term_code], leaf=True, selectable=True) for term_code in vs}
     closure_map_data = get_closure_map(vs)
     if groups := closure_map_data.get("group"):
         for group in groups:
             subsumption_map = group["element"]
             subsumption_map = {item['code']: [target['code'] for target in item['target']] for item in subsumption_map}
-            # remove non direct parents
             for code, parents in subsumption_map.items():
-                if len(parents) == 0:
-                    continue
-                else:
-                    direct_parents(parents, subsumption_map)
+                remove_non_direct_ancestors(parents, subsumption_map)
             for node, parents, in subsumption_map.items():
                 for parent in parents:
                     bisect.insort(vs_dict[parent].children, vs_dict[node])
                     vs_dict[node].root = False
                     vs_dict[parent].leaf = False
-    return sorted([term_code for term_code in vs_dict.values() if term_code.root])
+    return sorted([term_entry for term_entry in vs_dict.values() if term_entry.root])
 
 
 def create_concept_map():
+    """
+    Creates an empty concept map for closure operation on the ontology server.
+    """
     body = {
         "resourceType": "Parameters",
         "parameter": [{
@@ -70,13 +82,19 @@ def create_concept_map():
         }]
     }
     headers = {"Content-type": "application/fhir+json"}
-    requests.post(ONTOSERVER + "$closure", json=body, headers=headers)
+    requests.post(TERMINOLOGY_SERVER_ADDRESS + "$closure", json=body, headers=headers)
 
 
-def get_closure_map(term_codes):
+def get_closure_map(term_codes: SortedSet[TermCode]):
+    """
+    Returns the closure map of a set of term codes.
+    :param term_codes: set of term codes with potential hierarchical relations among them
+    :return: closure map of the term codes
+    """
     body = {"resourceType": "Parameters",
             "parameter": [{"name": "name", "valueString": "closure-test"}]}
     for term_code in term_codes:
+        # noinspection PyTypeChecker
         body["parameter"].append({"name": "concept",
                                   "valueCoding": {
                                       "system": f"{term_code.system}",
@@ -85,7 +103,7 @@ def get_closure_map(term_codes):
                                       "version": f"{term_code.version}"
                                   }})
     headers = {"Content-type": "application/fhir+json"}
-    response = requests.post(ONTOSERVER + "$closure", json=body, headers=headers)
+    response = requests.post(TERMINOLOGY_SERVER_ADDRESS + "$closure", json=body, headers=headers)
     if response.status_code == 200:
         closure_response = response.json()
     else:
@@ -93,7 +111,14 @@ def get_closure_map(term_codes):
     return closure_response
 
 
-def direct_parents(parents, input_map):
+def remove_non_direct_ancestors(parents: List[str], input_map: dict):
+    """
+    Removes all ancestors of a node that are not direct ancestors.
+    :param parents: list of parents of a concept
+    :param input_map: closure map of the value set
+    """
+    if len(parents) < 2:
+        return
     parents_copy = parents.copy()
     for parent in parents_copy:
         if parent in input_map:
@@ -104,6 +129,11 @@ def direct_parents(parents, input_map):
 
 
 def value_set_json_to_term_code_set(response):
+    """
+    Converts a json response from the ontology server to a set of term codes.
+    :param response: json response from the ontology server
+    :return: Sorted set of term codes
+    """
     term_codes = SortedSet()
     if response.status_code == 200:
         value_set_data = response.json()

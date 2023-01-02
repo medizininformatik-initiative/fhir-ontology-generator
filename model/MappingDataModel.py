@@ -1,8 +1,10 @@
-import sys
+from __future__ import annotations
+
+from typing import List
 
 from sortedcontainers import SortedSet
-
-from model.UiDataModel import del_keys, del_none, TermCode
+from model.helper import del_none, str_to_class
+from model.UiDataModel import del_keys, TermCode
 import json
 
 
@@ -17,7 +19,15 @@ class FixedCriteria:
 
 
 class AttributeSearchParameter:
-    def __init__(self, criteria_type, attribute_code, attribute_search_parameter, fhir_path):
+    """
+    AttributeSearchParameter the information how to translate the attribute part of a criteria to a FHIR query snippet
+    :param attribute_code defines the code of the attribute and acts as unique identifier within the ui_profile
+    (Required)
+    :param attribute_search_parameter defines the search parameter of the attribute. (Required)
+    :param fhir_path defines the path to the attribute defining element. (Required)
+    """
+
+    def __init__(self, criteria_type, attribute_code: TermCode, attribute_search_parameter: str, fhir_path: str):
         self.attributeKey = attribute_code
         self.attributeSearchParameter = attribute_search_parameter
         self.attributeType = criteria_type
@@ -26,17 +36,23 @@ class AttributeSearchParameter:
 
 class MapEntry:
     DO_NOT_SERIALIZE = ["DO_NOT_SERIALIZE"]
+    """
+    MapEntry stores all necessary information to translate the criteria in a structured query to a FHIR query snippet.
+    :param term_code defines the identifying term code of the criteria. (Required)
+    :param context defines the context of the criteria. 
+    """
 
-    def __init__(self, term_code):
+    def __init__(self, term_code: TermCode, context: TermCode = None):
+        self.context = context
         self.key = term_code
-        self.termCodeSearchParameter = None
-        self.valueSearchParameter = None
-        self.timeRestrictionParameter = None
-        self.timeRestrictionPath = None
-        self.fhirResourceType = None
+        self.termCodeSearchParameter: str | None = None
+        self.valueSearchParameter: str | None = None
+        self.timeRestrictionParameter: str | None = None
+        self.timeRestrictionPath: str | None = None
+        self.fhirResourceType: str | None = None
         # self.fixedCriteria = []
-        self.valueFhirPath = None
-        self.attributeSearchParameters = []
+        self.valueFhirPath: str | None = None
+        self.attributeSearchParameters: List[AttributeSearchParameter] = []
 
     def __eq__(self, other):
         return self.key == other.key
@@ -90,12 +106,13 @@ class BloodPressureMapEntry(MapEntry):
         self.valueSearchParameter = "component-code-value-quantity"
         self.termCodeSearchParameter = "component-code-value-concept"
         self.fhirResourceType = "Observation"
-        self.valueFhirPath = f"component.where(code.coding.exists(system = '{term_code.system}' and code = '{term_code.code}')).value.first() "
+        self.valueFhirPath = f"component.where(code.coding.exists(system = '{term_code.system}' and " \
+                             f"code = '{term_code.code}')).value.first() "
         self.timeRestrictionParameter = "effective"
         self.timeRestrictionPath = "date"
-        blood_pressure_loinc = TermCode("http://loinc.org", "85354-9",
-                                        "Blood pressure panel with all children optional")
-        blood_pressure_snomed = TermCode("http://snomed.info/sct", "75367002", "Blood pressure (observable entity)")
+        # blood_pressure_loinc = TermCode("http://loinc.org", "85354-9",
+        #                                 "Blood pressure panel with all children optional")
+        # blood_pressure_snomed = TermCode("http://snomed.info/sct", "75367002", "Blood pressure (observable entity)")
         # self.fixedCriteria = [FixedCriteria("coding", "code", "code", [blood_pressure_loinc, blood_pressure_snomed])]
 
 
@@ -118,7 +135,7 @@ class ConditionMapEntry(MapEntry):
         self.termCodeSearchParameter = "code"
         self.valueSearchParameter = None
         self.fhirResourceType = "Condition"
-        confirmed = TermCode("http://terminology.hl7.org/CodeSystem/condition-ver-status", "confirmed", "confirmed")
+        # confirmed = TermCode("http://terminology.hl7.org/CodeSystem/condition-ver-status", "confirmed", "confirmed")
         # self.fixedCriteria = [FixedCriteria("coding", "verification-status", "verificationStatus", [confirmed])]
         self.timeRestrictionParameter = "recorded-date"
         self.timeRestrictionPath = "onset"
@@ -177,7 +194,7 @@ class HistoryOfTravelMapEntry(MapEntry):
         self.termCodeSearchParameter = "code"
         self.valueSearchParameter = "component-value-concept"
         self.fhirResourceType = "Observation"
-        country_of_travel = TermCode("http://loinc.org", "94651-7", "Country of travel")
+        # country_of_travel = TermCode("http://loinc.org", "94651-7", "Country of travel")
         # self.fixedCriteria = [FixedCriteria("coding", "component-code", "component-code", [country_of_travel])]
         self.timeRestrictionParameter = "date"
         self.timeRestrictionPath = "effective"
@@ -192,7 +209,7 @@ class ImmunizationMapEntry(MapEntry):
         self.valueFhirPath = "vaccineCode"
         self.fhirResourceType = "Immunization"
         self.valueSearchParameter = None
-        completed = TermCode("http://hl7.org/fhir/event-status", "completed", "completed")
+        # completed = TermCode("http://hl7.org/fhir/event-status", "completed", "completed")
         # self.fixedCriteria = [FixedCriteria("code", "status", "status", [completed])]
         self.timeRestrictionParameter = "date"
         self.timeRestrictionPath = "occurrence"
@@ -206,8 +223,8 @@ class MedicationAdministrationMapEntry(MapEntry):
         self.fhirResourceType = "MedicationAdministration"
 
         self.valueSearchParameter = None
-        active = TermCode("http://hl7.org/fhir/CodeSystem/medication-admin-status", "active", "active")
-        completed = TermCode("http://hl7.org/fhir/CodeSystem/medication-admin-status", "completed", "completed")
+        # active = TermCode("http://hl7.org/fhir/CodeSystem/medication-admin-status", "active", "active")
+        # completed = TermCode("http://hl7.org/fhir/CodeSystem/medication-admin-status", "completed", "completed")
         # self.fixedCriteria = [FixedCriteria("code", "status", "status", [active, completed])]
         self.timeRestrictionParameter = "date"
         self.timeRestrictionPath = "occurence"
@@ -220,8 +237,8 @@ class MedicationStatementMapEntry(MapEntry):
         self.termCodeSearchParameter = "medication.code"
         self.fhirResourceType = "MedicationAdministration"
         self.valueSearchParameter = None
-        active = TermCode("http://hl7.org/fhir/CodeSystem/medication-statement-status", "active", "active")
-        completed = TermCode("http://hl7.org/fhir/CodeSystem/medication-statement-status", "completed", "completed")
+        # active = TermCode("http://hl7.org/fhir/CodeSystem/medication-statement-status", "active", "active")
+        # completed = TermCode("http://hl7.org/fhir/CodeSystem/medication-statement-status", "completed", "completed")
         # self.fixedCriteria = [FixedCriteria("code", "status", "status", [active, completed])]
         self.timeRestrictionParameter = "date"
         self.timeRestrictionPath = "occurence"
@@ -248,8 +265,8 @@ class ProcedureMapEntry(MapEntry):
         self.termCodeSearchParameter = "code"
         self.valueSearchParameter = None
         self.fhirResourceType = "Procedure"
-        completed = TermCode("http://hl7.org/fhir/event-status", "completed", "completed")
-        in_progress = TermCode("http://hl7.org/fhir/event-status", "in-progress", "in-progress")
+        # completed = TermCode("http://hl7.org/fhir/event-status", "completed", "completed")
+        # in_progress = TermCode("http://hl7.org/fhir/event-status", "in-progress", "in-progress")
         # self.fixedCriteria = [FixedCriteria("code", "status", "status", [completed, in_progress])]
         self.timeRestrictionParameter = "date"
         self.timeRestrictionPath = "performed"
@@ -318,14 +335,10 @@ class SymptomMapEntry(MapEntry):
                                                                        "severity", "severity")
         self.attributeSearchParameters = [severity_attribute_search_parameter]
         self.fhirResourceType = "Condition"
-        confirmed = TermCode("http://terminology.hl7.org/CodeSystem/condition-ver-status", "confirmed", "confirmed")
+        # confirmed = TermCode("http://terminology.hl7.org/CodeSystem/condition-ver-status", "confirmed", "confirmed")
         # self.fixedCriteria = [FixedCriteria("coding", "verification-status", "verificationStatus", [confirmed])]
         self.timeRestrictionParameter = "recorded-date"
         self.timeRestrictionPath = "onset"
-
-
-def str_to_class(class_name):
-    return getattr(sys.modules[__name__], class_name)
 
 
 def generate_child_entries(children, class_name):

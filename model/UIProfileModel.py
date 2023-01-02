@@ -4,6 +4,7 @@ import json
 from TerminologService.ValueSetResolver import get_term_codes_by_path, get_termcodes_from_onto_server, \
     get_term_codes_by_id, get_answer_list_vs
 from model.UiDataModel import TermCode
+from model.helper import del_none
 
 UI_PROFILES = set()
 
@@ -29,25 +30,6 @@ class Unit:
     def __init__(self, display, code):
         self.display = display
         self.code = code
-
-
-def del_none(dictionary):
-    """
-    Delete keys with the value ``None`` in a dictionary, recursively.
-
-    This alters the input so you may wish to ``copy`` the dict first.
-    """
-    for key, value in list(dictionary.items()):
-        if value is None:
-            del dictionary[key]
-        elif isinstance(value, dict):
-            del_none(value)
-        elif isinstance(value, list):
-            if not value:
-                del dictionary[key]
-            for element in value:
-                del_none(element.__dict__)
-    return dictionary
 
 
 def del_keys(dictionary, keys):
