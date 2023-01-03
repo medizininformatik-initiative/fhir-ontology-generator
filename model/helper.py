@@ -18,6 +18,10 @@ def del_none(dictionary):
             if not value:
                 del dict_copy[key]
             for element in value:
+                if isinstance(element, dict):
+                    del_none(element)
+                elif isinstance(element, str):
+                    continue
                 del_none(element.__dict__)
     return dict_copy
 

@@ -1,7 +1,7 @@
 import json
 import os
 
-from Helper import get_term_selectable_codes_from_ui_profile
+from helper import get_term_selectable_codes_from_ui_profile
 from model.UiDataModel import TermCode
 
 

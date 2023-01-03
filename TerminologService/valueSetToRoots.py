@@ -85,7 +85,7 @@ def create_concept_map():
     requests.post(TERMINOLOGY_SERVER_ADDRESS + "$closure", json=body, headers=headers)
 
 
-def get_closure_map(term_codes: SortedSet[TermCode]):
+def get_closure_map(term_codes):
     """
     Returns the closure map of a set of term codes.
     :param term_codes: set of term codes with potential hierarchical relations among them

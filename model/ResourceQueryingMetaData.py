@@ -8,25 +8,27 @@ from model.UiDataModel import TermCode
 class ResourceQueryingMetaData:
     """
     ResourceQueryingMetaData stores all necessary information to extract the queryable data from a FHIR resource.
-
+    Care the combination of resource_type and context has to be unique.
     :param resource_type is taken from the FHIR resource type. (Required)
     :param context defines the context of the resource. (Required)
-    :param term_code_defining_path defines the path to the term_code defining element. (Required)
-    :param value_defining_path defines the path to the value defining element.
-    :param attribute_defining_paths define the paths to the attributes defining elements.
-    :param time_restriction_defining_path defines the path to the time restriction defining element.
+    :param term_code_defining_id defines the id that identifies the term_code element.
+    :param term_codes defines the term_code elements. Prefer using term_code_defining_id. But if no id to obtain the
+    term_code from is available use this parameter. I.E to define the term_code for Patient.birthdate.
+    If possible use snomed codes.
+    :param value_defining_id defines the id that identifies the value element.
+    :param attribute_defining_ids define the ids that identify the attribute elements.
+    :param time_restriction_defining_id defines the id that identifies the time restriction element.
     """
-    def __init__(self, resource_type: str, context: TermCode, term_code_defining_path: str,
-                 value_defining_path: str = None, attribute_defining_paths: List[str] = None,
-                 time_restriction_defining_path: str = None):
-        if attribute_defining_paths is None:
-            attribute_defining_paths = []
-        self.context = context
-        self.resourceType = resource_type
-        self.termCodeDefiningPath = term_code_defining_path
-        self.valueDefiningPath = value_defining_path
-        self.attributeDefiningPaths = attribute_defining_paths
-        self.timeRestrictionDefiningPath = time_restriction_defining_path
+    def __init__(self, resource_type: str, context: TermCode, term_code_defining_id: str = None,
+                 term_codes: List[TermCode] = None, value_defining_id: str = None,
+                 attribute_defining_ids: List[str] = None, time_restriction_defining_id: str = None):
+        self.resource_type = resource_type
+        self.context = TermCode(**context)
+        self.term_codes = [TermCode(**term_code) for term_code in term_codes] if term_codes else None
+        self.term_code_defining_id = term_code_defining_id
+        self.value_defining_id = value_defining_id
+        self.attribute_defining_ids = attribute_defining_ids if attribute_defining_ids else []
+        self.time_restriction_defining_id = time_restriction_defining_id
 
     def to_json(self):
         """
@@ -38,11 +40,11 @@ class ResourceQueryingMetaData:
     @staticmethod
     def from_json(json_data):
         """
-        Convert the JSON string to an ResourceQueryingMetaData object.
+        Convert the JSON file to an ResourceQueryingMetaData object.
         :param json_data:
         :return: ResourceQueryingMetaData object.
         """
-        return ResourceQueryingMetaData(**json.loads(json_data))
+        return ResourceQueryingMetaData(**json.load(json_data))
 
     def __str__(self):
         return self.to_json()

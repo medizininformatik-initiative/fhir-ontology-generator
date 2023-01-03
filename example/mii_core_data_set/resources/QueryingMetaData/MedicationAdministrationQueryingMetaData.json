@@ -1,0 +1,10 @@
+{
+  "resource_type": "MedicationAdministration",
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "VerabreichungVonMedikamenten",
+    "display": "Verabreichung von Medikamenten"
+  },
+  "term_code_defining_id": "Resolve(MedicationAdministration.medication[x]:Reference).code.coding:atcClassDe",
+  "time_restriction_defining_id": "MedicationAdministration.effective[x]"
+}

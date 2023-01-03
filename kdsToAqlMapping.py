@@ -3,7 +3,7 @@ import os
 
 from lxml import etree
 
-from Helper import get_term_selectable_codes_from_ui_profile
+from helper import get_term_selectable_codes_from_ui_profile
 from geccoToAqlMapping import get_open_ehr_type, get_value_path_list
 from model.AQLMappingDatatModel import AQLMapEntry
 from model.MappingDataModel import MapEntryList

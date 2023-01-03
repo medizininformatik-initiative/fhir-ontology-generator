@@ -1,89 +1,43 @@
-import errno
 import json
 import os
 import shutil
-from os import path
 from typing import List
 
 from jsonschema import validate
 
 from FHIRProfileConfiguration import *
+from helper import mkdir_if_not_exists, generate_snapshots
 from database.DataBaseWriter import DataBaseWriter
 from model.MappingDataModel import generate_map
 from model.UiDataModel import TermEntry, TermCode
 from FHIRProfileToUIProfiles import create_terminology_definition_for, get_gecco_categories, IGNORE_CATEGORIES, \
-    MAIN_CATEGORIES, IGNORE_LIST, \
-    get_consent, resolve_terminology_entry_profile, get_ui_profiles, profile_is_of_interest, get_specimen
+    MAIN_CATEGORIES, get_consent, resolve_terminology_entry_profile, profile_is_of_interest, get_specimen
 from model.termCodeTree import to_term_code_node
 import argparse
 
 from termEntryToExcel import to_csv
 
 
-def mkdir_if_not_exists(directory: str):
-    """
-    Creates a directory if it does not exist
-    :param directory: name of the directory
-    :raises OSError: if the directory could not be created
-    """
-    if not path.isdir(f"./{directory}"):
-        try:
-            os.mkdir(directory)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise
+def add_observation_lab_from_mii_to_gecco():
+    os.system(f"fhir install {MII_LAB} --here")
+    # TODO not hardcoded
+    shutil.copy(f"{MII_LAB}/package/"
+                "Profile-ObservationLab.json", f"{GECCO_DIRECTORY}/package/Profile-ObservationLab.json")
 
 
-def download_core_data_set_mii():
+def download_simplifier_packages_with_GECCO(package_names: List[str]):
     """
     Downloads the core data set from the MII and saves the profiles in the resources/core_data_sets folder
     """
 
-    def add_observation_lab_from_mii_to_gecco():
-        os.system(f"fhir install {MII_LAB} --here")
-        # TODO not hardcoded
-        shutil.copy(f"{MII_LAB}/package/"
-                    "Profile-ObservationLab.json", f"{GECCO_DIRECTORY}/package/Profile-ObservationLab.json")
-
     mkdir_if_not_exists("resources/core_data_sets")
-    for dataset in core_data_sets:
-        mkdir_if_not_exists("resources/core_data_sets")
+    for dataset in package_names:
         saved_path = os.getcwd()
         os.chdir("resources/core_data_sets")
         os.system(f"fhir install {dataset} --here")
         if dataset == GECCO:
             add_observation_lab_from_mii_to_gecco()
         os.chdir(saved_path)
-
-
-def generate_snapshots():
-    """
-    Generates the snapshots for all the profiles in the resources/core_data_sets folder
-    """
-    data_set_folders = [f.path for f in os.scandir("resources/core_data_sets") if f.is_dir()]
-    saved_path = os.getcwd()
-    for folder in data_set_folders:
-        os.chdir(f"{folder}\\package")
-        os.system(f"fhir install hl7.fhir.r4.core")
-        for file in [f for f in os.listdir('.') if
-                     os.path.isfile(f) and is_structured_definition(f) and "-snapshot" not in f]:
-            os.system(f"fhir push {file}")
-            os.system(f"fhir snapshot")
-            os.system(f"fhir save {file[:-5]}-snapshot.json")
-        os.chdir(saved_path)
-
-
-def is_structured_definition(file: str) -> bool:
-    """
-    Checks if a file is a structured definition
-    :param file: potential structured definition
-    :return: true if the file is a structured definition else false
-    """
-    with open(file, encoding="UTF-8") as json_file:
-        json_data = json.load(json_file)
-        if json_data.get("resourceType") == "StructureDefinition":
-            return True
-        return False
 
 
 def generate_term_code_mapping(entries: List[TermEntry]):
@@ -257,8 +211,8 @@ if __name__ == '__main__':
 
     # ----Time consuming: Only execute initially or on changes----
     if args.generate_snapshot:
-        download_core_data_set_mii()
-        generate_snapshots()
+        download_simplifier_packages_with_GECCO()
+        generate_snapshots("resources/core_data_sets")
     # -------------------------------------------------------------
 
     core_data_category_entries = generate_core_data_set()

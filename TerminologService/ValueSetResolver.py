@@ -159,6 +159,8 @@ def get_term_entries_by_id(element_id: str, profile_data: dict) -> List[TermEntr
     :return: list of term entries or empty list if no term entries are available
     """
     for element in profile_data["snapshot"]["element"]:
+        if 'binding' in element:
+            print(f"element: {element['id']}")
         if "id" in element and element["id"] == element_id and "patternCoding" in element:
             if "code" in element["patternCoding"]:
                 term_code = pattern_coding_to_termcode(element)

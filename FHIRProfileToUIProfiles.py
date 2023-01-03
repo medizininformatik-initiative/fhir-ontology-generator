@@ -4,7 +4,7 @@ import csv
 from lxml import etree
 
 from FHIRProfileConfiguration import *
-from Helper import to_upper_camel_case
+from helper import to_upper_camel_case
 from TerminologService.ValueSetResolver import get_term_entries_from_onto_server, \
     get_term_entries_by_id, get_term_entries_by_path, pattern_coding_to_termcode
 from TerminologService.icd10MortalityDownloader import download_sonderverzeichnis_mortality
