@@ -1,19 +1,23 @@
 import copy
 import json
+from enum import Enum
 
 from TerminologService.ValueSetResolver import get_term_codes_by_path, get_termcodes_from_onto_server, \
     get_term_codes_by_id, get_answer_list_vs
 from model.UiDataModel import TermCode
 from model.helper import del_none
+from typing import Literal, List
 
 UI_PROFILES = set()
 
+VALUE_TYPE_OPTIONS = Literal["concept", "quantity", "reference"]
+
 
 class ValueDefinition:
-    def __init__(self, value_type):
+    def __init__(self, value_type: VALUE_TYPE_OPTIONS):
         self.type = value_type
-        self.selectableConcepts = []
-        self.allowedUnits = []
+        self.selectableConcepts: List[TermCode] = []
+        self.allowedUnits: List[TermCode] = []
         self.precision = 1
         self.min = None
         self.max = None

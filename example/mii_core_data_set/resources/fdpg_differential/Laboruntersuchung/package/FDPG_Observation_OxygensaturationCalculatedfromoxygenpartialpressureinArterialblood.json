@@ -1,0 +1,110 @@
+{
+    "resourceType": "StructureDefinition",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/OxygensaturationCalculatedfromoxygenpartialpressureinArterialblood",
+    "name": "Oxygen saturation Calculated from oxygen partial pressure in Arterial blood",
+    "status": "active",
+    "fhirVersion": "4.0.1",
+    "kind": "resource",
+    "abstract": false,
+    "type": "Observation",
+    "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab",
+    "derivation": "constraint",
+    "differential": {
+        "element": [
+            {
+                "id": "Observation.code",
+                "path": "Observation.code",
+                "short": "Oxygen saturation Calculated from oxygen partial pressure in Arterial blood",
+                "definition": "Oxygen saturation Calculated from oxygen partial pressure in Arterial blood"
+            },
+            {
+                "id": "Observation.code.coding",
+                "path": "Observation.code.coding",
+                "slicing": {
+                    "discriminator": [
+                        {
+                            "type": "pattern",
+                            "path": "$this"
+                        }
+                    ],
+                    "rules": "open"
+                },
+                "min": 1
+            },
+            {
+                "id": "Observation.code.coding:loinc",
+                "path": "Observation.code.coding",
+                "sliceName": "loinc",
+                "min": 1,
+                "max": "*",
+                "patternCoding": {
+                    "system": "http://loinc.org",
+                    "code": "51733-4"
+                }
+            },
+            {
+                "id": "Observation.code.coding:loinc.system",
+                "path": "Observation.code.coding.system",
+                "min": 1
+            },
+            {
+                "id": "Observation.code.coding:loinc.code",
+                "path": "Observation.code.coding.code",
+                "min": 1
+            },
+            {
+                "id": "Observation.value[x]",
+                "path": "Observation.value[x]",
+                "slicing": {
+                    "discriminator": [
+                        {
+                            "type": "type",
+                            "path": "$this"
+                        }
+                    ],
+                    "ordered": false,
+                    "rules": "open"
+                },
+                "type": [
+                    {
+                        "code": "Quantity"
+                    }
+                ],
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.valueQuantity",
+                "path": "Observation.valueQuantity",
+                "min": 1,
+                "max": "1"
+            },
+            {
+                "id": "Observation.valueQuantity.value",
+                "path": "Observation.valueQuantity.value",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.valueQuantity.unit",
+                "path": "Observation.valueQuantity.unit",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.valueQuantity.system",
+                "path": "Observation.valueQuantity.system",
+                "min": 1,
+                "patternUri": "http://unitsofmeasure.org",
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.valueQuantity.code",
+                "path": "Observation.valueQuantity.code",
+                "min": 1,
+                "mustSupport": true,
+                "fixedCode": "%"
+            }
+        ]
+    },
+    "id": "26cd59c9-227c-497a-8900-bf29591a5c6f"
+}

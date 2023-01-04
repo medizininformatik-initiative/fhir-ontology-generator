@@ -76,31 +76,42 @@ def mkdir_if_not_exists(directory: str):
                 raise
 
 
-def generate_snapshots(package_dir: str, prerequisite_packages: List[str] = None):
+def generate_snapshots(package_dir: str, prerequisite_packages: List[str] = None, reinstall: bool = False):
     """
     Generates the snapshots for all the profiles in the package_dir folder and its sub folders
     :param prerequisite_packages: list of prerequisite packages
     :param package_dir: directory of the package
+    :param reinstall: if true the required packages will be reinstalled
     :raises FileNotFoundError: if the package directory could not be found
     :raises NotADirectoryError: if the package directory is not a directory
     """
+
+    def install_prerequisites():
+        os.system("fhir install hl7.fhir.r4.core")
+        for package in prerequisite_packages:
+            os.system(f"fhir install {package}")
+
+    def generate_snapshot():
+        os.system(f"fhir push {file}")
+        os.system(f"fhir snapshot")
+        os.system(f"fhir save {file[:-5]}-snapshot.json")
+
     prerequisite_packages = prerequisite_packages if prerequisite_packages else []
     if not os.path.exists(package_dir):
         raise FileNotFoundError(f"Package directory does not exist: {package_dir}")
     if not os.path.isdir(package_dir):
         raise NotADirectoryError("package_dir must be a directory")
     saved_path = os.getcwd()
-    os.system("fhir install hl7.fhir.r4.core")
-    for package in prerequisite_packages:
-        os.system(f"fhir install {package}")
     # module folders
     for folder in [f.path for f in os.scandir(package_dir) if f.is_dir()]:
         os.chdir(f"{folder}\\package")
+        if reinstall or not (os.path.exists("fhirpkg.lock.json") and os.path.exists("package.json")):
+            install_prerequisites()
+        # generates snapshots for all differential in the package if they do not exist
         for file in [f for f in os.listdir('.') if
-                     os.path.isfile(f) and is_structured_definition(f) and "-snapshot" not in f]:
-            os.system(f"fhir push {file}")
-            os.system(f"fhir snapshot")
-            os.system(f"fhir save {file[:-5]}-snapshot.json")
+                     os.path.isfile(f) and is_structured_definition(f) and "-snapshot" not in f
+                     and f[-5:]+"-snapshot.json" not in os.listdir('.')]:
+            generate_snapshot()
         os.chdir(saved_path)
 
 
@@ -130,7 +141,11 @@ def is_structured_definition(file: str) -> bool:
     :return: true if the file is a structured definition else false
     """
     with open(file, encoding="UTF-8") as json_file:
-        json_data = json.load(json_file)
+        try:
+            json_data = json.load(json_file)
+        except json.decoder.JSONDecodeError:
+            print(f"Could not decode {file}")
+            return False
         if json_data.get("resourceType") == "StructureDefinition":
             return True
         return False
@@ -147,5 +162,5 @@ def write_object_as_json(serializable: JsonSerializable, file_name: str):
     :param serializable: object that can be serialized to json
     :param file_name: name of the file
     """
-    with open(file_name, "a") as f:
+    with open(file_name, "w") as f:
         f.write(serializable.to_json())

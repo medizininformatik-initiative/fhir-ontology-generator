@@ -2,7 +2,7 @@
   "resource_type": "Procedure",
   "context": {
     "system": "mii.fdpg.cds",
-    "code": "Prozedur",
+    "code": "Procedure",
     "display": "Prozedur"
   },
   "term_code_defining_id": "Procedure.code.coding:ops",
