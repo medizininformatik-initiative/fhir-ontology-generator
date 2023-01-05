@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import List
+from typing import List, Dict
 
 from model.helper import del_none
 from model.UiDataModel import TermCode
@@ -16,18 +18,23 @@ class ResourceQueryingMetaData:
     term_code from is available use this parameter. I.E to define the term_code for Patient.birthdate.
     If possible use snomed codes.
     :param value_defining_id defines the id that identifies the value element.
-    :param attribute_defining_ids define the ids that identify the attribute elements.
+    :param value_type defines the value type of the value element.
+    Typically this will be inferred from the FHIR profile. But can be overwritten here.
+    :param attribute_defining_id_type_map define the ids that identify the attribute elements. The corresponding type
+    entry defines the type of the attribute element and is typically inferred from the FHIR profile. But can be
+    overwritten here.
     :param time_restriction_defining_id defines the id that identifies the time restriction element.
     """
     def __init__(self, resource_type: str, context: TermCode, term_code_defining_id: str = None,
-                 term_codes: List[TermCode] = None, value_defining_id: str = None,
-                 attribute_defining_ids: List[str] = None, time_restriction_defining_id: str = None):
+                 term_codes: List[TermCode] = None, value_defining_id: str = None, value_type: str = None,
+                 attribute_defining_id_type_map: Dict[str, str] = None, time_restriction_defining_id: str = None):
+        self.value_type = value_type
         self.resource_type = resource_type
-        self.context = TermCode(**context)
-        self.term_codes = [TermCode(**term_code) for term_code in term_codes] if term_codes else None
+        self.context = TermCode(**context.__dict__)
+        self.term_codes = [TermCode(**term_code.__dict__) for term_code in term_codes] if term_codes else None
         self.term_code_defining_id = term_code_defining_id
         self.value_defining_id = value_defining_id
-        self.attribute_defining_ids = attribute_defining_ids if attribute_defining_ids else []
+        self.attribute_defining_ids = attribute_defining_id_type_map if attribute_defining_id_type_map else {}
         self.time_restriction_defining_id = time_restriction_defining_id
 
     def to_json(self):

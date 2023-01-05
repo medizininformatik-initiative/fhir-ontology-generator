@@ -80,6 +80,8 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
         for applicable_querying_meta_data in applicable_querying_meta_data:
             print(f"Translating {fhir_profile_snapshot['name']} with {applicable_querying_meta_data}")
             if applicable_querying_meta_data.term_code_defining_id:
+                # TODO: Use the resolve method instead, get the element with the binding, get the value set from the
+                #       binding and resolve the term entries
                 result += get_term_entries_by_id(applicable_querying_meta_data.term_code_defining_id,
                                                  fhir_profile_snapshot)
             elif applicable_querying_meta_data.term_codes:

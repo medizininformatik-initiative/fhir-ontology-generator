@@ -1,6 +1,5 @@
 import copy
 import json
-from enum import Enum
 
 from TerminologService.ValueSetResolver import get_term_codes_by_path, get_termcodes_from_onto_server, \
     get_term_codes_by_id, get_answer_list_vs

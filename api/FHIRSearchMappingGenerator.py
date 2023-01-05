@@ -1,7 +1,7 @@
 from api.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 
 
-class FHIRMappingGenerator(object):
+class FHIRSearchMappingGenerator(object):
     """
     This class is responsible for generating FHIR mappings for a given FHIR profile.
     """

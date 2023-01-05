@@ -4,7 +4,10 @@ from typing import List
 
 from FHIRProfileConfiguration import *
 from api.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
+from api.UIProfileGenerator import UIProfileGenerator
 from api.UITreeGenerator import UITreeGenerator
+from api.CQLMappingGenerator import CQLMappingGenerator
+from api.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
 from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, load_querying_meta_data
 from main import generate_result_folder
 from model.MappingDataModel import MapEntry
@@ -169,12 +172,19 @@ if __name__ == '__main__':
         write_ui_trees_to_files(ui_trees)
 
     if args.generate_ui_profiles:
-        ui_profiles = generate_ui_profile("resources/fdpg_differential")
+        profile_generator = UIProfileGenerator(resolver)
+        ui_profiles = UIProfileGenerator.generate_ui_profiles("resources/fdpg_differential")
         write_ui_profiles_to_files(ui_profiles)
 
     if args.generate_mapping:
-        concept_mappings = generate_mapping("resources/fdpg_differential")
-        write_mappings_to_files(concept_mappings)
+        cql_generator = CQLMappingGenerator(resolver)
+        cql_concept_mappings = cql_generator.generate_mapping("resources/fdpg_differential")
+        write_mappings_to_files(cql_concept_mappings)
+
+        fhir_search_generator = FHIRSearchMappingGenerator(resolver)
+        fhir_search_mappings = fhir_search_generator.generate_mapping("resources/fdpg_differential")
+        write_mappings_to_files(fhir_search_mappings)
+
 
     # core_data_category_entries = generate_core_data_set()
     #
