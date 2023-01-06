@@ -1,0 +1,29 @@
+{
+  "resourceType": "StructureDefinition",
+  "id": "b22ca09b-7512-4082-a433-0ad2bca8f0b7",
+  "url": "https://example.org/fhir/StructureDefinition/ABIDE_MedicationAdministration_Ref",
+  "name": "Medikamentenverabreichung",
+  "status": "active",
+  "fhirVersion": "4.0.1",
+  "kind": "resource",
+  "abstract": false,
+  "type": "MedicationAdministration",
+  "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/MedicationAdministration",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      {
+        "id": "MedicationAdministration.medication[x]",
+        "path": "MedicationAdministration.medication[x]",
+        "type": [
+          {
+            "code": "Reference"
+          }
+        ],
+        "binding": {
+          "strength": "example"
+        }
+      }
+    ]
+  }
+}

@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import argparse
 import os
-from typing import List
+from typing import List, ValuesView
 
 from FHIRProfileConfiguration import *
 from api.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
@@ -22,12 +24,26 @@ class MIICoreDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
     def __init__(self):
         super().__init__()
 
+    def get_query_meta_data(self, fhir_profile_snapshot: dict, context: TermCode) -> List[ResourceQueryingMetaData]:
+        query_meta_data = self._get_query_meta_data_by_context(fhir_profile_snapshot, context)
+        return query_meta_data if query_meta_data else self._get_query_meta_data_by_snapshot(fhir_profile_snapshot)
+
     @staticmethod
-    def get_query_meta_data(fhir_profile_snapshot: dict, context: TermCode) -> List[ResourceQueryingMetaData]:
+    def _get_query_meta_data_by_context(fhir_profile_snapshot: dict, context: TermCode) -> \
+            List[ResourceQueryingMetaData]:
         return [resource_querying_meta_data for resource_querying_meta_data
                 in load_querying_meta_data("resources/QueryingMetaData") if
                 resource_querying_meta_data.context == context and
                 resource_querying_meta_data.resource_type == fhir_profile_snapshot["type"]]
+
+    @staticmethod
+    def _get_query_meta_data_by_snapshot(fhir_profile_snapshot: dict) -> List[ResourceQueryingMetaData]:
+        context = TermCode("fdpg.mii.cds", fhir_profile_snapshot["baseDefinition"].split("/")[-1],
+                           fhir_profile_snapshot["baseDefinition"].split("/")[-1])
+        return [resource_querying_meta_data for resource_querying_meta_data
+                in load_querying_meta_data("resources/QueryingMetaData") if
+                resource_querying_meta_data.resource_type == fhir_profile_snapshot["type"]
+                and resource_querying_meta_data.context == context]
 
 
 def generate_term_code_mapping(_entries: List[TermEntry]):
@@ -72,7 +88,7 @@ def get_profile_snapshot_from_module(module: str) -> List[str]:
 
 def get_module_category_entry_from_module_name(module: str) -> TermEntry:
     module_name = module.split(' ')[0].split(".")[-1].capitalize()
-    module_code = TermCode("mii.fdpg.cds", module_name, module_name)
+    module_code = TermCode("fdpg.mii.cds", module_name, module_name)
     return TermEntry([module_code], "Category", selectable=False, leaf=False)
 
 
@@ -94,7 +110,7 @@ def write_cds_ui_profile(module_category_entry):
     Writes the ui profile for the given module category entry to the ui-profiles folder
     :param module_category_entry: name of the module category entry
     """
-    f = open("ui-profiles/" + module_category_entry.display + ".json", 'w', encoding="utf-8")
+    f = open("ui-trees/" + module_category_entry.display + ".json", 'w', encoding="utf-8")
     if len(module_category_entry.children) == 1:
         f.write(module_category_entry.children[0].to_json())
     else:
@@ -132,19 +148,14 @@ def configure_args_parser():
     return arg_parser
 
 
-def generate_ui_profile(param) -> List[UIProfile]:
-    pass
+def write_ui_profiles_to_files(profiles: List[UIProfile] | ValuesView[UIProfile]):
+    for profile in profiles:
+        with open("ui-profiles/" + profile.name + ".json", 'w', encoding="utf-8") as f:
+            f.write(profile.to_json())
+    f.close()
 
 
-def write_ui_profiles_to_files(profiles: List[UIProfile]):
-    pass
-
-
-def write_mappings_to_files(mappings) -> List[MapEntry]:
-    pass
-
-
-def generate_mapping(param):
+def write_mappings_to_files(_mappings) -> List[MapEntry]:
     pass
 
 
@@ -159,7 +170,7 @@ if __name__ == '__main__':
         download_simplifier_packages(core_data_sets)
     # ----Time consuming: Only execute initially or on changes----
     if args.generate_snapshot:
-        generate_snapshots("resources/core_data_sets")
+        # generate_snapshots("resources/core_data_sets")
         generate_snapshots("resources/fdpg_differential", core_data_sets)
     # -------------------------------------------------------------
 
@@ -173,7 +184,7 @@ if __name__ == '__main__':
 
     if args.generate_ui_profiles:
         profile_generator = UIProfileGenerator(resolver)
-        ui_profiles = UIProfileGenerator.generate_ui_profiles("resources/fdpg_differential")
+        ui_profiles = profile_generator.generate_ui_profiles("resources/fdpg_differential")[1].values()
         write_ui_profiles_to_files(ui_profiles)
 
     if args.generate_mapping:
@@ -184,7 +195,6 @@ if __name__ == '__main__':
         fhir_search_generator = FHIRSearchMappingGenerator(resolver)
         fhir_search_mappings = fhir_search_generator.generate_mapping("resources/fdpg_differential")
         write_mappings_to_files(fhir_search_mappings)
-
 
     # core_data_category_entries = generate_core_data_set()
     #

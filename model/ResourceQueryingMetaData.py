@@ -25,13 +25,13 @@ class ResourceQueryingMetaData:
     overwritten here.
     :param time_restriction_defining_id defines the id that identifies the time restriction element.
     """
-    def __init__(self, resource_type: str, context: TermCode, term_code_defining_id: str = None,
-                 term_codes: List[TermCode] = None, value_defining_id: str = None, value_type: str = None,
+    def __init__(self, resource_type: str, context: TermCode | dict, term_code_defining_id: str = None,
+                 term_codes: List[TermCode] | List[dict] = None, value_defining_id: str = None, value_type: str = None,
                  attribute_defining_id_type_map: Dict[str, str] = None, time_restriction_defining_id: str = None):
         self.value_type = value_type
         self.resource_type = resource_type
-        self.context = TermCode(**context.__dict__)
-        self.term_codes = [TermCode(**term_code.__dict__) for term_code in term_codes] if term_codes else None
+        self.context = TermCode(**context)
+        self.term_codes = [TermCode(**term_code) for term_code in term_codes] if term_codes else None
         self.term_code_defining_id = term_code_defining_id
         self.value_defining_id = value_defining_id
         self.attribute_defining_ids = attribute_defining_id_type_map if attribute_defining_id_type_map else {}

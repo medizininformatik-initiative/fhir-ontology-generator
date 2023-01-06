@@ -1,7 +1,7 @@
 {
   "resource_type": "Condition",
   "context": {
-    "system": "mii.fdpg.cds",
+    "system": "fdpg.mii.cds",
     "code": "Patient",
     "display": "Patient"
   },

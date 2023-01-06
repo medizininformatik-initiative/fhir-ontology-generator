@@ -1,7 +1,7 @@
 {
   "resource_type": "Consent",
   "context": {
-    "system": "mii.fdpg.cds",
+    "system": "fdpg.mii.cds",
     "code": "Einwilligung",
     "display": "Einwilligung"
   },

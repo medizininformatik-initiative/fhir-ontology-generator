@@ -1,12 +1,12 @@
 {
   "resource_type": "Specimen",
   "context": {
-    "system": "mii.fdpg.cds",
+    "system": "fdpg.mii.cds",
     "code": "Bioprobe",
     "display": "Bioprobe"
   },
   "term_code_defining_id": "Specimen.type.coding:sct",
-  "attribute_defining_ids": {
+  "attribute_defining_id_type_map": {
     "Resolve(Resolve(Specimen.extension:festgestellteDiagnose).value[x]).code.coding:icd10-gm as ValueSet": ""
   },
   "time_restriction_defining_id": "Specimen.collection.collected[x]"

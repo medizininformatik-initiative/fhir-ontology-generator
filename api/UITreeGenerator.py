@@ -2,7 +2,8 @@ import json
 import os
 from typing import List
 
-from TerminologService.ValueSetResolver import get_term_entries_by_id
+from api import StrucutureDefinitionParser as FhirParser
+from TerminologService.ValueSetResolver import get_term_entries_from_onto_server
 from api.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UiDataModel import TermEntry, TermCode
@@ -13,12 +14,16 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
     Generates the ui tree for the given FHIR profiles
     """
 
-    def __init__(self, querying_meta_data_resolver: ResourceQueryingMetaDataResolver):
+    def __init__(self, querying_meta_data_resolver: ResourceQueryingMetaDataResolver, parser=FhirParser):
         """
         :param querying_meta_data_resolver: resolves the for the query relevant meta data for a given FHIR profile
+        :parser: parses the FHIR profiles
         snapshot
         """
         self.query_meta_data_resolver = querying_meta_data_resolver
+        self.module_dir = ""
+        self.data_set_dir = ""
+        self.parser = parser
 
     def generate_ui_trees(self, differential_dir: str):
         """
@@ -26,11 +31,13 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
         :param differential_dir: path to the directory which contains the FHIR profiles
         :return: ui trees for all FHIR profiles in the differential directory
         """
+        self.data_set_dir = differential_dir
         result: List[TermEntry] = []
         for folder in [folder for folder in os.scandir(differential_dir) if folder.is_dir()]:
-            files = [file for file in os.scandir(f"{differential_dir}/{folder.name}/package") if file.is_file()
+            self.module_dir = folder.path
+            files = [file.path for file in os.scandir(f"{folder.path}/package") if file.is_file()
                      and file.name.endswith("snapshot.json")]
-            result.append(self.generate_module_ui_tree("mii.fdpg.cds", folder.name, folder.name, files))
+            result.append(self.generate_module_ui_tree("fdpg.mii.cds", folder.name, folder.name, files))
         return result
 
     def get_query_meta_data(self, fhir_profile_snapshot: dict, context: TermCode) -> List[ResourceQueryingMetaData]:
@@ -80,10 +87,8 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
         for applicable_querying_meta_data in applicable_querying_meta_data:
             print(f"Translating {fhir_profile_snapshot['name']} with {applicable_querying_meta_data}")
             if applicable_querying_meta_data.term_code_defining_id:
-                # TODO: Use the resolve method instead, get the element with the binding, get the value set from the
-                #       binding and resolve the term entries
-                result += get_term_entries_by_id(applicable_querying_meta_data.term_code_defining_id,
-                                                 fhir_profile_snapshot)
+                result += self.get_term_entries_by_id(fhir_profile_snapshot, applicable_querying_meta_data.
+                                                      term_code_defining_id)
             elif applicable_querying_meta_data.term_codes:
                 result += [TermEntry(applicable_querying_meta_data.term_codes)]
         return result
@@ -110,6 +115,28 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
             root = TermEntry([module_context], "Category", selectable=False,
                              leaf=False)
             for snapshot_file in files:
-                with open(snapshot_file) as snapshot:
+                with open(snapshot_file, encoding="utf8") as snapshot:
                     root.children += self.generate_ui_subtree(json.load(snapshot), module_context)
             return root
+
+    def get_term_entries_by_id(self, fhir_profile_snapshot, term_code_defining_id) -> List[TermEntry]:
+        """
+        Returns the term entries for the given term code defining id
+        :param fhir_profile_snapshot: snapshot of the FHIR profile
+        :param term_code_defining_id: id of the element that defines the term code
+        :return: term entries
+        """
+        term_code_defining_element = self.parser.resolve_defining_id(fhir_profile_snapshot, term_code_defining_id,
+                                                                     self.data_set_dir, self.module_dir)
+        if not term_code_defining_element:
+            raise Exception(f"Could not resolve term code defining id {term_code_defining_id} "
+                            f"in {fhir_profile_snapshot.get('name')}")
+        if "patternCoding" in term_code_defining_element:
+            if "code" in term_code_defining_element["patternCoding"]:
+                term_code = self.parser.pattern_coding_to_term_code(term_code_defining_element)
+                return [TermEntry([term_code], "CodeableConcept", leaf=True, selectable=True)]
+        if "binding" in term_code_defining_element:
+            value_set = term_code_defining_element.get("binding").get("valueSet")
+            return get_term_entries_from_onto_server(value_set)
+        else:
+            raise Exception(f"Could not resolve term code defining element: {term_code_defining_element}")

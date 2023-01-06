@@ -110,7 +110,7 @@ def generate_snapshots(package_dir: str, prerequisite_packages: List[str] = None
         # generates snapshots for all differential in the package if they do not exist
         for file in [f for f in os.listdir('.') if
                      os.path.isfile(f) and is_structured_definition(f) and "-snapshot" not in f
-                     and f[-5:]+"-snapshot.json" not in os.listdir('.')]:
+                     and f[:-5]+"-snapshot.json" not in os.listdir('.')]:
             generate_snapshot()
         os.chdir(saved_path)
 
