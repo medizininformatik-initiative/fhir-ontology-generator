@@ -1,7 +1,7 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Glomerularfiltrationrate-1.73sqM.predictedbyCreatinine-basedformula(MDRD)inBlood",
-    "name": "Glomerular filtration rate/1.73 sq M.predicted by Creatinine-based formula (MDRD) in Blood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Maximumclotfirmness.extrinsiccoagulationsystemactivated.plateletsinhibited[Length]inBloodbyRotationalTEG",
+    "name": "Maximum clot firmness.extrinsic coagulation system activated.platelets inhibited [Length] in Blood by Rotational TEG",
     "status": "active",
     "fhirVersion": "4.0.1",
     "kind": "resource",
@@ -14,8 +14,8 @@
             {
                 "id": "Observation.code",
                 "path": "Observation.code",
-                "short": "Glomerular filtration rate/1.73 sq M.predicted by Creatinine-based formula (MDRD) in Blood",
-                "definition": "Glomerular filtration rate/1.73 sq M.predicted by Creatinine-based formula (MDRD) in Blood"
+                "short": "Maximum clot firmness.extrinsic coagulation system activated.platelets inhibited [Length] in Blood by Rotational TEG",
+                "definition": "Maximum clot firmness.extrinsic coagulation system activated.platelets inhibited [Length] in Blood by Rotational TEG"
             },
             {
                 "id": "Observation.code.coding",
@@ -39,7 +39,7 @@
                 "max": "*",
                 "patternCoding": {
                     "system": "http://loinc.org",
-                    "code": "76633-7"
+                    "code": "52780-4"
                 }
             },
             {
@@ -102,9 +102,9 @@
                 "path": "Observation.valueQuantity.code",
                 "min": 1,
                 "mustSupport": true,
-                "fixedCode": "mL/min/{1.73_m2}"
+                "fixedCode": "mm"
             }
         ]
     },
-    "id": "23f28843-cc1e-4a02-b025-404f5a692978"
+    "id": "561d4049-5320-479e-a4f3-6ace41cfd889"
 }

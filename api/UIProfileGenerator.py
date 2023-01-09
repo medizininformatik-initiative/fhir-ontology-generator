@@ -119,8 +119,8 @@ class UIProfileGenerator:
             value_definition.selectableConcepts = self.parser.get_selectable_concepts(value_defining_element,
                                                                                       profile_snapshot.get("name"))
         elif value_type == "quantity":
-            # "Observation.valueQuantity.value" -> "Observation.valueQuantity.code"
-            unit_defining_element_id = querying_meta_data.value_defining_id.split(".")[:-1].append("code").join(".")
+            # "Observation.valueQuantity" -> "Observation.valueQuantity.code"
+            unit_defining_element_id = querying_meta_data.value_defining_id + ".code"
             unit_defining_element = self.parser.get_element_from_snapshot(profile_snapshot, unit_defining_element_id)
             value_definition.allowedUnits = self.parser.get_units(unit_defining_element, profile_snapshot.get("name"))
         elif value_type == "calculated":
@@ -143,7 +143,7 @@ class UIProfileGenerator:
         :return:
         """
         attribute_definitions = []
-        for attribute_defining_id, attribute_type in querying_meta_data.attribute_defining_ids.items():
+        for attribute_defining_id, attribute_type in querying_meta_data.attribute_defining_id_type_map.items():
             attribute_definition = self.get_attribute_definition(profile_snapshot, attribute_defining_id,
                                                                  attribute_type)
             attribute_definitions.append(attribute_definition)

@@ -2,7 +2,7 @@
   "resource_type": "Observation",
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "ObservationLab",
+    "code": "Laboruntersuchung",
     "display": "Laboruntersuchung"
   },
   "term_code_defining_id": "Observation.code.coding:loinc",

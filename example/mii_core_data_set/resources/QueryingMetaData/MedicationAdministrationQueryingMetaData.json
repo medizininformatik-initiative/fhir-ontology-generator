@@ -5,6 +5,6 @@
     "code": "Medikamentenverabreichung",
     "display": "Verabreichung von Medikamenten"
   },
-  "term_code_defining_id": "Resolve(MedicationAdministration.medication[x]:medicationReference).code.coding:atcClassDe",
+  "term_code_defining_id": "(MedicationAdministration.medication[x]:medicationReference as Reference).code.coding:atcClassDe",
   "time_restriction_defining_id": "MedicationAdministration.effective[x]"
 }

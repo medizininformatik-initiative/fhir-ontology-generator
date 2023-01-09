@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import List
 
 from sortedcontainers import SortedSet
+
+from model.UIProfileModel import VALUE_TYPE_OPTIONS
 from model.helper import del_none, str_to_class
 from model.UiDataModel import del_keys, TermCode
 import json
@@ -23,15 +25,37 @@ class AttributeSearchParameter:
     AttributeSearchParameter the information how to translate the attribute part of a criteria to a FHIR query snippet
     :param attribute_code defines the code of the attribute and acts as unique identifier within the ui_profile
     (Required)
-    :param attribute_search_parameter defines the search parameter of the attribute. (Required)
-    :param fhir_path defines the path to the attribute defining element. (Required)
     """
 
-    def __init__(self, criteria_type, attribute_code: TermCode, attribute_search_parameter: str, fhir_path: str):
+    def __init__(self, criteria_type, attribute_code: TermCode):
         self.attributeKey = attribute_code
-        self.attributeSearchParameter = attribute_search_parameter
         self.attributeType = criteria_type
-        self.attributeFhirPath = fhir_path
+
+
+class FhirSearchAttributeSearchParameter(AttributeSearchParameter):
+    def __init__(self, criteria_type: VALUE_TYPE_OPTIONS, attribute_code: TermCode, search_parameter: str):
+        """
+        FhirSearchAttributeSearchParameter stores the information how to translate the attribute part of a criteria to a
+        FHIR Search query snippet
+        :param criteria_type defines the type of the criteria
+        :param attribute_code defines the code of the attribute and acts as unique identifier within the ui_profile
+        :param search_parameter defines the FHIR search parameter for the attribute
+        """
+        super().__init__(criteria_type, attribute_code)
+        self.searchParameter = search_parameter
+
+
+class CQLAttributeSearchParameter(AttributeSearchParameter):
+    def __init__(self, criteria_type, attribute_code: TermCode, fhir_path: str):
+        """
+        CQLAttributeSearchParameter stores the information how to translate the attribute part of a criteria to a CQL
+        query snippet
+        :param criteria_type:
+        :param attribute_code:
+        :param fhir_path:
+        """
+        super().__init__(criteria_type, attribute_code)
+        self.fhirPath = fhir_path
 
 
 class MapEntry:
@@ -69,6 +93,45 @@ class MapEntry:
     def to_json(self):
         return json.dumps(self, default=lambda o: del_none(
             del_keys(o.__dict__, self.DO_NOT_SERIALIZE)), sort_keys=True, indent=4)
+
+
+class FhirMapping:
+    def __init__(self, name: str, term_code_search_parameter: str):
+        """
+        FhirMapping stores all necessary information to translate a structured query to a FHIR query.
+        :param name: name of the mapping acting as primary key
+        :param term_code_search_parameter: FHIR search parameter that is used to identify the criteria in the structured
+        """
+        self.name = name
+        self.termCodeSearchParameter: str = term_code_search_parameter
+        self.valueSearchParameter: str | None = None
+        self.valueType: str | None = None
+        self.timeRestrictionParameter: str | None = None
+        self.attributeSearchParameters: List[FhirSearchAttributeSearchParameter] = []
+
+    def to_json(self):
+        return json.dumps(self, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)
+
+    def add_attribute(self, attribute_type, attribute_key, attribute_search_parameter):
+        self.attributeSearchParameters.append(
+            FhirSearchAttributeSearchParameter(attribute_type, attribute_key, attribute_search_parameter))
+
+
+class CQLMapping:
+    def __init__(self, name: str, term_code_fhir_path: str):
+        """
+        CQLMapping stores all necessary information to translate a structured query to a CQL query.
+        :param name: name of the mapping acting as primary key
+        :param term_code_fhir_path: FHIR path that is used to identify the criteria in the structured query
+        """
+        self.name = name
+        self.termCodeFhirPath: str = term_code_fhir_path
+        self.valueFhirPath: str | None = None
+        self.timeRestrictionPath: str | None = None
+        self.attributeSearchParameters: List[CQLAttributeSearchParameter] = []
+
+    def to_json(self):
+        return json.dumps(self, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)
 
 
 class MapEntryList:

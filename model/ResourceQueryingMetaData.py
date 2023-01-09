@@ -34,7 +34,7 @@ class ResourceQueryingMetaData:
         self.term_codes = [TermCode(**term_code) for term_code in term_codes] if term_codes else None
         self.term_code_defining_id = term_code_defining_id
         self.value_defining_id = value_defining_id
-        self.attribute_defining_ids = attribute_defining_id_type_map if attribute_defining_id_type_map else {}
+        self.attribute_defining_id_type_map = attribute_defining_id_type_map if attribute_defining_id_type_map else {}
         self.time_restriction_defining_id = time_restriction_defining_id
 
     def to_json(self):

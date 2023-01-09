@@ -12,7 +12,8 @@ UCUM_SYSTEM = "http://unitsofmeasure.org"
 FHIR_TYPES_TO_VALUE_TYPES = {
     "code": "concept",
     "Quantity": "quantity",
-    "Reference": "reference"
+    "Reference": "reference",
+    "CodeableConcept": "concept"
 }
 
 
@@ -79,9 +80,6 @@ def resolve_defining_id(profile_snapshot: dict, defining_id: str, data_set_dir: 
         -> dict | str:
     """
     Basic compiler for the following syntax:
-    resolveExpression:
-    : 'Resolve' '(' FHIRElementId | resolveExpression')'
-    ;
     implicitPathExpression:
     : resolveExpression '.' FHIRElementId
     ;
@@ -89,10 +87,10 @@ def resolve_defining_id(profile_snapshot: dict, defining_id: str, data_set_dir: 
     : implicitPathExpression 'as' FHIRType
     ;
     FHIRType:
-    'ValueSet'
+    'ValueSetUrl', 'Reference'
     ;
-    Resolve { element_id }
-    example: Resolve(Resolve(Specimen.extension:festgestellteDiagnose).value[x]).code.coding:icd-10-gm as ValueSet
+    example: ((Specimen.extension:festgestellteDiagnose as Reference).value[x] as Reference).code.coding:icd10-gm as
+    ValueSet
     -> lookup extension url defined at Specimen.extension:festgestellteDiagnose -> Profile with this url
     -> lookup value[x] at the extension profile -> Reference type with value Condition -> lookup Condition profile
     -> lookup code.coding:icd-10-gm at the Condition profile -> extraction as ValueSet
@@ -105,44 +103,33 @@ def resolve_defining_id(profile_snapshot: dict, defining_id: str, data_set_dir: 
     :param data_set_dir: path to the FHIR dataset directory
     :return: resolved defining id
     """
+    print(f"Resolving: {defining_id}")
     statement = defining_id
-    if "as" in statement:
-        statements = statement.split("as")
-        if "Resolve" in statements[0]:
-            statement = statements[0]
-            if "ext:" in statement or "ref:" in statement:
-                index = statement.find("ext:") if "ext:" in statement else statement.find("ref:")
-                end_index = statement.find(")")
-                statement = statement[(index - 8):end_index + 1]
-            else:
-                statement = statement[:statement.find(")")]
-                statement = statement.replace("Resolve(", "").replace(")", "")
-    if "Resolve" in statement:
-        if "ext:" in statement:
-            extension_url = statement[statement.find("ext:") + 4:statement.find(")")]
-            extension_profile = get_extension_definition(module_dir, extension_url)
-            if extension_profile is not None:
-                extension_type = extension_profile.get("type")
-                defining_id = defining_id.replace(statement, extension_type)
-                return resolve_defining_id(extension_profile, defining_id, data_set_dir,
-                                           module_dir)
-            else:
-                raise Exception(f"Extension profile not found for {statement}")
-        elif "ref:" in statement:
-            base_definition = statement[statement.find("ref:") + 4:statement.find(")")]
-            reference_profile = get_profiles_with_base_definition(data_set_dir, base_definition)
-            if reference_profile is not None:
-                reference_type = reference_profile.get("type")
-                defining_id = defining_id.replace(statement, reference_type)
-                return resolve_defining_id(reference_profile, defining_id, data_set_dir,
-                                           module_dir)
-            else:
-                raise Exception(f"Reference profile not found for {statement}")
-    elif "as ValueSet" in statement:
-        statement = statement.replace(" as ValueSet", "")
-        value_set_element = get_element_from_snapshot(profile_snapshot, statement)
-        return get_value_set_defining_url(value_set_element, profile_snapshot.get("name"))
-    else:
+    full_statement = statement[statement.rfind('('): statement.find(')') + 1]
+    if "ext:" in full_statement:
+        extension_url = statement[statement.find("ext:") + 4:statement.find(")")]
+        extension_profile = get_extension_definition(module_dir, extension_url)
+        if extension_profile is not None:
+            extension_type = extension_profile.get("type")
+            defining_id = defining_id.replace(full_statement, extension_type)
+            return resolve_defining_id(extension_profile, defining_id, data_set_dir,
+                                       module_dir)
+        else:
+            raise Exception(f"Extension profile not found for {statement}")
+    elif "ref:" in full_statement:
+        base_definition = statement[statement.find("ref:") + 4:statement.find(")")]
+        reference_profile = get_profiles_with_base_definition(data_set_dir, base_definition)
+        if reference_profile is not None:
+            reference_type = reference_profile.get("type")
+            defining_id = defining_id.replace(full_statement, reference_type)
+            return resolve_defining_id(reference_profile, defining_id, data_set_dir,
+                                       module_dir)
+        else:
+            raise Exception(f"Reference profile not found for {statement}")
+    full_statement = full_statement[1:-1]
+    if "as Reference" in statement:
+        statement = full_statement.split(' as Reference')[0]
+        print(f"Resolving: {statement}")
         resolved_element = get_element_from_snapshot(profile_snapshot, statement)
         if value_types := resolved_element.get("type"):
             if len(value_types) > 1:
@@ -150,16 +137,23 @@ def resolve_defining_id(profile_snapshot: dict, defining_id: str, data_set_dir: 
             for value_type in value_types:
                 if value_type.get("code") == "Reference":
                     reference_url = "ref:" + value_type.get("targetProfile")[0]
-                    defining_id = defining_id.replace(statement, reference_url)
+                    defining_id = defining_id.replace(full_statement, reference_url)
+                    print(f"Resolved reference: {defining_id}")
                     return resolve_defining_id(profile_snapshot, defining_id, data_set_dir,
                                                module_dir)
                 elif value_type.get("code") == "Extension":
                     extension_url = "ext:" + value_type.get("profile")[0]
-                    defining_id = defining_id.replace(statement, extension_url)
+                    defining_id = defining_id.replace(full_statement, extension_url)
+                    print(f"Resolving extension: {defining_id}")
                     return resolve_defining_id(profile_snapshot, defining_id, data_set_dir,
                                                module_dir)
                 else:
                     return resolved_element
+    elif "as ValueSetUrl" in statement:
+        statement = statement.replace(" as ValueSetUrl", "")
+        value_set_element = get_element_from_snapshot(profile_snapshot, statement)
+        return get_value_set_defining_url(value_set_element, profile_snapshot.get("name"))
+    return get_element_from_snapshot(profile_snapshot, statement)
 
 
 def extract_value_type(value_defining_element: dict, profile_name: str = "") -> VALUE_TYPE_OPTIONS:
@@ -169,6 +163,8 @@ def extract_value_type(value_defining_element: dict, profile_name: str = "") -> 
     :param profile_name: name of the FHIR profile for debugging purposes can be omitted
     :return: value type
     """
+    if not value_defining_element:
+        print(f"Could not find value defining element for {profile_name}")
     fhir_value_types = value_defining_element.get("type")
     if not fhir_value_types:
         raise InvalidValueTypeException(f"No value type defined in element: {str(value_defining_element)}"
@@ -176,8 +172,8 @@ def extract_value_type(value_defining_element: dict, profile_name: str = "") -> 
     if len(fhir_value_types) > 1:
         raise InvalidValueTypeException(f"More than one value type defined in element: "
                                         f"{str(value_defining_element)} refine the profile: " + profile_name)
-    return FHIR_TYPES_TO_VALUE_TYPES.get(fhir_value_types[0].get("code")) if fhir_value_types[0].get("code") in FHIR_TYPES_TO_VALUE_TYPES else \
-        fhir_value_types[0].get("code")
+    return FHIR_TYPES_TO_VALUE_TYPES.get(fhir_value_types[0].get("code")) \
+        if fhir_value_types[0].get("code") in FHIR_TYPES_TO_VALUE_TYPES else fhir_value_types[0].get("code")
 
 
 def get_selectable_concepts(concept_defining_element, profile_name: str = "") -> List[TermCode]:
@@ -239,13 +235,14 @@ def pattern_coding_to_term_code(element):
     term_code = TermCode(system, code, display)
     return term_code
 
-# if __name__ == "__main__":
-#     with open("example/mii_core_data_set/resources/core_data_sets/de.medizininformatikinitiative.kerndatensatz"
-#               ".biobank#1.0.3/package/StructureDefinition-Specimen-snapshot.json", "r") as f:
-#         profile = json.load(f)
-#         print(resolve_defining_id(profile, "Resolve(Resolve("
-#                                            "Specimen.extension:festgestellteDiagnose)"
-#                                            ".value[x]).code.coding:icd10-gm",
-#                                   "example/mii_core_data_set/resources/core_data_sets",
-#                                   "example/mii_core_data_set/resources/fdpg_differential/"
-#                                   "Bioprobe"))
+
+if __name__ == "__main__":
+    with open("example/mii_core_data_set/resources/core_data_sets/de.medizininformatikinitiative.kerndatensatz"
+              ".biobank#1.0.3/package/StructureDefinition-Specimen-snapshot.json", "r") as f:
+        profile = json.load(f)
+        print(resolve_defining_id(profile,
+                                  "((Specimen.extension:festgestellteDiagnose as Reference).value[x] "
+                                  "as Reference).code.coding:icd10-gm as ValueSetUrl",
+                                  "example/mii_core_data_set/resources/core_data_sets",
+                                  "example/mii_core_data_set/resources/fdpg_differential/"
+                                  "Bioprobe"))

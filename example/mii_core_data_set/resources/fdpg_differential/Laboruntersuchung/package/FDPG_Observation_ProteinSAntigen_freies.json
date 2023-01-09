@@ -1,7 +1,7 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Glomerularfiltrationrate-1.73sqM.predicted[VolumeRate-Area]inSerum,PlasmaorBloodbyCystatin-basedformula",
-    "name": "Glomerular filtration rate/1.73 sq M.predicted [Volume Rate/Area] in Serum, Plasma or Blood by Cystatin-based formula",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/ProteinSAntigen_freies",
+    "name": "Protein S Antigen, freies",
     "status": "active",
     "fhirVersion": "4.0.1",
     "kind": "resource",
@@ -14,8 +14,8 @@
             {
                 "id": "Observation.code",
                 "path": "Observation.code",
-                "short": "Glomerular filtration rate/1.73 sq M.predicted [Volume Rate/Area] in Serum, Plasma or Blood by Cystatin-based formula",
-                "definition": "Glomerular filtration rate/1.73 sq M.predicted [Volume Rate/Area] in Serum, Plasma or Blood by Cystatin-based formula"
+                "short": "Protein S Antigen, freies",
+                "definition": "Protein S Antigen, freies"
             },
             {
                 "id": "Observation.code.coding",
@@ -39,7 +39,7 @@
                 "max": "*",
                 "patternCoding": {
                     "system": "http://loinc.org",
-                    "code": "50210-4"
+                    "code": "27821-8"
                 }
             },
             {
@@ -102,9 +102,9 @@
                 "path": "Observation.valueQuantity.code",
                 "min": 1,
                 "mustSupport": true,
-                "fixedCode": "mL/min/{1.73_m2}"
+                "fixedCode": "%"
             }
         ]
     },
-    "id": "3be88cf4-21c8-4e0b-b849-1b14c59a7305"
+    "id": "ca7d22b0-dbf7-4215-95f2-ae3ca72af981"
 }

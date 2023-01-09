@@ -67,7 +67,7 @@
                 },
                 "type": [
                     {
-                        "code": "Quantity"
+                        "code": "CodeableConcept"
                     }
                 ],
                 "mustSupport": true
@@ -76,6 +76,7 @@
                 "id": "Observation.value[x]:valueCodeableConcept",
                 "path": "Observation.value[x]",
                 "sliceName": "valueCodeableConcept",
+                "min": 1,
                 "type": [
                     {
                         "code": "CodeableConcept"

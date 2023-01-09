@@ -1,7 +1,7 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Glomerularfiltrationrate-1.73sqM.predicted[VolumeRate-Area]inSerum,PlasmaorBloodbyCreatinine-basedformula(CKD-EPI)",
-    "name": "Glomerular filtration rate/1.73 sq M.predicted [Volume Rate/Area] in Serum, Plasma or Blood by Creatinine-based formula (CKD-EPI)",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/VitaminD3_25-Hydroxy-",
+    "name": "Vitamin D3, 25-Hydroxy-",
     "status": "active",
     "fhirVersion": "4.0.1",
     "kind": "resource",
@@ -14,8 +14,8 @@
             {
                 "id": "Observation.code",
                 "path": "Observation.code",
-                "short": "Glomerular filtration rate/1.73 sq M.predicted [Volume Rate/Area] in Serum, Plasma or Blood by Creatinine-based formula (CKD-EPI)",
-                "definition": "Glomerular filtration rate/1.73 sq M.predicted [Volume Rate/Area] in Serum, Plasma or Blood by Creatinine-based formula (CKD-EPI)"
+                "short": "Vitamin D3, 25-Hydroxy-",
+                "definition": "Vitamin D3, 25-Hydroxy-"
             },
             {
                 "id": "Observation.code.coding",
@@ -39,7 +39,7 @@
                 "max": "*",
                 "patternCoding": {
                     "system": "http://loinc.org",
-                    "code": "62238-1"
+                    "code": "1989-3"
                 }
             },
             {
@@ -102,9 +102,9 @@
                 "path": "Observation.valueQuantity.code",
                 "min": 1,
                 "mustSupport": true,
-                "fixedCode": "mL/min/{1.73_m2}"
+                "fixedCode": "pg/mL"
             }
         ]
     },
-    "id": "a8db5db3-5ac0-4d9e-b5ab-51305c5614e2"
+    "id": "03464a1c-c831-4bff-8832-a856d55c4467"
 }

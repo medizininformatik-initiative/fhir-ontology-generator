@@ -6,6 +6,7 @@ from typing import List, ValuesView
 
 from FHIRProfileConfiguration import *
 from api.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
+from api.StrucutureDefinitionParser import get_element_from_snapshot
 from api.UIProfileGenerator import UIProfileGenerator
 from api.UITreeGenerator import UITreeGenerator
 from api.CQLMappingGenerator import CQLMappingGenerator
@@ -18,6 +19,7 @@ from model.UIProfileModel import UIProfile
 from model.UiDataModel import TermEntry, TermCode
 
 core_data_sets = [MII_CONSENT, MII_DIAGNOSE, MII_LAB, MII_MEDICATION, MII_PERSON, MII_PROCEDURE, MII_SPECIMEN]
+WINDOWS_RESERVED_CHARACTERS = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
 
 
 class MIICoreDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
@@ -26,6 +28,14 @@ class MIICoreDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
 
     def get_query_meta_data(self, fhir_profile_snapshot: dict, context: TermCode) -> List[ResourceQueryingMetaData]:
         query_meta_data = self._get_query_meta_data_by_context(fhir_profile_snapshot, context)
+        print(query_meta_data)
+        print(f"Query meta data for {fhir_profile_snapshot.get('name')} resolved")
+        if not query_meta_data:
+            print(f"No query meta data found for profile: {fhir_profile_snapshot.get('name')} and  context: {context}")
+        elif len(query_meta_data) > 1:
+            print(f"Multiple query meta data found for profile: {fhir_profile_snapshot.get('name')} and  context: "
+                  f"{context}")
+            query_meta_data = self._filter_query_meta_data(query_meta_data, fhir_profile_snapshot)
         return query_meta_data if query_meta_data else self._get_query_meta_data_by_snapshot(fhir_profile_snapshot)
 
     @staticmethod
@@ -44,6 +54,23 @@ class MIICoreDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
                 in load_querying_meta_data("resources/QueryingMetaData") if
                 resource_querying_meta_data.resource_type == fhir_profile_snapshot["type"]
                 and resource_querying_meta_data.context == context]
+
+    @staticmethod
+    def _filter_query_meta_data(query_meta_data: List[ResourceQueryingMetaData], fhir_profile_snapshot: dict) \
+            -> List[ResourceQueryingMetaData]:
+        """
+        Filters the query meta data based on the min property of the fhir_profile_snapshot for the value element
+        :param query_meta_data: initial query meta data
+        :param fhir_profile_snapshot: FHIR profile snapshot
+        :return: filtered query meta data
+        """
+        result = query_meta_data.copy()
+        for meta_data in query_meta_data:
+            value_element = get_element_from_snapshot(fhir_profile_snapshot, meta_data.value_defining_id)
+            if not value_element or value_element.get("min") == 0:
+                result.remove(meta_data)
+        print(result)
+        return result if result else query_meta_data
 
 
 def generate_term_code_mapping(_entries: List[TermEntry]):
@@ -148,9 +175,15 @@ def configure_args_parser():
     return arg_parser
 
 
+def remove_reserved_characters(file_name):
+    return file_name.translate({ord(c): None for c in WINDOWS_RESERVED_CHARACTERS})
+
+
 def write_ui_profiles_to_files(profiles: List[UIProfile] | ValuesView[UIProfile]):
     for profile in profiles:
-        with open("ui-profiles/" + profile.name + ".json", 'w', encoding="utf-8") as f:
+        with open(
+                "ui-profiles/" + remove_reserved_characters(profile.name).replace(" ", "_").replace(".", "_") + ".json",
+                'w', encoding="utf-8") as f:
             f.write(profile.to_json())
     f.close()
 
@@ -188,9 +221,9 @@ if __name__ == '__main__':
         write_ui_profiles_to_files(ui_profiles)
 
     if args.generate_mapping:
-        cql_generator = CQLMappingGenerator(resolver)
-        cql_concept_mappings = cql_generator.generate_mapping("resources/fdpg_differential")
-        write_mappings_to_files(cql_concept_mappings)
+        # cql_generator = CQLMappingGenerator(resolver)
+        # cql_concept_mappings = cql_generator.generate_mapping("resources/fdpg_differential")
+        # write_mappings_to_files(cql_concept_mappings)
 
         fhir_search_generator = FHIRSearchMappingGenerator(resolver)
         fhir_search_mappings = fhir_search_generator.generate_mapping("resources/fdpg_differential")

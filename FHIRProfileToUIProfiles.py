@@ -1,18 +1,17 @@
 import os
 
-import csv
 from lxml import etree
 
+import csv
 from FHIRProfileConfiguration import *
-from helper import to_upper_camel_case
+from LogicalModelToProfile import LOGICAL_MODEL_TO_PROFILE
 from TerminologService.ValueSetResolver import get_term_entries_from_onto_server, \
     get_term_entries_by_id, get_term_entries_by_path, pattern_coding_to_termcode
 from TerminologService.icd10MortalityDownloader import download_sonderverzeichnis_mortality
+from helper import to_upper_camel_case
 from model.Exceptions import UnknownHandlingException
 from model.UIProfileModel import *
 from model.UiDataModel import *
-from model import ResourceQueryingMetaData
-from LogicalModelToProfile import LOGICAL_MODEL_TO_PROFILE
 
 IGNORE_CATEGORIES = []
 

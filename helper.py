@@ -164,3 +164,16 @@ def write_object_as_json(serializable: JsonSerializable, file_name: str):
     """
     with open(file_name, "w") as f:
         f.write(serializable.to_json())
+
+
+def find_search_parameter(expression):
+    with open("resources/fhir_search_parameter_definition.json") as f:
+        search_parameter_definition = json.load(f)
+    for search_parameter in search_parameter_definition["entry"]:
+        if expression in search_parameter["resource"]["expression"]:
+            return search_parameter["resource"]["name"]
+        elif expression.split(".")[:-1] in search_parameter["resource"]["expression"]:
+            return search_parameter["resource"]["name"]
+        else:
+            raise ValueError(f"Could not find search parameter for {expression}"
+                             f"maybe you need a custom search parameter?")
