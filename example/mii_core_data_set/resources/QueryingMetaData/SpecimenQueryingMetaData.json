@@ -1,4 +1,5 @@
 {
+  "name": "Specimen",
   "resource_type": "Specimen",
   "context": {
     "system": "fdpg.mii.cds",
@@ -7,7 +8,8 @@
   },
   "term_code_defining_id": "Specimen.type.coding:sct",
   "attribute_defining_id_type_map": {
-    "((Specimen.extension:festgestellteDiagnose as Reference).value[x] as Reference).code.coding:icd10-gm as ValueSet": ""
+    "((Specimen.extension:festgestellteDiagnose).value[x]).code.coding:icd10-gm": "",
+    "Specimen.collection.bodySite.coding:icd-o-3": ""
   },
   "time_restriction_defining_id": "Specimen.collection.collected[x]"
 }

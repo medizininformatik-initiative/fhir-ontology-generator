@@ -1,4 +1,5 @@
 {
+  "name": "Condition",
   "resource_type": "Condition",
   "context": {
     "system": "fdpg.mii.cds",

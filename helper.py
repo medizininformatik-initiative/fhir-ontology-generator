@@ -1,11 +1,14 @@
+from __future__ import annotations
+
 import errno
 import json
 import os
 import re
 from os import path
-from typing import List, Set, Protocol
+from typing import List, Set, Protocol, Dict
 
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
+from model.UIProfileModel import VALUE_TYPE_OPTIONS
 from model.UiDataModel import TermCode
 
 
@@ -110,7 +113,7 @@ def generate_snapshots(package_dir: str, prerequisite_packages: List[str] = None
         # generates snapshots for all differential in the package if they do not exist
         for file in [f for f in os.listdir('.') if
                      os.path.isfile(f) and is_structured_definition(f) and "-snapshot" not in f
-                     and f[:-5]+"-snapshot.json" not in os.listdir('.')]:
+                     and f[:-5] + "-snapshot.json" not in os.listdir('.')]:
             generate_snapshot()
         os.chdir(saved_path)
 
@@ -128,7 +131,7 @@ def load_querying_meta_data(resource_querying_meta_data_dir: str) -> List[Resour
         raise NotADirectoryError("resource_querying_meta_data_dir must be a directory")
     query_meta_data: List[ResourceQueryingMetaData] = []
     for file in [f for f in os.scandir(resource_querying_meta_data_dir)
-                 if os.path.isfile(f) and f.name.endswith(".json")]:
+                 if os.path.isfile(f.path) and f.name.endswith(".json")]:
         with open(file.path) as f:
             query_meta_data.append(ResourceQueryingMetaData.from_json(f))
     return query_meta_data
@@ -166,14 +169,116 @@ def write_object_as_json(serializable: JsonSerializable, file_name: str):
         f.write(serializable.to_json())
 
 
-def find_search_parameter(expression):
-    with open("resources/fhir_search_parameter_definition.json") as f:
-        search_parameter_definition = json.load(f)
-    for search_parameter in search_parameter_definition["entry"]:
-        if expression in search_parameter["resource"]["expression"]:
-            return search_parameter["resource"]["name"]
-        elif expression.split(".")[:-1] in search_parameter["resource"]["expression"]:
-            return search_parameter["resource"]["name"]
+VALUE_TYPE_TO_FHIR_SEARCH_TYPE = {
+    "concept": "token",
+    "quantity": "quantity",
+    "reference": "reference",
+    "date": "date"
+}
+
+
+def get_fhir_search_parameters() -> List[dict]:
+    pass
+
+
+def flatten(lst) -> List:
+    """
+    Flattens a list of lists with arbitrary depth
+    :param lst: the list to flatten
+    :return: the flattened list
+    """
+    if not isinstance(lst, list):
+        yield lst
+    else:
+        for element in lst:
+            if isinstance(element, list) and not isinstance(element, (str, bytes)):
+                yield from flatten(element)
+            else:
+                yield element
+
+
+def find_search_parameter(full_expression: str, resource_type: str, attribute_type: VALUE_TYPE_OPTIONS = None) -> str:
+    """
+    Finds the search parameter for a given expression. The search parameter with the shortest expression limited to the
+    resource_type is returned. I.e expression: Observation.code results in code and not combo-code. As the expression:
+    (Observation.code) | (Medication.code) | (Condition.code) | (Procedure.code) | (DiagnosticReport.code) | ...
+    filtered by resource type results in (Observation.code) which is shorter than the combo-code expression:
+    (Observation.code) | (Observation.component.code)
+    :param full_expression: the expression
+    :param resource_type: FHIR resource type
+    :param attribute_type: the attribute type
+    :return: the search parameter
+    :raises ValueError: if the search parameter could not be found
+    """
+    expression = full_expression
+    replaced_expression = None
+    current_expression_match = None
+    result = None
+    attribute_type = VALUE_TYPE_TO_FHIR_SEARCH_TYPE.get(attribute_type, attribute_type)
+    # ToDo: Consider replacing this with code logic
+    with open(f"../../resources/fhir_resource_id_path_mapping.json") as f:
+        resource_id_path_mapping = json.load(f)
+        for expression_key in resource_id_path_mapping.keys():
+            if expression_key in expression:
+                replaced_expression = expression_key
+                expression = resource_id_path_mapping.get(expression_key, expression)
+    expression = expression.replace('[x]', '')
+    if expression.endswith(":"):
+        expression = expression[:-1]
+    print(f"expression: {expression}, resource_type: {resource_type}, attribute_type: {attribute_type}")
+    if "." not in expression:
+        raise ValueError(f"Search parameter could not be found for expression: {expression}")
+
+    for search_parameter in get_all_search_parameters():
+        if search_parameter_expression := get_expression_if_resource_and_type_match(search_parameter, resource_type,
+                                                                                    attribute_type):
+            search_parameter_expression = expression_to_resource_relevant_expression(search_parameter_expression,
+                                                                                     resource_type)
+            if current_expression_match:
+                if len(current_expression_match) > len(search_parameter_expression):
+                    current_expression_match = search_parameter_expression
+                    result = search_parameter
+            else:
+                current_expression_match = search_parameter_expression
+                result = search_parameter
+    if result:
+        if result.get("type") == "reference":
+            targets = result.get("target")
+            if len(targets) != 1:
+                raise ValueError(f"Chained search parameters with no or multiple targets are not supported: {result}")
+            if replaced_expression:
+                expression = full_expression.replace(replaced_expression, f"{targets[0]}").rstrip()
+                print(expression, targets[0], attribute_type)
+                return result.get("code") + "." + find_search_parameter(expression, targets[0], attribute_type)
         else:
-            raise ValueError(f"Could not find search parameter for {expression}"
-                             f"maybe you need a custom search parameter?")
+            return result.get("code")
+    else:
+        try:
+            return find_search_parameter(expression[:expression.rfind('.')], resource_type, attribute_type)
+        except ValueError:
+            raise ValueError(f"Search parameter could not be found for expression {expression} . Consider adding a "
+                             f"custom search parameter")
+
+
+def get_all_search_parameters() -> List[Dict]:
+    with open("../../resources/fhir_search_parameter_definition.json") as f:
+        search_parameter_definition = json.load(f)
+    with open(
+            "../../resources/core_data_sets/de.medizininformatikinitiative.kerndatensatz.biobank#1.0.3"
+            "/package/SearchParameter-SearchParamDiagnosis.json") as f:
+        search_parameter_definition.get("entry").append({"resource": json.load(f)})
+        return [entry.get("resource") for entry in search_parameter_definition.get("entry") if entry.get("resource")]
+
+
+def get_expression_if_resource_and_type_match(search_parameter: Dict, resource_type: str, attribute_type: str) -> str:
+    if resource_type in search_parameter.get("base") and attribute_type \
+            in search_parameter.get("type") or search_parameter.get("type") == "reference":
+        return search_parameter.get("expression")
+
+
+def expression_to_resource_relevant_expression(expression: str, resource_type: str) -> str:
+    resource_relevant_sub_expressions = [subexpression for subexpression in
+                                         expression.split("|") if
+                                         resource_type in subexpression]
+    filtered_expression = "|".join(resource_relevant_sub_expressions)
+    return filtered_expression

@@ -1,4 +1,5 @@
 {
+  "name": "ConceptObservation",
   "resource_type": "Observation",
   "context": {
     "system": "fdpg.mii.cds",

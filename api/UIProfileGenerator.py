@@ -4,10 +4,10 @@ import json
 import os
 from typing import Dict, Tuple, List
 
-from api import StrucutureDefinitionParser as FHIRParser
-from api.StrucutureDefinitionParser import InvalidValueTypeException
 from TerminologService.ValueSetResolver import get_term_codes_by_id
 from api import ResourceQueryingMetaDataResolver
+from api import StrucutureDefinitionParser as FHIRParser
+from api.StrucutureDefinitionParser import InvalidValueTypeException
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import ValueDefinition, UIProfile, AttributeDefinition
 from model.UiDataModel import TermCode
@@ -73,7 +73,6 @@ class UIProfileGenerator:
         ui_profile_name_ui_profile_mapping = {}
         for i, querying_meta_data_entry in enumerate(querying_meta_data):
             ui_profile = self.generate_ui_profile(profile_snapshot, querying_meta_data_entry)
-            print(ui_profile.to_json())
             term_codes = get_term_codes_by_id(querying_meta_data_entry.term_code_defining_id,
                                               profile_snapshot)
             ui_profile.name += str(i) if i > 0 else ""

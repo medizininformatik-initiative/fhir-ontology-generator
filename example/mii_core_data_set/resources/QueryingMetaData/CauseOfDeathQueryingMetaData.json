@@ -1,4 +1,5 @@
 {
+  "name": "CauseOfDeath",
   "resource_type": "Condition",
   "context": {
     "system": "fdpg.mii.cds",

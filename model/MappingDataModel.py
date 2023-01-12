@@ -96,14 +96,14 @@ class MapEntry:
 
 
 class FhirMapping:
-    def __init__(self, name: str, term_code_search_parameter: str):
+    def __init__(self, name: str, term_code_search_parameter: str = None):
         """
         FhirMapping stores all necessary information to translate a structured query to a FHIR query.
         :param name: name of the mapping acting as primary key
         :param term_code_search_parameter: FHIR search parameter that is used to identify the criteria in the structured
         """
         self.name = name
-        self.termCodeSearchParameter: str = term_code_search_parameter
+        self.termCodeSearchParameter: str | None = term_code_search_parameter
         self.valueSearchParameter: str | None = None
         self.valueType: str | None = None
         self.timeRestrictionParameter: str | None = None

@@ -1,4 +1,5 @@
 {
+  "name": "Procedure",
   "resource_type": "Procedure",
   "context": {
     "system": "fdpg.mii.cds",

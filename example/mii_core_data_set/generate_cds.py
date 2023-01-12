@@ -188,8 +188,11 @@ def write_ui_profiles_to_files(profiles: List[UIProfile] | ValuesView[UIProfile]
     f.close()
 
 
-def write_mappings_to_files(_mappings) -> List[MapEntry]:
-    pass
+def write_mappings_to_files(mappings) -> List[MapEntry]:
+    for mapping in mappings:
+        with open("mapping/" + mapping.name + ".json", 'w', encoding="utf-8") as f:
+            f.write(mapping.to_json())
+    f.close()
 
 
 if __name__ == '__main__':
@@ -226,7 +229,7 @@ if __name__ == '__main__':
         # write_mappings_to_files(cql_concept_mappings)
 
         fhir_search_generator = FHIRSearchMappingGenerator(resolver)
-        fhir_search_mappings = fhir_search_generator.generate_mapping("resources/fdpg_differential")
+        fhir_search_mappings = fhir_search_generator.generate_mapping("resources/fdpg_differential")[1].values()
         write_mappings_to_files(fhir_search_mappings)
 
     # core_data_category_entries = generate_core_data_set()

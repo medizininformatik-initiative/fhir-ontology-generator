@@ -11,6 +11,7 @@ class ResourceQueryingMetaData:
     """
     ResourceQueryingMetaData stores all necessary information to extract the queryable data from a FHIR resource.
     Care the combination of resource_type and context has to be unique.
+    :param name: Name of the QueryingMetaData
     :param resource_type is taken from the FHIR resource type. (Required)
     :param context defines the context of the resource. (Required)
     :param term_code_defining_id defines the id that identifies the term_code element.
@@ -25,9 +26,10 @@ class ResourceQueryingMetaData:
     overwritten here.
     :param time_restriction_defining_id defines the id that identifies the time restriction element.
     """
-    def __init__(self, resource_type: str, context: TermCode | dict, term_code_defining_id: str = None,
+    def __init__(self, name: str, resource_type: str, context: TermCode | dict, term_code_defining_id: str = None,
                  term_codes: List[TermCode] | List[dict] = None, value_defining_id: str = None, value_type: str = None,
                  attribute_defining_id_type_map: Dict[str, str] = None, time_restriction_defining_id: str = None):
+        self.name = name
         self.value_type = value_type
         self.resource_type = resource_type
         self.context = TermCode(**context)

@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import json
 import os
-from typing import List
+from typing import List, Tuple
 
 from TerminologService.ValueSetResolver import get_termcodes_from_onto_server, get_term_code_display_from_onto_server
+from helper import flatten
 from model.UIProfileModel import VALUE_TYPE_OPTIONS
 from model.UiDataModel import TermCode
 
@@ -13,7 +14,8 @@ FHIR_TYPES_TO_VALUE_TYPES = {
     "code": "concept",
     "Quantity": "quantity",
     "Reference": "reference",
-    "CodeableConcept": "concept"
+    "CodeableConcept": "concept",
+    "Coding": "concept"
 }
 
 
@@ -32,15 +34,16 @@ def get_element_from_snapshot(profile_snapshot, element_id) -> dict:
         for element in profile_snapshot["snapshot"]["element"]:
             if "id" in element and element["id"] == element_id:
                 return element
+        else:
+            raise Exception(
+                f"Could not find element with id: {element_id} in the snapshot: {profile_snapshot.get('name')}")
     except KeyError:
         print(
             f"KeyError the element id: {element_id} is not in the snapshot or the snapshot has no snapshot "
             f"elements")
-    else:
-        return {}
 
 
-def get_profiles_with_base_definition(fhir_dataset_dir: str, base_definition: str) -> dict:
+def get_profiles_with_base_definition(fhir_dataset_dir: str, base_definition: str) -> Tuple[dict, str]:
     """
     Returns the profiles that have the given base definition
     :param fhir_dataset_dir: path to the FHIR dataset directory
@@ -54,9 +57,9 @@ def get_profiles_with_base_definition(fhir_dataset_dir: str, base_definition: st
             with open(file.path, "r", encoding="utf8") as f:
                 profile = json.load(f)
                 if profile.get("baseDefinition") == base_definition:
-                    return profile
+                    return profile, module_dir.path
                 elif profile.get("type") == base_definition.split("/")[-1]:
-                    return profile
+                    return profile, module_dir.path
 
 
 def get_extension_definition(module_dir: str, extension_profile_url: str) -> dict:
@@ -76,84 +79,98 @@ def get_extension_definition(module_dir: str, extension_profile_url: str) -> dic
                 return profile
 
 
+def parse(chained_fhir_element_id):
+    """
+    Parses a chained fhir element id with the given Grammar:
+    chained_fhir_element_id ::= "(" chained_fhir_element_id ")" ( "." fhir_element_id )* | fhir_element_id
+    :param chained_fhir_element_id: the chained fhir element id
+    :return: the parsed fhir element id
+    """
+    tokens = tokenize(chained_fhir_element_id)
+    return parse_tokens(tokens)
+
+
+def parse_tokens(tokens: List[str]) -> List[str] | str:
+    """
+    returns the parsed syntax node of the tokens
+    :param tokens: the syntax tokens
+    :return: the parsed syntax node represented as a list of child nodes or a string
+    """
+    if len(tokens) == 0:
+        raise ValueError("Empty string")
+    token = tokens.pop(0)
+    if token == "(":
+        sub_tree = []
+        while tokens[0] != ")":
+            sub_tree.append(parse_tokens(tokens))
+        tokens.pop(0)
+        if len(tokens) == 1:
+            return [sub_tree, tokens.pop(0)]
+        else:
+            return sub_tree
+    elif token == ")":
+        raise ValueError("Unexpected )")
+    else:
+        return token
+
+
+def tokenize(chained_fhir_element_id):
+    """
+    Tokenizes a chained fhir element id with the given Grammar:
+    chained_fhir_element_id ::= "(" chained_fhir_element_id ")" ( "." fhir_element_id )* | fhir_element_id
+    :param chained_fhir_element_id: the chained fhir element id
+    :return: the tokenized fhir element id
+    """
+    return chained_fhir_element_id.replace("(", " ( ").replace(")", " ) ").split()
+
+
+def get_element_defining_elements(chained_element_id, profile_snapshot: dict, start_module_dir: str, data_set_dir: str) \
+        -> List[dict]:
+    parsed_list = list(flatten(parse(chained_element_id)))
+    print(parsed_list)
+    return process_element_id(parsed_list, profile_snapshot, start_module_dir, data_set_dir)
+
+
+def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, data_set_dir: str) -> List[dict] | None:
+    element_id = element_ids.pop(0)
+    if element_id.startswith("."):
+        raise ValueError("Element id must start with a resource type")
+    element = get_element_from_snapshot(profile_snapshot, element_id)
+    result = [element]
+    if element_ids:
+        for element in element.get("type"):
+            if element.get("code") == "Extension":
+                profile_urls = element.get("profile")
+                if len(profile_urls) > 1:
+                    raise Exception("Extension with multiple types not supported")
+                extension = get_extension_definition(module_dir, profile_urls[0])
+                element_ids[0] = f"Extension{element_ids[0]}"
+                result.extend(process_element_id(element_ids, extension, module_dir, data_set_dir))
+                return result
+            elif element.get("code") == "Reference":
+                target_profiles = element.get("targetProfile")
+                if len(target_profiles) > 1:
+                    raise Exception("Reference with multiple types not supported")
+                target_resource_type = element.get("targetProfile")[0]
+                referenced_profile, module_dir = get_profiles_with_base_definition(data_set_dir, target_resource_type)
+                element_ids[0] = f"{referenced_profile.get('type')}{element_ids[0]}"
+                result.extend(process_element_id(element_ids, referenced_profile, module_dir, data_set_dir))
+                return result
+            else:
+                raise Exception(f"You can only chain extensions and references, but found: {element.get('code')}")
+    return result
+
+
 def resolve_defining_id(profile_snapshot: dict, defining_id: str, data_set_dir: str, module_dir: str) \
         -> dict | str:
     """
-    Basic compiler for the following syntax:
-    implicitPathExpression:
-    : resolveExpression '.' FHIRElementId
-    ;
-    castExpression:
-    : implicitPathExpression 'as' FHIRType
-    ;
-    FHIRType:
-    'ValueSetUrl', 'Reference'
-    ;
-    example: ((Specimen.extension:festgestellteDiagnose as Reference).value[x] as Reference).code.coding:icd10-gm as
-    ValueSet
-    -> lookup extension url defined at Specimen.extension:festgestellteDiagnose -> Profile with this url
-    -> lookup value[x] at the extension profile -> Reference type with value Condition -> lookup Condition profile
-    -> lookup code.coding:icd-10-gm at the Condition profile -> extraction as ValueSet
-    Resolves the given expression to the specified FHIR type by resolving the element ids to the referenced
-    extensions and profiles and then applying the FHIRElementId to the resolved profile or extension and finally
-    casting the result to the specified FHIR type. Currently only the ValueSet type is supported.
     :param profile_snapshot: FHIR profile snapshot
     :param defining_id: defining id
     :param module_dir: path to the module directory
     :param data_set_dir: path to the FHIR dataset directory
     :return: resolved defining id
     """
-    print(f"Resolving: {defining_id}")
-    statement = defining_id
-    full_statement = statement[statement.rfind('('): statement.find(')') + 1]
-    if "ext:" in full_statement:
-        extension_url = statement[statement.find("ext:") + 4:statement.find(")")]
-        extension_profile = get_extension_definition(module_dir, extension_url)
-        if extension_profile is not None:
-            extension_type = extension_profile.get("type")
-            defining_id = defining_id.replace(full_statement, extension_type)
-            return resolve_defining_id(extension_profile, defining_id, data_set_dir,
-                                       module_dir)
-        else:
-            raise Exception(f"Extension profile not found for {statement}")
-    elif "ref:" in full_statement:
-        base_definition = statement[statement.find("ref:") + 4:statement.find(")")]
-        reference_profile = get_profiles_with_base_definition(data_set_dir, base_definition)
-        if reference_profile is not None:
-            reference_type = reference_profile.get("type")
-            defining_id = defining_id.replace(full_statement, reference_type)
-            return resolve_defining_id(reference_profile, defining_id, data_set_dir,
-                                       module_dir)
-        else:
-            raise Exception(f"Reference profile not found for {statement}")
-    full_statement = full_statement[1:-1]
-    if "as Reference" in statement:
-        statement = full_statement.split(' as Reference')[0]
-        print(f"Resolving: {statement}")
-        resolved_element = get_element_from_snapshot(profile_snapshot, statement)
-        if value_types := resolved_element.get("type"):
-            if len(value_types) > 1:
-                raise Exception(f"Could not resolve {defining_id} too many value types" + value_types)
-            for value_type in value_types:
-                if value_type.get("code") == "Reference":
-                    reference_url = "ref:" + value_type.get("targetProfile")[0]
-                    defining_id = defining_id.replace(full_statement, reference_url)
-                    print(f"Resolved reference: {defining_id}")
-                    return resolve_defining_id(profile_snapshot, defining_id, data_set_dir,
-                                               module_dir)
-                elif value_type.get("code") == "Extension":
-                    extension_url = "ext:" + value_type.get("profile")[0]
-                    defining_id = defining_id.replace(full_statement, extension_url)
-                    print(f"Resolving extension: {defining_id}")
-                    return resolve_defining_id(profile_snapshot, defining_id, data_set_dir,
-                                               module_dir)
-                else:
-                    return resolved_element
-    elif "as ValueSetUrl" in statement:
-        statement = statement.replace(" as ValueSetUrl", "")
-        value_set_element = get_element_from_snapshot(profile_snapshot, statement)
-        return get_value_set_defining_url(value_set_element, profile_snapshot.get("name"))
-    return get_element_from_snapshot(profile_snapshot, statement)
+    return get_element_defining_elements(defining_id, profile_snapshot, module_dir, data_set_dir)[-1]
 
 
 def extract_value_type(value_defining_element: dict, profile_name: str = "") -> VALUE_TYPE_OPTIONS:
@@ -235,14 +252,14 @@ def pattern_coding_to_term_code(element):
     term_code = TermCode(system, code, display)
     return term_code
 
-
-if __name__ == "__main__":
-    with open("example/mii_core_data_set/resources/core_data_sets/de.medizininformatikinitiative.kerndatensatz"
-              ".biobank#1.0.3/package/StructureDefinition-Specimen-snapshot.json", "r") as f:
-        profile = json.load(f)
-        print(resolve_defining_id(profile,
-                                  "((Specimen.extension:festgestellteDiagnose as Reference).value[x] "
-                                  "as Reference).code.coding:icd10-gm as ValueSetUrl",
-                                  "example/mii_core_data_set/resources/core_data_sets",
-                                  "example/mii_core_data_set/resources/fdpg_differential/"
-                                  "Bioprobe"))
+#
+# if __name__ == "__main__":
+#     with open("example/mii_core_data_set/resources/core_data_sets/de.medizininformatikinitiative.kerndatensatz"
+#               ".biobank#1.0.3/package/StructureDefinition-Specimen-snapshot.json", "r") as f:
+#         profile = json.load(f)
+#         print(resolve_defining_id(profile,
+#                                   "((Specimen.extension:festgestellteDiagnose as Reference).value[x] "
+#                                   "as Reference).code.coding:icd10-gm as ValueSetUrl",
+#                                   "example/mii_core_data_set/resources/core_data_sets",
+#                                   "example/mii_core_data_set/resources/fdpg_differential/"
+#                                   "Bioprobe"))

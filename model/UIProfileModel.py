@@ -9,7 +9,7 @@ from typing import Literal, List
 
 UI_PROFILES = set()
 
-VALUE_TYPE_OPTIONS = Literal["concept", "quantity", "reference"]
+VALUE_TYPE_OPTIONS = Literal["concept", "quantity", "reference", "date"]
 
 
 class ValueDefinition:
