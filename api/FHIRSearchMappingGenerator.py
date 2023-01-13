@@ -7,7 +7,7 @@ from TerminologService.ValueSetResolver import get_term_codes_by_id
 from api.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from api import StrucutureDefinitionParser as FHIRParser
 from api.StrucutureDefinitionParser import extract_value_type, resolve_defining_id
-from helper import find_search_parameter
+from helper import find_search_parameter, validate_chainable
 from model.MappingDataModel import FhirMapping
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import VALUE_TYPE_OPTIONS
@@ -32,6 +32,7 @@ class FHIRSearchMappingGenerator(object):
         snapshot
         """
         self.querying_meta_data_resolver = querying_meta_data_resolver
+        self.generated_mappings = []
         self.parser = parser
         self.data_set_dir: str = ""
         self.module_dir: str = ""
@@ -61,17 +62,21 @@ class FHIRSearchMappingGenerator(object):
         return (full_context_term_code_fhir_search_mapping_name_mapping,
                 full_fhir_search_mapping_name_fhir_search_mapping)
 
-    @staticmethod
-    def resolve_fhir_search_parameter(element_id: str, resource_type: str, attribute_type: VALUE_TYPE_OPTIONS) -> str:
+    def resolve_fhir_search_parameter(self, element_id: str, profile_snapshot: dict,
+                                      attribute_type: VALUE_TYPE_OPTIONS = None) -> List[str]:
         """
         Based on the element id, this method resolves the FHIR search parameter for the given FHIR Resource attribute
         :param element_id: element id that defines the of the FHIR Resource attribute
-        :param resource_type: FHIR Resource type
+        :param profile_snapshot: FHIR profile snapshot that contains the element id
         :param attribute_type: type of the FHIR Resource attribute
         :return: FHIR search parameter
         """
-        element_id = element_id[:element_id.rfind(":") + 1]
-        return find_search_parameter(element_id, resource_type, attribute_type)
+        fhir_path_expressions = self.translate_element_id_to_fhir_path_expressions(element_id, profile_snapshot)
+        print(fhir_path_expressions)
+        search_parameters = find_search_parameter(fhir_path_expressions)
+        print(search_parameters)
+        validate_chainable(search_parameters.values())
+        return [search_parameter.get("code") for search_parameter in search_parameters.values()]
 
     # TODO: Move to helper class
     @staticmethod
@@ -105,14 +110,18 @@ class FHIRSearchMappingGenerator(object):
         term_code_mapping_name_mapping = {}
         mapping_name_fhir_search_mapping = {}
         for querying_meta_data_entry in querying_meta_data:
-            fhir_mapping = self.generate_fhir_search_mapping(profile_snapshot, querying_meta_data_entry)
+            if querying_meta_data_entry.name not in self.generated_mappings:
+                fhir_mapping = self.generate_fhir_search_mapping(profile_snapshot, querying_meta_data_entry)
+                self.generated_mappings.append(querying_meta_data_entry.name)
+                mapping_name = fhir_mapping.name
+                mapping_name_fhir_search_mapping[mapping_name] = fhir_mapping
+            else:
+                mapping_name = querying_meta_data_entry.name
             term_codes = get_term_codes_by_id(querying_meta_data_entry.term_code_defining_id, profile_snapshot)
-            mapping_name = fhir_mapping.name
             primary_keys = [(context, term_code) for term_code in term_codes]
             mapping_names = [mapping_name] * len(primary_keys)
             table = dict(zip(primary_keys, mapping_names))
             term_code_mapping_name_mapping.update(table)
-            mapping_name_fhir_search_mapping[mapping_name] = fhir_mapping
         return term_code_mapping_name_mapping, mapping_name_fhir_search_mapping
 
     def generate_fhir_search_mapping(self, profile_snapshot: dict, querying_meta_data: ResourceQueryingMetaData) \
@@ -127,21 +136,21 @@ class FHIRSearchMappingGenerator(object):
         fhir_mapping.resource_type = querying_meta_data.resource_type
         if querying_meta_data.term_code_defining_id:
             fhir_mapping.termCodeSearchParameter = self.resolve_fhir_search_parameter(
-                querying_meta_data.term_code_defining_id, fhir_mapping.resource_type, "concept")
+                querying_meta_data.term_code_defining_id, profile_snapshot, "concept")
         if querying_meta_data.value_defining_id:
             value_type = querying_meta_data.value_type if querying_meta_data.value_type else \
                 self.get_attribute_type(profile_snapshot, querying_meta_data.value_defining_id)
             fhir_mapping.valueType = value_type
             fhir_mapping.valueSearchParameter = self.resolve_fhir_search_parameter(
-                querying_meta_data.value_defining_id, fhir_mapping.resource_type, value_type)
+                querying_meta_data.value_defining_id, profile_snapshot, value_type)
         if querying_meta_data.time_restriction_defining_id:
             fhir_mapping.timeRestrictionParameter = self.resolve_fhir_search_parameter(
-                querying_meta_data.time_restriction_defining_id, fhir_mapping.resource_type, "date")
+                querying_meta_data.time_restriction_defining_id, profile_snapshot, "date")
         for attribute, predefined_type in querying_meta_data.attribute_defining_id_type_map.items():
             attribute_key = self.generate_attribute_key(attribute, querying_meta_data.context)
             attribute_type = predefined_type if predefined_type else self.get_attribute_type(profile_snapshot,
                                                                                              attribute)
-            attribute_search_parameter = self.resolve_fhir_search_parameter(attribute, fhir_mapping.resource_type,
+            attribute_search_parameter = self.resolve_fhir_search_parameter(attribute, profile_snapshot,
                                                                             attribute_type)
             fhir_mapping.add_attribute(attribute_type, attribute_key, attribute_search_parameter)
         return fhir_mapping
@@ -178,18 +187,19 @@ class FHIRSearchMappingGenerator(object):
         :param elements: elements for which the fhir path expressions should be obtained
         :return: fhir path expressions
         """
+        print(elements)
         element = elements.pop(0)
         element_path = element.get("path")
         element_type = self.get_element_type(element)
         if element_type == "Extension":
-            if element[0].get("type") != "Extension":
+            if elements[0].get("id") != "Extension.value[x]":
                 raise Exception("translating an element that references an extension and is not followed by an "
                                 "extension element is invalid")
             elements.pop(0)
             element_path = f"{element_path}.where(url='{self.get_extension_url(element)}').value"
         elif element_type == "Coding":
             if element_path.endswith(".coding"):
-                return element_path.replace(".coding", "")
+                element_path = element_path.replace(".coding", "")
         if '[x]' in element_path:
             element_path = element_path.replace('[x]', f' as {element_type}')
         result = [element_path]
@@ -223,10 +233,3 @@ class FHIRSearchMappingGenerator(object):
         elif not element_types:
             raise Exception("No type found for element " + element.get("id") + " in profile element \n" + element)
         return element_types[0].get("code")
-
-
-if __name__ == '__main__':
-    print(FHIRSearchMappingGenerator.resolve_fhir_search_parameter(
-        "((Specimen.extension:festgestellteDiagnose as Reference).value[x] as Reference)"
-        ".code.coding:icd10-gm as ValueSet",
-        "Specimen", "concept"))

@@ -28,15 +28,16 @@ class MIICoreDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
 
     def get_query_meta_data(self, fhir_profile_snapshot: dict, context: TermCode) -> List[ResourceQueryingMetaData]:
         query_meta_data = self._get_query_meta_data_by_context(fhir_profile_snapshot, context)
-        print(query_meta_data)
-        print(f"Query meta data for {fhir_profile_snapshot.get('name')} resolved")
         if not query_meta_data:
-            print(f"No query meta data found for profile: {fhir_profile_snapshot.get('name')} and  context: {context}")
-        elif len(query_meta_data) > 1:
+            query_meta_data = self._get_query_meta_data_by_snapshot(fhir_profile_snapshot)
+            if not query_meta_data:
+                print(
+                    f"No query meta data found for profile: {fhir_profile_snapshot.get('name')} and context: {context}")
+        if len(query_meta_data) > 1:
             print(f"Multiple query meta data found for profile: {fhir_profile_snapshot.get('name')} and  context: "
                   f"{context}")
             query_meta_data = self._filter_query_meta_data(query_meta_data, fhir_profile_snapshot)
-        return query_meta_data if query_meta_data else self._get_query_meta_data_by_snapshot(fhir_profile_snapshot)
+        return query_meta_data
 
     @staticmethod
     def _get_query_meta_data_by_context(fhir_profile_snapshot: dict, context: TermCode) -> \
@@ -48,12 +49,19 @@ class MIICoreDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
 
     @staticmethod
     def _get_query_meta_data_by_snapshot(fhir_profile_snapshot: dict) -> List[ResourceQueryingMetaData]:
-        context = TermCode("fdpg.mii.cds", fhir_profile_snapshot["baseDefinition"].split("/")[-1],
-                           fhir_profile_snapshot["baseDefinition"].split("/")[-1])
-        return [resource_querying_meta_data for resource_querying_meta_data
-                in load_querying_meta_data("resources/QueryingMetaData") if
-                resource_querying_meta_data.resource_type == fhir_profile_snapshot["type"]
-                and resource_querying_meta_data.context == context]
+        context_base_type = TermCode("fdpg.mii.cds", fhir_profile_snapshot["baseDefinition"].split("/")[-1],
+                                     fhir_profile_snapshot["baseDefinition"].split("/")[-1])
+        resolved_by_base_type = [resource_querying_meta_data for resource_querying_meta_data
+                                 in load_querying_meta_data("resources/QueryingMetaData") if
+                                 resource_querying_meta_data.resource_type == fhir_profile_snapshot["type"]
+                                 and resource_querying_meta_data.context == context_base_type]
+        context_by_url = TermCode("fdpg.mii.cds", fhir_profile_snapshot["url"].split("/")[-1],
+                                  fhir_profile_snapshot["url"].split("/")[-1])
+        resolved_by_url = [resource_querying_meta_data for resource_querying_meta_data
+                           in load_querying_meta_data("resources/QueryingMetaData") if
+                           resource_querying_meta_data.resource_type == fhir_profile_snapshot["type"]
+                           and resource_querying_meta_data.context == context_by_url]
+        return resolved_by_base_type if resolved_by_base_type else resolved_by_url
 
     @staticmethod
     def _filter_query_meta_data(query_meta_data: List[ResourceQueryingMetaData], fhir_profile_snapshot: dict) \
@@ -66,7 +74,10 @@ class MIICoreDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
         """
         result = query_meta_data.copy()
         for meta_data in query_meta_data:
-            value_element = get_element_from_snapshot(fhir_profile_snapshot, meta_data.value_defining_id)
+            try:
+                value_element = get_element_from_snapshot(fhir_profile_snapshot, meta_data.value_defining_id)
+            except KeyError:
+                value_element = None
             if not value_element or value_element.get("min") == 0:
                 result.remove(meta_data)
         print(result)

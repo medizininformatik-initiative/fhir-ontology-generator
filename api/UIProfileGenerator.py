@@ -158,15 +158,17 @@ class UIProfileGenerator:
         FHIR profile snapshot
         :return: attribute definition
         """
-        attribute_defining_element = self.parser.get_element_from_snapshot(profile_snapshot,
-                                                                           attribute_defining_element_id)
+        attribute_defining_elements = self.parser.get_element_defining_elements(attribute_defining_element_id,
+                                                                                profile_snapshot, self.module_dir,
+                                                                                self.data_set_dir)
         attribute_type = attribute_type if attribute_type else self.parser.extract_value_type(
-            attribute_defining_element, profile_snapshot.get("name"))
+            attribute_defining_elements[-1], profile_snapshot.get("name"))
         attribute_code = self.generate_attribute_defining_code(profile_snapshot, attribute_defining_element_id)
         attribute_definition = AttributeDefinition(attribute_code, attribute_type)
         if attribute_type == "concept":
-            attribute_definition.selectableConcepts = self.parser.get_selectable_concepts(attribute_defining_element,
-                                                                                          profile_snapshot.get("name"))
+            attribute_definition.selectableConcepts = self.parser.get_selectable_concepts(
+                attribute_defining_elements[-1],
+                profile_snapshot.get("name"))
         elif attribute_type == "quantity":
             # "Observation.valueQuantity.value" -> "Observation.valueQuantity.code"
             unit_defining_element_id = "".join(attribute_defining_element_id.split(".")[:-1] + ["code"])

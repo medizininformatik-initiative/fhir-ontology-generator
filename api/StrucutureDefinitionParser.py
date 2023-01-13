@@ -35,7 +35,7 @@ def get_element_from_snapshot(profile_snapshot, element_id) -> dict:
             if "id" in element and element["id"] == element_id:
                 return element
         else:
-            raise Exception(
+            raise KeyError(
                 f"Could not find element with id: {element_id} in the snapshot: {profile_snapshot.get('name')}")
     except KeyError:
         print(

@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import errno
+import functools
 import json
+import math
 import os
 import re
+from collections import OrderedDict as orderedDict
 from os import path
-from typing import List, Set, Protocol, Dict
+from typing import List, Set, Protocol, Dict, Tuple, OrderedDict
 
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
-from model.UIProfileModel import VALUE_TYPE_OPTIONS
 from model.UiDataModel import TermCode
 
 
@@ -197,67 +199,87 @@ def flatten(lst) -> List:
                 yield element
 
 
-def find_search_parameter(full_expression: str, resource_type: str, attribute_type: VALUE_TYPE_OPTIONS = None) -> str:
+def get_cleaned_expressions(search_parameter: dict) -> List[str]:
     """
-    Finds the search parameter for a given expression. The search parameter with the shortest expression limited to the
-    resource_type is returned. I.e expression: Observation.code results in code and not combo-code. As the expression:
-    (Observation.code) | (Medication.code) | (Condition.code) | (Procedure.code) | (DiagnosticReport.code) | ...
-    filtered by resource type results in (Observation.code) which is shorter than the combo-code expression:
-    (Observation.code) | (Observation.component.code)
-    :param full_expression: the expression
-    :param resource_type: FHIR resource type
-    :param attribute_type: the attribute type
+    Gets the cleaned expressions of a search parameter
+    :param search_parameter: the search parameter
+    :return: the cleaned expressions
+    """
+    expressions = search_parameter.get("expression")
+    if not expressions:
+        return []
+    return [translate_as_function_to_operand(expression) if not re.match(r"\((.*?)\)", expression) else
+            translate_as_function_to_operand(expression[1:-1]) for expression in
+            expressions.split(" | ")]
+
+
+def translate_as_function_to_operand(expression) -> str:
+    """
+    fhirPath expressions like Observation.value.as(CodeableConcept) are deprecated and should be replaced with
+    Observation.value as CodeableConcept
+    :param expression: the expression to update
+    :return: the updated expression
+    """
+    while "as(" in expression:
+        as_start = expression.find(".as(")
+        as_end = expression.find(")", as_start)
+
+        expression = (expression[:as_start] + " as " + expression[as_start + 4:as_end] + expression[as_end + 1:])
+        if len(expression) > as_end + 1 and expression[as_end + 1] == ".":
+            Exception("Not implemented: Todo: Put operation in round brackets. "
+                      "I.e. Observation.(value as CodeableConcept).text")
+    return expression
+
+
+def find_search_parameter(fhir_path_expressions: List[str]) -> OrderedDict[str, dict]:
+    """
+    Finds the search parameter for a fhir path expression. Only the shortest expression is considered
+    :param fhir_path_expressions: fhir path expressions to be mapped to search parameters
     :return: the search parameter
     :raises ValueError: if the search parameter could not be found
     """
-    expression = full_expression
-    replaced_expression = None
-    current_expression_match = None
-    result = None
-    attribute_type = VALUE_TYPE_TO_FHIR_SEARCH_TYPE.get(attribute_type, attribute_type)
-    # ToDo: Consider replacing this with code logic
-    with open(f"../../resources/fhir_resource_id_path_mapping.json") as f:
-        resource_id_path_mapping = json.load(f)
-        for expression_key in resource_id_path_mapping.keys():
-            if expression_key in expression:
-                replaced_expression = expression_key
-                expression = resource_id_path_mapping.get(expression_key, expression)
-    expression = expression.replace('[x]', '')
-    if expression.endswith(":"):
-        expression = expression[:-1]
-    print(f"expression: {expression}, resource_type: {resource_type}, attribute_type: {attribute_type}")
-    if "." not in expression:
-        raise ValueError(f"Search parameter could not be found for expression: {expression}")
-
+    # int parameter is used to find the shortest expression and not returned in the result
+    fhir_path_expressions_to_search_parameter: OrderedDict[str, Tuple[dict, int]] = orderedDict(
+        [(expression, (None, math.inf)) for expression in fhir_path_expressions]
+    )
+    print(get_all_search_parameters()[-1])
     for search_parameter in get_all_search_parameters():
-        if search_parameter_expression := get_expression_if_resource_and_type_match(search_parameter, resource_type,
-                                                                                    attribute_type):
-            search_parameter_expression = expression_to_resource_relevant_expression(search_parameter_expression,
-                                                                                     resource_type)
-            if current_expression_match:
-                if len(current_expression_match) > len(search_parameter_expression):
-                    current_expression_match = search_parameter_expression
-                    result = search_parameter
-            else:
-                current_expression_match = search_parameter_expression
-                result = search_parameter
-    if result:
-        if result.get("type") == "reference":
-            targets = result.get("target")
-            if len(targets) != 1:
-                raise ValueError(f"Chained search parameters with no or multiple targets are not supported: {result}")
-            if replaced_expression:
-                expression = full_expression.replace(replaced_expression, f"{targets[0]}").rstrip()
-                print(expression, targets[0], attribute_type)
-                return result.get("code") + "." + find_search_parameter(expression, targets[0], attribute_type)
-        else:
-            return result.get("code")
-    else:
-        try:
-            return find_search_parameter(expression[:expression.rfind('.')], resource_type, attribute_type)
-        except ValueError:
-            raise ValueError(f"Search parameter could not be found for expression {expression} . Consider adding a "
-                             f"custom search parameter")
+        expressions = get_cleaned_expressions(search_parameter)
+        for path_expression in fhir_path_expressions:
+            if path_expression in expressions:
+                resource_type = path_expression.split('.')[0]
+                number_of_relevant_expressions = len(list(filter(lambda x: x.startswith(resource_type), expressions)))
+                if not fhir_path_expressions_to_search_parameter.get(path_expression) or \
+                        number_of_relevant_expressions \
+                        < fhir_path_expressions_to_search_parameter.get(path_expression)[1]:
+                    fhir_path_expressions_to_search_parameter[path_expression] = (search_parameter,
+                                                                                  number_of_relevant_expressions)
+    result = orderedDict([(key, value[0]) for key, value in fhir_path_expressions_to_search_parameter.items()])
+    if missing_search_parameters := [key for key, value in result.items() if not value]:
+        result_without_as_cast = find_search_parameter([fhir_path_expressions.split(" as ")[0] for
+                                                        fhir_path_expressions in missing_search_parameters])
+        result = orderedDict([(key if key.split(" as ")[0] not in result_without_as_cast else
+                               key.split(" as ")[0], value if key.split(" as ")[0] not in result_without_as_cast else
+                               result_without_as_cast[key.split(" as ")[0]]) for key, value in result.items()])
+        if missing_search_parameters := [key for key, value in result.items() if not value]:
+            raise ValueError(f"Could not find search parameter for {missing_search_parameters} \n"
+                             f"You may need to add an custom search parameter")
+    return result
+
+
+def validate_chainable(chainable_search_parameter) -> bool:
+    """
+    Validates the chaining of search parameters
+    :param chainable_search_parameter: the search parameter to be chained
+    :return: true if the search parameter can be chained else false
+    """
+    if not chainable_search_parameter:
+        raise ValueError("No search parameters to chain")
+    elif len(chainable_search_parameter) == 1:
+        return True
+    return functools.reduce(
+        lambda x, y: True if x and len(set(y.get("base", [])).intersection(x.get("target", []))) != 0 else False,
+        chainable_search_parameter)
 
 
 def get_all_search_parameters() -> List[Dict]:
@@ -267,10 +289,12 @@ def get_all_search_parameters() -> List[Dict]:
             "../../resources/core_data_sets/de.medizininformatikinitiative.kerndatensatz.biobank#1.0.3"
             "/package/SearchParameter-SearchParamDiagnosis.json") as f:
         search_parameter_definition.get("entry").append({"resource": json.load(f)})
-        return [entry.get("resource") for entry in search_parameter_definition.get("entry") if entry.get("resource")]
+        return [entry.get("resource") for entry in search_parameter_definition.get("entry") if
+                entry.get("resource")]
 
 
-def get_expression_if_resource_and_type_match(search_parameter: Dict, resource_type: str, attribute_type: str) -> str:
+def get_expression_if_resource_and_type_match(search_parameter: Dict, resource_type: str,
+                                              attribute_type: str) -> str:
     if resource_type in search_parameter.get("base") and attribute_type \
             in search_parameter.get("type") or search_parameter.get("type") == "reference":
         return search_parameter.get("expression")
