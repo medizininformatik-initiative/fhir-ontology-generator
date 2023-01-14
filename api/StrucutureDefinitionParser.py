@@ -252,6 +252,61 @@ def pattern_coding_to_term_code(element):
     term_code = TermCode(system, code, display)
     return term_code
 
+
+def translate_element_to_fhir_path_expression(elements: List[dict], ) -> List[str]:
+    """
+    Translates an element to a fhir search parameter. Be aware not every element is translated alone to a
+    fhir path expression. I.E. Extensions elements are translated together with the prior element.
+    :param elements: elements for which the fhir path expressions should be obtained
+    :return: fhir path expressions
+    """
+    print(elements)
+    element = elements.pop(0)
+    element_path = element.get("path")
+    element_type = get_element_type(element)
+    if element_type == "Extension":
+        if elements[0].get("id") != "Extension.value[x]":
+            raise Exception("translating an element that references an extension and is not followed by an "
+                            "extension element is invalid")
+        elements.pop(0)
+        element_path = f"{element_path}.where(url='{get_extension_url(element)}').value"
+    elif element_type == "Coding":
+        if element_path.endswith(".coding"):
+            element_path = element_path.replace(".coding", "")
+    if '[x]' in element_path:
+        element_path = element_path.replace('[x]', f' as {element_type}')
+    result = [element_path]
+    if elements:
+        result.extend(translate_element_to_fhir_path_expression(elements))
+    return result
+
+
+def get_extension_url(element):
+    extension_profiles = element.get('type')[0].get('profile')
+    if len(extension_profiles) > 1:
+        raise Exception("More than one extension found")
+    if not extension_profiles:
+        raise Exception("No extension profile url found in element: \n" + element)
+    return extension_profiles[0]
+
+
+def get_element_type(element):
+    """
+    Returns the type of the given element
+    :param element: element
+    :return: type of the element
+    """
+    element_types = element.get("type")
+    if len(element_types) > 1:
+        types = [element_type.get("code") for element_type in element_types]
+        if "dateTime" in types and "Period" in types:
+            return "dateTime"
+        else:
+            raise Exception("Multiple types are currently not supported")
+    elif not element_types:
+        raise Exception("No type found for element " + element.get("id") + " in profile element \n" + element)
+    return element_types[0].get("code")
+
 #
 # if __name__ == "__main__":
 #     with open("example/mii_core_data_set/resources/core_data_sets/de.medizininformatikinitiative.kerndatensatz"

@@ -3,7 +3,7 @@
   "id": "71d5aa8f-74aa-4c43-845c-a6400aad8bd9",
   "url": "https://www.medizininformatik-initiative.de/fhir/fdpg/StructureDefinition/Diagnose",
   "name": "Diagnose",
-  "status": "draft",
+  "status": "active",
   "fhirVersion": "4.0.1",
   "kind": "resource",
   "abstract": false,

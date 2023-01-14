@@ -118,17 +118,20 @@ class FhirMapping:
 
 
 class CQLMapping:
-    def __init__(self, name: str, term_code_fhir_path: str):
+    def __init__(self, name: str):
         """
         CQLMapping stores all necessary information to translate a structured query to a CQL query.
         :param name: name of the mapping acting as primary key
-        :param term_code_fhir_path: FHIR path that is used to identify the criteria in the structured query
         """
         self.name = name
-        self.termCodeFhirPath: str = term_code_fhir_path
+        self.termCodeFhirPath: str | None = None
         self.valueFhirPath: str | None = None
         self.timeRestrictionPath: str | None = None
-        self.attributeSearchParameters: List[CQLAttributeSearchParameter] = []
+        self.attributeFhirPath: List[CQLAttributeSearchParameter] = []
+
+    def add_attribute(self, attribute_type, attribute_key, attribute_fhir_path):
+        self.attributeFhirPath.append(
+            CQLAttributeSearchParameter(attribute_type, attribute_key, attribute_fhir_path))
 
     def to_json(self):
         return json.dumps(self, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)

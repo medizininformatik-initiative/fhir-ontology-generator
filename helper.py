@@ -306,3 +306,20 @@ def expression_to_resource_relevant_expression(expression: str, resource_type: s
                                          resource_type in subexpression]
     filtered_expression = "|".join(resource_relevant_sub_expressions)
     return filtered_expression
+
+
+def generate_attribute_key(element_id: str, context: TermCode) -> TermCode:
+    """
+    Generates the attribute key for the given element id
+    :param element_id: element id
+    :param context: context
+    :return: attribute key
+    """
+    if '(' and ')' in element_id:
+        element_id = element_id[element_id.rfind('(') + 1:element_id.find(')')]
+    if ':' in element_id:
+        element_id = element_id.split(':')[1]
+        key = element_id[: re.search(r'\w+', element_id).start()]
+    else:
+        key = element_id.split('.')[:-1]
+    return TermCode(context.system, key, key)

@@ -1,13 +1,12 @@
 import json
 import os
-import re
 from typing import Dict, Tuple, List
 
 from TerminologService.ValueSetResolver import get_term_codes_by_id
 from api.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from api import StrucutureDefinitionParser as FHIRParser
 from api.StrucutureDefinitionParser import extract_value_type, resolve_defining_id
-from helper import find_search_parameter, validate_chainable
+from helper import find_search_parameter, validate_chainable, generate_attribute_key
 from model.MappingDataModel import FhirMapping
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import VALUE_TYPE_OPTIONS
@@ -78,31 +77,13 @@ class FHIRSearchMappingGenerator(object):
         validate_chainable(search_parameters.values())
         return [search_parameter.get("code") for search_parameter in search_parameters.values()]
 
-    # TODO: Move to helper class
-    @staticmethod
-    def generate_attribute_key(element_id: str, context: TermCode) -> TermCode:
-        """
-        Generates the attribute key for the given element id
-        :param element_id: element id
-        :param context: context
-        :return: attribute key
-        """
-        if '(' and ')' in element_id:
-            element_id = element_id[element_id.rfind('(') + 1:element_id.find(')')]
-        if ':' in element_id:
-            element_id = element_id.split(':')[1]
-            key = element_id[: re.search(r'\w+', element_id).start()]
-        else:
-            key = element_id.split('.')[:-1]
-        return TermCode(context.system, key, key)
-
     def generate_normalized_term_code_fhir_search_mapping(self, profile_snapshot: dict, context: TermCode = None) \
             -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, FhirMapping]]:
         """
         Generates the normalized term code FHIR search mapping for the given FHIR profile snapshot in the specified
         context
-        :param profile_snapshot:
-        :param context:
+        :param profile_snapshot: FHIR profile snapshot
+        :param context: context
         :return: normalized term code FHIR search mapping
         """
         querying_meta_data: List[ResourceQueryingMetaData] = \
@@ -127,7 +108,7 @@ class FHIRSearchMappingGenerator(object):
     def generate_fhir_search_mapping(self, profile_snapshot: dict, querying_meta_data: ResourceQueryingMetaData) \
             -> FhirMapping:
         """
-        Generates the FHIR search mapping for the given FHIR profile snapshot in the specified context
+        Generates the FHIR search mapping for the given FHIR profile snapshot and querying meta data
         :param profile_snapshot: FHIR profile snapshot
         :param querying_meta_data: querying meta data
         :return: FHIR search mapping
@@ -147,7 +128,7 @@ class FHIRSearchMappingGenerator(object):
             fhir_mapping.timeRestrictionParameter = self.resolve_fhir_search_parameter(
                 querying_meta_data.time_restriction_defining_id, profile_snapshot, "date")
         for attribute, predefined_type in querying_meta_data.attribute_defining_id_type_map.items():
-            attribute_key = self.generate_attribute_key(attribute, querying_meta_data.context)
+            attribute_key = generate_attribute_key(attribute, querying_meta_data.context)
             attribute_type = predefined_type if predefined_type else self.get_attribute_type(profile_snapshot,
                                                                                              attribute)
             attribute_search_parameter = self.resolve_fhir_search_parameter(attribute, profile_snapshot,
@@ -178,58 +159,4 @@ class FHIRSearchMappingGenerator(object):
         """
         elements = self.parser.get_element_defining_elements(element_id, profile_snapshot, self.module_dir,
                                                              self.data_set_dir)
-        return self.translate_element_to_fhir_path_expression(elements)
-
-    def translate_element_to_fhir_path_expression(self, elements: List[dict]) -> List[str]:
-        """
-        Translates an element to a fhir search parameter. Be aware not every element is translated alone to a
-        fhir path expression. I.E. Extensions elements are translated together with the prior element.
-        :param elements: elements for which the fhir path expressions should be obtained
-        :return: fhir path expressions
-        """
-        print(elements)
-        element = elements.pop(0)
-        element_path = element.get("path")
-        element_type = self.get_element_type(element)
-        if element_type == "Extension":
-            if elements[0].get("id") != "Extension.value[x]":
-                raise Exception("translating an element that references an extension and is not followed by an "
-                                "extension element is invalid")
-            elements.pop(0)
-            element_path = f"{element_path}.where(url='{self.get_extension_url(element)}').value"
-        elif element_type == "Coding":
-            if element_path.endswith(".coding"):
-                element_path = element_path.replace(".coding", "")
-        if '[x]' in element_path:
-            element_path = element_path.replace('[x]', f' as {element_type}')
-        result = [element_path]
-        if elements:
-            result.extend(self.translate_element_to_fhir_path_expression(elements))
-        return result
-
-    @staticmethod
-    def get_extension_url(element):
-        extension_profiles = element.get('type')[0].get('profile')
-        if len(extension_profiles) > 1:
-            raise Exception("More than one extension found")
-        if not extension_profiles:
-            raise Exception("No extension profile url found in element: \n" + element)
-        return extension_profiles[0]
-
-    @staticmethod
-    def get_element_type(element):
-        """
-        Returns the type of the given element
-        :param element: element
-        :return: type of the element
-        """
-        element_types = element.get("type")
-        if len(element_types) == 2:
-            types = [element_type.get("code") for element_type in element_types]
-            if "dateTime" in types and "Period" in types:
-                return "dateTime"
-        elif len(element_types) > 1:
-            raise Exception("Multiple types are currently not supported")
-        elif not element_types:
-            raise Exception("No type found for element " + element.get("id") + " in profile element \n" + element)
-        return element_types[0].get("code")
+        return self.parser.translate_element_to_fhir_path_expression(elements)

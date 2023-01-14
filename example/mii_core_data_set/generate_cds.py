@@ -13,7 +13,7 @@ from api.CQLMappingGenerator import CQLMappingGenerator
 from api.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
 from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, load_querying_meta_data
 from main import generate_result_folder
-from model.MappingDataModel import MapEntry
+from model.MappingDataModel import CQLMapping, FhirMapping
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import UIProfile
 from model.UiDataModel import TermEntry, TermCode
@@ -199,9 +199,15 @@ def write_ui_profiles_to_files(profiles: List[UIProfile] | ValuesView[UIProfile]
     f.close()
 
 
-def write_mappings_to_files(mappings) -> List[MapEntry]:
+def write_mappings_to_files(mappings):
     for mapping in mappings:
-        with open("mapping/" + mapping.name + ".json", 'w', encoding="utf-8") as f:
+        if isinstance(mapping, CQLMapping):
+            mapping_dir = "mapping/cql/"
+        elif isinstance(mapping, FhirMapping):
+            mapping_dir = "mapping/fhir/"
+        else:
+            raise ValueError("Mapping type not supported" + str(type(mapping)))
+        with open(mapping_dir + mapping.name + ".json", 'w', encoding="utf-8") as f:
             f.write(mapping.to_json())
     f.close()
 
@@ -235,9 +241,9 @@ if __name__ == '__main__':
         write_ui_profiles_to_files(ui_profiles)
 
     if args.generate_mapping:
-        # cql_generator = CQLMappingGenerator(resolver)
-        # cql_concept_mappings = cql_generator.generate_mapping("resources/fdpg_differential")
-        # write_mappings_to_files(cql_concept_mappings)
+        cql_generator = CQLMappingGenerator(resolver)
+        cql_concept_mappings = cql_generator.generate_mapping("resources/fdpg_differential")[1].values()
+        write_mappings_to_files(cql_concept_mappings)
 
         fhir_search_generator = FHIRSearchMappingGenerator(resolver)
         fhir_search_mappings = fhir_search_generator.generate_mapping("resources/fdpg_differential")[1].values()
