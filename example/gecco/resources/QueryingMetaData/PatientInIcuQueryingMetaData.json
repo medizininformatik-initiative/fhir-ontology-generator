@@ -1,0 +1,12 @@
+{
+  "name": "PatientInIcu",
+  "resource_type": "Observation",
+  "term_code_defining_id": "Observation.code.coding:icu",
+  "context": {
+    "system": "fdpg.mii.gecco",
+    "code": "ConceptObservation",
+    "display": "ConceptObservation"
+  },
+  "value_defining_id": "Observation.value[x]:valueCodeableConcept",
+  "time_restriction_defining_id": "Observation.effective[x]"
+}

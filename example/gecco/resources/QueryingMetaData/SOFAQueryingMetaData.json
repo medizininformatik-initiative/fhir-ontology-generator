@@ -1,0 +1,12 @@
+{
+  "name": "SOFA",
+  "term_code_defining_id": "Observation.code.coding:sofaScore",
+  "resource_type": "Observation",
+  "context": {
+    "system": "fdpg.mii.gecco",
+    "code": "ConceptObservation",
+    "display": "ConceptObservation"
+  },
+  "value_defining_id": "Observation.value[x]:valueCodeableConcept",
+  "time_restriction_defining_id": "Observation.effective[x]"
+}

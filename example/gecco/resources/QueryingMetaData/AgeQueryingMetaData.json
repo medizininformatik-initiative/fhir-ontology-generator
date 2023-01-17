@@ -1,0 +1,10 @@
+{
+  "name": "Age",
+  "resource_type": "Patient",
+  "context": {
+    "system": "fdpg.mii.gecco",
+    "code": "age",
+    "display": "Age"
+  },
+  "value_defining_id": "(Patient.extension:age.extension:age).extension:age.value[x]"
+}

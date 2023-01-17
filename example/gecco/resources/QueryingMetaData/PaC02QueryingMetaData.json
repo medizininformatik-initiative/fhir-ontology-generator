@@ -1,0 +1,12 @@
+{
+  "name": "PaC02",
+  "resource_type": "Observation",
+  "context": {
+    "system": "fdpg.mii.gecco",
+    "code": "QuantityObservation",
+    "display": "QuantityObservation"
+  },
+  "term_code_defining_id": "Observation.code.coding:PaCO2-blood",
+  "value_defining_id": "Observation.valueQuantity",
+  "time_restriction_defining_id": "Observation.effective[x]"
+}

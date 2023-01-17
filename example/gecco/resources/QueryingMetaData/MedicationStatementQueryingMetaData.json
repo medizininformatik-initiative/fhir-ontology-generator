@@ -1,0 +1,11 @@
+{
+  "name": "MedicationStatement",
+  "resource_type": "MedicationStatement",
+  "context": {
+    "system": "fdpg.mii.gecco",
+    "code": "MedicationStatement",
+    "display": "MedicationStatement"
+  },
+  "term_code_defining_id": "MedicationStatement.medication[x]:medicationCodeableConcept.coding:atcClassDe",
+  "time_restriction_defining_id": "MedicationStatement.effectivePeriod[x]"
+}

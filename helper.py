@@ -114,7 +114,7 @@ def generate_snapshots(package_dir: str, prerequisite_packages: List[str] = None
             install_prerequisites()
         # generates snapshots for all differential in the package if they do not exist
         for file in [f for f in os.listdir('.') if
-                     os.path.isfile(f) and is_structured_definition(f) and "-snapshot" not in f
+                     os.path.isfile(f) and is_structure_definition(f) and "-snapshot" not in f
                      and f[:-5] + "-snapshot.json" not in os.listdir('.')]:
             generate_snapshot()
         os.chdir(saved_path)
@@ -139,7 +139,7 @@ def load_querying_meta_data(resource_querying_meta_data_dir: str) -> List[Resour
     return query_meta_data
 
 
-def is_structured_definition(file: str) -> bool:
+def is_structure_definition(file: str) -> bool:
     """
     Checks if a file is a structured definition
     :param file: potential structured definition

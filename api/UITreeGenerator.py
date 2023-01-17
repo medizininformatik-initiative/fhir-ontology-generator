@@ -5,6 +5,7 @@ from typing import List
 from api import StrucutureDefinitionParser as FhirParser
 from TerminologService.ValueSetResolver import get_term_entries_from_onto_server
 from api.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
+from helper import is_structure_definition
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UiDataModel import TermEntry, TermCode
 
@@ -36,7 +37,7 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
         for folder in [folder for folder in os.scandir(differential_dir) if folder.is_dir()]:
             self.module_dir = folder.path
             files = [file.path for file in os.scandir(f"{folder.path}/package") if file.is_file()
-                     and file.name.endswith("snapshot.json")]
+                     and file.name.endswith("snapshot.json") and is_structure_definition(file.path)]
             result.append(self.generate_module_ui_tree(TermCode("fdpg.mii.cds", folder.name, folder.name), files))
         return result
 
@@ -133,6 +134,10 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
         if "patternCoding" in term_code_defining_element:
             if "code" in term_code_defining_element["patternCoding"]:
                 term_code = self.parser.pattern_coding_to_term_code(term_code_defining_element)
+                return [TermEntry([term_code], "CodeableConcept", leaf=True, selectable=True)]
+        if "patternCodeableConcept" in term_code_defining_element:
+            if "coding" in term_code_defining_element["patternCodeableConcept"]:
+                term_code = self.parser.pattern_codeable_concept_to_term_code(term_code_defining_element)
                 return [TermEntry([term_code], "CodeableConcept", leaf=True, selectable=True)]
         if "binding" in term_code_defining_element:
             value_set = term_code_defining_element.get("binding").get("valueSet")

@@ -1,0 +1,11 @@
+{
+  "name": "Immunization",
+  "resource_type": "Immunization",
+  "context": {
+    "system": "fdpg.mii.gecco",
+    "code": "Immunization",
+    "display": "Immunization"
+  },
+  "term_code_defining_id": "Immunization.vaccineCode.coding:atc",
+  "time_restriction_defining_id": "Immunization.occurrence[x]:occurrenceDateTime"
+}

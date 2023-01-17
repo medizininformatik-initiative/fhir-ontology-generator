@@ -1,0 +1,11 @@
+{
+  "name": "SnomedConceptObservation",
+  "resource_type": "Observation",
+  "context": {
+    "system": "fdpg.mii.gecco",
+    "code": "SnomedConceptObservation",
+    "display": "SnomedConceptObservation"
+  },
+  "term_code_defining_id": "Observation.code.coding:snomed",
+  "value_defining_id": "Observation.value[x]"
+}

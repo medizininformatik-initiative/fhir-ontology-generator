@@ -1,0 +1,12 @@
+{
+  "name": "SARSCoV2PCR",
+  "term_code_defining_id": "Observation.code.coding:loinc-resp",
+  "resource_type": "Observation",
+  "context": {
+    "system": "fdpg.mii.gecco",
+    "code": "ConceptObservation",
+    "display": "ConceptObservation"
+  },
+  "value_defining_id": "Observation.value[x]",
+  "time_restriction_defining_id": "Observation.effective[x]"
+}

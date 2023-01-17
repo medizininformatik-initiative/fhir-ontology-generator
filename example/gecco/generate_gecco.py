@@ -1,86 +1,49 @@
 from __future__ import annotations
 
 import argparse
+import json
 from typing import List, ValuesView
 
 from FHIRProfileConfiguration import *
 from api.CQLMappingGenerator import CQLMappingGenerator
 from api.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
 from api.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
-from api.StrucutureDefinitionParser import get_element_from_snapshot
 from api.UIProfileGenerator import UIProfileGenerator
 from api.UITreeGenerator import UITreeGenerator
-from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, load_querying_meta_data
+from helper import download_simplifier_packages, generate_snapshots, write_object_as_json
 from main import generate_result_folder
 from model.MappingDataModel import CQLMapping, FhirMapping
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import UIProfile
 from model.UiDataModel import TermEntry, TermCode
 
-core_data_sets = [MII_CONSENT, MII_DIAGNOSE, MII_LAB, MII_MEDICATION, MII_PERSON, MII_PROCEDURE, MII_SPECIMEN]
+core_data_sets = [GECCO]
 WINDOWS_RESERVED_CHARACTERS = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
 
 
-class MIICoreDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
+class GeccoDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
     def __init__(self):
         super().__init__()
 
-    def get_query_meta_data(self, fhir_profile_snapshot: dict, context: TermCode) -> List[ResourceQueryingMetaData]:
-        query_meta_data = self._get_query_meta_data_by_context(fhir_profile_snapshot, context)
-        if not query_meta_data:
-            query_meta_data = self._get_query_meta_data_by_snapshot(fhir_profile_snapshot)
-            if not query_meta_data:
-                print(
-                    f"No query meta data found for profile: {fhir_profile_snapshot.get('name')} and context: {context}")
-        if len(query_meta_data) > 1:
-            print(f"Multiple query meta data found for profile: {fhir_profile_snapshot.get('name')} and  context: "
-                  f"{context}")
-            query_meta_data = self._filter_query_meta_data(query_meta_data, fhir_profile_snapshot)
-        return query_meta_data
-
-    @staticmethod
-    def _get_query_meta_data_by_context(fhir_profile_snapshot: dict, context: TermCode) -> \
-            List[ResourceQueryingMetaData]:
-        return [resource_querying_meta_data for resource_querying_meta_data
-                in load_querying_meta_data("resources/QueryingMetaData") if
-                resource_querying_meta_data.context == context and
-                resource_querying_meta_data.resource_type == fhir_profile_snapshot["type"]]
-
-    @staticmethod
-    def _get_query_meta_data_by_snapshot(fhir_profile_snapshot: dict) -> List[ResourceQueryingMetaData]:
-        context_base_type = TermCode("fdpg.mii.cds", fhir_profile_snapshot["baseDefinition"].split("/")[-1],
-                                     fhir_profile_snapshot["baseDefinition"].split("/")[-1])
-        resolved_by_base_type = [resource_querying_meta_data for resource_querying_meta_data
-                                 in load_querying_meta_data("resources/QueryingMetaData") if
-                                 resource_querying_meta_data.resource_type == fhir_profile_snapshot["type"]
-                                 and resource_querying_meta_data.context == context_base_type]
-        context_by_url = TermCode("fdpg.mii.cds", fhir_profile_snapshot["url"].split("/")[-1],
-                                  fhir_profile_snapshot["url"].split("/")[-1])
-        resolved_by_url = [resource_querying_meta_data for resource_querying_meta_data
-                           in load_querying_meta_data("resources/QueryingMetaData") if
-                           resource_querying_meta_data.resource_type == fhir_profile_snapshot["type"]
-                           and resource_querying_meta_data.context == context_by_url]
-        return resolved_by_base_type if resolved_by_base_type else resolved_by_url
-
-    @staticmethod
-    def _filter_query_meta_data(query_meta_data: List[ResourceQueryingMetaData], fhir_profile_snapshot: dict) \
-            -> List[ResourceQueryingMetaData]:
+    def get_query_meta_data(self, fhir_profile_snapshot: dict, _context: TermCode) -> List[ResourceQueryingMetaData]:
         """
-        Filters the query meta data based on the min property of the fhir_profile_snapshot for the value element
-        :param query_meta_data: initial query meta data
-        :param fhir_profile_snapshot: FHIR profile snapshot
-        :return: filtered query meta data
+        Implementation as simple look up table.
+        :param fhir_profile_snapshot:
+        :param _context:
+        :return: List of ResourceQueryingMetaData
         """
-        result = query_meta_data.copy()
-        for meta_data in query_meta_data:
-            try:
-                value_element = get_element_from_snapshot(fhir_profile_snapshot, meta_data.value_defining_id)
-            except KeyError:
-                value_element = None
-            if not value_element or value_element.get("min") == 0:
-                result.remove(meta_data)
-        print(result)
-        return result if result else query_meta_data
+        result = []
+        key = fhir_profile_snapshot.get("name")
+        mapping = self._get_query_meta_data_mapping()
+        for value in mapping[key]:
+            with open(f"resources/QueryingMetaData/{value}QueryingMetaData.json", "r") as file:
+                result.append(ResourceQueryingMetaData.from_json(file))
+        return result
+
+    @staticmethod
+    def _get_query_meta_data_mapping():
+        with open("resources/profile_to_query_meta_data_resolver_mapping.json", "r") as f:
+            return json.load(f)
 
 
 def generate_term_code_mapping(_entries: List[TermEntry]):
@@ -125,7 +88,7 @@ def write_ui_trees_to_files(trees: List[TermEntry]):
 # Todo: move this concrete implementation elsewhere
 
 
-def write_cds_ui_profile(module_category_entry):
+def write_ui_profile(module_category_entry):
     """
     Writes the ui profile for the given module category entry to the ui-profiles folder
     :param module_category_entry: name of the module category entry
@@ -206,29 +169,29 @@ if __name__ == '__main__':
     # ----Time consuming: Only execute initially or on changes----
     if args.generate_snapshot:
         # generate_snapshots("resources/core_data_sets")
-        generate_snapshots("resources/fdpg_differential", core_data_sets)
+        generate_snapshots("resources/differential", core_data_sets)
     # -------------------------------------------------------------
 
     # You shouldn't need different implementations for the different generators
-    resolver = MIICoreDataSetQueryingMetaDataResolver()
+    resolver = GeccoDataSetQueryingMetaDataResolver()
 
     if args.generate_ui_trees:
         tree_generator = UITreeGenerator(resolver)
-        ui_trees = tree_generator.generate_ui_trees("resources/fdpg_differential")
+        ui_trees = tree_generator.generate_ui_trees("resources/differential")
         write_ui_trees_to_files(ui_trees)
 
     if args.generate_ui_profiles:
         profile_generator = UIProfileGenerator(resolver)
-        ui_profiles = profile_generator.generate_ui_profiles("resources/fdpg_differential")[1].values()
+        ui_profiles = profile_generator.generate_ui_profiles("resources/differential")[1].values()
         write_ui_profiles_to_files(ui_profiles)
 
     if args.generate_mapping:
         cql_generator = CQLMappingGenerator(resolver)
-        cql_concept_mappings = cql_generator.generate_mapping("resources/fdpg_differential")[1].values()
+        cql_concept_mappings = cql_generator.generate_mapping("resources/differential")[1].values()
         write_mappings_to_files(cql_concept_mappings)
 
         fhir_search_generator = FHIRSearchMappingGenerator(resolver)
-        fhir_search_mappings = fhir_search_generator.generate_mapping("resources/fdpg_differential")[1].values()
+        fhir_search_mappings = fhir_search_generator.generate_mapping("resources/differential")[1].values()
         write_mappings_to_files(fhir_search_mappings)
 
     # core_data_category_entries = generate_core_data_set()

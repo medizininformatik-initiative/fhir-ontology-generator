@@ -1,0 +1,182 @@
+{
+    "CardiovascularDiseases": [
+        "Condition"
+    ],
+    "ChronicKidneyDiseases": [
+        "Condition"
+    ],
+    "ChronicLiverDiseases": [
+        "Condition"
+    ],
+    "ChronicLungDiseases": [
+        "Condition"
+    ],
+    "ChronicNeurologicalMentalDiseases": [
+        "Condition"
+    ],
+    "Complications": [
+        "Condition"
+    ],
+    "DependenceOnVentilator": [
+        "Condition"
+    ],
+    "DiabetesMellitus": [
+        "Condition"
+    ],
+    "DiagnosisCovid19": [
+        "Condition"
+    ],
+    "GastrointestinalUlcers": [
+        "Condition"
+    ],
+    "HumanImmunodeficiencyVirusInfection": [
+        "Condition"
+    ],
+    "MalignantNeoplasticDisease": [
+        "Condition"
+    ],
+    "HistoryOfOrganRecipient": [
+        "Condition"
+    ],
+    "RheumatologicalImmunologicalDiseases": [
+        "Condition"
+    ],
+    "SymptomsCovid19": [
+        "Condition"
+    ],
+    "DoNotResuscitateOrder": [
+        "Consent"
+    ],
+    "DiagnosticReportRadiology": [
+        "DiagnosticReport"
+    ],
+    "Immunization": [
+        "Immunization"
+    ],
+    "PharmacologicalTherapy": [
+        "MedicationStatement"
+    ],
+    "PharmacologicalTherapyACEInhibitors": [
+        "MedicationStatement"
+    ],
+    "PharmacologicalTherapyAnticoagulants": [
+        "MedicationStatement"
+    ],
+    "PharmacologicalTherapyImmunoglobulins": [
+        "MedicationStatement"
+    ],
+    "BloodPressure": [
+        "BloodPressure"
+    ],
+    "BodyHeight": [
+        "QuantityObservation"
+    ],
+    "BodyTemperature": [
+        "QuantityObservation"
+    ],
+    "BodyWeight": [
+        "QuantityObservation"
+    ],
+    "DischargeDisposition": [
+        "ConceptObservation"
+    ],
+    "FiO2": [
+        "QuantityObservation"
+    ],
+    "ClinicalFrailtyScaleScore": [
+        "SnomedConceptObservation"
+    ],
+    "PaCO2": [
+        "PaC02"
+    ],
+    "PaO2": [
+        "PaO2"
+    ],
+    "PH": [
+        "PH"
+    ],
+    "HeartRate": [
+        "QuantityObservation"
+    ],
+    "HistoryOfTravel": [
+        "HistoryOfTravel"
+    ],
+    "InterventionalClinicalTrialParticipation": [
+        "InterventionalClinicalTrialParticipation"
+    ],
+    "KnownExposure": [
+        "ConceptObservation"
+    ],
+    "OxygenSaturation": [
+        "QuantityObservation"
+    ],
+    "PatientInICU": [
+        "PatientInIcu"
+    ],
+    "PregnancyStatus": [
+        "PregnancyStatus"
+    ],
+    "RespiratoryRate": [
+        "QuantityObservation"
+    ],
+    "SarsCoV2RTPCR": [
+        "SARSCoV2PCR"
+    ],
+    "SarsCoV2AbSerPlIAaCnc": [
+        "QuantityObservation"
+    ],
+    "SarsCoV2AbSerPlQlIA": [
+        "QuantityObservation"
+    ],
+    "SarsCoV2IgASerPlIAaCnc": [
+        "QuantityObservation"
+    ],
+    "SarsCoV2IgASerPlQlIA": [
+        "ConceptObservation"
+    ],
+    "SarsCoV2IgGSerPlIAaCnc": [
+        "QuantityObservation"
+    ],
+    "SarsCoV2IgGSerPlQlIA": [
+        "ConceptObservation"
+    ],
+    "SarsCoV2IgMSerPlIAaCnc": [
+        "QuantityObservation"
+    ],
+    "SarsCoV2IgMSerPlQlIA": [
+        "ConceptObservation"
+    ],
+    "SexAssignedAtBirth": [
+        "ConceptObservation"
+    ],
+    "SmokingStatus": [
+        "SmokingStatus"
+    ],
+    "SOFA": [
+        "SOFA"
+    ],
+    "StudyInclusionCovid19": [
+        "StudyInclusionCovid19"
+    ],
+    "Patient": [
+        "Age", "EthnicGroup"
+    ],
+    "Apheresis": [
+        "Procedure"
+    ],
+    "Dialysis": [
+        "Procedure"
+    ],
+    "ExtracorporealMembraneOxygenation": [
+        "Procedure"
+    ],
+    "PronePosition": [
+        "Procedure"
+    ],
+    "RadiologyProcedures": [
+        "Procedure"
+    ],
+    "RespiratoryTherapies": [
+        "Procedure"
+    ]
+}

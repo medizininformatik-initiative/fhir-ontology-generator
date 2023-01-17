@@ -54,6 +54,7 @@ def create_vs_tree(canonical_url: str):
     """
     create_concept_map()
     vs = expand_value_set(canonical_url)
+    print(vs)
     vs_dict = {term_code.code: TermEntry([term_code], leaf=True, selectable=True) for term_code in vs}
     closure_map_data = get_closure_map(vs)
     if groups := closure_map_data.get("group"):
@@ -94,7 +95,11 @@ def get_closure_map(term_codes):
     body = {"resourceType": "Parameters",
             "parameter": [{"name": "name", "valueString": "closure-test"}]}
     for term_code in term_codes:
-        # noinspection PyTypeChecker
+        # FIXME: Workaround for gecco. ValueSets with multiple versions are not supported in closure.
+        #  Maybe split by version? Or change Profile to reference ValueSet with single version?
+        if term_code.system == "http://fhir.de/CodeSystem/bfarm/atc" and term_code.version != "2022":
+            continue
+
         body["parameter"].append({"name": "concept",
                                   "valueCoding": {
                                       "system": f"{term_code.system}",

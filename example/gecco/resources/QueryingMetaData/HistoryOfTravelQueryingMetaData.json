@@ -1,0 +1,14 @@
+{
+  "name": "HistoryOfTravel",
+  "resource_type": "Observation",
+  "context": {
+    "system": "fdpg.mii.gecco",
+    "code": "HistoryOfTravel",
+    "display": "History of Travel"
+  },
+  "term_code_defining_id": "Observation.code.coding:loinc",
+  "attribute_defining_id_type_map": {
+    "Observation.component:Country.value[x]": "composed"
+  },
+  "value_defining_id": "Observation.value[x]"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "EthnicGroup",
+  "resource_type": "Patient",
+  "context": {
+    "system": "fdpg.mii.gecco",
+    "code": "EthnicGroup",
+    "display": "Ethnic Group"
+  },
+  "value_defining_id": "(Patient.extension:ethnicGroup).value[x]"
+}

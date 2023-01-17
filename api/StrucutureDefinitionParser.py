@@ -253,6 +253,21 @@ def pattern_coding_to_term_code(element):
     return term_code
 
 
+def pattern_codeable_concept_to_term_code(element):
+    """
+    Converts a patternCodeableConcept to a term code
+    :param element: element node from the snapshot with a patternCoding
+    :return: term code
+    """
+    code = element["patternCodeableConcept"]["coding"][0]["code"]
+    system = element["patternCodeableConcept"]["coding"][0]["system"]
+    display = get_term_code_display_from_onto_server(system, code)
+    if display.isupper():
+        display = display.title()
+    term_code = TermCode(system, code, display)
+    return term_code
+
+
 def translate_element_to_fhir_path_expression(elements: List[dict], ) -> List[str]:
     """
     Translates an element to a fhir search parameter. Be aware not every element is translated alone to a

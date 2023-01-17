@@ -109,6 +109,9 @@ def generate_result_folder():
     :return:
     """
     mkdir_if_not_exists("mapping")
+    mkdir_if_not_exists("mapping/fhir")
+    mkdir_if_not_exists("mapping/cql")
+    mkdir_if_not_exists("ui_trees")
     mkdir_if_not_exists("csv")
     mkdir_if_not_exists("ui-profiles")
 
