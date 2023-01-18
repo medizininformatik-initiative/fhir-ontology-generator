@@ -6,5 +6,5 @@
     "code": "age",
     "display": "Age"
   },
-  "value_defining_id": "(Patient.extension:age.extension:age).extension:age.value[x]"
+  "value_defining_id": "(Patient.extension:age).extension:age.value[x]"
 }

@@ -7,6 +7,6 @@
     "display": "QuantityObservation"
   },
   "term_code_defining_id": "Observation.code.coding:pH-blood",
-  "value_defining_id": "Observation.valueQuantity",
+  "value_defining_id": "Observation.value[x]:valueQuantity",
   "time_restriction_defining_id": "Observation.effective[x]"
 }

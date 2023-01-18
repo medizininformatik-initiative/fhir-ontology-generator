@@ -78,10 +78,10 @@
         "QuantityObservation"
     ],
     "DischargeDisposition": [
-        "ConceptObservation"
+        "DischargeDisposition"
     ],
     "FiO2": [
-        "QuantityObservation"
+        "ObservationValueQuantity"
     ],
     "ClinicalFrailtyScaleScore": [
         "SnomedConceptObservation"
@@ -105,13 +105,13 @@
         "InterventionalClinicalTrialParticipation"
     ],
     "KnownExposure": [
-        "ConceptObservation"
+        "ConceptObservationValueX"
     ],
     "OxygenSaturation": [
         "QuantityObservation"
     ],
     "PatientInICU": [
-        "PatientInIcu"
+        "ConceptObservationValueX"
     ],
     "PregnancyStatus": [
         "PregnancyStatus"
@@ -123,31 +123,31 @@
         "SARSCoV2PCR"
     ],
     "SarsCoV2AbSerPlIAaCnc": [
-        "QuantityObservation"
+        "ObservationValueQuantity"
     ],
     "SarsCoV2AbSerPlQlIA": [
-        "QuantityObservation"
+        "ConceptObservation"
     ],
     "SarsCoV2IgASerPlIAaCnc": [
-        "QuantityObservation"
+        "ObservationValueQuantity"
     ],
     "SarsCoV2IgASerPlQlIA": [
         "ConceptObservation"
     ],
     "SarsCoV2IgGSerPlIAaCnc": [
-        "QuantityObservation"
+        "ObservationValueQuantity"
     ],
     "SarsCoV2IgGSerPlQlIA": [
         "ConceptObservation"
     ],
     "SarsCoV2IgMSerPlIAaCnc": [
-        "QuantityObservation"
+        "ObservationValueQuantity"
     ],
     "SarsCoV2IgMSerPlQlIA": [
         "ConceptObservation"
     ],
     "SexAssignedAtBirth": [
-        "ConceptObservation"
+        "ConceptObservationValueX"
     ],
     "SmokingStatus": [
         "SmokingStatus"

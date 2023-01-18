@@ -1,12 +1,12 @@
 {
-  "name": "StudyInclusionCovid19",
-  "term_code_defining_id": "Observation.code.coding:studyInclusion",
+  "name": "ConceptObservationValueX",
   "resource_type": "Observation",
   "context": {
     "system": "fdpg.mii.gecco",
     "code": "ConceptObservation",
     "display": "ConceptObservation"
   },
-  "value_defining_id": "Observation.value[x]:valueCodeableConcept.coding:snomed",
+  "term_code_defining_id": "Observation.code.coding:loinc",
+  "value_defining_id": "Observation.value[x]",
   "time_restriction_defining_id": "Observation.effective[x]"
 }

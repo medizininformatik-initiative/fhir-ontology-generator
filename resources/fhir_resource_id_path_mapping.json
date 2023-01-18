@@ -1,4 +1,0 @@
-{
-  "Observation.valueQuantity": "Observation.value as Quantity",
-  "((Specimen.extension:festgestellteDiagnose as Reference).value[x] as Reference)": "extension.where(url='https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Diagnose').value"
-}

@@ -7,10 +7,12 @@ from typing import Dict, Tuple, List
 from TerminologService.ValueSetResolver import get_term_codes_by_id
 from api import ResourceQueryingMetaDataResolver
 from api import StrucutureDefinitionParser as FHIRParser
-from api.StrucutureDefinitionParser import InvalidValueTypeException
+from api.StrucutureDefinitionParser import InvalidValueTypeException, UCUM_SYSTEM
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import ValueDefinition, UIProfile, AttributeDefinition
 from model.UiDataModel import TermCode
+
+AGE_UNIT_VALUE_SET = "http://hl7.org/fhir/ValueSet/age-units"
 
 
 class UIProfileGenerator:
@@ -119,9 +121,21 @@ class UIProfileGenerator:
                                                                                       profile_snapshot.get("name"))
         elif value_type == "quantity":
             # "Observation.valueQuantity" -> "Observation.valueQuantity.code"
-            unit_defining_element_id = querying_meta_data.value_defining_id + ".code"
-            unit_defining_element = self.parser.get_element_from_snapshot(profile_snapshot, unit_defining_element_id)
-            value_definition.allowedUnits = self.parser.get_units(unit_defining_element, profile_snapshot.get("name"))
+            unit_defining_path = value_defining_element.get("path") + ".code"
+            unit_defining_elements = self.parser.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
+            if len(unit_defining_elements) > 1:
+                raise Exception(f"More than one element found for path {unit_defining_path}")
+            value_definition.allowedUnits = self.parser.get_units(unit_defining_elements[0],
+                                                                  profile_snapshot.get("name"))
+        elif value_type == "Age":
+            value_definition.type = "quantity"
+            # TODO: This could be the better option once the ValueSet is available, but then we might want to limit the
+            #  allowed units for security reasons
+            # value_definition.allowedUnits = get_termcodes_from_onto_server(AGE_UNIT_VALUE_SET)
+            value_definition.allowedUnits = [TermCode(UCUM_SYSTEM, "a", "a"), TermCode(UCUM_SYSTEM, "mo", "mo"),
+                                             TermCode(UCUM_SYSTEM, "wk", "wk"), TermCode(UCUM_SYSTEM, "d", "d")]
+        elif value_type == "integer":
+            value_definition.type = "quantity"
         elif value_type == "calculated":
             pass
         elif value_type == "reference":
@@ -170,16 +184,72 @@ class UIProfileGenerator:
                 attribute_defining_elements[-1],
                 profile_snapshot.get("name"))
         elif attribute_type == "quantity":
-            # "Observation.valueQuantity.value" -> "Observation.valueQuantity.code"
-            unit_defining_element_id = "".join(attribute_defining_element_id.split(".")[:-1] + ["code"])
-            unit_defining_element = self.parser.get_element_from_snapshot(profile_snapshot, unit_defining_element_id)
-            attribute_definition.allowedUnits = self.parser.get_units(unit_defining_element,
+            unit_defining_path = attribute_defining_elements[-1].get("path") + ".code"
+            unit_defining_elements = self.parser.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
+            if len(unit_defining_elements) > 1:
+                raise Exception(f"More than one element found for path {unit_defining_path}")
+            attribute_definition.allowedUnits = self.parser.get_units(unit_defining_elements[0],
                                                                       profile_snapshot.get("name"))
         elif attribute_type == "reference":
             raise InvalidValueTypeException("Reference type need to be resolved using the Resolve().elementid syntax")
+        elif attribute_type == "composed":
+            attribute_definition = self.generate_composed_attribute(profile_snapshot,
+                                                                    attribute_defining_element_id)
         else:
             raise InvalidValueTypeException("Invalid value type: " + attribute_type)
         return attribute_definition
+
+    def generate_composed_attribute(self, profile_snapshot, attribute_defining_element_id) -> AttributeDefinition:
+        attribute_defining_elements = self.parser.get_element_defining_elements(attribute_defining_element_id,
+                                                                                profile_snapshot, self.module_dir,
+                                                                                self.data_set_dir)
+        element = self.parser.get_element_from_snapshot(profile_snapshot, attribute_defining_element_id)
+        attribute_code = self.generate_composed_attribute_code(profile_snapshot, attribute_defining_element_id)
+        attribute_definition = AttributeDefinition(attribute_code, "composed")
+        attribute_type = self.parser.get_element_type(element)
+        if attribute_type == "Quantity":
+            unit_defining_path = attribute_defining_elements[-1].get("path") + ".code"
+            unit_defining_elements = self.parser.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
+            if len(unit_defining_elements) > 1:
+                unit_defining_elements = list(filter(lambda x: self.get_slice_name(x) == self.get_slice_name(element),
+                                                     unit_defining_elements))
+                if len(unit_defining_elements) > 1:
+                    raise Exception(f"More than one element found for path {unit_defining_path}")
+            attribute_definition.allowedUnits = self.parser.get_units(unit_defining_elements[0],
+                                                                      profile_snapshot.get("name"))
+            return attribute_definition
+        elif attribute_type == "CodeableConcept":
+            attribute_definition.selectableConcepts = self.parser.get_selectable_concepts(
+                attribute_defining_elements[-1],
+                profile_snapshot.get("name"))
+            return attribute_definition
+        else:
+            raise InvalidValueTypeException("Invalid value type: " + attribute_type + " for composed attribute " +
+                                            attribute_defining_element_id +
+                                            " in profile " + profile_snapshot.get("name"))
+
+    @staticmethod
+    def get_slice_name(element):
+        if element.get("sliceName"):
+            return element.get("sliceName")
+        elif ':' in element.get("id"):
+            return element.get("id").split(":")[1].split(".")[0]
+        else:
+            return ""
+
+    def generate_composed_attribute_code(self, profile_snapshot, attribute_defining_element_id) -> TermCode:
+        element = self.parser.get_element_from_snapshot(profile_snapshot, attribute_defining_element_id)
+        element_path = element.get("path")
+        if "component" in element_path:
+            element_path = element_path.split(".component")[0] + ".component.code.coding"
+            code_elements = self.parser.get_element_from_snapshot_by_path(profile_snapshot, element_path)
+            for code_element in code_elements:
+                if code_element.get("min") == 1 and "patternCoding" in code_element:
+                    return self.parser.pattern_coding_to_term_code(code_element)
+        else:
+            raise InvalidValueTypeException(
+                "Unable to generate composed attribute code for element: " + element_path +
+                "in profile: " + profile_snapshot.get("name"))
 
     def get_referenced_profile_data(self, profile_snapshot, reference_defining_element_id) -> dict:
         """

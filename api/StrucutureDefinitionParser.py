@@ -30,6 +30,7 @@ def get_element_from_snapshot(profile_snapshot, element_id) -> dict:
     :param element_id: element id
     :return: element
     """
+    print(f"get_element_from_snapshot: {element_id}")
     try:
         for element in profile_snapshot["snapshot"]["element"]:
             if "id" in element and element["id"] == element_id:
@@ -38,9 +39,11 @@ def get_element_from_snapshot(profile_snapshot, element_id) -> dict:
             raise KeyError(
                 f"Could not find element with id: {element_id} in the snapshot: {profile_snapshot.get('name')}")
     except KeyError:
-        print(
+        raise KeyError(
             f"KeyError the element id: {element_id} is not in the snapshot or the snapshot has no snapshot "
-            f"elements")
+            f"elements. The snapshot: {profile_snapshot.get('name')}")
+    except TypeError:
+        raise TypeError(f"TypeError the snapshot is not a dict {profile_snapshot}")
 
 
 def get_profiles_with_base_definition(fhir_dataset_dir: str, base_definition: str) -> Tuple[dict, str]:
@@ -70,6 +73,7 @@ def get_extension_definition(module_dir: str, extension_profile_url: str) -> dic
     :param extension_profile_url:  extension profile url
     :return: extension definition
     """
+    print(module_dir)
     files = [file for file in os.scandir(f"{module_dir}/package/extension") if file.is_file()
              and file.name.endswith("snapshot.json")]
     for file in files:
@@ -77,6 +81,9 @@ def get_extension_definition(module_dir: str, extension_profile_url: str) -> dic
             profile = json.load(f)
             if profile.get("url") == extension_profile_url:
                 return profile
+    else:
+        raise FileNotFoundError(
+            f"Could not find extension definition for extension profile url: {extension_profile_url}")
 
 
 def parse(chained_fhir_element_id):
@@ -124,8 +131,8 @@ def tokenize(chained_fhir_element_id):
     return chained_fhir_element_id.replace("(", " ( ").replace(")", " ) ").split()
 
 
-def get_element_defining_elements(chained_element_id, profile_snapshot: dict, start_module_dir: str, data_set_dir: str) \
-        -> List[dict]:
+def get_element_defining_elements(chained_element_id, profile_snapshot: dict, start_module_dir: str,
+                                  data_set_dir: str) -> List[dict]:
     parsed_list = list(flatten(parse(chained_element_id)))
     print(parsed_list)
     return process_element_id(parsed_list, profile_snapshot, start_module_dir, data_set_dir)
@@ -135,6 +142,7 @@ def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, dat
     element_id = element_ids.pop(0)
     if element_id.startswith("."):
         raise ValueError("Element id must start with a resource type")
+    print(f"process_element_id: {element_id}")
     element = get_element_from_snapshot(profile_snapshot, element_id)
     result = [element]
     if element_ids:
@@ -215,6 +223,14 @@ def get_selectable_concepts(concept_defining_element, profile_name: str = "") ->
 def get_units(unit_defining_element, profile_name: str = "") -> List[TermCode]:
     if unit_code := unit_defining_element.get("fixedCode"):
         return [TermCode(UCUM_SYSTEM, unit_code, unit_code)]
+    elif unit_code := unit_defining_element.get("patternCode"):
+        return [TermCode(UCUM_SYSTEM, unit_code, unit_code)]
+    elif binding := unit_defining_element.get("binding"):
+        if value_set_url := binding.get("valueSet"):
+            return get_termcodes_from_onto_server(value_set_url)
+        else:
+            raise InvalidValueTypeException(f"No value set defined in element: {str(binding)}"
+                                            f" in profile: {profile_name}")
     else:
         raise InvalidValueTypeException(f"No unit defined in element: {str(unit_defining_element)}"
                                         f" in profile: {profile_name}")
@@ -322,14 +338,25 @@ def get_element_type(element):
         raise Exception("No type found for element " + element.get("id") + " in profile element \n" + element)
     return element_types[0].get("code")
 
-#
-# if __name__ == "__main__":
-#     with open("example/mii_core_data_set/resources/core_data_sets/de.medizininformatikinitiative.kerndatensatz"
-#               ".biobank#1.0.3/package/StructureDefinition-Specimen-snapshot.json", "r") as f:
-#         profile = json.load(f)
-#         print(resolve_defining_id(profile,
-#                                   "((Specimen.extension:festgestellteDiagnose as Reference).value[x] "
-#                                   "as Reference).code.coding:icd10-gm as ValueSetUrl",
-#                                   "example/mii_core_data_set/resources/core_data_sets",
-#                                   "example/mii_core_data_set/resources/fdpg_differential/"
-#                                   "Bioprobe"))
+
+def get_element_from_snapshot_by_path(profile_snapshot, element_path) -> List[dict]:
+    """
+    Returns the element from the given FHIR profile snapshot at the given element path
+    :param profile_snapshot: FHIR profile snapshot
+    :param element_path: element id
+    :return: elements
+    """
+    print(f"getting element from snapshot by path: {element_path}")
+    result = []
+    try:
+        for element in profile_snapshot["snapshot"]["element"]:
+            if "path" in element and element["path"] == element_path:
+                result.append(element)
+        if not result:
+            raise KeyError(
+                f"Could not find element with id: {element_path} in the snapshot: {profile_snapshot.get('name')}")
+    except KeyError:
+        raise KeyError(
+            f"KeyError the element id: {element_path} is not in the snapshot or the snapshot has no snapshot "
+            f"elements")
+    return result

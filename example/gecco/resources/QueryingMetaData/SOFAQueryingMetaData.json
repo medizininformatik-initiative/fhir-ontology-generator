@@ -7,6 +7,6 @@
     "code": "ConceptObservation",
     "display": "ConceptObservation"
   },
-  "value_defining_id": "Observation.value[x]:valueCodeableConcept",
+  "value_defining_id": "Observation.value[x]:valueInteger",
   "time_restriction_defining_id": "Observation.effective[x]"
 }
