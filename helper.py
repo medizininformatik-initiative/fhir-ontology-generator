@@ -242,7 +242,6 @@ def find_search_parameter(fhir_path_expressions: List[str]) -> OrderedDict[str, 
     fhir_path_expressions_to_search_parameter: OrderedDict[str, Tuple[dict, int]] = orderedDict(
         [(expression, (None, math.inf)) for expression in fhir_path_expressions]
     )
-    print(get_all_search_parameters()[-1])
     for search_parameter in get_all_search_parameters():
         expressions = get_cleaned_expressions(search_parameter)
         for path_expression in fhir_path_expressions:
@@ -283,8 +282,11 @@ def validate_chainable(chainable_search_parameter) -> bool:
 
 
 def get_all_search_parameters() -> List[Dict]:
+    # TODO: This has to be configurable
     with open("../../resources/fhir_search_parameter_definition.json") as f:
         search_parameter_definition = json.load(f)
+    with open("../../resources/fhir-search-params/fhir-search-params.json") as f:
+        search_parameter_definition.get("entry").extend(json.load(f).get("entry"))
     with open(
             "../../resources/core_data_sets/de.medizininformatikinitiative.kerndatensatz.biobank#1.0.3"
             "/package/SearchParameter-SearchParamDiagnosis.json") as f:

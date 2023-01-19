@@ -7,5 +7,5 @@
     "display": "MedicationStatement"
   },
   "term_code_defining_id": "MedicationStatement.medication[x]:medicationCodeableConcept.coding:atcClassDe",
-  "time_restriction_defining_id": "MedicationStatement.effectivePeriod[x]"
+  "time_restriction_defining_id": "MedicationStatement.effective[x]"
 }

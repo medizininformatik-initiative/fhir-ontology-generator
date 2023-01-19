@@ -20,7 +20,7 @@
           "Patient"
         ],
         "type": "quantity",
-        "expression": "extension.where(url='https://www.netzwerk-universitaetsmedizin.de/fhir/StructureDefinition/age').extension.where(url='age').value"
+        "expression": "Patient.extension.where(url='https://www.netzwerk-universitaetsmedizin.de/fhir/StructureDefinition/age').extension.where(url='age').value"
       },
       "request": {
         "method": "POST",
@@ -40,7 +40,7 @@
           "Patient"
         ],
         "type": "token",
-        "expression": "extension.where(url='https://www.netzwerk-universitaetsmedizin.de/fhir/StructureDefinition/ethnic-group').value"
+        "expression": "Patient.extension.where(url='https://www.netzwerk-universitaetsmedizin.de/fhir/StructureDefinition/ethnic-group').value"
       },
       "request": {
         "method": "POST",

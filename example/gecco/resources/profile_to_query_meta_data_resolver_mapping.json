@@ -111,7 +111,7 @@
         "QuantityObservation"
     ],
     "PatientInICU": [
-        "ConceptObservationValueX"
+        "PatientInIcu"
     ],
     "PregnancyStatus": [
         "PregnancyStatus"

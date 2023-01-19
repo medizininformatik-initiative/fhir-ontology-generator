@@ -81,7 +81,7 @@ def write_ui_trees_to_files(trees: List[TermEntry]):
     :param trees: ui trees to write
     """
     for tree in trees:
-        write_object_as_json(tree, f"ui-trees/{tree.display}.json")
+        write_object_as_json(tree, f"ui_trees/{tree.display}.json")
 
 
 # Todo: this should be an abstract method that has to be implemented for each use-case

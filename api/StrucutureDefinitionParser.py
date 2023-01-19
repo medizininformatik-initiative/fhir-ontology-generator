@@ -296,14 +296,18 @@ def translate_element_to_fhir_path_expression(elements: List[dict], ) -> List[st
     element_path = element.get("path")
     element_type = get_element_type(element)
     if element_type == "Extension":
-        if elements[0].get("id") != "Extension.value[x]":
-            raise Exception("translating an element that references an extension and is not followed by an "
-                            "extension element is invalid")
-        elements.pop(0)
-        element_path = f"{element_path}.where(url='{get_extension_url(element)}').value"
+        if elements[0].get("id") == "Extension.value[x]":
+            elements.pop(0)
+            element_path = f"{element_path}.where(url='{get_extension_url(element)}').value"
+        # FIXME: Currently hard coded should be generalized
+        elif elements[0].get("id") == "Extension.extension:age.value[x]":
+            elements.pop(0)
+            element_path = f"{element_path}.where(url='{get_extension_url(element)}').extension.where(url='age').value"
+    # Codings are not searchable in FHIR. Therefore we work on the CodeableConcept level
     elif element_type == "Coding":
         if element_path.endswith(".coding"):
             element_path = element_path.replace(".coding", "")
+            element_type = "CodeableConcept"
     if '[x]' in element_path:
         element_path = element_path.replace('[x]', f' as {element_type}')
     result = [element_path]
