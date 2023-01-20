@@ -206,7 +206,7 @@ def get_value_sets_by_path(element_path: str, profile_data: dict) -> List[str] |
     return value_set
 
 
-def get_term_codes_by_id(element_id: str, profile_data: dict) -> List[TermCode] | []:
+def get_term_codes_by_id_from_term_server(element_id: str, profile_data: dict) -> List[TermCode] | []:
     """
     Get the term codes from the profile data based on the given id element.
     :param element_id: the value of the id element of the profile

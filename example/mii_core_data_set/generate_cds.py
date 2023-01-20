@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import argparse
-from typing import List, ValuesView
+from typing import List, ValuesView, Dict
 
 from lxml import etree
 
@@ -205,13 +205,14 @@ def validate_ui_profile(_profile_name: str):
     # validate(instance=json.load(f), schema=json.load(open("resources/schema/ui-profile-schema.json")))
 
 
-def write_ui_trees_to_files(trees: List[TermEntry]):
+def write_ui_trees_to_files(trees: List[TermEntry], directory: str = "ui-trees"):
     """
     Writes the ui trees to the ui-profiles folder
     :param trees: ui trees to write
+    :param directory: directory to write the ui trees to
     """
     for tree in trees:
-        write_object_as_json(tree, f"ui-trees/{tree.display}.json")
+        write_object_as_json(tree, f"{directory}/{tree.display}.json")
 
 
 # Todo: this should be an abstract method that has to be implemented for each use-case
@@ -229,6 +230,27 @@ def write_cds_ui_profile(module_category_entry):
     else:
         f.write(module_category_entry.to_json())
     f.close()
+
+
+def denormalize_to_old_format(ui_tree: List[TermEntry], term_code_to_profile_name: Dict[TermCode, str],
+                              ui_profile_name_to_profile: Dict[str, UIProfile]):
+    """
+    Denormalizes the ui tree and ui profiles to the old format
+
+    :param ui_tree: entries to denormalize
+    :param term_code_to_profile_name: mapping from term codes to profile names
+    :param ui_profile_name_to_profile: ui profiles to use
+    :return: denormalized entries
+    """
+    for entry in ui_tree:
+        if entry.selectable:
+            try:
+                ui_profile = ui_profile_name_to_profile[term_code_to_profile_name[entry.termCode]]
+                entry.to_v1_entry(ui_profile)
+            except KeyError:
+                print("No profile found for term code " + entry.termCode.code)
+        for child in entry.children:
+            denormalize_to_old_format([child], term_code_to_profile_name, ui_profile_name_to_profile)
 
 
 def move_back_other(entries):
@@ -258,6 +280,7 @@ def configure_args_parser():
     arg_parser.add_argument('--generate_ui_trees', action='store_true')
     arg_parser.add_argument('--generate_ui_profiles', action='store_true')
     arg_parser.add_argument('--generate_mapping', action='store_true')
+    arg_parser.add_argument('--generate_old_format', action='store_true')
     return arg_parser
 
 
@@ -265,10 +288,10 @@ def remove_reserved_characters(file_name):
     return file_name.translate({ord(c): None for c in WINDOWS_RESERVED_CHARACTERS})
 
 
-def write_ui_profiles_to_files(profiles: List[UIProfile] | ValuesView[UIProfile]):
+def write_ui_profiles_to_files(profiles: List[UIProfile] | ValuesView[UIProfile], folder: str = "ui-profiles"):
     for profile in profiles:
         with open(
-                "ui-profiles/" + remove_reserved_characters(profile.name).replace(" ", "_").replace(".", "_") + ".json",
+                folder + "/" + remove_reserved_characters(profile.name).replace(" ", "_").replace(".", "_") + ".json",
                 'w', encoding="utf-8") as f:
             f.write(profile.to_json())
     f.close()
@@ -288,6 +311,7 @@ def write_mappings_to_files(mappings):
 
 
 if __name__ == '__main__':
+
     parser = configure_args_parser()
     args = parser.parse_args()
 
@@ -310,7 +334,7 @@ if __name__ == '__main__':
         ui_trees = tree_generator.generate_ui_trees("resources/fdpg_differential")
         top_300_loinc_tree = generate_top_300_loinc_tree()
         # replace ui tree for loinc with the top 300 loinc tree
-        ui_trees = [ui_tree if ui_tree.termCode == top_300_loinc_tree.termCode else top_300_loinc_tree for ui_tree
+        ui_trees = [ui_tree if ui_tree.termCode != top_300_loinc_tree.termCode else top_300_loinc_tree for ui_tree
                     in ui_trees]
         write_ui_trees_to_files(ui_trees)
 
@@ -327,6 +351,20 @@ if __name__ == '__main__':
         fhir_search_generator = FHIRSearchMappingGenerator(resolver)
         fhir_search_mappings = fhir_search_generator.generate_mapping("resources/fdpg_differential")[1].values()
         write_mappings_to_files(fhir_search_mappings)
+
+    if args.generate_old_format:
+        tree_generator = UITreeGenerator(resolver)
+        ui_trees = tree_generator.generate_ui_trees("resources/fdpg_differential")
+        top_300_loinc_tree = generate_top_300_loinc_tree()
+        # replace ui tree for loinc with the top 300 loinc tree
+        ui_trees = [ui_tree if ui_tree.termCode != top_300_loinc_tree.termCode else top_300_loinc_tree for ui_tree
+                    in ui_trees]
+        profile_generator = UIProfileGenerator(resolver)
+        ui_profiles = profile_generator.generate_ui_profiles("resources/fdpg_differential")
+        term_code_to_ui_profile_name = {context_tc[1]: profile_name for context_tc, profile_name in
+                                        ui_profiles[0].items()}
+        denormalize_to_old_format(ui_trees, term_code_to_ui_profile_name, ui_profiles[1])
+        write_ui_trees_to_files(ui_trees, "ui-profiles-old")
 
     # core_data_category_entries = generate_core_data_set()
     #

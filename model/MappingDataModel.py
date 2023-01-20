@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+import json
 from typing import List
 
 from sortedcontainers import SortedSet
 
 from model.UIProfileModel import VALUE_TYPE_OPTIONS
-from model.helper import del_none, str_to_class
-from model.UiDataModel import del_keys, TermCode
-import json
+from model.UiDataModel import TermCode
+from model.helper import del_none
 
 
 class FixedCriteria:
@@ -56,43 +56,6 @@ class CQLAttributeSearchParameter(AttributeSearchParameter):
         """
         super().__init__(criteria_type, attribute_code)
         self.fhirPath = fhir_path
-
-
-class MapEntry:
-    DO_NOT_SERIALIZE = ["DO_NOT_SERIALIZE"]
-    """
-    MapEntry stores all necessary information to translate the criteria in a structured query to a FHIR query snippet.
-    :param term_code defines the identifying term code of the criteria. (Required)
-    :param context defines the context of the criteria. 
-    """
-
-    def __init__(self, term_code: TermCode, context: TermCode = None):
-        self.context = context
-        self.key = term_code
-        self.termCodeSearchParameter: str | None = None
-        self.valueSearchParameter: str | None = None
-        self.timeRestrictionParameter: str | None = None
-        self.timeRestrictionPath: str | None = None
-        self.fhirResourceType: str | None = None
-        # self.fixedCriteria = []
-        self.valueFhirPath: str | None = None
-        self.attributeSearchParameters: List[AttributeSearchParameter] = []
-
-    def __eq__(self, other):
-        return self.key == other.key
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __lt__(self, other):
-        return self.key < other.key
-
-    def __hash__(self):
-        return hash(self.key)
-
-    def to_json(self):
-        return json.dumps(self, default=lambda o: del_none(
-            del_keys(o.__dict__, self.DO_NOT_SERIALIZE)), sort_keys=True, indent=4)
 
 
 class FhirMapping:
@@ -154,26 +117,3 @@ class MapEntryList:
                     for value in fixed_criteria.value:
                         code_systems.add(value.system)
         return code_systems
-
-
-def generate_child_entries(children, class_name):
-    result = SortedSet()
-    for child in children:
-        result.add(str_to_class(class_name)(child.termCode))
-        result = result.union(generate_child_entries(child.children, class_name))
-    return result
-
-
-def generate_map(categories):
-    result = MapEntryList()
-    for category in categories:
-        for terminology in category.children:
-            if terminology.fhirMapperType:
-                class_name = terminology.fhirMapperType + "MapEntry"
-                for termCode in terminology.termCodes:
-                    if terminology.selectable:
-                        result.entries.add(str_to_class(class_name)(termCode))
-                    result.entries = result.entries.union(generate_child_entries(terminology.children, class_name))
-            else:
-                print(terminology)
-    return result

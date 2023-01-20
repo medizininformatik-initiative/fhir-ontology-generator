@@ -1,16 +1,11 @@
 import os
 
 from FHIRProfileConfiguration import *
-from TerminologService.ValueSetResolver import pattern_coding_to_termcode
 from helper import to_upper_camel_case
 from model.Exceptions import UnknownHandlingException
 from model.UiDataModel import *
 
-IGNORE_CATEGORIES = []
-
 MAIN_CATEGORIES = ["Einwilligung", "Bioproben"]
-
-GENERATE_DUPLICATES = os.getenv("GENERATE_DUPLICATES", 'False').lower() == "true"
 
 
 def is_logical_bundle_or_extension(json_data: dict) -> bool:
@@ -154,21 +149,6 @@ def get_german_display(element):
             elif next_value_is_german_display_content:
                 return nested_extension["valueMarkdown"]
     return None
-
-
-def parse_term_code(terminology_entry, element, path):
-    if element["path"] == path and "patternCoding" in element:
-        if "system" in element["patternCoding"] and "code" in element["patternCoding"]:
-            term_code = pattern_coding_to_termcode(element)
-            terminology_entry.termCodes.append(term_code)
-            terminology_entry.termCode = term_code
-
-
-def update_termcode_to_match_pattern_coding(terminology_entry, element):
-    if terminology_entry.termCode.system == "mii.abide":
-        if element["path"] == "Observation.code.coding" and "patternCoding" in element:
-            terminology_entry.termCode.code = element["patternCoding"]["code"]
-            terminology_entry.termCode.system = element["patternCoding"]["system"]
 
 
 def get_german_display_from_designation(contains):

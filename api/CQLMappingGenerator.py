@@ -4,7 +4,7 @@ import json
 import os
 from typing import Tuple, List, Dict
 
-from TerminologService.ValueSetResolver import get_term_codes_by_id
+from TerminologService.ValueSetResolver import get_term_codes_by_id_from_term_server
 from api import StrucutureDefinitionParser as FHIRParser
 from api.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from api.StrucutureDefinitionParser import resolve_defining_id, extract_value_type
@@ -80,7 +80,7 @@ class CQLMappingGenerator(object):
                 mapping_name_cql_mapping[mapping_name] = cql_mapping
             else:
                 mapping_name = querying_meta_data_entry.name
-            term_codes = get_term_codes_by_id(querying_meta_data_entry.term_code_defining_id, profile_snapshot)
+            term_codes = get_term_codes_by_id_from_term_server(querying_meta_data_entry.term_code_defining_id, profile_snapshot)
             primary_keys = [(context, term_code) for term_code in term_codes]
             mapping_names = [mapping_name] * len(primary_keys)
             table = dict(zip(primary_keys, mapping_names))

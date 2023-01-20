@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import copy
 import json
+import random as rd
 import re
 import uuid
-import random as rd
 from typing import List
 
 
@@ -169,9 +169,7 @@ class TermEntry(object):
         self.children = []
         self.leaf = leaf
         self.selectable = selectable
-        self.uiProfile = None
         self.display = (self.termCode.display if self.termCode else None)
-        self.fhirMapperType = None
         self.root = True
         self.context = context
 
@@ -206,6 +204,10 @@ class TermEntry(object):
             else:
                 result += child
         return result
+
+    def to_v1_entry(self, ui_profile):
+        for key, value in ui_profile.__dict__.items():
+            setattr(self, key, value)
 
 
 def prune_terminology_tree(tree_node, max_depth):
