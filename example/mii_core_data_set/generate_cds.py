@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 from typing import List, ValuesView
 
+from lxml import etree
+
 from FHIRProfileConfiguration import *
 from api.CQLMappingGenerator import CQLMappingGenerator
 from api.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
@@ -10,8 +12,8 @@ from api.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolve
 from api.StrucutureDefinitionParser import get_element_from_snapshot
 from api.UIProfileGenerator import UIProfileGenerator
 from api.UITreeGenerator import UITreeGenerator
-from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, load_querying_meta_data
-from main import generate_result_folder
+from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, load_querying_meta_data, \
+    generate_result_folder
 from model.MappingDataModel import CQLMapping, FhirMapping
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import UIProfile
@@ -81,6 +83,97 @@ class MIICoreDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
                 result.remove(meta_data)
         print(result)
         return result if result else query_meta_data
+
+
+def generate_top_300_loinc_tree():
+    top_loinc_tree = etree.parse("resources/additional_resources/Top300Loinc.xml")
+    terminology_entry = TermEntry([TermCode("fdpg.mii.cds", "Laboruntersuchung", "Laboruntersuchung")])
+    terminology_entry.children = sorted(get_terminology_entry_from_top_300_loinc("11ccdc84-a237-49a5-860a-b0f65068c023",
+                                                                                 top_loinc_tree).children)
+    terminology_entry.leaf = False
+    terminology_entry.selectable = False
+    return terminology_entry
+
+
+def get_terminology_entry_from_top_300_loinc(element_id, element_tree):
+    """
+    Generates the top 300 loinc tree for the given element id and tree
+    :param element_id: the id of the root element of the sub tree initially the id of the root element of the whole tree
+    :param element_tree: the element subtree
+    :return: Terminology tree
+    """
+    # TODO: Better namespace handling
+    terminology_entry = None
+    for element in element_tree.xpath("/xmlns:export/xmlns:scopedIdentifier",
+                                      namespaces={'xmlns': "http://schema.samply.de/mdr/common"}):
+        if element.get("uuid") == element_id:
+            display = get_top_300_display(element)
+            if subs := element.xpath("xmlns:sub", namespaces={'xmlns': "http://schema.samply.de/mdr/common"}):
+                term_code = TermCode("fdpg.mii.cds", display, display)
+                terminology_entry = TermEntry([term_code])
+                for sub in subs:
+                    terminology_entry.children.append(get_terminology_entry_from_top_300_loinc(sub.text, element_tree))
+                    terminology_entry.leaf = False
+                    terminology_entry.selectable = False
+                terminology_entry.children = sorted(terminology_entry.children)
+                return terminology_entry
+            term_code = get_term_code(element, display)
+            terminology_entry = TermEntry([term_code])
+    return terminology_entry
+
+
+# We already extracted the display from the element, so we don't need to do it again
+def get_term_code(element, display):
+    """
+    Extracts the term code from the element
+    :param element: node in the XML tree
+    :param display: display of the term code
+    :return: TermCode
+    """
+    coding_system = ""
+    code = ""
+    for slot in element.xpath("xmlns:slots/xmlns:slot",
+                              namespaces={'xmlns': "http://schema.samply.de/mdr/common"}):
+        next_is_coding_system = False
+        next_is_code = False
+        for child in slot:
+            if (child.tag == "{http://schema.samply.de/mdr/common}key") and (
+                    child.text == "fhir-coding-system"):
+                next_is_coding_system = True
+            if (child.tag == "{http://schema.samply.de/mdr/common}value") and next_is_coding_system:
+                coding_system = child.text
+                next_is_coding_system = False
+            if (child.tag == "{http://schema.samply.de/mdr/common}key") and (child.text == "terminology-code"):
+                next_is_code = True
+            if (child.tag == "{http://schema.samply.de/mdr/common}value") and next_is_code:
+                code = child.text
+                next_is_code = False
+    return TermCode(coding_system, code, display)
+
+
+def get_top_300_display(element):
+    """
+    Extracts the display from the element if a german display is available it is used otherwise the english display is
+    :param element: the element
+    :return: the display
+    """
+    display = None
+    for definition in element.xpath("xmlns:definitions/xmlns:definition",
+                                    namespaces={'xmlns': "http://schema.samply.de/mdr/common"}):
+        if definition.get("lang") == "de":
+            for designation in (
+                    definition.xpath("xmlns:designation",
+                                     namespaces={'xmlns': "http://schema.samply.de/mdr/common"})):
+                return designation.text
+        if definition.get("lang") == "en":
+            for designation in (
+                    definition.xpath("xmlns:designation",
+                                     namespaces={'xmlns': "http://schema.samply.de/mdr/common"})):
+                display = designation.text
+    if display:
+        return display
+    else:
+        raise Exception("No display found for element " + element.get("uuid"))
 
 
 def generate_term_code_mapping(_entries: List[TermEntry]):
@@ -215,6 +308,10 @@ if __name__ == '__main__':
     if args.generate_ui_trees:
         tree_generator = UITreeGenerator(resolver)
         ui_trees = tree_generator.generate_ui_trees("resources/fdpg_differential")
+        top_300_loinc_tree = generate_top_300_loinc_tree()
+        # replace ui tree for loinc with the top 300 loinc tree
+        ui_trees = [ui_tree if ui_tree.termCode == top_300_loinc_tree.termCode else top_300_loinc_tree for ui_tree
+                    in ui_trees]
         write_ui_trees_to_files(ui_trees)
 
     if args.generate_ui_profiles:

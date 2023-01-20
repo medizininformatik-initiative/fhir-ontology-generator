@@ -10,8 +10,7 @@ from api.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
 from api.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from api.UIProfileGenerator import UIProfileGenerator
 from api.UITreeGenerator import UITreeGenerator
-from helper import download_simplifier_packages, generate_snapshots, write_object_as_json
-from main import generate_result_folder
+from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, generate_result_folder
 from model.MappingDataModel import CQLMapping, FhirMapping
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import UIProfile

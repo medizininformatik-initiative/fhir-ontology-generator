@@ -325,3 +325,16 @@ def generate_attribute_key(element_id: str, context: TermCode) -> TermCode:
     else:
         key = element_id.split('.')[:-1]
     return TermCode(context.system, key, key)
+
+
+def generate_result_folder():
+    """
+    Generates the mapping, csv and ui-profiles folder if they do not exist in the result folder
+    :return:
+    """
+    mkdir_if_not_exists("mapping")
+    mkdir_if_not_exists("mapping/fhir")
+    mkdir_if_not_exists("mapping/cql")
+    mkdir_if_not_exists("ui_trees")
+    mkdir_if_not_exists("csv")
+    mkdir_if_not_exists("ui-profiles")
