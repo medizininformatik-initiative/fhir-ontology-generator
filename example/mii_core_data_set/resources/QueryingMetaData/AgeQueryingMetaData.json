@@ -7,7 +7,7 @@
     "display": "Patient"
   },
   "value_defining_id": "Patient.birthDate",
-  "value_type": "calculated",
+  "value_type": "Age",
   "term_codes": [{
     "system": "http://snomed.info/sct",
     "code": "424144002",

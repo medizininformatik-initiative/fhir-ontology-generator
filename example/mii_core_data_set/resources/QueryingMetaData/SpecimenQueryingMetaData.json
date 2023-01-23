@@ -3,7 +3,7 @@
   "resource_type": "Specimen",
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Bioprobe",
+    "code": "Specimen",
     "display": "Bioprobe"
   },
   "term_code_defining_id": "Specimen.type.coding:sct",

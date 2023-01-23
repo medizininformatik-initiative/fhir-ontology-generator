@@ -4,7 +4,6 @@ import json
 import os
 from typing import Dict, Tuple, List
 
-from TerminologService.ValueSetResolver import get_termcodes_from_onto_server
 from api import ResourceQueryingMetaDataResolver
 from api import StrucutureDefinitionParser as FHIRParser
 from api.StrucutureDefinitionParser import InvalidValueTypeException, UCUM_SYSTEM
@@ -75,8 +74,10 @@ class UIProfileGenerator:
         ui_profile_name_ui_profile_mapping = {}
         for i, querying_meta_data_entry in enumerate(querying_meta_data):
             ui_profile = self.generate_ui_profile(profile_snapshot, querying_meta_data_entry)
+            # The logic to get the term_codes here always has to be identical with the mapping Generators!
             term_codes = querying_meta_data_entry.term_codes if querying_meta_data_entry.term_codes else \
-                self.get_term_code_by_id(profile_snapshot, querying_meta_data_entry.term_code_defining_id)
+                self.parser.get_term_code_by_id(profile_snapshot, querying_meta_data_entry.term_code_defining_id,
+                                                self.data_set_dir, self.module_dir)
             ui_profile.name += str(i) if i > 0 else ""
             ui_profile_name = ui_profile.name
             primary_keys = [(context, term_code) for term_code in term_codes]
@@ -112,7 +113,6 @@ class UIProfileGenerator:
         """
         value_defining_element = self.parser.resolve_defining_id(profile_snapshot, querying_meta_data.value_defining_id,
                                                                  self.data_set_dir, self.module_dir)
-        print("value_defining_element", value_defining_element)
         value_type = querying_meta_data.value_type if querying_meta_data.value_type else \
             self.parser.extract_value_type(value_defining_element, profile_snapshot.get("name"))
         value_definition = ValueDefinition(value_type)
@@ -267,29 +267,3 @@ class UIProfileGenerator:
         :return: return true if a time restricting element is identified in the querying meta data
         """
         return querying_meta_data.time_restriction_defining_id is not None
-
-    def get_term_code_by_id(self, fhir_profile_snapshot, term_code_defining_id) -> List[TermCode]:
-        """
-        Returns the term entries for the given term code defining id
-        :param fhir_profile_snapshot: snapshot of the FHIR profile
-        :param term_code_defining_id: id of the element that defines the term code
-        :return: term entries
-        """
-        term_code_defining_element = self.parser.resolve_defining_id(fhir_profile_snapshot, term_code_defining_id,
-                                                                     self.data_set_dir, self.module_dir)
-        if not term_code_defining_element:
-            raise Exception(f"Could not resolve term code defining id {term_code_defining_id} "
-                            f"in {fhir_profile_snapshot.get('name')}")
-        if "patternCoding" in term_code_defining_element:
-            if "code" in term_code_defining_element["patternCoding"]:
-                term_code = self.parser.pattern_coding_to_term_code(term_code_defining_element)
-                return [term_code]
-        if "patternCodeableConcept" in term_code_defining_element:
-            if "coding" in term_code_defining_element["patternCodeableConcept"]:
-                term_code = self.parser.pattern_codeable_concept_to_term_code(term_code_defining_element)
-                return [term_code]
-        if "binding" in term_code_defining_element:
-            value_set = term_code_defining_element.get("binding").get("valueSet")
-            return get_termcodes_from_onto_server(value_set)
-        else:
-            raise Exception(f"Could not resolve term code defining element: {term_code_defining_element}")

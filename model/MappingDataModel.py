@@ -71,6 +71,8 @@ class FhirMapping:
         self.valueType: str | None = None
         self.timeRestrictionParameter: str | None = None
         self.attributeSearchParameters: List[FhirSearchAttributeSearchParameter] = []
+        # only required for version 1 support
+        self.key = None
 
     def to_json(self):
         return json.dumps(self, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)
@@ -78,6 +80,19 @@ class FhirMapping:
     def add_attribute(self, attribute_type, attribute_key, attribute_search_parameter):
         self.attributeSearchParameters.append(
             FhirSearchAttributeSearchParameter(attribute_type, attribute_key, attribute_search_parameter))
+
+    #  only required for version 1 support
+    def __eq__(self, other):
+        return self.key == other.key
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __lt__(self, other):
+        return self.key < other.key
+
+    def __hash__(self):
+        return hash(self.key)
 
 
 class CQLMapping:
@@ -91,6 +106,8 @@ class CQLMapping:
         self.valueFhirPath: str | None = None
         self.timeRestrictionPath: str | None = None
         self.attributeFhirPath: List[CQLAttributeSearchParameter] = []
+        # only required for version 1 support
+        self.key = None
 
     def add_attribute(self, attribute_type, attribute_key, attribute_fhir_path):
         self.attributeFhirPath.append(
@@ -98,6 +115,19 @@ class CQLMapping:
 
     def to_json(self):
         return json.dumps(self, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)
+
+    # only required for version 1 support
+    def __eq__(self, other):
+        return self.key == other.key
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __lt__(self, other):
+        return self.key < other.key
+
+    def __hash__(self):
+        return hash(self.key)
 
 
 class MapEntryList:

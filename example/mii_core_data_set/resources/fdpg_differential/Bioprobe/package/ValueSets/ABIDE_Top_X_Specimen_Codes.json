@@ -1,0 +1,261 @@
+{
+  "resourceType": "ValueSet",
+  "url": "https://www.medizininformatik-initiative.de/fhir/fdpg/ValueSet/TopXSpecimenCodes",
+  "version": "20221107",
+  "title": "ABIDE Top X Specimen Codes",
+  "status": "draft",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "email"
+        }
+      ]
+    }
+  ],
+  "compose": {
+    "include": [
+      {
+        "system": "http://snomed.info/sct",
+        "concept": [
+          {
+            "code": "445295009",
+            "display": "Blood specimen with EDTA"
+          },
+          {
+            "code": "258569003",
+            "display": "Skin fibroblast specimen"
+          },
+          {
+            "code": "119339001",
+            "display": "Stool specimen"
+          },
+          {
+            "code": "119350003",
+            "display": "Calculus specimen"
+          },
+          {
+            "code": "309201001",
+            "display": "Ascitic fluid specimen"
+          },
+          {
+            "code": "119297000",
+            "display": "Blood specimen"
+          },
+          {
+            "code": "119351004",
+            "display": "Erythrocyte specimen"
+          },
+          {
+            "code": "258587000",
+            "display": "Buffy coat"
+          },
+          {
+            "code": "122551003",
+            "display": "Peripheral blood specimen"
+          },
+          {
+            "code": "441652008",
+            "display": "Formalin-fixed paraffin-embedded tissue specimen"
+          },
+          {
+            "code": "119364003",
+            "display": "Serum specimen"
+          },
+          {
+            "code": "608852006",
+            "display": "Specimen from nervous system"
+          },
+          {
+            "code": "258450006",
+            "display": "Cerebrospinal fluid specimen"
+          },
+          {
+            "code": "119362004",
+            "display": "Platelet poor plasma specimen"
+          },
+          {
+            "code": "258566005",
+            "display": "Deoxyribonucleic acid specimen"
+          },
+          {
+            "code": "309186001",
+            "display": "Oral tissue specimen"
+          },
+          {
+            "code": "446272009",
+            "display": "Blood specimen submitted in heparinized collection tube"
+          },
+          {
+            "code": "119373006",
+            "display": "Amniotic fluid specimen"
+          },
+          {
+            "code": "404798000",
+            "display": "Peripheral blood mononuclear cell"
+          },
+          {
+            "code": "119342007",
+            "display": "Saliva specimen"
+          },
+          {
+            "code": "122567009",
+            "display": "Urine sediment specimen"
+          },
+          {
+            "code": "57731000052104",
+            "display": "Stem cell specimen"
+          },
+          {
+            "code": "119359002",
+            "display": "Bone marrow specimen"
+          },
+          {
+            "code": "258417006",
+            "display": "Bone tissue specimen"
+          },
+          {
+            "code": "119376003",
+            "display": "Tissue specimen"
+          },
+          {
+            "code": "258580003",
+            "display": "Whole blood specimen"
+          },
+          {
+            "code": "276833005",
+            "display": "24 hour urine specimen"
+          },
+          {
+            "code": "441479001",
+            "display": "Fresh tissue specimen"
+          },
+          {
+            "code": "119361006",
+            "display": "Plasma specimen"
+          },
+          {
+            "code": "16214131000119104",
+            "display": "Frozen tissue section specimen"
+          },
+          {
+            "code": "396997002",
+            "display": "Specimen from bone marrow obtained by aspiration"
+          },
+          {
+            "code": "122575003",
+            "display": "Urine specimen"
+          },
+          {
+            "code": "57921000052103",
+            "display": "Whole blood specimen with edetic acid"
+          },
+          {
+            "code": "708048008",
+            "display": "Plasma specimen with citrate"
+          },
+          {
+            "code": "258469001",
+            "display": "Pharyngeal washings"
+          },
+          {
+            "code": "119326000",
+            "display": "Hair specimen"
+          },
+          {
+            "code": "708049000",
+            "display": "Plasma specimen with ethylenediamine tetraacetic acid"
+          },
+          {
+            "code": "726740008",
+            "display": "Cell free DNA"
+          },
+          {
+            "code": "419333002",
+            "display": "Cellular component of blood"
+          },
+          {
+            "code": "119386002",
+            "display": "Specimen from prostate"
+          },
+          {
+            "code": "258435002",
+            "display": "Tumor tissue specimen"
+          },
+          {
+            "code": "441673008",
+            "display": "Ribonucleic acid specimen"
+          },
+          {
+            "code": "309072003",
+            "display": "Soft tissue specimen"
+          },
+          {
+            "code": "420135007",
+            "display": "Whole blood"
+          },
+          {
+            "code": "119332005",
+            "display": "Synovial fluid specimen"
+          },
+          {
+            "code": "447339001",
+            "display": "Nasal smear specimen"
+          },
+          {
+            "code": "278020009",
+            "display": "Spot urine specimen"
+          },
+          {
+            "code": "258607008",
+            "display": "Bronchoalveolar lavage fluid specimen"
+          },
+          {
+            "code": "119325001",
+            "display": "Tissue specimen from skin"
+          },
+          {
+            "code": "119398007",
+            "display": "Specimen from brain"
+          },
+          {
+            "code": "127456000",
+            "display": "Specimen from breast"
+          },
+          {
+            "code": "119334006",
+            "display": "Sputum specimen"
+          },
+          {
+            "code": "122556008",
+            "display": "Cord blood specimen"
+          },
+          {
+            "code": "446676001",
+            "display": "Expressed breast milk specimen"
+          },
+          {
+            "code": "441510007",
+            "display": "Blood specimen with anticoagulant"
+          },
+          {
+            "code": "127457009",
+            "display": "Tissue specimen from breast"
+          }
+        ],
+        "version": "http://snomed.info/sct/900000000000207008/version/20220930"
+      }
+    ]
+  },
+  "description": "A collection of the TOP X most used Biospecimen Codes",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><h2>ABIDE Top X Specimen Codes</h2><tt>https://www.medizininformatik-initiative.de/fhir/fdpg/ValueSet/TopXSpecimenCodes</tt><p>A collection of the TOP X most used Biospecimen Codes</p></div>"
+  },
+  "name": "ABIDE_Top_X_Specimen_Codes",
+  "id": "34f688f6-c481-40ae-9575-d12b4d85fa7f",
+  "meta": {
+    "versionId": "1",
+    "lastUpdated": "2023-01-23T14:56:15.295+00:00"
+  }
+}

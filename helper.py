@@ -134,7 +134,7 @@ def load_querying_meta_data(resource_querying_meta_data_dir: str) -> List[Resour
     query_meta_data: List[ResourceQueryingMetaData] = []
     for file in [f for f in os.scandir(resource_querying_meta_data_dir)
                  if os.path.isfile(f.path) and f.name.endswith(".json")]:
-        with open(file.path) as f:
+        with open(file.path, encoding="utf-8") as f:
             query_meta_data.append(ResourceQueryingMetaData.from_json(f))
     return query_meta_data
 
@@ -338,3 +338,6 @@ def generate_result_folder():
     mkdir_if_not_exists("ui_trees")
     mkdir_if_not_exists("csv")
     mkdir_if_not_exists("ui-profiles")
+    mkdir_if_not_exists("ui-profiles-old")
+    mkdir_if_not_exists("mapping-old/fhir")
+    mkdir_if_not_exists("mapping-old/cql")

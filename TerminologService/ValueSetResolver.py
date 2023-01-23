@@ -6,14 +6,10 @@ import requests
 
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS
 from TerminologService.valueSetToRoots import create_vs_tree
-from model.UiDataModel import TermCode, TermEntry
+from model.UiDataModel import TermCode
 
 POSSIBLE_CODE_SYSTEMS = ["http://loinc.org", "http://snomed.info/sct"]
 # Some valueSets are to big to execute the closure operation on the Ontoserver. We need to filter them out.
-UNSUPPORTED_VALUE_SETS = ["https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/ValueSet"
-                          "/diagnoses-sct",
-                          "https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/ValueSet/"
-                          "procedures-sct"]
 
 
 def get_term_entries_from_onto_server(value_set_canonical_url: str):
@@ -22,8 +18,6 @@ def get_term_entries_from_onto_server(value_set_canonical_url: str):
     :param value_set_canonical_url: The canonical url of the valueSet
     :return: Sorted term_entry roots of the value set hierarchy
     """
-    if value_set_canonical_url in UNSUPPORTED_VALUE_SETS:
-        return []
     value_set_canonical_url = value_set_canonical_url.replace("|", "&version=")
     print(value_set_canonical_url)
     # In Gecco 1.04 all icd10 elements with children got removed this brings them back. Requires matching valuesSets on
@@ -36,7 +30,6 @@ def get_term_entries_from_onto_server(value_set_canonical_url: str):
     return result
 
 
-# TODO: We only want to use a single coding system. The different coding systems need to be prioritized
 def get_termcodes_from_onto_server(value_set_canonical_url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS) -> \
         List[TermCode]:
     """
@@ -48,8 +41,6 @@ def get_termcodes_from_onto_server(value_set_canonical_url: str, onto_server: st
     """
     value_set_canonical_url = value_set_canonical_url.replace("|", "&version=")
     print(value_set_canonical_url)
-    icd10_result = []
-    snomed_result = []
     result = []
     response = requests.get(
         f"{onto_server}ValueSet/$expand?url={value_set_canonical_url}&includeDesignations=true")
@@ -57,34 +48,31 @@ def get_termcodes_from_onto_server(value_set_canonical_url: str, onto_server: st
         value_set_data = response.json()
         if "contains" in value_set_data["expansion"]:
             for contains in value_set_data["expansion"]["contains"]:
-                system = contains["system"]
-                code = contains["code"]
-                display = contains["display"]
-                term_code = TermCode(system, code, display)
-                if system == "http://fhir.de/CodeSystem/dimdi/icd-10-gm":
-                    icd10_result.append(term_code)
-                elif system == "http://snomed.info/sct":
-                    if "designation" in contains:
-                        for designation in contains["designation"]:
-                            if "language" in designation and designation["language"] == "de-DE":
-                                term_code.display = designation["value"]
-                    snomed_result.append(term_code)
-                else:
-                    result.append(term_code)
-        else:
-            return []
+                term_code = get_term_code_from_contains(contains)
+                result.append(term_code)
     else:
         # TODO: Raise?
         print(f"{value_set_canonical_url} is empty")
         return []
-    # TODO: Workaround
-    if result and result[0].display == "Hispanic or Latino":
-        return sorted(result + snomed_result)
-    if icd10_result:
-        return icd10_result
-    elif result:
-        return sorted(result)
-    return sorted(snomed_result)
+    return sorted(result)
+
+
+def get_term_code_from_contains(contains):
+    """
+    Extracts the term code from the contains element of the value set expansion
+    :param contains: contains element of the value set expansion
+    :return: term code
+    """
+    system = contains["system"]
+    code = contains["code"]
+    display = contains["display"]
+    term_code = TermCode(system, code, display)
+    if system == "http://snomed.info/sct":
+        if "designation" in contains:
+            for designation in contains["designation"]:
+                if "language" in designation and designation["language"] == "de-DE":
+                    term_code.display = designation["value"]
+    return term_code
 
 
 def get_answer_list_code(response: dict) -> str | None:
@@ -150,45 +138,6 @@ def pattern_codeable_concept_to_termcode(element):
     return term_code
 
 
-# Ideally we would want to use [path] not the id, but using the id gives us control on which valueSet we want to use.
-def get_term_entries_by_id(element_id: str, profile_data: dict) -> List[TermEntry] | []:
-    """
-    Get the term entries from the profile data based on the given id element.
-    :param element_id: the id value of the element of the profile
-    :param profile_data: snapshot of the profile
-    :return: list of term entries or empty list if no term entries are available
-    """
-    for element in profile_data["snapshot"]["element"]:
-        if 'binding' in element:
-            print(f"element: {element['id']}")
-        if "id" in element and element["id"] == element_id and "patternCoding" in element:
-            if "code" in element["patternCoding"]:
-                term_code = pattern_coding_to_termcode(element)
-                return [TermEntry([term_code], "CodeableConcept", leaf=True, selectable=True)]
-        if "id" in element and element["id"] == element_id and "binding" in element:
-            value_set = element["binding"]["valueSet"]
-            return get_term_entries_from_onto_server(value_set)
-    return []
-
-
-def get_term_entries_by_path(element_path: str, profile_data: dict) -> List[TermEntry] | []:
-    """
-    Get the term entries from the profile data based on the given path element.
-    :param element_path: the value of the path element of the profile
-    :param profile_data: snapshot of the profile
-    :return: list of term entries or empty list if no term entries are available
-    """
-    for element in profile_data["snapshot"]["element"]:
-        if "path" in element and element["path"] == element_path and "patternCoding" in element:
-            if "code" in element["patternCoding"]:
-                term_code = pattern_coding_to_termcode(element)
-                return [TermEntry([term_code], "CodeableConcept", leaf=True, selectable=True)]
-        if "path" in element and element["path"] == element_path and "binding" in element:
-            value_set = element["binding"]["valueSet"]
-            return get_term_entries_from_onto_server(value_set)
-    return []
-
-
 def get_value_sets_by_path(element_path: str, profile_data: dict) -> List[str] | []:
     """
     Get the value sets from the profile data based on the given path element.
@@ -225,35 +174,6 @@ def get_term_codes_by_id_from_term_server(element_id: str, profile_data: dict) -
         return get_termcodes_from_onto_server(value_set)
     return []
 
-
-def get_value_set_by_id(element_id: str, profile_data: dict) -> List[str] | []:
-    """
-    Get the value set from the profile data based on the given id element.
-    :param element_id: the value of the id element of the profile
-    :param profile_data: snapshot of the profile
-    :return: list of value set urls or empty list if no value set is available
-    """
-    value_set = []
-    for element in profile_data["snapshot"]["element"]:
-        if "id" in element and element["id"] == element_id and "binding" in element:
-            value_set.append(element["binding"]["valueSet"])
-    return value_set
-
-
-def get_term_code_by_id(element_id: str, profile_data: dict) -> List[TermCode] | []:
-    """
-    Get the term code from the profile data based on the given id element.
-    :param element_id: the value of the id element of the profile
-    :param profile_data: snapshot of the profile
-    :return: list with one term code or empty list if no term code is available
-    """
-    for element in profile_data["snapshot"]["element"]:
-        if "id" in element and element["id"] == element_id and "patternCoding" in element:
-            if "code" in element["patternCoding"]:
-                term_code = pattern_coding_to_termcode(element)
-                if term_code:
-                    return [term_code]
-    return []
 
 
 def try_get_fixed_code(element_path: str, profile_data: dict) -> TermCode | None:
@@ -345,7 +265,7 @@ def get_system_from_code(code: str, onto_server: str = TERMINOLOGY_SERVER_ADDRES
     return result
 
 
-def get_value_set_definition(canonical_address: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS) -> dict | None:
+def get_value_set_definition(canonical_address: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS) -> dict :
     """
     Get the value set definition from the terminology server based on the canonical address.
     :param canonical_address: canonical address of the value set
@@ -360,11 +280,11 @@ def get_value_set_definition(canonical_address: str, onto_server: str = TERMINOL
                 if "id" in resource:
                     return get_value_set_definition_by_id(resource["id"], onto_server)
     print(canonical_address)
-    return None
+    return {}
 
 
 # TODO: Check if we can use that for any resource type
-def get_value_set_definition_by_id(value_set_id: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS) -> dict | None:
+def get_value_set_definition_by_id(value_set_id: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS) -> dict :
     """
     Get the value set definition from the terminology server based on the id.
     :param value_set_id: the id of the value set
@@ -374,4 +294,4 @@ def get_value_set_definition_by_id(value_set_id: str, onto_server: str = TERMINO
     response = requests.get(f"{onto_server}ValueSet/{value_set_id}")
     if response.status_code == 200:
         return response.json()
-    return None
+    return {}

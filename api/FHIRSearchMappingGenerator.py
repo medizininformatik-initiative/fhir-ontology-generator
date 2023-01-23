@@ -71,9 +71,7 @@ class FHIRSearchMappingGenerator(object):
         :return: FHIR search parameter
         """
         fhir_path_expressions = self.translate_element_id_to_fhir_path_expressions(element_id, profile_snapshot)
-        print(fhir_path_expressions)
         search_parameters = find_search_parameter(fhir_path_expressions)
-        print(search_parameters)
         validate_chainable(search_parameters.values())
         return [search_parameter.get("code") for search_parameter in search_parameters.values()]
 
@@ -98,7 +96,10 @@ class FHIRSearchMappingGenerator(object):
                 mapping_name_fhir_search_mapping[mapping_name] = fhir_mapping
             else:
                 mapping_name = querying_meta_data_entry.name
-            term_codes = get_term_codes_by_id_from_term_server(querying_meta_data_entry.term_code_defining_id, profile_snapshot)
+            # The logic to get the term_codes here always has to be identical with the mapping Generators!
+            term_codes = querying_meta_data_entry.term_codes if querying_meta_data_entry.term_codes else \
+                self.parser.get_term_code_by_id(profile_snapshot, querying_meta_data_entry.term_code_defining_id,
+                                                self.data_set_dir, self.module_dir)
             primary_keys = [(context, term_code) for term_code in term_codes]
             mapping_names = [mapping_name] * len(primary_keys)
             table = dict(zip(primary_keys, mapping_names))
@@ -147,7 +148,6 @@ class FHIRSearchMappingGenerator(object):
         if " as ValueSet" in attribute_id:
             attribute_id = attribute_id.replace(" as ValueSet", "")
         attribute_element = resolve_defining_id(profile_snapshot, attribute_id, self.data_set_dir, self.module_dir)
-        print(attribute_element)
         return extract_value_type(attribute_element, profile_snapshot.get('name'))
 
     def translate_element_id_to_fhir_path_expressions(self, element_id, profile_snapshot: dict) -> List[str]:

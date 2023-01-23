@@ -30,7 +30,6 @@ def get_element_from_snapshot(profile_snapshot, element_id) -> dict:
     :param element_id: element id
     :return: element
     """
-    print(f"get_element_from_snapshot: {element_id}")
     try:
         for element in profile_snapshot["snapshot"]["element"]:
             if "id" in element and element["id"] == element_id:
@@ -73,7 +72,6 @@ def get_extension_definition(module_dir: str, extension_profile_url: str) -> dic
     :param extension_profile_url:  extension profile url
     :return: extension definition
     """
-    print(module_dir)
     files = [file for file in os.scandir(f"{module_dir}/package/extension") if file.is_file()
              and file.name.endswith("snapshot.json")]
     for file in files:
@@ -134,7 +132,6 @@ def tokenize(chained_fhir_element_id):
 def get_element_defining_elements(chained_element_id, profile_snapshot: dict, start_module_dir: str,
                                   data_set_dir: str) -> List[dict]:
     parsed_list = list(flatten(parse(chained_element_id)))
-    print(parsed_list)
     return process_element_id(parsed_list, profile_snapshot, start_module_dir, data_set_dir)
 
 
@@ -142,7 +139,6 @@ def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, dat
     element_id = element_ids.pop(0)
     if element_id.startswith("."):
         raise ValueError("Element id must start with a resource type")
-    print(f"process_element_id: {element_id}")
     element = get_element_from_snapshot(profile_snapshot, element_id)
     result = [element]
     if element_ids:
@@ -291,7 +287,6 @@ def translate_element_to_fhir_path_expression(elements: List[dict], ) -> List[st
     :param elements: elements for which the fhir path expressions should be obtained
     :return: fhir path expressions
     """
-    print(elements)
     element = elements.pop(0)
     element_path = element.get("path")
     element_type = get_element_type(element)
@@ -350,7 +345,6 @@ def get_element_from_snapshot_by_path(profile_snapshot, element_path) -> List[di
     :param element_path: element id
     :return: elements
     """
-    print(f"getting element from snapshot by path: {element_path}")
     result = []
     try:
         for element in profile_snapshot["snapshot"]["element"]:
@@ -364,3 +358,32 @@ def get_element_from_snapshot_by_path(profile_snapshot, element_path) -> List[di
             f"KeyError the element id: {element_path} is not in the snapshot or the snapshot has no snapshot "
             f"elements")
     return result
+
+
+def get_term_code_by_id(fhir_profile_snapshot, term_code_defining_id, data_set_dir, module_dir) -> List[TermCode]:
+    """
+    Returns the term entries for the given term code defining id
+    :param fhir_profile_snapshot: snapshot of the FHIR profile
+    :param term_code_defining_id: id of the element that defines the term code
+    :param data_set_dir: data set directory of the FHIR profile
+    :param module_dir: module directory of the FHIR profile
+    :return: term entries
+    """
+    term_code_defining_element = resolve_defining_id(fhir_profile_snapshot, term_code_defining_id,
+                                                     data_set_dir, module_dir)
+    if not term_code_defining_element:
+        raise Exception(f"Could not resolve term code defining id {term_code_defining_id} "
+                        f"in {fhir_profile_snapshot.get('name')}")
+    if "patternCoding" in term_code_defining_element:
+        if "code" in term_code_defining_element["patternCoding"]:
+            term_code = pattern_coding_to_term_code(term_code_defining_element)
+            return [term_code]
+    if "patternCodeableConcept" in term_code_defining_element:
+        if "coding" in term_code_defining_element["patternCodeableConcept"]:
+            term_code = pattern_codeable_concept_to_term_code(term_code_defining_element)
+            return [term_code]
+    if "binding" in term_code_defining_element:
+        value_set = term_code_defining_element.get("binding").get("valueSet")
+        return get_termcodes_from_onto_server(value_set)
+    else:
+        raise Exception(f"Could not resolve term code defining element: {term_code_defining_element}")

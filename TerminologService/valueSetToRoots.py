@@ -54,7 +54,6 @@ def create_vs_tree(canonical_url: str):
     """
     create_concept_map()
     vs = expand_value_set(canonical_url)
-    print(vs)
     vs_dict = {term_code.code: TermEntry([term_code], leaf=True, selectable=True) for term_code in vs}
     closure_map_data = get_closure_map(vs)
     if groups := closure_map_data.get("group"):

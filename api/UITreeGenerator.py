@@ -70,7 +70,7 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
         context_code = fhir_profile_snapshot["baseDefinition"].split("/")[-1] \
             if fhir_profile_snapshot["baseDefinition"] in "https://www.medizininformatik-initiative.de/" \
             else fhir_profile_snapshot["url"].split("/")[-1]
-        sub_tree_context = context if context else TermCode("mii.fdpg.cds", context_code, context_code)
+        sub_tree_context = context if context else TermCode("fdpg.mii.cds", context_code, context_code)
         applicable_querying_meta_data = self.get_query_meta_data(fhir_profile_snapshot, sub_tree_context)
         if not applicable_querying_meta_data:
             print(f"No querying meta data found for {fhir_profile_snapshot['name']}")
@@ -88,7 +88,6 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
         """
         result: List[TermEntry] = []
         for applicable_querying_meta_data in applicable_querying_meta_data:
-            print(f"Translating {fhir_profile_snapshot['name']} with {applicable_querying_meta_data}")
             # TODO: add context information to the ui tree
             if applicable_querying_meta_data.term_code_defining_id:
                 result += self.get_term_entries_by_id(fhir_profile_snapshot, applicable_querying_meta_data.

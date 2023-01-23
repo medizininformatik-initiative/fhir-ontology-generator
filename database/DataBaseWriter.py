@@ -3,7 +3,7 @@ from typing import List
 import psycopg2.extras
 import psycopg2
 
-from model.UIProfileModel import generate_default_ui_profile, UIProfile
+from model.UIProfileModel import UIProfile
 from model.UiDataModel import TermCode, TermEntry
 
 """
