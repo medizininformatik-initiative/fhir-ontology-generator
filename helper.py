@@ -339,5 +339,6 @@ def generate_result_folder():
     mkdir_if_not_exists("csv")
     mkdir_if_not_exists("ui-profiles")
     mkdir_if_not_exists("ui-profiles-old")
+    mkdir_if_not_exists("mapping-old")
     mkdir_if_not_exists("mapping-old/fhir")
     mkdir_if_not_exists("mapping-old/cql")

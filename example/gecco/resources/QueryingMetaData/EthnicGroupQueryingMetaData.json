@@ -6,5 +6,12 @@
     "code": "EthnicGroup",
     "display": "Ethnic Group"
   },
+  "term_codes": [
+    {
+      "code": "372148003",
+      "display": "Ethnic group (ethnic group)",
+      "system": "http://snomed.info/sct"
+    }
+  ],
   "value_defining_id": "(Patient.extension:ethnicGroup).value[x]"
 }

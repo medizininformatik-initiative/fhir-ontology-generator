@@ -1,12 +1,9 @@
 import csv
 import re
-import urllib.request
 
 import requests
-from bs4 import BeautifulSoup
 
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS
-from model.UiDataModel import TermEntry, TermCode
 
 if __name__ == '__main__':
     with open('SpecimenCodes.CSV', mode='r') as csv_file:

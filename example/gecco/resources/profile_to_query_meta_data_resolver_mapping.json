@@ -18,13 +18,13 @@
         "Condition"
     ],
     "DependenceOnVentilator": [
-        "Condition"
+        "SnomedCondition"
     ],
     "DiabetesMellitus": [
         "Condition"
     ],
     "DiagnosisCovid19": [
-        "Condition"
+        "SnomedCondition"
     ],
     "GastrointestinalUlcers": [
         "Condition"
@@ -42,7 +42,7 @@
         "Condition"
     ],
     "SymptomsCovid19": [
-        "Condition"
+        "Symptoms"
     ],
     "DoNotResuscitateOrder": [
         "Consent"
@@ -171,12 +171,12 @@
         "Procedure"
     ],
     "PronePosition": [
-        "Procedure"
+        "SnomedProcedure"
     ],
     "RadiologyProcedures": [
-        "Procedure"
+        "SnomedProcedure"
     ],
     "RespiratoryTherapies": [
-        "Procedure"
+        "SnomedProcedure"
     ]
 }

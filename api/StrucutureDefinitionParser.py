@@ -369,6 +369,8 @@ def get_term_code_by_id(fhir_profile_snapshot, term_code_defining_id, data_set_d
     :param module_dir: module directory of the FHIR profile
     :return: term entries
     """
+    if not term_code_defining_id:
+        raise Exception(f"No term code defining id given print for {fhir_profile_snapshot.get('name')}")
     term_code_defining_element = resolve_defining_id(fhir_profile_snapshot, term_code_defining_id,
                                                      data_set_dir, module_dir)
     if not term_code_defining_element:

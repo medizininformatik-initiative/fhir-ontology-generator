@@ -1,0 +1,11 @@
+{
+  "name": "SnomedCondition",
+  "resource_type": "Condition",
+  "context": {
+    "system": "fdpg.mii.gecco",
+    "code": "Condition",
+    "display": "Condition"
+  },
+  "term_code_defining_id": "Condition.code.coding:sct",
+  "time_restriction_defining_id": "Condition.onset[x]"
+}

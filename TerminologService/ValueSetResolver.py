@@ -9,6 +9,8 @@ from TerminologService.valueSetToRoots import create_vs_tree
 from model.UiDataModel import TermCode
 
 POSSIBLE_CODE_SYSTEMS = ["http://loinc.org", "http://snomed.info/sct"]
+
+
 # Some valueSets are to big to execute the closure operation on the Ontoserver. We need to filter them out.
 
 
@@ -175,7 +177,6 @@ def get_term_codes_by_id_from_term_server(element_id: str, profile_data: dict) -
     return []
 
 
-
 def try_get_fixed_code(element_path: str, profile_data: dict) -> TermCode | None:
     """
     Get the fixed code from the profile data based on the given path element if available.
@@ -265,7 +266,7 @@ def get_system_from_code(code: str, onto_server: str = TERMINOLOGY_SERVER_ADDRES
     return result
 
 
-def get_value_set_definition(canonical_address: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS) -> dict :
+def get_value_set_definition(canonical_address: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS) -> dict:
     """
     Get the value set definition from the terminology server based on the canonical address.
     :param canonical_address: canonical address of the value set
@@ -284,7 +285,7 @@ def get_value_set_definition(canonical_address: str, onto_server: str = TERMINOL
 
 
 # TODO: Check if we can use that for any resource type
-def get_value_set_definition_by_id(value_set_id: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS) -> dict :
+def get_value_set_definition_by_id(value_set_id: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS) -> dict:
     """
     Get the value set definition from the terminology server based on the id.
     :param value_set_id: the id of the value set

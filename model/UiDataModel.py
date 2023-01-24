@@ -62,6 +62,9 @@ class CategoryEntry:
             output += " " + str(var)
         return output
 
+    def __repr__(self):
+        return self.display
+
     def to_json(self):
         return json.dumps(self, default=lambda o: del_none(
             del_keys(o.__dict__, self.DO_NOT_SERIALIZE)),
