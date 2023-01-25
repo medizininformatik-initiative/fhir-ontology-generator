@@ -1,0 +1,47 @@
+{
+    "resourceType": "StructureDefinition",
+    "url": "https://example.org/fhir/StructureDefinition/FDPG_Observation_DefaultFibrinogen[Presence]inPlateletpoorplasma",
+    "name": "Fibrinogen [Presence] in Platelet poor plasma",
+    "status": "active",
+    "fhirVersion": "4.0.1",
+    "kind": "resource",
+    "abstract": false,
+    "type": "Observation",
+    "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab",
+    "derivation": "constraint",
+    "differential": {
+        "element": [
+            {
+                "id": "Observation.value[x]",
+                "path": "Observation.value[x]",
+                "type": [
+                    {
+                        "code": "CodeableConcept"
+                    }
+                ]
+            },
+            {
+                "id": "Observation.value[x]:valueCodeableConcept",
+                "path": "Observation.value[x]",
+                "sliceName": "valueCodeableConcept",
+                "min": 1
+            },
+            {
+                "id": "Observation.value[x]:valueCodeableConcept.coding.system",
+                "path": "Observation.value[x].coding.system",
+                "fixedUri": "http://snomed.info/sct",
+                "constraint": [
+                    {
+                        "key": "yes-no-contraint",
+                        "requirements": "Value of code element has to be one of the following SNOMED CT codes: 373066001 (yes) or 373067005 (no)",
+                        "severity": "error",
+                        "human": "Value of code element is not one of the following SNOMED CT codes: 373066001 (yes) or 373067005 (no)",
+                        "expression": "exists(code='373066001' or code='373067005')",
+                        "xpath": "code[@value='373066001' or @value='373067005']"
+                    }
+                ]
+            }
+        ]
+    },
+    "id": "Fibrinogen[Presence]inPlateletpoorplasma"
+}

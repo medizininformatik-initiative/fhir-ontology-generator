@@ -19,7 +19,7 @@ from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import UIProfile
 from model.UiDataModel import TermEntry, TermCode, CategoryEntry
 
-core_data_sets = [GECCO]
+core_data_sets = [GECCO, MII_LAB]
 WINDOWS_RESERVED_CHARACTERS = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
 
 
