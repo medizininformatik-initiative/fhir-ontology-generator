@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import uuid
+from copy import copy
 from typing import List, ValuesView, Dict
 
 from FHIRProfileConfiguration import *
@@ -225,7 +226,7 @@ def add_terminology_entry_to_category(element, categories, terminology_type):
             terminology_entry.display = element["short"]
             if terminology_entry.display in IGNORE_LIST:
                 continue
-            resolve_terminology_entry_profile(terminology_entry, element)
+            terminology_entry = resolve_terminology_entry_profile(terminology_entry, element)
             terminology_entry.display = get_german_display(element) if get_german_display(element) else element["short"]
             if terminology_entry.display == category_entry.display:
                 # Resolves issue like : -- Symptoms                 --Symptoms
@@ -263,6 +264,7 @@ def resolve_terminology_entry_profile(terminology_entry, element=None):
                     terminology_entry = sub_trees[0]
     if element:
         terminology_entry.display = get_german_display(element) if get_german_display(element) else element["short"]
+    return terminology_entry
 
 
 def get_term_codes(element):
@@ -306,10 +308,13 @@ def denormalize_ui_profile_to_old_format(ui_tree: List[TermEntry], term_code_to_
     for entry in ui_tree:
         if entry.selectable:
             try:
-                ui_profile = ui_profile_name_to_profile[term_code_to_profile_name[entry.termCode]]
-                entry.to_v1_entry(ui_profile)
+                for term_code in entry.termCodes:
+                    ui_profile = ui_profile_name_to_profile[term_code_to_profile_name[term_code]]
+                    entry.to_v1_entry(ui_profile)
+                    break
             except KeyError:
-                print("No profile found for term code " + entry.termCode.code)
+                if entry.leaf:
+                    print("No profile found for term code " + entry.termCode.code)
         for child in entry.children:
             denormalize_ui_profile_to_old_format([child], term_code_to_profile_name, ui_profile_name_to_profile)
 
@@ -335,6 +340,7 @@ if __name__ == '__main__':
 
     if args.generate_ui_trees:
         trees = generate_gecco_tree()
+        move_back_other(trees)
         write_ui_trees_to_files(trees, "ui_trees")
 
     if args.generate_ui_profiles:
@@ -353,6 +359,7 @@ if __name__ == '__main__':
 
     if args.generate_old_format:
         ui_trees = generate_gecco_tree()
+        move_back_other(ui_trees)
         profile_generator = UIProfileGenerator(resolver)
         ui_profiles = profile_generator.generate_ui_profiles("resources/differential")
         term_code_to_ui_profile_name = {context_tc[1]: profile_name for context_tc, profile_name in
@@ -360,7 +367,6 @@ if __name__ == '__main__':
         denormalize_ui_profile_to_old_format(ui_trees, term_code_to_ui_profile_name, ui_profiles[1])
         write_ui_trees_to_files(ui_trees, "ui-profiles-old")
 
-    # move_back_other(category_entries)
     #
     # category_entries += core_data_category_entries
     # dbw = DataBaseWriter()

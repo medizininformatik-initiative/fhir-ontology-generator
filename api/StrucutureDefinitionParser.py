@@ -223,6 +223,7 @@ def get_units(unit_defining_element, profile_name: str = "") -> List[TermCode]:
         return [TermCode(UCUM_SYSTEM, unit_code, unit_code)]
     elif binding := unit_defining_element.get("binding"):
         if value_set_url := binding.get("valueSet"):
+            print(f"Value set url: {value_set_url}")
             return get_termcodes_from_onto_server(value_set_url)
         else:
             raise InvalidValueTypeException(f"No value set defined in element: {str(binding)}"

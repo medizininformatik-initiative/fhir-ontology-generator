@@ -929,5 +929,11 @@
     ],
     "Troponin T.cardiac [Mass/volume] in Venous blood": [
         "QuantityObservation"
+    ],
+    "Body height": [
+        "QuantityObservation"
+    ],
+    "Body weight": [
+        "QuantityObservation"
     ]
 }
