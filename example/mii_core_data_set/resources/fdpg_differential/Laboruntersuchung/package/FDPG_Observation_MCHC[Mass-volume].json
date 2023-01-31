@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/MCHC[Mass-volume]",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/MCHC[Mass-volume]",
     "name": "MCHC [Mass/volume]",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "1615d3c8-6777-4b26-a34e-c1e02998581b"
+    "id": "173348b6-ba8c-46be-9c49-2ced8e2c13bb"
 }

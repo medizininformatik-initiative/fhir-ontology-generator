@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Bandformneutrophils-100leukocytesinBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Bandformneutrophils-100leukocytesinBlood",
     "name": "Band form neutrophils/100 leukocytes in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "96f7795c-34b2-4227-a5b0-d35656bb3ef5"
+    "id": "71e9c468-dec4-4deb-aef8-5fbe60d5cc99"
 }

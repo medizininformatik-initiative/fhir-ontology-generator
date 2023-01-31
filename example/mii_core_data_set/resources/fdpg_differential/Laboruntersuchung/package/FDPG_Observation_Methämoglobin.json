@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Meth\u00e4moglobin",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Meth\u00e4moglobin",
     "name": "Meth\u00e4moglobin",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "c65d513f-f250-434f-a4e4-fc540f1fd776"
+    "id": "aa104f73-38dc-4b59-86d4-fd634dd0889e"
 }

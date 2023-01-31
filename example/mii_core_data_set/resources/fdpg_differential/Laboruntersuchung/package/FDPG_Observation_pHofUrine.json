@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/pHofUrine",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/pHofUrine",
     "name": "pH of Urine",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "1e5105f4-b07b-4218-aa62-673e6ea9db1e"
+    "id": "efc47ef6-c4e4-48c2-910c-c6b4ff21716b"
 }

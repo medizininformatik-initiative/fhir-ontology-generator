@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/FibrinD-dimerDDU[Mass-volume]inPlateletpoorplasmabyImmunoassay",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/FibrinD-dimerDDU[Mass-volume]inPlateletpoorplasmabyImmunoassay",
     "name": "Fibrin D-dimer DDU [Mass/volume] in Platelet poor plasma by Immunoassay",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "95c57c2e-f795-4a88-8864-a90debba9d19"
+    "id": "b6f058c2-14d7-40b6-86fe-b4fb81ac825f"
 }

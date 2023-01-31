@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Thyrotropin[Units-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Thyrotropin[Units-volume]inBlood",
     "name": "Thyrotropin [Units/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "a2dd046f-ced0-417e-82fa-f672673344bd"
+    "id": "03c6cecd-1b39-4e73-8112-3eed7175c15b"
 }

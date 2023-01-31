@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Calcium[Moles-volume]inVenousblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Calcium[Moles-volume]inVenousblood",
     "name": "Calcium [Moles/volume] in Venous blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "ca192291-8cc6-4f27-ad30-d76b1ced096d"
+    "id": "e9de6d5f-cdf9-49e3-a809-315afbc9c878"
 }

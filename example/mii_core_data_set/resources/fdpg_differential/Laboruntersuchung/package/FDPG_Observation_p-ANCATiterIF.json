@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/p-ANCATiterIF",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/p-ANCATiterIF",
     "name": "p-ANCA Titer IF",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "8e4b99d6-00ba-4094-81e4-42c406b5914a"
+    "id": "821d376c-c00f-41c7-8392-a335d5f33e30"
 }

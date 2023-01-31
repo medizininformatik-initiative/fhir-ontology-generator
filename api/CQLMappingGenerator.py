@@ -4,7 +4,6 @@ import json
 import os
 from typing import Tuple, List, Dict
 
-from TerminologService.ValueSetResolver import get_term_codes_by_id_from_term_server
 from api import StrucutureDefinitionParser as FHIRParser
 from api.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from api.StrucutureDefinitionParser import resolve_defining_id, extract_value_type
@@ -107,10 +106,10 @@ class CQLMappingGenerator(object):
             cql_mapping.termValueFhirPath = self.translate_element_id_to_fhir_path_expressions(
                 val_defining_id, profile_snapshot)
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
-            cql_mapping.termTimeFhirPath = self.translate_element_id_to_fhir_path_expressions(
+            cql_mapping.timeRestrictionPath = self.translate_element_id_to_fhir_path_expressions(
                 time_defining_id, profile_snapshot)
         for attr_defining_id, attr_type in querying_meta_data.attribute_defining_id_type_map.items():
-            attribute_key = generate_attribute_key(attr_defining_id, querying_meta_data.context)
+            attribute_key = generate_attribute_key(attr_defining_id)
             attribute_type = attr_type if attr_type else self.get_attribute_type(profile_snapshot,
                                                                                  attr_defining_id)
             attribute_fhir_path = self.translate_element_id_to_fhir_path_expressions(attr_defining_id,
@@ -127,7 +126,10 @@ class CQLMappingGenerator(object):
         """
         elements = self.parser.get_element_defining_elements(element_id, profile_snapshot, self.module_dir,
                                                              self.data_set_dir)
-        return self.parser.translate_element_to_fhir_path_expression(elements)
+        expressions = self.parser.translate_element_to_fhir_path_expression(elements)
+        # Use.coding to work with CodeableConcepts
+        return [f"{expression}.coding" if "as CodeableConcept" in expression else expressions for expression in
+                expressions]
 
     def get_attribute_type(self, profile_snapshot: dict, attribute_id: str) -> VALUE_TYPE_OPTIONS:
         """

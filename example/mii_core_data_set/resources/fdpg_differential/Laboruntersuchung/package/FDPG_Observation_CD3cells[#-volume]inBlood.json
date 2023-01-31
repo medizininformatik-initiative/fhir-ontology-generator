@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/CD3cells[#-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/CD3cells[#-volume]inBlood",
     "name": "CD3 cells [#/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "3d6d85f6-703a-454b-92dd-a8a201d99c71"
+    "id": "f24bc86a-750d-4b09-a72e-82be80c857c3"
 }

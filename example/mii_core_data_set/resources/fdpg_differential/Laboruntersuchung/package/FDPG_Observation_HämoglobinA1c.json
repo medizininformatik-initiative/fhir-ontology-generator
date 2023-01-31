@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/H\u00e4moglobinA1c",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/H\u00e4moglobinA1c",
     "name": "H\u00e4moglobin A1c",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "a20e30ae-6134-4195-81c3-03366d934a53"
+    "id": "10798551-75d7-4551-9cfe-b5ec432f4753"
 }

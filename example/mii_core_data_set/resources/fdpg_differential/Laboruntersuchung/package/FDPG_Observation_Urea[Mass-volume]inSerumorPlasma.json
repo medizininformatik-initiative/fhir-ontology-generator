@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Urea[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Urea[Mass-volume]inSerumorPlasma",
     "name": "Urea [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "0bc869de-49ac-4487-819c-fbcb40c43ded"
+    "id": "d4ef1e50-f00e-4d4f-b67c-635ed8b149b9"
 }

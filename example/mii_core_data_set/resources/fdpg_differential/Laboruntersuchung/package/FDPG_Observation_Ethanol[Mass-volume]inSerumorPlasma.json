@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Ethanol[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Ethanol[Mass-volume]inSerumorPlasma",
     "name": "Ethanol [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "33d57f9b-767f-4b09-a14c-a069d1341ee0"
+    "id": "d5575bfa-8b05-4704-8069-08d7a2589c0e"
 }

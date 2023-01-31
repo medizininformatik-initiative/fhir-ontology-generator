@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/CD3-CD16+CD56+(Naturalkiller)cells-100cellsinBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/CD3-CD16+CD56+(Naturalkiller)cells-100cellsinBlood",
     "name": "CD3-CD16+CD56+ (Natural killer) cells/100 cells in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "460f0897-66ec-44b8-b705-be6862369f6f"
+    "id": "25173e8e-8317-49ba-8f9a-af42c7e4721c"
 }

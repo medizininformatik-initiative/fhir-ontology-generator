@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Creactiveprotein[Mass-volume]inSerumorPlasmabyHighsensitivitymethod",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Creactiveprotein[Mass-volume]inSerumorPlasmabyHighsensitivitymethod",
     "name": "C reactive protein [Mass/volume] in Serum or Plasma by High sensitivity method",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "4de23757-effa-4cac-a623-ac6fa90a4584"
+    "id": "5578ee0f-3c6e-4c56-9f23-6f664babfdbe"
 }

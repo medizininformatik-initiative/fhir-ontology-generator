@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Microalbumin[Mass-volume]inUrine",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Microalbumin[Mass-volume]inUrine",
     "name": "Microalbumin [Mass/volume] in Urine",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "a11d5326-f3f3-492b-a6ce-3ce0192ec25f"
+    "id": "4f2552e0-77f0-4f97-b061-17a7ace5a22d"
 }

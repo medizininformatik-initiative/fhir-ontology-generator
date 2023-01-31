@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Granulozytenabsolut",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Granulozytenabsolut",
     "name": "Granulozyten absolut",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "7da2a176-2ea3-4a44-b572-c6c40fcbbaa2"
+    "id": "562fd17c-5a40-4065-80b6-61b1697f7506"
 }

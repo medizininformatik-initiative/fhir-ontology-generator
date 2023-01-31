@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/BaseexcessinCapillarybloodbycalculation",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/BaseexcessinCapillarybloodbycalculation",
     "name": "Base excess in Capillary blood by calculation",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "f96fa818-c629-4658-820f-91e816f3304a"
+    "id": "18d2b4ba-104a-44d7-8834-978baf1bd07c"
 }

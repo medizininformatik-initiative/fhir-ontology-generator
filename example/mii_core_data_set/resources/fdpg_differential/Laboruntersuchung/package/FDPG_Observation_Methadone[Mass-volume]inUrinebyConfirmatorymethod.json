@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Methadone[Mass-volume]inUrinebyConfirmatorymethod",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Methadone[Mass-volume]inUrinebyConfirmatorymethod",
     "name": "Methadone [Mass/volume] in Urine by Confirmatory method",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "a5388089-af17-4eb6-b812-4f9e8cf74986"
+    "id": "de727866-e4d8-4a19-bf15-b18de9810c31"
 }

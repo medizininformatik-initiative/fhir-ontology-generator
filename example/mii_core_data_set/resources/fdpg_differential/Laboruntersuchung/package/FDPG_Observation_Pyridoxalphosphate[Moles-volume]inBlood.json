@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Pyridoxalphosphate[Moles-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Pyridoxalphosphate[Moles-volume]inBlood",
     "name": "Pyridoxal phosphate [Moles/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "77db3808-c7a9-48cd-a06d-9768eb413979"
+    "id": "84e71c57-950f-43ef-8672-5496a7efe2a3"
 }

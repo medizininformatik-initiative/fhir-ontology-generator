@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Harns\u00e4ure",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Harns\u00e4ure",
     "name": "Harns\u00e4ure",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "ff963f3e-ccd6-4bad-bb5b-69bf1a46f8dc"
+    "id": "ee4c993f-cfd3-446a-a9fc-c4fd9194ecce"
 }

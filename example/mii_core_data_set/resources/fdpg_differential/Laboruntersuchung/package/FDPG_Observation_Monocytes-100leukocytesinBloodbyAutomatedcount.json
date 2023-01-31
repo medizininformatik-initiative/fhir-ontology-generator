@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Monocytes-100leukocytesinBloodbyAutomatedcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Monocytes-100leukocytesinBloodbyAutomatedcount",
     "name": "Monocytes/100 leukocytes in Blood by Automated count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "b3419124-ada1-4ee4-b015-14a819d5d06f"
+    "id": "00d6b447-4e37-4b72-91dc-3e92bede2ae7"
 }

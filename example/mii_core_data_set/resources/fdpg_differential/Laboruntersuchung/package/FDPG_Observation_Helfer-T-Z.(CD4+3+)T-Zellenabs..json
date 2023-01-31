@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Helfer-T-Z.(CD4+3+)T-Zellenabs.",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Helfer-T-Z.(CD4+3+)T-Zellenabs.",
     "name": "Helfer-T-Z. (CD4+3+) T-Zellen abs.",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "5ac4eef3-29c3-42f7-9bcf-da3b43c9e73e"
+    "id": "c9aa5367-bd62-431a-820f-46a6fd43467b"
 }

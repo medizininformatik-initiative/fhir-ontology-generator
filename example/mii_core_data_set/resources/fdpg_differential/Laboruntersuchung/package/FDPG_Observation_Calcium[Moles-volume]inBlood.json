@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Calcium[Moles-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Calcium[Moles-volume]inBlood",
     "name": "Calcium [Moles/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "5c91be42-cffb-43c6-ab68-0ddf6cfd1e97"
+    "id": "9d6497c4-3842-4e3a-b5c8-c73c6d626a7a"
 }

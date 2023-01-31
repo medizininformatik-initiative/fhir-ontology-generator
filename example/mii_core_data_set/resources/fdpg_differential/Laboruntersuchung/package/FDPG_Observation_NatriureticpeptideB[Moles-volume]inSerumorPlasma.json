@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/NatriureticpeptideB[Moles-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/NatriureticpeptideB[Moles-volume]inSerumorPlasma",
     "name": "Natriuretic peptide B [Moles/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "839ad9f7-563b-4ee5-b7ca-168f78aa9d88"
+    "id": "3cc68258-4c7b-4587-b41a-8a41f136abea"
 }

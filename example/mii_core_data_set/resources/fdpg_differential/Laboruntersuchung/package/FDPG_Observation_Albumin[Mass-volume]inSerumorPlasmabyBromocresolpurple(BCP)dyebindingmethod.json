@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Albumin[Mass-volume]inSerumorPlasmabyBromocresolpurple(BCP)dyebindingmethod",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Albumin[Mass-volume]inSerumorPlasmabyBromocresolpurple(BCP)dyebindingmethod",
     "name": "Albumin [Mass/volume] in Serum or Plasma by Bromocresol purple (BCP) dye binding method",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "efcf6634-96ee-4328-ac26-54c7227425ed"
+    "id": "c130f8fe-e51f-4cdc-add2-442f485106f8"
 }

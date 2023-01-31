@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Sm-Antik\u00f6rper",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Sm-Antik\u00f6rper",
     "name": "Sm-Antik\u00f6rper",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "8a8e9329-7ad3-4a85-9500-a91854430ab6"
+    "id": "6fbb50db-0db7-4361-8af4-77f0ebdc93eb"
 }

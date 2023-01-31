@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/PTZ(Prothrombinzeit)",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/PTZ(Prothrombinzeit)",
     "name": "PTZ (Prothrombinzeit)",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "bb5c3cff-35fe-473e-a223-9c0218da1afd"
+    "id": "c15d5898-a9c9-4d4d-a019-bd122006a1ab"
 }

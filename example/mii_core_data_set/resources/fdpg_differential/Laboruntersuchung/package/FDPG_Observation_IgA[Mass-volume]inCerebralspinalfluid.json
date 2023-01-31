@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/IgA[Mass-volume]inCerebralspinalfluid",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/IgA[Mass-volume]inCerebralspinalfluid",
     "name": "IgA [Mass/volume] in Cerebral spinal fluid",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "f50c3b20-dc8c-4859-ac28-5db0c93ac003"
+    "id": "9eb33a53-ead7-4ff0-99a4-17770b70fd00"
 }

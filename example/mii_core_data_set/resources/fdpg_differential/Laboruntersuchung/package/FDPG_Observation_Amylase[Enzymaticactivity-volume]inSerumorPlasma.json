@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Amylase[Enzymaticactivity-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Amylase[Enzymaticactivity-volume]inSerumorPlasma",
     "name": "Amylase [Enzymatic activity/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "96111ab0-b781-4196-aa67-87e52ca946b8"
+    "id": "e1dc01e7-927a-4ea8-baba-831eb1eb9ecb"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Erythrocytes[#-volume]inBloodbyAutomatedcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Erythrocytes[#-volume]inBloodbyAutomatedcount",
     "name": "Erythrocytes [#/volume] in Blood by Automated count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "48d84806-b365-48e7-8fc1-06ebff484a45"
+    "id": "3a3956f5-ae5a-4cff-b597-388456f543ab"
 }

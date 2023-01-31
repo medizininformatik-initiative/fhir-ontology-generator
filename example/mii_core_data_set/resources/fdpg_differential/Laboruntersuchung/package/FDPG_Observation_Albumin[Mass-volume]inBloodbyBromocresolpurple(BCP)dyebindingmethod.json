@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Albumin[Mass-volume]inBloodbyBromocresolpurple(BCP)dyebindingmethod",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Albumin[Mass-volume]inBloodbyBromocresolpurple(BCP)dyebindingmethod",
     "name": "Albumin [Mass/volume] in Blood by Bromocresol purple (BCP) dye binding method",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "09efbf34-36bf-43d8-a7dd-25b2184b87c4"
+    "id": "379cd3c0-9190-40ff-85ff-c47984af1a2b"
 }

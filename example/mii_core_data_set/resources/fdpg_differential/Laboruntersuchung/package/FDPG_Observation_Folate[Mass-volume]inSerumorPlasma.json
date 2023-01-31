@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Folate[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Folate[Mass-volume]inSerumorPlasma",
     "name": "Folate [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "e6da847e-9253-476e-a749-5de8696ef5a2"
+    "id": "8095353f-d9b2-47cc-84dc-35d689e07806"
 }

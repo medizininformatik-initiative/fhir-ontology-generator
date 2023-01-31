@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Granulozytenabs.",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Granulozytenabs.",
     "name": "Granulozyten abs.",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "c3aae4b4-c9b6-4622-a1a3-818c2ca5674b"
+    "id": "89e22d33-cad4-4a13-9f67-83b664b4fdd5"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Neutrophils[#-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Neutrophils[#-volume]inBlood",
     "name": "Neutrophils [#/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "8ed95791-0326-4e7a-9018-894dd8dc7da3"
+    "id": "67ebeb98-5465-44ac-bd6b-da4359f67fd9"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Blasts[#-volume]inBloodbyManualcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Blasts[#-volume]inBloodbyManualcount",
     "name": "Blasts [#/volume] in Blood by Manual count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "4df8c8d4-1ea1-4258-84b8-46e05fe01525"
+    "id": "8a0654ea-24b5-477c-8b3e-ba91cdbcbcc7"
 }

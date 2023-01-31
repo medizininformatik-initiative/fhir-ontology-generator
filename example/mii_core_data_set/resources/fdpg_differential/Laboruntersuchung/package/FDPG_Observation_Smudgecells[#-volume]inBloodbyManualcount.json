@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Smudgecells[#-volume]inBloodbyManualcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Smudgecells[#-volume]inBloodbyManualcount",
     "name": "Smudge cells [#/volume] in Blood by Manual count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "1f075aa9-900c-4856-881b-c53badb1338a"
+    "id": "ec88d9d8-afda-41b6-abc1-09f065f8059c"
 }

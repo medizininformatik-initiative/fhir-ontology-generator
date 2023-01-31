@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/CD3+CD4+(T4helper)cells-100cellsinBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/CD3+CD4+(T4helper)cells-100cellsinBlood",
     "name": "CD3+CD4+ (T4 helper) cells/100 cells in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "9913cf56-8cc8-431c-8e23-e507a9ff5a0c"
+    "id": "b6f5a57e-49c7-4232-837e-34a602d958ab"
 }

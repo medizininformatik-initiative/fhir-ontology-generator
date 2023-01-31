@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Calcium.ionized[Moles-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Calcium.ionized[Moles-volume]inBlood",
     "name": "Calcium.ionized [Moles/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "98a5ca97-eb44-46ec-978d-dca82ef6e2f8"
+    "id": "b0784df2-d865-4c44-a422-e40c700e6880"
 }

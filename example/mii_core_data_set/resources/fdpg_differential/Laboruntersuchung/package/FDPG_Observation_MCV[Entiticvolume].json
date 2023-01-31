@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/MCV[Entiticvolume]",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/MCV[Entiticvolume]",
     "name": "MCV [Entitic volume]",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "d5dd048d-482b-459d-9f9d-71831c3c5b7b"
+    "id": "5bee4f9e-00ed-4971-9bfe-4bbd0417e8dd"
 }

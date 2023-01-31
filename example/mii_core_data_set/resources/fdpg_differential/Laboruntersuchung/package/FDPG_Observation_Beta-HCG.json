@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Beta-HCG",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Beta-HCG",
     "name": "Beta-HCG",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "7b61ba49-d2d5-45c1-944f-2e0f90920da3"
+    "id": "19a657f6-df00-41fe-b67f-a72c9d595f87"
 }

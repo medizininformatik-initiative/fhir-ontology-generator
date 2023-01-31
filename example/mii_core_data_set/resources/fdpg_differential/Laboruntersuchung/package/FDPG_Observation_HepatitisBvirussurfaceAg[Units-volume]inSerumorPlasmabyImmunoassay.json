@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/HepatitisBvirussurfaceAg[Units-volume]inSerumorPlasmabyImmunoassay",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/HepatitisBvirussurfaceAg[Units-volume]inSerumorPlasmabyImmunoassay",
     "name": "Hepatitis B virus surface Ag [Units/volume] in Serum or Plasma by Immunoassay",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "8a2de5af-44d3-4ebe-ba84-1b95eaeae3f7"
+    "id": "8387dd3b-72c2-4f2f-9d4e-2ec048e08ff4"
 }

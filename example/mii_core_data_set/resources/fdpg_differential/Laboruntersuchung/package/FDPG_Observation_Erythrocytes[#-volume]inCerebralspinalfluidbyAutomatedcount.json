@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Erythrocytes[#-volume]inCerebralspinalfluidbyAutomatedcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Erythrocytes[#-volume]inCerebralspinalfluidbyAutomatedcount",
     "name": "Erythrocytes [#/volume] in Cerebral spinal fluid by Automated count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "3c2bdfe4-fd3b-423c-a0b3-6cc9d5908aab"
+    "id": "00a13a57-9967-4e1d-b2f2-117ff23a1bad"
 }

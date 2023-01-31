@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Angiotensinconvertingenzyme[Enzymaticactivity-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Angiotensinconvertingenzyme[Enzymaticactivity-volume]inSerumorPlasma",
     "name": "Angiotensin converting enzyme [Enzymatic activity/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "60383da4-bc4a-4acb-affb-5d16f857436c"
+    "id": "9ac8bdb8-fa8d-4ecb-b8d7-e6d9d09b6f4d"
 }

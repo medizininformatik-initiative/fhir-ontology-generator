@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Harnstoff-Urin",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Harnstoff-Urin",
     "name": "Harnstoff /Urin",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "77f50628-ced5-4543-a0bd-8ce1d694f8fd"
+    "id": "ada9f825-bd2b-4c1a-ba7d-a7ca647c397c"
 }

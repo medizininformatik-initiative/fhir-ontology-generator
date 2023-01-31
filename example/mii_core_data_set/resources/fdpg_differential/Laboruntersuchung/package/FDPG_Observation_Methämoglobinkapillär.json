@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Meth\u00e4moglobinkapill\u00e4r",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Meth\u00e4moglobinkapill\u00e4r",
     "name": "Meth\u00e4moglobin kapill\u00e4r",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "6fd3dc3b-7cda-48c7-95a4-1206f0717a64"
+    "id": "5d70a8d6-f8cf-4ec1-8147-a41bd6ebaa73"
 }

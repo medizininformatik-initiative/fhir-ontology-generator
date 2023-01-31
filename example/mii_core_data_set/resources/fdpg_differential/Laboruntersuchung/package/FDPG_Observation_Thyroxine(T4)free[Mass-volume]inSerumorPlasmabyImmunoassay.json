@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Thyroxine(T4)free[Mass-volume]inSerumorPlasmabyImmunoassay",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Thyroxine(T4)free[Mass-volume]inSerumorPlasmabyImmunoassay",
     "name": "Thyroxine (T4) free [Mass/volume] in Serum or Plasma by Immunoassay",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "e3624b45-234c-454f-a2e4-00bee03a8d5c"
+    "id": "bd7cbd4b-e0ba-4b4f-b25f-d751cc089a2b"
 }

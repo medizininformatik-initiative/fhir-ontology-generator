@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Myelocytes[#-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Myelocytes[#-volume]inBlood",
     "name": "Myelocytes [#/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "4a298ccb-83dc-48e6-83fb-1df1b95afb75"
+    "id": "9e1fc08b-19d3-432b-9b7c-2252e79e0fa6"
 }

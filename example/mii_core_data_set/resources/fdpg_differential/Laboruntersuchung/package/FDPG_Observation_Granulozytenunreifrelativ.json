@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Granulozytenunreifrelativ",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Granulozytenunreifrelativ",
     "name": "Granulozyten unreif relativ",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "852e0611-585e-42f0-8392-de9e2c7c7ae9"
+    "id": "9fce2455-9201-40a6-97ec-8c8cca2e3f31"
 }

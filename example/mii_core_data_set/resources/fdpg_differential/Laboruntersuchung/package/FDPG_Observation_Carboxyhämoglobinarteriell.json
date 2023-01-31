@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Carboxyh\u00e4moglobinarteriell",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Carboxyh\u00e4moglobinarteriell",
     "name": "Carboxyh\u00e4moglobin arteriell",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "81e0edd3-68c6-475c-9ebd-d1b59d37d39e"
+    "id": "5857e32a-981a-4487-9b18-bc11fc4854a4"
 }

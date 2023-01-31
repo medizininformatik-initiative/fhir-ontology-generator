@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/IgG[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/IgG[Mass-volume]inSerumorPlasma",
     "name": "IgG [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "d2db455f-95de-4808-92e9-ea02c831cf1b"
+    "id": "750bc782-6a1c-4e49-ab31-efc0eb848f29"
 }

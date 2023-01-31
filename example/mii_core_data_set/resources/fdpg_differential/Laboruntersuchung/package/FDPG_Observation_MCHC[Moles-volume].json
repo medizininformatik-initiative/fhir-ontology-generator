@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/MCHC[Moles-volume]",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/MCHC[Moles-volume]",
     "name": "MCHC [Moles/volume]",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "79c4aca2-4daf-4a75-ad13-4b36b6c8c5e5"
+    "id": "14ce7344-351b-48e5-a5ba-e5a1471f0ed1"
 }

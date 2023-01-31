@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Bicarbonate[Moles-volume]standardinArterialblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Bicarbonate[Moles-volume]standardinArterialblood",
     "name": "Bicarbonate [Moles/volume] standard in Arterial blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "4484685f-06d8-471b-aa31-113b427b9724"
+    "id": "9d6a5383-6773-4913-903a-679f1cf5c0a4"
 }

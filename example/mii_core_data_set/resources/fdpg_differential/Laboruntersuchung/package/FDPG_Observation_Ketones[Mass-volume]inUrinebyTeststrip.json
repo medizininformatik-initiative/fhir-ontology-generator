@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Ketones[Mass-volume]inUrinebyTeststrip",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Ketones[Mass-volume]inUrinebyTeststrip",
     "name": "Ketones [Mass/volume] in Urine by Test strip",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "0522ee2d-cee8-4fda-821f-8dc3ce925408"
+    "id": "b855cac7-434d-494d-8732-6429c843ffdf"
 }

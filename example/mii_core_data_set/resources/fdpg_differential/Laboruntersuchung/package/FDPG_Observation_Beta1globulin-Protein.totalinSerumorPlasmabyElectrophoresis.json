@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Beta1globulin-Protein.totalinSerumorPlasmabyElectrophoresis",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Beta1globulin-Protein.totalinSerumorPlasmabyElectrophoresis",
     "name": "Beta 1 globulin/Protein.total in Serum or Plasma by Electrophoresis",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "d4ce98b9-672f-49df-a0dd-9e298ee1558e"
+    "id": "a7326fb5-e7ed-4137-ae56-5c94937ce06a"
 }

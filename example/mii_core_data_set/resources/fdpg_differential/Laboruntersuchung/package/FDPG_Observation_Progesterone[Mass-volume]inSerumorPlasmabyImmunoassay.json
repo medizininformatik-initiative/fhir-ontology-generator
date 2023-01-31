@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Progesterone[Mass-volume]inSerumorPlasmabyImmunoassay",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Progesterone[Mass-volume]inSerumorPlasmabyImmunoassay",
     "name": "Progesterone [Mass/volume] in Serum or Plasma by Immunoassay",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "dbf01c97-9c6a-4d53-b267-4223d994c7aa"
+    "id": "75e40d6b-2f26-4b6a-a40b-d11fb7d3cb60"
 }

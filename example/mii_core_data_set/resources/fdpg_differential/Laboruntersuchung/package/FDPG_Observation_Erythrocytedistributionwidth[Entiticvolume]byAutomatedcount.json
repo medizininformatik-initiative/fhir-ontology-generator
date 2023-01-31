@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Erythrocytedistributionwidth[Entiticvolume]byAutomatedcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Erythrocytedistributionwidth[Entiticvolume]byAutomatedcount",
     "name": "Erythrocyte distribution width [Entitic volume] by Automated count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "9c13d5fc-941b-4637-a5b2-4b54241f2dc7"
+    "id": "828d4818-2298-47e3-b61c-15f8585a2ab9"
 }

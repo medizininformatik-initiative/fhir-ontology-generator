@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Prolactin[Units-volume]inSerumorPlasmaby3rdIS",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Prolactin[Units-volume]inSerumorPlasmaby3rdIS",
     "name": "Prolactin [Units/volume] in Serum or Plasma by 3rd IS",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "c5df734e-c151-4687-ae7c-044fa58a0b86"
+    "id": "e18c363b-0b5d-4d83-81af-d12293ee0083"
 }

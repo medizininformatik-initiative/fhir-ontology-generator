@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Natriureticpeptide.BprohormoneN-Terminal[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Natriureticpeptide.BprohormoneN-Terminal[Mass-volume]inSerumorPlasma",
     "name": "Natriuretic peptide.B prohormone N-Terminal [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "1a777bc6-b0c2-4f08-be01-79bc4c24fe36"
+    "id": "20cf5c61-785a-46c8-b322-7a6890d28559"
 }

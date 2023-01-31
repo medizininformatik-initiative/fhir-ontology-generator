@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/LaktatBlutKapillarblut",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/LaktatBlutKapillarblut",
     "name": "Laktat Blut Kapillarblut",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "1a257783-b9db-4577-a5f9-f05e62732969"
+    "id": "a19a3bac-84bc-4e2b-9eb8-e889acc8f11f"
 }

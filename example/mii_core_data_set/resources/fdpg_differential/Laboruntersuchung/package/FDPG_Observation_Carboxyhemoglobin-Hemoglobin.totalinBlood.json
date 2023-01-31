@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Carboxyhemoglobin-Hemoglobin.totalinBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Carboxyhemoglobin-Hemoglobin.totalinBlood",
     "name": "Carboxyhemoglobin/Hemoglobin.total in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "0dcc69f4-7948-4e25-b37b-6000ba0b528f"
+    "id": "68e8dfc0-adb8-4e01-9ecd-7cca53505e36"
 }

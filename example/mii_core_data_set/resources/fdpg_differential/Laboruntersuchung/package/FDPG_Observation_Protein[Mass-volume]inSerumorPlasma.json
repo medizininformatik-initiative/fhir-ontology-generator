@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Protein[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Protein[Mass-volume]inSerumorPlasma",
     "name": "Protein [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "b1a818d8-02ae-455b-8f79-4035de0a9a3e"
+    "id": "35540ef2-8dde-4ee1-bcc3-0f1a41c2f729"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Basophils-100leukocytesinBloodbyManualcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Basophils-100leukocytesinBloodbyManualcount",
     "name": "Basophils/100 leukocytes in Blood by Manual count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "3d621190-17be-48df-9ce4-7f67a3638967"
+    "id": "94e60960-ad21-422a-9c7f-47c5a7d6e3ca"
 }

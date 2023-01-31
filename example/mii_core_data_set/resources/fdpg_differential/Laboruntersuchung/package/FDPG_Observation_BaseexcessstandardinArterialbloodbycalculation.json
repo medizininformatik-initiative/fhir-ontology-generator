@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/BaseexcessstandardinArterialbloodbycalculation",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/BaseexcessstandardinArterialbloodbycalculation",
     "name": "Base excess standard in Arterial blood by calculation",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "ded662fb-f534-454e-bf5c-b7043714a3ea"
+    "id": "3b27a1f5-4396-4a6d-b5f9-fe8c64d757ee"
 }

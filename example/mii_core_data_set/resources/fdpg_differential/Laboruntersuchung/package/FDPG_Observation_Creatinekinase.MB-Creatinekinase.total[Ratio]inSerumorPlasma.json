@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Creatinekinase.MB-Creatinekinase.total[Ratio]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Creatinekinase.MB-Creatinekinase.total[Ratio]inSerumorPlasma",
     "name": "Creatine kinase.MB/Creatine kinase.total [Ratio] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "d0d585c5-6bf0-4fe4-a749-f30c297744e0"
+    "id": "6c9ac92f-304f-4246-ab68-81265fa9634a"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Glucose[Mass-volume]inUrinebyAutomatedteststrip",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Glucose[Mass-volume]inUrinebyAutomatedteststrip",
     "name": "Glucose [Mass/volume] in Urine by Automated test strip",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "7901c410-42b9-4bef-8244-13a9d0870b8f"
+    "id": "b858f900-96fb-45ab-93c0-2c95ab8ec64c"
 }

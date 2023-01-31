@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/NuclearAb[Titer]inSerumbyHep2substrate",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/NuclearAb[Titer]inSerumbyHep2substrate",
     "name": "Nuclear Ab [Titer] in Serum by Hep2 substrate",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "b569ead8-219b-438b-bcf1-e377956ed8f3"
+    "id": "59c08e70-c0cb-4e48-a00d-3f8149a6a7bf"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/ProstatespecificAg[Mass-volume]inSerumorPlasmabyImmunoassay",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/ProstatespecificAg[Mass-volume]inSerumorPlasmabyImmunoassay",
     "name": "Prostate specific Ag [Mass/volume] in Serum or Plasma by Immunoassay",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "4f4d17f6-35c2-4880-85f7-1c5c339ca693"
+    "id": "e78e281e-67f2-4c41-ac8a-8aa7db2eedc5"
 }

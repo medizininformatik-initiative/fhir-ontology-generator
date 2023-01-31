@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/CollectiondurationofUrine",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/CollectiondurationofUrine",
     "name": "Collection duration of Urine",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "d60d2769-cab4-44e9-addc-e441c716978f"
+    "id": "819a80f1-1a01-4b37-9961-23b5cd721c58"
 }

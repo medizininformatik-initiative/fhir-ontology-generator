@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/HIV1RNA[#-volume](viralload)inSerumorPlasmabyNAAwithprobedetection",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/HIV1RNA[#-volume](viralload)inSerumorPlasmabyNAAwithprobedetection",
     "name": "HIV 1 RNA [#/volume] (viral load) in Serum or Plasma by NAA with probe detection",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "25d48e53-25b1-4836-856f-e94813e2eb0a"
+    "id": "8f6a9018-9dfa-419f-9380-76dfe9289b27"
 }

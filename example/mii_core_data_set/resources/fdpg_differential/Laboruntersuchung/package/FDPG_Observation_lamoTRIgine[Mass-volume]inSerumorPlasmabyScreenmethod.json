@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/lamoTRIgine[Mass-volume]inSerumorPlasmabyScreenmethod",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/lamoTRIgine[Mass-volume]inSerumorPlasmabyScreenmethod",
     "name": "lamoTRIgine [Mass/volume] in Serum or Plasma by Screen method",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "e53ac5f8-9899-43e9-893a-53cf2f5fc398"
+    "id": "c38530da-aa1c-4bd7-b4e5-b75bd0eed4ec"
 }

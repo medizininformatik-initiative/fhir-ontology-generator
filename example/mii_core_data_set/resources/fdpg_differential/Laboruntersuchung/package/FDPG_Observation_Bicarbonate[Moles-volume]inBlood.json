@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Bicarbonate[Moles-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Bicarbonate[Moles-volume]inBlood",
     "name": "Bicarbonate [Moles/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "795fe542-9d58-449f-b45e-14226f9dec0e"
+    "id": "7805cab0-ba95-4e18-8f51-817936b2b759"
 }

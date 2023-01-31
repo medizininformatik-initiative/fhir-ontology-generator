@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Chloride[Moles-volume]inArterialblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Chloride[Moles-volume]inArterialblood",
     "name": "Chloride [Moles/volume] in Arterial blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "32866473-e6bf-4928-ade0-ec621a39ab1b"
+    "id": "c8133e7d-c4a3-45b1-9f9f-5408c1bcacf4"
 }

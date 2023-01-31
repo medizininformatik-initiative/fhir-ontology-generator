@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Bikarbonatarteriell",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Bikarbonatarteriell",
     "name": "Bikarbonat arteriell",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "662c70bc-d564-4c14-b351-32e73562b5bc"
+    "id": "15a86e86-00f0-460a-8888-6a47fb4d6b6a"
 }

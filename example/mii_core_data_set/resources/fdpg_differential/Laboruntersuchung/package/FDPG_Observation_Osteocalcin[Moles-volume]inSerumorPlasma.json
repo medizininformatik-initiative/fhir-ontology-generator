@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Osteocalcin[Moles-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Osteocalcin[Moles-volume]inSerumorPlasma",
     "name": "Osteocalcin [Moles/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "401a8869-f551-45bf-8cbd-6c0dedb1a1f0"
+    "id": "22a352d5-dd7e-4b2e-b25d-bda9ec32b7bf"
 }

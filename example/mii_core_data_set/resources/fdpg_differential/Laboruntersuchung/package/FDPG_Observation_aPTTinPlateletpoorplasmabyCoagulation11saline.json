@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/aPTTinPlateletpoorplasmabyCoagulation1:1saline",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/aPTTinPlateletpoorplasmabyCoagulation1:1saline",
     "name": "aPTT in Platelet poor plasma by Coagulation 1:1 saline",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "0fa498ef-ddb9-4112-a769-ed4dfd5c47e4"
+    "id": "970a9a91-9b34-4bb8-bb71-6f4876d402c2"
 }

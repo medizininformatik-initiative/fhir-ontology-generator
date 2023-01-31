@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Bandformneutrophils[#-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Bandformneutrophils[#-volume]inBlood",
     "name": "Band form neutrophils [#/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "b22b187c-440b-4f64-9b81-903d41406909"
+    "id": "e55937fc-ebc2-45dd-aaab-1f1ddce0a655"
 }

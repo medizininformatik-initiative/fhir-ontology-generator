@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Bilirubin.indirect[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Bilirubin.indirect[Mass-volume]inSerumorPlasma",
     "name": "Bilirubin.indirect [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "b2673c78-e2a9-489e-bcd4-532b20a37a41"
+    "id": "74e9e0da-ff4e-4e3b-b988-ff9f6d13ecc6"
 }

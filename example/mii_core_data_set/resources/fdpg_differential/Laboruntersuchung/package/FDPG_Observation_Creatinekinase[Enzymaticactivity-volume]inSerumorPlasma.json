@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Creatinekinase[Enzymaticactivity-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Creatinekinase[Enzymaticactivity-volume]inSerumorPlasma",
     "name": "Creatine kinase [Enzymatic activity/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "486e453e-b2bb-4c28-8d95-ec4e43d42397"
+    "id": "54d5334a-103a-4b3c-a582-5389352d457c"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Iron[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Iron[Mass-volume]inSerumorPlasma",
     "name": "Iron [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "fa133c6d-8d0a-43df-ac4a-29b4ac004ecd"
+    "id": "82c6648d-ac7e-4e4d-9263-2cd876bd87a0"
 }

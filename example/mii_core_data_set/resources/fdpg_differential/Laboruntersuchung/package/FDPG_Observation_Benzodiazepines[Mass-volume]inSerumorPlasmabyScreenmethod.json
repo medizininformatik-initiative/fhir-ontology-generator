@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Benzodiazepines[Mass-volume]inSerumorPlasmabyScreenmethod",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Benzodiazepines[Mass-volume]inSerumorPlasmabyScreenmethod",
     "name": "Benzodiazepines [Mass/volume] in Serum or Plasma by Screen method",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "36bd0a4b-3681-45a0-8c4c-e3b466958cb9"
+    "id": "6dd7bd00-30df-407d-9eba-f4db6d088abe"
 }

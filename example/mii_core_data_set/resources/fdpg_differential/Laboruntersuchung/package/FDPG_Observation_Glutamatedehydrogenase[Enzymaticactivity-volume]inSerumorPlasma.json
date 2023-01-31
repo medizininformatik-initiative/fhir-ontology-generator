@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Glutamatedehydrogenase[Enzymaticactivity-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Glutamatedehydrogenase[Enzymaticactivity-volume]inSerumorPlasma",
     "name": "Glutamate dehydrogenase [Enzymatic activity/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "ee9bb06b-3aee-4588-a3eb-f31f4bbca226"
+    "id": "05d9b48f-9806-457f-94dd-bc6969999484"
 }

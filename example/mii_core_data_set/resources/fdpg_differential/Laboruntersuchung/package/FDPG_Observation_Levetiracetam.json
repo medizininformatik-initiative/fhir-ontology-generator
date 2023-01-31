@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Levetiracetam",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Levetiracetam",
     "name": "Levetiracetam",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "0d52271e-80f7-4738-a762-a8d6f40e5e19"
+    "id": "bf7faf70-5d06-4bda-b459-69c447c3e943"
 }

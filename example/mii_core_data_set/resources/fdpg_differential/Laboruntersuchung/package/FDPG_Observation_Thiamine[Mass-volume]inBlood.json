@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Thiamine[Mass-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Thiamine[Mass-volume]inBlood",
     "name": "Thiamine [Mass/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "7999e286-a99e-49cd-a977-2d71acb1300b"
+    "id": "fd41f108-3d6c-4bb2-87d6-05652e3f4293"
 }

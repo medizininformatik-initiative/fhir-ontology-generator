@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/IgM-Liquor",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/IgM-Liquor",
     "name": "IgM /Liquor",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "1e2d2bc0-8474-44f9-8609-de0b04c55c19"
+    "id": "b54c4e10-9a5f-436c-adba-48e01831e27d"
 }

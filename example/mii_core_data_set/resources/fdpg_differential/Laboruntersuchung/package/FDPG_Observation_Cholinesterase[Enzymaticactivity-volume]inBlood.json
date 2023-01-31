@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Cholinesterase[Enzymaticactivity-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Cholinesterase[Enzymaticactivity-volume]inBlood",
     "name": "Cholinesterase [Enzymatic activity/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "32dba890-a466-4bb6-9ac5-0c436ea03fac"
+    "id": "229b3abe-41c8-496e-850b-7f1f3a9a65fb"
 }

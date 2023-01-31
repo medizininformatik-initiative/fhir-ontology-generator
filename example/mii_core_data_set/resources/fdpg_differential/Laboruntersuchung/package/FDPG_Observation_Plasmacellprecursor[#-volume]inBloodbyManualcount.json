@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Plasmacellprecursor[#-volume]inBloodbyManualcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Plasmacellprecursor[#-volume]inBloodbyManualcount",
     "name": "Plasma cell precursor [#/volume] in Blood by Manual count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "496ce55b-9c70-4081-acca-e6b468d64664"
+    "id": "59087c85-17a8-4919-b192-11859ca63dd1"
 }

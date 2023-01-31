@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Enolase.neuronspecific[Mass-volume]inSerumorPlasmabyImmunoassay",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Enolase.neuronspecific[Mass-volume]inSerumorPlasmabyImmunoassay",
     "name": "Enolase.neuron specific [Mass/volume] in Serum or Plasma by Immunoassay",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "949ef618-f833-476f-adc6-17fbefbe6772"
+    "id": "be4c9d9c-def6-495b-baae-cb47637a0461"
 }

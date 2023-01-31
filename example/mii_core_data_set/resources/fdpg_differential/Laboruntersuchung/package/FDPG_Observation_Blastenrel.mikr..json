@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Blastenrel.mikr.",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Blastenrel.mikr.",
     "name": "Blasten rel. mikr.",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "08844f6d-f857-4d5a-a1ae-7e7e87115dac"
+    "id": "39b18a9d-075c-4111-adfc-d88439fb7f19"
 }

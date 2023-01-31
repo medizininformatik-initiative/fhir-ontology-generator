@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/CancerAg19-9[Units-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/CancerAg19-9[Units-volume]inSerumorPlasma",
     "name": "Cancer Ag 19-9 [Units/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "922f5d06-8b31-4ce7-ac17-683eed3bdcc4"
+    "id": "7398b3a6-ecfd-4670-88d0-d7a013e77f6f"
 }

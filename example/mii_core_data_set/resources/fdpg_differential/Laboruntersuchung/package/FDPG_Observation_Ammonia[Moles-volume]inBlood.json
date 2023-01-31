@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Ammonia[Moles-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Ammonia[Moles-volume]inBlood",
     "name": "Ammonia [Moles/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "b5a50770-5ead-4bfa-b36b-7431e76c26c1"
+    "id": "c1d295dd-13f4-4d80-b051-236e65e79987"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/OsmolalityofSerumorPlasmabycalculation",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/OsmolalityofSerumorPlasmabycalculation",
     "name": "Osmolality of Serum or Plasma by calculation",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "944fa9de-778b-4e45-8dfb-aef436c784f0"
+    "id": "33efe9a5-fb26-4470-a98d-4f9b81b05b10"
 }

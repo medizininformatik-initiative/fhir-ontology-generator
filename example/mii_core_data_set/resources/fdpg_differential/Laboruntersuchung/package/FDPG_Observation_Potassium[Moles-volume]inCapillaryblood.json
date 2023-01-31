@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Potassium[Moles-volume]inCapillaryblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Potassium[Moles-volume]inCapillaryblood",
     "name": "Potassium [Moles/volume] in Capillary blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "6a675a73-e04b-410d-b9e4-27dc26416970"
+    "id": "e15a9d28-dc48-40d2-bbaa-a468684edfac"
 }

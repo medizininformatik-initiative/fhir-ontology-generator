@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Mononukle\u00e4reZellenrel.-SM",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Mononukle\u00e4reZellenrel.-SM",
     "name": "Mononukle\u00e4re Zellen rel. /SM",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "7b91818c-b523-4207-b0e4-ddd201c3829d"
+    "id": "6eefd213-c6e7-4baf-beba-5b6c7eeb903e"
 }

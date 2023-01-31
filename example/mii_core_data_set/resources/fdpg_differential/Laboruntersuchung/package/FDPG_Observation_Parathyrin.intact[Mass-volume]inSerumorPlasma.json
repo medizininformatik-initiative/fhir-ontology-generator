@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Parathyrin.intact[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Parathyrin.intact[Mass-volume]inSerumorPlasma",
     "name": "Parathyrin.intact [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "6630e1e0-bd90-458b-a737-abf6057f5836"
+    "id": "c57b63e0-ffd9-48fd-8106-bbab67c8a712"
 }

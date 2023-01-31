@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/CholesterolinHDL[Mass-volume]inSerumorPlasmabyElectrophoresis",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/CholesterolinHDL[Mass-volume]inSerumorPlasmabyElectrophoresis",
     "name": "Cholesterol in HDL [Mass/volume] in Serum or Plasma by Electrophoresis",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "b7fa5afc-6818-45ce-9ef2-a63d7f62a17e"
+    "id": "c95382b9-7f9e-4ca1-91d4-8570e8196e24"
 }

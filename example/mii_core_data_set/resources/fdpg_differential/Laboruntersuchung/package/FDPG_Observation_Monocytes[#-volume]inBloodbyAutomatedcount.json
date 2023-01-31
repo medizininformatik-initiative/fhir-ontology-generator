@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Monocytes[#-volume]inBloodbyAutomatedcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Monocytes[#-volume]inBloodbyAutomatedcount",
     "name": "Monocytes [#/volume] in Blood by Automated count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "f6eac6be-85dd-4c66-974d-3e6f52354bc3"
+    "id": "c809b53b-20ec-40e6-b781-59031ce5f2b5"
 }

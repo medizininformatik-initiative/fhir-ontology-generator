@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/pHofUrinebyAutomatedteststrip",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/pHofUrinebyAutomatedteststrip",
     "name": "pH of Urine by Automated test strip",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "6aa37330-6748-4ffb-8265-66fa842aa49e"
+    "id": "9ccb8acf-9737-4708-9d65-39be01f0e402"
 }

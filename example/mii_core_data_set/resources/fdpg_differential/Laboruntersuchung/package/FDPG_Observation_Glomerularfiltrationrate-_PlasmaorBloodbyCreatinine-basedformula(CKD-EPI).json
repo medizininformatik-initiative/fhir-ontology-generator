@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Glomerularfiltrationrate-1.73sqM.predicted[VolumeRate-Area]inSerum_PlasmaorBloodbyCreatinine-basedformula(CKD-EPI)",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Glomerularfiltrationrate-1.73sqM.predicted[VolumeRate-Area]inSerum_PlasmaorBloodbyCreatinine-basedformula(CKD-EPI)",
     "name": "Glomerular filtration rate/1.73 sq M.predicted [Volume Rate/Area] in Serum, Plasma or Blood by Creatinine-based formula (CKD-EPI)",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "4ccffd85-57eb-4811-a538-d9bedb5b005e"
+    "id": "840dd018-b278-4ae4-a6fa-edc83a12428f"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Kappalightchains.free[Mass-volume]inSerumbyNephelometry",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Kappalightchains.free[Mass-volume]inSerumbyNephelometry",
     "name": "Kappa light chains.free [Mass/volume] in Serum by Nephelometry",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "93dd6e04-f3ad-4131-998c-a6bc2f812217"
+    "id": "156fe35a-ca31-49e7-b01c-de2995b64acc"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Thrombozyten-Blut",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Thrombozyten-Blut",
     "name": "Thrombozyten /Blut",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "a5c249ec-8bd8-4d26-80fc-5cb5c230cbd1"
+    "id": "5f11dd4f-e1fe-4b25-917e-e969c8b8c324"
 }

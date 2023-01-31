@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/BaseexcessinMixedvenousbloodbycalculation",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/BaseexcessinMixedvenousbloodbycalculation",
     "name": "Base excess in Mixed venous blood by calculation",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "601fb4a8-381c-4829-b751-d7e9bf08df80"
+    "id": "118c73b7-28cd-4aa6-8788-6c5bae54b0bf"
 }

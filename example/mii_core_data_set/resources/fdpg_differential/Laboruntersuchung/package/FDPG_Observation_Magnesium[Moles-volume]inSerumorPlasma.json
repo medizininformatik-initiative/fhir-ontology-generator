@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Magnesium[Moles-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Magnesium[Moles-volume]inSerumorPlasma",
     "name": "Magnesium [Moles/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "1431c78b-853a-42ad-9782-406db94f7e5e"
+    "id": "8439e70c-a51b-4f86-951f-eb50da4b7e05"
 }

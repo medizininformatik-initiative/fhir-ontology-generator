@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Erythrozyten-U",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Erythrozyten-U",
     "name": "Erythrozyten /U",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "cb7dc167-c1da-4fe6-8372-90b42ccf6c19"
+    "id": "48ee5dbe-e1db-45f8-9041-802b665b7b9a"
 }

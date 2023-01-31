@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Benzodiazepines[Moles-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Benzodiazepines[Moles-volume]inSerumorPlasma",
     "name": "Benzodiazepines [Moles/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "b990beed-e8b6-405f-94b8-565323d8ecd3"
+    "id": "09e7e7f8-19d0-4aa3-b7e8-dcaee880e51e"
 }

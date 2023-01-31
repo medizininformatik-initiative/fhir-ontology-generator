@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Heparinunfractionated[Units-volume]inBloodbyHeparinprotaminetitration",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Heparinunfractionated[Units-volume]inBloodbyHeparinprotaminetitration",
     "name": "Heparin unfractionated [Units/volume] in Blood by Heparin protamine titration",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "c3b5b0e6-bead-4b61-b623-9fa65a732e3a"
+    "id": "ea47c46b-c4e1-4f5d-bfdb-fe139cd69bd4"
 }

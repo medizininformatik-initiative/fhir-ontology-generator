@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Holo-TranscobalaminII",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Holo-TranscobalaminII",
     "name": "Holo-Transcobalamin II",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "5ddfafb0-5a2d-46db-a822-3ab3aa1490c7"
+    "id": "a542b019-adf6-4b57-8099-b5d0e44945fc"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/FreeHemoglobin[Mass-volume]inPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/FreeHemoglobin[Mass-volume]inPlasma",
     "name": "Free Hemoglobin [Mass/volume] in Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "9916be98-7a52-4df0-b243-9b76b6cfa9ab"
+    "id": "f34f89c4-6e89-42bd-8786-bdfc17c15f9d"
 }

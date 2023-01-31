@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/TroponinI.cardiac[Mass-volume]inSerumorPlasmabyDetectionlimitge0.01ng-mL",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/TroponinI.cardiac[Mass-volume]inSerumorPlasmabyDetectionlimitge0.01ng-mL",
     "name": "Troponin I.cardiac [Mass/volume] in Serum or Plasma by Detection limit <= 0.01 ng/mL",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "9626d7e5-7f6f-4e93-8c1f-e90136821496"
+    "id": "21bfa3d5-40a8-4ca5-a3ef-6f4b91618d5e"
 }

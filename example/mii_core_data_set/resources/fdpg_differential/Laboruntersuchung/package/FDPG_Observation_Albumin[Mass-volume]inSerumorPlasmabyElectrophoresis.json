@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Albumin[Mass-volume]inSerumorPlasmabyElectrophoresis",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Albumin[Mass-volume]inSerumorPlasmabyElectrophoresis",
     "name": "Albumin [Mass/volume] in Serum or Plasma by Electrophoresis",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "3c562e95-0453-4c0b-9c5e-54003b42276a"
+    "id": "885c1642-2f64-4ea4-98b8-699bede39ab9"
 }

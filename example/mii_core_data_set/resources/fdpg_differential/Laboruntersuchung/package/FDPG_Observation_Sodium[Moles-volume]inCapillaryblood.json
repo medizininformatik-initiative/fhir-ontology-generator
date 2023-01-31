@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Sodium[Moles-volume]inCapillaryblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Sodium[Moles-volume]inCapillaryblood",
     "name": "Sodium [Moles/volume] in Capillary blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "ddeb5dfc-b926-48d9-95d3-5f8ac9445cf2"
+    "id": "dbb6907b-4dae-4379-aae8-5f4f3ab698f2"
 }

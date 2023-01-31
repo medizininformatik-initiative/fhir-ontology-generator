@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/NatriureticpeptideB[Mass-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/NatriureticpeptideB[Mass-volume]inBlood",
     "name": "Natriuretic peptide B [Mass/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "061703b9-3195-4c2e-bbd3-d339470abf52"
+    "id": "4df5440a-5f33-422c-8deb-ad89f0072933"
 }

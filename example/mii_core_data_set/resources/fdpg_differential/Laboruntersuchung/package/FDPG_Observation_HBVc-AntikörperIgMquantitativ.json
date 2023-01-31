@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/HBVc-Antik\u00f6rperIgMquantitativ",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/HBVc-Antik\u00f6rperIgMquantitativ",
     "name": "HBV c-Antik\u00f6rper IgM quantitativ",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "bc8bbd4c-046b-47cc-ae2f-0c74a9e51ae6"
+    "id": "2fe50d39-c57d-46ac-813c-c5bf6ba6f284"
 }

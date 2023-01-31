@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/PSA(Prostata-spezifischesAntigen)",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/PSA(Prostata-spezifischesAntigen)",
     "name": "PSA(Prostata-spezifisches Antigen)",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "efbba011-fdd3-49f2-bc6b-cc360d0e6f79"
+    "id": "9dd635e3-577c-406d-9e9a-4c74c130729e"
 }

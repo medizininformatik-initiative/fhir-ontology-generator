@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Interleukin-6",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Interleukin-6",
     "name": "Interleukin-6",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "6e02184a-da46-49c3-a0c3-d5d81afe1b87"
+    "id": "962f225b-dba7-45da-959c-77361abdda92"
 }

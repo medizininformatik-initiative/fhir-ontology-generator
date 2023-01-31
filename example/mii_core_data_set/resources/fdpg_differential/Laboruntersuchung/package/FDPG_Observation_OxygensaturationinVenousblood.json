@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/OxygensaturationinVenousblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/OxygensaturationinVenousblood",
     "name": "Oxygen saturation in Venous blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "1f511441-1f68-42b6-915e-644166ce15c9"
+    "id": "c4277630-a570-44f4-af33-8498ce908a4d"
 }

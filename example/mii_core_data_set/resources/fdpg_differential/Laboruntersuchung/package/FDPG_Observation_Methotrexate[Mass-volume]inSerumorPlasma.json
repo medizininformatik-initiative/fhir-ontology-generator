@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Methotrexate[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Methotrexate[Mass-volume]inSerumorPlasma",
     "name": "Methotrexate [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "74297dc1-ef93-4eec-8644-4657b21d40ba"
+    "id": "ce786e2c-5943-44ec-890a-2790891c3b3e"
 }

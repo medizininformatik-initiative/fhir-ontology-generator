@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Thrombintime",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Thrombintime",
     "name": "Thrombin time",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "ad254c21-74ef-4c38-be28-9864250619ac"
+    "id": "d6eab3c1-ebe9-4cf0-9410-60a7662102ec"
 }

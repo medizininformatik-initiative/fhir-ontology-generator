@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Fibrinogen[Mass-volume]inPlateletpoorplasmabyCoagulationassay",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Fibrinogen[Mass-volume]inPlateletpoorplasmabyCoagulationassay",
     "name": "Fibrinogen [Mass/volume] in Platelet poor plasma by Coagulation assay",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "84cb90ca-6397-4e3b-85ab-6dd04778c254"
+    "id": "36f6b554-c2eb-4430-b923-f35b108a9729"
 }

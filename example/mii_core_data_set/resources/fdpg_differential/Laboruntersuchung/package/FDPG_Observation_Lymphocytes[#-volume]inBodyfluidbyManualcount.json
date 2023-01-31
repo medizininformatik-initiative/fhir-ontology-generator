@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Lymphocytes[#-volume]inBodyfluidbyManualcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Lymphocytes[#-volume]inBodyfluidbyManualcount",
     "name": "Lymphocytes [#/volume] in Body fluid by Manual count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "c13dd60b-c431-4958-84a1-2ee3ab396db4"
+    "id": "7ac5fa06-269e-4b05-92af-1f97b2f4559e"
 }

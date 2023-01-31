@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Eosinophils-100leukocytesinBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Eosinophils-100leukocytesinBlood",
     "name": "Eosinophils/100 leukocytes in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "7685024a-4c61-40ab-b4ed-b17e41100221"
+    "id": "37881e57-0156-49cc-aac3-929d7beb84ae"
 }

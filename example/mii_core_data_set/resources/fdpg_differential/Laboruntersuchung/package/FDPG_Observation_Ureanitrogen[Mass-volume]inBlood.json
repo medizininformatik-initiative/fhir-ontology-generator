@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Ureanitrogen[Mass-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Ureanitrogen[Mass-volume]inBlood",
     "name": "Urea nitrogen [Mass/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "88dd09ed-63c6-4943-b754-c6f7df3365c5"
+    "id": "2664d6f8-71a4-44ea-98f9-d22a0bd8ee0e"
 }

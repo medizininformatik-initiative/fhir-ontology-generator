@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Insulin-likegrowthfactor-I[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Insulin-likegrowthfactor-I[Mass-volume]inSerumorPlasma",
     "name": "Insulin-like growth factor-I [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "8c025484-e819-49ed-8314-6a5c1cf88b34"
+    "id": "203b4ed5-b5e6-441d-b31c-3cb5a54cca4c"
 }

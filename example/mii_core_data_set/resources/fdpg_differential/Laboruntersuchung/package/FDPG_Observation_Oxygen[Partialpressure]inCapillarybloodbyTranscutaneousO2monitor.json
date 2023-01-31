@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Oxygen[Partialpressure]inCapillarybloodbyTranscutaneousO2monitor",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Oxygen[Partialpressure]inCapillarybloodbyTranscutaneousO2monitor",
     "name": "Oxygen [Partial pressure] in Capillary blood by Transcutaneous O2 monitor",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "6ef42dd7-6f4b-4f4d-af3e-f281285fb8ee"
+    "id": "a13050dc-faf5-4e55-8e30-e23977e3f965"
 }

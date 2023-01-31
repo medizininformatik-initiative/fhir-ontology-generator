@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Cholesterol[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Cholesterol[Mass-volume]inSerumorPlasma",
     "name": "Cholesterol [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "1d4d1532-deb0-492e-9c1c-f961c60cbcbc"
+    "id": "ad7eec5a-8a2c-4baf-8f98-a3c8281774be"
 }

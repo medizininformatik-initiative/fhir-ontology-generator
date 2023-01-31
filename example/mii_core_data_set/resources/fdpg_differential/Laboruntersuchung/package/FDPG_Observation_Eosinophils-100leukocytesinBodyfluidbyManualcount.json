@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Eosinophils-100leukocytesinBodyfluidbyManualcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Eosinophils-100leukocytesinBodyfluidbyManualcount",
     "name": "Eosinophils/100 leukocytes in Body fluid by Manual count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "05f3e7c3-e5db-4c5e-91d5-1a70a85415cc"
+    "id": "816ebc1b-5c5e-4520-ba09-f01146d5a274"
 }

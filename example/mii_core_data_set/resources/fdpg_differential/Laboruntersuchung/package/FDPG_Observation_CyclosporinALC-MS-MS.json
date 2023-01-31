@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/CyclosporinALC-MS-MS",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/CyclosporinALC-MS-MS",
     "name": "Cyclosporin A LC-MS/MS",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "dcfde4a5-64d4-4110-b9df-6e785fb001d7"
+    "id": "007cfceb-c639-4753-a52e-efb5cd784a6a"
 }

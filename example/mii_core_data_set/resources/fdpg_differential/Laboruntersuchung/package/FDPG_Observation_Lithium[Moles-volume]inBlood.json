@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Lithium[Moles-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Lithium[Moles-volume]inBlood",
     "name": "Lithium [Moles/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "ff0348ab-4e52-44be-bd0b-f1b7cc01aa23"
+    "id": "8206ebdb-0fa0-4e66-8dd5-beb4d178aceb"
 }

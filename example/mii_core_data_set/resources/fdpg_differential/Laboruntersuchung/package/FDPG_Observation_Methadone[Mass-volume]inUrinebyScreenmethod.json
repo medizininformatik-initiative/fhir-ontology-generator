@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Methadone[Mass-volume]inUrinebyScreenmethod",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Methadone[Mass-volume]inUrinebyScreenmethod",
     "name": "Methadone [Mass/volume] in Urine by Screen method",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "b453ec31-75de-4057-92a8-aea044963bef"
+    "id": "e64800b0-2362-430f-b394-755fa178e785"
 }

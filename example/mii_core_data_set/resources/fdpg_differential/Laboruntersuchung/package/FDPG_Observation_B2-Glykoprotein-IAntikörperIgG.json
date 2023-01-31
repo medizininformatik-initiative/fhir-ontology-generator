@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/B2-Glykoprotein-IAntik\u00f6rperIgG",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/B2-Glykoprotein-IAntik\u00f6rperIgG",
     "name": "B2-Glykoprotein-I Antik\u00f6rper IgG",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "0f7284df-9b90-4099-8a66-bdcc34ee8ba7"
+    "id": "4e1b31fc-c25d-4905-9859-2cbbab616124"
 }

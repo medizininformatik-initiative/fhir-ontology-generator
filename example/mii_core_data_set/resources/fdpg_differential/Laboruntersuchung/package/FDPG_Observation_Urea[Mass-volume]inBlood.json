@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Urea[Mass-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Urea[Mass-volume]inBlood",
     "name": "Urea [Mass/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "38606525-6f3b-49ea-a384-8db407244cf6"
+    "id": "d9b0101d-f40d-4481-a684-3b691e07dbf9"
 }

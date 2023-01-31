@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Leukozyten-U",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Leukozyten-U",
     "name": "Leukozyten /U",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "62de1235-d50e-49e1-8f0e-a77bf926feb3"
+    "id": "dc902195-4c31-455d-858c-bbd13ca1a07b"
 }

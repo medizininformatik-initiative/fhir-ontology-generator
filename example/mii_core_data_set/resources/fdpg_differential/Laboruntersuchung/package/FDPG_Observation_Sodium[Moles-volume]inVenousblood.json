@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Sodium[Moles-volume]inVenousblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Sodium[Moles-volume]inVenousblood",
     "name": "Sodium [Moles/volume] in Venous blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "6163c967-6865-4b40-b114-790438ad8f4d"
+    "id": "d7caeb34-69e4-440b-a8d2-755e02d9f5f8"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Phosphate[Mass-volume]inUrine",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Phosphate[Mass-volume]inUrine",
     "name": "Phosphate [Mass/volume] in Urine",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "e0188291-952f-4695-a48a-fe4db973184e"
+    "id": "bb86ab62-895b-433a-8dea-aed681ac5b8e"
 }

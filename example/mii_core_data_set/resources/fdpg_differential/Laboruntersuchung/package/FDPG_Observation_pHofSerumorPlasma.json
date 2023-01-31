@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/pHofSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/pHofSerumorPlasma",
     "name": "pH of Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "4fb9e1db-94e2-4a3f-a344-d15e98b5c9ee"
+    "id": "25c46e4d-184d-48f6-8c38-19d4b43f2dfe"
 }

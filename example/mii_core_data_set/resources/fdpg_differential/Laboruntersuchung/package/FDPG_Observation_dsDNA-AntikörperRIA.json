@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/dsDNA-Antik\u00f6rperRIA",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/dsDNA-Antik\u00f6rperRIA",
     "name": "dsDNA-Antik\u00f6rper RIA",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "1d659158-6085-424c-9fd3-1c5c501ad7c6"
+    "id": "b460aef1-2189-4013-bc92-ac531cc8bd96"
 }

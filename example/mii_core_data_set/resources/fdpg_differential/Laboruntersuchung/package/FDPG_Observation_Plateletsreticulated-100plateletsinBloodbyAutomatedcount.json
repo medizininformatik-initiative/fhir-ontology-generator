@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Plateletsreticulated-100plateletsinBloodbyAutomatedcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Plateletsreticulated-100plateletsinBloodbyAutomatedcount",
     "name": "Platelets reticulated/100 platelets in Blood by Automated count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "0c2c00e4-2fb8-4071-b723-539c32211cae"
+    "id": "34cf93ed-bfec-4bc0-a47b-785f871fb1e3"
 }

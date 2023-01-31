@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Hematocrit[VolumeFraction]ofVenousblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Hematocrit[VolumeFraction]ofVenousblood",
     "name": "Hematocrit [Volume Fraction] of Venous blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "de3fc5e5-9951-4311-9aa0-d981b49bc87a"
+    "id": "c0119849-a803-49e7-b695-13f1b58f0444"
 }

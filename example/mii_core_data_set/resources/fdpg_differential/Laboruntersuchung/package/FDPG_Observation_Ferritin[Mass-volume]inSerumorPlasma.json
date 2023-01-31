@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Ferritin[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Ferritin[Mass-volume]inSerumorPlasma",
     "name": "Ferritin [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "bc75edb9-06c1-4382-b4c3-7d8d6a68d21b"
+    "id": "90a65b9d-a8ac-40c2-a926-6200f555f09d"
 }

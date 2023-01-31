@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Antithrombinactual-normalinPlateletpoorplasmabyChromogenicmethod",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Antithrombinactual-normalinPlateletpoorplasmabyChromogenicmethod",
     "name": "Antithrombin actual/normal in Platelet poor plasma by Chromogenic method",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "68e38ab9-a87f-481c-8b9a-fee321a3a78f"
+    "id": "a4c05fc1-0838-4c44-875b-d3329557dcc4"
 }

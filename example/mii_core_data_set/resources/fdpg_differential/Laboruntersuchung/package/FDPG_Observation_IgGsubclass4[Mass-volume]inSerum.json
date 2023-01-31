@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/IgGsubclass4[Mass-volume]inSerum",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/IgGsubclass4[Mass-volume]inSerum",
     "name": "IgG subclass 4 [Mass/volume] in Serum",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "3252193a-4a36-4a3a-abb9-cd4ab0547250"
+    "id": "4ea813d3-c55d-48de-9aab-5ab1a5898c9a"
 }

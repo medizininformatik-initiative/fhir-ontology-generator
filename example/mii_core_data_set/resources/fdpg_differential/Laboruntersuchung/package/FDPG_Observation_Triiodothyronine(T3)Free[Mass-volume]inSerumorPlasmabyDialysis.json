@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Triiodothyronine(T3)Free[Mass-volume]inSerumorPlasmabyDialysis",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Triiodothyronine(T3)Free[Mass-volume]inSerumorPlasmabyDialysis",
     "name": "Triiodothyronine (T3) Free [Mass/volume] in Serum or Plasma by Dialysis",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "22cac960-d805-4f08-aef8-3f85dc996f56"
+    "id": "cb2863d4-f08c-4d7a-ab5d-6ba8fbf3826c"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Thyreoglobulin-Antik\u00f6rper",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Thyreoglobulin-Antik\u00f6rper",
     "name": "Thyreoglobulin-Antik\u00f6rper",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "23a281d3-0a55-4514-a091-bce7463cc507"
+    "id": "9ab036df-e9af-4b97-b696-04c10f2ea21c"
 }

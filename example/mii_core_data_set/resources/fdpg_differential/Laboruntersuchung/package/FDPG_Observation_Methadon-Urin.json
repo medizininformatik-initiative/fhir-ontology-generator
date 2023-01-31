@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Methadon-Urin",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Methadon-Urin",
     "name": "Methadon /Urin",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "c2aca91f-5a0d-49a3-9034-5c6e057f93f0"
+    "id": "d1a9d52d-40ab-4738-98b6-925d171930ab"
 }

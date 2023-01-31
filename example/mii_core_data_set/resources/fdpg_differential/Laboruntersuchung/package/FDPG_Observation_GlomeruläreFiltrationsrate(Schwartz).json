@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Glomerul\u00e4reFiltrationsrate(Schwartz)",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Glomerul\u00e4reFiltrationsrate(Schwartz)",
     "name": "Glomerul\u00e4re Filtrationsrate (Schwartz)",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "81bff5f8-626b-4f88-8397-b713b3b24af9"
+    "id": "aa2e8558-871f-41f6-a5c7-944c6832b8c5"
 }

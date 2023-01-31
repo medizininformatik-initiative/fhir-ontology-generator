@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Leukocytes[#-volume]inUrinebyAutomatedteststrip",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Leukocytes[#-volume]inUrinebyAutomatedteststrip",
     "name": "Leukocytes [#/volume] in Urine by Automated test strip",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "98cfd04b-3f73-488a-9289-426eca3b8ee3"
+    "id": "860d6d9a-ca9b-4822-9f9b-842d0b43a049"
 }

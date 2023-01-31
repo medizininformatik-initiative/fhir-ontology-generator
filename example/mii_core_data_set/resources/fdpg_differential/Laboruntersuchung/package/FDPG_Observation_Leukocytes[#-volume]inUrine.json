@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Leukocytes[#-volume]inUrine",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Leukocytes[#-volume]inUrine",
     "name": "Leukocytes [#/volume] in Urine",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "6c88cef0-6ded-4e17-977c-164f8daad2d6"
+    "id": "6c8462c5-f8c8-4ead-afe7-e80d2991a131"
 }

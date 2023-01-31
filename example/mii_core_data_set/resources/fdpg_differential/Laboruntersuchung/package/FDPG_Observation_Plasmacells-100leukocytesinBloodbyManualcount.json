@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Plasmacells-100leukocytesinBloodbyManualcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Plasmacells-100leukocytesinBloodbyManualcount",
     "name": "Plasma cells/100 leukocytes in Blood by Manual count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "02146d31-a0ed-4d75-81ac-0f3efb17ca52"
+    "id": "1b879245-4fa7-474a-bb9f-776f3899a986"
 }

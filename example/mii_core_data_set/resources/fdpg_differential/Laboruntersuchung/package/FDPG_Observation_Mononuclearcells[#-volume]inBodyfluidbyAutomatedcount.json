@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Mononuclearcells[#-volume]inBodyfluidbyAutomatedcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Mononuclearcells[#-volume]inBodyfluidbyAutomatedcount",
     "name": "Mononuclear cells [#/volume] in Body fluid by Automated count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "909a609a-df98-4998-a9ed-84207cfd8daa"
+    "id": "17412ff0-a134-4323-b335-edc69ba99d9a"
 }

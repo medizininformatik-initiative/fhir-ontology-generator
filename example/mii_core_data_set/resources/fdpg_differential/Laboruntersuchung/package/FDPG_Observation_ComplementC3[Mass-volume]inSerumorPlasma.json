@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/ComplementC3[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/ComplementC3[Mass-volume]inSerumorPlasma",
     "name": "Complement C3 [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "332934f2-2c5f-4047-8e05-9d9ff5949652"
+    "id": "3754d395-74b8-4ecc-8628-ab89441a72b0"
 }

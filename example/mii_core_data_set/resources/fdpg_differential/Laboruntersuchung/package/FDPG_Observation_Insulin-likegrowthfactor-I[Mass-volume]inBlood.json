@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Insulin-likegrowthfactor-I[Mass-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Insulin-likegrowthfactor-I[Mass-volume]inBlood",
     "name": "Insulin-like growth factor-I [Mass/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "81230625-afd6-418d-b19e-e44366b1c887"
+    "id": "54d93366-f6c2-47a6-be3f-47dcaa4109f0"
 }

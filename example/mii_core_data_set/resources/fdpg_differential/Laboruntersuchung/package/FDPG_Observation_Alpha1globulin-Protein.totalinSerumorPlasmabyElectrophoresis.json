@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Alpha1globulin-Protein.totalinSerumorPlasmabyElectrophoresis",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Alpha1globulin-Protein.totalinSerumorPlasmabyElectrophoresis",
     "name": "Alpha 1 globulin/Protein.total in Serum or Plasma by Electrophoresis",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "1cce4194-2856-46cd-a6cb-e311dc2bcf40"
+    "id": "b9d4f2dc-8a84-4f2f-9735-99b4605438f5"
 }

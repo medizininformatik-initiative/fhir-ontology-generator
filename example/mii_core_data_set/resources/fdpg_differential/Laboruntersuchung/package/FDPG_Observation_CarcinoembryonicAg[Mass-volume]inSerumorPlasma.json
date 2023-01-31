@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/CarcinoembryonicAg[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/CarcinoembryonicAg[Mass-volume]inSerumorPlasma",
     "name": "Carcinoembryonic Ag [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "3c235391-b3ff-4f9c-8c26-fdfa71e02f03"
+    "id": "0c496f97-db8c-429d-942d-a53029b420e3"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/IgE[Units-volume]inSerumorPlasmabyImmunoassay",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/IgE[Units-volume]inSerumorPlasmabyImmunoassay",
     "name": "IgE [Units/volume] in Serum or Plasma by Immunoassay",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "27ddc260-89a7-4a23-b5f2-121670fcfd82"
+    "id": "1af094d6-71bf-4811-8be3-d2a414069b5a"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Angiotensinconvertingenzyme[Enzymaticactivity-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Angiotensinconvertingenzyme[Enzymaticactivity-volume]inBlood",
     "name": "Angiotensin converting enzyme [Enzymatic activity/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "43806087-0210-40b1-8782-ee3dc7bdfc4d"
+    "id": "05a3ad95-5cf2-4551-80da-7fe77edae703"
 }

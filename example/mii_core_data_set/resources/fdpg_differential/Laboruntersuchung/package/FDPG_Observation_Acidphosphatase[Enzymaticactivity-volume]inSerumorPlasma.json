@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Acidphosphatase[Enzymaticactivity-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Acidphosphatase[Enzymaticactivity-volume]inSerumorPlasma",
     "name": "Acid phosphatase [Enzymatic activity/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "c844da00-3fef-432e-8b5c-b5a68c1679f6"
+    "id": "5014d2b2-e9fc-4160-b4b3-1674767198b5"
 }

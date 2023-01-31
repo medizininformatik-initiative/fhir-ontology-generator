@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Erythrocytedistributionwidth[Ratio]byAutomatedcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Erythrocytedistributionwidth[Ratio]byAutomatedcount",
     "name": "Erythrocyte distribution width [Ratio] by Automated count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "81694c83-5f40-4f6d-9a2c-dc960c1bfabf"
+    "id": "5e77f1d3-8e65-4c5a-9070-4166291f90c7"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Dehydroepiandrosteronesulfate(DHEA-S)[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Dehydroepiandrosteronesulfate(DHEA-S)[Mass-volume]inSerumorPlasma",
     "name": "Dehydroepiandrosterone sulfate (DHEA-S) [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "4c890e43-7cc8-4c0b-aed9-7750f9dbf4f7"
+    "id": "dc4fd0f4-9913-4603-b0c2-993d52c2f2aa"
 }

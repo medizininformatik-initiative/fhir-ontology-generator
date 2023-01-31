@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Calcium.ionized[Moles-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Calcium.ionized[Moles-volume]inSerumorPlasma",
     "name": "Calcium.ionized [Moles/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "8a6c7999-6553-44df-be6d-cf9eeccd4da6"
+    "id": "43412278-e419-40d7-91d3-1c5954f679a0"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Abnormallymphocytes-100leukocytesinBloodbyManualcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Abnormallymphocytes-100leukocytesinBloodbyManualcount",
     "name": "Abnormal lymphocytes/100 leukocytes in Blood by Manual count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "4a1519b5-a805-4f44-a5e5-c180570be6df"
+    "id": "6b7f12e5-fcf7-4d18-9831-a846fee3baf3"
 }

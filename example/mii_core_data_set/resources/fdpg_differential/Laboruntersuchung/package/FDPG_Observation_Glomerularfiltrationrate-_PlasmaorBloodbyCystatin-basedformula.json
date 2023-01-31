@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Glomerularfiltrationrate-1.73sqM.predicted[VolumeRate-Area]inSerum_PlasmaorBloodbyCystatin-basedformula",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Glomerularfiltrationrate-1.73sqM.predicted[VolumeRate-Area]inSerum_PlasmaorBloodbyCystatin-basedformula",
     "name": "Glomerular filtration rate/1.73 sq M.predicted [Volume Rate/Area] in Serum, Plasma or Blood by Cystatin-based formula",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "8abc8b3e-f1d0-4e99-a7bd-64a57b83f60f"
+    "id": "bebfb7e0-42ec-4709-9b71-2aed920827d6"
 }

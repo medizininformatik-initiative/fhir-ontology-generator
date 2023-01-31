@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/CalciumionisiertKapillarblut",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/CalciumionisiertKapillarblut",
     "name": "Calcium ionisiert Kapillarblut",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "9a30c346-1c81-4089-91d1-24a02689e1e7"
+    "id": "ebc88201-4693-40fd-835d-62b784a17c0f"
 }

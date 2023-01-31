@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/cycloSPORINE[Mass-volume]inSerum",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/cycloSPORINE[Mass-volume]inSerum",
     "name": "cycloSPORINE [Mass/volume] in Serum",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "e13c568b-c61c-4a62-bd1f-31689436c810"
+    "id": "3a3a896f-cd9e-49e7-ac06-63b9770f24b1"
 }

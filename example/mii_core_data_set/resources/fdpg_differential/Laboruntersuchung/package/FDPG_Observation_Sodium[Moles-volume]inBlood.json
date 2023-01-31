@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Sodium[Moles-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Sodium[Moles-volume]inBlood",
     "name": "Sodium [Moles/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "8d6bcd02-e0b8-42f6-8e73-ff550f04fb8a"
+    "id": "7ff75fee-9b9a-4c4a-83fb-6f46a8ff7c1f"
 }

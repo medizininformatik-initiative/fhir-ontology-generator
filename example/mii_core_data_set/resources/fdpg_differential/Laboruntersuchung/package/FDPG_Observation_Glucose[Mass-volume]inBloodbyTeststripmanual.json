@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Glucose[Mass-volume]inBloodbyTeststripmanual",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Glucose[Mass-volume]inBloodbyTeststripmanual",
     "name": "Glucose [Mass/volume] in Blood by Test strip manual",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "583ba7ab-9f01-460c-af48-9d0cc271204a"
+    "id": "04f587ad-d2e3-468d-8210-f43eb135c95d"
 }

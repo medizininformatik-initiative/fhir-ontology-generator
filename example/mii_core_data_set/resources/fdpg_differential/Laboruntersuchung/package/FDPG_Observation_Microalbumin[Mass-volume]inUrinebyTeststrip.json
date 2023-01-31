@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Microalbumin[Mass-volume]inUrinebyTeststrip",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Microalbumin[Mass-volume]inUrinebyTeststrip",
     "name": "Microalbumin [Mass/volume] in Urine by Test strip",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "3a7841ea-39d2-45c8-8dbb-315908038c53"
+    "id": "33ee1340-608b-4787-941f-a01c3c1cfc8a"
 }

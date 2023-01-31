@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Vancomycin(TAL)",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Vancomycin(TAL)",
     "name": "Vancomycin (TAL)",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "a4376179-f398-4b7f-833d-9407d6e8a482"
+    "id": "965e2c88-4fb6-46b1-8047-e33f1cd450cf"
 }

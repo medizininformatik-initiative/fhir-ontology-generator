@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/MitochondriaAb[Titer]inSerum",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/MitochondriaAb[Titer]inSerum",
     "name": "Mitochondria Ab [Titer] in Serum",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "751bc08a-5613-45da-99da-cbe662c99d7f"
+    "id": "d3b4cca8-6e38-4316-aafc-acc1789fa839"
 }

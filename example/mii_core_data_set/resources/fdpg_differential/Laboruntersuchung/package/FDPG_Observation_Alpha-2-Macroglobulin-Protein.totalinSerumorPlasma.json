@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Alpha-2-Macroglobulin-Protein.totalinSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Alpha-2-Macroglobulin-Protein.totalinSerumorPlasma",
     "name": "Alpha-2-Macroglobulin/Protein.total in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "459f785f-b001-4451-8df1-e163dbec3729"
+    "id": "cc9826ab-399c-4498-b881-7a5b9b6e5880"
 }

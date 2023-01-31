@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Hemoglobin[Mass-volume]inMixedvenousblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Hemoglobin[Mass-volume]inMixedvenousblood",
     "name": "Hemoglobin [Mass/volume] in Mixed venous blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "4527cb6a-1915-4d6d-b4a0-5ce7e032e0f6"
+    "id": "899cacbe-55a9-4887-8783-6d424e8e305a"
 }

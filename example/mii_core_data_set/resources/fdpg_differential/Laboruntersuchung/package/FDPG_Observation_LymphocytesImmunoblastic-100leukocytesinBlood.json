@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/LymphocytesImmunoblastic-100leukocytesinBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/LymphocytesImmunoblastic-100leukocytesinBlood",
     "name": "Lymphocytes Immunoblastic/100 leukocytes in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "e4050ea0-95cc-4b43-b1e8-a5965ba7662a"
+    "id": "0b36423e-957f-43ae-a493-8db15410de99"
 }

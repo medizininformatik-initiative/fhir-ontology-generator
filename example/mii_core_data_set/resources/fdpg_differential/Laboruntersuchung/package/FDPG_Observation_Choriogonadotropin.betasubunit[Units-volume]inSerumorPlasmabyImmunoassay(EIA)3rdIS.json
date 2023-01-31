@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Choriogonadotropin.betasubunit[Units-volume]inSerumorPlasmabyImmunoassay(EIA)3rdIS",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Choriogonadotropin.betasubunit[Units-volume]inSerumorPlasmabyImmunoassay(EIA)3rdIS",
     "name": "Choriogonadotropin.beta subunit [Units/volume] in Serum or Plasma by Immunoassay (EIA) 3rd IS",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "33de117b-5925-486f-a91d-ac39fa598c5f"
+    "id": "ffc99dbd-3597-4860-b42a-20ef3bf70823"
 }

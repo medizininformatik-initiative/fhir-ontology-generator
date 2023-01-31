@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Sodium[Moles-volume]inUrine",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Sodium[Moles-volume]inUrine",
     "name": "Sodium [Moles/volume] in Urine",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "8c75c6c7-e41c-435c-b5a2-223b13c6d632"
+    "id": "c0297ac7-41f4-457d-8863-648066996255"
 }

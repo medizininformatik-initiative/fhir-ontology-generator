@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Scl-70Antik\u00f6rper",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Scl-70Antik\u00f6rper",
     "name": "Scl-70 Antik\u00f6rper",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "79b143f2-e9db-4aed-a508-7ac561bcff18"
+    "id": "38fa91ff-7cd9-4dbf-b661-194828a96e96"
 }

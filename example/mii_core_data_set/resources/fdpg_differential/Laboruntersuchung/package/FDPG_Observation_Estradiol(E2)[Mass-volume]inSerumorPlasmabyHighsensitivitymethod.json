@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Estradiol(E2)[Mass-volume]inSerumorPlasmabyHighsensitivitymethod",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Estradiol(E2)[Mass-volume]inSerumorPlasmabyHighsensitivitymethod",
     "name": "Estradiol (E2) [Mass/volume] in Serum or Plasma by High sensitivity method",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "a944446e-d65e-4dd3-a6fe-faaa2ca02f22"
+    "id": "2e09e6db-4819-47f4-b5df-bd1241422839"
 }

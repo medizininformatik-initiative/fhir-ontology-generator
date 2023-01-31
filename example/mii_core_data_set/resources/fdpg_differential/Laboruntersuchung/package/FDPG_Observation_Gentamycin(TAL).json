@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Gentamycin(TAL)",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Gentamycin(TAL)",
     "name": "Gentamycin (TAL)",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "1e507d9d-db52-4df1-a369-3804d50b2b89"
+    "id": "8341b5e6-93e4-40f0-b4a4-ceef108309be"
 }

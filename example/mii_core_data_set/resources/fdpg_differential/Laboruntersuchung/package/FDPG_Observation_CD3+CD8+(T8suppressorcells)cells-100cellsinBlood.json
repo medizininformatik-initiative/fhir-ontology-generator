@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/CD3+CD8+(T8suppressorcells)cells-100cellsinBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/CD3+CD8+(T8suppressorcells)cells-100cellsinBlood",
     "name": "CD3+CD8+ (T8 suppressor cells) cells/100 cells in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "de6fd7e5-dec5-4b5f-9293-c0299b1f822c"
+    "id": "d1f53e28-6e7b-4989-aee2-0294285a3928"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Abnormallymphocytes[#-volume]inBloodbyManualcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Abnormallymphocytes[#-volume]inBloodbyManualcount",
     "name": "Abnormal lymphocytes [#/volume] in Blood by Manual count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "2af7da50-21c6-496f-81f3-88eab0b71868"
+    "id": "5af0f8be-95f3-4264-896b-31b3782dc194"
 }

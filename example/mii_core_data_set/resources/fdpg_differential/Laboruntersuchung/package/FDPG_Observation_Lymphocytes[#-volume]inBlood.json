@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Lymphocytes[#-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Lymphocytes[#-volume]inBlood",
     "name": "Lymphocytes [#/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "5bb8ccdc-b0ec-4dbc-ac78-6de7dadab0be"
+    "id": "106171d4-0cd8-410e-b49f-09676145c45b"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/dsDNA-Antik\u00f6rperEIA",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/dsDNA-Antik\u00f6rperEIA",
     "name": "dsDNA-Antik\u00f6rper EIA",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "bf054ab0-9b7d-4465-8a4d-5a9102767b7a"
+    "id": "c7f7c03b-7b47-4ec7-af0b-e8accace36d4"
 }

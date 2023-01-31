@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Leukocytes[#-volume]inBloodbyEstimate",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Leukocytes[#-volume]inBloodbyEstimate",
     "name": "Leukocytes [#/volume] in Blood by Estimate",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "e1e4ca3d-285f-4ad7-bf5e-e6d62645073a"
+    "id": "9c87cef2-660a-4879-81e9-e186a9ceec89"
 }

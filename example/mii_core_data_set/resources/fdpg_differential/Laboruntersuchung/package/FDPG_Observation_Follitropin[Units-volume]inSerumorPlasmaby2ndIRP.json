@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Follitropin[Units-volume]inSerumorPlasmaby2ndIRP",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Follitropin[Units-volume]inSerumorPlasmaby2ndIRP",
     "name": "Follitropin [Units/volume] in Serum or Plasma by 2nd IRP",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "2af97676-d6b4-4817-8a51-906fdd521e27"
+    "id": "29920338-91e4-4de4-b803-6767936d8efa"
 }

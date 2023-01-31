@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/pHofCapillaryblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/pHofCapillaryblood",
     "name": "pH of Capillary blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "41e9cbd9-c3fa-4c75-a3e5-d8d6d53dcf8f"
+    "id": "24045b18-5298-4c00-a69a-2deee5531895"
 }

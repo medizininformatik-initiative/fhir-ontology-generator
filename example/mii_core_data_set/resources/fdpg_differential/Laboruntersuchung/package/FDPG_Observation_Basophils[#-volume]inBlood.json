@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Basophils[#-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Basophils[#-volume]inBlood",
     "name": "Basophils [#/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "55e670b3-0197-4339-b38f-9b6dd91f5f68"
+    "id": "241f400f-99cf-4128-bf0b-5feec2e90c43"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Bikarbonatgemischtven\u00f6s",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Bikarbonatgemischtven\u00f6s",
     "name": "Bikarbonat gemischt ven\u00f6s",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "042ec010-fdd4-4a0f-84ec-c01ced7853e1"
+    "id": "6932d44b-83af-4ead-a7fc-2ccae33fea4f"
 }

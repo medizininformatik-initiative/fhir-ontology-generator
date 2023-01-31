@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/HemoglobinA1c-Hemoglobin.totalinBloodbyElectrophoresis",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/HemoglobinA1c-Hemoglobin.totalinBloodbyElectrophoresis",
     "name": "Hemoglobin A1c/Hemoglobin.total in Blood by Electrophoresis",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "c8809798-3db1-41ce-a79e-e6c1a2730793"
+    "id": "ea11d463-c65c-4988-912f-8af2c7c473b4"
 }

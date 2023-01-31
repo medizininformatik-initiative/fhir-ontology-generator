@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Chloride[Moles-volume]inCapillaryblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Chloride[Moles-volume]inCapillaryblood",
     "name": "Chloride [Moles/volume] in Capillary blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "7de2d291-d33e-4fd8-bc99-ab0d7a6429b4"
+    "id": "88c8cb6c-f53c-4ead-a0e5-d64d7991527b"
 }

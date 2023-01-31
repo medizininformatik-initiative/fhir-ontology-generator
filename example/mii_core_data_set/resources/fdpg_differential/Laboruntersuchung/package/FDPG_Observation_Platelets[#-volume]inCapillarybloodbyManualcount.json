@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Platelets[#-volume]inCapillarybloodbyManualcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Platelets[#-volume]inCapillarybloodbyManualcount",
     "name": "Platelets [#/volume] in Capillary blood by Manual count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "8a73b64a-3198-4eeb-95fc-cb66ab338d4a"
+    "id": "39d129f2-8b1a-4419-9d5b-91c482c4e88d"
 }

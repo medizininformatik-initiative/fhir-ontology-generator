@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Creatinine[Mass-volume]inUrinebyTeststrip",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Creatinine[Mass-volume]inUrinebyTeststrip",
     "name": "Creatinine [Mass/volume] in Urine by Test strip",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "dd7cb20f-ad00-4efa-882c-aedf749347c0"
+    "id": "0ac3b9a5-3a9e-4027-b586-6a2f9770c3d0"
 }

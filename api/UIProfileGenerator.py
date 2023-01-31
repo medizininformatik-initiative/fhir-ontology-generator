@@ -7,6 +7,7 @@ from typing import Dict, Tuple, List
 from api import ResourceQueryingMetaDataResolver
 from api import StrucutureDefinitionParser as FHIRParser
 from api.StrucutureDefinitionParser import InvalidValueTypeException, UCUM_SYSTEM
+from helper import generate_attribute_key
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import ValueDefinition, UIProfile, AttributeDefinition
 from model.UiDataModel import TermCode
@@ -145,9 +146,6 @@ class UIProfileGenerator:
                 f"Invalid value type: {value_type} in profile {profile_snapshot.get('name')}")
         return value_definition
 
-    def generate_attribute_defining_code(self, profile_snapshot, attribute_defining_element_id) -> TermCode:
-        pass
-
     def get_attribute_definitions(self, profile_snapshot, querying_meta_data) -> List[AttributeDefinition]:
         """
         Returns the attribute definitions for the given FHIR profile snapshot
@@ -177,7 +175,7 @@ class UIProfileGenerator:
                                                                                 self.data_set_dir)
         attribute_type = attribute_type if attribute_type else self.parser.extract_value_type(
             attribute_defining_elements[-1], profile_snapshot.get("name"))
-        attribute_code = self.generate_attribute_defining_code(profile_snapshot, attribute_defining_element_id)
+        attribute_code = generate_attribute_key(attribute_defining_element_id)
         attribute_definition = AttributeDefinition(attribute_code, attribute_type)
         if attribute_type == "concept":
             attribute_definition.selectableConcepts = self.parser.get_selectable_concepts(

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Glucose[Mass-volume]inUrine",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Glucose[Mass-volume]inUrine",
     "name": "Glucose [Mass/volume] in Urine",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "191ebb3a-1fa3-4e88-bae8-fb62ae81803e"
+    "id": "b9e51b53-39f6-4430-94b1-9b5e988752a4"
 }

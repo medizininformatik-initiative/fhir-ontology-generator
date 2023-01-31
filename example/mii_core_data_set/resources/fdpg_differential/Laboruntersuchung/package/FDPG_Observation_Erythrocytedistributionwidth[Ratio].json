@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Erythrocytedistributionwidth[Ratio]",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Erythrocytedistributionwidth[Ratio]",
     "name": "Erythrocyte distribution width [Ratio]",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "b9c1a9d1-5a85-46ce-a180-57d4b2dd054c"
+    "id": "8b632541-9397-4025-974d-87b5fe001ab1"
 }

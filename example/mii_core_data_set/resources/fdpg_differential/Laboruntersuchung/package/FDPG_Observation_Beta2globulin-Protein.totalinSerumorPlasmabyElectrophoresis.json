@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Beta2globulin-Protein.totalinSerumorPlasmabyElectrophoresis",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Beta2globulin-Protein.totalinSerumorPlasmabyElectrophoresis",
     "name": "Beta 2 globulin/Protein.total in Serum or Plasma by Electrophoresis",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "17e939b5-990c-4eb6-ac30-2550149df5f1"
+    "id": "e030a220-67c0-4b22-bb13-7cb1157fc9f6"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Ferritin[Mass-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Ferritin[Mass-volume]inBlood",
     "name": "Ferritin [Mass/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "c66799fc-218f-4868-9fae-f70346b5b018"
+    "id": "5e0a37f3-24f1-49b5-b5c5-146431ba3e71"
 }

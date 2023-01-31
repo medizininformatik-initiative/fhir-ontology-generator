@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Hematocrit[VolumeFraction]ofBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Hematocrit[VolumeFraction]ofBlood",
     "name": "Hematocrit [Volume Fraction] of Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "f6224124-149c-4735-b3f6-fed5dd2f0fee"
+    "id": "d50aa017-7ad0-4410-bb8d-c3beb9636dc5"
 }

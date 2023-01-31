@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Calciumionisiertarteriell",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Calciumionisiertarteriell",
     "name": "Calcium ionisiert arteriell",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "ca78e5c7-23c1-4115-b3f5-a23336806536"
+    "id": "05e809d1-e807-4b77-a271-b9fa36cc9b24"
 }

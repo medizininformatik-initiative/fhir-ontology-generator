@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/AMATiterIF",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/AMATiterIF",
     "name": "AMA Titer IF",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "32e22363-269a-4bc3-8b89-3c058dadea4d"
+    "id": "33ea248e-312f-4263-b2ba-39c444ecc0b3"
 }

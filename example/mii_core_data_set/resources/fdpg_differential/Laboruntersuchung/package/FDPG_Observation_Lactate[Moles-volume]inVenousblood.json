@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Lactate[Moles-volume]inVenousblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Lactate[Moles-volume]inVenousblood",
     "name": "Lactate [Moles/volume] in Venous blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "2470da30-ee3d-4796-a3d4-cfa088a28594"
+    "id": "aef791a0-b436-4839-ad28-d6416808cbe0"
 }

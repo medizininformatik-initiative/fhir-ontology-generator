@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/tTG-A(Tissue-Transglutaminase-Antik\u00f6.)IgA",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/tTG-A(Tissue-Transglutaminase-Antik\u00f6.)IgA",
     "name": "tTG-A(Tissue-Transglutaminase-Antik\u00f6.) IgA",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "78440e31-da35-4a7f-8999-24cf3b33261d"
+    "id": "af79eb2a-6bf4-4ef4-9b06-0e4ffdcaeca2"
 }

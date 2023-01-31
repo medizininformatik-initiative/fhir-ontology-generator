@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/aPTTinBloodbyCoagulation1:1saline",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/aPTTinBloodbyCoagulation1:1saline",
     "name": "aPTT in Blood by Coagulation 1:1 saline",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "e7d93435-ac18-445e-8689-5851d9c4b683"
+    "id": "e36b4299-62a1-4f55-b947-5cc64e120f2b"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/OxygensaturationinArterialbloodbyPulseoximetry",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/OxygensaturationinArterialbloodbyPulseoximetry",
     "name": "Oxygen saturation in Arterial blood by Pulse oximetry",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "756b7edf-ee4c-4437-9b94-eadfc177e415"
+    "id": "0e4c7755-f0af-4dc3-8e72-be45947009b7"
 }

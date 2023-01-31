@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Calcium.ionized[Moles-volume]inSerumorPlasmabyIon-selectivemembraneelectrode(ISE)",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Calcium.ionized[Moles-volume]inSerumorPlasmabyIon-selectivemembraneelectrode(ISE)",
     "name": "Calcium.ionized [Moles/volume] in Serum or Plasma by Ion-selective membrane electrode (ISE)",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "8cfb03dc-1c6a-4f55-929b-684eb2fd57ac"
+    "id": "f6626e34-06b8-44af-9de4-1a78b03c2f5c"
 }

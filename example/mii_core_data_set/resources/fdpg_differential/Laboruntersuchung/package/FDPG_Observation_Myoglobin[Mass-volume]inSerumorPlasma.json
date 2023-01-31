@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Myoglobin[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Myoglobin[Mass-volume]inSerumorPlasma",
     "name": "Myoglobin [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "c6c16e82-a171-47de-8f2b-9d259e53b33f"
+    "id": "dedfa3c8-00d5-40f6-8524-fbf62ead45a4"
 }

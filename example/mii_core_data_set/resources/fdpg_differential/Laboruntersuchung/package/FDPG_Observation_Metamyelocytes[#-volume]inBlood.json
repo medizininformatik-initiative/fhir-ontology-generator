@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Metamyelocytes[#-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Metamyelocytes[#-volume]inBlood",
     "name": "Metamyelocytes [#/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "1319e83f-3770-4c22-b026-bab324b03d96"
+    "id": "e0e56609-099f-4e77-a057-6cdbc7789ede"
 }

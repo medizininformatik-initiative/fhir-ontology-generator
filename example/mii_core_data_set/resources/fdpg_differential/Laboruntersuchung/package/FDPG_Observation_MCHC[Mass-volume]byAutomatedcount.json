@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/MCHC[Mass-volume]byAutomatedcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/MCHC[Mass-volume]byAutomatedcount",
     "name": "MCHC [Mass/volume] by Automated count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "548d7ba9-cd24-46fb-878a-57c63c31c1cf"
+    "id": "e43f41f4-fd58-48e0-903f-217e86573c29"
 }

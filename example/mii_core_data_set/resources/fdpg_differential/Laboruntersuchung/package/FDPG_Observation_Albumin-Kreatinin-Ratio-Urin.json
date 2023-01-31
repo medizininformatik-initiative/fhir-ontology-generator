@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Albumin-Kreatinin-Ratio-Urin",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Albumin-Kreatinin-Ratio-Urin",
     "name": "Albumin/Kreatinin-Ratio /Urin",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "4bf7ce10-e2a3-4bf6-a21f-9aba407fe0a6"
+    "id": "98d345c3-f644-4c02-b272-57da30e59370"
 }

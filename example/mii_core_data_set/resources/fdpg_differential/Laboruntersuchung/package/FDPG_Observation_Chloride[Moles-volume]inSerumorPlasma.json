@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Chloride[Moles-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Chloride[Moles-volume]inSerumorPlasma",
     "name": "Chloride [Moles/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "8404e510-dd5e-4829-ad32-f7d505c0594c"
+    "id": "f5dae337-30bd-4079-ad8c-6150dae423ea"
 }

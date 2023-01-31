@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/SCL-70extractablenuclearAb[Units-volume]inSerumbyLineblot",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/SCL-70extractablenuclearAb[Units-volume]inSerumbyLineblot",
     "name": "SCL-70 extractable nuclear Ab [Units/volume] in Serum by Line blot",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "db986dd8-1d35-4456-9afc-5c466a4bd256"
+    "id": "5c855516-b9ce-4cca-afbc-4d407eee04f4"
 }

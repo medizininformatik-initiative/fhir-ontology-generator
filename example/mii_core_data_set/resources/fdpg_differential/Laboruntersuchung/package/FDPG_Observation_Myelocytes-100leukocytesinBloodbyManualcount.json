@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Myelocytes-100leukocytesinBloodbyManualcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Myelocytes-100leukocytesinBloodbyManualcount",
     "name": "Myelocytes/100 leukocytes in Blood by Manual count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "0b54674d-b477-4fe0-b6e2-23011b98a9ca"
+    "id": "2d4c88f9-1764-4823-bfa0-51ffbfb544cc"
 }

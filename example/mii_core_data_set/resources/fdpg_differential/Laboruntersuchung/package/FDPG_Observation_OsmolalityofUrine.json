@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/OsmolalityofUrine",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/OsmolalityofUrine",
     "name": "Osmolality of Urine",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "064b6a6b-2d40-43d7-8721-f13db0618cd8"
+    "id": "cae617dc-4d6e-4a53-8bae-f7b77aab802b"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/pHofArterialblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/pHofArterialblood",
     "name": "pH of Arterial blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "567f9783-cc5b-4d71-82c2-f0c962b547b0"
+    "id": "6bd92277-6a92-4fe7-8e20-fb96806917d0"
 }

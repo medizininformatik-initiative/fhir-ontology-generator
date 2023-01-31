@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/aPTTinPlateletpoorplasmabyCoagulationassay",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/aPTTinPlateletpoorplasmabyCoagulationassay",
     "name": "aPTT in Platelet poor plasma by Coagulation assay",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "430f3226-6067-4324-8346-8e53615c104f"
+    "id": "9270c284-1300-4b03-8d32-052db04e7359"
 }

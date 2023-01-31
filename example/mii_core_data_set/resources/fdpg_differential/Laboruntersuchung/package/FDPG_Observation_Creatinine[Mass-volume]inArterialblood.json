@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Creatinine[Mass-volume]inArterialblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Creatinine[Mass-volume]inArterialblood",
     "name": "Creatinine [Mass/volume] in Arterial blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "61d6ef94-5a89-48dc-b6ad-f3f58df7756b"
+    "id": "a0701321-2108-4236-bd1d-503be59c35af"
 }

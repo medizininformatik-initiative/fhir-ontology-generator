@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Smudgecells-100leukocytesinBloodbyManualcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Smudgecells-100leukocytesinBloodbyManualcount",
     "name": "Smudge cells/100 leukocytes in Blood by Manual count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "2ad94f04-8fa2-4784-b3aa-74f19cff8260"
+    "id": "1027fdd4-0c7c-4b2a-adfa-777345a081e2"
 }

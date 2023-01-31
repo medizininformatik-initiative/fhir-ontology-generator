@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Monocytes-100leukocytesinCerebralspinalfluidbyManualcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Monocytes-100leukocytesinCerebralspinalfluidbyManualcount",
     "name": "Monocytes/100 leukocytes in Cerebral spinal fluid by Manual count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "715def6a-964f-4bef-91ee-b4b58513c953"
+    "id": "4bba1dab-0ea4-4d4e-b951-91def20606bf"
 }

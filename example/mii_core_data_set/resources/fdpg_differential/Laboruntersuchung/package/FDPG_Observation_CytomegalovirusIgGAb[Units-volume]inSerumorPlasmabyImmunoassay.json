@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/CytomegalovirusIgGAb[Units-volume]inSerumorPlasmabyImmunoassay",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/CytomegalovirusIgGAb[Units-volume]inSerumorPlasmabyImmunoassay",
     "name": "Cytomegalovirus IgG Ab [Units/volume] in Serum or Plasma by Immunoassay",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "d137fb96-ea2e-42ee-a863-a67d5f445932"
+    "id": "76ff6564-0de3-429e-8d3e-ee96ea8b7179"
 }

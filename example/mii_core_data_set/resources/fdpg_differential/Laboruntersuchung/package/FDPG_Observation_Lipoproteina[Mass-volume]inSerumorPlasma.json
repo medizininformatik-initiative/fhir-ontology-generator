@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Lipoproteina[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Lipoproteina[Mass-volume]inSerumorPlasma",
     "name": "Lipoprotein a [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "f92ef00c-0a6d-4b95-bdc8-677836689f44"
+    "id": "7333b9ff-1066-4ecf-967b-6a1b235c53a9"
 }

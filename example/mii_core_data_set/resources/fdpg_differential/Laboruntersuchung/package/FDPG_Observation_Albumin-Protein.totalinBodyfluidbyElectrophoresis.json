@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Albumin-Protein.totalinBodyfluidbyElectrophoresis",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Albumin-Protein.totalinBodyfluidbyElectrophoresis",
     "name": "Albumin/Protein.total in Body fluid by Electrophoresis",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "27f03b7e-98bf-4d8d-970b-4428cae33128"
+    "id": "b1e80220-0426-458d-960c-363893adf865"
 }

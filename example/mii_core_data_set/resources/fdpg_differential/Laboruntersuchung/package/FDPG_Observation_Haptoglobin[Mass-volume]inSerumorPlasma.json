@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Haptoglobin[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Haptoglobin[Mass-volume]inSerumorPlasma",
     "name": "Haptoglobin [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "e6c13995-a8ed-4dda-92f4-fe3b8582cc82"
+    "id": "8111387b-9324-4e0f-8483-45971a4e7816"
 }

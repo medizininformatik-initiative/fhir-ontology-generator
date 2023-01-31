@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Hematocrit[VolumeFraction]ofBloodbyEstimated",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Hematocrit[VolumeFraction]ofBloodbyEstimated",
     "name": "Hematocrit [Volume Fraction] of Blood by Estimated",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "d94c94fc-de50-4a9d-9079-f5fdea455546"
+    "id": "1a9a56b2-de03-41ea-bcd9-bb7828a3495a"
 }

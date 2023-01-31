@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Reticulocytes[#-volume]inBloodbyManualcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Reticulocytes[#-volume]inBloodbyManualcount",
     "name": "Reticulocytes [#/volume] in Blood by Manual count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "02d3b887-39fd-489b-8680-d267c826c31b"
+    "id": "cd69a213-896c-4a60-a38e-c26ccb2dd838"
 }

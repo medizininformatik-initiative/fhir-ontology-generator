@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Glucose[Mass-volume]inVenousblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Glucose[Mass-volume]inVenousblood",
     "name": "Glucose [Mass/volume] in Venous blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "7fd46170-b4b2-4ebc-b1ca-5323c043a0c0"
+    "id": "6f27568c-5ff2-40f9-9d57-649686a0c894"
 }

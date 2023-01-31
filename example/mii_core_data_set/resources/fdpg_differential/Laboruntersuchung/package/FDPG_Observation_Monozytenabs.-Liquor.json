@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Monozytenabs.-Liquor",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Monozytenabs.-Liquor",
     "name": "Monozyten abs. /Liquor",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "747e31b6-a93f-4067-a381-d2c60cfd5676"
+    "id": "eabb3606-a0b6-4a6e-9b5f-b4948b687b5e"
 }

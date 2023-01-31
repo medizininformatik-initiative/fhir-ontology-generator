@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Protein[Mass-volume]inBodyfluid",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Protein[Mass-volume]inBodyfluid",
     "name": "Protein [Mass/volume] in Body fluid",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "22938782-4283-49da-9d76-fb9700debd2c"
+    "id": "61d85136-5d26-439b-ab0f-99977dcb3a9b"
 }

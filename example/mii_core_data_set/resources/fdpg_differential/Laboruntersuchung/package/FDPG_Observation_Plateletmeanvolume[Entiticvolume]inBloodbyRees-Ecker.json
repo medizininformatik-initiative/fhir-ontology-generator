@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Plateletmeanvolume[Entiticvolume]inBloodbyRees-Ecker",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Plateletmeanvolume[Entiticvolume]inBloodbyRees-Ecker",
     "name": "Platelet mean volume [Entitic volume] in Blood by Rees-Ecker",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "1547beda-b81b-4655-977e-3a2ed5a06aca"
+    "id": "ff2a0f86-3947-43ef-8f96-aefdb3aec8f8"
 }

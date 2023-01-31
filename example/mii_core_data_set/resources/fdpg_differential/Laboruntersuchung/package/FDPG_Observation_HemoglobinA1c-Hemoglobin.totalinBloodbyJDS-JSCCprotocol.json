@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/HemoglobinA1c-Hemoglobin.totalinBloodbyJDS-JSCCprotocol",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/HemoglobinA1c-Hemoglobin.totalinBloodbyJDS-JSCCprotocol",
     "name": "Hemoglobin A1c/Hemoglobin.total in Blood by JDS/JSCC protocol",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "68602e26-2cf8-4099-b1c1-8eefdac48a71"
+    "id": "09573861-e47c-4933-9c7b-fc3f3dbddbee"
 }

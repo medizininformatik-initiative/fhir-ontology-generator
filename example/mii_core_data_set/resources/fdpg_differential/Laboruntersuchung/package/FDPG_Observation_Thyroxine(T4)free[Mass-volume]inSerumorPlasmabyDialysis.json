@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Thyroxine(T4)free[Mass-volume]inSerumorPlasmabyDialysis",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Thyroxine(T4)free[Mass-volume]inSerumorPlasmabyDialysis",
     "name": "Thyroxine (T4) free [Mass/volume] in Serum or Plasma by Dialysis",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "f48188e1-fed8-4b8f-b59b-5706d71c2d12"
+    "id": "c65b318a-3183-4832-947a-331712205779"
 }

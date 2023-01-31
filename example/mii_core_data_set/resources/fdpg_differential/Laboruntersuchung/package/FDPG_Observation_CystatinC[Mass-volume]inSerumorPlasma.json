@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/CystatinC[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/CystatinC[Mass-volume]inSerumorPlasma",
     "name": "Cystatin C [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "b3e7a1bd-73a6-4891-862a-b77643500c64"
+    "id": "6a6900cb-9de1-4d88-b9b2-12d65d6581be"
 }

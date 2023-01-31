@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/C1-InhibitorAntigen",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/C1-InhibitorAntigen",
     "name": "C1-Inhibitor Antigen",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "10c509db-6a25-4412-b5ef-79bd557e2cd0"
+    "id": "c1a72515-eae0-48f6-89d3-39f22f7c772d"
 }

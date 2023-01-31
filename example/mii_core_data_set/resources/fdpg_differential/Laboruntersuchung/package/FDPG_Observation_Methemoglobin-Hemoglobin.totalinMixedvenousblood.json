@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Methemoglobin-Hemoglobin.totalinMixedvenousblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Methemoglobin-Hemoglobin.totalinMixedvenousblood",
     "name": "Methemoglobin/Hemoglobin.total in Mixed venous blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "cee6a9a8-e21e-43e9-a500-708ef8e150b9"
+    "id": "8f49d696-b9e9-4822-94e5-3a15d6ee4787"
 }

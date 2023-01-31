@@ -1,5 +1,5 @@
 {
-  "name": "Consent",
+  "name": "Einwilligung",
   "resource_type": "Consent",
   "context": {
     "system": "fdpg.mii.cds",

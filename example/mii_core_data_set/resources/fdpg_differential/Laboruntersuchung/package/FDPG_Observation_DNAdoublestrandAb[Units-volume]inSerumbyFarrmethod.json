@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/DNAdoublestrandAb[Units-volume]inSerumbyFarrmethod",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/DNAdoublestrandAb[Units-volume]inSerumbyFarrmethod",
     "name": "DNA double strand Ab [Units/volume] in Serum by Farr method",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "baaed5b5-b346-4157-8530-286f50de0b52"
+    "id": "bb075022-b145-40b7-9004-c13d9ea49ce7"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/TotalesH\u00e4moglobinven\u00f6s",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/TotalesH\u00e4moglobinven\u00f6s",
     "name": "Totales H\u00e4moglobin ven\u00f6s",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "9c5d4430-0290-4e30-aba7-0a870ef5de20"
+    "id": "e30be560-b940-432f-a127-3be9d070510c"
 }

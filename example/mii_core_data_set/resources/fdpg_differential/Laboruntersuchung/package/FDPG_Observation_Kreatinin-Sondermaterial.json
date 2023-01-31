@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Kreatinin-Sondermaterial",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Kreatinin-Sondermaterial",
     "name": "Kreatinin /Sondermaterial",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "65ae3219-05d1-4437-b2d0-eebe9acfdb34"
+    "id": "a7cdd862-d8ed-4bc0-85c1-f0cf927b69b6"
 }

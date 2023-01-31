@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Beta-1-Globulin",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Beta-1-Globulin",
     "name": "Beta-1-Globulin",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "62490f85-6312-4f2b-8e5e-41b5274f32c2"
+    "id": "86ecd2e9-57be-4b00-9e73-eb38547e9e2d"
 }

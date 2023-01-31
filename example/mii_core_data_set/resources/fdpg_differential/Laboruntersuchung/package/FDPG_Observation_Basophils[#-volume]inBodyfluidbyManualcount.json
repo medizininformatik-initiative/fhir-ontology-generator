@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Basophils[#-volume]inBodyfluidbyManualcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Basophils[#-volume]inBodyfluidbyManualcount",
     "name": "Basophils [#/volume] in Body fluid by Manual count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "5b5f1068-f975-40c2-bb81-8ab8222d1add"
+    "id": "e8ca4839-c138-4094-81e1-7ebc7aa319ab"
 }

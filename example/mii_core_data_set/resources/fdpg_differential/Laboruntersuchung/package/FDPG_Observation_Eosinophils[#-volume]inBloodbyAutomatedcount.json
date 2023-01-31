@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Eosinophils[#-volume]inBloodbyAutomatedcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Eosinophils[#-volume]inBloodbyAutomatedcount",
     "name": "Eosinophils [#/volume] in Blood by Automated count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "160a4b0f-6eb3-4d8c-8f7d-5b954ae1e57d"
+    "id": "47e4cafb-7b63-4339-b524-a1d8514e36f4"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/CholesterolinLDL[Mass-volume]inSerumorPlasmabycalculation",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/CholesterolinLDL[Mass-volume]inSerumorPlasmabycalculation",
     "name": "Cholesterol in LDL [Mass/volume] in Serum or Plasma by calculation",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "14590107-27f4-4bd4-b170-5eb6d9f106dc"
+    "id": "97ea8a78-ef8d-420c-a26f-523e9f97c0ff"
 }

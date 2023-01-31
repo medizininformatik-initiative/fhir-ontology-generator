@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Triglyceride[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Triglyceride[Mass-volume]inSerumorPlasma",
     "name": "Triglyceride [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "7c193a7c-1f53-40a9-8ce6-3dd8ed75b8ad"
+    "id": "a0300414-29e2-4a12-9ac7-767f9b68a84a"
 }

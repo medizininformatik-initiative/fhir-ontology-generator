@@ -1,0 +1,82 @@
+{
+    "resourceType": "StructureDefinition",
+    "url": "https://example.org/fhir/StructureDefinition/FDPG_Observation_DefaultTotalproteinqualitativSulfosalazyls\u00e4ureprobe-U",
+    "name": "Totalprotein qualitativ Sulfosalazyls\u00e4ureprobe /U",
+    "status": "active",
+    "fhirVersion": "4.0.1",
+    "kind": "resource",
+    "abstract": false,
+    "type": "Observation",
+    "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab",
+    "derivation": "constraint",
+    "differential": {
+        "element": [
+            {
+                "id": "Observation.code",
+                "path": "Observation.code",
+                "short": "Totalprotein qualitativ Sulfosalazyls\u00e4ureprobe /U",
+                "definition": "Totalprotein qualitativ Sulfosalazyls\u00e4ureprobe /U"
+            },
+            {
+                "id": "Observation.code.coding",
+                "path": "Observation.code.coding",
+                "slicing": {
+                    "discriminator": [
+                        {
+                            "type": "pattern",
+                            "path": "$this"
+                        }
+                    ],
+                    "rules": "open"
+                },
+                "min": 1
+            },
+            {
+                "id": "Observation.code.coding:loinc",
+                "path": "Observation.code.coding",
+                "sliceName": "loinc",
+                "min": 1,
+                "max": "*",
+                "patternCoding": {
+                    "system": "http://loinc.org",
+                    "code": "53525-2"
+                }
+            },
+            {
+                "id": "Observation.code.coding:loinc.system",
+                "path": "Observation.code.coding.system",
+                "min": 1
+            },
+            {
+                "id": "Observation.code.coding:loinc.code",
+                "path": "Observation.code.coding.code",
+                "min": 1
+            },
+            {
+                "id": "Observation.value[x]",
+                "path": "Observation.value[x]",
+                "type": [
+                    {
+                        "code": "CodeableConcept"
+                    }
+                ]
+            },
+            {
+                "id": "Observation.value[x]:valueCodeableConcept",
+                "path": "Observation.value[x]",
+                "sliceName": "valueCodeableConcept",
+                "min": 1,
+                "type": [
+                    {
+                        "code": "CodeableConcept"
+                    }
+                ],
+                "binding": {
+                    "strength": "required",
+                    "valueSet": "https://www.netzwerk-universitaetsmedizin.de/fhir/ValueSet/detected-not-detected-inconclusive"
+                }
+            }
+        ]
+    },
+    "id": "9df6fb72-741c-4ca9-ae17-9d022bd8eded"
+}

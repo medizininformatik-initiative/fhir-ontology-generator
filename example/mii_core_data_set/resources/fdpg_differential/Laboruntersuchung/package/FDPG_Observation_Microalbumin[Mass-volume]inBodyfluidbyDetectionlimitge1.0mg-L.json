@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Microalbumin[Mass-volume]inBodyfluidbyDetectionlimitge1.0mg-L",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Microalbumin[Mass-volume]inBodyfluidbyDetectionlimitge1.0mg-L",
     "name": "Microalbumin [Mass/volume] in Body fluid by Detection limit <= 1.0 mg/L",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "11d7b57a-b105-438d-9e2e-403d77365eff"
+    "id": "a0895c6f-6fd6-47d8-b46d-e59e00523e0f"
 }

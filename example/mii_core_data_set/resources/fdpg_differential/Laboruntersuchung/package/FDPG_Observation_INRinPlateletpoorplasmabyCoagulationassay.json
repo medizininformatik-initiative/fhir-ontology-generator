@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/INRinPlateletpoorplasmabyCoagulationassay",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/INRinPlateletpoorplasmabyCoagulationassay",
     "name": "INR in Platelet poor plasma by Coagulation assay",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "d57f2165-8d6f-492b-b09f-7f0fbd13c9a5"
+    "id": "c544629e-da58-472b-bb06-a18e057b60d0"
 }

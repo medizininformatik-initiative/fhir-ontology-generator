@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/pO2ven\u00f6s",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/pO2ven\u00f6s",
     "name": "pO2 ven\u00f6s",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "33198c7d-82e5-48a3-91f6-81c26f6ca595"
+    "id": "9d5ea466-7fa3-4ca0-94ed-1cb58524b401"
 }

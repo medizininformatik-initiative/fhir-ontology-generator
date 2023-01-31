@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Vancomycin",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Vancomycin",
     "name": "Vancomycin",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "8657b476-519e-4156-8976-719562e3465a"
+    "id": "2ecb61d5-e595-490b-b0f7-3283e0f7fb0f"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Thrombozyten-PRP",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Thrombozyten-PRP",
     "name": "Thrombozyten /PRP",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "9f987733-39b6-4b9c-9c91-064322d0372f"
+    "id": "84e83832-b12e-4013-a027-85d5ef4f7690"
 }

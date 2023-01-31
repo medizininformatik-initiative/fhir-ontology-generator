@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Urobilinogen[Mass-volume]inUrinebyTeststrip",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Urobilinogen[Mass-volume]inUrinebyTeststrip",
     "name": "Urobilinogen [Mass/volume] in Urine by Test strip",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "43de3947-e0b2-4d67-9773-58c774d5907a"
+    "id": "499e6ccd-fc37-407d-86a7-bb06c9887bae"
 }

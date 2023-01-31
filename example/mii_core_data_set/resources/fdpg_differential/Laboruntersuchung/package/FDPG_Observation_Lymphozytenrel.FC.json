@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Lymphozytenrel.FC",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Lymphozytenrel.FC",
     "name": "Lymphozyten rel. FC",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "fda3b29a-e7a0-4bb5-90e8-d3f797834d43"
+    "id": "6bc1d5da-e6b8-4dc7-9e81-8437f749fb9d"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Hemoglobin[Mass-volume]inBloodbyOximetry",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Hemoglobin[Mass-volume]inBloodbyOximetry",
     "name": "Hemoglobin [Mass/volume] in Blood by Oximetry",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "f4556061-2d12-41e7-b384-6fca89288c79"
+    "id": "8d760c40-6f2d-4baf-9ef2-ace10b86ec50"
 }

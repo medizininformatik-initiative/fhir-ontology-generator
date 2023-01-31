@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Hematocrit[VolumeFraction]ofBloodbyAutomatedcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Hematocrit[VolumeFraction]ofBloodbyAutomatedcount",
     "name": "Hematocrit [Volume Fraction] of Blood by Automated count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "148d9097-37af-4bf6-81af-c62b59331176"
+    "id": "f90cba58-e975-4864-bb11-e5205e7cb0c5"
 }

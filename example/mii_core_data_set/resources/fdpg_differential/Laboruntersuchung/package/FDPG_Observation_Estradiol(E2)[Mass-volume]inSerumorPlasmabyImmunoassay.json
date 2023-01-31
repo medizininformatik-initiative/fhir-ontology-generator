@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Estradiol(E2)[Mass-volume]inSerumorPlasmabyImmunoassay",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Estradiol(E2)[Mass-volume]inSerumorPlasmabyImmunoassay",
     "name": "Estradiol (E2) [Mass/volume] in Serum or Plasma by Immunoassay",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "0a6edb1c-6481-4c48-9f5e-c846ded61549"
+    "id": "078a7d01-a28c-4a79-8f46-79786f0dfa54"
 }

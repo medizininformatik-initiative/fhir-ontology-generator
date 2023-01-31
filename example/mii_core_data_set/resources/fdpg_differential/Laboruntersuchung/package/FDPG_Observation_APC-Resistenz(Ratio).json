@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/APC-Resistenz(Ratio)",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/APC-Resistenz(Ratio)",
     "name": "APC-Resistenz (Ratio)",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "d6c40473-3446-4bf3-8d27-290f380cc6ef"
+    "id": "fae44c3e-a205-4599-bf39-b763681f2d77"
 }

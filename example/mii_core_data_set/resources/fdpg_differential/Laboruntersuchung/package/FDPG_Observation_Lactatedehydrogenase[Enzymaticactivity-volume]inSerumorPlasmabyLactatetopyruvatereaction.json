@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Lactatedehydrogenase[Enzymaticactivity-volume]inSerumorPlasmabyLactatetopyruvatereaction",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Lactatedehydrogenase[Enzymaticactivity-volume]inSerumorPlasmabyLactatetopyruvatereaction",
     "name": "Lactate dehydrogenase [Enzymatic activity/volume] in Serum or Plasma by Lactate to pyruvate reaction",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "cd1ce7c8-df60-4609-a416-ffae71b94f7c"
+    "id": "c029d679-30f1-485f-bb4e-06e9ed1f041f"
 }

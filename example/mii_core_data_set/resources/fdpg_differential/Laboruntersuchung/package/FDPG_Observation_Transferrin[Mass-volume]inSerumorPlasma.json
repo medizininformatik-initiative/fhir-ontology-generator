@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Transferrin[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Transferrin[Mass-volume]inSerumorPlasma",
     "name": "Transferrin [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "aaaa1049-552e-4d27-8083-feae38dd6371"
+    "id": "3ad2dcb9-ba87-4a6d-a53e-0421eff898ae"
 }

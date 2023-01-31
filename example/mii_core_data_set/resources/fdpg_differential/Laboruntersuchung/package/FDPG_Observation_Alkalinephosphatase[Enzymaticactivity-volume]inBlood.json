@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Alkalinephosphatase[Enzymaticactivity-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Alkalinephosphatase[Enzymaticactivity-volume]inBlood",
     "name": "Alkaline phosphatase [Enzymatic activity/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "f4a1b727-7b1e-4485-bfb9-e31416ce77d5"
+    "id": "ced383dc-9676-4f0c-9238-18929652bcf1"
 }

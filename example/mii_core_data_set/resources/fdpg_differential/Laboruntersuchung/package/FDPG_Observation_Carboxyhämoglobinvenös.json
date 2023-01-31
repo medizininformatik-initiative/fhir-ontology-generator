@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Carboxyh\u00e4moglobinven\u00f6s",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Carboxyh\u00e4moglobinven\u00f6s",
     "name": "Carboxyh\u00e4moglobin ven\u00f6s",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "55b1939d-48b0-49fe-9e13-81a0554548ed"
+    "id": "2b219442-c6a7-4753-ba61-9003f748c7f2"
 }

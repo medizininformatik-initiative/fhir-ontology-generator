@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/HemoglobinA1c-Hemoglobin.totalinBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/HemoglobinA1c-Hemoglobin.totalinBlood",
     "name": "Hemoglobin A1c/Hemoglobin.total in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "4917ab30-d83e-4f02-8eb0-d5e58eb72c46"
+    "id": "30034aba-7d85-4aad-bed8-9f5162d45176"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Zinc[Mass-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Zinc[Mass-volume]inBlood",
     "name": "Zinc [Mass/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "0cd2dcd4-4a70-4f00-8d1a-01ea29db7790"
+    "id": "406e07bb-3225-44be-b4bb-c6ed4181a122"
 }

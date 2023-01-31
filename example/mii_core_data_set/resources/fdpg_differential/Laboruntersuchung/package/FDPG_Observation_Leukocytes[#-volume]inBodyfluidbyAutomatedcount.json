@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Leukocytes[#-volume]inBodyfluidbyAutomatedcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Leukocytes[#-volume]inBodyfluidbyAutomatedcount",
     "name": "Leukocytes [#/volume] in Body fluid by Automated count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "2480e672-0d21-4dc0-ab98-5b6a20864452"
+    "id": "c0c7b4a6-b2dd-4518-a3b8-f82ccf34547f"
 }

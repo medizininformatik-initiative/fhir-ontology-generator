@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Leukocytes[#-volume]inCerebralspinalfluidbyManualcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Leukocytes[#-volume]inCerebralspinalfluidbyManualcount",
     "name": "Leukocytes [#/volume] in Cerebral spinal fluid by Manual count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "dd3eb902-6be1-4902-b6a0-4a9bce286fd3"
+    "id": "e674e714-0e76-43e8-9ee3-d39d320ab6a8"
 }

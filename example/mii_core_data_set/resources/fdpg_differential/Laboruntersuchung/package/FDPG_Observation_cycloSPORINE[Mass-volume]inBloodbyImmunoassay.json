@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/cycloSPORINE[Mass-volume]inBloodbyImmunoassay",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/cycloSPORINE[Mass-volume]inBloodbyImmunoassay",
     "name": "cycloSPORINE [Mass/volume] in Blood by Immunoassay",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "0975c7b0-e90b-42de-aba1-fb3539781d4b"
+    "id": "319767ca-fc26-4737-aca3-01c6cda3cb09"
 }

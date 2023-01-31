@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Albumin[Moles-volume]inUrinebyDetectionlimitge3.0mg-L",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Albumin[Moles-volume]inUrinebyDetectionlimitge3.0mg-L",
     "name": "Albumin [Moles/volume] in Urine by Detection limit <= 3.0 mg/L",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "0525b476-3a38-4788-b942-8f995ec1307a"
+    "id": "8fcd938c-842d-46f0-b6de-1bc76292f7cd"
 }

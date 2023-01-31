@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Ethanol[Mass-volume]inSerumorPlasmabyGaschromatography",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Ethanol[Mass-volume]inSerumorPlasmabyGaschromatography",
     "name": "Ethanol [Mass/volume] in Serum or Plasma by Gas chromatography",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "46d9506b-2598-4b3e-8390-001b79100ca1"
+    "id": "c65e2bb4-bf13-409c-9759-e20be83a511b"
 }

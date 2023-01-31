@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Erythrocytedistributionwidth[Entiticvolume]",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Erythrocytedistributionwidth[Entiticvolume]",
     "name": "Erythrocyte distribution width [Entitic volume]",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "92e07068-b520-47ed-aa51-4ab781613a52"
+    "id": "cf77e10c-3918-472c-9d52-210c03d11068"
 }

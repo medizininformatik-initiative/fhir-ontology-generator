@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Bilirubin.total[Mass-volume]inUrinebyTeststrip",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Bilirubin.total[Mass-volume]inUrinebyTeststrip",
     "name": "Bilirubin.total [Mass/volume] in Urine by Test strip",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "dccf7559-c204-457c-9ed8-418a9e8b1197"
+    "id": "53dd7451-5a94-4207-901b-cc2de8bf093f"
 }

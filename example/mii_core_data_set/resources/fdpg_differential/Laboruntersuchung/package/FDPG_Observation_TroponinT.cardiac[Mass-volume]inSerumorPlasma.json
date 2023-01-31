@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/TroponinT.cardiac[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/TroponinT.cardiac[Mass-volume]inSerumorPlasma",
     "name": "Troponin T.cardiac [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "a034799f-d80a-45b8-aac0-186fa8f5c3b6"
+    "id": "1bf74f63-e766-4fbf-a5f9-24af8b555625"
 }

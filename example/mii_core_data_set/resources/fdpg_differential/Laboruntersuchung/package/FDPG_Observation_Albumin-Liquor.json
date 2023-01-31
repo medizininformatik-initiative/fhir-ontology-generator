@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Albumin-Liquor",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Albumin-Liquor",
     "name": "Albumin /Liquor",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "5cac3cb6-f671-43a1-bab5-dbea429b1893"
+    "id": "8bf86960-70d6-4ffe-a92d-f5b4f10f3e84"
 }

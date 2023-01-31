@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Procalcitonin[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Procalcitonin[Mass-volume]inSerumorPlasma",
     "name": "Procalcitonin [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "c6d284cf-7c32-47a6-ab67-bae47cac948e"
+    "id": "1cb44f3b-852d-4c99-ae2a-504abb5553e3"
 }

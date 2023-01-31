@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Tacrolimus[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Tacrolimus[Mass-volume]inSerumorPlasma",
     "name": "Tacrolimus [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "3da51330-6c83-4d73-8fff-f283e60b70a7"
+    "id": "ce9158dc-b464-4aac-a52e-02cf1d1fb938"
 }

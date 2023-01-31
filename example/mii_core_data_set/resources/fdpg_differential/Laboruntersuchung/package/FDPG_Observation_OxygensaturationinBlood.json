@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/OxygensaturationinBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/OxygensaturationinBlood",
     "name": "Oxygen saturation in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "ed6de8d3-6c98-4b4c-8c7f-fef0844873d0"
+    "id": "fa05c4c1-2169-45c6-b5e3-1320f02a1eb0"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Lactate[Moles-volume]inArterialblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Lactate[Moles-volume]inArterialblood",
     "name": "Lactate [Moles/volume] in Arterial blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "cc685108-41de-468a-8e1c-d237308ff718"
+    "id": "44aaebf3-7e94-44eb-a1a5-e8502dedf9db"
 }

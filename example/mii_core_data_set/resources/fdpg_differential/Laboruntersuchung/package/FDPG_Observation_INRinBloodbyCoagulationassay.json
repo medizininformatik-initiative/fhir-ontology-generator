@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/INRinBloodbyCoagulationassay",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/INRinBloodbyCoagulationassay",
     "name": "INR in Blood by Coagulation assay",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "cfa9122a-2f4c-4b02-bc03-3798b8ed405b"
+    "id": "ca659d37-36a2-47fe-bf18-27258d93d28a"
 }

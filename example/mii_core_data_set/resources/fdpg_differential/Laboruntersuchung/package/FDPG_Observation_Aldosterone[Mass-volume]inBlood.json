@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Aldosterone[Mass-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Aldosterone[Mass-volume]inBlood",
     "name": "Aldosterone [Mass/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "cf981635-3608-4ad7-8793-9ce01e907db8"
+    "id": "b0cc9d82-ecdb-4b4f-8ce1-5b72ad0e854b"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Plasmacellprecursor-100leukocytesinBloodbyManualcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Plasmacellprecursor-100leukocytesinBloodbyManualcount",
     "name": "Plasma cell precursor/100 leukocytes in Blood by Manual count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "40d4b9bf-b94a-4b55-8f8d-3f5fc6cd75da"
+    "id": "a4b254f6-ebf8-4818-8d9a-faa5f556663d"
 }

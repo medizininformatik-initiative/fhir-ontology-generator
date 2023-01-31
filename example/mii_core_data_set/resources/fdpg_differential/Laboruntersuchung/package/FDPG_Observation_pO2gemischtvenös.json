@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/pO2gemischtven\u00f6s",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/pO2gemischtven\u00f6s",
     "name": "pO2 gemischt ven\u00f6s",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "699150c2-7a9a-4b11-8a75-0c1e4e926961"
+    "id": "36c353d1-68e5-402d-b389-149ae0631d4e"
 }

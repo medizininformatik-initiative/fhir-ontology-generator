@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Immaturegranulocytes-100leukocytesinBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Immaturegranulocytes-100leukocytesinBlood",
     "name": "Immature granulocytes/100 leukocytes in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "177757c5-d514-4fab-8b7b-46e0fba8b0a0"
+    "id": "a45f15d0-d92d-4b4f-ba60-306aa8854ed6"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Lymphocytes[#-volume]inBloodbyFlowcytometry(FC)",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Lymphocytes[#-volume]inBloodbyFlowcytometry(FC)",
     "name": "Lymphocytes [#/volume] in Blood by Flow cytometry (FC)",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "a5a6f4e1-9a0f-4c64-b32b-cbcafe097950"
+    "id": "fb9f1391-efcf-4e5d-93d3-044090546c20"
 }

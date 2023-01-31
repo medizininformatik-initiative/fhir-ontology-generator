@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Potassium[Moles-volume]inVenousblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Potassium[Moles-volume]inVenousblood",
     "name": "Potassium [Moles/volume] in Venous blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "85e0e16b-5fe0-4c8d-bfec-efa771259360"
+    "id": "bcdf15ce-08fe-4492-8a2e-d4cce6a64ce7"
 }

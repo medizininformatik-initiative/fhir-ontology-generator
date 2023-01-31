@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/LymphocytesImmunoblastic[#-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/LymphocytesImmunoblastic[#-volume]inBlood",
     "name": "Lymphocytes Immunoblastic [#/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "796f8018-b451-48e1-9020-5aa53866165f"
+    "id": "e1b74b6f-7d75-4d25-ad06-2ad848568b9b"
 }

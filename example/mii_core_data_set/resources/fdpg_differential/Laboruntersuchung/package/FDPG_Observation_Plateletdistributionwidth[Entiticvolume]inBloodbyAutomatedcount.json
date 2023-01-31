@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Plateletdistributionwidth[Entiticvolume]inBloodbyAutomatedcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Plateletdistributionwidth[Entiticvolume]inBloodbyAutomatedcount",
     "name": "Platelet distribution width [Entitic volume] in Blood by Automated count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "f0459827-5be1-49f7-b6ea-de8a407915e3"
+    "id": "413523e1-98cb-4ad2-a83f-d8e06bb4c100"
 }

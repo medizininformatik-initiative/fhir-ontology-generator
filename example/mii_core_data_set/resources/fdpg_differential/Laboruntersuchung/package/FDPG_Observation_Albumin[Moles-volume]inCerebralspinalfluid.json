@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Albumin[Moles-volume]inCerebralspinalfluid",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Albumin[Moles-volume]inCerebralspinalfluid",
     "name": "Albumin [Moles/volume] in Cerebral spinal fluid",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "95dbeb50-c676-4ebd-b6ab-4baf0618e481"
+    "id": "f8e097a3-9116-434b-9bf4-2c9aa2554f0e"
 }

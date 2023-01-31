@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Normoblasts-100leukocytesinBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Normoblasts-100leukocytesinBlood",
     "name": "Normoblasts/100 leukocytes in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "ad18637d-a5b4-4035-99e6-b3ef57471efc"
+    "id": "4965118f-8b23-4cea-a38e-8f491e8fc258"
 }

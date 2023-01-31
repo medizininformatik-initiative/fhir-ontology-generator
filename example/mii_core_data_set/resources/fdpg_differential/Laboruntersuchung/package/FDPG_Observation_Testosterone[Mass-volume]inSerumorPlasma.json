@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Testosterone[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Testosterone[Mass-volume]inSerumorPlasma",
     "name": "Testosterone [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "a866ff41-7ac2-4ea7-a7ed-0a03266929cd"
+    "id": "e371e7af-f13d-4473-896a-b4251da0a5f1"
 }

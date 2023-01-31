@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/UF-Heparin(anti-FXaAktivit\u00e4t)",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/UF-Heparin(anti-FXaAktivit\u00e4t)",
     "name": "UF-Heparin (anti-FXa Aktivit\u00e4t)",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "e5defe94-6757-46c7-93d0-ab9bd71db677"
+    "id": "24919e26-70cf-49f8-b40d-22fb608f54aa"
 }

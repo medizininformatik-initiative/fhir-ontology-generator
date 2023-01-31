@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Mononukle\u00e4reZellenabs.-Sondermaterial",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Mononukle\u00e4reZellenabs.-Sondermaterial",
     "name": "Mononukle\u00e4re Zellen abs. /Sondermaterial",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "a5c27cf8-9414-4b6e-93e0-318c5009abb1"
+    "id": "37c4824d-d3a8-4e50-afd2-df8837d9cd17"
 }

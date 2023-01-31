@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Thrombozyten-Plasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Thrombozyten-Plasma",
     "name": "Thrombozyten /Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "113a7f58-c4e6-476e-a1d1-032448ff0094"
+    "id": "c404cd8c-ab64-4d15-82a1-aac0fdd3d037"
 }

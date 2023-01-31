@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/pHofMixedvenousblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/pHofMixedvenousblood",
     "name": "pH of Mixed venous blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "f2633624-84ff-4ff8-bda1-d71fc6f7ce63"
+    "id": "85169843-d7f0-4129-b9e8-20af40fd1a92"
 }

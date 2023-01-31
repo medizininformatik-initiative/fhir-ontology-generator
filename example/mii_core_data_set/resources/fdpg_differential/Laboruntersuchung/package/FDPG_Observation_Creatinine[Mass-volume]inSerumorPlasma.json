@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Creatinine[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Creatinine[Mass-volume]inSerumorPlasma",
     "name": "Creatinine [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "3f08b343-b4e1-4b4f-a9fb-03eaae7a1854"
+    "id": "4aa685c6-726c-4095-9b1d-c983340c6019"
 }

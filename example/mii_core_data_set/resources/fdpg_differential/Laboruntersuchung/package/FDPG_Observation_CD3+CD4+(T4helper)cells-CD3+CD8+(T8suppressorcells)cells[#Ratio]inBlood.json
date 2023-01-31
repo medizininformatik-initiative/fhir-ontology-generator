@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/CD3+CD4+(T4helper)cells-CD3+CD8+(T8suppressorcells)cells[#Ratio]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/CD3+CD4+(T4helper)cells-CD3+CD8+(T8suppressorcells)cells[#Ratio]inBlood",
     "name": "CD3+CD4+ (T4 helper) cells/CD3+CD8+ (T8 suppressor cells) cells [# Ratio] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "d21a7813-e767-45a5-b386-dbf0b05d0b46"
+    "id": "874f370f-fde9-47ce-bf57-8954c7a3099e"
 }

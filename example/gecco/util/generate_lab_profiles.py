@@ -25,7 +25,7 @@ def open_template(template_name) -> dict:
     :param template_name: file name of the template
     :return: the template as json
     """
-    with open(f"../resources/{template_name}", 'r', encoding="utf-8") as f:
+    with open(f"../../shared_resources/{template_name}", 'r', encoding="utf-8") as f:
         data = json.load(f)
     return data
 
@@ -165,8 +165,6 @@ def write_profile_to_query_meta_data(profile_to_query_meta_data):
 if __name__ == "__main__":
     observation_codes = get_termcodes_from_onto_server(
         "https://www.netzwerk-universitaetsmedizin.de/fhir/ValueSet/lab-tests-gecco")
-    observation_codes.append(TermCode("http://loinc.org", "8302-2", "Body height"))
-    observation_codes.append(TermCode("http://loinc.org", "29463-7", "Body weight"))
     query_data_mapping = load_profile_to_query_meta_data()
     for observation_code in observation_codes:
         unit = get_unit_from_logical_model(observation_code)

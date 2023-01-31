@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/IgG[Mass-volume]inUrinebyImmunoassay",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/IgG[Mass-volume]inUrinebyImmunoassay",
     "name": "IgG [Mass/volume] in Urine by Immunoassay",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "e8480107-c7ce-436c-9d75-c4291ebba8e5"
+    "id": "84c09388-0c8c-4eec-b3a6-d9a2a4ddd8ee"
 }

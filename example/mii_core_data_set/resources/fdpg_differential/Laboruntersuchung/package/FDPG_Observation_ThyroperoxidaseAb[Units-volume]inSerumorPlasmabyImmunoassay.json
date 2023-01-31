@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/ThyroperoxidaseAb[Units-volume]inSerumorPlasmabyImmunoassay",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/ThyroperoxidaseAb[Units-volume]inSerumorPlasmabyImmunoassay",
     "name": "Thyroperoxidase Ab [Units/volume] in Serum or Plasma by Immunoassay",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "160e7b3d-6a5d-4885-a84a-f996acde265b"
+    "id": "762bdb88-636a-47ad-8817-2e57dcc7180c"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/TotalesH\u00e4moglobinarteriell",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/TotalesH\u00e4moglobinarteriell",
     "name": "Totales H\u00e4moglobin arteriell",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "c742a4a2-be04-4e9f-a30e-97667df383ac"
+    "id": "ba0b0a01-8d8e-46da-87b2-cf83e2d9c112"
 }

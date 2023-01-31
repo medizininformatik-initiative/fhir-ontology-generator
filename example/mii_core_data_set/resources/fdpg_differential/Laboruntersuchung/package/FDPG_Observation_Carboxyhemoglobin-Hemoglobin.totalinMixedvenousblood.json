@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Carboxyhemoglobin-Hemoglobin.totalinMixedvenousblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Carboxyhemoglobin-Hemoglobin.totalinMixedvenousblood",
     "name": "Carboxyhemoglobin/Hemoglobin.total in Mixed venous blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "3516e104-732d-43ef-8c99-b1f5ccc550ae"
+    "id": "e9501763-1ab0-48eb-8336-00a05ce142a4"
 }

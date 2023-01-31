@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Leukocytes[#-volume]inBodyfluid",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Leukocytes[#-volume]inBodyfluid",
     "name": "Leukocytes [#/volume] in Body fluid",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "26c2649d-b6f9-4308-a41b-05200fb40b5c"
+    "id": "76647cc8-e625-4a50-b070-86d5e32516d8"
 }

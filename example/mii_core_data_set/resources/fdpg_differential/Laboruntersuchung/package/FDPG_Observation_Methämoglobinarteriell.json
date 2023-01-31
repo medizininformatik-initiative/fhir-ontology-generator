@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Meth\u00e4moglobinarteriell",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Meth\u00e4moglobinarteriell",
     "name": "Meth\u00e4moglobin arteriell",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "060b3050-f9c7-4cfe-b6f6-514c01d0091c"
+    "id": "6f118726-6200-467f-b891-e2936139448d"
 }

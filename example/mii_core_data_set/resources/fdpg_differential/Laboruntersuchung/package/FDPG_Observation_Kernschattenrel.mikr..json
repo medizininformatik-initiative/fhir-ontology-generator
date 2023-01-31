@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Kernschattenrel.mikr.",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Kernschattenrel.mikr.",
     "name": "Kernschatten rel. mikr.",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "ac1e414d-ea1c-42c8-a861-5572e5f0ce1a"
+    "id": "44982202-888c-45fe-9209-783a8f4ff3d0"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Erythrozytenabs.mikr.-Liquor",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Erythrozytenabs.mikr.-Liquor",
     "name": "Erythrozyten abs. mikr. /Liquor",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "74da70f9-a06b-40b5-8da8-12ea5ee8d159"
+    "id": "11c633d0-7392-48f9-942f-fcf126031750"
 }

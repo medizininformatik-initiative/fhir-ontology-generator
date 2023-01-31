@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Potassium[Moles-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Potassium[Moles-volume]inSerumorPlasma",
     "name": "Potassium [Moles/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "04b0cc1d-a284-4993-8926-7a4312ef34e6"
+    "id": "baf66fa9-5168-42aa-bd52-0a8ffb920d8d"
 }

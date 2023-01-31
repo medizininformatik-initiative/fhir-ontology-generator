@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Carbondioxide[Partialpressure]inMixedvenousblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Carbondioxide[Partialpressure]inMixedvenousblood",
     "name": "Carbon dioxide [Partial pressure] in Mixed venous blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "71406667-30e3-420c-a192-24975a6dba40"
+    "id": "d09e0851-700f-43f6-8b98-5736b94b6430"
 }

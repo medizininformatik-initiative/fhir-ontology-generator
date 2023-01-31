@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Protein[Mass-volume]inUrinebyTeststrip",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Protein[Mass-volume]inUrinebyTeststrip",
     "name": "Protein [Mass/volume] in Urine by Test strip",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "da42fa9e-dea2-4df9-a180-b39fb29e9149"
+    "id": "2403661b-1c88-4564-90af-43b3b69d5a1c"
 }

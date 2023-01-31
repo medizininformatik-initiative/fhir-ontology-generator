@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/pO2-Blut",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/pO2-Blut",
     "name": "pO2 /Blut",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "c908f8c3-f143-440a-84a6-a7a534ebfce6"
+    "id": "063e0412-73dc-4295-bc78-c61af5a4a167"
 }

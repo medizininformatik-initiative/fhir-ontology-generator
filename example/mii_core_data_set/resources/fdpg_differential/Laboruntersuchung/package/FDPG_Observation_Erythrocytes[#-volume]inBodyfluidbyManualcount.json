@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Erythrocytes[#-volume]inBodyfluidbyManualcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Erythrocytes[#-volume]inBodyfluidbyManualcount",
     "name": "Erythrocytes [#/volume] in Body fluid by Manual count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "60493bb0-0e39-4fce-8694-705f7df628fc"
+    "id": "9c1b864e-a94e-455c-85bd-b8777d018541"
 }

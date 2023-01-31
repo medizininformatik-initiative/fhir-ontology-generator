@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Tumornecrosisfactor.alpha[Moles-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Tumornecrosisfactor.alpha[Moles-volume]inSerumorPlasma",
     "name": "Tumor necrosis factor.alpha [Moles/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "b82f4db8-419d-4fd6-9a68-2520ceec37e7"
+    "id": "75b1c4f3-69e1-4aad-82ab-e830cdc7227a"
 }

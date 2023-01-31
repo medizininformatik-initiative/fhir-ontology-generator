@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Cholinesterase[Enzymaticactivity-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Cholinesterase[Enzymaticactivity-volume]inSerumorPlasma",
     "name": "Cholinesterase [Enzymatic activity/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "dd524ced-3418-494c-b83e-72395c8d7cd7"
+    "id": "8c64d04b-b90a-4468-bd54-614958aa9352"
 }

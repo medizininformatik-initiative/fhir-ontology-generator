@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/CyclosporinA",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/CyclosporinA",
     "name": "Cyclosporin A",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "8c467ff2-db9d-4c83-85bd-b58ae7058e2a"
+    "id": "2cf17f47-e9ae-48a1-9ee2-20bf3bc00760"
 }

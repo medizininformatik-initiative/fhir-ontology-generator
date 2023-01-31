@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/ProteinSAntigen_freies",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/ProteinSAntigen_freies",
     "name": "Protein S Antigen, freies",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "ca7d22b0-dbf7-4215-95f2-ae3ca72af981"
+    "id": "c505903e-83c3-4490-bf59-c3524b9d1cf5"
 }

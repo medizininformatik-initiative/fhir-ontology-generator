@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Basophils-100leukocytesinBodyfluid",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Basophils-100leukocytesinBodyfluid",
     "name": "Basophils/100 leukocytes in Body fluid",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "64efe429-7a0b-492c-bd1f-1d19cc14ceff"
+    "id": "c6ff9fbe-d6f9-4e25-b0bf-f537b11b064d"
 }

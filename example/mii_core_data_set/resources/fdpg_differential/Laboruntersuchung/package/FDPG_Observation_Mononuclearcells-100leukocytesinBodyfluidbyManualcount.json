@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Mononuclearcells-100leukocytesinBodyfluidbyManualcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Mononuclearcells-100leukocytesinBodyfluidbyManualcount",
     "name": "Mononuclear cells/100 leukocytes in Body fluid by Manual count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "8197d366-ad41-4e16-9e68-2286f9d6aa9c"
+    "id": "44d2cfed-9092-4186-8b5c-80ff92d4f0f2"
 }

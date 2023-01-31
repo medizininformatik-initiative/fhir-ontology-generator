@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Cortisol",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Cortisol",
     "name": "Cortisol",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "d884e474-bf56-46b1-9ecd-44bc0fc7e2f1"
+    "id": "0ae0c910-05b9-4281-a59d-9171632e6ee5"
 }

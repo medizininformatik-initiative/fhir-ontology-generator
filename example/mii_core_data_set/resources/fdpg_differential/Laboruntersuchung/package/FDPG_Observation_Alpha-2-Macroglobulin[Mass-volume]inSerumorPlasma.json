@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Alpha-2-Macroglobulin[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Alpha-2-Macroglobulin[Mass-volume]inSerumorPlasma",
     "name": "Alpha-2-Macroglobulin [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "ada5ddbf-99cb-45af-a215-567f447c331f"
+    "id": "8cb36912-2000-40aa-8d6a-78a02f0db19b"
 }

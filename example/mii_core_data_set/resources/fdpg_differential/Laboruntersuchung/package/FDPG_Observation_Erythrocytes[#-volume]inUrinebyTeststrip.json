@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Erythrocytes[#-volume]inUrinebyTeststrip",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Erythrocytes[#-volume]inUrinebyTeststrip",
     "name": "Erythrocytes [#/volume] in Urine by Test strip",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "a26ca4c0-6929-4e23-8c1c-e6661a6f961d"
+    "id": "d19cf975-a008-412f-9860-82c5f7e9da81"
 }

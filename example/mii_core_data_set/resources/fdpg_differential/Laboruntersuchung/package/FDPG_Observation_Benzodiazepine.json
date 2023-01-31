@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Benzodiazepine",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Benzodiazepine",
     "name": "Benzodiazepine",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "40e33f8a-b05f-4837-84b0-4247f89670e4"
+    "id": "77b9f3dc-cef6-4ff3-8ad9-52aa0cde0f98"
 }

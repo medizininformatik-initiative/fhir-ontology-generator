@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Alpha2globulin-Protein.totalinSerumorPlasmabyElectrophoresis",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Alpha2globulin-Protein.totalinSerumorPlasmabyElectrophoresis",
     "name": "Alpha 2 globulin/Protein.total in Serum or Plasma by Electrophoresis",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "111a7ff1-fd56-4a03-b411-18660fc18fa5"
+    "id": "791ff945-7227-48b0-99fc-fb8b0b17fdb0"
 }

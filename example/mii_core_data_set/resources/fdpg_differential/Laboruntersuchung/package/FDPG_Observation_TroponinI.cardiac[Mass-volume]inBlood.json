@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/TroponinI.cardiac[Mass-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/TroponinI.cardiac[Mass-volume]inBlood",
     "name": "Troponin I.cardiac [Mass/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "24271c1e-0ec6-4505-8ea9-08d21571f64a"
+    "id": "69709af5-5c05-446d-b1fa-e6b30d3d0807"
 }

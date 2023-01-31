@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Ironsaturation[MassFraction]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Ironsaturation[MassFraction]inSerumorPlasma",
     "name": "Iron saturation [Mass Fraction] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "498fa046-ed92-4595-b815-07fd34a2798d"
+    "id": "56aa99fd-2221-4ae6-a4aa-e9ad0a0508a4"
 }

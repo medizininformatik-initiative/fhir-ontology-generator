@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Reticulocytes-100erythrocytesinBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Reticulocytes-100erythrocytesinBlood",
     "name": "Reticulocytes/100 erythrocytes in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "8db37022-a427-4e4e-b5a6-6f1155b6c0e7"
+    "id": "ac8cff29-90ac-432c-b3e4-293aef6dc9eb"
 }

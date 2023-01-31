@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Tricyclicantidepressants[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Tricyclicantidepressants[Mass-volume]inSerumorPlasma",
     "name": "Tricyclic antidepressants [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "1a80449b-973e-4603-92bb-288a54bf1948"
+    "id": "76fe2bf6-8425-457f-97ec-fa4df8ad3d77"
 }

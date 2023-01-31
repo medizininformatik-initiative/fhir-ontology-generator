@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Glomerularfiltrationrate-1.73sqM.predicted[VolumeRate-Area]inSerumorPlasmabyCreatinine-basedformula(MDRD)",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Glomerularfiltrationrate-1.73sqM.predicted[VolumeRate-Area]inSerumorPlasmabyCreatinine-basedformula(MDRD)",
     "name": "Glomerular filtration rate/1.73 sq M.predicted [Volume Rate/Area] in Serum or Plasma by Creatinine-based formula (MDRD)",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "2f90847b-433e-462a-b1dc-80506bcd6333"
+    "id": "3f7d7ac1-3932-4148-b496-c71fbfa823d6"
 }

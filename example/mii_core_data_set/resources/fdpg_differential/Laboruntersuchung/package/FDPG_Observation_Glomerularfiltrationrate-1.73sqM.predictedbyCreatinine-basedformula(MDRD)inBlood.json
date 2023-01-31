@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Glomerularfiltrationrate-1.73sqM.predictedbyCreatinine-basedformula(MDRD)inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Glomerularfiltrationrate-1.73sqM.predictedbyCreatinine-basedformula(MDRD)inBlood",
     "name": "Glomerular filtration rate/1.73 sq M.predicted by Creatinine-based formula (MDRD) in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "4fe6ea0b-cdd3-466b-8659-f61f1607045e"
+    "id": "5e1d1342-a548-440a-876b-be4b98b0dd8c"
 }

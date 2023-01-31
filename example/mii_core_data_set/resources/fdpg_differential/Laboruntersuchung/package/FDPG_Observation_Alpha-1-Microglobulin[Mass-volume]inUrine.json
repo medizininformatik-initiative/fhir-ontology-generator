@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Alpha-1-Microglobulin[Mass-volume]inUrine",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Alpha-1-Microglobulin[Mass-volume]inUrine",
     "name": "Alpha-1-Microglobulin [Mass/volume] in Urine",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "fa8903d7-2544-4a97-b88b-ddff1df24393"
+    "id": "b6b28309-111f-40aa-818c-d2b34dba4194"
 }

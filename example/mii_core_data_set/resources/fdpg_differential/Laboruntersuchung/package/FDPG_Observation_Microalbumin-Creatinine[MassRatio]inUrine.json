@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Microalbumin-Creatinine[MassRatio]inUrine",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Microalbumin-Creatinine[MassRatio]inUrine",
     "name": "Microalbumin/Creatinine [Mass Ratio] in Urine",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "c51a2198-a406-405d-a660-43651e8cc3ff"
+    "id": "7f289589-cd47-4a31-b991-30ce9dbcac47"
 }

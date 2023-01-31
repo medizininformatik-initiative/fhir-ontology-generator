@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/OxygensaturationCalculatedfromoxygenpartialpressureinMixedvenousblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/OxygensaturationCalculatedfromoxygenpartialpressureinMixedvenousblood",
     "name": "Oxygen saturation Calculated from oxygen partial pressure in Mixed venous blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "208e49d6-f54c-43c1-aef3-b0e9b9841d8a"
+    "id": "c3532bd8-c6b5-41f6-b47e-b5656ef57f34"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Hematocrit[VolumeFraction]ofBloodbyImpedance",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Hematocrit[VolumeFraction]ofBloodbyImpedance",
     "name": "Hematocrit [Volume Fraction] of Blood by Impedance",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "a3929059-141d-41e1-8591-4a30b70f77b3"
+    "id": "b3e4a680-ca0f-4f33-87b7-ef17acc6cfa0"
 }

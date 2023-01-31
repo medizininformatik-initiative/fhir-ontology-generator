@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Potassium[Moles-volume]inArterialblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Potassium[Moles-volume]inArterialblood",
     "name": "Potassium [Moles/volume] in Arterial blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "75650d06-69b9-4802-ab78-2edba3670f5f"
+    "id": "f8b61a8d-4356-451d-8baf-7ad234bead62"
 }

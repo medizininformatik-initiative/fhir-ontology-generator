@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Amylase[Enzymaticactivity-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Amylase[Enzymaticactivity-volume]inBlood",
     "name": "Amylase [Enzymatic activity/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "a2dbaa2c-948a-4cb8-a858-258612dfa348"
+    "id": "2be60625-5e7e-4bb6-934a-763daa493294"
 }

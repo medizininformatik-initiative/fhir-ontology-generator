@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Granulocytes-100leukocytesinBloodbyAutomatedcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Granulocytes-100leukocytesinBloodbyAutomatedcount",
     "name": "Granulocytes/100 leukocytes in Blood by Automated count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "43b0d1cc-1f0e-4cdc-9f9d-8780a0b62641"
+    "id": "00d6760c-3a84-424d-b058-412669fdc4d9"
 }

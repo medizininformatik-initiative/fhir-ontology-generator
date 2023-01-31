@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Plateletfunction(closuretime)collagen+EPINEPHrineinduced[Time]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Plateletfunction(closuretime)collagen+EPINEPHrineinduced[Time]inBlood",
     "name": "Platelet function (closure time) collagen+EPINEPHrine induced [Time] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "20d69db9-d37f-448d-9874-10cabfbd6a26"
+    "id": "e8403399-6133-4118-9a12-4069a5f19687"
 }

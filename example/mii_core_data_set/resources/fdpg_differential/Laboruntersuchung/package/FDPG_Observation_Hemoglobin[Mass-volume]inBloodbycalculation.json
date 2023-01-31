@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Hemoglobin[Mass-volume]inBloodbycalculation",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Hemoglobin[Mass-volume]inBloodbycalculation",
     "name": "Hemoglobin [Mass/volume] in Blood by calculation",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "50a68923-9e50-4b1e-bead-8bbd1f6efb4d"
+    "id": "2924927f-5bd1-4976-bdf7-fd50630c4664"
 }

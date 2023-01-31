@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/TestosteroneFree[Mass-volume]inSerumorPlasmabyDetectionlimitge1.0ng-dL",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/TestosteroneFree[Mass-volume]inSerumorPlasmabyDetectionlimitge1.0ng-dL",
     "name": "Testosterone Free [Mass/volume] in Serum or Plasma by Detection limit <= 1.0 ng/dL",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "9780d951-9d87-433e-a8f0-4edc8bb77aaf"
+    "id": "fb3fc096-53e9-44bf-9f9f-80f66270fe27"
 }

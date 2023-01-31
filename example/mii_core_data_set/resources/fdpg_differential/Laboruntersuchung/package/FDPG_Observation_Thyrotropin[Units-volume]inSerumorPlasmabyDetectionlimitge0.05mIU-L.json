@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Thyrotropin[Units-volume]inSerumorPlasmabyDetectionlimitge0.05mIU-L",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Thyrotropin[Units-volume]inSerumorPlasmabyDetectionlimitge0.05mIU-L",
     "name": "Thyrotropin [Units/volume] in Serum or Plasma by Detection limit <= 0.05 mIU/L",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "f3f6e300-325c-4ab3-a9c2-f8369cc5c27c"
+    "id": "e568f02f-0de9-407c-8df6-1fdf3ec7be7c"
 }

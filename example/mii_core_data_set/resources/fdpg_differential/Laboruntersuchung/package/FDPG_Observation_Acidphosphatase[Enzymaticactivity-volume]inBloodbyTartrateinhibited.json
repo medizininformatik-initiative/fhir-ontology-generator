@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Acidphosphatase[Enzymaticactivity-volume]inBloodbyTartrateinhibited",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Acidphosphatase[Enzymaticactivity-volume]inBloodbyTartrateinhibited",
     "name": "Acid phosphatase [Enzymatic activity/volume] in Blood by Tartrate inhibited",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "cf3229f5-b846-4af7-a73f-13f12d16d034"
+    "id": "703d7a6d-c91b-4a14-8111-fba4f6eff53e"
 }

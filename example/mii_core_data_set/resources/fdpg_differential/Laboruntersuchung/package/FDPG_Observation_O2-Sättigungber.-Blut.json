@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/O2-S\u00e4ttigungber.-Blut",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/O2-S\u00e4ttigungber.-Blut",
     "name": "O2-S\u00e4ttigung ber. /Blut",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "8c19ca98-d052-42eb-b7db-5e14744b91d4"
+    "id": "4ca0aea9-3790-47d4-a90e-c92f95d8953d"
 }

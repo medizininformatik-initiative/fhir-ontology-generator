@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/FaktorVIII(AntihaemophilerFaktorA)Aktivit\u00e4t",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/FaktorVIII(AntihaemophilerFaktorA)Aktivit\u00e4t",
     "name": "Faktor VIII (Antihaemophiler Faktor A) Aktivit\u00e4t",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "9c17986e-9272-4d05-943e-de6fa8644db2"
+    "id": "001aaad5-fcb2-46e1-879a-bcea53f6e492"
 }

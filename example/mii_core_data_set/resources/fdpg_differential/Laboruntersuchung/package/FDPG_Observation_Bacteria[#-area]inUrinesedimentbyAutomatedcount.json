@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Bacteria[#-area]inUrinesedimentbyAutomatedcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Bacteria[#-area]inUrinesedimentbyAutomatedcount",
     "name": "Bacteria [#/area] in Urine sediment by Automated count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "51755436-0207-4ba3-bf3e-e4831c046536"
+    "id": "0cecacbf-8b02-4b77-b04a-36e43e37901f"
 }

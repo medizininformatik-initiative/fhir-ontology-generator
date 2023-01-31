@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/pCO2ven\u00f6s",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/pCO2ven\u00f6s",
     "name": "pCO2 ven\u00f6s",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "25bfed43-081c-4a24-ba23-59300d4e701e"
+    "id": "2e508651-184f-4c36-a96d-d07341c3f922"
 }

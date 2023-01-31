@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Kalium-Blut",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Kalium-Blut",
     "name": "Kalium/Blut",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "29e1a531-02b7-4ce1-927c-5a4354d44576"
+    "id": "995a566a-3023-44b2-b898-fcba4cb00e62"
 }

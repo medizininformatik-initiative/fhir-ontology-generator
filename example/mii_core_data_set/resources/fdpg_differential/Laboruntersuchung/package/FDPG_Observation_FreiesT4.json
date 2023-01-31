@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/FreiesT4",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/FreiesT4",
     "name": "Freies T4",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "8891d2f6-550d-44c5-b380-30c264106a96"
+    "id": "e93a43e6-eb61-43d2-a917-1fe7cdfca798"
 }

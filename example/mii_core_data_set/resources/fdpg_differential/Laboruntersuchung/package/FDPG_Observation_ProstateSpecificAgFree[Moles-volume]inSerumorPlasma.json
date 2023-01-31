@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/ProstateSpecificAgFree[Moles-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/ProstateSpecificAgFree[Moles-volume]inSerumorPlasma",
     "name": "Prostate Specific Ag Free [Moles/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "fb26f5b3-f6be-4acc-b209-6ab0c75ee7cb"
+    "id": "c08aa0d6-5963-45de-84c6-07ee61a18b26"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Hemoglobin[Mass-volume]inVenousbloodbyOximetry",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Hemoglobin[Mass-volume]inVenousbloodbyOximetry",
     "name": "Hemoglobin [Mass/volume] in Venous blood by Oximetry",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "6801219b-5b5c-4701-af9d-ec7828fceb41"
+    "id": "bb2d3bb9-c8b5-4ef3-9b40-4206538f1b98"
 }

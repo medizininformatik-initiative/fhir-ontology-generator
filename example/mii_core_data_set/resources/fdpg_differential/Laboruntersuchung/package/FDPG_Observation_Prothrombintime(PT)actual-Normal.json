@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Prothrombintime(PT)actual-Normal",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Prothrombintime(PT)actual-Normal",
     "name": "Prothrombin time (PT) actual/Normal",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "a8976c76-36d2-463c-93c3-b694105ae62c"
+    "id": "36882d81-e3df-4f94-aba9-94f138c6e0dd"
 }

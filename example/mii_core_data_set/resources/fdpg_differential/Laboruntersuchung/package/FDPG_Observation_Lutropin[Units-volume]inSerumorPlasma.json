@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Lutropin[Units-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Lutropin[Units-volume]inSerumorPlasma",
     "name": "Lutropin [Units/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "5141a413-46e1-4235-ae6f-d79f3ec7b928"
+    "id": "248033c7-57b4-48f5-a5fe-c503850ed53c"
 }

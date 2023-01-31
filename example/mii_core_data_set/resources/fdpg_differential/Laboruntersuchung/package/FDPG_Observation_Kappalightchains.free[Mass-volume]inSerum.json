@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Kappalightchains.free[Mass-volume]inSerum",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Kappalightchains.free[Mass-volume]inSerum",
     "name": "Kappa light chains.free [Mass/volume] in Serum",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "e411c053-becd-4ccc-b120-2781a4b44aae"
+    "id": "863c35dc-5f97-41ca-a729-2e30af374aed"
 }

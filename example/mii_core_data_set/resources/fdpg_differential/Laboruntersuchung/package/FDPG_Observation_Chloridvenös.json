@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Chloridven\u00f6s",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Chloridven\u00f6s",
     "name": "Chlorid ven\u00f6s",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "7e87f21f-6b9f-40c7-9d7d-1614ce6a669c"
+    "id": "609e5140-0aac-4fcd-9393-135c422104cf"
 }

@@ -4,7 +4,6 @@ import argparse
 import json
 import os
 import uuid
-from copy import copy
 from typing import List, ValuesView, Dict
 
 from FHIRProfileConfiguration import *

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Tacrolimus",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Tacrolimus",
     "name": "Tacrolimus",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "cf90a59e-cf50-4a18-a88f-75ad0bf78923"
+    "id": "ea31bad1-d50b-438a-9fdf-2364fa8ba539"
 }

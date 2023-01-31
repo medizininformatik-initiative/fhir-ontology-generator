@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/MaximalClotFirmnessEXTEM",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/MaximalClotFirmnessEXTEM",
     "name": "Maximal Clot Firmness EXTEM",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "ca7c2b14-c48d-4379-abc1-fa4c453e98af"
+    "id": "a83542c9-2594-4103-863b-1521d14ce295"
 }

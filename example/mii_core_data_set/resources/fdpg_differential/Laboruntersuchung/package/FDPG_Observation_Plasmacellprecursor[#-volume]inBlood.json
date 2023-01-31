@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Plasmacellprecursor[#-volume]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Plasmacellprecursor[#-volume]inBlood",
     "name": "Plasma cell precursor [#/volume] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "94ef1735-3d6e-4c60-a3c0-639caaddc0ac"
+    "id": "77914786-eb1f-4082-8080-4e593cc2f291"
 }

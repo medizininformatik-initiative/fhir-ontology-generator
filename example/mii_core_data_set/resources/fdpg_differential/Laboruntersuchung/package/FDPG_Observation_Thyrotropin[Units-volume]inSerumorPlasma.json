@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Thyrotropin[Units-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Thyrotropin[Units-volume]inSerumorPlasma",
     "name": "Thyrotropin [Units/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "37562f04-8b72-44bf-8a9b-14d80852f77c"
+    "id": "4b71b536-6831-4dd3-bbd9-7ffb3874cc44"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Platelets[#-volume]inPlasmabyAutomatedcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Platelets[#-volume]inPlasmabyAutomatedcount",
     "name": "Platelets [#/volume] in Plasma by Automated count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "d436e6c3-c8e0-4511-906f-13a583d955ae"
+    "id": "047ac682-1b00-404e-a71a-7baf6e0abe99"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Variantlymphocytes-100leukocytesinBloodbyAutomatedcount",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Variantlymphocytes-100leukocytesinBloodbyAutomatedcount",
     "name": "Variant lymphocytes/100 leukocytes in Blood by Automated count",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "b7447c4c-5cc9-46fb-8661-6f6bbcffd7a5"
+    "id": "9569b069-eb42-43d2-8937-beb5f6bd7ff2"
 }

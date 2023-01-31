@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/O2-S\u00e4ttigungarteriell",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/O2-S\u00e4ttigungarteriell",
     "name": "O2-S\u00e4ttigung arteriell",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "d80f3727-c557-48ba-8538-0ff631d3c0c1"
+    "id": "3c3412c9-0616-4bf6-935b-e549d63ee3ee"
 }

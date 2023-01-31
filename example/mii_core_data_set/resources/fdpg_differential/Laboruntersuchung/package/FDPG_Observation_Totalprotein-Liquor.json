@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Totalprotein-Liquor",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Totalprotein-Liquor",
     "name": "Totalprotein /Liquor",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "06483fc2-63ac-4a59-a2e0-b031d1fe8d5d"
+    "id": "62b64a85-0fff-4a32-b03d-82ba06777792"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Maximumclotfirmness.intrinsiccoagulationsystemactivated[Length]inBloodbyRotationalTEG",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Maximumclotfirmness.intrinsiccoagulationsystemactivated[Length]inBloodbyRotationalTEG",
     "name": "Maximum clot firmness.intrinsic coagulation system activated [Length] in Blood by Rotational TEG",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "28a1147f-51b4-4b74-b1c4-8b3777089662"
+    "id": "aa0228e2-b7de-43a4-a032-dfad190b19bf"
 }

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/AlkalischePhosphatase(AP)",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/AlkalischePhosphatase(AP)",
     "name": "Alkalische Phosphatase (AP)",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "1b2f5d1f-9958-45bb-ba76-f492b9e6aec2"
+    "id": "988ac3c5-e78f-4ada-8f69-c6ba51a5a273"
 }

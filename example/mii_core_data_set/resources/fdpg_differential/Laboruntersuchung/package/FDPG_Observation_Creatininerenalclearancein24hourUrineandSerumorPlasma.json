@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Creatininerenalclearancein24hourUrineandSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Creatininerenalclearancein24hourUrineandSerumorPlasma",
     "name": "Creatinine renal clearance in 24 hour Urine and Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "81a8ec08-f95f-458c-8485-77f714356a46"
+    "id": "0bf85400-c697-42b4-b45e-f457cbb114a0"
 }

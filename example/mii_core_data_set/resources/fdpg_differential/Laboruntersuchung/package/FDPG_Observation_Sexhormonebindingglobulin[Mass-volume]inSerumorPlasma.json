@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Sexhormonebindingglobulin[Mass-volume]inSerumorPlasma",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Sexhormonebindingglobulin[Mass-volume]inSerumorPlasma",
     "name": "Sex hormone binding globulin [Mass/volume] in Serum or Plasma",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "4c32cadd-61a1-4cb3-9164-4d953aacfb3e"
+    "id": "fcac9861-f5cc-4abd-91a9-123aa5768494"
 }

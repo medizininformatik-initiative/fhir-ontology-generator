@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Lamotrigin",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Lamotrigin",
     "name": "Lamotrigin",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "6011e78f-06fc-4879-ba04-762553411fb7"
+    "id": "4e14dd6e-0033-4cd6-a3e6-6a0188847fc8"
 }

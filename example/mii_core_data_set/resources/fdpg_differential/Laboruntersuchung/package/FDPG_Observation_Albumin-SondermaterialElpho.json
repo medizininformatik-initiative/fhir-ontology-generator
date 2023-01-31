@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Albumin-SondermaterialElpho",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Albumin-SondermaterialElpho",
     "name": "Albumin /Sondermaterial Elpho",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "24adcd7f-89f3-4589-a239-b1b7207690dc"
+    "id": "ae9ee285-5e8a-4551-9aa6-d1d381934801"
 }

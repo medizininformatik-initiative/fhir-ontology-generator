@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Beta2globulin[Mass-volume]inSerumorPlasmabyElectrophoresis",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Beta2globulin[Mass-volume]inSerumorPlasmabyElectrophoresis",
     "name": "Beta 2 globulin [Mass/volume] in Serum or Plasma by Electrophoresis",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "faf78be4-c171-4d5c-b96d-0fb7d1a1c547"
+    "id": "3f4fe176-5a97-4de6-96a6-abdc5f44685a"
 }

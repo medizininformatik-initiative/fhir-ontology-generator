@@ -311,21 +311,44 @@ def expression_to_resource_relevant_expression(expression: str, resource_type: s
     return filtered_expression
 
 
-def generate_attribute_key(element_id: str, context: TermCode) -> TermCode:
+def load_english_to_german_attribute_names() -> Dict[str, str]:
+    with open("../../resources/english_to_german_attribute_names.json", "r", encoding="utf-8") as f:
+        attribute_names = json.load(f)
+    return attribute_names
+
+
+def generate_attribute_key(element_id: str) -> TermCode:
     """
     Generates the attribute key for the given element id
     :param element_id: element id
-    :param context: context
     :return: attribute key
     """
     if '(' and ')' in element_id:
         element_id = element_id[element_id.rfind('(') + 1:element_id.find(')')]
     if ':' in element_id:
-        element_id = element_id.split(':')[1]
-        key = element_id[: re.search(r'\w+', element_id).start()]
+        element_id = element_id.split(':')[-1]
+        key = element_id.split('.')[0]
     else:
-        key = element_id.split('.')[:-1]
-    return TermCode(context.system, key, key)
+        key = element_id.split('.')[-1]
+    display = get_german_display(key)
+    if not key:
+        raise ValueError(f"Could not find key for {element_id}")
+    return TermCode("http://hl7.org/fhir/StructureDefinition", key, display)
+
+
+def get_german_display(key: str) -> str:
+    """
+    Returns the german display for the given key if it exists else the key itself and creates an entry in the
+    english_to_german_attribute_names.json
+    :param key: attribute key
+    :return: german display or original key
+    """
+    english_to_german_attribute_names = load_english_to_german_attribute_names()
+    if key not in english_to_german_attribute_names:
+        english_to_german_attribute_names[key] = key
+        with open("../../resources/english_to_german_attribute_names.json", "w", encoding="utf-8") as f:
+            json.dump(english_to_german_attribute_names, f, ensure_ascii=False, indent=4)
+    return english_to_german_attribute_names.get(key)
 
 
 def generate_result_folder():

@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Bilirubin.total[Mass-volume]inVenousblood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Bilirubin.total[Mass-volume]inVenousblood",
     "name": "Bilirubin.total [Mass/volume] in Venous blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "7cad74ec-3bee-4cd7-b6b4-0df1fd39c88c"
+    "id": "a8610906-09e9-4610-b294-d98c638e5da2"
 }

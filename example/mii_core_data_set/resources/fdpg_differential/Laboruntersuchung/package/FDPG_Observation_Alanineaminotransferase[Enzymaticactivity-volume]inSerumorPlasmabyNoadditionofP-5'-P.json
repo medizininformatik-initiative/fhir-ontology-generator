@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Alanineaminotransferase[Enzymaticactivity-volume]inSerumorPlasmabyNoadditionofP-5'-P",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Alanineaminotransferase[Enzymaticactivity-volume]inSerumorPlasmabyNoadditionofP-5'-P",
     "name": "Alanine aminotransferase [Enzymatic activity/volume] in Serum or Plasma by No addition of P-5'-P",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "252dff28-736d-4b51-8b4b-dd9ad70a76ef"
+    "id": "1dd51cd2-41f5-40a4-acd2-185b0d78ed1f"
 }

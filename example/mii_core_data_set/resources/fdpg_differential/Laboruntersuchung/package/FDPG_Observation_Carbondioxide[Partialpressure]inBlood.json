@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Carbondioxide[Partialpressure]inBlood",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/Carbondioxide[Partialpressure]inBlood",
     "name": "Carbon dioxide [Partial pressure] in Blood",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "04e93231-9d51-43af-9585-64c77581595f"
+    "id": "b08cd144-5113-4b14-a2c5-0d3c75711c2d"
 }

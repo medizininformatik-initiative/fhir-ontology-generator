@@ -1,6 +1,6 @@
 {
     "resourceType": "StructureDefinition",
-    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/IgG-Protein.totalinCerebralspinalfluid",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/fdpg/StructureDefinition/IgG-Protein.totalinCerebralspinalfluid",
     "name": "IgG/Protein.total in Cerebral spinal fluid",
     "status": "active",
     "fhirVersion": "4.0.1",
@@ -106,5 +106,5 @@
             }
         ]
     },
-    "id": "f656e493-4301-4a50-be1b-c4572568d557"
+    "id": "ed6ecc20-9a25-4649-9489-7c5cd3291c78"
 }
