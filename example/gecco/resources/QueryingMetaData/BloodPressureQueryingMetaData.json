@@ -8,7 +8,7 @@
   },
   "term_code_defining_id": "Observation.code.coding:loinc",
   "attribute_defining_id_type_map": {
-    "Observation.component:systolicBloodPressure.value[x]": "composed",
-    "Observation.component:diastolicBloodPressure.value[x]": "composed"
+    "Observation.component:systolicBloodPressure.value[x]": "composed-quantity",
+    "Observation.component:diastolicBloodPressure.value[x]": "composed-quantity"
   }
 }

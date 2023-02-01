@@ -117,7 +117,7 @@ class CQLMappingGenerator(object):
             cql_mapping.add_attribute(attribute_type, attribute_key, attribute_fhir_path)
         return cql_mapping
 
-    def translate_element_id_to_fhir_path_expressions(self, element_id, profile_snapshot: dict) -> List[str]:
+    def translate_element_id_to_fhir_path_expressions(self, element_id, profile_snapshot: dict) -> str:
         """
         Translates an element id to a fhir search parameter
         :param element_id: element id
@@ -127,9 +127,21 @@ class CQLMappingGenerator(object):
         elements = self.parser.get_element_defining_elements(element_id, profile_snapshot, self.module_dir,
                                                              self.data_set_dir)
         expressions = self.parser.translate_element_to_fhir_path_expression(elements)
-        # Use.coding to work with CodeableConcepts
-        return [f"{expression}.coding" if "as CodeableConcept" in expression else expressions for expression in
-                expressions]
+        return [self.get_old_path_expression(expression) for expression in expressions][-1]
+
+    @staticmethod
+    def get_old_path_expression(path_expression: str) -> str:
+        # TODO: Remove this method once the new path expressions are compatible with the cql implementation?
+        """
+        Translates a path expression to the old path expression
+        :param path_expression: path expression
+        :return: old path expression
+        """
+        path = path_expression[path_expression.find('.') + 1:]
+        # remove " as *" part
+        if " as " in path:
+            path = path[:path.find(" as ")]
+        return path
 
     def get_attribute_type(self, profile_snapshot: dict, attribute_id: str) -> VALUE_TYPE_OPTIONS:
         """

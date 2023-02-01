@@ -8,6 +8,20 @@ def del_none(dictionary):
     :param dictionary: The dictionary to delete empty keys from.
     :return: The dictionary with empty keys deleted.
     """
+
+    def delete_empty_elements_from_list(list_element):
+        if not list_element:
+            del dict_copy[key]
+        for element in list_element:
+            if isinstance(element, dict):
+                del_none(element)
+            elif isinstance(element, str):
+                continue
+            elif isinstance(element, list):
+                delete_empty_elements_from_list(element)
+            else:
+                del_none(element.__dict__)
+
     dict_copy = copy.deepcopy(dictionary)
     for key, value in list(dict_copy.items()):
         if value is None:
@@ -15,14 +29,7 @@ def del_none(dictionary):
         elif isinstance(value, dict):
             del_none(value)
         elif isinstance(value, list):
-            if not value:
-                del dict_copy[key]
-            for element in value:
-                if isinstance(element, dict):
-                    del_none(element)
-                elif isinstance(element, str):
-                    continue
-                del_none(element.__dict__)
+            delete_empty_elements_from_list(value)
     return dict_copy
 
 

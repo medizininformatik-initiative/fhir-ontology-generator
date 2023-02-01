@@ -209,9 +209,22 @@ def get_cleaned_expressions(search_parameter: dict) -> List[str]:
     expressions = search_parameter.get("expression")
     if not expressions:
         return []
-    return [translate_as_function_to_operand(expression) if not re.match(r"\((.*?)\)", expression) else
-            translate_as_function_to_operand(expression[1:-1]) for expression in
-            expressions.split(" | ")]
+    expressions = [translate_as_function_to_operand(expression) if not re.match(r"\((.*?)\)", expression) else
+                   translate_as_function_to_operand(expression[1:-1]) for expression in
+                   expressions.split(" | ")]
+    expressions = [convert_of_type_to_as_operand(expression) for expression in expressions]
+    return expressions
+
+
+def convert_of_type_to_as_operand(expression: str) -> str:
+    """
+    Converts an of-type expression to an as expression
+    :param expression: the expression
+    :return: the converted expression
+    """
+    while ".ofType(" in expression:
+        expression = re.sub(r"\.ofType\((.*?)\)", r" as \1", expression)
+    return expression
 
 
 def translate_as_function_to_operand(expression) -> str:
@@ -240,6 +253,7 @@ def find_search_parameter(fhir_path_expressions: List[str]) -> OrderedDict[str, 
     :raises ValueError: if the search parameter could not be found
     """
     # int parameter is used to find the shortest expression and not returned in the result
+    print(f"Finding search parameter for {fhir_path_expressions}")
     fhir_path_expressions_to_search_parameter: OrderedDict[str, Tuple[dict, int]] = orderedDict(
         [(expression, (None, math.inf)) for expression in fhir_path_expressions]
     )
@@ -256,11 +270,23 @@ def find_search_parameter(fhir_path_expressions: List[str]) -> OrderedDict[str, 
                                                                                   number_of_relevant_expressions)
     result = orderedDict([(key, value[0]) for key, value in fhir_path_expressions_to_search_parameter.items()])
     if missing_search_parameters := [key for key, value in result.items() if not value]:
-        result_without_as_cast = find_search_parameter([fhir_path_expressions.split(" as ")[0] for
-                                                        fhir_path_expressions in missing_search_parameters])
-        result = orderedDict([(key if key.split(" as ")[0] not in result_without_as_cast else
-                               key.split(" as ")[0], value if key.split(" as ")[0] not in result_without_as_cast else
-                               result_without_as_cast[key.split(" as ")[0]]) for key, value in result.items()])
+        if any([" as " in fhir_path_expressions and '.' not in fhir_path_expressions.split("as")[1] for
+                fhir_path_expressions in missing_search_parameters]):
+            result_without_as_cast = find_search_parameter([fhir_path_expressions.split(" as ")[0] for
+                                                            fhir_path_expressions in missing_search_parameters])
+            result = orderedDict([(key if key.split(" as ")[0] not in result_without_as_cast else
+                                   key.split(" as ")[0],
+                                   value if key.split(" as ")[0] not in result_without_as_cast else
+                                   result_without_as_cast[key.split(" as ")[0]]) for key, value in result.items()])
+        else:
+            result_without_last_path_element = find_search_parameter([fhir_path_expressions.rsplit(".", 1)[0] for
+                                                                      fhir_path_expressions in
+                                                                      missing_search_parameters])
+            result = orderedDict([(key if key.rsplit(".", 1)[0] not in result_without_last_path_element else
+                                   key.rsplit(".", 1)[0], value if key.rsplit(".", 1)[0] not in
+                                                                   result_without_last_path_element else
+                                   result_without_last_path_element[key.rsplit(".", 1)[0]]) for key, value in
+                                  result.items()])
         if missing_search_parameters := [key for key, value in result.items() if not value]:
             raise ValueError(f"Could not find search parameter for {missing_search_parameters} \n"
                              f"You may need to add an custom search parameter")
@@ -284,9 +310,9 @@ def validate_chainable(chainable_search_parameter) -> bool:
 
 def get_all_search_parameters() -> List[Dict]:
     # TODO: This has to be configurable
-    with open("../../resources/fhir_search_parameter_definition.json") as f:
+    with open("../../resources/fhir_search_parameter_definition.json", 'r', encoding="utf-8") as f:
         search_parameter_definition = json.load(f)
-    with open("../../resources/fhir-search-params/fhir-search-params.json") as f:
+    with open("../../resources/fhir-search-params/fhir-search-params.json", 'r', encoding="utf-8") as f:
         search_parameter_definition.get("entry").extend(json.load(f).get("entry"))
     with open(
             "../../resources/core_data_sets/de.medizininformatikinitiative.kerndatensatz.biobank#1.0.3"

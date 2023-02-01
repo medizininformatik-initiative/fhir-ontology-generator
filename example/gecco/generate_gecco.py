@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import os
 import uuid
@@ -14,7 +15,7 @@ from api.UIProfileGenerator import UIProfileGenerator
 from api.UITreeGenerator import UITreeGenerator
 from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, generate_result_folder, \
     to_upper_camel_case
-from model.MappingDataModel import CQLMapping, FhirMapping
+from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import UIProfile
 from model.UiDataModel import TermEntry, TermCode, CategoryEntry
@@ -318,6 +319,37 @@ def denormalize_ui_profile_to_old_format(ui_tree: List[TermEntry], term_code_to_
             denormalize_ui_profile_to_old_format([child], term_code_to_profile_name, ui_profile_name_to_profile)
 
 
+def denormalize_mapping_to_old_format(term_code_to_mapping_name, mapping_name_to_mapping):
+    """
+    Denormalizes the mapping to the old format
+
+    :param term_code_to_mapping_name: mapping from term codes to mapping names
+    :param mapping_name_to_mapping: mappings to use
+    :return: denormalized entries
+    """
+    result = MapEntryList()
+    for context_and_term_code, mapping_name in term_code_to_mapping_name.items():
+        try:
+            mapping = copy.copy(mapping_name_to_mapping[mapping_name])
+            mapping.key = context_and_term_code[1]
+            result.entries.add(mapping)
+        except KeyError:
+            print("No mapping found for term code " + context_and_term_code[1].code)
+    return result
+
+
+def write_v1_mapping_to_file(mapping, mapping_folder="mapping-old"):
+    if isinstance(mapping.entries[0], CQLMapping):
+        mapping_file = f"{mapping_folder}/cql/mapping_cql.json"
+    elif isinstance(mapping.entries[0], FhirMapping):
+        mapping_file = f"{mapping_folder}/fhir/mapping_fhir.json"
+    else:
+        raise ValueError("Mapping type not supported" + str(type(mapping)))
+    with open(mapping_file, 'w', encoding="utf-8") as f:
+        f.write(mapping.to_json())
+    f.close()
+
+
 if __name__ == '__main__':
 
     parser = configure_args_parser()
@@ -349,12 +381,21 @@ if __name__ == '__main__':
 
     if args.generate_mapping:
         cql_generator = CQLMappingGenerator(resolver)
-        cql_concept_mappings = cql_generator.generate_mapping("resources/differential")[1].values()
-        write_mappings_to_files(cql_concept_mappings)
+        cql_mappings = cql_generator.generate_mapping("resources/differential")
+        cql_term_code_mappings = cql_mappings[0]
+        cql_concept_mappings = cql_mappings[1]
+        write_mappings_to_files(cql_concept_mappings.values())
+        v1_cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
+        write_v1_mapping_to_file(v1_cql_mappings, "mapping-old")
 
         fhir_search_generator = FHIRSearchMappingGenerator(resolver)
-        fhir_search_mappings = fhir_search_generator.generate_mapping("resources/differential")[1].values()
-        write_mappings_to_files(fhir_search_mappings)
+        fhir_search_mappings = fhir_search_generator.generate_mapping("resources/differential")
+        fhir_search_term_code_mappings = fhir_search_mappings[0]
+        fhir_search_concept_mappings = fhir_search_mappings[1]
+        write_mappings_to_files(fhir_search_concept_mappings.values())
+        v1_fhir_search_mapping = denormalize_mapping_to_old_format(fhir_search_term_code_mappings,
+                                                                   fhir_search_concept_mappings)
+        write_v1_mapping_to_file(v1_fhir_search_mapping, "mapping-old")
 
     if args.generate_old_format:
         ui_trees = generate_gecco_tree()

@@ -142,4 +142,6 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
             value_set = term_code_defining_element.get("binding").get("valueSet")
             return get_term_entries_from_onto_server(value_set)
         else:
-            raise Exception(f"Could not resolve term code defining element: {term_code_defining_element}")
+            raise Exception(
+                f"Could not resolve term code defining element: {term_code_defining_element} in "
+                f"{fhir_profile_snapshot.get('name')}")
