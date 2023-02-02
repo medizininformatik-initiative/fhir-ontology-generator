@@ -17,45 +17,49 @@ values for the termCode, valueFilter, attributeFilter and timeRestriction.
 I.e in the FHIR Profile Observation we can find the following elements that are of interest for the criterion:
 
 ```json
-{
-  "id": "Observation.code.coding:loinc",
-  "path": "Observation.code.coding",
-  "sliceName": "loinc",
-  "min": 1,
-  "max": "*",
-  "patternCoding": {
-    "system": "http://loinc.org",
-    "code": "8302-2"
+[
+  {
+    "id": "Observation.code.coding:loinc",
+    "path": "Observation.code.coding",
+    "sliceName": "loinc",
+    "min": 1,
+    "max": "*",
+    "patternCoding": {
+      "system": "http://loinc.org",
+      "code": "8302-2"
+    }
   },
-{
-  "id": "Observation.value[x]",
-  "path": "Observation.value[x]",
-  "slicing": {
-    "discriminator": [
+  {
+    "id": "Observation.value[x]",
+    "path": "Observation.value[x]",
+    "slicing": {
+      "discriminator": [
+        {
+          "type": "type",
+          "path": "$this"
+        }
+      ],
+      "ordered": false,
+      "rules": "open"
+    },
+    "type": [
       {
-        "type": "type",
-        "path": "$this"
+        "code": "Quantity"
       }
     ],
-    "ordered": false,
-    "rules": "open"
+    "mustSupport": true
   },
-  "type": [
-    {
-      "code": "Quantity"
+  {
+    "id": "Observation.valueQuantity.code",
+    "path": "Observation.valueQuantity.code",
+    "min": 1,
+    "mustSupport": true,
+    "binding": {
+      "strength": "required",
+      "valueSet": "http://hl7.org/fhir/ValueSet/ucum-bodylength|4.0.0"
     }
-  ],
-  "mustSupport": true
-},
-{
-"id": "Observation.valueQuantity.code",
-"path": "Observation.valueQuantity.code",
-"min": 1,
-"mustSupport": true,
-"binding": {
-"strength": "required",
-"valueSet": "http://hl7.org/fhir/ValueSet/ucum-bodylength|4.0.0"
-}
+  }
+]
 ```
 
 To specify a criterion we need to identify all elements and their path that relate to the criteria. In the example above
@@ -110,22 +114,22 @@ this:
   }
 }
 ```
-Which allows the user to select a criterion "body height" and further specify the value using comparators and the 
-here defined units.
 
-Beside the ui-tree and ui-profiles we also generate a fhir search mapping and a cql mapping. 
-Based on the termCode the fhir search parameter and the fhir path are identified for the termCode, the valueFilter and
-each attributeFilter.
+Which allows the user to select a criterion "body height" and further specify the value using comparators and the here
+defined units.
+
+Beside the ui-tree and ui-profiles we also generate a fhir search mapping and a cql mapping. Based on the termCode the
+fhir search parameter and the fhir path are identified for the termCode, the valueFilter and each attributeFilter.
 
 CQL Mapping generated for Body Height Profile and the provided QueryingMetaData:
 
 ```json
 {
-    "name": "QuantityObservation",
-    "resource_type": "Observation",
-    "termCodeFhirPath": "code.coding",
-    "termValueFhirPath": "value",
-    "timeRestrictionPath": "effective"
+  "name": "QuantityObservation",
+  "resource_type": "Observation",
+  "termCodeFhirPath": "code.coding",
+  "termValueFhirPath": "value",
+  "timeRestrictionPath": "effective"
 }
 ```
 
@@ -133,12 +137,12 @@ FHIR Search Mapping generated for Body Height Profile and the provided QueryingM
 
 ```json
 {
-    "name": "QuantityObservation",
-    "resource_type": "Observation",
-    "termCodeSearchParameter": "code",
-    "timeRestrictionParameter": "date",
-    "valueSearchParameter": "value-quantity",
-    "valueType": "quantity"
+  "name": "QuantityObservation",
+  "resource_type": "Observation",
+  "termCodeSearchParameter": "code",
+  "timeRestrictionParameter": "date",
+  "valueSearchParameter": "value-quantity",
+  "valueType": "quantity"
 }
 ```
 
