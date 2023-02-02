@@ -8,5 +8,55 @@
   "kind": "resource",
   "abstract": false,
   "type": "Consent",
-  "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/modul-consent/StructureDefinition/mii-pr-consent-einwilligung"
+  "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/modul-consent/StructureDefinition/mii-pr-consent-einwilligung",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      {
+        "id": "Consent.provision.provision.code",
+        "path": "Consent.provision.provision.code",
+        "short": "e.g. LOINC or SNOMED CT code, etc. in the content",
+        "definition": "If this code is found in an instance, then the rule applies.",
+        "comment": "Typical use of this is a Document code with class = CDA.",
+        "min": 1,
+        "max": "*",
+        "base": {
+          "path": "Consent.provision.code",
+          "min": 0,
+          "max": "*"
+        },
+        "type": [
+          {
+            "code": "CodeableConcept"
+          }
+        ],
+        "condition": [
+          "ele-1"
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mustSupport": true,
+        "isSummary": true,
+        "binding": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/elementdefinition-bindingName",
+              "valueString": "ConsentContentCode"
+            }
+          ],
+          "strength": "required",
+          "description": "If this code is found in an instance, then the exception applies.",
+          "valueSet": "https://www.medizininformatik-initiative.de/fhir/fdpg/ValueSet/mii-vs-consent-policy"
+        }
+      }
+    ]
+  }
 }

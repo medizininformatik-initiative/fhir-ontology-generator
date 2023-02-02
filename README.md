@@ -1,4 +1,117 @@
-# CODEX - Gecco to UI and Mapper
+# FHIR Searchontology Generator
+
+This project generates a search ontology based on FHIR Profiles for the
+project https://github.com/medizininformatik-initiative/feasibility-deploy. Within a FHIR Profile all elements are
+identified that can be used as criteria. Each criterion consists of a defining TermCode and can be further specified
+using valueFilters, attributeFilters and timeRestrictions. TermCodes are equivalent to FHIR CodeableConcepts and
+originate from a Terminology. I.e. the criterion "body height" is defined by the TermCode "8302-2" from the
+Terminology "LOINC". In case of the body height the criterion is a quantity and can be further specified by a
+valueFilter. The valueFilter defines the unit of the quantity, for our example "cm". If the filter is not directly
+related to the TermCode, it is an attributeFilter. I.E. the status of the body height observation is not directly
+related to the concept defined by the TermCode. Therefore, it is an attributeFilter. The timeRestriction can be regarded
+as attributeFilter which is always related to the clinical time of the criterion.
+
+With the defined metadata of a criterion, we can identify FHIR elements within a FHIR Profile that provide the possible
+values for the termCode, valueFilter, attributeFilter and timeRestriction.
+
+I.e in the FHIR Profile Observation we can find the following elements that are of interest for the criterion:
+
+```json
+{
+  "id": "Observation.code.coding:loinc",
+  "path": "Observation.code.coding",
+  "sliceName": "loinc",
+  "min": 1,
+  "max": "*",
+  "patternCoding": {
+    "system": "http://loinc.org",
+    "code": "8302-2"
+  },
+{
+  "id": "Observation.value[x]",
+  "path": "Observation.value[x]",
+  "slicing": {
+    "discriminator": [
+      {
+        "type": "type",
+        "path": "$this"
+      }
+    ],
+    "ordered": false,
+    "rules": "open"
+  },
+  "type": [
+    {
+      "code": "Quantity"
+    }
+  ],
+  "mustSupport": true
+},
+{
+"id": "Observation.valueQuantity.code",
+"path": "Observation.valueQuantity.code",
+"min": 1,
+"mustSupport": true,
+"binding": {
+"strength": "required",
+"valueSet": "http://hl7.org/fhir/ValueSet/ucum-bodylength|4.0.0"
+}
+```
+
+To specify a criterion we need to identify all elements and their path that relate to the criteria. In the example above
+we can see that the criterion "body height" is defined by the element "Observation.code.coding:loinc" and the value is
+defined by the element Observation.value[x] and the element Observation.valueQuantity.code. As all quantity values might
+have a unit it is sufficient to identify the element Observation.value[x], the unit is automatically resolved.
+
+```json
+{
+  "name": "ObservationValueQuantity",
+  "resource_type": "Observation",
+  "context": {
+    "system": "fdpg.mii.gecco",
+    "code": "QuantityObservation",
+    "display": "QuantityObservation"
+  },
+  "term_code_defining_id": "Observation.code.coding:loinc",
+  "value_defining_id": "Observation.value[x]:valueQuantity",
+  "time_restriction_defining_id": "Observation.effective[x]"
+}
+```
+
+Above you can see the full QueryingMetaData for the criterion "body height". As a matter of fact, the same
+QueryingMetaData can be used for all FHIR Profiles that define a quantity observation with a termCode at"
+"Observation.code.coding:loinc" and a value at "Observation.value[x]:valueQuantity"
+
+After successfully resolving all QueryingMetaData for all criteria, we can generate a search ontology. The search
+ontology consists of a mono hierarchy of all criteria, based on their relation to each other in their ontology. We refer
+to this hierarchy as ui-tree. The ui-tree only contains the termCodes of the criteria, the information on how to further
+specify the criteria is stored normalized in ui-profiles. I.e. the ui-profile for the criterion "body height" looks like
+this:
+
+```json
+{
+  "name": "BodyHeight",
+  "timeRestrictionAllowed": true,
+  "valueDefinitions": {
+    "allowedUnits": [
+      {
+        "code": "cm",
+        "display": "centimeter",
+        "system": "http://unitsofmeasure.org"
+      },
+      {
+        "code": "[in_i]",
+        "display": "inch (international)",
+        "system": "http://unitsofmeasure.org"
+      }
+    ],
+    "precision": 1,
+    "type": "quantity"
+  }
+}
+```
+Which allows the user to select a criterion "body height" and further specify the value using comparators and the 
+here defined units.
 
 ## Requirements
 
@@ -12,20 +125,3 @@ Access to a terminology server with all value sets defined in the gecco dataset
 |--------|-------------|---------|
 |ONTOLOGY_SERVER_ADDRESS | Address of the Ontology server fhir api| my_onto_server.com/fhir
 
-## Results
-Running the script results in:
-* downloading the GECCO data set
-* the creation of csv files in the csv folder with all terminologies used in the ui
-* the creation Anamnses Risikofaktoren.json Andere.json Demographie.json Laborwerte.json Therapie.json in /result
-* the creation of terminology tree structure to expand term codes and the termc ode mapping for the query builder in mapping
-
-
-
-## How it works
-The Logical Model of GECCO within the data set matches in its representation the hierarchy display below the  GECCO core entry: https://simplifier.net/guide/germancoronaconsensusdataset-implementationguide/home
-Within the Logical Model the categories can be identified as well as their sub entries. Both are parsed into a tree structure with its TermCode .
-Using the names of the sub entries the matching profiles are identified. In the process of parsing the corresponding profiles the resource type, its coding and optional value definitions are created. In cases where the value of a concept is itself a concept a valueset defines the possible values. Using a terminology server the valuesets are expanded and translated to the valuedefinitons.
-In the process an information loss takes place. All Fhir resources are reduced to a defining TermCode to identify the concept and an optional value definition defining the one possible value within the resource. In consequence additional information can be necessary in the process of translating the criterion to a fhir search or cql request. 
-The mapping Model therefor provides in addition to search parameters for each resource type, fixed criteria that concertize the request.
-To allow the selection of a parent criterion to refer to all criterions below a tree structure of all TermCodes is provided to find all children of a node.
-Wherever possible, the display texts are in German if a German display is either defined in the gecco dataset or provided by the terminology server. For each category, CSV files with German and English display texts are provided so that medical experts can add the German terms if they are missing.

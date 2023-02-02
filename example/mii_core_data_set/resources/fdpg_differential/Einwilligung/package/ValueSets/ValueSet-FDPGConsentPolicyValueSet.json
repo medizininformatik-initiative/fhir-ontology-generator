@@ -1,0 +1,260 @@
+{
+  "resourceType": "ValueSet",
+  "id": "2.16.840.1.113883.3.1937.777.24.11.36--202302020947",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/StructureDefinition/shareablevalueset"
+    ]
+  },
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/resource-effectivePeriod",
+      "valuePeriod": {
+        "start": "2021-04-23T10:55:54+01:00"
+      }
+    }
+  ],
+  "url": "https://www.medizininformatik-initiative.de/fhir/fdpg/ValueSet/mii-vs-consent-policy",
+  "identifier": [
+    {
+      "use": "official",
+      "system": "urn:ietf:rfc:3986",
+      "value": "urn:oid:2.16.840.1.113883.3.1937.777.24.11.36"
+    }
+  ],
+  "version": "1.0.0",
+  "name": "MII_FDPG_VS_Consent_Policy",
+  "title": "MII_FDPG Consent: Policy ValueSet",
+  "status": "active",
+  "experimental": false,
+  "date": "2022-10-07",
+  "publisher": "FDPG Developer Team",
+  "contact": [
+    {
+      "name": "FDPG Developer Team",
+      "telecom": [
+        {
+          "system": "email",
+          "value": "office@medizininformatik-initiative.de"
+        }
+      ]
+    }
+  ],
+  "description": "Valueset mit Consent-Policy-Codes zur interoperablen Operationalisierung bzw. Durchsetzung (Enforcement) von Consent Informationen des MII Broad Consent reduziert auf die für das FDPG relevanten Codes.",
+
+
+  "immutable": false,
+  "compose": {
+    "include": [
+      {
+        "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+        "concept": [
+          {
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.1",
+            "display": "PATDAT_erheben_speichern_nutzen"
+          },
+          {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-concept-comments",
+                "valueString": "Erfassung neuer identifizierender Daten (IDAT)"
+              }
+            ],
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.2",
+            "display": "IDAT_erheben"
+          },
+          {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-concept-comments",
+                "valueString": "Speicherung und Verarbeitung identifizierender Daten (IDAT) zu Zwecken med. Forschung in der verantwortlichen Stelle"
+              }
+            ],
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.3",
+            "display": "IDAT_speichern_verarbeiten"
+          },
+          {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-concept-comments",
+                "valueString": "Zusammenführung identifizierender Daten (IDAT) über die unabhängige Treuhandstelle mit Dritten Forschungspartnern, sofern dort eine Einwilligung vorliegt"
+              }
+            ],
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.4",
+            "display": "IDAT_zusammenfuehren_Dritte"
+          },
+          {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-concept-comments",
+                "valueString": "Herausgabe identifizierender Daten (IDAT) an unabhängige Treuhandstelle zur weiteren Verarbeitung"
+              }
+            ],
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.5",
+            "display": "IDAT_bereitstellen_EU_DSGVO_NIVEAU"
+          },
+          {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-concept-comments",
+                "valueString": "Erfassung medizinischer Daten (MDAT)"
+              }
+            ],
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.6",
+            "display": "MDAT_erheben"
+          },
+          {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-concept-comments",
+                "valueString": "Speicherung und Verarbeitung von medizinischen codierten Daten zu Zwecken med.\nForschung innerhalb der verantwortlichen Stelle (MDAT)"
+              }
+            ],
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.7",
+            "display": "MDAT_speichern_verarbeiten"
+          },
+          {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-concept-comments",
+                "valueString": "Bereitstellung umcodierter medizinischer Daten (MDAT) für wissenschaftliche Nutzung zu Zwecken med. Forschung an externe Forscher"
+              }
+            ],
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.8",
+            "display": "MDAT_wissenschaftlich_nutzen_EU_DSGVO_NIVEAU"
+          },
+          {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-concept-comments",
+                "valueString": "Zusammenführung medizinischer Daten (MDAT) mit Dritten Forschungspartnern, sofern dort eine Einwilligung vorliegt"
+              }
+            ],
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.9",
+            "display": "MDAT_zusammenfuehren_Dritte"
+          },
+          {
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.18",
+            "display": "BIOMAT_erheben_lagern_nutzen"
+          },
+          {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-concept-comments",
+                "valueString": "Gewinnung von Biomaterialien (BIOMAT)"
+              }
+            ],
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.19",
+            "display": "BIOMAT_erheben"
+          },
+          {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-concept-comments",
+                "valueString": "Lagerung und codierte Verarbeitung von Biomaterialien zu Zwecken der med. Forschung innerhalb der verantwortlichen Stelle (BIOMAT)"
+              }
+            ],
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.20",
+            "display": "BIOMAT_lagern_verarbeiten"
+          },
+          {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-concept-comments",
+                "valueString": "Eigentumsübertragung der BIOMAT an den Träger der Biobank"
+              }
+            ],
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.21",
+            "display": "BIOMAT_Eigentum_uebertragen"
+          },
+          {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-concept-comments",
+                "valueString": "Bereitstellung umcodierter Biomaterialien (BIOMAT)  für wissenschaftliche Nutzung  und Analysen zu Zwecken med. Forschung an ext. Forscher"
+              }
+            ],
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.22",
+            "display": "BIOMAT_wissenschaftlich_nutzen_EU_DSGVO_NIVEAU"
+          },
+          {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-concept-comments",
+                "valueString": "Zusammenführen von auf Biomaterialien (BIOMAT) basierenden Analysedaten mit Analysedaten Dritter, sofern dort ebenfalls eine Einwilligung vorliegt"
+              }
+            ],
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.23",
+            "display": "BIOMAT_Analysedaten_zusammenfuehren_Dritte"
+          },
+          {
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.24",
+            "display": "BIOMAT_Zusatzentnahme"
+          },
+          {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-concept-comments",
+                "valueString": "Entnahme zusätzlicher Mengen von Biomaterialien (BIOMAT) in den in der Einwilligung\nbeschriebenen Grenzen"
+              }
+            ],
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.25",
+            "display": "BIOMAT_Zusatzmengen_entnehmen"
+          },
+          {
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.50",
+            "display": "BIOMAT_retrospektiv_speichern_nutzen"
+          },
+          {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-concept-comments",
+                "valueString": "Lagerung und codierte Verarbeitung von retrospektiven Biomaterialien zu Zwecken der med. Forschung innerhalb der verantwortlichen Stelle (BIOMAT)"
+              }
+            ],
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.51",
+            "display": "BIOMAT_retro_lagern_verarbeiten"
+          },
+          {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-concept-comments",
+                "valueString": "Bereitstellung retrospektiver umcodierter Biomaterialien (BIOMAT)  für wissenschaftliche Nutzung  und Analysen"
+              }
+            ],
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.52",
+            "display": "BIOMAT_retro_wissenschaftlich_nutzen_EU_DSGVO_NIVEAU"
+          },
+          {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-concept-comments",
+                "valueString": "Zusammenführen von auf retrospektiven Biomaterialien (BIOMAT) basierenden Analysedaten mit Analysedaten Dritter, sofern dort ebenfalls eine Einwilligung vorliegt"
+              }
+            ],
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.53",
+            "display": "BIOMAT_retro_Analysedaten_zusammenfuehren_Dritte"
+          },
+          {
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.54",
+            "display": "BIOMAT_Weitergabe_non_EU_DSGVO_NIVEAU"
+          },
+          {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-concept-comments",
+                "valueString": "Umcodierte Biomaterialien (BIOMAT) an Länder ohne EU Datenschutzniveau weitergeben zu Zwecken d. med. Forschung"
+              }
+            ],
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.55",
+            "display": "BIOMAT_bereitstellen_non_EU_DSGVO_NIVEAU"
+          },
+          {
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.26",
+            "display": "Rekontaktierung_Ergaenzungen"
+          }
+        ]
+      }
+    ]
+  }
+}

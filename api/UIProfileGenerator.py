@@ -190,6 +190,8 @@ class UIProfileGenerator:
                                                                       profile_snapshot.get("name"))
         elif attribute_type == "reference":
             raise InvalidValueTypeException("Reference type need to be resolved using the Resolve().elementid syntax")
+            # attribute_definition = self.generate_reference_attribute_definition(profile_snapshot,
+            #                                                                     attribute_defining_element_id)
         elif attribute_type == "composed":
             attribute_definition = self.generate_composed_attribute(profile_snapshot,
                                                                     attribute_defining_element_id)
@@ -265,3 +267,6 @@ class UIProfileGenerator:
         :return: return true if a time restricting element is identified in the querying meta data
         """
         return querying_meta_data.time_restriction_defining_id is not None
+
+    def generate_reference_attribute_definition(self, profile_snapshot, attribute_defining_element_id):
+        pass
