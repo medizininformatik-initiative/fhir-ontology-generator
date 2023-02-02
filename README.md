@@ -113,6 +113,35 @@ this:
 Which allows the user to select a criterion "body height" and further specify the value using comparators and the 
 here defined units.
 
+Beside the ui-tree and ui-profiles we also generate a fhir search mapping and a cql mapping. 
+Based on the termCode the fhir search parameter and the fhir path are identified for the termCode, the valueFilter and
+each attributeFilter.
+
+CQL Mapping generated for Body Height Profile and the provided QueryingMetaData:
+
+```json
+{
+    "name": "QuantityObservation",
+    "resource_type": "Observation",
+    "termCodeFhirPath": "code.coding",
+    "termValueFhirPath": "value",
+    "timeRestrictionPath": "effective"
+}
+```
+
+FHIR Search Mapping generated for Body Height Profile and the provided QueryingMetaData:
+
+```json
+{
+    "name": "QuantityObservation",
+    "resource_type": "Observation",
+    "termCodeSearchParameter": "code",
+    "timeRestrictionParameter": "date",
+    "valueSearchParameter": "value-quantity",
+    "valueType": "quantity"
+}
+```
+
 ## Requirements
 
 Python 3.8 or higher \
