@@ -77,6 +77,9 @@ def get_closure_map(term_codes):
     body = {"resourceType": "Parameters",
             "parameter": [{"name": "name", "valueString": "closure-test"}]}
     for term_code in term_codes:
+        # FIXME we need handling for multiple versions in 1 value set. As closure does not support multiple versions
+        if term_code.system == "http://fhir.de/CodeSystem/bfarm/atc" and term_code.version != "2022":
+            continue
         body["parameter"].append({"name": "concept",
                                   "valueCoding": {
                                       "system": f"{term_code.system}",
@@ -89,7 +92,7 @@ def get_closure_map(term_codes):
     if response.status_code == 200:
         closure_response = response.json()
     else:
-        raise Exception(response.content)
+        raise Exception(f"{response.content} {term_codes}")
     return closure_response
 
 

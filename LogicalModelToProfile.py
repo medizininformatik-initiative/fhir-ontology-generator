@@ -78,5 +78,6 @@ LOGICAL_MODEL_TO_PROFILE = {
     "Durchfuehrungsabsicht": "durchfuehrungsabsicht",
     "Dokumentationsdatum": "recordedDate",
     "MedicationAdministrationMedikation": "MedicationAdministration",
-    "MedicationStatementMedikation": "MedicationStatement"
+    "MedicationStatementMedikation": "MedicationStatement",
+    "Mii_pr_consent_einwilligung": "MII_Consent_Einwilligung"
 }

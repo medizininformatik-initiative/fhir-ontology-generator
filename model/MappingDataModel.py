@@ -33,10 +33,12 @@ class MapEntry:
         self.valueSearchParameter = None
         self.timeRestrictionParameter = None
         self.timeRestrictionPath = None
+        self.codeFhirPath = None
         self.fhirResourceType = None
-        # self.fixedCriteria = []
+        self.fixedCriteria = []
         self.valueFhirPath = None
         self.attributeSearchParameters = []
+        self.primaryCode = None
 
     def __eq__(self, other):
         return self.key == other.key
@@ -134,6 +136,113 @@ class ConsentMapEntry(MapEntry):
         self.fhirResourceType = "Consent"
         self.timeRestrictionParameter = "date"
         self.timeRestrictionPath = "dateTime"
+
+
+class MIIConsentMapEntry(MapEntry):
+    def __init__(self, term_code):
+        super().__init__(term_code)
+        self.termCodeSearchParameter = "mii-provision-provision-code"
+        self.codeFhirPath = "provision.provision.code"
+        self.primaryCode = TermCode("http://loinc.org", "54133-1", "Consent Document")
+        self.fhirResourceType = "Consent"
+        self.timeRestrictionParameter = "date"
+        self.timeRestrictionPath = "dateTime"
+
+
+class MIIConsentCombinedMapEntry(MapEntry):
+    def __init__(self, term_code):
+        super().__init__(term_code)
+        self.fhirResourceType = "Consent"
+        self.timeRestrictionParameter = "date"
+        self.timeRestrictionPath = "dateTime"
+        self.primaryCode = TermCode("http://loinc.org", "54133-1", "Consent Document")
+
+        active = TermCode("http://hl7.org/fhir/consent-state-codes", "active", "Active")
+        active_fixed_criteria = FixedCriteria("code", "status", "status", [active])
+
+        consent_system = "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3"
+        idat_bereitstellen_eu_dsgvo_niveau_code = "2.16.840.1.113883.3.1937.777.24.5.3.5"
+        idat_bereitstellen_eu_dsgvo_niveau_display = "IDAT bereitstellen EU DSGVO NIVEAU"
+        idat_bereitstellen_eu_dsgvo_niveau = TermCode(consent_system, idat_bereitstellen_eu_dsgvo_niveau_code,
+                                                      idat_bereitstellen_eu_dsgvo_niveau_display)
+        idat_bereitstellen_eu_dsgvo_niveau_fixed_critiera = FixedCriteria("coding", "mii-provision-provision-code",
+                                                                          "provision.provision.code",
+                                                                          [idat_bereitstellen_eu_dsgvo_niveau])
+        idat_erheben_code = "2.16.840.1.113883.3.1937.777.24.5.3.2"
+        idat_erheben_display = "IDAT erheben"
+        idat_erhben = TermCode(consent_system, idat_erheben_code, idat_erheben_display)
+        idat_erheben_fixed_critiera = FixedCriteria("coding", "mii-provision-provision-code",
+                                                    "provision.provision.code", [idat_erhben])
+        idat_speichern_verarbeiten_code = "2.16.840.1.113883.3.1937.777.24.5.3.3"
+        idat_speichern_verarbeiten_display = "IDAT speichern/verarbeiten"
+        idat_speichern_verarbeiten = TermCode(consent_system, idat_speichern_verarbeiten_code,
+                                              idat_speichern_verarbeiten_display)
+        idat_speichern_verarbeiten_fixed_critiera = FixedCriteria("coding", "mii-provision-provision-code",
+                                                                  "provision.provision.code",
+                                                                  [idat_speichern_verarbeiten])
+        idat_zusammenfuehren_dritte_code = "2.16.840.1.113883.3.1937.777.24.5.3.4"
+        idat_zusammenfuehren_dritte_display = "IDAT zusammenfuehren mit Dritte"
+        idat_zusammenfuehren_dritte = TermCode(consent_system, idat_zusammenfuehren_dritte_code,
+                                               idat_zusammenfuehren_dritte_display)
+        idat_zusammenfuehren_dritte_fixed_critiera = FixedCriteria("coding", "mii-provision-provision-code",
+                                                                   "provision.provision.code",
+                                                                   [idat_zusammenfuehren_dritte])
+        mdat_erheben_code = "2.16.840.1.113883.3.1937.777.24.5.3.6"
+        mdat_erheben_display = "MDAT erheben"
+        mdat_erheben = TermCode(consent_system, mdat_erheben_code, mdat_erheben_display)
+        mdat_erheben_fixed_critiera = FixedCriteria("coding", "mii-provision-provision-code",
+                                                    "provision.provision.code", [mdat_erheben])
+
+        mdat_speichern_verarbeiten_code = "2.16.840.1.113883.3.1937.777.24.5.3.7"
+        mdat_speichern_verarbeiten_display = "MDAT speichern/verarbeiten"
+        mdat_speichern_verarbeiten = TermCode(consent_system, mdat_speichern_verarbeiten_code,
+                                              mdat_speichern_verarbeiten_display)
+        mdat_speichern_verarbeiten_fixed_critiera = FixedCriteria("coding", "mii-provision-provision-code",
+                                                                  "provision.provision.code",
+                                                                  [mdat_speichern_verarbeiten])
+        mdat_wissenschaftlich_nutzen_eu_dsgvo_niveau_code = "2.16.840.1.113883.3.1937.777.24.5.3.8"
+        mdat_wissenschaftlich_nutzen_eu_dsgvo_niveau_display = "MDAT wissenschaftlich nutzen EU DSGVO NIVEAU"
+        mdat_wissenschaftlich_nutzen_eu_dsgvo_niveau = TermCode(consent_system,
+                                                                mdat_wissenschaftlich_nutzen_eu_dsgvo_niveau_code,
+                                                                mdat_wissenschaftlich_nutzen_eu_dsgvo_niveau_display)
+        mdat_wissenschaftlich_nutzen_eu_dsgvo_niveau_fixed_critiera = FixedCriteria("coding",
+                                                                                    "mii-provision-provision-code",
+                                                                                    "provision.provision.code",
+                                                                                    [
+                                                                                        mdat_wissenschaftlich_nutzen_eu_dsgvo_niveau])
+
+        mdat_zusammenfuehren_dritte_code = "2.16.840.1.113883.3.1937.777.24.5.3.9"
+        mdat_zusammenfuehren_dritte_display = "MDAT zusammenfuehren mit Dritte"
+        mdat_zusammenfuehren_dritte = TermCode(consent_system, mdat_zusammenfuehren_dritte_code,
+                                               mdat_zusammenfuehren_dritte_display)
+        mdat_zusammenfuehren_dritte_fixed_critiera = FixedCriteria("coding", "mii-provision-provision-code",
+                                                                   "provision.provision.code",
+                                                                   [mdat_zusammenfuehren_dritte])
+
+        patdat_erheben_speichern_nutzen_code = "2.16.840.1.113883.3.1937.777.24.5.3.1"
+        patdat_erheben_speichern_nutzen_display = "PATDAT erheben/speichern/nutzen"
+        patdat_erheben_speichern_nutzen = TermCode(consent_system, patdat_erheben_speichern_nutzen_code,
+                                                   patdat_erheben_speichern_nutzen_display)
+        patdat_erheben_speichern_nutzen_fixed_critiera = FixedCriteria("coding", "mii-provision-provision-code",
+                                                                       "provision.provision.code",
+                                                                       [patdat_erheben_speichern_nutzen])
+        rekontaktierung_ergaenzungen_code = "2.16.840.1.113883.3.1937.777.24.5.3.26"
+        rekontaktierung_ergaenzungen_display = "Rekontaktierung/Ergaenzungen"
+        rekontaktierung_ergaenzungen = TermCode(consent_system, rekontaktierung_ergaenzungen_code,
+                                                rekontaktierung_ergaenzungen_display)
+        rekontaktierung_ergaenzungen_fixed_critiera = FixedCriteria("coding", "mii-provision-provision-code",
+                                                                    "provision.provision.code",
+                                                                    [rekontaktierung_ergaenzungen])
+
+        self.fixedCriteria = [active_fixed_criteria, idat_bereitstellen_eu_dsgvo_niveau_fixed_critiera,
+                              idat_erheben_fixed_critiera,
+                              idat_speichern_verarbeiten_fixed_critiera,
+                              idat_zusammenfuehren_dritte_fixed_critiera, mdat_erheben_fixed_critiera,
+                              mdat_speichern_verarbeiten_fixed_critiera,
+                              mdat_wissenschaftlich_nutzen_eu_dsgvo_niveau_fixed_critiera,
+                              mdat_zusammenfuehren_dritte_fixed_critiera,
+                              patdat_erheben_speichern_nutzen_fixed_critiera,
+                              rekontaktierung_ergaenzungen_fixed_critiera]
 
 
 class DiagnosisCovid19MapEntry(MapEntry):
@@ -242,6 +351,24 @@ class PatientMapEntry(MapEntry):
                                           gender_attribute_term_code_search_parameter]
 
 
+class MIIAgeMapEntry(MapEntry):
+    def __init__(self, term_code):
+        super().__init__(term_code)
+        self.fhirResourceType = "Patient"
+        self.valueSearchParameter = "birthDate"
+        self.valueFhirPath = "birthDate"
+        self.valueType = "Age"
+
+
+class MIIGenderMapEntry(MapEntry):
+    def __init__(self, term_code):
+        super().__init__(term_code)
+        self.fhirResourceType = "Patient"
+        self.valueSearchParameter = "gender"
+        self.valueFhirPath = "gender"
+        self.valueType = "code"
+
+
 class ProcedureMapEntry(MapEntry):
     def __init__(self, term_code):
         super().__init__(term_code)
@@ -331,6 +458,8 @@ def str_to_class(class_name):
 def generate_child_entries(children, class_name):
     result = SortedSet()
     for child in children:
+        if child.fhirMapperType:
+            class_name = child.fhirMapperType + "MapEntry"
         result.add(str_to_class(class_name)(child.termCode))
         result = result.union(generate_child_entries(child.children, class_name))
     return result

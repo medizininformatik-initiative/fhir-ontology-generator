@@ -3,15 +3,15 @@ import json
 import os
 import shutil
 from os import path
+
 from jsonschema import validate
 
 from FHIRProfileConfiguration import *
 from database.DataBaseWriter import DataBaseWriter
+from geccoToUIProfiles import create_terminology_definition_for, get_gecco_categories, IGNORE_CATEGORIES, \
+    MAIN_CATEGORIES, resolve_terminology_entry_profile, profile_is_of_interest
 from model.MappingDataModel import generate_map
 from model.UiDataModel import TerminologyEntry, TermCode
-from geccoToUIProfiles import create_terminology_definition_for, get_gecco_categories, IGNORE_CATEGORIES, \
-    MAIN_CATEGORIES, IGNORE_LIST, \
-    get_consent, resolve_terminology_entry_profile, get_ui_profiles, profile_is_of_interest, get_specimen
 from model.termCodeTree import to_term_code_node
 
 
@@ -194,14 +194,12 @@ if __name__ == '__main__':
     if GECCO in core_data_sets:
         category_entries = create_terminology_definition_for(get_gecco_categories())
     # TODO: ones the consent profiles are declared use them instead!
-    category_entries.append(get_consent())
-    category_entries.append(get_specimen())
     move_back_other(category_entries)
     generate_ui_profiles(category_entries)
 
     category_entries += core_data_category_entries
-    dbw = DataBaseWriter()
-    dbw.add_ui_profiles_to_db(category_entries)
+    # dbw = DataBaseWriter()
+    # dbw.add_ui_profiles_to_db(category_entries)
     generate_term_code_mapping(category_entries)
     generate_term_code_tree(category_entries)
     # to_csv(category_entries)

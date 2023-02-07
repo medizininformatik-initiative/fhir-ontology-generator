@@ -1,7 +1,5 @@
 import os
 
-import requests
-
 import csv
 from lxml import etree
 
@@ -87,7 +85,6 @@ def create_terminology_definition_for(categories):
                     raise Exception(f"Unknown element {element['type'][0]['code']}")
     for category_entry in category_terminology_entries:
         category_entry.children = sorted(category_entry.children)
-    print(category_terminology_entries)
     return category_terminology_entries
 
 
@@ -141,6 +138,7 @@ def resolve_terminology_entry_profile(terminology_entry, element=None, data_set=
                 profile_data = json.load(profile_file)
                 if is_logical_or_bundle(profile_data):
                     continue
+                print(profile_data["type"])
                 # We differentiate between corner and none corner cases only for readability.
                 if profile_data["name"] in corner_cases:
                     corner_cases.get(profile_data["name"])(profile_data, terminology_entry, element)
@@ -220,8 +218,32 @@ def translate_condition(profile_data, terminology_entry, _logical_element):
 
 
 def translate_consent(profile_data, terminology_entry, _logical_element):
-    terminology_entry.fhirMapperType = "Consent"
-    terminology_entry.uiProfile = generate_consent_ui_profile(profile_data, _logical_element)
+    # FIXME this is hardcoded for the mii consent.
+    terminology_entry.display = "Einwilligung"
+    terminology_entry.fhirMapperType = "MIIConsent"
+    element_id = "Consent.provision.provision.code"
+    terminology_entry.uiProfile = generate_default_ui_profile(profile_data["name"], _logical_element)
+    children = get_term_entries_by_id(element_id, profile_data)
+    bioproben_consent = TerminologyEntry([TermCode("mii.abide", "bioproben", "Bioproben Einwilligung")], None, False, False)
+    bioproben_consent.fhirMapperType = "MIIConsent"
+    central_evaluation_consent = TerminologyEntry(
+        [TermCode("mii.abide", "zentrale-evaluierung", "Zentrale Auswertung Einwilligung")], None, False, False)
+    central_evaluation_consent.fhirMapperType = "MIIConsent"
+    if children:
+        for child in children:
+            if child.display.startswith("BIOMAT"):
+                bioproben_consent.children.append(child)
+            else:
+                central_evaluation_consent.children.append(child)
+            inherit_parent_attributes(child)
+    combined_consent_term_entry = TerminologyEntry(
+        [TermCode("mii.abide", "combined-consent", "Einwilligung für die zentrale Datenanalyse")],
+        None, True, True)
+    combined_consent_term_entry.fhirMapperType = "MIIConsentCombined"
+    combined_consent_term_entry.uiProfile = generate_default_ui_profile(profile_data["name"], _logical_element)
+    terminology_entry.children.append(combined_consent_term_entry)
+    terminology_entry.leaf = False
+    terminology_entry.children = [combined_consent_term_entry, bioproben_consent, central_evaluation_consent]
 
 
 def translate_dependency_on_ventilator(profile_data, terminology_entry, _logical_element):
@@ -354,14 +376,14 @@ def translate_patient(profile_data, terminology_entry, _logical_element):
     # Care if we make attributes children we cannot use inherit_parent_attributes! nor can we use a single ui-profile.
 
     def get_age_entry():
-        age_code = TermCode("mii.abide", "age", "Alter")
+        age_code = TermCode("http://snomed.info/sct", "424144002", "Gegenwärtiges chronologisches Alter")
         age_entry = TerminologyEntry([age_code])
         age_entry.fhirMapperType = "Patient"
         age_entry.uiProfile = generate_age_kds_ui_profile(profile_data, _logical_element)
         return age_entry
 
     def get_gender_entry():
-        gender_code = TermCode("mii.abide", "gender", "Geschlecht")
+        gender_code = TermCode("http://snomed.info/sct", "263495000", "Geschlecht")
         gender_entry = TerminologyEntry([gender_code])
         gender_entry.fhirMapperType = "Patient"
         gender_entry.uiProfile = generate_gender_ui_profile(profile_data, _logical_element)
