@@ -33,12 +33,16 @@ def to_csv(category_list):
         sheet.writerow(get_terminology_entry_row(terminology_entry))
         for child in terminology_entry.children:
             add_terminology_entry(child)
-        for definition in terminology_entry.valueDefinition:
-            for concept in definition.selectableConcepts:
+        if terminology_entry.uiProfile and terminology_entry.uiProfile.valueDefinition:
+            for concept in terminology_entry.uiProfile.valueDefinition.selectableConcepts:
                 sheet.writerow(get_termcode_row(concept))
+        if terminology_entry.uiProfile and terminology_entry.uiProfile.attributeDefinitions:
+            for definition in terminology_entry.uiProfile.attributeDefinitions:
+                for concept in definition.selectableConcepts:
+                    sheet.writerow(get_termcode_row(concept))
 
     for category in category_list:
-        with open("csv/" + category.display.replace("/ ", "") + '.csv', 'w', newline='') as f:
+        with open("csv/" + category.display.replace("/ ", "") + '.csv', 'w', newline='', encoding="utf-8") as f:
             sheet = csv.writer(f)
             for entry in category.children:
                 add_terminology_entry(entry)

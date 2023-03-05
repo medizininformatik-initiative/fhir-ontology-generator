@@ -13,6 +13,7 @@ from geccoToUIProfiles import create_terminology_definition_for, get_gecco_categ
 from model.MappingDataModel import generate_map
 from model.UiDataModel import TerminologyEntry, TermCode
 from model.termCodeTree import to_term_code_node
+from termEntryToExcel import to_csv
 
 
 def mkdir_if_not_exists(directory):

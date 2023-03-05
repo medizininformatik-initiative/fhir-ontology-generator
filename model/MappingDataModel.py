@@ -39,6 +39,7 @@ class MapEntry:
         self.valueFhirPath = None
         self.attributeSearchParameters = []
         self.primaryCode = None
+        self.valueType = None
 
     def __eq__(self, other):
         return self.key == other.key
@@ -141,12 +142,15 @@ class ConsentMapEntry(MapEntry):
 class MIIConsentMapEntry(MapEntry):
     def __init__(self, term_code):
         super().__init__(term_code)
-        self.termCodeSearchParameter = "mii-provision-provision-code"
+        self.termCodeSearchParameter = "provisionCode"
         self.codeFhirPath = "provision.provision.code"
         self.primaryCode = TermCode("http://loinc.org", "54133-1", "Consent Document")
         self.fhirResourceType = "Consent"
         self.timeRestrictionParameter = "date"
         self.timeRestrictionPath = "dateTime"
+        active = TermCode("http://hl7.org/fhir/consent-state-codes", "active", "Active")
+        active_fixed_criteria = FixedCriteria("code", "status", "status", [active])
+        self.fixedCriteria = [active_fixed_criteria]
 
 
 class MIIConsentCombinedMapEntry(MapEntry):
@@ -367,6 +371,7 @@ class MIIGenderMapEntry(MapEntry):
         self.valueSearchParameter = "gender"
         self.valueFhirPath = "gender"
         self.valueType = "code"
+        self.valueTypeFhir = "code"
 
 
 class ProcedureMapEntry(MapEntry):

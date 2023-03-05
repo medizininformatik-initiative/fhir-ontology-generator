@@ -64,7 +64,7 @@ def generate_procedure_mapping(term_code):
     return AQLMapEntry(term_code, tc_open_ehr_type, tc_value_path, tc_path_list, None, None)
 
 
-def generate_demographic_mapping(term_code):
+def generate_gender_mapping(term_code):
     ehr_template = etree.parse(f"resources\\openehr\\templates\\KDS\\KDS_Person.oet")
     term_code_archetype = "openEHR-EHR-EVALUATION.gender.v1"
     term_code_path = "/data[at0002]/items[at0022]"
@@ -76,7 +76,9 @@ def generate_demographic_mapping(term_code):
 
 # TODO: This should be done using vs lookups, but that is to slow in the development phase
 def generate_aql_mapping(term_code: TermCode):
-    if term_code.system == "http://snomed.info/sct":
+    if term_code.code == "263495000":
+        return generate_gender_mapping(term_code)
+    elif term_code.system == "http://snomed.info/sct":
         return generate_specimen_mapping(term_code)
     elif term_code.system == "http://loinc.org":
         return generate_lab_mapping(term_code)
@@ -88,8 +90,6 @@ def generate_aql_mapping(term_code: TermCode):
         return generate_procedure_mapping(term_code)
     elif term_code.system == "urn:oid:2.16.840.1.113883.3.1937.777.24.5.1":
         return generate_consent_mapping(term_code)
-    elif term_code.system == "mii.abide":
-        return generate_demographic_mapping(term_code)
     else:
         print(f"no mapping generated for: {term_code}")
 

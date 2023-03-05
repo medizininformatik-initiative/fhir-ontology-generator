@@ -378,14 +378,14 @@ def translate_patient(profile_data, terminology_entry, _logical_element):
     def get_age_entry():
         age_code = TermCode("http://snomed.info/sct", "424144002", "Gegenwärtiges chronologisches Alter")
         age_entry = TerminologyEntry([age_code])
-        age_entry.fhirMapperType = "Patient"
+        age_entry.fhirMapperType = "MIIAge"
         age_entry.uiProfile = generate_age_kds_ui_profile(profile_data, _logical_element)
         return age_entry
 
     def get_gender_entry():
         gender_code = TermCode("http://snomed.info/sct", "263495000", "Geschlecht")
         gender_entry = TerminologyEntry([gender_code])
-        gender_entry.fhirMapperType = "Patient"
+        gender_entry.fhirMapperType = "MIIGender"
         gender_entry.uiProfile = generate_gender_ui_profile(profile_data, _logical_element)
         return gender_entry
 
