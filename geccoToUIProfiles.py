@@ -578,6 +578,8 @@ def get_terminology_entry_from_top_300_loinc(element_id, element_tree):
                             terminology_entry.fhirMapperType = "ConceptObservation"
                         elif terminology_entry.uiProfile.valueDefinition.type == "QuantityObservation":
                             terminology_entry.fhirMapperType = "QuantityObservation"
+                        elif terminology_entry.uiProfile.valueDefinition.type == "quantity":
+                            terminology_entry.fhirMapperType = "QuantityObservation"
     return terminology_entry
 
 
