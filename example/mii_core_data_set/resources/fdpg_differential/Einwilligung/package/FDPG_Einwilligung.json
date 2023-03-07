@@ -13,6 +13,11 @@
   "differential": {
     "element": [
       {
+        "id": "Consent.subject.reference",
+        "path": "Consent.subject.reference",
+        "min": 1
+      },
+      {
         "id": "Consent.provision",
         "path": "Consent.provision",
         "min": 1

@@ -1,7 +1,7 @@
 {
   "resourceType": "StructureDefinition",
   "id": "71w5aa8f-74aa-4c43-845c-a6420aad8bd9",
-  "url": "https://www.medizininformatik-initiative.de/fhir/fdpg/StructureDefinition/Specimen",
+  "url": "https://www.medizininformatik-initiative.de/fhir/fdpg/StructureDefinition/Bioprobe",
   "name": "Bioprobe",
   "status": "active",
   "fhirVersion": "4.0.1",
@@ -12,6 +12,11 @@
   "derivation": "constraint",
   "differential": {
     "element": [
+      {
+        "id": "Specimen.subject.reference",
+        "path": "Specimen.subject.reference",
+        "min": 1
+      },
       {
         "id": "Specimen.type.coding:sct",
         "path": "Specimen.type.coding",

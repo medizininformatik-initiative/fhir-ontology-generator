@@ -24,7 +24,7 @@ class StructureDefinitionParserTestCase(unittest.TestCase):
 
     def test_get_element_defining_elements_complex(self):
         with open("../../example/mii_core_data_set/resources/fdpg_differential/Bioprobe/package/"
-                  "StructureDefinition-Specimen-snapshot.json", 'r') as f:
+                  "StructureDefinition-FDPG_Specimen.StructureDefinition-snapshot.json", 'r') as f:
             profile = json.load(f)
             resolved_element = get_element_defining_elements("((Specimen.extension:festgestellteDiagnose).value[x])"
                                                              ".code.coding:icd10-gm", profile,

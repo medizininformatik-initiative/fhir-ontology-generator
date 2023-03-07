@@ -1,7 +1,7 @@
 {
   "resourceType": "StructureDefinition",
-  "id": "Diagnose",
-  "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Diagnose",
+  "id": "18089f89-796b-4dc7-99bd-13e3e10c5516",
+  "url": "https://www.medizininformatik-initiative.de/fhir/fdpg/StructureDefinition/ExtensionDiagnose",
   "name": "ExtensionDiagnose",
   "title": "Extension - Diagnose",
   "status": "active",

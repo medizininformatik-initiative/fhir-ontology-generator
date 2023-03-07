@@ -13,6 +13,17 @@
   "differential": {
     "element": [
       {
+        "id": "Condition.subject.reference",
+        "path": "Condition.subject.reference",
+        "min": 1
+      },
+      {
+        "id": "Condition.code.coding:icd10-gm",
+        "path": "Condition.code.coding",
+        "sliceName": "icd10-gm",
+        "min": 1
+      },
+      {
         "id": "Condition.code.coding:icd10-gm",
         "path": "Condition.code.coding",
         "sliceName": "icd10-gm",

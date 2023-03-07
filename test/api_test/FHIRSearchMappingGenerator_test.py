@@ -14,7 +14,7 @@ class MyTestCase(unittest.TestCase):
         mapping_generator.data_set_dir = "../../example/mii_core_data_set/resources/fdpg_differential/"
 
         with open("../../example/mii_core_data_set/resources/fdpg_differential/Bioprobe/package/"
-                  "StructureDefinition-Specimen-snapshot.json", 'r') as f:
+                  "StructureDefinition-FDPG_Specimen.StructureDefinition-snapshot.json", 'r') as f:
             profile_snapshot = json.load(f)
             actual_fhir_paths = mapping_generator.translate_element_id_to_fhir_path_expressions(
                 "((Specimen.extension:festgestellteDiagnose)"
@@ -68,7 +68,7 @@ class MyTestCase(unittest.TestCase):
         mapping_generator.data_set_dir = "../../example/mii_core_data_set/resources/fdpg_differential/"
 
         with open("../../example/mii_core_data_set/resources/fdpg_differential/Bioprobe/package/"
-                  "StructureDefinition-Specimen-snapshot.json", 'r') as f:
+                  "StructureDefinition-FDPG_Specimen.StructureDefinition-snapshot.json", 'r') as f:
             profile_snapshot = json.load(f)
             actual_search_parameter = mapping_generator.resolve_fhir_search_parameter(
                 "((Specimen.extension:festgestellteDiagnose)"

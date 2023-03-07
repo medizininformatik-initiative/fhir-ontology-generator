@@ -10,7 +10,7 @@ class UIProfileGeneratorTestCases(unittest.TestCase):
         resolver = MIICoreDataSetQueryingMetaDataResolver()
         mapper = FHIRSearchMappingGenerator(resolver)
         with open('../../example/mii_core_data_set/resources/fdpg_differential/Bioprobe/package/'
-                  'StructureDefinition-Specimen-snapshot.json', 'r') as f:
+                  'FDPG_Specimen.StructureDefinition-snapshot.json', 'r') as f:
             fhir_path = mapper.translate_element_id_to_fhir_path_expressions(
                 'Specimen.extension:festgestellteDiagnose',
                 json.load(f))

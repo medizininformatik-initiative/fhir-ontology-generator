@@ -1,8 +1,8 @@
 {
   "resourceType": "StructureDefinition",
   "id": "e378dc52-70c2-4bff-98cc-fde79fa672b0",
-  "url": "https://example.org/fhir/StructureDefinition/ABIDE_Medication_ATCde",
-  "name": "ABIDE_Medication_ATCde",
+  "url": "https://www.medizininformatik-initiative.de/fhir/fdpg/StructureDefinition/Medikation",
+  "name": "Medikation",
   "status": "active",
   "fhirVersion": "4.0.1",
   "kind": "resource",
