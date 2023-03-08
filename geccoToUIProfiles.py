@@ -603,7 +603,7 @@ profile_translation_mapping = {
     "Patient": translate_patient,
     "Procedure": translate_procedure,
     "ResearchSubject": translate_research_subject,
-    "Specimen": do_nothing,
+    "Specimen": translate_specimen,
     "Substance": translate_substance
 }
 

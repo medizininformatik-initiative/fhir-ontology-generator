@@ -142,7 +142,7 @@ class ConsentMapEntry(MapEntry):
 class MIIConsentMapEntry(MapEntry):
     def __init__(self, term_code):
         super().__init__(term_code)
-        self.termCodeSearchParameter = "provisionCode"
+        self.termCodeSearchParameter = "mii-provision-provision-code"
         self.codeFhirPath = "provision.provision.code"
         self.primaryCode = TermCode("http://loinc.org", "54133-1", "Consent Document")
         self.fhirResourceType = "Consent"
@@ -223,20 +223,20 @@ class MIIConsentCombinedMapEntry(MapEntry):
                                                                    "provision.provision.code",
                                                                    [mdat_zusammenfuehren_dritte])
 
-        patdat_erheben_speichern_nutzen_code = "2.16.840.1.113883.3.1937.777.24.5.3.1"
-        patdat_erheben_speichern_nutzen_display = "PATDAT erheben/speichern/nutzen"
-        patdat_erheben_speichern_nutzen = TermCode(consent_system, patdat_erheben_speichern_nutzen_code,
-                                                   patdat_erheben_speichern_nutzen_display)
-        patdat_erheben_speichern_nutzen_fixed_critiera = FixedCriteria("coding", "mii-provision-provision-code",
-                                                                       "provision.provision.code",
-                                                                       [patdat_erheben_speichern_nutzen])
-        rekontaktierung_ergaenzungen_code = "2.16.840.1.113883.3.1937.777.24.5.3.26"
-        rekontaktierung_ergaenzungen_display = "Rekontaktierung/Ergaenzungen"
-        rekontaktierung_ergaenzungen = TermCode(consent_system, rekontaktierung_ergaenzungen_code,
-                                                rekontaktierung_ergaenzungen_display)
-        rekontaktierung_ergaenzungen_fixed_critiera = FixedCriteria("coding", "mii-provision-provision-code",
-                                                                    "provision.provision.code",
-                                                                    [rekontaktierung_ergaenzungen])
+        # patdat_erheben_speichern_nutzen_code = "2.16.840.1.113883.3.1937.777.24.5.3.1"
+        # patdat_erheben_speichern_nutzen_display = "PATDAT erheben/speichern/nutzen"
+        # patdat_erheben_speichern_nutzen = TermCode(consent_system, patdat_erheben_speichern_nutzen_code,
+        #                                            patdat_erheben_speichern_nutzen_display)
+        # patdat_erheben_speichern_nutzen_fixed_critiera = FixedCriteria("coding", "mii-provision-provision-code",
+        #                                                                "provision.provision.code",
+        #                                                                [patdat_erheben_speichern_nutzen])
+        # rekontaktierung_ergaenzungen_code = "2.16.840.1.113883.3.1937.777.24.5.3.26"
+        # rekontaktierung_ergaenzungen_display = "Rekontaktierung/Ergaenzungen"
+        # rekontaktierung_ergaenzungen = TermCode(consent_system, rekontaktierung_ergaenzungen_code,
+        #                                         rekontaktierung_ergaenzungen_display)
+        # rekontaktierung_ergaenzungen_fixed_critiera = FixedCriteria("coding", "mii-provision-provision-code",
+        #                                                             "provision.provision.code",
+        #                                                             [rekontaktierung_ergaenzungen])
 
         self.fixedCriteria = [active_fixed_criteria, idat_bereitstellen_eu_dsgvo_niveau_fixed_critiera,
                               idat_erheben_fixed_critiera,
@@ -244,9 +244,7 @@ class MIIConsentCombinedMapEntry(MapEntry):
                               idat_zusammenfuehren_dritte_fixed_critiera, mdat_erheben_fixed_critiera,
                               mdat_speichern_verarbeiten_fixed_critiera,
                               mdat_wissenschaftlich_nutzen_eu_dsgvo_niveau_fixed_critiera,
-                              mdat_zusammenfuehren_dritte_fixed_critiera,
-                              patdat_erheben_speichern_nutzen_fixed_critiera,
-                              rekontaktierung_ergaenzungen_fixed_critiera]
+                              mdat_zusammenfuehren_dritte_fixed_critiera]
 
 
 class DiagnosisCovid19MapEntry(MapEntry):

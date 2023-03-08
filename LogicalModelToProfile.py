@@ -79,5 +79,6 @@ LOGICAL_MODEL_TO_PROFILE = {
     "Dokumentationsdatum": "recordedDate",
     "MedicationAdministrationMedikation": "MedicationAdministration",
     "MedicationStatementMedikation": "MedicationStatement",
-    "Mii_pr_consent_einwilligung": "MII_Consent_Einwilligung"
+    "Mii_pr_consent_einwilligung": "MII_Consent_Einwilligung",
+    "Bioprobe": "Specimen-"
 }

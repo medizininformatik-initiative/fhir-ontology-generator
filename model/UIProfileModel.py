@@ -268,11 +268,10 @@ def get_quantity_value_description_from_top_300_loinc(element_id, element_tree):
 
 def get_concept_value_description_for_loinc_code(terminology_entry):
     value_definition = ValueDefinition("concept")
-    value_set_url = get_answer_list_vs(terminology_entry.termCode)
-    if value_set_url:
-        value_definition.selectableConcepts = get_termcodes_from_onto_server(value_set_url)
-        return value_definition
-    return None
+    value_set_url = get_answer_list_vs(terminology_entry.termCode) if get_answer_list_vs(terminology_entry.termCode) \
+        else "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/ValueSet/Laborergebnis-qualitativ-fdpg"
+    value_definition.selectableConcepts = get_termcodes_from_onto_server(value_set_url)
+    return value_definition
 
 
 def get_ui_profiles():

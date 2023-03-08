@@ -14,7 +14,7 @@ core_data_sets = [MII_CONSENT, MII_DIAGNOSE, MII_LAB, MII_MEDICATION, MII_PERSON
 GECCO_DATA_SET = "resources/core_data_sets/de.gecco#1.0.5/package"
 MII_MEDICATION_DATA_SET = "resources/core_data_sets/de.medizininformatikinitiative.kerndatensatz.medikation#1.0.10" \
                           "/package"
-SPECIMEN_VS = "https://www.medizininformatik-initiative.de/fhir/abide/ValueSet/sct-specimen-type-napkon-sprec"
+SPECIMEN_VS = "https://www.medizininformatik-initiative.de/fhir/fdpg/ValueSet/TopXSpecimenCodes"
 
 """
     Date of birth requires date selection in the ui
@@ -27,4 +27,4 @@ SPECIMEN_VS = "https://www.medizininformatik-initiative.de/fhir/abide/ValueSet/s
 
 IGNORE_LIST = ["Date of birth", "Severity", "OrganizationSammlungBiobank", "SubstanceAdditiv",
                "MedicationMedikation", "MedicationStatementMedikation", "ProbandIn", "Laborbefund", "Laboranforderung",
-               "MII_PR_Consent_DocumentReference", "MII_PR_Consent_Provenance"]
+               "MII_PR_Consent_DocumentReference", "MII_PR_Consent_Provenance", "SpecimenBioprobeCore"]
