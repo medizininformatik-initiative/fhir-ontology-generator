@@ -224,7 +224,8 @@ def translate_consent(profile_data, terminology_entry, _logical_element):
     element_id = "Consent.provision.provision.code"
     terminology_entry.uiProfile = generate_default_ui_profile(profile_data["name"], _logical_element)
     children = get_term_entries_by_id(element_id, profile_data)
-    bioproben_consent = TerminologyEntry([TermCode("mii.abide", "bioproben", "Bioproben Einwilligung")], None, False, False)
+    bioproben_consent = TerminologyEntry([TermCode("mii.abide", "bioproben", "Bioproben Einwilligung")], None, False,
+                                         False)
     bioproben_consent.fhirMapperType = "MIIConsent"
     central_evaluation_consent = TerminologyEntry(
         [TermCode("mii.abide", "zentrale-evaluierung", "Zentrale Auswertung Einwilligung")], None, False, False)
@@ -235,7 +236,6 @@ def translate_consent(profile_data, terminology_entry, _logical_element):
                 bioproben_consent.children.append(child)
             else:
                 central_evaluation_consent.children.append(child)
-            inherit_parent_attributes(child)
     combined_consent_term_entry = TerminologyEntry(
         [TermCode("mii.abide", "combined-consent", "Einwilligung für die zentrale Datenanalyse")],
         None, True, True)
@@ -244,6 +244,7 @@ def translate_consent(profile_data, terminology_entry, _logical_element):
     terminology_entry.children.append(combined_consent_term_entry)
     terminology_entry.leaf = False
     terminology_entry.children = [combined_consent_term_entry, bioproben_consent, central_evaluation_consent]
+    inherit_parent_attributes(terminology_entry)
 
 
 def translate_dependency_on_ventilator(profile_data, terminology_entry, _logical_element):
