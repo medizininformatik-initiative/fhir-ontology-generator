@@ -357,7 +357,7 @@ class MIIAgeMapEntry(MapEntry):
     def __init__(self, term_code):
         super().__init__(term_code)
         self.fhirResourceType = "Patient"
-        self.valueSearchParameter = "birthDate"
+        self.valueSearchParameter = "birthdate"
         self.valueFhirPath = "birthDate"
         self.valueType = "Age"
 
