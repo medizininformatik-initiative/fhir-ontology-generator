@@ -153,6 +153,29 @@ class MIIConsentMapEntry(MapEntry):
         self.fixedCriteria = [active_fixed_criteria]
 
 
+class MIIConsentCentralMapEntry(MapEntry):
+    def __init__(self, term_code):
+        super().__init__(term_code)
+        self.fhirResourceType = "Consent"
+        self.timeRestrictionParameter = "date"
+        self.timeRestrictionPath = "dateTime"
+        self.primaryCode = TermCode("http://loinc.org", "54133-1", "Consent Document")
+        active = TermCode("http://hl7.org/fhir/consent-state-codes", "active", "Active")
+        active_fixed_criteria = FixedCriteria("code", "status", "status", [active])
+        mdat_wissenschaftlich_nutzen_eu_dsgvo_niveau_code = "2.16.840.1.113883.3.1937.777.24.5.3.8"
+        mdat_wissenschaftlich_nutzen_eu_dsgvo_niveau_display = "MDAT wissenschaftlich nutzen EU DSGVO NIVEAU"
+        consent_system = "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3"
+        mdat_wissenschaftlich_nutzen_eu_dsgvo_niveau = TermCode(consent_system,
+                                                                mdat_wissenschaftlich_nutzen_eu_dsgvo_niveau_code,
+                                                                mdat_wissenschaftlich_nutzen_eu_dsgvo_niveau_display)
+        mdat_wissenschaftlich_nutzen_eu_dsgvo_niveau_fixed_critiera = FixedCriteria("coding",
+                                                                                    "mii-provision-provision-code",
+                                                                                    "provision.provision.code",
+                                                                                    [
+                                                                                        mdat_wissenschaftlich_nutzen_eu_dsgvo_niveau])
+        self.fixedCriteria = [active_fixed_criteria, mdat_wissenschaftlich_nutzen_eu_dsgvo_niveau_fixed_critiera]
+
+
 class MIIConsentCombinedMapEntry(MapEntry):
     def __init__(self, term_code):
         super().__init__(term_code)

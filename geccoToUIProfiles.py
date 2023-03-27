@@ -227,23 +227,20 @@ def translate_consent(profile_data, terminology_entry, _logical_element):
     bioproben_consent = TerminologyEntry([TermCode("mii.abide", "bioproben", "Bioproben Einwilligung")], None, False,
                                          False)
     bioproben_consent.fhirMapperType = "MIIConsent"
-    central_evaluation_consent = TerminologyEntry(
-        [TermCode("mii.abide", "zentrale-evaluierung", "Zentrale Auswertung Einwilligung")], None, False, False)
-    central_evaluation_consent.fhirMapperType = "MIIConsent"
     if children:
         for child in children:
             if child.display.startswith("BIOMAT"):
                 bioproben_consent.children.append(child)
             else:
-                central_evaluation_consent.children.append(child)
-    combined_consent_term_entry = TerminologyEntry(
-        [TermCode("mii.abide", "combined-consent", "Einwilligung für die zentrale Datenanalyse")],
-        None, True, True)
-    combined_consent_term_entry.fhirMapperType = "MIIConsentCombined"
-    combined_consent_term_entry.uiProfile = generate_default_ui_profile(profile_data["name"], _logical_element)
-    terminology_entry.children.append(combined_consent_term_entry)
+                terminology_entry.children.append(child)
+    # combined_consent_term_entry = TerminologyEntry(
+    #     [TermCode("mii.abide", "combined-consent", "Einwilligung für die zentrale Datenanalyse")],
+    #     None, True, True)
+    # combined_consent_term_entry.fhirMapperType = "MIIConsentCombined"
+    # combined_consent_term_entry.uiProfile = generate_default_ui_profile(profile_data["name"], _logical_element)
+    # terminology_entry.children.append(combined_consent_term_entry)
     terminology_entry.leaf = False
-    terminology_entry.children = [combined_consent_term_entry, bioproben_consent, central_evaluation_consent]
+    terminology_entry.children.append(bioproben_consent)
     inherit_parent_attributes(terminology_entry)
 
 
