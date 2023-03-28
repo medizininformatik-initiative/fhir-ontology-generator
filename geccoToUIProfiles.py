@@ -616,7 +616,7 @@ corner_cases = {
     "PaCO2": translate_gas_panel,
     "PaO2": translate_gas_panel,
     "PH": translate_gas_panel,
-    "ProfileConditionTodesursache": translate_cause_of_death,
+    "ProfileConditionTodesursache": do_nothing,
     "ProfileObservationLaboruntersuchung": translate_laboratory_values,
     "SOFA": translate_sofa,
     "SymptomsCovid19": translate_symptom

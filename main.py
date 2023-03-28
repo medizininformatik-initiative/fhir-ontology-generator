@@ -65,8 +65,27 @@ def is_structured_definition(file):
         return False
 
 
+def get_non_ui_profile_terminology_entries():
+    # adding root category
+    root = TerminologyEntry([TermCode("root", "Error", "Error")], "CategoryEntry", leaf=False, selectable=False)
+    central_consent = TerminologyEntry(
+        [TermCode("mii.abide", "central-consent", "MDAT wissenschaftlich nutzen - EU DSGVO Niveau")], "",
+        leaf=True, selectable=True)
+    central_consent.fhirMapperType = "MIIConsentCentral"
+    combined_consent = TerminologyEntry(
+        [TermCode("mii.abide", "combined-consent", "Einwilligung für die zentrale Datenanalyse")], "",
+        leaf=True, selectable=True)
+    combined_consent.fhirMapperType = "MIIConsentCombined"
+    root.children.append(central_consent)
+    root.children.append(combined_consent)
+    return root
+
+
 def generate_term_code_mapping(entries):
+    entries.append(get_non_ui_profile_terminology_entries())
     map_entries = generate_map(entries)
+    # remove get_non_ui_profile_terminology_entries() from entries
+    entries.pop()
     map_entries_file = open("mapping/" + "codex-term-code-mapping.json", 'w')
     map_entries_file.write(map_entries.to_json())
     map_entries_file.close()

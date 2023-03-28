@@ -27,4 +27,5 @@ SPECIMEN_VS = "https://www.medizininformatik-initiative.de/fhir/fdpg/ValueSet/To
 
 IGNORE_LIST = ["Date of birth", "Severity", "OrganizationSammlungBiobank", "SubstanceAdditiv",
                "MedicationMedikation", "MedicationStatementMedikation", "ProbandIn", "Laborbefund", "Laboranforderung",
-               "MII_PR_Consent_DocumentReference", "MII_PR_Consent_Provenance", "SpecimenBioprobeCore"]
+               "MII_PR_Consent_DocumentReference", "MII_PR_Consent_Provenance", "SpecimenBioprobeCore",
+               "Todesursache"]
