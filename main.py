@@ -95,7 +95,9 @@ def generate_term_code_mapping(entries):
 
 
 def generate_term_code_tree(entries):
+    entries.append(get_non_ui_profile_terminology_entries())
     term_code_tree = to_term_code_node(entries)
+    entries.pop()
     term_code_file = open("mapping/" + "codex-code-tree.json", 'w')
     term_code_file.write(term_code_tree.to_json())
     term_code_file.close()
@@ -112,6 +114,9 @@ def generate_ui_profiles(entries):
             continue
         if category.display in MAIN_CATEGORIES:
             f = open("ui-profiles/" + category.display.replace("/ ", "") + ".json", 'w', encoding="utf-8")
+            for child in category.children:
+                print(child.display)
+                print(child.selectable)
             f.write(category.to_json())
             f.close()
             validate_ui_profile(category.display.replace("/ ", ""))
@@ -181,8 +186,10 @@ def generate_core_data_set():
         move_back_other(module_category_entry.children)
         f = open("ui-profiles/" + module_category_entry.display + ".json", 'w', encoding="utf-8")
         if len(module_category_entry.children) == 1:
+            set_top_level_selectable_false(module_category_entry.children[0])
             f.write(module_category_entry.children[0].to_json())
         else:
+            set_top_level_selectable_false(module_category_entry)
             f.write(module_category_entry.to_json())
         f.close()
         validate_ui_profile(module_category_entry.display)
@@ -199,6 +206,12 @@ def move_back_other(entries):
                 entries.append(entry)
         if entry.children:
             move_back_other(entry.children)
+
+
+def set_top_level_selectable_false(entry):
+    if entry.display in ["Prozedur", "Diagnose", "Medikamentenverabreichungen"]:
+        for child in entry.children:
+            child.selectable = False
 
 
 if __name__ == '__main__':
@@ -218,8 +231,9 @@ if __name__ == '__main__':
     generate_ui_profiles(category_entries)
 
     category_entries += core_data_category_entries
-    dbw = DataBaseWriter()
-    dbw.add_ui_profiles_to_db(category_entries)
+
+    # dbw = DataBaseWriter()
+    # dbw.add_ui_profiles_to_db(category_entries)
     generate_term_code_mapping(category_entries)
     generate_term_code_tree(category_entries)
     # to_csv(category_entries)
