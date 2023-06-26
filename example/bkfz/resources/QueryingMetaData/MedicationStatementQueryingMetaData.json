@@ -1,3 +1,31 @@
 // SYSTEMTHERAPIE
-// category, medication (?), effective; CUSTOMSEARCH: StellungZurOp, Intention, Protokoll (?)
-// STRAHLENTHERAPIE: performed period, category; CUSTOMSEARCH: Intention, StellungZurOp
+// category, medication (?), effective; CUSTOMSEARCH: StellungZurOp, Intention, (Protokoll (?))
+{
+    "name": "MedicationStatement",
+    "resource_type": "MedicationStatement",
+    "context": {
+        "system": "bzkf.dktk.oncology",
+        "code": "MedicationStatement",
+        "display": "MedicationStatement"
+    },
+    "term_code_defining_id": "MedicationStatement.medication[x]:medicationCodeableConcept.coding:atcClassDe",
+    "time_restriction_defining_id": "MedicationStatement.effective[x]"
+}
+/* {
+    "name": "Procedure",
+    "resource_type": "Procedure",
+    "context": {
+        "system": "bzkf.dktk.oncology",
+        "code": "Procedure",
+        "display": "Prozedur"
+    },
+    "term_code_defining_id": "Procedure.code.coding:ops",
+    "attribute_defining_id_type_map": {
+        "Procedure.category": "",
+        "(Procedure.extension:Intention).value-concept": "reference", // custom search param vorhanden
+        "(Procedure.extension:StellungZurOp).value-concept": "reference", // custom search param vorhanden
+        "(Procedure.reasonReference).code.coding:icd10-gm": "reference" // DAS HIER IST DAS VERLINKTE KRITERIUM (Rückbezug zur Primärdiagnose)
+    },
+    "time_restriction_defining_id": "Procedure.performed[x]"
+}
+ */

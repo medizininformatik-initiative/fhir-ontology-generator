@@ -1,0 +1,15 @@
+{
+  "resourceType": "SearchParameter",
+  "id": "SearchParamStrahlenthStellungOp",
+  "url": "https://diz.uk-erlangen.de/SearchParameter/st-stellung-op",
+  "name": "st-stellung-op",
+  "status": "active",
+  "experimental": false,
+  "description": "Suchparameter für die Extension Stellung zur OP am Profil Strahlentherapie",
+  "code": "st-stellung-op",
+  "base": [
+    "Procedure"
+  ],
+  "type": "token",
+  "expression": "Procedure.extension('http://dktk.dkfz.de/fhir/StructureDefinition/onco-core-Extension-StellungZurOp')"
+}

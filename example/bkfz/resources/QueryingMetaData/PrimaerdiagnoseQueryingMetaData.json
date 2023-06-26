@@ -1,21 +1,21 @@
 {
-    "name": "Primaerdiagnose",
-    "resource_type": "Condition",
-    "context": {
-      "system": "bzkf.dktk.oncology",
-      "code": "Primaerdiagnose",
-      "display": "Primaerdiagnose"
-    },
-    "term_code_defining_id": "Condition.code.coding:icd10-gm",
-    "attribute_defining_id_type_map": {
-        "Condition.bodySite.coding:ADT-Seitenlokalisation": "",
-        "(Condition.extension:Fernmetastasen).bodysite": "reference", //Suchparam: condition extension fernmetastase und Observation bodysite
-        "(Condition.extension:specimen).type": "reference",   //unsicher was hier noch folgt - später Merge mit derzeit unfertigen Starlims-Resourcen notwendig
-        "(Condition.stage.assessment).value-concept": "reference",    // Observation Typ TNM + UICC Stadium
-        //wie spezifizier ich hier die Observation Typ TNM ohne code?
-        "(Condition.stage.assessment).component-code-value-concept": "reference",
-        //"(Condition.stage.assessment).component-code-*EXTENSION-cpuPraefix*": "reference",  //muss ich den custom search param ergänzen? warten auf Design Entscheidung Backend
-        "(Condition.evidence.detail).code-value-concept": "reference"  // Observation Typ Histologie + Morphologie ICD-O-3
-      },
-    "time_restriction_defining_id": "Condition.onset[x]"
-  }
+  "name": "Primaerdiagnose",
+  "resource_type": "Condition",
+  "context": {
+    "system": "bzkf.dktk.oncology",
+    "code": "Primaerdiagnose",
+    "display": "Primaerdiagnose"
+  },
+  "term_code_defining_id": "Condition.code.coding:icd10-gm",
+  "attribute_defining_id_type_map": {
+    "Condition.bodySite.coding:ADT-Seitenlokalisation": "concept", //"concept", "quantity-comparator", "quantity-range", 
+    "(Condition.extension:Fernmetastasen).bodysite": "reference", //Suchparam: condition extension fernmetastase und Observation bodysite
+    "(Condition.extension:specimen).type": "reference", //unsicher was hier noch folgt - später Merge mit derzeit unfertigen Starlims-Resourcen notwendig
+    "(Condition.stage.assessment).value-concept": "reference", // Observation Typ TNM + UICC Stadium
+    //wie spezifizier ich hier die Observation Typ TNM ohne code?
+    "(Condition.stage.assessment).component-code-value-concept": "reference",
+    //"(Condition.stage.assessment).component-code-*EXTENSION-cpuPraefix*": "reference",  //muss ich den custom search param ergänzen? warten auf Design Entscheidung Backend
+    "(Condition.evidence.detail).code-value-concept": "reference" // Observation Typ Histologie + Morphologie ICD-O-3
+  },
+  "time_restriction_defining_id": "Condition.onset[x]"
+}

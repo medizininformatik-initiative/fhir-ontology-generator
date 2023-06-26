@@ -1,3 +1,20 @@
 // OPERATION + STRAHLENTHERAPIE
-// OPERATION: OPS Code, reason-reference (primärdiagnose), performed, category; CUSTOMSEARCH: Intention, Complication, Outcome
+// OPERATION: OPS Code, reason-reference (primärdiagnose), performed, category; CUSTOMSEARCH: Intention, (Complication, Outcome)
 // STRAHLENTHERAPIE: performed period, category; CUSTOMSEARCH: Intention, StellungZurOp
+{
+    "name": "Procedure",
+    "resource_type": "Procedure",
+    "context": {
+        "system": "bzkf.dktk.oncology",
+        "code": "Procedure",
+        "display": "Prozedur"
+    },
+    "term_code_defining_id": "Procedure.code.coding:ops",
+    "attribute_defining_id_type_map": {
+        "Procedure.category": "",
+        "(Procedure.extension:Intention).value-concept": "reference", // custom search param vorhanden
+        "(Procedure.extension:StellungZurOp).value-concept": "reference", // custom search param vorhanden
+        "(Procedure.reasonReference).code.coding:icd10-gm": "reference" // DAS HIER IST DAS VERLINKTE KRITERIUM (Rückbezug zur Primärdiagnose)
+    },
+    "time_restriction_defining_id": "Procedure.performed[x]"
+}

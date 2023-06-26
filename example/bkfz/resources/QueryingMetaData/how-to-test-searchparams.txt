@@ -12,6 +12,7 @@ PRIMÄRDIAGNOSE
     http://localhost:8080/fhir/Condition?stage-assessment.value-concept=IIIA  --> funktioniert 
 4. TNM - ALL COMPONENTS
     ### TO DO
+    # component-code-value-concept?
 
 5. Extension - Specimen
     http://localhost:8080/fhir/Condition?specimen.type=whole-blood - funktioniert
