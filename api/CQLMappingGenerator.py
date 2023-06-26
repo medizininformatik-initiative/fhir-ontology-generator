@@ -26,14 +26,6 @@ class CQLMappingGenerator(object):
         self.data_set_dir: str = ""
         self.module_dir: str = ""
 
-    def resolve_fhir_path(self, element_id) -> str:
-        """
-        Based on the element id, this method resolves the FHIR path for the given FHIR Resource attribute
-        :param element_id: element id that defines the of the FHIR Resource attribute
-        :return: FHIR path
-        """
-        pass
-
     def generate_mapping(self, fhir_dataset_dir: str) \
             -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, CQLMapping]]:
         """

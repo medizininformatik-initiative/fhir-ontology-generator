@@ -49,6 +49,7 @@ class UIProfileGenerator:
                      and file.name.endswith("snapshot.json")]
             for file in files:
                 with open(file, "r", encoding="utf8") as f:
+                    print("Generating UI Profile for: " + file)
                     snapshot = json.load(f)
                     context = TermCode("fdpg.mii.cds", module_dir.name, module_dir.name)
                     context_tc_mapping, profile_name_profile_mapping = \
@@ -117,10 +118,13 @@ class UIProfileGenerator:
         value_type = querying_meta_data.value_type if querying_meta_data.value_type else \
             self.parser.extract_value_type(value_defining_element, profile_snapshot.get("name"))
         value_definition = ValueDefinition(value_type)
+        # TODO: Revisit the idea of making the value definition optional based on the type.
         if value_type == "concept":
+            value_definition.optional = False
             value_definition.selectableConcepts = self.parser.get_selectable_concepts(value_defining_element,
                                                                                       profile_snapshot.get("name"))
         elif value_type == "quantity":
+            value_definition.optional = True
             # "Observation.valueQuantity" -> "Observation.valueQuantity.code"
             unit_defining_path = value_defining_element.get("path") + ".code"
             unit_defining_elements = self.parser.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
@@ -129,6 +133,7 @@ class UIProfileGenerator:
             value_definition.allowedUnits = self.parser.get_units(unit_defining_elements[0],
                                                                   profile_snapshot.get("name"))
         elif value_type == "Age":
+            value_definition.optional = False
             value_definition.type = "quantity"
             # TODO: This could be the better option once the ValueSet is available, but then we might want to limit the
             #  allowed units for security reasons
@@ -136,6 +141,7 @@ class UIProfileGenerator:
             value_definition.allowedUnits = [TermCode(UCUM_SYSTEM, "a", "a"), TermCode(UCUM_SYSTEM, "mo", "mo"),
                                              TermCode(UCUM_SYSTEM, "wk", "wk"), TermCode(UCUM_SYSTEM, "d", "d")]
         elif value_type == "integer":
+            value_definition.optional = True
             value_definition.type = "quantity"
         elif value_type == "calculated":
             pass

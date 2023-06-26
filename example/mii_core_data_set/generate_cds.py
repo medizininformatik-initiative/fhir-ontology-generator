@@ -210,6 +210,7 @@ def write_ui_trees_to_files(trees: List[TermEntry], directory: str = "ui-trees")
     :param directory: directory to write the ui trees to
     """
     for tree in trees:
+        print(tree.display)
         write_object_as_json(tree, f"{directory}/{tree.display}.json")
 
 
@@ -401,7 +402,9 @@ if __name__ == '__main__':
         ui_profiles = profile_generator.generate_ui_profiles("resources/fdpg_differential")
         term_code_to_ui_profile_name = {context_tc[1]: profile_name for context_tc, profile_name in
                                         ui_profiles[0].items()}
+        print("denormalizing ui trees to old format")
         denormalize_ui_profile_to_old_format(ui_trees, term_code_to_ui_profile_name, ui_profiles[1])
+        print("writing ui trees to files")
         write_ui_trees_to_files(ui_trees, "ui-profiles-old")
 
     # core_data_category_entries = generate_core_data_set()

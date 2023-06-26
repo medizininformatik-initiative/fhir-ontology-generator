@@ -192,6 +192,9 @@ class TermEntry(object):
         Serializes the TermEntry to json
         :return: The JSON representation of the TermEntry
         """
+        print("Serializing: " + self.display)
+        if self.display == "Bioprobe":
+            return ""
         return json.dumps(self, default=lambda o: del_none(
             del_keys(o.__dict__, self.DO_NOT_SERIALIZE)), sort_keys=True, indent=4)
 

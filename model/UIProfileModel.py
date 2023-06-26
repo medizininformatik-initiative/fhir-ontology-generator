@@ -18,6 +18,7 @@ class ValueDefinition:
         self.precision = 1
         self.min = None
         self.max = None
+        self.optional = True
 
 
 class AttributeDefinition(ValueDefinition):
