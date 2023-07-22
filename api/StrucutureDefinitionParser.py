@@ -52,6 +52,7 @@ def get_profiles_with_base_definition(fhir_dataset_dir: str, base_definition: st
     :param base_definition: base definition
     :return: generator of profiles that have the given base definition
     """
+    print(f"Searching for profiles with base definition: {base_definition}")
     for module_dir in [folder for folder in os.scandir(fhir_dataset_dir) if folder.is_dir()]:
         files = [file for file in os.scandir(f"{module_dir.path}/package") if file.is_file()
                  and file.name.endswith("snapshot.json")]
@@ -132,6 +133,7 @@ def tokenize(chained_fhir_element_id):
 def get_element_defining_elements(chained_element_id, profile_snapshot: dict, start_module_dir: str,
                                   data_set_dir: str) -> List[dict]:
     parsed_list = list(flatten(parse(chained_element_id)))
+    print(parsed_list)
     return process_element_id(parsed_list, profile_snapshot, start_module_dir, data_set_dir)
 
 
@@ -141,27 +143,26 @@ def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, dat
         raise ValueError("Element id must start with a resource type")
     element = get_element_from_snapshot(profile_snapshot, element_id)
     result = [element]
-    if element_ids:
-        for element in element.get("type"):
-            if element.get("code") == "Extension":
-                profile_urls = element.get("profile")
-                if len(profile_urls) > 1:
-                    raise Exception("Extension with multiple types not supported")
-                extension = get_extension_definition(module_dir, profile_urls[0])
-                element_ids[0] = f"Extension{element_ids[0]}"
-                result.extend(process_element_id(element_ids, extension, module_dir, data_set_dir))
-                return result
-            elif element.get("code") == "Reference":
-                target_profiles = element.get("targetProfile")
-                if len(target_profiles) > 1:
-                    raise Exception("Reference with multiple types not supported")
-                target_resource_type = element.get("targetProfile")[0]
-                referenced_profile, module_dir = get_profiles_with_base_definition(data_set_dir, target_resource_type)
-                element_ids[0] = f"{referenced_profile.get('type')}{element_ids[0]}"
-                result.extend(process_element_id(element_ids, referenced_profile, module_dir, data_set_dir))
-                return result
-            else:
-                raise Exception(f"You can only chain extensions and references, but found: {element.get('code')}")
+    for element in element.get("type"):
+        if element.get("code") == "Extension":
+            profile_urls = element.get("profile")
+            if len(profile_urls) > 1:
+                raise Exception("Extension with multiple types not supported")
+            extension = get_extension_definition(module_dir, profile_urls[0])
+            element_ids[0] = f"Extension" + element_ids[0]
+            result.extend(process_element_id(element_ids, extension, module_dir, data_set_dir))
+            return result
+        elif element.get("code") == "Reference":
+            target_profiles = element.get("targetProfile")
+            if len(target_profiles) > 1:
+                raise Exception("Reference with multiple types not supported")
+            target_resource_type = element.get("targetProfile")[0]
+            referenced_profile, module_dir = get_profiles_with_base_definition(data_set_dir, target_resource_type)
+            element_ids[0] = f"{referenced_profile.get('type') + element_ids[0]}"
+            result.extend(process_element_id(element_ids, referenced_profile, module_dir, data_set_dir))
+            return result
+        elif element.get("code") == "Coding":
+            return result
     return result
 
 
@@ -292,11 +293,9 @@ def translate_element_to_fhir_path_expression(elements: List[dict], ) -> List[st
     element_type = get_element_type(element)
     if element_type == "Extension":
         if elements[0].get("id") == "Extension.value[x]":
-            elements.pop(0)
             element_path = f"{element_path}.where(url='{get_extension_url(element)}').value"
         # FIXME: Currently hard coded should be generalized
         elif elements[0].get("id") == "Extension.extension:age.value[x]":
-            elements.pop(0)
             element_path = f"{element_path}.where(url='{get_extension_url(element)}').extension.where(url='age').value"
     elif element_type == "Coding":
         if element_path.endswith(".coding"):
@@ -310,6 +309,7 @@ def translate_element_to_fhir_path_expression(elements: List[dict], ) -> List[st
 
 
 def get_extension_url(element):
+    print(element.get("type"))
     extension_profiles = element.get('type')[0].get('profile')
     if len(extension_profiles) > 1:
         raise Exception("More than one extension found")

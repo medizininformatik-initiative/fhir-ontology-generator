@@ -43,11 +43,15 @@ def del_keys(dictionary, keys):
 class UIProfile(object):
     DO_NOT_SERIALIZE = []
 
-    def __init__(self, name):
+    def __init__(self, name, time_restriction_allowed=True, value_definition=None, attribute_definitions=None):
         self.name = name
-        self.timeRestrictionAllowed = True
-        self.valueDefinition = None
-        self.attributeDefinitions = []
+        self.time_restriction_allowed = time_restriction_allowed
+        self.value_definition = value_definition
+        self.attribute_definitions = [] if attribute_definitions is None else attribute_definitions
+
+    @classmethod
+    def from_json(cls, json_string):
+        return cls(**json.loads(json_string))
 
     def to_json(self):
         return json.dumps(self, default=lambda o: del_none(

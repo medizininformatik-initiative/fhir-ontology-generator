@@ -97,11 +97,11 @@ class UIProfileGenerator:
         :return: UI profile for the given FHIR profile snapshot
         """
         ui_profile = UIProfile(profile_snapshot["name"])
-        ui_profile.timeRestrictionAllowed = self.is_time_restriction_allowed(querying_meta_data)
+        ui_profile.time_restriction_allowed = self.is_time_restriction_allowed(querying_meta_data)
         if querying_meta_data.value_defining_id:
-            ui_profile.valueDefinition = self.get_value_definition(profile_snapshot,
-                                                                   querying_meta_data)
-        ui_profile.attributeDefinitions = self.get_attribute_definitions(profile_snapshot, querying_meta_data)
+            ui_profile.value_definition = self.get_value_definition(profile_snapshot,
+                                                                    querying_meta_data)
+        ui_profile.attribute_definitions = self.get_attribute_definitions(profile_snapshot, querying_meta_data)
         return ui_profile
 
     def get_value_definition(self, profile_snapshot, querying_meta_data) -> ValueDefinition:

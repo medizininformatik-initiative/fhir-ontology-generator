@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import json
-from typing import List
+from dataclasses import dataclass, field
+from typing import List, Optional
 
 from sortedcontainers import SortedSet
 
@@ -95,23 +96,27 @@ class FhirMapping:
         return hash(self.key)
 
 
+@dataclass
 class CQLMapping:
-    def __init__(self, name: str):
-        """
-        CQLMapping stores all necessary information to translate a structured query to a CQL query.
-        :param name: name of the mapping acting as primary key
-        """
-        self.name = name
-        self.termCodeFhirPath: str | None = None
-        self.valueFhirPath: str | None = None
-        self.timeRestrictionPath: str | None = None
-        self.attributeFhirPath: List[CQLAttributeSearchParameter] = []
-        # only required for version 1 support
-        self.key = None
+    """
+    CQLMapping stores all necessary information to translate a structured query to a CQL query.
+    :param name: name of the mapping acting as primary key
+    """
+    name: str
+    termCodeFhirPath: Optional[str] = None
+    valueFhirPath: Optional[str] = None
+    timeRestrictionPath: Optional[str] = None
+    attributeFhirPath: List[CQLAttributeSearchParameter] = field(default_factory=list)
+    # only required for version 1 support
+    key: Optional[str] = None
 
     def add_attribute(self, attribute_type, attribute_key, attribute_fhir_path):
         self.attributeFhirPath.append(
             CQLAttributeSearchParameter(attribute_type, attribute_key, attribute_fhir_path))
+
+    @classmethod
+    def from_json(cls, json_dict):
+        return cls(**json_dict)
 
     def to_json(self):
         return json.dumps(self, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)

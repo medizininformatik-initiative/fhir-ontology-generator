@@ -128,6 +128,7 @@ class AttributeDefinition(ValueDefinition):
     """
     An AttributeDefinition defines an attribute.
     """
+
     def __init__(self, attribute_code, value_type):
         super().__init__(value_type)
         self.attributeCode = attribute_code
@@ -140,6 +141,7 @@ class Unit:
     :param display: the display name of the unit
     :param code: the UCUM code of the unit
     """
+
     def __init__(self, display, code):
         self.display = display
         self.code = code
@@ -157,10 +159,11 @@ class TermEntry(object):
     :param selectable: True if this TermEntry can be selected by the user
     :param context: The context of this TermEntry. All children of this TermEntry will have the same context.
     """
+
     # TODO: context should be after term_codes. This would be a breaking change -> requires updating all uses of this \
     # class
     def __init__(self, term_codes: List[TermCode], terminology_type=None, leaf=True,
-                 selectable=True, context: TermCode = None):
+                 selectable=True, context: TermCode = None, ui_profile=None):
         self.id = str(uuid.UUID(int=rd.getrandbits(128)))
         self.termCodes = term_codes
         self.termCode = term_codes[0]
