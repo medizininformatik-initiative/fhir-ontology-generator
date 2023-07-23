@@ -140,6 +140,7 @@ class UIProfileGenerator:
         elif value_type == "calculated":
             pass
         elif value_type == "reference":
+            print(value_definition)
             raise InvalidValueTypeException("Reference type need to be resolved using the Resolve().elementid syntax")
         else:
             raise InvalidValueTypeException(
@@ -189,9 +190,9 @@ class UIProfileGenerator:
             attribute_definition.allowedUnits = self.parser.get_units(unit_defining_elements[0],
                                                                       profile_snapshot.get("name"))
         elif attribute_type == "reference":
-            raise InvalidValueTypeException("Reference type need to be resolved using the Resolve().elementid syntax")
-            # attribute_definition = self.generate_reference_attribute_definition(profile_snapshot,
-            #                                                                     attribute_defining_element_id)
+            # raise InvalidValueTypeException("Reference type need to be resolved using the Resolve().elementid syntax")
+            attribute_definition = self.generate_reference_attribute_definition(profile_snapshot,
+                                                                                attribute_defining_element_id)
         elif attribute_type == "composed":
             attribute_definition = self.generate_composed_attribute(profile_snapshot,
                                                                     attribute_defining_element_id)
@@ -269,4 +270,15 @@ class UIProfileGenerator:
         return querying_meta_data.time_restriction_defining_id is not None
 
     def generate_reference_attribute_definition(self, profile_snapshot, attribute_defining_element_id):
-        pass
+        """
+        Generates an attribute definition for a reference attribute
+        :param profile_snapshot: FHIR profile snapshot
+        :param attribute_defining_element_id: element id that defines the reference
+        """
+        attribute_defining_elements = self.parser.get_element_defining_elements(attribute_defining_element_id,
+                                                                                profile_snapshot, self.module_dir,
+                                                                                self.data_set_dir)
+        attribute_code = generate_attribute_key(attribute_defining_element_id)
+        attribute_definition = AttributeDefinition(attribute_code, "reference")
+        attribute_definition.referenceValueSet = self.parser.get_reference_value_set(attribute_defining_elements)
+        return attribute_definition

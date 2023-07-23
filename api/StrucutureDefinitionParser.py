@@ -52,7 +52,6 @@ def get_profiles_with_base_definition(fhir_dataset_dir: str, base_definition: st
     :param base_definition: base definition
     :return: generator of profiles that have the given base definition
     """
-    print(f"Searching for profiles with base definition: {base_definition}")
     for module_dir in [folder for folder in os.scandir(fhir_dataset_dir) if folder.is_dir()]:
         files = [file for file in os.scandir(f"{module_dir.path}/package") if file.is_file()
                  and file.name.endswith("snapshot.json")]
@@ -133,7 +132,6 @@ def tokenize(chained_fhir_element_id):
 def get_element_defining_elements(chained_element_id, profile_snapshot: dict, start_module_dir: str,
                                   data_set_dir: str) -> List[dict]:
     parsed_list = list(flatten(parse(chained_element_id)))
-    print(parsed_list)
     return process_element_id(parsed_list, profile_snapshot, start_module_dir, data_set_dir)
 
 
@@ -387,3 +385,9 @@ def get_term_code_by_id(fhir_profile_snapshot, term_code_defining_id, data_set_d
         return get_termcodes_from_onto_server(value_set)
     else:
         raise Exception(f"Could not resolve term code defining element: {term_code_defining_element}")
+
+
+def get_reference_value_set(elements: List[dict]) -> str:
+    for element in elements:
+        if "binding" in element:
+            return element["binding"]["valueSet"]
