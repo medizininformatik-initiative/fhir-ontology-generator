@@ -1,0 +1,14 @@
+{
+    "name": "Strahlentherapie",
+    "resource_type": "Procedure",
+    "context": {
+        "system": "bzkf.dktk.oncology",
+        "code": "Strahlentherapie",
+        "display": "Strahlentherapie"
+    },
+    "term_code_defining_id": "Procedure.category.coding.code",
+    "attribute_defining_id_type_map": {
+        "(Procedure.reasonReference).code.coding:icd10-gm": "reference"
+    },
+    "time_restriction_defining_id": "Procedure.performed[x]"
+}

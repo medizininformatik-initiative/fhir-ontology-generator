@@ -1,10 +1,10 @@
 {
-    "name": "Procedure",
+    "name": "Operation",
     "resource_type": "Procedure",
     "context": {
         "system": "bzkf.dktk.oncology",
-        "code": "Procedure",
-        "display": "Prozedur"
+        "code": "Operation",
+        "display": "Operation"
     },
     "term_code_defining_id": "Procedure.code.coding:ops",
     "attribute_defining_id_type_map": {
