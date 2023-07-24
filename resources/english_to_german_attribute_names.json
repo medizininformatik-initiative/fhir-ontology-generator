@@ -5,5 +5,8 @@
     "diastolicBloodPressure": "Diastolischer Blutdruck",
     "Country": "Land",
     "festgestellteDiagnose": "Festgestellte Diagnose",
-    "icd-o-3": "icd-o-3"
+    "icd-o-3": "icd-o-3",
+    "ADT-Seitenlokalisation": "ADT-Seitenlokalisation",
+    "category": "category",
+    "reasonReference": "reasonReference"
 }

@@ -6,7 +6,7 @@
         "code": "Strahlentherapie",
         "display": "Strahlentherapie"
     },
-    "term_code_defining_id": "Procedure.category.coding.code",
+    "term_code_defining_id": "Procedure.category",
     "attribute_defining_id_type_map": {
         "(Procedure.reasonReference).code.coding:icd10-gm": "reference"
     },

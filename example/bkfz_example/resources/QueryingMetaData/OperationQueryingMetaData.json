@@ -6,7 +6,7 @@
         "code": "Operation",
         "display": "Operation"
     },
-    "term_code_defining_id": "Procedure.code.coding:ops",
+    "term_code_defining_id": "Procedure.code.coding:OPS",
     "attribute_defining_id_type_map": {
         "Procedure.category": "",
         "(Procedure.reasonReference).code.coding:icd10-gm": "reference"
