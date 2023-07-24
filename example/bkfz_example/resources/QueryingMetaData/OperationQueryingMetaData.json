@@ -9,6 +9,7 @@
     "term_code_defining_id": "Procedure.code.coding:OPS",
     "attribute_defining_id_type_map": {
         "Procedure.category": "",
+        "(Procedure.extension:Intention).value[x]": "",
         "(Procedure.reasonReference).code.coding:icd10-gm": "reference"
     },
     "time_restriction_defining_id": "Procedure.performed[x]"

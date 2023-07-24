@@ -8,5 +8,8 @@
     "icd-o-3": "icd-o-3",
     "ADT-Seitenlokalisation": "ADT-Seitenlokalisation",
     "category": "category",
-    "reasonReference": "reasonReference"
+    "reasonReference": "reasonReference",
+    "Intention": "Intention",
+    "Fernmetastasen": "Fernmetastasen",
+    "specimen": "specimen"
 }

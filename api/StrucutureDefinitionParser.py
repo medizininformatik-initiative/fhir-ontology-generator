@@ -58,9 +58,13 @@ def get_profiles_with_base_definition(fhir_dataset_dir: str, base_definition: st
         for file in files:
             with open(file.path, "r", encoding="utf8") as f:
                 profile = json.load(f)
+                print("test")
+                print(profile.get("url"))
                 if profile.get("baseDefinition") == base_definition:
                     return profile, module_dir.path
                 elif profile.get("type") == base_definition.split("/")[-1]:
+                    return profile, module_dir.path
+                elif profile.get("url") == base_definition:
                     return profile, module_dir.path
 
 
@@ -75,6 +79,7 @@ def get_extension_definition(module_dir: str, extension_profile_url: str) -> dic
     files = [file for file in os.scandir(f"{module_dir}/package/extension") if file.is_file()
              and file.name.endswith("snapshot.json")]
     for file in files:
+        print(file.path)
         with open(file.path, "r", encoding="utf8") as f:
             profile = json.load(f)
             if profile.get("url") == extension_profile_url:
