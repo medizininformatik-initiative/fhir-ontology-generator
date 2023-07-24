@@ -8,7 +8,7 @@
   "kind": "resource",
   "abstract": false,
   "type": "Condition",
-  "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose",
+  "baseDefinition": "http://dktk.dkfz.de/fhir/StructureDefinition/onco-core-Condition-Primaerdiagnose",
   "derivation": "constraint",
   "differential": {
     "element": [
