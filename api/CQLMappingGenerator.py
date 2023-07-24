@@ -127,7 +127,7 @@ class CQLMappingGenerator(object):
         elements = self.parser.get_element_defining_elements(element_id, profile_snapshot, self.module_dir,
                                                              self.data_set_dir)
         expressions = self.parser.translate_element_to_fhir_path_expression(elements)
-        return [self.get_old_path_expression(expression) for expression in expressions][-1]
+        return ".".join([self.get_old_path_expression(expression) for expression in expressions])
 
     @staticmethod
     def get_old_path_expression(path_expression: str) -> str:

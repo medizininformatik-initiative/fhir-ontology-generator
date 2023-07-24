@@ -255,7 +255,7 @@ def find_search_parameter(fhir_path_expressions: List[str]) -> OrderedDict[str, 
     # int parameter is used to find the shortest expression and not returned in the result
 
     fhir_path_expressions = [expression for expression in fhir_path_expressions if
-                             not expression.startswith("Extension.value")]
+                             not expression.startswith("Extension")]
     print(f"Finding search parameter for {fhir_path_expressions}")
     fhir_path_expressions_to_search_parameter: OrderedDict[str, Tuple[dict, int]] = orderedDict(
         [(expression, (None, math.inf)) for expression in fhir_path_expressions]
