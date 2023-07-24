@@ -29,8 +29,8 @@ With the combination of system, code and version as primary key
 """
 create_ui_profile_table = """
     CREATE TABLE IF NOT EXISTS UI_PROFILE_TABLE(
-    profile_name VARCHAR(255) NOT NULL,
-    PRIMARY KEY (profile_name),
+    profile_id VARCHAR(255) NOT NULL,
+    PRIMARY KEY (profile_id),
     UI_Profile JSON NOT NULL
     );
 """
@@ -62,12 +62,12 @@ create_contextualized_concept_to_ui_profile_table = """
     termcode_system VARCHAR(255) NOT NULL,
     termcode_code VARCHAR(255) NOT NULL,
     termcode_version VARCHAR(255),
-    profile_name VARCHAR(255) NOT NULL,
+    profile_id VARCHAR(255) NOT NULL,
     CONSTRAINT CONTEXT_ID FOREIGN KEY (context_system, context_code, context_version) 
     REFERENCES CONTEXT(system, code, version),
     CONSTRAINT CONCEPT_ID FOREIGN KEY (termcode_system, termcode_code, termcode_version) 
     REFERENCES TERMCODES(system, code, version),
-    CONSTRAINT PROFILE_NAME FOREIGN KEY (profile_name) REFERENCES UI_PROFILE_TABLE(profile_name)
+    CONSTRAINT profile_id FOREIGN KEY (profile_id) REFERENCES UI_PROFILE_TABLE(profile_id)
     );
 """
 
@@ -80,7 +80,7 @@ create_mapping_table = """
     CREATE TABLE IF NOT EXISTS MAPPING(
     mapping_name VARCHAR(255) NOT NULL,
     mapping_type VARCHAR(255) NOT NULL,
-    PRIMARY KEY (mapping_name),
+    PRIMARY KEY (mapping_name, mapping_type),
     mapping_json JSON NOT NULL
     );
 """
@@ -101,8 +101,7 @@ create_contextualized_concept_to_mapping_table = """
     CONSTRAINT CONTEXT_ID FOREIGN KEY (context_system, context_code, context_version) 
     REFERENCES CONTEXT(system, code, version),
     CONSTRAINT CONCEPT_ID FOREIGN KEY (termcode_system, termcode_code, termcode_version) 
-    REFERENCES TERMCODES(system, code, version),
-    CONSTRAINT MAPPING_NAME FOREIGN KEY (mapping_name) REFERENCES MAPPING(mapping_name)
+    REFERENCES TERMCODES(system, code, version)
     );
 """
 
@@ -121,6 +120,11 @@ create_value_set_table = """
 
 add_value_set_table_canonical_url_index = """
     CREATE INDEX IF NOT EXISTS canonical_url_index ON VALUE_SET(canonical_url);
+"""
+
+add_join_index_for_contextualized_mapping = """
+    CREATE INDEX idx_mapping_name_mapping ON MAPPING(mapping_name);
+    CREATE INDEX idx_mapping_name_contextualized ON CONTEXTUALIZED_CONCEPT_TO_MAPPING(mapping_name);
 """
 
 
@@ -150,14 +154,13 @@ class DataBaseWriter:
             raise Exception("Cannot connect to database")
         if self.db_connection:
             self.cursor = self.db_connection.cursor()
-            # self.drop_tables('TERMCODE')
-            # self.drop_tables('UI_PROFILE_TABLE')
             self.cursor.execute(create_term_code_table)
             self.cursor.execute(create_ui_profile_table)
             self.cursor.execute(create_context_table)
             self.cursor.execute(create_contextualized_concept_to_ui_profile_table)
             self.cursor.execute(create_mapping_table)
             self.cursor.execute(create_contextualized_concept_to_mapping_table)
+            self.cursor.execute(add_join_index_for_contextualized_mapping)
             self.cursor.execute(create_value_set_table)
             self.cursor.execute(add_value_set_table_canonical_url_index)
             self.db_connection.commit()
@@ -223,7 +226,7 @@ class DataBaseWriter:
             raise Exception("Context or termcode does not exist in database")
 
         self.cursor.execute(
-            "INSERT INTO UI_PROFILE_TABLE (profile_name, UI_Profile) "
+            "INSERT INTO UI_PROFILE_TABLE (profile_id, UI_Profile) "
             "VALUES (%s, %s) ON CONFLICT DO NOTHING",
             (ui_profile.name, ui_profile.to_json()))
 
@@ -232,7 +235,7 @@ class DataBaseWriter:
             ui_profile.name)
         self.cursor.execute(
             "INSERT INTO CONTEXTUALIZED_CONCEPT_TO_UI_PROFILE (context_system, context_code, context_version, "
-            "termcode_system, termcode_code, termcode_version, profile_name) VALUES (%s, %s, %s, %s, %s, %s, %s) "
+            "termcode_system, termcode_code, termcode_version, profile_id) VALUES (%s, %s, %s, %s, %s, %s, %s) "
             "ON CONFLICT DO NOTHING",
             contextualized_concept_values)
 
@@ -285,7 +288,7 @@ class DataBaseWriter:
             AND (CCTUP.context_version = C.version OR CCTUP.context_version IS NULL)
             INNER JOIN TERMCODES AS T ON CCTUP.termcode_system = T.system AND CCTUP.termcode_code = T.code 
             AND (CCTUP.termcode_version = T.version OR CCTUP.termcode_version IS NULL)
-            INNER JOIN UI_PROFILE_TABLE AS UP ON CCTUP.profile_name = UP.profile_name
+            INNER JOIN UI_PROFILE_TABLE AS UP ON CCTUP.profile_id = UP.profile_id
             WHERE C.system = %s AND C.code = %s AND (C.version = %s or C.version is NULL) 
             AND T.system = %s AND T.code = %s AND (T.version = %s or T.version is NULL);
             """, (context.system, context.code, context.version if context.version else '', term_code.system,
