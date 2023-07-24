@@ -73,7 +73,7 @@ class FHIRSearchMappingGenerator(object):
         fhir_path_expressions = self.translate_element_id_to_fhir_path_expressions(element_id, profile_snapshot)
         search_parameters = find_search_parameter(fhir_path_expressions)
         validate_chainable(search_parameters.values())
-        return [search_parameter.get("code") for search_parameter in search_parameters.values()]
+        return ".".join([search_parameter.get("code") for search_parameter in search_parameters.values()])
 
     def generate_normalized_term_code_fhir_search_mapping(self, profile_snapshot: dict, context: TermCode = None) \
             -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, FhirMapping]]:

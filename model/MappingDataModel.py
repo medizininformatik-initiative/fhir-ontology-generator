@@ -72,8 +72,9 @@ class FhirMapping:
         self.valueType: str | None = None
         self.timeRestrictionParameter: str | None = None
         self.attributeSearchParameters: List[FhirSearchAttributeSearchParameter] = []
-        # only required for version 1 support
+        # only required for version 1 support / json representation
         self.key = None
+        self.context = None
 
     def to_json(self):
         return json.dumps(self, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)

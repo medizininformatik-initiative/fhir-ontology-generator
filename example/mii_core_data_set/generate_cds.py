@@ -264,6 +264,7 @@ def denormalize_mapping_to_old_format(term_code_to_mapping_name, mapping_name_to
         try:
             mapping = copy.copy(mapping_name_to_mapping[mapping_name])
             mapping.key = context_and_term_code[1]
+            mapping.context = context_and_term_code[0]
             result.entries.add(mapping)
         except KeyError:
             print("No mapping found for term code " + context_and_term_code[1].code)
@@ -373,13 +374,13 @@ if __name__ == '__main__':
         write_ui_profiles_to_files(ui_profiles)
 
     if args.generate_mapping:
-        cql_generator = CQLMappingGenerator(resolver)
-        cql_mappings = cql_generator.generate_mapping("resources/fdpg_differential")
-        cql_term_code_mappings = cql_mappings[0]
-        cql_concept_mappings = cql_mappings[1]
-        write_mappings_to_files(cql_concept_mappings.values())
-        v1_cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
-        write_v1_mapping_to_file(v1_cql_mappings, "mapping-old")
+        # cql_generator = CQLMappingGenerator(resolver)
+        # cql_mappings = cql_generator.generate_mapping("resources/fdpg_differential")
+        # cql_term_code_mappings = cql_mappings[0]
+        # cql_concept_mappings = cql_mappings[1]
+        # write_mappings_to_files(cql_concept_mappings.values())
+        # v1_cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
+        # write_v1_mapping_to_file(v1_cql_mappings, "mapping-old")
 
         fhir_search_generator = FHIRSearchMappingGenerator(resolver)
         fhir_search_mappings = fhir_search_generator.generate_mapping("resources/fdpg_differential")

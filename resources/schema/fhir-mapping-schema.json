@@ -1,0 +1,72 @@
+{
+	"$schema": "http://num.codex/draft-2/termCodeMapping/schema#",
+	
+	"definitions" : {
+		"termCode": {
+			"type": "object",
+			"description": "The termCode defines a concept based on a coding system (i.e. LOINC). The triplet of code, system and version identify the concept.",
+			"properties": {
+				"code": { "type": "string" },
+				"system": { "type": "string"},
+				"version": { "type": "string"},
+				"display": { "type": "string"}
+			}, 
+			"required": ["code", "system", "display"],
+			"additionalProperties": false
+		},
+		"fixedCriteria": {
+			"type": "object",
+			"properties": {
+				"searchParameter": {"type": "string"},
+				"type": { "type": "string" },
+				"value": { 
+					"type": "array",
+					"minItems": 1,
+					"items": {"$ref": "#/definitions/termCode"}
+				}
+			},
+			"required": ["searchParameter", "value"],
+			"additionalProperties": false
+		},
+		"attributeSearchParameter": {
+			"type": "object",
+			"properties": {
+				"attributeKey": {"#ref":  "#/definitions/termCode"},
+				"attributeType": {"type":  "string"},
+				"attributeSearchParameter": {"type":  "string"}
+			}
+		},
+		"attributeSearchParameters": {
+			"type": "array",
+			"minItems": 0,
+			"items": { "$ref": "#/definitions/attributeSearchParameter"}
+		},
+		"entry": {
+			"type": "object",
+			"properties": {
+				"context": { "$ref": "#/definitions/termCode" },
+				"key": { "$ref": "#/definitions/termCode" },
+				"fhirResourceType": {"type": "string"},
+				"termCodeSearchParameter": {"type": "string"},
+				"fixedCriteria": {
+					"type": "array",
+					"minItems": 0,
+					"items": { "$ref": "#/definitions/fixedCriteria"}
+				},
+				"valueSearchParameter": {"type":  "string"},
+				"valueFhirPath": {"type":  "string"},
+				"valueType": {"type":  "string"},
+				"attributeSearchParameters": {"$ref":  "#definitions/attributeSearchParameters"},
+				"timeRestrictionParameter": {"type":  "string"}
+			},
+			"required": ["key", "fhirResourceType"],
+			"additionalProperties": false
+		}
+	},
+	
+	"title": "termCodeMappingDefinition",
+	"description": "Using the termCode of a concept as a code the termCodeMapping provides additional information for building the query",
+	"type": "array",
+	"minItems": 1,
+	"items": { "$ref": "#/definitions/entry"	}
+}
