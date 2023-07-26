@@ -58,8 +58,6 @@ def get_profiles_with_base_definition(fhir_dataset_dir: str, base_definition: st
         for file in files:
             with open(file.path, "r", encoding="utf8") as f:
                 profile = json.load(f)
-                print("test")
-                print(profile.get("url"))
                 if profile.get("baseDefinition") == base_definition:
                     return profile, module_dir.path
                 elif profile.get("type") == base_definition.split("/")[-1]:

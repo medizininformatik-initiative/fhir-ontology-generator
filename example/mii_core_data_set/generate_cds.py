@@ -2,17 +2,21 @@ from __future__ import annotations
 
 import argparse
 import copy
+import os
 from typing import List, ValuesView, Dict
 
+import docker
 from lxml import etree
 
 from FHIRProfileConfiguration import *
+from TerminologService.ValueSetResolver import get_termcodes_from_onto_server
 from api.CQLMappingGenerator import CQLMappingGenerator
 from api.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
 from api.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from api.StrucutureDefinitionParser import get_element_from_snapshot
 from api.UIProfileGenerator import UIProfileGenerator
 from api.UITreeGenerator import UITreeGenerator
+from database.DataBaseWriter import DataBaseWriter
 from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, load_querying_meta_data, \
     generate_result_folder
 from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList
@@ -340,7 +344,53 @@ def write_v1_mapping_to_file(mapping, mapping_folder="mapping-old"):
     f.close()
 
 
+def write_ui_profiles_to_db(dbw, contextualized_term_code_to_ui_profile, named_ui_profiles,
+                            contextualized_codes_exist: bool = False):
+    context_codes = [context_code for (context_code, _) in contextualized_term_code_to_ui_profile.keys()]
+    term_codes = [term_code for (_, term_code) in contextualized_term_code_to_ui_profile.keys()]
+    if not contextualized_codes_exist:
+        dbw.insert_context_codes(context_codes)
+        dbw.insert_term_codes(term_codes)
+    dbw.insert_ui_profiles(named_ui_profiles)
+    values = [(context_code, term_code, ui_profile_name) for (context_code, term_code), ui_profile_name in
+              contextualized_term_code_to_ui_profile.items()]
+    dbw.link_contextualized_term_code_to_ui_profile(values)
+
+
+def write_mapping_to_db(dbw, contextualized_term_code_to_mapping, named_mappings, mapping_type,
+                        contextualized_codes_exist: bool = False):
+    context_codes = [context_code for (context_code, _) in contextualized_term_code_to_mapping.keys()]
+    term_codes = [term_code for (_, term_code) in contextualized_term_code_to_mapping.keys()]
+    if not contextualized_codes_exist:
+        dbw.insert_context_codes(context_codes)
+        dbw.insert_term_codes(term_codes)
+    dbw.insert_mappings(named_mappings, mapping_type)
+    values = [(context_code, term_code, mapping_name, mapping_type) for (context_code, term_code), mapping_name in
+              contextualized_term_code_to_mapping.items()]
+    dbw.link_contextualized_term_code_to_mapping(values)
+
+
+def write_vs_to_db(profiles: List[UIProfile], dbw: DataBaseWriter):
+    for ui_profile in profiles:
+        for attribute_definition in ui_profile.attribute_definitions:
+            if attribute_definition.type == "reference":
+                vs = attribute_definition.referenceValueSet
+                term_codes = get_termcodes_from_onto_server(vs)
+                dbw.add_value_set(vs, term_codes)
+
+
 if __name__ == '__main__':
+    client = docker.from_env()
+
+    container = client.containers.run("postgres:latest", detach=True, ports={'5432/tcp': 5432},
+                                      name="test_db",
+                                      volumes={f"{os.getcwd()}": {'bind': '/opt/db_data', 'mode': 'rw'}},
+                                      environment={
+                                          'POSTGRES_USER': 'codex-postgres',
+                                          'POSTGRES_PASSWORD': 'codex-password',
+                                          'POSTGRES_DB': 'codex_ui'
+                                      })
+    db_writer = DataBaseWriter()
 
     parser = configure_args_parser()
     args = parser.parse_args()
@@ -370,8 +420,10 @@ if __name__ == '__main__':
 
     if args.generate_ui_profiles:
         profile_generator = UIProfileGenerator(resolver)
-        ui_profiles = profile_generator.generate_ui_profiles("resources/fdpg_differential")[1].values()
-        write_ui_profiles_to_files(ui_profiles)
+        contextualized_term_code_ui_profile_mapping, named_ui_profiles_dict = \
+            profile_generator.generate_ui_profiles("resources/fdpg_differential")
+        write_ui_profiles_to_db(db_writer, contextualized_term_code_ui_profile_mapping, named_ui_profiles_dict)
+        write_vs_to_db(named_ui_profiles_dict.values(), db_writer)
 
     if args.generate_mapping:
         # cql_generator = CQLMappingGenerator(resolver)
@@ -383,13 +435,14 @@ if __name__ == '__main__':
         # write_v1_mapping_to_file(v1_cql_mappings, "mapping-old")
 
         fhir_search_generator = FHIRSearchMappingGenerator(resolver)
-        fhir_search_mappings = fhir_search_generator.generate_mapping("resources/fdpg_differential")
-        fhir_search_term_code_mappings = fhir_search_mappings[0]
-        fhir_search_concept_mappings = fhir_search_mappings[1]
-        write_mappings_to_files(fhir_search_concept_mappings.values())
-        v1_fhir_search_mapping = denormalize_mapping_to_old_format(fhir_search_term_code_mappings,
-                                                                   fhir_search_concept_mappings)
-        write_v1_mapping_to_file(v1_fhir_search_mapping, "mapping-old")
+        fhir_search_term_code_mappings, fhir_search_concept_mappings = fhir_search_generator.generate_mapping(
+            "resources/fdpg_differential")
+        write_mapping_to_db(db_writer, fhir_search_term_code_mappings, fhir_search_concept_mappings, "FHIR_SEARCH",
+                            args.generate_ui_profiles)
+
+        # v1_fhir_search_mapping = denormalize_mapping_to_old_format(fhir_search_term_code_mappings,
+        #                                                            fhir_search_concept_mappings)
+        # write_v1_mapping_to_file(v1_fhir_search_mapping, "mapping-old")
 
     if args.generate_old_format:
         tree_generator = UITreeGenerator(resolver)
@@ -404,6 +457,13 @@ if __name__ == '__main__':
                                         ui_profiles[0].items()}
         denormalize_ui_profile_to_old_format(ui_trees, term_code_to_ui_profile_name, ui_profiles[1])
         write_ui_trees_to_files(ui_trees, "ui-profiles-old")
+
+    result = container.exec_run(
+        'pg_dump --dbname="codex_ui" -U codex-postgres -t TERMCODE -t CONTEXT -t UI_PROFILE -t CONTEXTUALIZED_CONCEPT_TO_UI_PROFILE'
+        ' -t CONTEXTUALIZED_CONCEPT_TO_MAPPING -t MAPPING -t VALUE_SET -f /opt/db_data/codex_ui.sql')
+    print("Dumped db")
+    # container.stop()
+    # container.remove()
 
     # core_data_category_entries = generate_core_data_set()
     #

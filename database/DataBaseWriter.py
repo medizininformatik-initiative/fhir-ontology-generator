@@ -1,5 +1,5 @@
 from time import sleep
-from typing import List
+from typing import List, Tuple, Dict
 
 import psycopg2.extras
 import psycopg2
@@ -175,21 +175,22 @@ class DataBaseWriter:
         Inserts the term codes into the database
         :param term_codes: the term codes to be inserted
         """
-        values = [(term_code.system, term_code.code, term_code.version if term_code.version else "", term_code.display)
-                  for term_code in term_codes]
+        values = set(
+            (term_code.system, term_code.code, term_code.version if term_code.version else "", term_code.display)
+            for term_code in term_codes)
         psycopg2.extras.execute_batch(self.cursor,
                                       "INSERT INTO TERMCODE (system, code, version, display) VALUES (%s, %s, %s, %s)",
                                       values)
         self.db_connection.commit()
 
-    def insert_context(self, context_codes: List[TermCode]):
+    def insert_context_codes(self, context_codes: List[TermCode]):
         """
         Inserts the context codes into the database
         :param context_codes: the context codes to be inserted
         """
-        values = [(context_code.system, context_code.code, context_code.version if context_code.version else "",
-                   context_code.display)
-                  for context_code in context_codes]
+        values = set((context_code.system, context_code.code, context_code.version if context_code.version else "",
+                      context_code.display)
+                     for context_code in context_codes)
         psycopg2.extras.execute_batch(self.cursor,
                                       "INSERT INTO CONTEXT (system, code, version, display) VALUES (%s, %s, %s, %s)",
                                       values)
@@ -216,37 +217,75 @@ class DataBaseWriter:
         result = self.cursor.fetchone()
         return bool(result)
 
-    def insert_ui_profile(self, context: TermCode, term_code: TermCode, ui_profile: UIProfile):
+    def ui_profile_exists(self, ui_profile_name):
+        """
+        Checks if the given ui profile exists in the UI_PROFILE table
+        :param ui_profile_name: the ui profile name to be checked
+        :return: True if exists, False otherwise
+        """
+        self.cursor.execute("SELECT 1 FROM UI_PROFILE WHERE id = %s", (ui_profile_name,))
+        return bool(self.cursor.fetchone())
+
+    def link_contextualized_term_code_to_ui_profile(self,
+                                                    contextualized_term_codes: List[Tuple[TermCode, TermCode, str]]):
+        """
+        Links a list of contextualized term codes to their corresponding ui profiles
+        :param contextualized_term_codes: List of tuples each containing a context, a term code, and a UI profile name
+        """
+        values = [(context.system, context.code, context.version if context.version else '',
+                   term_code.system, term_code.code, term_code.version if term_code.version else '',
+                   ui_profile_name)
+                  for context, term_code, ui_profile_name in contextualized_term_codes]
+
+        psycopg2.extras.execute_batch(self.cursor, """
+            INSERT INTO CONTEXTUALIZED_CONCEPT_TO_UI_PROFILE (context_id, termcode_id, profile_id) 
+            SELECT C.id, T.id, U.id
+            FROM 
+                (SELECT id FROM CONTEXT WHERE system = %s AND code = %s AND version = %s) C,
+                (SELECT id FROM TERMCODE WHERE system = %s AND code = %s AND version = %s) T,
+                (SELECT id FROM UI_PROFILE WHERE id = %s) U
+            ON CONFLICT DO NOTHING;
+            """, values)
+
+        self.db_connection.commit()
+
+    def link_contextualized_term_code_to_mapping(self,
+                                                 contextualized_term_codes: List[Tuple[TermCode, TermCode, str, str]]):
+        values = [(context.system, context.code, context.version if context.version else '',
+                   term_code.system, term_code.code, term_code.version if term_code.version else '',
+                   mapping_name, mapping_type)
+                  for context, term_code, mapping_name, mapping_type in contextualized_term_codes]
+        psycopg2.extras.execute_batch(self.cursor, """
+            INSERT INTO CONTEXTUALIZED_CONCEPT_TO_MAPPING (context_id, termcode_id, mapping_id) 
+            SELECT C.id, T.id, M.id
+            FROM 
+                (SELECT id FROM CONTEXT WHERE system = %s AND code = %s AND version = %s) C,
+                (SELECT id FROM TERMCODE WHERE system = %s AND code = %s AND version = %s) T,
+                (SELECT id FROM MAPPING WHERE name = %s AND type = %s) M
+            ON CONFLICT DO NOTHING;
+            """, values)
+
+    def insert_ui_profiles(self, named_ui_profile: Dict[str, UIProfile]):
         """
         Inserts the ui profile into the database
-        :param context: The context associated with the term code and UI profile
-        :param term_code: The term code defining the primary key to resolve the ui profile
-        :param ui_profile: the ui profile to be inserted
+        :param named_ui_profile: the ui profile to be inserted
         """
-        if not self.context_exists(context) or not self.termcode_exists(term_code):
-            raise Exception("Context or term code does not exist in database")
-
         # Insert the UI profile
-        self.cursor.execute(
-            "INSERT INTO UI_PROFILE (id, UI_Profile) "
-            "VALUES (%s, %s) ON CONFLICT DO NOTHING",
-            (ui_profile.name, ui_profile.to_json()))
+        values = [(name, profile.to_json()) for name, profile in named_ui_profile.items()]
+        psycopg2.extras.execute_batch(self.cursor,
+                                      "INSERT INTO UI_PROFILE (id , UI_Profile) VALUES (%s, %s)", values)
+        self.db_connection.commit()
 
-        # Fetch IDs of the context and term code
-        self.cursor.execute("SELECT id FROM CONTEXT WHERE system = %s AND code = %s AND version = %s",
-                            (context.system, context.code, context.version if context.version else ''))
-        context_id = self.cursor.fetchone()[0]
-
-        self.cursor.execute("SELECT id FROM TERMCODE WHERE system = %s AND code = %s AND version = %s",
-                            (term_code.system, term_code.code, term_code.version if term_code.version else ''))
-        termcode_id = self.cursor.fetchone()[0]
-
-        # Insert into CONTEXTUALIZED_CONCEPT_TO_UI_PROFILE
-        self.cursor.execute(
-            "INSERT INTO CONTEXTUALIZED_CONCEPT_TO_UI_PROFILE (context_id, termcode_id, profile_id) "
-            "VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
-            (context_id, termcode_id, ui_profile.name))
-
+    def insert_mappings(self, named_mappings: Dict, mapping_type):
+        """
+        Inserts the mappings into the database
+        :param named_mappings: the mappings to be inserted
+        :param mapping_type: the type of the mappings
+        """
+        # Insert the Mapping
+        values = [(name, mapping_type, mapping.to_json()) for name, mapping in named_mappings.items()]
+        psycopg2.extras.execute_batch(self.cursor,
+                                      "INSERT INTO MAPPING (name, type, content) VALUES (%s, %s, %s)", values)
         self.db_connection.commit()
 
     def insert_mapping(self, context: TermCode, term_code: TermCode, mapping_name: str, mapping_type: str,
@@ -356,11 +395,13 @@ class DataBaseWriter:
         :param canonical_url: canonical url of the value set
         :param entries: entries to add to the value set
         """
-        for entry in entries:
-            self.cursor.execute(
-                "INSERT INTO VALUE_SET (canonical_url, system, code, version) VALUES (%s, %s, %s, %s) "
-                "ON CONFLICT DO NOTHING",
-                (canonical_url, entry.system, entry.code, entry.version if entry.version else ''))
+        values = [(canonical_url, entry.system, entry.code, entry.version if entry.version else '') for entry in
+                  entries]
+        psycopg2.extras.execute_batch(self.cursor,
+                                      "INSERT INTO VALUE_SET (canonical_url, system, code, version) "
+                                      "VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING",
+                                      values)
+        self.db_connection.commit()
 
     def get_term_codes_from_value_set(self, canonical_url) -> List[TermCode]:
         """

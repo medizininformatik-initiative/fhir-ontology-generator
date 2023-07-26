@@ -45,7 +45,7 @@ class DataBaseWriterTest(unittest.TestCase):
         term_entry = TermEntry([term_code], "Category", selectable=False, leaf=False, context=context,
                                ui_profile=ui_profile)
         self.dbw.insert_term_codes([term_code])
-        self.dbw.insert_context([context])
+        self.dbw.insert_context_codes([context])
         self.dbw.insert_ui_profile(term_entry.context, term_entry.termCode, ui_profile)
         self.assertTrue(UIProfile(**self.dbw.get_ui_profile(term_entry.context, term_entry.termCode)) == ui_profile)
 
@@ -59,6 +59,6 @@ class DataBaseWriterTest(unittest.TestCase):
         context = TermCode("http://test.com", "context", "context")
         mapping = CQLMapping("test")
         self.dbw.insert_term_codes([term_code])
-        self.dbw.insert_context([context])
+        self.dbw.insert_context_codes([context])
         self.dbw.insert_mapping(context, term_code, mapping.name, "CQL", mapping.to_json())
         self.assertTrue(CQLMapping.from_json(self.dbw.get_mapping(context, term_code, "CQL")) == mapping)
