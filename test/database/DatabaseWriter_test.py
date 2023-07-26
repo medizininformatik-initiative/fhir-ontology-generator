@@ -8,10 +8,10 @@ from model.UiDataModel import TermCode, TermEntry
 
 
 class DataBaseWriterTest(unittest.TestCase):
-    # before each test
     container = None
     client = None
 
+    # before each test
     @classmethod
     def setUp(cls):
         # start up docker container with database

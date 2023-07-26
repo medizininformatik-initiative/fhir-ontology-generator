@@ -13,24 +13,24 @@ system | code | version | display
 With the combination of system, code and version as primary key
 """
 create_term_code_table = """
-                CREATE TABLE IF NOT EXISTS TERMCODES(
-                system VARCHAR(255) NOT NULL,
-                code VARCHAR(255) NOT NULL,
-                version VARCHAR(255),
-                PRIMARY KEY (system, code, version),
-                display VARCHAR(255) NOT NULL
-            );
+    CREATE TABLE IF NOT EXISTS TERMCODES(
+    id SERIAL PRIMARY KEY,
+    system TEXT NOT NULL,
+    code TEXT NOT NULL,
+    version TEXT,
+    UNIQUE (system, code, version),
+    display VARCHAR(255) NOT NULL
+    );
 """
 
 """
-creates the table UI_PROFILE_TABLE:
-system | code | version | UI_Profile 
+creates the table UI_PROFILE:
+ic | UI_Profile 
 With the combination of system, code and version as primary key
 """
 create_ui_profile_table = """
-    CREATE TABLE IF NOT EXISTS UI_PROFILE_TABLE(
-    profile_id VARCHAR(255) NOT NULL,
-    PRIMARY KEY (profile_id),
+    CREATE TABLE IF NOT EXISTS UI_PROFILE(
+    id TEXT PRIMARY KEY,
     UI_Profile JSON NOT NULL
     );
 """
@@ -42,11 +42,12 @@ With the combination of system and code as primary key
 """
 create_context_table = """
     CREATE TABLE IF NOT EXISTS CONTEXT(
-    system VARCHAR(255) NOT NULL,
-    code VARCHAR(255) NOT NULL,
-    version VARCHAR(255),
-    PRIMARY KEY (system, code, version),
-    display VARCHAR(255) NOT NULL
+    id SERIAL PRIMARY KEY,
+    system TEXT NOT NULL,
+    code TEXT NOT NULL,
+    version TEXT,
+    UNIQUE (system, code, version),
+    display TEXT NOT NULL
     );
 """
 
@@ -56,18 +57,15 @@ with the primary key from the table CONTEXT, the table TERMCODE and the table UI
 """
 create_contextualized_concept_to_ui_profile_table = """
     CREATE TABLE IF NOT EXISTS CONTEXTUALIZED_CONCEPT_TO_UI_PROFILE(
-    context_system VARCHAR(255) NOT NULL,
-    context_code VARCHAR(255) NOT NULL,
-    context_version VARCHAR(255),
-    termcode_system VARCHAR(255) NOT NULL,
-    termcode_code VARCHAR(255) NOT NULL,
-    termcode_version VARCHAR(255),
-    profile_id VARCHAR(255) NOT NULL,
-    CONSTRAINT CONTEXT_ID FOREIGN KEY (context_system, context_code, context_version) 
-    REFERENCES CONTEXT(system, code, version),
-    CONSTRAINT CONCEPT_ID FOREIGN KEY (termcode_system, termcode_code, termcode_version) 
-    REFERENCES TERMCODES(system, code, version),
-    CONSTRAINT profile_id FOREIGN KEY (profile_id) REFERENCES UI_PROFILE_TABLE(profile_id)
+    context_id INTEGER NOT NULL,
+    termcode_id INTEGER NOT NULL,
+    profile_id TEXT NOT NULL,
+    CONSTRAINT CONTEXT_ID_FK FOREIGN KEY (context_id)  
+        REFERENCES CONTEXT (id) ON DELETE CASCADE,
+    CONSTRAINT CONCEPT_ID_FK FOREIGN KEY (termcode_id) 
+        REFERENCES TERMCODES(id) ON DELETE CASCADE,
+    CONSTRAINT PROFILE_ID_FK FOREIGN KEY (profile_id)
+        REFERENCES UI_PROFILE(id) ON DELETE CASCADE
     );
 """
 
@@ -78,10 +76,11 @@ With the combination of mapping_name and mapping_type as primary key
 """
 create_mapping_table = """
     CREATE TABLE IF NOT EXISTS MAPPING(
-    mapping_name VARCHAR(255) NOT NULL,
-    mapping_type VARCHAR(255) NOT NULL,
-    PRIMARY KEY (mapping_name, mapping_type),
-    mapping_json JSON NOT NULL
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    UNIQUE (name, type),
+    content JSON NOT NULL
     );
 """
 
@@ -91,17 +90,15 @@ with the primary key from the table CONTEXT, the table TERMCODE and the table MA
 """
 create_contextualized_concept_to_mapping_table = """
     CREATE TABLE IF NOT EXISTS CONTEXTUALIZED_CONCEPT_TO_MAPPING(
-    context_system VARCHAR(255) NOT NULL,
-    context_code VARCHAR(255) NOT NULL,
-    context_version VARCHAR(255),
-    termcode_system VARCHAR(255) NOT NULL,
-    termcode_code VARCHAR(255) NOT NULL,
-    termcode_version VARCHAR(255),
-    mapping_name VARCHAR(255) NOT NULL,
-    CONSTRAINT CONTEXT_ID FOREIGN KEY (context_system, context_code, context_version) 
-    REFERENCES CONTEXT(system, code, version),
-    CONSTRAINT CONCEPT_ID FOREIGN KEY (termcode_system, termcode_code, termcode_version) 
-    REFERENCES TERMCODES(system, code, version)
+    context_id INTEGER NOT NULL,
+    termcode_id INTEGER NOT NULL,
+    mapping_id INTEGER NOT NULL,
+    CONSTRAINT CONTEXT_ID_FK FOREIGN KEY (context_id)
+        REFERENCES CONTEXT (id) ON DELETE CASCADE,
+    CONSTRAINT CONCEPT_ID_FK FOREIGN KEY (termcode_id)
+        REFERENCES TERMCODES (id) ON DELETE CASCADE,
+    CONSTRAINT MAPPING_ID_FK FOREIGN KEY (mapping_id)
+        REFERENCES MAPPING (id) ON DELETE CASCADE
     );
 """
 
@@ -110,10 +107,10 @@ creates the table VALUE_SET:
 """
 create_value_set_table = """
     CREATE TABLE IF NOT EXISTS VALUE_SET(
-    canonical_url VARCHAR(255) NOT NULL,
-    system VARCHAR(255) NOT NULL,
-    code VARCHAR(255) NOT NULL,
-    version VARCHAR(255),
+    canonical_url TEXT NOT NULL,
+    system TEXT NOT NULL,
+    code TEXT NOT NULL,
+    version TEXT,
     PRIMARY KEY (canonical_url, system, code, version)
     );
 """
@@ -123,8 +120,8 @@ add_value_set_table_canonical_url_index = """
 """
 
 add_join_index_for_contextualized_mapping = """
-    CREATE INDEX idx_mapping_name_mapping ON MAPPING(mapping_name);
-    CREATE INDEX idx_mapping_name_contextualized ON CONTEXTUALIZED_CONCEPT_TO_MAPPING(mapping_name);
+    CREATE INDEX idx_mapping_name_mapping ON MAPPING (name);
+    CREATE INDEX idx_mapping_name_contextualized ON CONTEXTUALIZED_CONCEPT_TO_MAPPING (mapping_id);
 """
 
 
@@ -180,7 +177,9 @@ class DataBaseWriter:
         """
         values = [(term_code.system, term_code.code, term_code.version if term_code.version else "", term_code.display)
                   for term_code in term_codes]
-        psycopg2.extras.execute_batch(self.cursor, "INSERT INTO TERMCODES VALUES (%s, %s, %s, %s)", values)
+        psycopg2.extras.execute_batch(self.cursor,
+                                      "INSERT INTO TERMCODES (system, code, version, display) VALUES (%s, %s, %s, %s)",
+                                      values)
         self.db_connection.commit()
 
     def insert_context(self, context_codes: List[TermCode]):
@@ -191,7 +190,9 @@ class DataBaseWriter:
         values = [(context_code.system, context_code.code, context_code.version if context_code.version else "",
                    context_code.display)
                   for context_code in context_codes]
-        psycopg2.extras.execute_batch(self.cursor, "INSERT INTO CONTEXT VALUES (%s, %s, %s, %s)", values)
+        psycopg2.extras.execute_batch(self.cursor,
+                                      "INSERT INTO CONTEXT (system, code, version, display) VALUES (%s, %s, %s, %s)",
+                                      values)
         self.db_connection.commit()
 
     def context_exists(self, context: TermCode):
@@ -223,21 +224,28 @@ class DataBaseWriter:
         :param ui_profile: the ui profile to be inserted
         """
         if not self.context_exists(context) or not self.termcode_exists(term_code):
-            raise Exception("Context or termcode does not exist in database")
+            raise Exception("Context or term code does not exist in database")
 
+        # Insert the UI profile
         self.cursor.execute(
-            "INSERT INTO UI_PROFILE_TABLE (profile_id, UI_Profile) "
+            "INSERT INTO UI_PROFILE (id, UI_Profile) "
             "VALUES (%s, %s) ON CONFLICT DO NOTHING",
             (ui_profile.name, ui_profile.to_json()))
 
-        contextualized_concept_values = (
-            context.system, context.code, context.version, term_code.system, term_code.code, term_code.version,
-            ui_profile.name)
+        # Fetch IDs of the context and term code
+        self.cursor.execute("SELECT id FROM CONTEXT WHERE system = %s AND code = %s AND version = %s",
+                            (context.system, context.code, context.version if context.version else ''))
+        context_id = self.cursor.fetchone()[0]
+
+        self.cursor.execute("SELECT id FROM TERMCODES WHERE system = %s AND code = %s AND version = %s",
+                            (term_code.system, term_code.code, term_code.version if term_code.version else ''))
+        termcode_id = self.cursor.fetchone()[0]
+
+        # Insert into CONTEXTUALIZED_CONCEPT_TO_UI_PROFILE
         self.cursor.execute(
-            "INSERT INTO CONTEXTUALIZED_CONCEPT_TO_UI_PROFILE (context_system, context_code, context_version, "
-            "termcode_system, termcode_code, termcode_version, profile_id) VALUES (%s, %s, %s, %s, %s, %s, %s) "
-            "ON CONFLICT DO NOTHING",
-            contextualized_concept_values)
+            "INSERT INTO CONTEXTUALIZED_CONCEPT_TO_UI_PROFILE (context_id, termcode_id, profile_id) "
+            "VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
+            (context_id, termcode_id, ui_profile.name))
 
         self.db_connection.commit()
 
@@ -251,19 +259,30 @@ class DataBaseWriter:
         :param mapping_type: the type of the mapping
         :param mapping_json: the json of the mapping
         """
-        mapping_values = (mapping_name, mapping_type, mapping_json)
-        self.cursor.execute(
-            "INSERT INTO MAPPING (mapping_name, mapping_type, mapping_json) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
-            mapping_values)
+        if not self.context_exists(context) or not self.termcode_exists(term_code):
+            raise Exception("Context or term code does not exist in database")
 
-        contextualized_mapping_values = (
-            context.system, context.code, context.version, term_code.system, term_code.code, term_code.version,
-            mapping_name)
+        # Insert the Mapping
         self.cursor.execute(
-            "INSERT INTO CONTEXTUALIZED_CONCEPT_TO_MAPPING (context_system, context_code, context_version, "
-            "termcode_system, termcode_code, termcode_version, mapping_name) VALUES (%s, %s, %s, %s, %s, %s, %s) "
-            "ON CONFLICT DO NOTHING",
-            contextualized_mapping_values)
+            "INSERT INTO MAPPING (name, type, content) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING RETURNING id",
+            (mapping_name, mapping_type, mapping_json))
+        mapping_id = self.cursor.fetchone()[0]
+
+        # Fetch IDs of the context and term code
+        self.cursor.execute("SELECT id FROM CONTEXT WHERE system = %s AND code = %s AND version = %s",
+                            (context.system, context.code, context.version if context.version else ''))
+        context_id = self.cursor.fetchone()[0]
+
+        self.cursor.execute("SELECT id FROM TERMCODES WHERE system = %s AND code = %s AND version = %s",
+                            (term_code.system, term_code.code, term_code.version if term_code.version else ''))
+        termcode_id = self.cursor.fetchone()[0]
+
+        # Insert into CONTEXTUALIZED_CONCEPT_TO_MAPPING
+        self.cursor.execute(
+            "INSERT INTO CONTEXTUALIZED_CONCEPT_TO_MAPPING (context_id, termcode_id, mapping_id) "
+            "VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
+            (context_id, termcode_id, mapping_id))
+
         self.db_connection.commit()
 
     def drop_tables(self, table_name: str):
@@ -284,13 +303,11 @@ class DataBaseWriter:
         self.cursor.execute("""
             SELECT UP.UI_Profile
             FROM CONTEXTUALIZED_CONCEPT_TO_UI_PROFILE AS CCTUP
-            INNER JOIN CONTEXT AS C ON CCTUP.context_system = C.system AND CCTUP.context_code = C.code 
-            AND (CCTUP.context_version = C.version OR CCTUP.context_version IS NULL)
-            INNER JOIN TERMCODES AS T ON CCTUP.termcode_system = T.system AND CCTUP.termcode_code = T.code 
-            AND (CCTUP.termcode_version = T.version OR CCTUP.termcode_version IS NULL)
-            INNER JOIN UI_PROFILE_TABLE AS UP ON CCTUP.profile_id = UP.profile_id
-            WHERE C.system = %s AND C.code = %s AND (C.version = %s or C.version is NULL) 
-            AND T.system = %s AND T.code = %s AND (T.version = %s or T.version is NULL);
+            INNER JOIN CONTEXT AS C ON CCTUP.context_id = C.id
+            INNER JOIN TERMCODES AS T ON CCTUP.termcode_id = T.id
+            INNER JOIN UI_PROFILE AS UP ON CCTUP.profile_id = UP.id
+            WHERE C.system = %s AND C.code = %s AND C.version = %s
+            AND T.system = %s AND T.code = %s AND T.version = %s;
             """, (context.system, context.code, context.version if context.version else '', term_code.system,
                   term_code.code, term_code.version if term_code.version else ''))
         result = self.cursor.fetchall()
@@ -305,20 +322,18 @@ class DataBaseWriter:
         :return: the mapping for the given term code
         """
         self.cursor.execute("""
-            SELECT M.mapping_json
+            SELECT M.content
             FROM CONTEXTUALIZED_CONCEPT_TO_MAPPING AS CCTM
-            INNER JOIN CONTEXT AS C ON CCTM.context_system = C.system AND CCTM.context_code = C.code 
-            AND (CCTM.context_version = C.version or CCTM.context_version IS NULL)
-            INNER JOIN TERMCODES AS T ON CCTM.termcode_system = T.system AND CCTM.termcode_code = T.code 
-            AND (CCTM.termcode_version = T.version or CCTM.termcode_version IS NULL)
-            INNER JOIN MAPPING AS M ON CCTM.mapping_name = M.mapping_name
+            INNER JOIN CONTEXT AS C ON CCTM.context_id = C.id
+            INNER JOIN TERMCODES AS T ON CCTM.termcode_id = T.id
+            INNER JOIN MAPPING AS M ON CCTM.mapping_id = M.id
             WHERE C.system = %s AND C.code = %s AND (C.version = %s OR C.version IS NULL)
             AND T.system = %s AND T.code = %s AND (T.version = %s OR T.version IS NULL)
-            AND M.mapping_type = %s;
+            AND M.type = %s;
             """, (context.system, context.code, context.version if context.version else '', term_code.system,
-                  term_code.code, term_code.version if term_code.version else '',
-                  mapping_type))
+                  term_code.code, term_code.version if term_code.version else '', mapping_type))
         result = self.cursor.fetchall()
+        print(result)
         return result[0][0] if result else None
 
     def add_ui_profiles_to_db(self, entries: List[TermEntry]):
