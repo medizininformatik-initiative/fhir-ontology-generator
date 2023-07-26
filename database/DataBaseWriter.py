@@ -13,7 +13,7 @@ system | code | version | display
 With the combination of system, code and version as primary key
 """
 create_term_code_table = """
-    CREATE TABLE IF NOT EXISTS TERMCODES(
+    CREATE TABLE IF NOT EXISTS TERMCODE(
     id SERIAL PRIMARY KEY,
     system TEXT NOT NULL,
     code TEXT NOT NULL,
@@ -63,7 +63,7 @@ create_contextualized_concept_to_ui_profile_table = """
     CONSTRAINT CONTEXT_ID_FK FOREIGN KEY (context_id)  
         REFERENCES CONTEXT (id) ON DELETE CASCADE,
     CONSTRAINT CONCEPT_ID_FK FOREIGN KEY (termcode_id) 
-        REFERENCES TERMCODES(id) ON DELETE CASCADE,
+        REFERENCES TERMCODE(id) ON DELETE CASCADE,
     CONSTRAINT PROFILE_ID_FK FOREIGN KEY (profile_id)
         REFERENCES UI_PROFILE(id) ON DELETE CASCADE
     );
@@ -96,7 +96,7 @@ create_contextualized_concept_to_mapping_table = """
     CONSTRAINT CONTEXT_ID_FK FOREIGN KEY (context_id)
         REFERENCES CONTEXT (id) ON DELETE CASCADE,
     CONSTRAINT CONCEPT_ID_FK FOREIGN KEY (termcode_id)
-        REFERENCES TERMCODES (id) ON DELETE CASCADE,
+        REFERENCES TERMCODE (id) ON DELETE CASCADE,
     CONSTRAINT MAPPING_ID_FK FOREIGN KEY (mapping_id)
         REFERENCES MAPPING (id) ON DELETE CASCADE
     );
@@ -178,7 +178,7 @@ class DataBaseWriter:
         values = [(term_code.system, term_code.code, term_code.version if term_code.version else "", term_code.display)
                   for term_code in term_codes]
         psycopg2.extras.execute_batch(self.cursor,
-                                      "INSERT INTO TERMCODES (system, code, version, display) VALUES (%s, %s, %s, %s)",
+                                      "INSERT INTO TERMCODE (system, code, version, display) VALUES (%s, %s, %s, %s)",
                                       values)
         self.db_connection.commit()
 
@@ -211,7 +211,7 @@ class DataBaseWriter:
         :param term_code: the termcode to be checked
         :return: True if exists, False otherwise
         """
-        self.cursor.execute("SELECT 1 FROM TERMCODES WHERE system = %s AND code = %s AND version = %s",
+        self.cursor.execute("SELECT 1 FROM TERMCODE WHERE system = %s AND code = %s AND version = %s",
                             (term_code.system, term_code.code, term_code.version if term_code.version else ''))
         result = self.cursor.fetchone()
         return bool(result)
@@ -237,7 +237,7 @@ class DataBaseWriter:
                             (context.system, context.code, context.version if context.version else ''))
         context_id = self.cursor.fetchone()[0]
 
-        self.cursor.execute("SELECT id FROM TERMCODES WHERE system = %s AND code = %s AND version = %s",
+        self.cursor.execute("SELECT id FROM TERMCODE WHERE system = %s AND code = %s AND version = %s",
                             (term_code.system, term_code.code, term_code.version if term_code.version else ''))
         termcode_id = self.cursor.fetchone()[0]
 
@@ -273,7 +273,7 @@ class DataBaseWriter:
                             (context.system, context.code, context.version if context.version else ''))
         context_id = self.cursor.fetchone()[0]
 
-        self.cursor.execute("SELECT id FROM TERMCODES WHERE system = %s AND code = %s AND version = %s",
+        self.cursor.execute("SELECT id FROM TERMCODE WHERE system = %s AND code = %s AND version = %s",
                             (term_code.system, term_code.code, term_code.version if term_code.version else ''))
         termcode_id = self.cursor.fetchone()[0]
 
@@ -304,7 +304,7 @@ class DataBaseWriter:
             SELECT UP.UI_Profile
             FROM CONTEXTUALIZED_CONCEPT_TO_UI_PROFILE AS CCTUP
             INNER JOIN CONTEXT AS C ON CCTUP.context_id = C.id
-            INNER JOIN TERMCODES AS T ON CCTUP.termcode_id = T.id
+            INNER JOIN TERMCODE AS T ON CCTUP.termcode_id = T.id
             INNER JOIN UI_PROFILE AS UP ON CCTUP.profile_id = UP.id
             WHERE C.system = %s AND C.code = %s AND C.version = %s
             AND T.system = %s AND T.code = %s AND T.version = %s;
@@ -325,7 +325,7 @@ class DataBaseWriter:
             SELECT M.content
             FROM CONTEXTUALIZED_CONCEPT_TO_MAPPING AS CCTM
             INNER JOIN CONTEXT AS C ON CCTM.context_id = C.id
-            INNER JOIN TERMCODES AS T ON CCTM.termcode_id = T.id
+            INNER JOIN TERMCODE AS T ON CCTM.termcode_id = T.id
             INNER JOIN MAPPING AS M ON CCTM.mapping_id = M.id
             WHERE C.system = %s AND C.code = %s AND (C.version = %s OR C.version IS NULL)
             AND T.system = %s AND T.code = %s AND (T.version = %s OR T.version IS NULL)
