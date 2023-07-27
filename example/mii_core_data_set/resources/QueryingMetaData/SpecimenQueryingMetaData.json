@@ -4,7 +4,8 @@
   "context": {
     "system": "fdpg.mii.cds",
     "code": "Specimen",
-    "display": "Bioprobe"
+    "display": "Bioprobe",
+    "version": "1.0.0"
   },
   "term_code_defining_id": "Specimen.type.coding:sct",
   "attribute_defining_id_type_map": {

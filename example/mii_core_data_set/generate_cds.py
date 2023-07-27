@@ -459,7 +459,7 @@ if __name__ == '__main__':
         write_ui_trees_to_files(ui_trees, "ui-profiles-old")
 
     result = container.exec_run(
-        'pg_dump --dbname="codex_ui" -U codex-postgres -t TERMCODE -t CONTEXT -t UI_PROFILE -t CONTEXTUALIZED_CONCEPT_TO_UI_PROFILE'
+        'pg_dump --dbname="codex_ui" -U codex-postgres -a -O -t TERMCODE -t CONTEXT -t UI_PROFILE -t CONTEXTUALIZED_CONCEPT_TO_UI_PROFILE'
         ' -t CONTEXTUALIZED_CONCEPT_TO_MAPPING -t MAPPING -t VALUE_SET -f /opt/db_data/codex_ui.sql')
     print("Dumped db")
     # container.stop()

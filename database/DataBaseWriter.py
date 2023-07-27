@@ -18,8 +18,8 @@ create_term_code_table = """
     system TEXT NOT NULL,
     code TEXT NOT NULL,
     version TEXT,
-    UNIQUE (system, code, version),
-    display VARCHAR(255) NOT NULL
+    UNIQUE NULLS NOT DISTINCT (system, code, version),
+    display TEXT NOT NULL
     );
 """
 
@@ -45,7 +45,7 @@ create_context_table = """
     id SERIAL PRIMARY KEY,
     system TEXT NOT NULL,
     code TEXT NOT NULL,
-    version TEXT,
+    version TEXT NOT NULL,
     UNIQUE (system, code, version),
     display TEXT NOT NULL
     );
@@ -107,11 +107,12 @@ creates the table VALUE_SET:
 """
 create_value_set_table = """
     CREATE TABLE IF NOT EXISTS VALUE_SET(
+    id SERIAL PRIMARY KEY,
     canonical_url TEXT NOT NULL,
     system TEXT NOT NULL,
     code TEXT NOT NULL,
     version TEXT,
-    PRIMARY KEY (canonical_url, system, code, version)
+    unique NULLS NOT DISTINCT (canonical_url, system, code, version)
     );
 """
 

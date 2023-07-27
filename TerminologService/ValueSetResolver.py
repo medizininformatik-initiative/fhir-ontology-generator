@@ -242,6 +242,7 @@ def get_term_code_display_from_onto_server(system: str, code: str,
     :param onto_server: address of the terminology server
     :return: The display of the term code or "" if no display is available
     """
+    print(f"{onto_server}CodeSystem/$lookup?system={system}&code={code}")
     response = requests.get(f"{onto_server}CodeSystem/$lookup?system={system}&code={code}")
     if response.status_code == 200:
         response_data = response.json()
@@ -249,7 +250,7 @@ def get_term_code_display_from_onto_server(system: str, code: str,
             if name := parameter.get("name"):
                 if name == "display":
                     return parameter.get("valueString") if parameter.get("valueString") else ""
-    return ""
+    return code
 
 
 def get_system_from_code(code: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):

@@ -261,8 +261,9 @@ def pattern_coding_to_term_code(element):
     code = element["patternCoding"]["code"]
     system = element["patternCoding"]["system"]
     display = get_term_code_display_from_onto_server(system, code)
+
     if display.isupper():
-        display = display.title()
+        display = display.title( )
     term_code = TermCode(system, code, display)
     return term_code
 
@@ -276,6 +277,7 @@ def pattern_codeable_concept_to_term_code(element):
     code = element["patternCodeableConcept"]["coding"][0]["code"]
     system = element["patternCodeableConcept"]["coding"][0]["system"]
     display = get_term_code_display_from_onto_server(system, code)
+    print(display)
     if display.isupper():
         display = display.title()
     term_code = TermCode(system, code, display)
