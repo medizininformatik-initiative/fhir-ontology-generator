@@ -72,6 +72,7 @@ class FhirMapping:
         self.valueType: str | None = None
         self.timeRestrictionParameter: str | None = None
         self.attributeSearchParameters: List[FhirSearchAttributeSearchParameter] = []
+        self.fhirResourceType: str | None = None
         # only required for version 1 support / json representation
         self.key = None
         self.context = None

@@ -77,24 +77,33 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
         return self.translate(fhir_profile_snapshot, applicable_querying_meta_data, sub_tree_context)
 
     def translate(self, fhir_profile_snapshot: dict, applicable_querying_meta_data: List[ResourceQueryingMetaData],
-                  _context: TermCode) \
+                  context: TermCode) \
             -> List[TermEntry]:
         """
         Translates the given FHIR profile snapshot into a ui tree
         :param fhir_profile_snapshot: FHIR profile snapshot json representation
         :param applicable_querying_meta_data: applicable querying meta data
-        :param _context: context for the FHIR profile snapshot
+        :param context: context for the FHIR profile snapshot
         :return: root of the ui tree
         """
         result: List[TermEntry] = []
         for applicable_querying_meta_data in applicable_querying_meta_data:
             # TODO: add context information to the ui tree
             if applicable_querying_meta_data.term_code_defining_id:
-                result += self.get_term_entries_by_id(fhir_profile_snapshot, applicable_querying_meta_data.
-                                                      term_code_defining_id)
+                sub_tree = self.get_term_entries_by_id(fhir_profile_snapshot, applicable_querying_meta_data.
+                                                       term_code_defining_id)
+                self.set_context(sub_tree, applicable_querying_meta_data.context)
+                result += sub_tree
             elif applicable_querying_meta_data.term_codes:
-                result += [TermEntry(applicable_querying_meta_data.term_codes)]
+                result += [
+                    TermEntry(applicable_querying_meta_data.term_codes, context=applicable_querying_meta_data.context)]
         return result
+
+    def set_context(self, entries: List[TermEntry], context: TermCode):
+        for entry in entries:
+            entry.context = context
+            if entry.children:
+                self.set_context(entry.children, context)
 
     def generate_module_ui_tree(self, module_context: TermCode, files: List[str]) -> TermEntry:
         """
@@ -107,12 +116,13 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
             with open(files[0], 'r') as snapshot:
                 snapshot_json = json.load(snapshot)
                 root = TermEntry([TermCode(module_context.system, snapshot_json.get("name"),
-                                           snapshot_json.get("name"))], "Category", selectable=False, leaf=False)
+                                           snapshot_json.get("name"))], "Category", selectable=False, leaf=False,
+                                 context=module_context)
                 root.children = self.generate_ui_subtree(snapshot_json)
                 return root
         else:
             root = TermEntry([module_context], "Category", selectable=False,
-                             leaf=False)
+                             leaf=False, context=module_context)
             for snapshot_file in files:
                 with open(snapshot_file, encoding="utf8") as snapshot:
                     root.children += self.generate_ui_subtree(json.load(snapshot), module_context)

@@ -5,7 +5,7 @@ from typing import List
 import requests
 
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS
-from TerminologService.valueSetToRoots import create_vs_tree
+from TerminologService.valueSetToRoots import create_vs_tree, expand_value_set
 from model.UiDataModel import TermCode
 
 POSSIBLE_CODE_SYSTEMS = ["http://loinc.org", "http://snomed.info/sct"]
@@ -41,22 +41,7 @@ def get_termcodes_from_onto_server(value_set_canonical_url: str, onto_server: st
     :return: returns the sorted list of term codes of the value set prioritized by the coding system:
     icd10 > snomed
     """
-    value_set_canonical_url = value_set_canonical_url.replace("|", "&version=")
-    print(value_set_canonical_url)
-    result = []
-    response = requests.get(
-        f"{onto_server}ValueSet/$expand?url={value_set_canonical_url}&includeDesignations=true")
-    if response.status_code == 200:
-        value_set_data = response.json()
-        if "contains" in value_set_data["expansion"]:
-            for contains in value_set_data["expansion"]["contains"]:
-                term_code = get_term_code_from_contains(contains)
-                result.append(term_code)
-    else:
-        # TODO: Raise?
-        print(f"{value_set_canonical_url} is empty")
-        return []
-    return sorted(result)
+    return list(expand_value_set(value_set_canonical_url, onto_server))
 
 
 def get_term_code_from_contains(contains):
@@ -242,7 +227,6 @@ def get_term_code_display_from_onto_server(system: str, code: str,
     :param onto_server: address of the terminology server
     :return: The display of the term code or "" if no display is available
     """
-    print(f"{onto_server}CodeSystem/$lookup?system={system}&code={code}")
     response = requests.get(f"{onto_server}CodeSystem/$lookup?system={system}&code={code}")
     if response.status_code == 200:
         response_data = response.json()
@@ -250,7 +234,7 @@ def get_term_code_display_from_onto_server(system: str, code: str,
             if name := parameter.get("name"):
                 if name == "display":
                     return parameter.get("valueString") if parameter.get("valueString") else ""
-    return code
+    return ""
 
 
 def get_system_from_code(code: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):

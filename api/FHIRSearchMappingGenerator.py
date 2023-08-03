@@ -115,7 +115,7 @@ class FHIRSearchMappingGenerator(object):
         :return: FHIR search mapping
         """
         fhir_mapping = FhirMapping(querying_meta_data.name)
-        fhir_mapping.resource_type = querying_meta_data.resource_type
+        fhir_mapping.fhirResourceType = querying_meta_data.resource_type
         if querying_meta_data.term_code_defining_id:
             fhir_mapping.termCodeSearchParameter = self.resolve_fhir_search_parameter(
                 querying_meta_data.term_code_defining_id, profile_snapshot, "concept")

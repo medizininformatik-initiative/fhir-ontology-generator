@@ -12,14 +12,14 @@ from model.UiDataModel import TermCode, TermEntry
 locale.setlocale(locale.LC_ALL, 'de_DE')
 
 
-def expand_value_set(url: str):
+def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
     """
     Expands a value set and returns a set of term codes contained in the value set.
     :param url: canonical url of the value set
     :return: sorted set of the term codes contained in the value set
     """
     term_codes = SortedSet()
-    response = requests.get(TERMINOLOGY_SERVER_ADDRESS + f"ValueSet/$expand?url={url}")
+    response = requests.get(onto_server + f"ValueSet/$expand?url={url}")
     if response.status_code == 200:
         value_set_data = response.json()
         global_version = None
@@ -42,7 +42,8 @@ def expand_value_set(url: str):
             term_code = TermCode(system, code, display, version)
             term_codes.add(term_code)
     else:
-        raise Exception(response.status_code, response.content)
+        return []
+        # raise Exception(response.status_code, response.content)
     return term_codes
 
 

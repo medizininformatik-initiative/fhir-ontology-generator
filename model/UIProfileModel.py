@@ -7,7 +7,7 @@ from model.helper import del_none
 
 UI_PROFILES = set()
 
-VALUE_TYPE_OPTIONS = Literal["concept", "quantity", "reference", "date", "composed"]
+VALUE_TYPE_OPTIONS = Literal["concept", "quantity", "reference", "date", "composite"]
 
 
 class ValueDefinition:
@@ -46,9 +46,9 @@ class UIProfile(object):
 
     def __init__(self, name, time_restriction_allowed=True, value_definition=None, attribute_definitions=None):
         self.name = name
-        self.time_restriction_allowed = time_restriction_allowed
-        self.value_definition = value_definition
-        self.attribute_definitions = [] if attribute_definitions is None else attribute_definitions
+        self.timeRestrictionAllowed = time_restriction_allowed
+        self.valueDefinition = value_definition
+        self.attributeDefinitions = [] if attribute_definitions is None else attribute_definitions
 
     @classmethod
     def from_json(cls, json_string):

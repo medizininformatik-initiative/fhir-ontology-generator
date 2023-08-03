@@ -193,20 +193,20 @@ class UIProfileGenerator:
             # raise InvalidValueTypeException("Reference type need to be resolved using the Resolve().elementid syntax")
             attribute_definition = self.generate_reference_attribute_definition(profile_snapshot,
                                                                                 attribute_defining_element_id)
-        elif attribute_type == "composed":
-            attribute_definition = self.generate_composed_attribute(profile_snapshot,
+        elif attribute_type == "composite":
+            attribute_definition = self.generate_composite_attribute(profile_snapshot,
                                                                     attribute_defining_element_id)
         else:
             raise InvalidValueTypeException("Invalid value type: " + attribute_type)
         return attribute_definition
 
-    def generate_composed_attribute(self, profile_snapshot, attribute_defining_element_id) -> AttributeDefinition:
+    def generate_composite_attribute(self, profile_snapshot, attribute_defining_element_id) -> AttributeDefinition:
         attribute_defining_elements = self.parser.get_element_defining_elements(attribute_defining_element_id,
                                                                                 profile_snapshot, self.module_dir,
                                                                                 self.data_set_dir)
         element = self.parser.get_element_from_snapshot(profile_snapshot, attribute_defining_element_id)
-        attribute_code = self.generate_composed_attribute_code(profile_snapshot, attribute_defining_element_id)
-        attribute_definition = AttributeDefinition(attribute_code, "composed")
+        attribute_code = self.generate_composite_attribute_code(profile_snapshot, attribute_defining_element_id)
+        attribute_definition = AttributeDefinition(attribute_code, "composite")
         attribute_type = self.parser.get_element_type(element)
         if attribute_type == "Quantity":
             unit_defining_path = attribute_defining_elements[-1].get("path") + ".code"
@@ -225,7 +225,7 @@ class UIProfileGenerator:
                 profile_snapshot.get("name"))
             return attribute_definition
         else:
-            raise InvalidValueTypeException("Invalid value type: " + attribute_type + " for composed attribute " +
+            raise InvalidValueTypeException("Invalid value type: " + attribute_type + " for composite attribute " +
                                             attribute_defining_element_id +
                                             " in profile " + profile_snapshot.get("name"))
 
@@ -238,7 +238,7 @@ class UIProfileGenerator:
         else:
             return ""
 
-    def generate_composed_attribute_code(self, profile_snapshot, attribute_defining_element_id) -> TermCode:
+    def generate_composite_attribute_code(self, profile_snapshot, attribute_defining_element_id) -> TermCode:
         element = self.parser.get_element_from_snapshot(profile_snapshot, attribute_defining_element_id)
         element_path = element.get("path")
         if "component" in element_path:
@@ -249,7 +249,7 @@ class UIProfileGenerator:
                     return self.parser.pattern_coding_to_term_code(code_element)
         else:
             raise InvalidValueTypeException(
-                "Unable to generate composed attribute code for element: " + element_path +
+                "Unable to generate composite attribute code for element: " + element_path +
                 "in profile: " + profile_snapshot.get("name"))
 
     def get_referenced_profile_data(self, profile_snapshot, reference_defining_element_id) -> dict:

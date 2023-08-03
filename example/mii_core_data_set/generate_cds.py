@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import argparse
 import copy
+import json
 import os
 from typing import List, ValuesView, Dict
 
 import docker
+from jsonschema import validate
 from lxml import etree
 
 from FHIRProfileConfiguration import *
@@ -112,7 +114,9 @@ def get_terminology_entry_from_top_300_loinc(element_id, element_tree):
             display = get_top_300_display(element)
             if subs := element.xpath("xmlns:sub", namespaces={'xmlns': "http://schema.samply.de/mdr/common"}):
                 term_code = TermCode("fdpg.mii.cds", display, display)
-                terminology_entry = TermEntry([term_code])
+                terminology_entry = TermEntry([term_code],
+                                              context=TermCode("fdpg.mii.cds", "Laboruntersuchung", "Laboruntersuchung",
+                                                               "1.0.0"))
                 for sub in subs:
                     terminology_entry.children.append(get_terminology_entry_from_top_300_loinc(sub.text, element_tree))
                     terminology_entry.leaf = False
@@ -120,7 +124,9 @@ def get_terminology_entry_from_top_300_loinc(element_id, element_tree):
                 terminology_entry.children = sorted(terminology_entry.children)
                 return terminology_entry
             term_code = get_term_code(element, display)
-            terminology_entry = TermEntry([term_code])
+            terminology_entry = TermEntry([term_code],
+                                          context=TermCode("fdpg.mii.cds", "Laboruntersuchung", "Laboruntersuchung",
+                                                           "1.0.0"))
     return terminology_entry
 
 
@@ -205,6 +211,17 @@ def validate_ui_profile(_profile_name: str):
     pass
     # f = open("ui-profiles/" + profile_name + ".json", 'r')
     # validate(instance=json.load(f), schema=json.load(open("resources/schema/ui-profile-schema.json")))
+
+
+def validate_fhir_mapping(mapping_name: str):
+    """
+    Validates the fhir mapping with the given name against the fhir mapping schema
+    :param mapping_name: name of the fhir mapping file
+    :raises: jsonschema.exceptions.ValidationError if the fhir mapping is not valid
+             jsonschema.exceptions.SchemaError if the fhir mapping schema is not valid
+    """
+    f = open("mapping-old/fhir/" + mapping_name + ".json", 'r')
+    validate(instance=json.load(f), schema=json.load(open("../../resources/schema/fhir-mapping-schema.json")))
 
 
 def write_ui_trees_to_files(trees: List[TermEntry], directory: str = "ui-trees"):
@@ -372,7 +389,7 @@ def write_mapping_to_db(dbw, contextualized_term_code_to_mapping, named_mappings
 
 def write_vs_to_db(profiles: List[UIProfile], dbw: DataBaseWriter):
     for ui_profile in profiles:
-        for attribute_definition in ui_profile.attribute_definitions:
+        for attribute_definition in ui_profile.attributeDefinitions:
             if attribute_definition.type == "reference":
                 vs = attribute_definition.referenceValueSet
                 term_codes = get_termcodes_from_onto_server(vs)
@@ -437,12 +454,13 @@ if __name__ == '__main__':
         fhir_search_generator = FHIRSearchMappingGenerator(resolver)
         fhir_search_term_code_mappings, fhir_search_concept_mappings = fhir_search_generator.generate_mapping(
             "resources/fdpg_differential")
-        write_mapping_to_db(db_writer, fhir_search_term_code_mappings, fhir_search_concept_mappings, "FHIR_SEARCH",
-                            args.generate_ui_profiles)
+        # write_mapping_to_db(db_writer, fhir_search_term_code_mappings, fhir_search_concept_mappings, "FHIR_SEARCH",
+        #                     args.generate_ui_profiles)
 
-        # v1_fhir_search_mapping = denormalize_mapping_to_old_format(fhir_search_term_code_mappings,
-        #                                                            fhir_search_concept_mappings)
-        # write_v1_mapping_to_file(v1_fhir_search_mapping, "mapping-old")
+        v1_fhir_search_mapping = denormalize_mapping_to_old_format(fhir_search_term_code_mappings,
+                                                                   fhir_search_concept_mappings)
+        write_v1_mapping_to_file(v1_fhir_search_mapping, "mapping-old")
+        validate_fhir_mapping("mapping_fhir")
 
     if args.generate_old_format:
         tree_generator = UITreeGenerator(resolver)
@@ -462,8 +480,8 @@ if __name__ == '__main__':
         'pg_dump --dbname="codex_ui" -U codex-postgres -a -O -t TERMCODE -t CONTEXT -t UI_PROFILE -t CONTEXTUALIZED_CONCEPT_TO_UI_PROFILE'
         ' -t CONTEXTUALIZED_CONCEPT_TO_MAPPING -t MAPPING -t VALUE_SET -f /opt/db_data/codex_ui.sql')
     print("Dumped db")
-    # container.stop()
-    # container.remove()
+    container.stop()
+    container.remove()
 
     # core_data_category_entries = generate_core_data_set()
     #
