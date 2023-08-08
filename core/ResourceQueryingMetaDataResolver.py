@@ -11,11 +11,12 @@ class ResourceQueryingMetaDataResolver(ABC):
     """
 
     @abstractmethod
-    def get_query_meta_data(self, fhir_profile_snapshot: dict, context: TermCode) -> List[ResourceQueryingMetaData]:
+    def get_query_meta_data(self, fhir_profile_snapshot: dict, module_name: str) -> List[
+        ResourceQueryingMetaData]:
         """
         Returns the query meta data for the given FHIR profile snapshot in the specified context
         :param fhir_profile_snapshot: FHIR profile snapshot
-        :param context: context of the FHIR profile
+        :param module_name: Directory of the specific FHIR profile
         :return: Query meta data
         """
         pass

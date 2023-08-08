@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from api.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
+from core.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
 from example.mii_core_data_set.generate_cds import MIICoreDataSetQueryingMetaDataResolver
 
 

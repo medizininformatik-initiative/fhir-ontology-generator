@@ -28971,7 +28971,7 @@
         <definitions>
             <definition lang="en" uuid="9c19599c-37ed-4a2f-995b-8b52092283ac">
                 <designation>SARS coronavirus 2 Ab [Interpretation] in Serum or Plasma</designation>
-                <definition>19113-0</definition>
+                <definition>94661-6</definition>
             </definition>
         </definitions>
         <slots>
@@ -28981,7 +28981,7 @@
             </slot>
             <slot>
                 <key>terminology-code</key>
-                <value>19113-0</value>
+                <value>94661-6</value>
             </slot>
         </slots>
         <namespace>7a4bd810-29c7-4362-b02d-ef02d2bbf5e9</namespace>

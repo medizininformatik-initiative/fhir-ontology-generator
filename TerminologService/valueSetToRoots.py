@@ -18,6 +18,8 @@ def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
     :param url: canonical url of the value set
     :return: sorted set of the term codes contained in the value set
     """
+    if '|' in url:
+        url = url.replace('|', '&version=')
     term_codes = SortedSet()
     response = requests.get(onto_server + f"ValueSet/$expand?url={url}")
     if response.status_code == 200:
@@ -43,6 +45,7 @@ def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
             term_codes.add(term_code)
     else:
         return []
+        print(f"Error expanding {url}")
         # raise Exception(response.status_code, response.content)
     return term_codes
 

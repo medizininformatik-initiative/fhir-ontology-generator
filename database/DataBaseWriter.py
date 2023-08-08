@@ -4,6 +4,7 @@ from typing import List, Tuple, Dict
 import psycopg2.extras
 import psycopg2
 
+from TerminologService.ValueSetResolver import get_termcodes_from_onto_server
 from model.UIProfileModel import UIProfile
 from model.UiDataModel import TermCode, TermEntry
 
@@ -121,8 +122,8 @@ add_value_set_table_canonical_url_index = """
 """
 
 add_join_index_for_contextualized_mapping = """
-    CREATE INDEX idx_mapping_name_mapping ON MAPPING (name);
-    CREATE INDEX idx_mapping_name_contextualized ON CONTEXTUALIZED_CONCEPT_TO_MAPPING (mapping_id);
+    CREATE INDEX IF NOT EXISTS idx_mapping_name_mapping ON MAPPING (name);
+    CREATE INDEX IF NOT EXISTS idx_mapping_name_contextualized ON CONTEXTUALIZED_CONCEPT_TO_MAPPING (mapping_id);
 """
 
 
@@ -132,7 +133,7 @@ class DataBaseWriter:
     for the feasibility tool ontology.
     """
 
-    def __init__(self):
+    def __init__(self, port=5432):
         self.db_connection = None
         for _ in range(30):  # retry for 30 times
             try:
@@ -140,7 +141,9 @@ class DataBaseWriter:
                     database='codex_ui',
                     user='codex-postgres',
                     host='localhost',
-                    password='codex-password'
+                    password='codex-password',
+                    port=port
+
                 )
                 # if connection is established, break the loop
                 break
@@ -423,3 +426,36 @@ class DataBaseWriter:
             "SELECT 1 FROM VALUE_SET WHERE canonical_url = %s AND system = %s AND code = %s AND version = %s",
             (canonical_url, term_code.system, term_code.code, term_code.version if term_code.version else ''))
         return bool(self.cursor.fetchone())
+
+    def write_ui_profiles_to_db(self, contextualized_term_code_to_ui_profile, named_ui_profiles,
+                                contextualized_codes_exist: bool = False):
+        context_codes = [context_code for (context_code, _) in contextualized_term_code_to_ui_profile.keys()]
+        term_codes = [term_code for (_, term_code) in contextualized_term_code_to_ui_profile.keys()]
+        if not contextualized_codes_exist:
+            self.insert_context_codes(context_codes)
+            self.insert_term_codes(term_codes)
+        self.insert_ui_profiles(named_ui_profiles)
+        values = [(context_code, term_code, ui_profile_name) for (context_code, term_code), ui_profile_name in
+                  contextualized_term_code_to_ui_profile.items()]
+        self.link_contextualized_term_code_to_ui_profile(values)
+
+    def write_mapping_to_db(self, contextualized_term_code_to_mapping, named_mappings, mapping_type,
+                            contextualized_codes_exist: bool = False):
+        context_codes = [context_code for (context_code, _) in contextualized_term_code_to_mapping.keys()]
+        term_codes = [term_code for (_, term_code) in contextualized_term_code_to_mapping.keys()]
+        if not contextualized_codes_exist:
+            self.insert_context_codes(context_codes)
+            self.insert_term_codes(term_codes)
+        self.insert_mappings(named_mappings, mapping_type)
+        values = [(context_code, term_code, mapping_name, mapping_type) for (context_code, term_code), mapping_name in
+                  contextualized_term_code_to_mapping.items()]
+        self.link_contextualized_term_code_to_mapping(values)
+
+    def write_vs_to_db(self, profiles: List[UIProfile]):
+        for ui_profile in profiles:
+            for attribute_definition in ui_profile.attributeDefinitions:
+                if attribute_definition.type == "reference":
+                    vs = attribute_definition.referenceValueSet
+                    # TODO: Maybe better to get them upfront
+                    term_codes = get_termcodes_from_onto_server(vs)
+                    self.add_value_set(vs, term_codes)

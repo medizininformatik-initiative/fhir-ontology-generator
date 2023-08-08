@@ -3,7 +3,7 @@
   "id": "sd-mii-person-patient",
   "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Patient",
   "version": "2.0.0-ballot2",
-  "name": "SD_MII_Person_Patient",
+  "name": "Patient",
   "title": "SD MII Person Patient",
   "status": "active",
   "description": "Dieses Profil beschreibt eine Patient*in in der Medizininformatik-Initiative.",

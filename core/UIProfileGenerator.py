@@ -4,9 +4,9 @@ import json
 import os
 from typing import Dict, Tuple, List
 
-from api import ResourceQueryingMetaDataResolver
-from api import StrucutureDefinitionParser as FHIRParser
-from api.StrucutureDefinitionParser import InvalidValueTypeException, UCUM_SYSTEM
+from core import ResourceQueryingMetaDataResolver
+from core import StrucutureDefinitionParser as FHIRParser
+from core.StrucutureDefinitionParser import InvalidValueTypeException, UCUM_SYSTEM
 from helper import generate_attribute_key
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import ValueDefinition, UIProfile, AttributeDefinition
@@ -38,7 +38,7 @@ class UIProfileGenerator:
         :param fhir_dataset_dir: root directory of the FHIR dataset containing the modules and their packages containing
         the FHIR Profiles and their snapshots of interest
         {FHIR_DATASET_DIR}/{MODULE_NAME}/package/
-        :return: ui trees for all FHIR profiles in the differential directory
+        :return: ui profiles for all FHIR profiles in the differential directory
         """
         self.data_set_dir = fhir_dataset_dir
         full_context_term_code_ui_profile_name_mapping = {}
@@ -50,27 +50,26 @@ class UIProfileGenerator:
             for file in files:
                 with open(file, "r", encoding="utf8") as f:
                     snapshot = json.load(f)
-                    context = TermCode("fdpg.mii.cds", module_dir.name, module_dir.name)
                     context_tc_mapping, profile_name_profile_mapping = \
-                        self.generate_normalized_term_code_ui_profile_mapping(snapshot, context)
+                        self.generate_normalized_term_code_ui_profile_mapping(snapshot, module_dir.name)
                     full_context_term_code_ui_profile_name_mapping = {**full_context_term_code_ui_profile_name_mapping,
                                                                       **context_tc_mapping}
                     full_ui_profile_name_ui_profile_mapping = {**full_ui_profile_name_ui_profile_mapping,
                                                                **profile_name_profile_mapping}
         return full_context_term_code_ui_profile_name_mapping, full_ui_profile_name_ui_profile_mapping
 
-    def generate_normalized_term_code_ui_profile_mapping(self, profile_snapshot: dict, context: TermCode = None) \
+    def generate_normalized_term_code_ui_profile_mapping(self, profile_snapshot: dict, module_name) \
             -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, UIProfile]]:
         """
         Generates a mapping from term codes to UI profiles
-        :param context: context of the FHIR Profile
+        :param module_name: name of the module the profile belongs to
         :param profile_snapshot: FHIR profile snapshot
         :return: Tuple of the normalized tables to obtain the mapping from term code + context to UI profile
         {Table: Mapping from context + term code to UI profile name,
         Table: Mapping from UI profile name to the UI profile}
         """
         querying_meta_data: List[ResourceQueryingMetaData] = \
-            self.querying_meta_data_resolver.get_query_meta_data(profile_snapshot, context)
+            self.querying_meta_data_resolver.get_query_meta_data(profile_snapshot, module_name)
         term_code_ui_profile_name_mapping = {}
         ui_profile_name_ui_profile_mapping = {}
         for i, querying_meta_data_entry in enumerate(querying_meta_data):
@@ -81,7 +80,7 @@ class UIProfileGenerator:
                                                 self.data_set_dir, self.module_dir)
             ui_profile.name += str(i) if i > 0 else ""
             ui_profile_name = ui_profile.name
-            primary_keys = [(context, term_code) for term_code in term_codes]
+            primary_keys = [(querying_meta_data_entry.context, term_code) for term_code in term_codes]
             ui_profile_names = [ui_profile_name] * len(primary_keys)
             table = dict(zip(primary_keys, ui_profile_names))
             term_code_ui_profile_name_mapping = {**term_code_ui_profile_name_mapping,
@@ -97,11 +96,11 @@ class UIProfileGenerator:
         :return: UI profile for the given FHIR profile snapshot
         """
         ui_profile = UIProfile(profile_snapshot["name"])
-        ui_profile.time_restriction_allowed = self.is_time_restriction_allowed(querying_meta_data)
+        ui_profile.timeRestrictionAllowed = self.is_time_restriction_allowed(querying_meta_data)
         if querying_meta_data.value_defining_id:
-            ui_profile.value_definition = self.get_value_definition(profile_snapshot,
-                                                                    querying_meta_data)
-        ui_profile.attribute_definitions = self.get_attribute_definitions(profile_snapshot, querying_meta_data)
+            ui_profile.valueDefinition = self.get_value_definition(profile_snapshot,
+                                                                   querying_meta_data)
+        ui_profile.attributeDefinitions = self.get_attribute_definitions(profile_snapshot, querying_meta_data)
         return ui_profile
 
     def get_value_definition(self, profile_snapshot, querying_meta_data) -> ValueDefinition:
@@ -195,7 +194,7 @@ class UIProfileGenerator:
                                                                                 attribute_defining_element_id)
         elif attribute_type == "composite":
             attribute_definition = self.generate_composite_attribute(profile_snapshot,
-                                                                    attribute_defining_element_id)
+                                                                     attribute_defining_element_id)
         else:
             raise InvalidValueTypeException("Invalid value type: " + attribute_type)
         return attribute_definition

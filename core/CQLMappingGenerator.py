@@ -4,9 +4,9 @@ import json
 import os
 from typing import Tuple, List, Dict
 
-from api import StrucutureDefinitionParser as FHIRParser
-from api.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
-from api.StrucutureDefinitionParser import resolve_defining_id, extract_value_type
+from core import StrucutureDefinitionParser as FHIRParser
+from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
+from core.StrucutureDefinitionParser import resolve_defining_id, extract_value_type
 from helper import generate_attribute_key
 from model.MappingDataModel import CQLMapping
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
@@ -51,24 +51,23 @@ class CQLMappingGenerator(object):
             for file in files:
                 with open(file, "r", encoding="utf8") as f:
                     snapshot = json.load(f)
-                    context = TermCode("fdpg.mii.cds", module_dir.name, module_dir.name)
                     context_tc_to_mapping_name, cql_mapping_name_to_mapping = \
-                        self.generate_normalized_term_code_cql_mapping(snapshot, context)
+                        self.generate_normalized_term_code_cql_mapping(snapshot, module_dir.name)
                     full_context_term_code_cql_mapping_name_mapping.update(context_tc_to_mapping_name)
                     full_cql_mapping_name_cql_mapping.update(cql_mapping_name_to_mapping)
         return (full_context_term_code_cql_mapping_name_mapping,
                 full_cql_mapping_name_cql_mapping)
 
-    def generate_normalized_term_code_cql_mapping(self, profile_snapshot, context: TermCode) \
+    def generate_normalized_term_code_cql_mapping(self, profile_snapshot, module_name: TermCode) \
             -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, CQLMapping]]:
         """
         Generates the normalized term code to CQL mapping for the given FHIR profile snapshot
         :param profile_snapshot: FHIR profile snapshot
-        :param context: context of the FHIR profile
+        :param module_name: name of the module the profile belongs to
         :return: normalized term code to CQL mapping
         """
         querying_meta_data: List[ResourceQueryingMetaData] = \
-            self.querying_meta_data_resolver.get_query_meta_data(profile_snapshot, context)
+            self.querying_meta_data_resolver.get_query_meta_data(profile_snapshot, module_name)
         term_code_mapping_name_mapping: Dict[Tuple[TermCode, TermCode], str] | dict = {}
         mapping_name_cql_mapping: Dict[str, CQLMapping] | dict = {}
         for querying_meta_data_entry in querying_meta_data:
@@ -83,7 +82,7 @@ class CQLMappingGenerator(object):
             term_codes = querying_meta_data_entry.term_codes if querying_meta_data_entry.term_codes else \
                 self.parser.get_term_code_by_id(profile_snapshot, querying_meta_data_entry.term_code_defining_id,
                                                 self.data_set_dir, self.module_dir)
-            primary_keys = [(context, term_code) for term_code in term_codes]
+            primary_keys = [(querying_meta_data_entry.context, term_code) for term_code in term_codes]
             mapping_names = [mapping_name] * len(primary_keys)
             table = dict(zip(primary_keys, mapping_names))
             term_code_mapping_name_mapping.update(table)

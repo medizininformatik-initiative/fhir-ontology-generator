@@ -6,12 +6,12 @@ import json
 from typing import List, ValuesView, Dict
 
 from FHIRProfileConfiguration import *
-from api.CQLMappingGenerator import CQLMappingGenerator
-from api.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
-from api.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
-from api.StrucutureDefinitionParser import get_element_from_snapshot
-from api.UIProfileGenerator import UIProfileGenerator
-from api.UITreeGenerator import UITreeGenerator
+from core.CQLMappingGenerator import CQLMappingGenerator
+from core.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
+from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
+from core.StrucutureDefinitionParser import get_element_from_snapshot
+from core.UIProfileGenerator import UIProfileGenerator
+from core.UITreeGenerator import UITreeGenerator
 from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, load_querying_meta_data, \
     generate_result_folder
 from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList

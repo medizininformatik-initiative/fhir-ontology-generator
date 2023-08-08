@@ -2,9 +2,9 @@ import json
 import os
 from typing import List
 
-from api import StrucutureDefinitionParser as FhirParser
+from core import StrucutureDefinitionParser as FhirParser
 from TerminologService.ValueSetResolver import get_term_entries_from_onto_server
-from api.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
+from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from helper import is_structure_definition
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UiDataModel import TermEntry, TermCode
@@ -34,56 +34,40 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
         """
         self.data_set_dir = differential_dir
         result: List[TermEntry] = []
-        for folder in [folder for folder in os.scandir(differential_dir) if folder.is_dir()]:
-            self.module_dir = folder.path
-            files = [file.path for file in os.scandir(f"{folder.path}/package") if file.is_file()
+        for module_dir in [folder for folder in os.scandir(differential_dir) if folder.is_dir()]:
+            self.module_dir = module_dir.path
+            files = [file.path for file in os.scandir(f"{module_dir.path}/package") if file.is_file()
                      and file.name.endswith("snapshot.json") and is_structure_definition(file.path)]
-            result.append(self.generate_module_ui_tree(TermCode("fdpg.mii.cds", folder.name, folder.name), files))
+            result.append(self.generate_module_ui_tree(module_dir.name, files))
         return result
 
-    def get_query_meta_data(self, fhir_profile_snapshot: dict, context: TermCode) -> List[ResourceQueryingMetaData]:
+    def get_query_meta_data(self, fhir_profile_snapshot: dict, module_name: str) -> List[ResourceQueryingMetaData]:
         """
         Returns the query meta data for the given FHIR profile snapshot
         :param fhir_profile_snapshot: FHIR profile snapshot
-        :param context: context of the FHIR profile snapshot
+        :param module_name: name of the module the profile belongs to
         :return: Query meta data
         """
-        return self.query_meta_data_resolver.get_query_meta_data(fhir_profile_snapshot, context)
+        return self.query_meta_data_resolver.get_query_meta_data(fhir_profile_snapshot, module_name)
 
-    def generate_ui_subtree(self, fhir_profile_snapshot: dict, context: TermCode = None) -> List[TermEntry]:
+    def generate_ui_subtree(self, fhir_profile_snapshot: dict, module_name) -> List[TermEntry]:
         """
         Generates the ui subtree for the given FHIR profile snapshot
-        :param fhir_profile_snapshot: FHIR profile snapshot json representation
-        :param context: of the parent node | None if this is the root node
+        :param fhir_profile_snapshot: FHIR profile snapshot
+        :param module_name: name of the module the profile belongs to
         :return: root of the ui subtree
         """
-
-        # If no context is provided the context code is derived from the profile name.
-        # If the profile is based on mii cds profile, the name of that profile is used as context. Otherwise the name
-        # of the profile is used as context code.
-        # baseDefinition =
-        # https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Diagnose
-        # => context_code = Diagnose
-        # baseDefinition = http://hl7.org/fhir/StructureDefinition/Condition and url =
-        # https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Todesursache
-        # => context_code = Todesursache
-        context_code = fhir_profile_snapshot["baseDefinition"].split("/")[-1] \
-            if fhir_profile_snapshot["baseDefinition"] in "https://www.medizininformatik-initiative.de/" \
-            else fhir_profile_snapshot["url"].split("/")[-1]
-        sub_tree_context = context if context else TermCode("fdpg.mii.cds", context_code, context_code)
-        applicable_querying_meta_data = self.get_query_meta_data(fhir_profile_snapshot, sub_tree_context)
+        applicable_querying_meta_data = self.get_query_meta_data(fhir_profile_snapshot, module_name)
         if not applicable_querying_meta_data:
             print(f"No querying meta data found for {fhir_profile_snapshot['name']}")
-        return self.translate(fhir_profile_snapshot, applicable_querying_meta_data, sub_tree_context)
+        return self.translate(fhir_profile_snapshot, applicable_querying_meta_data)
 
-    def translate(self, fhir_profile_snapshot: dict, applicable_querying_meta_data: List[ResourceQueryingMetaData],
-                  context: TermCode) \
+    def translate(self, fhir_profile_snapshot: dict, applicable_querying_meta_data: List[ResourceQueryingMetaData]) \
             -> List[TermEntry]:
         """
         Translates the given FHIR profile snapshot into a ui tree
         :param fhir_profile_snapshot: FHIR profile snapshot json representation
         :param applicable_querying_meta_data: applicable querying meta data
-        :param context: context for the FHIR profile snapshot
         :return: root of the ui tree
         """
         result: List[TermEntry] = []
@@ -105,28 +89,37 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
             if entry.children:
                 self.set_context(entry.children, context)
 
-    def generate_module_ui_tree(self, module_context: TermCode, files: List[str]) -> TermEntry:
+    def generate_module_ui_tree(self, module_name, files: List[str]) -> TermEntry:
         """
         Generates the ui tree for the given module
-        :param module_context: context of the module
+        :param module_name:  name of the module the profiles belongs to
         :param files: FHIR profiles snapshot paths in the module
         :return:
         """
+        root_term_code = TermCode("fdpg.mii.cds", module_name, module_name)
+        root = TermEntry([root_term_code], "Category", selectable=False, leaf=False,
+                         context=root_term_code)
         if len(files) == 1:
             with open(files[0], 'r') as snapshot:
                 snapshot_json = json.load(snapshot)
-                root = TermEntry([TermCode(module_context.system, snapshot_json.get("name"),
-                                           snapshot_json.get("name"))], "Category", selectable=False, leaf=False,
-                                 context=module_context)
-                root.children = self.generate_ui_subtree(snapshot_json)
-                return root
+                root.children = self.generate_ui_subtree(snapshot_json, module_name)
+
         else:
-            root = TermEntry([module_context], "Category", selectable=False,
-                             leaf=False, context=module_context)
             for snapshot_file in files:
                 with open(snapshot_file, encoding="utf8") as snapshot:
-                    root.children += self.generate_ui_subtree(json.load(snapshot), module_context)
-            return root
+                    snapshot_json = json.load(snapshot)
+                    sub_entry_term_code = TermCode("fdpg.mii.cds", snapshot_json.get("name"),
+                                                   snapshot_json.get("name"))
+                    sub_entry = TermEntry([sub_entry_term_code], "Category", selectable=False,
+                                          leaf=False, context=None)
+                    sub_entry.children += self.generate_ui_subtree(snapshot_json, module_name)
+                    if sub_entry.children:
+                        sub_entry.context = sub_entry.children[0].context
+                        root.children.append(sub_entry)
+            if len(root.children) == 1:
+                root.children = root.children[0].children
+        root.context.system = root.children[0].context.system
+        return root
 
     def get_term_entries_by_id(self, fhir_profile_snapshot, term_code_defining_id) -> List[TermEntry]:
         """

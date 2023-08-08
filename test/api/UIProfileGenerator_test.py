@@ -1,8 +1,8 @@
 import json
 import unittest
 
-from api.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
-from api.UIProfileGenerator import UIProfileGenerator
+from core.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
+from core.UIProfileGenerator import UIProfileGenerator
 from example.mii_core_data_set.generate_cds import MIICoreDataSetQueryingMetaDataResolver
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UiDataModel import TermCode, AttributeDefinition
