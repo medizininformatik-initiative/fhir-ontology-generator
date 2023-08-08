@@ -60,5 +60,4 @@ class DataBaseWriterTest(unittest.TestCase):
         mapping = CQLMapping("test")
         self.dbw.insert_term_codes([term_code])
         self.dbw.insert_context_codes([context])
-        self.dbw.insert_mapping(context, term_code, mapping.name, "CQL", mapping.to_json())
         self.assertTrue(CQLMapping.from_json(self.dbw.get_mapping(context, term_code, "CQL")) == mapping)
