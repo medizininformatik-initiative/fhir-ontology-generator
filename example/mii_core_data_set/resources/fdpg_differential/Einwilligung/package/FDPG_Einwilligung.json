@@ -1,0 +1,32 @@
+{
+  "resourceType": "StructureDefinition",
+  "id": "71w5aa8f-74aa-4c43-845c-a6420aad8bd9",
+  "url": "https://www.medizininformatik-initiative.de/fhir/fdpg/StructureDefinition/Einwilligung",
+  "name": "Einwilligung",
+  "status": "active",
+  "fhirVersion": "4.0.1",
+  "kind": "resource",
+  "abstract": false,
+  "type": "Consent",
+  "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/modul-consent/StructureDefinition/mii-pr-consent-einwilligung",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      {
+        "id": "Consent.patient.reference",
+        "path": "Consent.patient.reference",
+        "min": 1
+      },
+      {
+        "id": "Consent.provision",
+        "path": "Consent.provision",
+        "min": 1
+      },
+      {
+        "id": "Consent.provision.provision",
+        "path": "Consent.provision.provision",
+        "min": 1
+      }
+    ]
+  }
+}

@@ -1,7 +1,7 @@
 import json
 import os
 
-from Helper import get_term_selectable_leaf_codes_from_ui_profile
+from helper import get_term_selectable_codes_from_ui_profile
 from model.UiDataModel import TermCode
 
 
@@ -17,6 +17,6 @@ if __name__ == "__main__":
     for ui_profile_name in [f.name for f in os.scandir("ui-profiles/")]:
         with open("ui-profiles/" + ui_profile_name, 'r', encoding="utf-8") as ui_profile_json:
             ui_profile = json.load(ui_profile_json)
-            entries_requiring_map_entry = get_term_selectable_leaf_codes_from_ui_profile(ui_profile)
+            entries_requiring_map_entry = get_term_selectable_codes_from_ui_profile(ui_profile)
             print(ui_profile_name)
             print(entries_requiring_map_entry - keys)

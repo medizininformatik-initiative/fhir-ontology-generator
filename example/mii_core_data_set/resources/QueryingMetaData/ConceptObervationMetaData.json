@@ -1,0 +1,13 @@
+{
+  "name": "ConceptObservation",
+  "resource_type": "Observation",
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "Laboruntersuchung",
+    "display": "Laboruntersuchung",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "Observation.code.coding:loinc",
+  "value_defining_id": "Observation.value[x]:valueCodeableConcept",
+  "time_restriction_defining_id": "Observation.effective[x]"
+}

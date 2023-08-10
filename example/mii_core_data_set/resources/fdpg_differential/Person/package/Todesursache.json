@@ -1,0 +1,27 @@
+{
+  "resourceType": "StructureDefinition",
+  "id": "mii-fdpg-todesursache",
+  "url": "https://medizininformatik-initative.de/fhir/fdpg/StructureDefinition/Todesursache",
+  "name": "Todesursache",
+  "status": "active",
+  "fhirVersion": "4.0.1",
+  "kind": "resource",
+  "abstract": false,
+  "type": "Condition",
+  "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Todesursache",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      {
+        "id": "Condition.code.coding:icd10-gm",
+        "path": "Condition.code.coding",
+        "sliceName": "icd10-gm",
+        "min": 1,
+        "binding": {
+          "strength": "required",
+          "valueSet": "http://fhir.de/ValueSet/bfarm/icd-10-gm"
+        }
+      }
+    ]
+  }
+}

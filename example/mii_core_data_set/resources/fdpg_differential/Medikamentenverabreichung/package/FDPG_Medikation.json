@@ -1,0 +1,39 @@
+{
+  "resourceType": "StructureDefinition",
+  "id": "e378dc52-70c2-4bff-98cc-fde79fa672b0",
+  "url": "https://www.medizininformatik-initiative.de/fhir/fdpg/StructureDefinition/Medikation",
+  "name": "Medikation",
+  "status": "active",
+  "fhirVersion": "4.0.1",
+  "kind": "resource",
+  "abstract": false,
+  "type": "Medication",
+  "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/Medication",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      {
+        "id": "Medication.code",
+        "path": "Medication.code",
+        "min": 1
+      },
+      {
+        "id": "Medication.code.coding",
+        "path": "Medication.code.coding",
+        "min": 1
+      },
+      {
+        "id": "Medication.code.coding:atcClassDe",
+        "path": "Medication.code.coding",
+        "sliceName": "atcClassDe",
+        "min": 1
+      },
+      {
+        "id": "Medication.status",
+        "path": "Medication.status",
+        "min": 1,
+        "fixedCode": "active"
+      }
+    ]
+  }
+}

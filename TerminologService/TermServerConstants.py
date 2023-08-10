@@ -1,0 +1,3 @@
+import os
+
+TERMINOLOGY_SERVER_ADDRESS = os.environ.get('ONTOLOGY_SERVER_ADDRESS')

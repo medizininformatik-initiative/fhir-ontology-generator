@@ -1,0 +1,12 @@
+{
+  "name": "DiagnosticReport",
+  "resource_type": "DiagnosticReport",
+  "context": {
+    "system": "fdpg.mii.gecco",
+    "code": "DiagnosticReport",
+    "display": "DiagnosticReport"
+  },
+  "term_code_defining_id": "DiagnosticReport.category.coding:loinc",
+  "value_defining_id": "DiagnosticReport.conclusionCode",
+  "time_restriction_defining_id": "DiagnosticReport.effective[x]"
+}

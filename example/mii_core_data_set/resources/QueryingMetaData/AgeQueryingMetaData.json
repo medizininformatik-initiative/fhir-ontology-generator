@@ -1,0 +1,17 @@
+{
+  "name": "Age",
+  "resource_type": "Patient",
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "Patient",
+    "display": "Patient",
+    "version": "1.0.0"
+  },
+  "value_defining_id": "Patient.birthDate",
+  "value_type": "Age",
+  "term_codes": [{
+    "system": "http://snomed.info/sct",
+    "code": "424144002",
+    "display": "Gegenwärtiges chronologisches Alter"
+  }]
+}

@@ -1,0 +1,84 @@
+FHIR Search Strings, um Params zu testen
+
+---------------------------------------------------------------------------------------------------------------------------------
+CUSTOM SEARCH PARAMETER
+---------------------------------------------------------------------------------------------------------------------------------
+PRIMÄRDIAGNOSE
+1. Extension Fernmetastase
+    http://localhost:8080/fhir/Condition?fernmetastase.value-concept=J  --> FUNKTIONIERT
+2. Fernmetastase - bodysite
+    http://localhost:8080/fhir/Condition?fernmetastase.bodysite=PUL    --> FUNKTIONIERT
+3. TNM - stage-assessment
+    http://localhost:8080/fhir/Condition?stage-assessment.value-concept=IIIA  --> funktioniert 
+4. TNM - ALL COMPONENTS
+    ### TO DO
+
+5. Extension - Specimen
+    http://localhost:8080/fhir/Condition?specimen.type=whole-blood - funktioniert
+
+
+
+OPERATION
+6. Extension - OP Intention
+    http://localhost:8080/fhir/Procedure?op-intention=P - funktioniert
+
+7. OP Complication - 
+     http://localhost:8080/fhir/Procedure?complication=BIF
+
+8. OP outcome - lokaler Residualstatus und Gesamtbeurteilung Residualstatus - über System?
+    http://localhost:8080/fhir/Procedure?outcome=http://dktk.dkfz.de/fhir/onco/core/CodeSystem/LokaleBeurteilungResidualstatusCS|R0
+    http://localhost:8080/fhir/Procedure?outcome=http://dktk.dkfz.de/fhir/onco/core/CodeSystem/GesamtbeurteilungResidualstatusCS|R2
+
+
+STRAHLENTHERAPIE
+9. Extension - ST Intention
+    http://localhost:8080/fhir/Procedure?st-intention=P 
+
+10. Extension - StellungZurOp
+    http://localhost:8080/fhir/Procedure?st-stellung-op=A 
+
+
+SYSTEMTHERAPIE
+11. Extension - StellungZurOp
+    http://localhost:8080/fhir/MedicationStatement?syst-stellung-op=N
+12. Extension - Intention
+    http://localhost:8080/fhir/MedicationStatement?syst-intention=K
+13. Extension - Protokoll - hier text abfragen (oder gar nicht - ist blödsinn weil verketteter string bei uns aktuell)
+    #### TO DO nach Gespräch KDS Modul Onko
+
+
+---------------------------------------------------------------------------------------------------------------------------------
+STANDARD SEARCH PARAMETER
+---------------------------------------------------------------------------------------------------------------------------------
+Histologie
+    http://localhost:8080/fhir/Condition?evidence-detail.code-value-concept=59847-4$8140/3 --> FUNKTIONIERT
+
+OP OPS code
+    http://localhost:8080/fhir/Procedure?code=5-604.41 --> Funktioniert 
+
+OP Reason-Referenz PRIMÄRDIAGNOSE
+    http://localhost:8080/fhir/Procedure?reason-reference.code=C61 --> funktioniert
+
+OP Datum performed datetime "performedDateTime":"2013-04-05"
+    http://localhost:8080/fhir/Procedure?performed=ge2013
+
+OP Category + Procedure Category
+    http://localhost:8080/fhir/Procedure?category=OP
+    http://localhost:8080/fhir/Procedure?category=ST 
+
+Strahlentherapie performed period - wie sucht man nach einer Period? meine Period ist 01.03.2013-08.03.2013
+    http://localhost:8080/fhir/Procedure?date=ge2013-03-01&date=le2013-03-08
+
+Strahlentherapie category ST
+    http://localhost:8080/fhir/Procedure?category=ST (oder category.code?)
+
+
+MedicationStatement category CH IM SO...
+     http://localhost:8080/fhir/MedicationStatement?category=CH 
+    
+MedicationStatement medication - geht das mit Standardparam? weil der returned eine reference - und kann ich hier text auslesen?
+    http://localhost:8080/fhir/MedicationStatement?medication
+    TODO Testen mit Testdaten aus onkoadt-to-fhir
+
+MedicationStatement effective period 
+    http://localhost:8080/fhir/MedicationStatement?effective

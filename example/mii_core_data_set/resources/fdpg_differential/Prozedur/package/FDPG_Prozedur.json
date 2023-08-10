@@ -1,0 +1,28 @@
+{
+  "resourceType": "StructureDefinition",
+  "id": "6bfc3c6f-30bb-4413-8af8-a0b06ffd1939",
+  "url": "https://www.medizininformatik-initiative.de/fhir/fdpg/StructureDefinition/Prozedur",
+  "name": "Prozedur",
+  "status": "active",
+  "fhirVersion": "4.0.1",
+  "kind": "resource",
+  "abstract": false,
+  "type": "Procedure",
+  "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/StructureDefinition/Procedure",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      {
+        "id": "Procedure.subject.reference",
+        "path": "Procedure.subject.reference",
+        "min": 1
+      },
+      {
+        "id": "Procedure.code.coding:ops",
+        "path": "Procedure.code.coding",
+        "sliceName": "ops",
+        "min": 1
+      }
+    ]
+  }
+}

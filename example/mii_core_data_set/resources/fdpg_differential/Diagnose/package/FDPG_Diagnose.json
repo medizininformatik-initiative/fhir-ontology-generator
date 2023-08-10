@@ -1,0 +1,28 @@
+{
+  "resourceType": "StructureDefinition",
+  "id": "71d5aa8f-74aa-4c43-845c-a6400aad8bd9",
+  "url": "https://www.medizininformatik-initiative.de/fhir/fdpg/StructureDefinition/Diagnose",
+  "name": "Diagnose",
+  "status": "active",
+  "fhirVersion": "4.0.1",
+  "kind": "resource",
+  "abstract": false,
+  "type": "Condition",
+  "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      {
+        "id": "Condition.subject.reference",
+        "path": "Condition.subject.reference",
+        "min": 1
+      },
+      {
+        "id": "Condition.code.coding:icd10-gm",
+        "path": "Condition.code.coding",
+        "sliceName": "icd10-gm",
+        "min": 1
+      }
+    ]
+  }
+}

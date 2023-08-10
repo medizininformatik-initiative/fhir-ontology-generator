@@ -1,0 +1,15 @@
+{
+    "severity": "Schweregrad",
+    "bodySite": "Körperstelle",
+    "systolicBloodPressure": "Systolischer Blutdruck",
+    "diastolicBloodPressure": "Diastolischer Blutdruck",
+    "Country": "Land",
+    "festgestellteDiagnose": "Festgestellte Diagnose",
+    "icd-o-3": "icd-o-3",
+    "ADT-Seitenlokalisation": "ADT-Seitenlokalisation",
+    "category": "category",
+    "reasonReference": "reasonReference",
+    "Intention": "Intention",
+    "Fernmetastasen": "Fernmetastasen",
+    "specimen": "specimen"
+}

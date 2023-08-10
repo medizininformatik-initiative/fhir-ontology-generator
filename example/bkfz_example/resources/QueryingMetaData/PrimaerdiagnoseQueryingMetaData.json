@@ -1,0 +1,16 @@
+{
+  "name": "Primaerdiagnose",
+  "resource_type": "Condition",
+  "context": {
+    "system": "bzkf.dktk.oncology",
+    "code": "Primaerdiagnose",
+    "display": "Primaerdiagnose"
+  },
+  "term_code_defining_id": "Condition.code.coding:icd10-gm",
+  "attribute_defining_id_type_map": {
+    "Condition.bodySite.coding:ADT-Seitenlokalisation": "",
+    "((Condition.extension:Fernmetastasen).value[x]).bodySite": "reference",
+    "((Condition.extension:specimen).value[x]).type": "reference"
+  },
+  "time_restriction_defining_id": "Condition.onset[x]"
+}

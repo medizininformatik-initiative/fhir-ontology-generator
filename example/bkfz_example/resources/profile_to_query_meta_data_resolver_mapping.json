@@ -1,0 +1,16 @@
+{
+    "Diagnose": [
+        "Primaerdiagnose"
+    ],
+    "Operation": [
+        "Operation"
+    ],
+    "Strahlentherapie": [
+        "Strahlentherapie"
+    ],
+    "Systemtherapie": [
+        "Systemtherapie"
+    ],
+    "Fernmetastasen": [],
+    "Specimen": []
+}

@@ -1,0 +1,22 @@
+{
+  "name": "Age",
+  "resource_type": "Patient",
+  "context": {
+    "system": "fdpg.mii.gecco",
+    "code": "age",
+    "display": "Age"
+  },
+  "term_codes": [
+    {
+      "code": "30525-0",
+      "display": "Age",
+      "system": "http://loinc.org"
+    },
+    {
+      "code": "424144002",
+      "display": "Current chronological age (observable entity)",
+      "system": "http://snomed.info/sct"
+    }
+  ],
+  "value_defining_id": "(Patient.extension:age).extension:age.value[x]"
+}

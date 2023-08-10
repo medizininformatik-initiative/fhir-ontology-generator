@@ -1,0 +1,93 @@
+{
+    "resourceType": "StructureDefinition",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/SARScoronavirus2RdRpgene[Presence]inRespiratoryspecimenbyNAAwithprobedetection",
+    "name": "SARS coronavirus 2 RdRp gene [Presence] in Respiratory specimen by NAA with probe detection",
+    "status": "active",
+    "fhirVersion": "4.0.1",
+    "kind": "resource",
+    "abstract": false,
+    "type": "Observation",
+    "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab",
+    "derivation": "constraint",
+    "differential": {
+        "element": [
+            {
+                "id": "Observation.code",
+                "path": "Observation.code",
+                "short": "SARS coronavirus 2 RdRp gene [Presence] in Respiratory specimen by NAA with probe detection",
+                "definition": "SARS coronavirus 2 RdRp gene [Presence] in Respiratory specimen by NAA with probe detection"
+            },
+            {
+                "id": "Observation.code.coding",
+                "path": "Observation.code.coding",
+                "slicing": {
+                    "discriminator": [
+                        {
+                            "type": "pattern",
+                            "path": "$this"
+                        }
+                    ],
+                    "rules": "open"
+                },
+                "min": 1
+            },
+            {
+                "id": "Observation.code.coding:loinc",
+                "path": "Observation.code.coding",
+                "sliceName": "loinc",
+                "min": 1,
+                "max": "*",
+                "patternCoding": {
+                    "system": "http://loinc.org",
+                    "code": "94534-5"
+                }
+            },
+            {
+                "id": "Observation.code.coding:loinc.system",
+                "path": "Observation.code.coding.system",
+                "min": 1
+            },
+            {
+                "id": "Observation.code.coding:loinc.code",
+                "path": "Observation.code.coding.code",
+                "min": 1
+            },
+            {
+                "id": "Observation.value[x]",
+                "path": "Observation.value[x]",
+                "slicing": {
+                    "discriminator": [
+                        {
+                            "type": "type",
+                            "path": "$this"
+                        }
+                    ],
+                    "ordered": false,
+                    "rules": "open"
+                },
+                "type": [
+                    {
+                        "code": "CodeableConcept"
+                    }
+                ],
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.value[x]:valueCodeableConcept",
+                "path": "Observation.value[x]",
+                "sliceName": "valueCodeableConcept",
+                "min": 1,
+                "type": [
+                    {
+                        "code": "CodeableConcept"
+                    }
+                ],
+                "binding": {
+                    "strength": "required",
+                    "valueSet": "http://loinc.org/vs/LL2009-0"
+                }
+            }
+        ]
+    },
+    "id": "fa854bdc-92b4-4842-9ed4-eed89f41addd"
+}
