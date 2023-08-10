@@ -279,5 +279,5 @@ class UIProfileGenerator:
                                                                                 self.data_set_dir)
         attribute_code = generate_attribute_key(attribute_defining_element_id)
         attribute_definition = AttributeDefinition(attribute_code, "reference")
-        attribute_definition.referenceValueSet = self.parser.get_reference_value_set(attribute_defining_elements)
+        attribute_definition.referenceCriteriaSet = self.parser.get_reference_value_set(attribute_defining_elements)
         return attribute_definition

@@ -39,7 +39,7 @@ class UIProfileGeneratorTestCases(unittest.TestCase):
                                           "Festgestellte Diagnose")
                 expected_attribute_definition = AttributeDefinition(attribute_code, "reference")
                 expected_attribute_definition.optional = True
-                expected_attribute_definition.referenceValueSet = "http://fhir.de/ValueSet/bfarm/icd-10-gm"
+                expected_attribute_definition.referenceCriteriaSet = "http://fhir.de/ValueSet/bfarm/icd-10-gm"
                 self.assertEqual(expected_attribute_definition.__dict__, ui_profile.attribute_definitions[0].__dict__)
 
 

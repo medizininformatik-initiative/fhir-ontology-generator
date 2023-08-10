@@ -361,22 +361,31 @@ def write_v1_mapping_to_file(mapping, mapping_folder="mapping-old"):
 
 
 def reformat_diagnosis_tree(ui_tree: TermEntry):
-    print("reformat diagnosis tree")
     for child in ui_tree.children:
         child.selectable = False
     return ui_tree
 
 
 def reformate_medicaiton_tree(ui_tree: TermEntry):
-    print("reformat medication tree")
     for child in ui_tree.children:
         child.selectable = False
     return ui_tree
 
 
 def reformat_lab_tree(_ui_tree):
-    print("reformat lab tree")
     return generate_top_300_loinc_tree()
+
+
+def reformate_consent_tree(ui_tree: TermEntry):
+    for child in ui_tree.children:
+        child.selectable = False
+    return ui_tree
+
+
+def reformate_procedure_tree(ui_tree: TermEntry):
+    for child in ui_tree.children:
+        child.selectable = False
+    return ui_tree
 
 
 def apply_additional_tree_rules(ui_tree):
@@ -384,7 +393,9 @@ def apply_additional_tree_rules(ui_tree):
         TermCode("fdpg.mii.cds", "Laboruntersuchung", "Laboruntersuchung"): reformat_lab_tree,
         TermCode("fdpg.mii.cds", "Diagnose", "Diagnose"): reformat_diagnosis_tree,
         TermCode("fdpg.mii.cds", "Medikamentenverabreichung", "Medikamentenverabreichung"
-                 ): reformate_medicaiton_tree
+                 ): reformate_medicaiton_tree,
+        TermCode("fdpg.mii.cds", "Einwilligung", "Einwilligung"): reformate_consent_tree,
+        TermCode("fdpg.mii.cds", "Prozedur", "Prozedur"): reformate_procedure_tree
     }
     reformat_function = term_code_reformat_map.get(ui_tree.termCode)
     if reformat_function is not None:

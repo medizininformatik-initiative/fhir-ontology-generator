@@ -447,7 +447,7 @@ class DataBaseWriter:
         for ui_profile in profiles:
             for attribute_definition in ui_profile.attributeDefinitions:
                 if attribute_definition.type == "reference":
-                    vs = attribute_definition.referenceValueSet
+                    vs = attribute_definition.referenceCriteriaSet
                     # TODO: Maybe better to get them upfront
                     term_codes = get_termcodes_from_onto_server(vs)
                     self.add_value_set(vs, term_codes)

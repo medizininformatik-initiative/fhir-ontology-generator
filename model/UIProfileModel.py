@@ -18,7 +18,7 @@ class ValueDefinition:
         self.precision = 1
         self.min = None
         self.max = None
-        self.referenceValueSet = None
+        self.referenceCriteriaSet = None
         self.optional = True
 
 
