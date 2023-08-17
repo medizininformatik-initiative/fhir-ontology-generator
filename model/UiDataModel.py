@@ -190,6 +190,12 @@ class TermEntry(object):
     def __len__(self):
         return len(self.children) + 1
 
+    def __eq__(self, other):
+        return self.termCode == other.termCode and self.context == other.context
+
+    def __hash__(self):
+        return hash(self.termCode.system + self.termCode.code + self.context.system + self.context.code)
+
     def to_json(self):
         """
         Serializes the TermEntry to json

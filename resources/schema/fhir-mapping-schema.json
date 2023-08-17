@@ -10,7 +10,8 @@
         "date",
         "composite-quantity",
         "composite-concept",
-        "Age"
+        "Age",
+        "code"
       ]
     },
     "termCode": {
@@ -72,7 +73,12 @@
         "attributeSearchParameter": {
           "type": "string"
         }
-      }
+      },
+        "required": [
+            "attributeKey",
+            "attributeType",
+            "attributeSearchParameter"
+        ]
     },
     "attributeSearchParameters": {
       "type": "array",

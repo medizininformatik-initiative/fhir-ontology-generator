@@ -43,7 +43,7 @@ class FhirSearchAttributeSearchParameter(AttributeSearchParameter):
         :param search_parameter defines the FHIR search parameter for the attribute
         """
         super().__init__(criteria_type, attribute_code)
-        self.searchParameter = search_parameter
+        self.attributeSearchParameter = search_parameter
 
 
 class CQLAttributeSearchParameter(AttributeSearchParameter):
