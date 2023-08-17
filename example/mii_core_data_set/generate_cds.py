@@ -24,6 +24,7 @@ from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import UIProfile
 from model.UiDataModel import TermEntry, TermCode
+from model.termCodeTree import to_term_code_node
 
 core_data_sets = [MII_CONSENT, MII_DIAGNOSE, MII_LAB, MII_MEDICATION, MII_PERSON, MII_PROCEDURE, MII_SPECIMEN]
 WINDOWS_RESERVED_CHARACTERS = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
@@ -224,6 +225,17 @@ def validate_fhir_mapping(mapping_name: str):
     validate(instance=json.load(f), schema=json.load(open("../../resources/schema/fhir-mapping-schema.json")))
 
 
+def validate_mapping_tree(tree_name: str):
+    """
+    Validates the mapping tree with the given name against the mapping tree schema
+    :param tree_name: name of the mapping tree
+    :raises: jsonschema.exceptions.ValidationError if the mapping tree is not valid
+             jsonschema.exceptions.SchemaError if the mapping tree schema is not valid
+    """
+    f = open("mapping-tree/" + tree_name + ".json", 'r')
+    validate(instance=json.load(f), schema=json.load(open("../../resources/schema/codex-code-tree-schema.json")))
+
+
 def write_ui_trees_to_files(trees: List[TermEntry], directory: str = "ui-trees"):
     """
     Writes the ui trees to the ui-profiles folder
@@ -348,6 +360,12 @@ def write_mappings_to_files(mappings, mapping_folder="mapping"):
     f.close()
 
 
+def write_mapping_tree_to_file(tree, mapping_tree_folder="mapping-tree"):
+    with open(mapping_tree_folder + "/mapping_tree.json", 'w', encoding="utf-8") as f:
+        f.write(tree.to_json())
+    f.close()
+
+
 def write_v1_mapping_to_file(mapping, mapping_folder="mapping-old"):
     if isinstance(mapping.entries[0], CQLMapping):
         mapping_file = f"{mapping_folder}/cql/mapping_cql.json"
@@ -439,6 +457,10 @@ if __name__ == '__main__':
         ui_trees = tree_generator.generate_ui_trees("resources/fdpg_differential")
         ui_trees = [apply_additional_tree_rules(ui_tree) for ui_tree in ui_trees]
         write_ui_trees_to_files(ui_trees)
+
+        mappping_tree = to_term_code_node(ui_trees)
+        write_mapping_tree_to_file(mappping_tree)
+        validate_mapping_tree("mapping_tree")
 
     if args.generate_ui_profiles:
         profile_generator = UIProfileGenerator(resolver)
