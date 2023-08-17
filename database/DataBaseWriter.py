@@ -198,7 +198,8 @@ class DataBaseWriter:
             (term_code.system, term_code.code, term_code.version if term_code.version else "", term_code.display)
             for term_code in term_codes)
         psycopg2.extras.execute_batch(self.cursor,
-                                      "INSERT INTO termcode (system, code, version, display) VALUES (%s, %s, %s, %s)",
+                                      "INSERT INTO termcode (system, code, version, display) VALUES (%s, %s, %s, %s)"
+                                      "ON CONFLICT DO NOTHING",
                                       values)
         self.db_connection.commit()
 
@@ -211,7 +212,8 @@ class DataBaseWriter:
                       context_code.display)
                      for context_code in context_codes)
         psycopg2.extras.execute_batch(self.cursor,
-                                      "INSERT INTO context (system, code, version, display) VALUES (%s, %s, %s, %s)",
+                                      "INSERT INTO context (system, code, version, display) VALUES (%s, %s, %s, %s)"
+                                      "ON CONFLICT DO NOTHING",
                                       values)
         self.db_connection.commit()
 
@@ -373,7 +375,11 @@ class DataBaseWriter:
             """INSERT INTO criteria_set (url) VALUES (%s) ON CONFLICT DO NOTHING""",
             (canonical_url,))
         # TODO: Remove this context once we know the context:
-        context = TermCode("fdpg.mii.cds", "Diagnose", "Diagnose", "1.0.0")
+        context = TermCode("fdpg.mii.bkfz", "Diagnose", "Diagnose", "1.0.0")
+        self.insert_context_codes([context])
+
+        self.insert_term_codes(entries)
+
         contextualized_termcode_values = [
             (self.calculate_context_term_code_hash(context, term_code), context.system, context.code,
              context.version if context.version else '',
@@ -388,6 +394,7 @@ class DataBaseWriter:
         self.db_connection.commit()
 
         values = [(self.calculate_context_term_code_hash(context, term_code), canonical_url) for term_code in entries]
+        print(canonical_url)
         psycopg2.extras.execute_batch(self.cursor,
                                       """
                                       INSERT INTO contextualized_termcode_to_criteria_set (context_termcode_hash, criteria_set_id) 

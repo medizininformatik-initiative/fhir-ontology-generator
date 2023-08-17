@@ -91,10 +91,12 @@ def generate_snapshots(package_dir: str, prerequisite_packages: List[str] = None
     :raises NotADirectoryError: if the package directory is not a directory
     """
 
+    print(prerequisite_packages)
+
     def install_prerequisites():
         os.system("fhir install hl7.fhir.r4.core")
         for package in prerequisite_packages:
-            os.system(f"fhir install {package}")
+            os.system(f"fhir install {package} --here")
 
     def generate_snapshot():
         os.system(f"fhir push {file}")
@@ -394,7 +396,7 @@ def generate_result_folder():
     mkdir_if_not_exists("mapping")
     mkdir_if_not_exists("mapping/fhir")
     mkdir_if_not_exists("mapping/cql")
-    mkdir_if_not_exists("ui_trees")
+    mkdir_if_not_exists("ui-trees")
     mkdir_if_not_exists("csv")
     mkdir_if_not_exists("ui-profiles")
     mkdir_if_not_exists("ui-profiles-old")

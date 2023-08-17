@@ -158,6 +158,7 @@ def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, dat
             if len(target_profiles) > 1:
                 raise Exception("Reference with multiple types not supported")
             target_resource_type = element.get("targetProfile")[0]
+            print(target_resource_type, data_set_dir)
             referenced_profile, module_dir = get_profiles_with_base_definition(data_set_dir, target_resource_type)
             element_ids[0] = f"{referenced_profile.get('type') + element_ids[0]}"
             result.extend(process_element_id(element_ids, referenced_profile, module_dir, data_set_dir))
@@ -263,7 +264,7 @@ def pattern_coding_to_term_code(element):
     display = get_term_code_display_from_onto_server(system, code)
 
     if display.isupper():
-        display = display.title( )
+        display = display.title()
     term_code = TermCode(system, code, display)
     return term_code
 
@@ -389,7 +390,28 @@ def get_term_code_by_id(fhir_profile_snapshot, term_code_defining_id, data_set_d
         value_set = term_code_defining_element.get("binding").get("valueSet")
         return get_termcodes_from_onto_server(value_set)
     else:
+        tc = try_get_term_code_from_sub_elements(fhir_profile_snapshot, term_code_defining_id, data_set_dir, module_dir)
+        if tc:
+            return [tc]
         raise Exception(f"Could not resolve term code defining element: {term_code_defining_element}")
+
+
+def try_get_term_code_from_sub_elements(fhir_profile_snapshot, parent_coding_id, data_set_dir,
+                                        module_dir) -> TermCode | None:
+    code_element = resolve_defining_id(fhir_profile_snapshot, parent_coding_id + ".code", data_set_dir, module_dir)
+    system_element = resolve_defining_id(fhir_profile_snapshot, parent_coding_id + ".system", data_set_dir,
+                                         module_dir)
+    if code_element and system_element:
+        if "patternCode" in code_element and "patternUri" in system_element:
+            return TermCode(system_element["patternUri"], code_element["patternCode"],
+                            get_term_code_display_from_onto_server(system_element["patternUri"],
+                                                                   code_element["patternCode"]))
+        elif "fixedCode" in code_element and "fixedUri" in system_element:
+            return TermCode(system_element["fixedUri"], code_element["fixedCode"],
+                            get_term_code_display_from_onto_server(system_element["fixedUri"],
+                                                                   code_element["fixedCode"]))
+
+    return None
 
 
 def get_reference_value_set(elements: List[dict]) -> str:

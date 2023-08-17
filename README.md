@@ -1,5 +1,19 @@
 # FHIR Searchontology Generator
 
+## Requirements
+
+Python 3.8 or higher \
+Firely Terminal available at https://simplifier.net/downloads/firely-terminal v3.1.0 or higher  \
+Access to a terminology server with all value sets used in the FHIR profiles
+
+## Configuration
+
+| Var | Description | Example |
+|--------|-------------|---------|
+|ONTOLOGY_SERVER_ADDRESS | Address of the Ontology server fhir api| my_onto_server.com/fhir
+
+## About
+
 This project generates a search ontology based on FHIR Profiles for the
 project https://github.com/medizininformatik-initiative/feasibility-deploy. Within a FHIR Profile all elements are
 identified that can be used as criteria. Each criterion consists of a defining TermCode and can be further specified
@@ -145,16 +159,4 @@ FHIR Search Mapping generated for Body Height Profile and the provided QueryingM
   "valueType": "quantity"
 }
 ```
-
-## Requirements
-
-Python 3.8 or higher \
-Firely Terminal available at https://simplifier.net/downloads/firely-terminal \
-Access to a terminology server with all value sets defined in the gecco dataset
-
-## Configuration
-
-| Var | Description | Example |
-|--------|-------------|---------|
-|ONTOLOGY_SERVER_ADDRESS | Address of the Ontology server fhir api| my_onto_server.com/fhir
 

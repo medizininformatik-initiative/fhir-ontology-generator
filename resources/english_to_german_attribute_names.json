@@ -11,5 +11,12 @@
     "reasonReference": "reasonReference",
     "Intention": "Intention",
     "Fernmetastasen": "Fernmetastasen",
-    "specimen": "specimen"
+    "specimen": "specimen",
+    "value[x]": "value[x]",
+    "TNM-T": "TNM-T",
+    "TNM-N": "TNM-N",
+    "TNM-M": "TNM-M",
+    "TNM-y-Symbol": "TNM-y-Symbol",
+    "TNM-r-Symbol": "TNM-r-Symbol",
+    "TNM-m-Symbol": "TNM-m-Symbol"
 }

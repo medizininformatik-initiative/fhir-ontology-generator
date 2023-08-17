@@ -78,7 +78,7 @@ def validate_ui_profile(_profile_name: str):
     # validate(instance=json.load(f), schema=json.load(open("resources/schema/ui-profile-schema.json")))
 
 
-def write_ui_trees_to_files(trees: List[TermEntry], result_folder: str = "ui_trees"):
+def write_ui_trees_to_files(trees: List[TermEntry], result_folder: str = "ui-trees"):
     """
     Writes the ui trees to the ui-profiles folder
     :param trees: ui trees to write
@@ -372,7 +372,7 @@ if __name__ == '__main__':
     if args.generate_ui_trees:
         trees = generate_gecco_tree()
         move_back_other(trees)
-        write_ui_trees_to_files(trees, "ui_trees")
+        write_ui_trees_to_files(trees, "ui-trees")
 
     if args.generate_ui_profiles:
         profile_generator = UIProfileGenerator(resolver)

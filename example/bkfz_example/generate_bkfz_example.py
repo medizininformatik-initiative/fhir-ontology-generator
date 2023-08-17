@@ -3,7 +3,11 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import os
 from typing import List, ValuesView, Dict
+
+import docker
+from jsonschema import validate
 
 from FHIRProfileConfiguration import *
 from core.CQLMappingGenerator import CQLMappingGenerator
@@ -12,6 +16,7 @@ from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolv
 from core.StrucutureDefinitionParser import get_element_from_snapshot
 from core.UIProfileGenerator import UIProfileGenerator
 from core.UITreeGenerator import UITreeGenerator
+from database.DataBaseWriter import DataBaseWriter
 from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, load_querying_meta_data, \
     generate_result_folder
 from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList
@@ -36,6 +41,7 @@ class BKFZDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
         :return: List of ResourceQueryingMetaData
         """
         result = []
+        print(fhir_profile_snapshot.get("url"))
         key = fhir_profile_snapshot.get("name")
         mapping = self._get_query_meta_data_mapping()
         for value in mapping[key]:
@@ -130,7 +136,6 @@ def denormalize_ui_profile_to_old_format(ui_tree: List[TermEntry], term_code_to_
 def denormalize_mapping_to_old_format(term_code_to_mapping_name, mapping_name_to_mapping):
     """
     Denormalizes the mapping to the old format
-
     :param term_code_to_mapping_name: mapping from term codes to mapping names
     :param mapping_name_to_mapping: mappings to use
     :return: denormalized entries
@@ -140,6 +145,7 @@ def denormalize_mapping_to_old_format(term_code_to_mapping_name, mapping_name_to
         try:
             mapping = copy.copy(mapping_name_to_mapping[mapping_name])
             mapping.key = context_and_term_code[1]
+            mapping.context = context_and_term_code[0]
             result.entries.add(mapping)
         except KeyError:
             print("No mapping found for term code " + context_and_term_code[1].code)
@@ -215,7 +221,36 @@ def write_v1_mapping_to_file(mapping, mapping_folder="mapping-old"):
     f.close()
 
 
+def validate_fhir_mapping(mapping_name: str):
+    """
+    Validates the fhir mapping with the given name against the fhir mapping schema
+    :param mapping_name: name of the fhir mapping file
+    :raises: jsonschema.exceptions.ValidationError if the fhir mapping is not valid
+             jsonschema.exceptions.SchemaError if the fhir mapping schema is not valid
+    """
+    f = open("mapping-old/fhir/" + mapping_name + ".json", 'r')
+    validate(instance=json.load(f), schema=json.load(open("../../resources/schema/fhir-mapping-schema.json")))
+
+
 if __name__ == '__main__':
+    client = docker.from_env()
+
+    # Check if container with the name "test_db" already exists
+    existing_containers = client.containers.list(all=True, filters={"name": "test_db"})
+
+    for container in existing_containers:
+        print("Stopping and removing existing container named 'test_db'...")
+        container.stop()
+        container.remove()
+    container = client.containers.run("postgres:latest", detach=True, ports={'5432/tcp': 5430},
+                                      name="test_db",
+                                      volumes={f"{   os.getcwd()}": {'bind': '/opt/db_data', 'mode': 'rw'}},
+                                      environment={
+                                          'POSTGRES_USER': 'codex-postgres',
+                                          'POSTGRES_PASSWORD': 'codex-password',
+                                          'POSTGRES_DB': 'codex_ui'
+                                      })
+    db_writer = DataBaseWriter(5430)
 
     parser = configure_args_parser()
     args = parser.parse_args()
@@ -237,31 +272,26 @@ if __name__ == '__main__':
     if args.generate_ui_trees:
         tree_generator = UITreeGenerator(resolver)
         ui_trees = tree_generator.generate_ui_trees("resources/bkfz_differential")
-        # replace ui tree for loinc with the top 300 loinc tree
         write_ui_trees_to_files(ui_trees)
 
     if args.generate_ui_profiles:
         profile_generator = UIProfileGenerator(resolver)
-        ui_profiles = profile_generator.generate_ui_profiles("resources/bkfz_differential")[1].values()
-        write_ui_profiles_to_files(ui_profiles)
+        contextualized_term_code_ui_profile_mapping, named_ui_profiles_dict = \
+            profile_generator.generate_ui_profiles("resources/bkfz_differential")
+        db_writer.write_ui_profiles_to_db(contextualized_term_code_ui_profile_mapping, named_ui_profiles_dict)
+        db_writer.write_vs_to_db(named_ui_profiles_dict.values())
 
     if args.generate_mapping:
-        cql_generator = CQLMappingGenerator(resolver)
-        cql_mappings = cql_generator.generate_mapping("resources/bkfz_differential")
-        cql_term_code_mappings = cql_mappings[0]
-        cql_concept_mappings = cql_mappings[1]
-        write_mappings_to_files(cql_concept_mappings.values())
-        v1_cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
-        write_v1_mapping_to_file(v1_cql_mappings, "mapping-old")
-
         fhir_search_generator = FHIRSearchMappingGenerator(resolver)
-        fhir_search_mappings = fhir_search_generator.generate_mapping("resources/bkfz_differential")
-        fhir_search_term_code_mappings = fhir_search_mappings[0]
-        fhir_search_concept_mappings = fhir_search_mappings[1]
-        write_mappings_to_files(fhir_search_concept_mappings.values())
+        fhir_search_term_code_mappings, fhir_search_concept_mappings = fhir_search_generator.generate_mapping(
+            "resources/bkfz_differential")
+        # write_mapping_to_db(db_writer, fhir_search_term_code_mappings, fhir_search_concept_mappings, "FHIR_SEARCH",
+        #                     args.generate_ui_profiles)
+
         v1_fhir_search_mapping = denormalize_mapping_to_old_format(fhir_search_term_code_mappings,
                                                                    fhir_search_concept_mappings)
         write_v1_mapping_to_file(v1_fhir_search_mapping, "mapping-old")
+        validate_fhir_mapping("mapping_fhir")
 
     if args.generate_old_format:
         tree_generator = UITreeGenerator(resolver)
@@ -275,22 +305,9 @@ if __name__ == '__main__':
         print("writing ui trees to files")
         write_ui_trees_to_files(ui_trees, "ui-profiles-old")
 
-    # core_data_category_entries = generate_core_data_set()
-    #
-    # for core_data_category_entry in core_data_category_entries:
-    #     write_cds_ui_profile(core_data_category_entry)
-    #     validate_ui_profile(core_data_category_entry.display)
-
-    # move_back_other(category_entries)
-    #
-    # category_entries += core_data_category_entries
-    # dbw = DataBaseWriter()
-    # dbw.add_ui_profiles_to_db(category_entries)
-    # generate_term_code_mapping(category_entries)
-    # generate_term_code_tree(category_entries)
-    # if args.generate_csv:
-    #     to_csv(category_entries)
-
-    # dump data from db with
-    # docker exec -t 7ac5bfb77395 pg_dump --dbname="codex_ui" --username=codex-postgres
-    # --table=UI_PROFILE_TABLE > ui_profile_dump_230822
+    result = container.exec_run(
+        'pg_dump --dbname="codex_ui" -U codex-postgres -a -O -t termcode -t context -t ui_profile -t mapping'
+        ' -t contextualized_termcode -t contextualized_termcode_to_criteria_set -t criteria_set -f /opt/db_data/R__Load_latest_ui_profile.sql')
+    print("Dumped db")
+    container.stop()
+    container.remove()

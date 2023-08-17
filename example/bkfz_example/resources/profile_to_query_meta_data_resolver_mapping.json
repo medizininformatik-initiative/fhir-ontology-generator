@@ -1,5 +1,5 @@
 {
-    "Diagnose": [
+    "Primaerdiagnose": [
         "Primaerdiagnose"
     ],
     "Operation": [
@@ -11,6 +11,21 @@
     "Systemtherapie": [
         "Systemtherapie"
     ],
-    "Fernmetastasen": [],
-    "Specimen": []
+    "Fernmetastasen": [
+        "Fernmetastasen"
+    ],
+    "Grading": [
+        "Grading"
+    ],
+    "TNMc": [
+        "TNMc"
+    ],
+    "TNMp": [
+        "TNMp"
+    ],
+    "Histologie": [
+        "Histologie"
+    ],
+    "Specimen": [],
+    "OncoSpecimen": []
 }

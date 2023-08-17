@@ -1,0 +1,39 @@
+{
+  "resourceType": "StructureDefinition",
+  "id": "71d5aa8f-74aa-4c43-845c-a6400aad8bd9",
+  "url": "https://www.medizininformatik-initiative.de/fhir/fdpg/StructureDefinition/onco-core-Condition-Primaerdiagnose",
+  "name": "Primaerdiagnose",
+  "status": "active",
+  "fhirVersion": "4.0.1",
+  "kind": "resource",
+  "abstract": false,
+  "type": "Condition",
+  "baseDefinition": "http://dktk.dkfz.de/fhir/StructureDefinition/onco-core-Condition-Primaerdiagnose",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      {
+        "id": "Condition.code.coding:icd10-gm",
+        "path": "Condition.code.coding",
+        "sliceName": "icd10-gm",
+        "max": "1",
+        "type": [
+          {
+            "code": "Coding",
+            "profile": [
+              "http://fhir.de/StructureDefinition/CodingICD10GM"
+            ]
+          }
+        ],
+        "patternCoding": {
+          "system": "http://fhir.de/CodeSystem/bfarm/icd-10-gm"
+        },
+        "mustSupport": true,
+        "binding": {
+          "strength": "required",
+          "valueSet": "http://fhir.de/ValueSet/bfarm/icd-10-gm"
+        }
+      }
+    ]
+  }
+}

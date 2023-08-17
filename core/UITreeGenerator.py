@@ -74,6 +74,7 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
         for applicable_querying_meta_data in applicable_querying_meta_data:
             # TODO: add context information to the ui tree
             if applicable_querying_meta_data.term_code_defining_id:
+                print(f"Term code defining id: {applicable_querying_meta_data.term_code_defining_id}")
                 sub_tree = self.get_term_entries_by_id(fhir_profile_snapshot, applicable_querying_meta_data.
                                                        term_code_defining_id)
                 self.set_context(sub_tree, applicable_querying_meta_data.context)
@@ -118,7 +119,8 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
                         root.children.append(sub_entry)
             if len(root.children) == 1:
                 root.children = root.children[0].children
-        root.context.system = root.children[0].context.system
+        if root.children:
+            root.context.system = root.children[0].context.system
         return root
 
     def get_term_entries_by_id(self, fhir_profile_snapshot, term_code_defining_id) -> List[TermEntry]:
@@ -145,6 +147,11 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
             value_set = term_code_defining_element.get("binding").get("valueSet")
             return get_term_entries_from_onto_server(value_set)
         else:
+            term_code = self.parser.try_get_term_code_from_sub_elements(fhir_profile_snapshot,
+                                                                        term_code_defining_id, self.data_set_dir,
+                                                                        self.module_dir)
+            if term_code:
+                return [TermEntry([term_code], "CodeableConcept", leaf=True, selectable=True)]
             raise Exception(
                 f"Could not resolve term code defining element: {term_code_defining_element} in "
                 f"{fhir_profile_snapshot.get('name')}")

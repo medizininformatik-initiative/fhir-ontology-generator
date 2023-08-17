@@ -1,0 +1,12 @@
+{
+  "name": "Histologie",
+  "resource_type": "Observation",
+  "context": {
+    "system": "bzkf.dktk.oncology",
+    "code": "Histologie",
+    "display": "Histologie"
+  },
+  "term_code_defining_id": "Observation.code.coding",
+  "value_defining_id": "Observation.value[x].coding.code",
+  "time_restriction_defining_id": "Observation.effective[x]"
+}
