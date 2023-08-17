@@ -16,40 +16,30 @@ def to_term_code_node(category_entries: List[TermEntry]) -> TermCodeNode:
     :return:
     """
     root_term_entry = TermEntry([TermCode("", "", "")], context=TermCode("", "", ""))
-    root = TermCodeNode(root_term_entry)
+    root = TermCodeNode(root_term_entry.termCode, root_term_entry.context)
     for entry in category_entries:
-        root.children.append(TermCodeNode(entry))
+        root.add_children(entry)
     return root
 
 
 class TermCodeNode:
     DO_NOT_SERIALIZE = ["DO_NOT_SERIALIZE"]
-    """
-    TermCodeNode is used to create a tree structure of term codes.
-    TermCodeEntries are converted to TermCodeNodes.
-    """
 
-    def __init__(self, term_entry):
-        terminology_entry = term_entry
-        self.termCode = terminology_entry.termCode
-        self.context = terminology_entry.context
-        if not terminology_entry.selectable and not self.termCode.system:
-            self.termCode.system = "mii.abide"
-        self.children = self._get_children(terminology_entry)
+    def __init__(self, term_code: TermCode, context: TermCode = None):
+        self.termCode = term_code
+        self.context = context
+        self.children = []
 
-    @staticmethod
-    def _get_children(terminology_entry: TermEntry) -> List[TermCodeNode]:
-        """
-        Convert a TermEntry to a list of TermCodeNodes.
-        :param terminology_entry: term entry to convert
-        :return: list of TermCodeNodes
-        """
-        result = []
-        for child in terminology_entry.children:
-            if child not in term_codes_in_tree:
-                result.append(TermCodeNode(child))
-                term_codes_in_tree.add(child)
-        return result
+    def add_children(self, entry: TermEntry):
+        direct_children = [TermCodeNode(termCode, entry.context) for termCode in entry.termCodes]
+        if not entry.termCodes:
+            direct_children = [TermCodeNode(entry.termCode, entry.context)]
+        for direct_child in direct_children:
+            for child in entry.children:
+                if child not in term_codes_in_tree:
+                    direct_child.add_children(child)
+                    term_codes_in_tree.add(child)
+        self.children += direct_children
 
     def to_json(self) -> str:
         """
