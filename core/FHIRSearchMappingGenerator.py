@@ -1,8 +1,7 @@
 import json
 import os
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, OrderedDict
 
-from TerminologService.ValueSetResolver import get_term_codes_by_id_from_term_server
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from core import StrucutureDefinitionParser as FHIRParser
 from core.StrucutureDefinitionParser import extract_value_type, resolve_defining_id
@@ -61,7 +60,7 @@ class FHIRSearchMappingGenerator(object):
                 full_fhir_search_mapping_name_fhir_search_mapping)
 
     def resolve_fhir_search_parameter(self, element_id: str, profile_snapshot: dict,
-                                      attribute_type: VALUE_TYPE_OPTIONS = None) -> List[str]:
+                                      attribute_type: VALUE_TYPE_OPTIONS = None) -> OrderedDict[str, dict]:
         """
         Based on the element id, this method resolves the FHIR search parameter for the given FHIR Resource attribute
         :param element_id: element id that defines the of the FHIR Resource attribute
@@ -71,6 +70,10 @@ class FHIRSearchMappingGenerator(object):
         """
         fhir_path_expressions = self.translate_element_id_to_fhir_path_expressions(element_id, profile_snapshot)
         search_parameters = find_search_parameter(fhir_path_expressions)
+        return search_parameters
+
+    @staticmethod
+    def chain_search_parameters(search_parameters: OrderedDict[str, dict]) -> str:
         validate_chainable(search_parameters.values())
         return ".".join([search_parameter.get("code") for search_parameter in search_parameters.values()])
 
@@ -116,25 +119,74 @@ class FHIRSearchMappingGenerator(object):
         fhir_mapping = FhirMapping(querying_meta_data.name)
         fhir_mapping.fhirResourceType = querying_meta_data.resource_type
         if querying_meta_data.term_code_defining_id:
-            fhir_mapping.termCodeSearchParameter = self.resolve_fhir_search_parameter(
-                querying_meta_data.term_code_defining_id, profile_snapshot, "concept")
+            self.set_term_code_search_param(fhir_mapping, profile_snapshot, querying_meta_data)
         if querying_meta_data.value_defining_id:
-            value_type = querying_meta_data.value_type if querying_meta_data.value_type else \
-                self.get_attribute_type(profile_snapshot, querying_meta_data.value_defining_id)
-            fhir_mapping.valueType = value_type
-            fhir_mapping.valueSearchParameter = self.resolve_fhir_search_parameter(
-                querying_meta_data.value_defining_id, profile_snapshot, value_type)
+            self.set_value_search_param(fhir_mapping, profile_snapshot, querying_meta_data)
         if querying_meta_data.time_restriction_defining_id:
-            fhir_mapping.timeRestrictionParameter = self.resolve_fhir_search_parameter(
-                querying_meta_data.time_restriction_defining_id, profile_snapshot, "date")
+            fhir_mapping.timeRestrictionParameter = self._handle_search_parameter("date",
+                                                                                  self.resolve_fhir_search_parameter(
+                                                                                      querying_meta_data.time_restriction_defining_id,
+                                                                                      profile_snapshot, "date"))
         for attribute, predefined_type in querying_meta_data.attribute_defining_id_type_map.items():
-            attribute_key = generate_attribute_key(attribute)
-            attribute_type = predefined_type if predefined_type else self.get_attribute_type(profile_snapshot,
-                                                                                             attribute)
-            attribute_search_parameter = self.resolve_fhir_search_parameter(attribute, profile_snapshot,
-                                                                            attribute_type)
-            fhir_mapping.add_attribute(attribute_type, attribute_key, attribute_search_parameter)
+            self.set_attribute_search_param(attribute, fhir_mapping, predefined_type, profile_snapshot)
         return fhir_mapping
+
+    def _handle_search_parameter(self, param_type, search_params):
+        """
+        Handle search parameters based on its type.
+
+        Args:
+            param_type (str): Type of the parameter ("reference" or other types).
+            search_params (dict): Resolved search parameters.
+
+        Returns:
+            str: The code of the search parameter if type is "reference", or the chained search parameters otherwise.
+        """
+        if param_type == "reference":
+            return list(search_params.values())[0].get("code")
+        else:
+            return self.chain_search_parameters(search_params)
+
+    @staticmethod
+    def get_updated_attribute_type(attribute_type, attribute_search_params):
+        """
+        Update the attribute type based on the search parameters.
+
+        Args:
+            attribute_type (str): The original attribute type.
+            attribute_search_params (dict): Resolved search parameters.
+        """
+        if list(attribute_search_params.values())[-1].get("type") == "composite":
+            if attribute_type == "quantity" or attribute_type == "concept":
+                attribute_type = "composite" + attribute_type
+            else:
+                raise ValueError("Attribute type {} is not supported for composite search parameter".format(
+                    attribute_type))
+        return attribute_type
+
+    def set_attribute_search_param(self, attribute, fhir_mapping, predefined_type, profile_snapshot):
+        attribute_key = generate_attribute_key(attribute)
+        attribute_type = predefined_type if predefined_type else self.get_attribute_type(profile_snapshot,
+                                                                                         attribute)
+        attribute_search_params = self.resolve_fhir_search_parameter(attribute, profile_snapshot,
+                                                                     attribute_type)
+        attribute_type = self.get_updated_attribute_type(attribute_type, attribute_search_params)
+        fhir_mapping.add_attribute(attribute_type, attribute_key,
+                                   self._handle_search_parameter(attribute_type, attribute_search_params))
+
+    def set_value_search_param(self, fhir_mapping, profile_snapshot, querying_meta_data):
+        value_type = querying_meta_data.value_type if querying_meta_data.value_type else \
+            self.get_attribute_type(profile_snapshot, querying_meta_data.value_defining_id)
+        fhir_mapping.valueType = value_type
+        value_search_params = self.resolve_fhir_search_parameter(
+            querying_meta_data.value_defining_id, profile_snapshot, value_type)
+        fhir_mapping.valueSearchParameter = self._handle_search_parameter(value_type, value_search_params)
+
+    def set_term_code_search_param(self, fhir_mapping, profile_snapshot, querying_meta_data):
+        term_code_search_params = self.resolve_fhir_search_parameter(
+            querying_meta_data.term_code_defining_id, profile_snapshot, "concept")
+        search_param_str = self.chain_search_parameters(term_code_search_params)
+        fhir_mapping.termCodeSearchParameter = search_param_str
 
     def get_attribute_type(self, profile_snapshot: dict, attribute_id: str) -> VALUE_TYPE_OPTIONS:
         """
