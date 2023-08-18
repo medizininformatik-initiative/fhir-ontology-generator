@@ -14,6 +14,7 @@ from FHIRProfileConfiguration import *
 from core.CQLMappingGenerator import CQLMappingGenerator
 from core.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
+from core.SearchParameterResolver import SearchParameterResolver
 from core.StrucutureDefinitionParser import get_element_from_snapshot
 from core.UIProfileGenerator import UIProfileGenerator
 from core.UITreeGenerator import UITreeGenerator
@@ -88,6 +89,16 @@ class MIICoreDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
             if not value_element or value_element.get("min") == 0:
                 result.remove(meta_data)
         return result if result else query_meta_data
+
+
+class MIICoreDataSetSearchParameterResolver(SearchParameterResolver):
+    def _load_module_search_parameters(self) -> List[Dict]:
+        params = []
+        for file in os.listdir("resources/search_parameter"):
+            if file.endswith(".json"):
+                with open(os.path.join("resources/search_parameter", file), "r", encoding="utf-8") as f:
+                    params.append(json.load(f))
+        return params
 
 
 def generate_top_300_loinc_tree():
@@ -478,7 +489,8 @@ if __name__ == '__main__':
         # v1_cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
         # write_v1_mapping_to_file(v1_cql_mappings, "mapping-old")
 
-        fhir_search_generator = FHIRSearchMappingGenerator(resolver)
+        search_param_resolver = MIICoreDataSetSearchParameterResolver()
+        fhir_search_generator = FHIRSearchMappingGenerator(resolver, search_param_resolver)
         fhir_search_term_code_mappings, fhir_search_concept_mappings = fhir_search_generator.generate_mapping(
             "resources/fdpg_differential")
         # write_mapping_to_db(db_writer, fhir_search_term_code_mappings, fhir_search_concept_mappings, "FHIR_SEARCH",
