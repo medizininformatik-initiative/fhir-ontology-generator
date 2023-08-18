@@ -1,11 +1,13 @@
+import functools
 import json
 import os
 from typing import Dict, Tuple, List, OrderedDict
 
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from core import StrucutureDefinitionParser as FHIRParser
+from core.SearchParameterResolver import SearchParameterResolver
 from core.StrucutureDefinitionParser import extract_value_type, resolve_defining_id
-from helper import find_search_parameter, validate_chainable, generate_attribute_key
+from helper import generate_attribute_key
 from model.MappingDataModel import FhirMapping
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import VALUE_TYPE_OPTIONS
@@ -24,7 +26,9 @@ class FHIRSearchMappingGenerator(object):
     This class is responsible for generating FHIR mappings for a given FHIR profile.
     """
 
-    def __init__(self, querying_meta_data_resolver: ResourceQueryingMetaDataResolver, parser=FHIRParser):
+    def __init__(self, querying_meta_data_resolver: ResourceQueryingMetaDataResolver,
+                 fhir_search_mapping_resolver: SearchParameterResolver,
+                 parser=FHIRParser):
         """
         :param querying_meta_data_resolver: resolves the for the query relevant meta data for a given FHIR profile
         snapshot
@@ -34,6 +38,7 @@ class FHIRSearchMappingGenerator(object):
         self.parser = parser
         self.data_set_dir: str = ""
         self.module_dir: str = ""
+        self.fhir_search_mapping_resolver = fhir_search_mapping_resolver
 
     def generate_mapping(self, fhir_dataset_dir: str) \
             -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, FhirMapping]]:
@@ -69,12 +74,11 @@ class FHIRSearchMappingGenerator(object):
         :return: FHIR search parameter
         """
         fhir_path_expressions = self.translate_element_id_to_fhir_path_expressions(element_id, profile_snapshot)
-        search_parameters = find_search_parameter(fhir_path_expressions)
+        search_parameters = self.fhir_search_mapping_resolver.find_search_parameter(fhir_path_expressions)
         return search_parameters
 
-    @staticmethod
-    def chain_search_parameters(search_parameters: OrderedDict[str, dict]) -> str:
-        validate_chainable(search_parameters.values())
+    def chain_search_parameters(self, search_parameters: OrderedDict[str, dict]) -> str:
+        self.validate_chainable(search_parameters.values())
         return ".".join([search_parameter.get("code") for search_parameter in search_parameters.values()])
 
     def generate_normalized_term_code_fhir_search_mapping(self, profile_snapshot: dict, module_name: str) \
@@ -211,3 +215,18 @@ class FHIRSearchMappingGenerator(object):
         elements = self.parser.get_element_defining_elements(element_id, profile_snapshot, self.module_dir,
                                                              self.data_set_dir)
         return self.parser.translate_element_to_fhir_path_expression(elements)
+
+    @staticmethod
+    def validate_chainable(chainable_search_parameter) -> bool:
+        """
+        Validates the chaining of search parameters
+        :param chainable_search_parameter: the search parameter to be chained
+        :return: true if the search parameter can be chained else false
+        """
+        if not chainable_search_parameter:
+            raise ValueError("No search parameters to chain")
+        elif len(chainable_search_parameter) == 1:
+            return True
+        return functools.reduce(
+            lambda x, y: True if x and len(set(y.get("base", [])).intersection(x.get("target", []))) != 0 else False,
+            chainable_search_parameter)
