@@ -1,0 +1,22 @@
+{
+  "resourceType": "SearchParameter",
+  "id": "SearchParamStageAssessment",
+  "url": "https://diz.uk-erlangen.de/SearchParameter/stage-assessment",
+  "name": "stage-assessment",
+  "status": "active",
+  "experimental": false,
+  "description": "Suchparameter für die Referenz stage.assessment am Profil Primärdiagnose",
+  "code": "stage-assessment",
+  "base": [
+    "Condition"
+  ],
+  "type": "reference",
+  "expression": "Condition.stage.assessment",
+  "target": [
+    "Observation"
+  ],
+  "chain": [
+    "*"
+  ]
+}
+  

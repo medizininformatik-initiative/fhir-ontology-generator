@@ -1,0 +1,11 @@
+{
+  "name": "Bioprobe",
+  "resource_type": "Specimen",
+  "context": {
+    "system": "bzkf.dktk.oncology",
+    "code": "Bioprobe",
+    "display": "Bioprobe"
+  },
+  "term_code_defining_id": "Specimen.type.coding:sct",
+  "time_restriction_defining_id": "Specimen.collection.collected[x]"
+}

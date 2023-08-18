@@ -1,0 +1,22 @@
+{
+  "resourceType": "SearchParameter",
+  "id": "SearchParamFernmetastasen",
+  "url": "https://diz.uk-erlangen.de/SearchParameter/fernmetastasen",
+  "name": "fernmetastase",
+  "status": "active",
+  "experimental": false,
+  "description": "Suchparameter für die Extension Fernmetastasen am Profil Primärdiagnose",
+  "code": "fernmetastase",
+  "base": [
+    "Condition"
+  ],
+  "type": "reference",
+  "expression": "Condition.extension.where(url='http://dktk.dkfz.de/fhir/StructureDefinition/onco-core-Extension-Fernmetastasen').value",
+  "target": [
+    "Observation"
+  ],
+  "chain": [
+    "*"
+  ]
+}
+  

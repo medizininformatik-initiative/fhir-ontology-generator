@@ -1,31 +1,33 @@
 {
-    "Primaerdiagnose": [
-        "Primaerdiagnose"
-    ],
-    "Operation": [
-        "Operation"
-    ],
-    "Strahlentherapie": [
-        "Strahlentherapie"
-    ],
-    "Systemtherapie": [
-        "Systemtherapie"
-    ],
-    "Fernmetastasen": [
-        "Fernmetastasen"
-    ],
-    "Grading": [
-        "Grading"
-    ],
-    "TNMc": [
-        "TNMc"
-    ],
-    "TNMp": [
-        "TNMp"
-    ],
-    "Histologie": [
-        "Histologie"
-    ],
-    "Specimen": [],
-    "OncoSpecimen": []
+  "Primaerdiagnose": [
+    "Primaerdiagnose"
+  ],
+  "Operation": [
+    "Operation"
+  ],
+  "Strahlentherapie": [
+    "Strahlentherapie"
+  ],
+  "Systemtherapie": [
+    "Systemtherapie"
+  ],
+  "Fernmetastasen": [
+    "Fernmetastasen"
+  ],
+  "Grading": [
+    "Grading"
+  ],
+  "TNMc": [
+    "TNMc"
+  ],
+  "TNMp": [
+    "TNMp"
+  ],
+  "Histologie": [
+    "Histologie"
+  ],
+  "Specimen": [],
+  "Bioprobe": [
+    "Bioprobe"
+  ]
 }

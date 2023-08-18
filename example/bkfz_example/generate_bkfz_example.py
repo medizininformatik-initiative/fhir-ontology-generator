@@ -13,6 +13,7 @@ from FHIRProfileConfiguration import *
 from core.CQLMappingGenerator import CQLMappingGenerator
 from core.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
+from core.SearchParameterResolver import SearchParameterResolver
 from core.StrucutureDefinitionParser import get_element_from_snapshot
 from core.UIProfileGenerator import UIProfileGenerator
 from core.UITreeGenerator import UITreeGenerator
@@ -53,6 +54,16 @@ class BKFZDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
     def _get_query_meta_data_mapping():
         with open("resources/profile_to_query_meta_data_resolver_mapping.json", "r") as f:
             return json.load(f)
+
+
+class BZKFSearchParameterResolver(SearchParameterResolver):
+    def _load_module_search_parameters(self) -> List[Dict]:
+        params = []
+        for file in os.listdir("resources/search_parameter"):
+            if file.endswith(".json"):
+                with open(os.path.join("resources/search_parameter", file), "r", encoding="utf-8") as f:
+                    params.append(json.load(f))
+        return params
 
 
 def generate_term_code_mapping(_entries: List[TermEntry]):
@@ -244,7 +255,7 @@ if __name__ == '__main__':
         container.remove()
     container = client.containers.run("postgres:latest", detach=True, ports={'5432/tcp': 5430},
                                       name="test_db",
-                                      volumes={f"{   os.getcwd()}": {'bind': '/opt/db_data', 'mode': 'rw'}},
+                                      volumes={f"{os.getcwd()}": {'bind': '/opt/db_data', 'mode': 'rw'}},
                                       environment={
                                           'POSTGRES_USER': 'codex-postgres',
                                           'POSTGRES_PASSWORD': 'codex-password',
@@ -282,7 +293,8 @@ if __name__ == '__main__':
         db_writer.write_vs_to_db(named_ui_profiles_dict.values())
 
     if args.generate_mapping:
-        fhir_search_generator = FHIRSearchMappingGenerator(resolver)
+        search_parameter_resolver = BZKFSearchParameterResolver()
+        fhir_search_generator = FHIRSearchMappingGenerator(resolver, search_parameter_resolver)
         fhir_search_term_code_mappings, fhir_search_concept_mappings = fhir_search_generator.generate_mapping(
             "resources/bkfz_differential")
         # write_mapping_to_db(db_writer, fhir_search_term_code_mappings, fhir_search_concept_mappings, "FHIR_SEARCH",
