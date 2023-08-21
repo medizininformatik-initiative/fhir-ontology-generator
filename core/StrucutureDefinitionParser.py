@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from typing import List, Tuple
 
 from TerminologService.ValueSetResolver import get_termcodes_from_onto_server, get_term_code_display_from_onto_server
@@ -285,11 +286,12 @@ def pattern_codeable_concept_to_term_code(element):
     return term_code
 
 
-def translate_element_to_fhir_path_expression(elements: List[dict], ) -> List[str]:
+def translate_element_to_fhir_path_expression(elements: List[dict], profile_snapshot) -> List[str]:
     """
     Translates an element to a fhir search parameter. Be aware not every element is translated alone to a
     fhir path expression. I.E. Extensions elements are translated together with the prior element.
     :param elements: elements for which the fhir path expressions should be obtained
+    :param profile_snapshot: snapshot of the profile
     :return: fhir path expressions
     """
     element = elements.pop(0)
@@ -301,15 +303,38 @@ def translate_element_to_fhir_path_expression(elements: List[dict], ) -> List[st
         # FIXME: Currently hard coded should be generalized
         elif elements[0].get("id") == "Extension.extension:age.value[x]":
             element_path = f"{element_path}.where(url='{get_extension_url(element)}').extension.where(url='age').value"
-    elif element_type == "Coding":
-        if element_path.endswith(".coding"):
-            element_type = "CodeableConcept"
-    if '[x]' in element_path:
-        element_path = element_path.replace('[x]', f' as {element_type}')
+    if '[x]' in element_path and 'Extension' not in element_path:
+        element_type = get_parent_element_type(element.get("id"), profile_snapshot)
+        # Regular expression to capture [x] and [x]:arbitrary_slicing
+        match = re.search(r'(\[x\](?::[\w]+)?)', element_path)
+        if match:
+            pre_match = element_path[:match.start()]
+            post_match = element_path[match.end():]
+            # If there's a following attribute expression, add parentheses
+            if '.' in post_match:
+                replacement = f'({pre_match} as {element_type}){post_match}'
+            else:
+                replacement = f'{pre_match} as {element_type}'
+            element_path = replacement
     result = [element_path]
     if elements:
-        result.extend(translate_element_to_fhir_path_expression(elements))
+        result.extend(translate_element_to_fhir_path_expression(elements, profile_snapshot))
     return result
+
+
+def get_parent_element_type(element_id, profile_snapshot):
+    """
+    If the path indicates an arbitrary type [x] the parent element can give insight on its type. This function
+    returns the type of the parent element. By searching the element at [x] or at its slicing.
+    """
+    if ':' not in element_id:
+        # remove everything after the [x]
+        element_id = re.sub(r'(\[x\]).*', r'\1', element_id)
+    else:
+        # remove everything after the [x] and the slicing -> everything until the next . after [x]:
+        element_id = re.sub(r'(\[x\]).*?(?=\.)', r'\1', element_id)
+    parent_element = get_element_from_snapshot(profile_snapshot, element_id)
+    return get_element_type(parent_element)
 
 
 def get_extension_url(element):

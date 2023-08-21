@@ -162,7 +162,7 @@ class FHIRSearchMappingGenerator(object):
         """
         if list(attribute_search_params.values())[-1].get("type") == "composite":
             if attribute_type == "quantity" or attribute_type == "concept":
-                attribute_type = "composite" + attribute_type
+                attribute_type = "composite-" + attribute_type
             else:
                 raise ValueError("Attribute type {} is not supported for composite search parameter".format(
                     attribute_type))
@@ -214,7 +214,7 @@ class FHIRSearchMappingGenerator(object):
         """
         elements = self.parser.get_element_defining_elements(element_id, profile_snapshot, self.module_dir,
                                                              self.data_set_dir)
-        return self.parser.translate_element_to_fhir_path_expression(elements)
+        return self.parser.translate_element_to_fhir_path_expression(elements, profile_snapshot)
 
     @staticmethod
     def validate_chainable(chainable_search_parameter) -> bool:

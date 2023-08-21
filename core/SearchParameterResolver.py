@@ -13,8 +13,6 @@ class SearchParameterResolver(ABC):
 
     def __init__(self):
         self.search_parameters: List[dict] = self._load_all_search_parameters()
-        print("First search parameter: ", self.search_parameters[0])
-        print("Last search parameter: ", self.search_parameters[-1])
 
     def find_search_parameter(self, fhir_path_expressions: List[str]) -> OrderedDict[str, dict]:
         """
@@ -23,18 +21,23 @@ class SearchParameterResolver(ABC):
         :return: the search parameter
         :raises ValueError: if the search parameter could not be found
         """
+
+        def shortened_path(fhir_path: str) -> str:
+            """Returns the path without its last element."""
+            return fhir_path.rsplit(".", 1)[0]
+
         # int parameter is used to find the shortest expression and not returned in the result
         fhir_path_expressions = [expression for expression in fhir_path_expressions if
                                  not expression.startswith("Extension")]
+        fhir_path_expressions = [re.sub(r'^\((.*)\)$', r'\1', expression) for expression in fhir_path_expressions]
+        print(fhir_path_expressions)
         fhir_path_expressions_to_search_parameter: OrderedDict[str, Tuple[dict, int]] = orderedDict(
             [(expression, (None, math.inf)) for expression in fhir_path_expressions]
         )
-        print(fhir_path_expressions)
         for search_parameter in self.search_parameters:
             expressions = self.get_cleaned_expressions(search_parameter)
             for path_expression in fhir_path_expressions:
                 if path_expression in expressions:
-                    print(path_expression)
                     resource_type = path_expression.split('.')[0]
                     number_of_relevant_expressions = len(
                         list(filter(lambda x: x.startswith(resource_type), expressions)))
@@ -55,18 +58,21 @@ class SearchParameterResolver(ABC):
                                        value if key.split(" as ")[0] not in result_without_as_cast else
                                        result_without_as_cast[key.split(" as ")[0]]) for key, value in result.items()])
             else:
+                missing_search_parameters = [key for key, value in result.items() if not value]
+
+                # Get search parameters for the shortened paths
                 result_without_last_path_element = self.find_search_parameter(
-                    [fhir_path_expressions.rsplit(".", 1)[0] for
-                     fhir_path_expressions in
-                     missing_search_parameters])
-                result = orderedDict([(key if key.rsplit(".", 1)[0] not in result_without_last_path_element else
-                                       key.rsplit(".", 1)[0], value if key.rsplit(".", 1)[0] not in
-                                                                       result_without_last_path_element else
-                                       result_without_last_path_element[key.rsplit(".", 1)[0]]) for key, value in
-                                      result.items()])
+                    [shortened_path(path) for path in missing_search_parameters])
+                for path in result.keys():
+                    for shortened_path in result_without_last_path_element.keys():
+                        if shortened_path in path:
+                            result[shortened_path] = result_without_last_path_element[shortened_path]
+                            result.pop(path)
+
             if missing_search_parameters := [key for key, value in result.items() if not value]:
-                raise ValueError(f"Could not find search parameter for {missing_search_parameters} \n"
-                                 f"You may need to add an custom search parameter")
+                raise ValueError(
+                    f"Could not find search parameter for {missing_search_parameters} {fhir_path_expressions} \n"
+                    f"You may need to add an custom search parameter")
         return result
 
     def _load_all_search_parameters(self) -> List[Dict]:
