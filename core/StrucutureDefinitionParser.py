@@ -156,8 +156,8 @@ def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, dat
             return result
         elif element.get("code") == "Reference":
             target_profiles = element.get("targetProfile")
-            if len(target_profiles) > 1:
-                raise Exception("Reference with multiple types not supported")
+            # if len(target_profiles) > 1:
+            #     raise Exception("Reference with multiple types not supported")
             target_resource_type = element.get("targetProfile")[0]
             print(target_resource_type, data_set_dir)
             referenced_profile, module_dir = get_profiles_with_base_definition(data_set_dir, target_resource_type)
