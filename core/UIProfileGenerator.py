@@ -4,12 +4,14 @@ import json
 import os
 from typing import Dict, Tuple, List
 
+from TerminologService.ValueSetResolver import get_termcodes_from_onto_server
 from core import ResourceQueryingMetaDataResolver
 from core import StrucutureDefinitionParser as FHIRParser
-from core.StrucutureDefinitionParser import InvalidValueTypeException, UCUM_SYSTEM
+from core.StrucutureDefinitionParser import InvalidValueTypeException, UCUM_SYSTEM, get_binding_value_set_url, \
+    ProcessedElementResult, get_fixed_term_codes
 from helper import generate_attribute_key
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
-from model.UIProfileModel import ValueDefinition, UIProfile, AttributeDefinition
+from model.UIProfileModel import ValueDefinition, UIProfile, AttributeDefinition, CriteriaSet
 from model.UiDataModel import TermCode
 
 AGE_UNIT_VALUE_SET = "http://hl7.org/fhir/ValueSet/age-units"
@@ -274,10 +276,82 @@ class UIProfileGenerator:
         :param profile_snapshot: FHIR profile snapshot
         :param attribute_defining_element_id: element id that defines the reference
         """
-        attribute_defining_elements = self.parser.get_element_defining_elements(attribute_defining_element_id,
-                                                                                profile_snapshot, self.module_dir,
-                                                                                self.data_set_dir)
+        attribute_defining_elements_with_source_snapshots = self.parser.get_element_defining_elements_with_source_snapshots(
+            attribute_defining_element_id,
+            profile_snapshot, self.module_dir,
+            self.data_set_dir)
         attribute_code = generate_attribute_key(attribute_defining_element_id)
         attribute_definition = AttributeDefinition(attribute_code, "reference")
-        attribute_definition.referenceCriteriaSet = self.parser.get_reference_value_set(attribute_defining_elements)
+        attribute_definition.referenceCriteriaSet = self.get_reference_criteria_set(
+            attribute_defining_elements_with_source_snapshots)
         return attribute_definition
+
+    def get_reference_criteria_set(self, elements: List[ProcessedElementResult]) -> str:  #
+        element = elements[-1].element
+        snapshot = elements[-1].profile_snapshot
+        module_dir = elements[-1].module_dir
+        context = self.get_referenced_context(snapshot, module_dir)
+        if fixed_term_codes := get_fixed_term_codes(element, snapshot, module_dir, self.data_set_dir):
+            return self.get_reference_criteria_set_from_fixed_term_codes(fixed_term_codes, context)
+        elif url := get_binding_value_set_url(elements[-1].element):
+            return self.get_reference_criteria_set_from_valueSet(url, context)
+        else:
+            raise Exception("Unable to generate reference criteria set for element: " + element.get("id") +
+                            " in profile: " + snapshot.get("name"))
+
+    def get_referenced_context(self, profile_snapshot, module_dir):
+        """
+        Returns the referenced context for the given FHIR profile snapshot
+        :param profile_snapshot: FHIR profile snapshot
+        :param module_dir: module directory of the profile
+        :return: referenced context
+        """
+        return self.querying_meta_data_resolver.get_query_meta_data(profile_snapshot,
+                                                                    module_dir)[0].context
+
+    def get_reference_criteria_set_from_valueSet(self, value_set_canonical_url: str, context: TermCode) -> CriteriaSet:
+        """
+        Returns the criteria set for the given value set
+        :param value_set_canonical_url: canonical url of the value set
+        :param context: context of the criteria set
+        :return: criteria set
+        """
+        # TODO: contextualized_url
+        term_codes = get_termcodes_from_onto_server(value_set_canonical_url)
+        criteria_set = CriteriaSet(self.create_criteria_set_url_from_vs(value_set_canonical_url, context))
+        for term_code in term_codes:
+            criteria_set.contextualized_term_codes.append((context, term_code))
+        return criteria_set
+
+    def get_reference_criteria_set_from_fixed_term_codes(self, fixed_term_codes: List[TermCode],
+                                                         context: TermCode) -> CriteriaSet:
+        """
+        Returns the criteria set for the given fixed term codes
+        :param fixed_term_codes: fixed term codes
+        :param context: context of the criteria set
+        :return: criteria set
+        """
+        criteria_set = CriteriaSet(self.create_criteria_set_url_from_tc(fixed_term_codes[0], context))
+        for term_code in fixed_term_codes:
+            criteria_set.contextualized_term_codes.append((context, term_code))
+        return criteria_set
+
+    @staticmethod
+    def create_criteria_set_url_from_tc(term_code, context):
+        """
+        Creates a criteria set url from the given term code and context
+        :param term_code: term code
+        :param context: context
+        :return: criteria set url
+        """
+        return f"http://{context.system}/CriteriaSet/{context.code}/{term_code.display}"
+
+    @staticmethod
+    def create_criteria_set_url_from_vs(vs, context):
+        """
+        Creates a criteria set url from the given value set and context
+        :param vs: value set
+        :param context: context
+        :return: criteria set url
+        """
+        return f"http://{context.system}/CriteriaSet/{context.code}/{vs.split('/')[-1]}"

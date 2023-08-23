@@ -51,7 +51,7 @@ class DataBaseWriterTest(unittest.TestCase):
 
     def test_insert_value_set(self):
         term_codes = [TermCode("http://test.com", "test", "test"), TermCode("http://test.com", "test2", "test2")]
-        self.dbw.add_value_set("test", term_codes)
+        self.dbw.add_critieria_set("test", term_codes)
         self.assertTrue(self.dbw.get_term_codes_from_value_set("test") == term_codes)
 
     def test_insert_mapping(self):

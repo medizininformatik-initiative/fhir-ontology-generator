@@ -10,8 +10,8 @@
   "attribute_defining_id_type_map": {
     "Condition.bodySite.coding:ADT-Seitenlokalisation": "",
     "((Condition.extension:Fernmetastasen).value[x]).bodySite": "",
-    "((Condition.extension:specimen).value[x]).type": "reference",
-    "(Condition.stage.assessment).code": "reference"
+    "((Condition.extension:specimen).value[x]).type.coding:sct": "reference",
+    "(Condition.stage.assessment).code.coding": "reference"
   },
   "time_restriction_defining_id": "Condition.onset[x]"
 }

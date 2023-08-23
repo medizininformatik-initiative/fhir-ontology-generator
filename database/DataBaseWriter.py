@@ -6,7 +6,7 @@ import psycopg2.extras
 import psycopg2
 
 from TerminologService.ValueSetResolver import get_termcodes_from_onto_server
-from model.UIProfileModel import UIProfile
+from model.UIProfileModel import UIProfile, CriteriaSet
 from model.UiDataModel import TermCode, TermEntry
 
 NAMESPACE_UUID = uuid.UUID('00000000-0000-0000-0000-000000000000')
@@ -365,25 +365,26 @@ class DataBaseWriter:
         print(result)
         return result[0][0] if result else None
 
-    def add_value_set(self, canonical_url, entries: List[TermCode]):
+    def add_critieria_set(self, criteria_set: CriteriaSet):
         """
         Adds the value set to the database
-        :param canonical_url: canonical url of the value set
-        :param entries: entries to add to the value set
+        :param criteria_set: the criteria set to be added
         """
+        canonical_url = criteria_set.url
+        entries = criteria_set.contextualized_term_codes
         self.cursor.execute(
             """INSERT INTO criteria_set (url) VALUES (%s) ON CONFLICT DO NOTHING""",
             (canonical_url,))
         # TODO: Remove this context once we know the context:
-        context = TermCode("fdpg.mii.bkfz", "Diagnose", "Diagnose", "1.0.0")
-        self.insert_context_codes([context])
+        self.insert_context_codes([entry[0] for entry in entries])
 
-        self.insert_term_codes(entries)
+        self.insert_term_codes(entry[1] for entry in entries)
 
         contextualized_termcode_values = [
             (self.calculate_context_term_code_hash(context, term_code), context.system, context.code,
              context.version if context.version else '',
-             term_code.system, term_code.code, term_code.version if term_code.version else '') for term_code in entries]
+             term_code.system, term_code.code, term_code.version if term_code.version else '') for context, term_code in
+            entries]
         psycopg2.extras.execute_batch(self.cursor,
                                       """INSERT INTO contextualized_termcode (context_termcode_hash, context_id, termcode_id) 
                                          SELECT %s, C.id, T.id
@@ -393,7 +394,8 @@ class DataBaseWriter:
                                          ON CONFLICT DO NOTHING""", contextualized_termcode_values)
         self.db_connection.commit()
 
-        values = [(self.calculate_context_term_code_hash(context, term_code), canonical_url) for term_code in entries]
+        values = [(self.calculate_context_term_code_hash(context, term_code), canonical_url) for context, term_code in
+                  entries]
         print(canonical_url)
         psycopg2.extras.execute_batch(self.cursor,
                                       """
@@ -454,7 +456,6 @@ class DataBaseWriter:
         for ui_profile in profiles:
             for attribute_definition in ui_profile.attributeDefinitions:
                 if attribute_definition.type == "reference":
-                    vs = attribute_definition.referenceCriteriaSet
+                    criteria_set = attribute_definition.referenceCriteriaSet
                     # TODO: Maybe better to get them upfront
-                    term_codes = get_termcodes_from_onto_server(vs)
-                    self.add_value_set(vs, term_codes)
+                    self.add_critieria_set(criteria_set)

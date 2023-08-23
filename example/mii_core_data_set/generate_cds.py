@@ -35,7 +35,7 @@ class MIICoreDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
     def __init__(self):
         super().__init__()
 
-    def get_query_meta_data(self, fhir_profile_snapshot: dict, module_name: TermCode) -> List[ResourceQueryingMetaData]:
+    def get_query_meta_data(self, fhir_profile_snapshot: dict, module_name: str) -> List[ResourceQueryingMetaData]:
         query_meta_data = self._get_query_meta_data_by_module_name(fhir_profile_snapshot, module_name)
         if not query_meta_data:
             query_meta_data = self._get_query_meta_data_by_snapshot(fhir_profile_snapshot)

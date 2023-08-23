@@ -5,6 +5,7 @@ import json
 import random as rd
 import re
 import uuid
+from dataclasses import dataclass
 from typing import List
 
 
@@ -71,29 +72,33 @@ class CategoryEntry:
                           sort_keys=True, indent=4)
 
 
+@dataclass(frozen=True)
 class TermCode:
     """
     A TermCode represents a concept from a terminology system.
-    :param system: the terminology system
-    :param code: the code for the concept
-    :param display: the display for the concept
-    :param version: the version of the terminology system
+    :system: the terminology system
+    :code: the code for the concept
+    :display: the display for the concept
+    :version: the version of the terminology system
     """
 
-    def __init__(self, system: str, code: str, display: str, version=None):
-        self.system = system
-        self.code = code
-        self.version = version
-        self.display = display
+    system: str
+    code: str
+    display: str
+    version: str = None
 
     def __eq__(self, other):
-        return self.system == other.system and self.code == other.code
+        if isinstance(other, TermCode):
+            return self.system == other.system and self.code == other.code
+        return False
 
     def __hash__(self):
         return hash(self.system + self.code)
 
     def __lt__(self, other):
-        return self.display.casefold() < other.display.casefold()
+        if isinstance(other, TermCode):
+            return self.display.casefold() < other.display.casefold()
+        return NotImplemented
 
     def __repr__(self):
         return self.system + " " + self.code

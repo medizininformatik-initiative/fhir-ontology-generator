@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import re
+from collections import namedtuple
 from typing import List, Tuple
 
 from TerminologService.ValueSetResolver import get_termcodes_from_onto_server, get_term_code_display_from_onto_server
@@ -44,6 +45,23 @@ def get_element_from_snapshot(profile_snapshot, element_id) -> dict:
             f"elements. The snapshot: {profile_snapshot.get('name')}")
     except TypeError:
         raise TypeError(f"TypeError the snapshot is not a dict {profile_snapshot}")
+
+
+def is_element_in_snapshot(profile_snapshot, element_id) -> bool:
+    """
+    Returns true if the given element id is in the given FHIR profile snapshot
+    :param profile_snapshot: FHIR profile snapshot
+    :param element_id: element id
+    :return: true if the given element id is in the given FHIR profile snapshot
+    """
+    try:
+        for element in profile_snapshot["snapshot"]["element"]:
+            if "id" in element and element["id"] == element_id:
+                return True
+        else:
+            return False
+    except KeyError:
+        return False
 
 
 def get_profiles_with_base_definition(fhir_dataset_dir: str, base_definition: str) -> Tuple[dict, str]:
@@ -134,17 +152,29 @@ def tokenize(chained_fhir_element_id):
 
 
 def get_element_defining_elements(chained_element_id, profile_snapshot: dict, start_module_dir: str,
-                                  data_set_dir: str) -> List[dict]:
+                                  data_set_dir: str) -> List[dict] | None:
+    return [element_with_source_snapshot.element for element_with_source_snapshot in
+            get_element_defining_elements_with_source_snapshots(chained_element_id, profile_snapshot, start_module_dir,
+                                                                data_set_dir)]
+
+
+ProcessedElementResult = namedtuple("ProcessedElementResult", ["element", "profile_snapshot", "module_dir"])
+
+
+def get_element_defining_elements_with_source_snapshots(chained_element_id, profile_snapshot: dict,
+                                                        start_module_dir: str,
+                                                        data_set_dir: str) -> List[ProcessedElementResult]:
     parsed_list = list(flatten(parse(chained_element_id)))
     return process_element_id(parsed_list, profile_snapshot, start_module_dir, data_set_dir)
 
 
-def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, data_set_dir: str) -> List[dict] | None:
+def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, data_set_dir: str) \
+        -> List[ProcessedElementResult] | None:
     element_id = element_ids.pop(0)
     if element_id.startswith("."):
         raise ValueError("Element id must start with a resource type")
     element = get_element_from_snapshot(profile_snapshot, element_id)
-    result = [element]
+    result = [ProcessedElementResult(element=element, profile_snapshot=profile_snapshot, module_dir=module_dir)]
     for element in element.get("type"):
         if element.get("code") == "Extension":
             profile_urls = element.get("profile")
@@ -280,6 +310,21 @@ def pattern_codeable_concept_to_term_code(element):
     system = element["patternCodeableConcept"]["coding"][0]["system"]
     display = get_term_code_display_from_onto_server(system, code)
     print(display)
+    if display.isupper():
+        display = display.title()
+    term_code = TermCode(system, code, display)
+    return term_code
+
+
+def fixed_codeable_concept_to_term_code(element):
+    """
+    Converts a fixedCodeableConcept to a term code
+    :param element: element node from the snapshot with a patternCoding
+    :return: term code
+    """
+    code = element["fixedCodeableConcept"]["coding"][0]["code"]
+    system = element["fixedCodeableConcept"]["coding"][0]["system"]
+    display = get_term_code_display_from_onto_server(system, code)
     if display.isupper():
         display = display.title()
     term_code = TermCode(system, code, display)
@@ -423,6 +468,8 @@ def get_term_code_by_id(fhir_profile_snapshot, term_code_defining_id, data_set_d
 
 def try_get_term_code_from_sub_elements(fhir_profile_snapshot, parent_coding_id, data_set_dir,
                                         module_dir) -> TermCode | None:
+    if not is_element_in_snapshot(fhir_profile_snapshot, parent_coding_id + ".code"):
+        return None
     code_element = resolve_defining_id(fhir_profile_snapshot, parent_coding_id + ".code", data_set_dir, module_dir)
     system_element = resolve_defining_id(fhir_profile_snapshot, parent_coding_id + ".system", data_set_dir,
                                          module_dir)
@@ -439,7 +486,25 @@ def try_get_term_code_from_sub_elements(fhir_profile_snapshot, parent_coding_id,
     return None
 
 
-def get_reference_value_set(elements: List[dict]) -> str:
-    for element in elements:
-        if "binding" in element:
-            return element["binding"]["valueSet"]
+def get_binding_value_set_url(element: dict) -> str | None:
+    """
+    Returns the value set url of the given element
+    :param element: element with binding
+    :return: value set url
+    """
+    if "binding" in element:
+        return element["binding"].get("valueSet")
+
+
+def get_fixed_term_codes(element: dict, snapshot: dict, module_dir, data_set_dir) -> List[TermCode] | None:
+    """
+    Returns the fixed term codes of the given element
+    """
+    if "fixedCodeableConcept" in element:
+        return [fixed_codeable_concept_to_term_code(element)]
+    elif "patternCodeableConcept" in element:
+        return [pattern_codeable_concept_to_term_code(element)]
+    else:
+        if tc := try_get_term_code_from_sub_elements(snapshot, element.get("id"), module_dir, data_set_dir):
+            return [tc]
+    return None

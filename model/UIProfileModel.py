@@ -1,6 +1,7 @@
 import copy
 import json
-from typing import Literal, List
+from dataclasses import dataclass, field, asdict
+from typing import Literal, List, Tuple, ClassVar
 
 from model.UiDataModel import TermCode
 from model.helper import del_none
@@ -10,19 +11,36 @@ UI_PROFILES = set()
 VALUE_TYPE_OPTIONS = Literal["concept", "quantity", "reference", "date", "composite"]
 
 
+@dataclass
+class CriteriaSet:
+    url: str
+    contextualized_term_codes: List[Tuple[TermCode, TermCode]] = field(default_factory=list)
+
+
+@dataclass
 class ValueDefinition:
-    def __init__(self, value_type: VALUE_TYPE_OPTIONS):
-        self.type = value_type
-        self.selectableConcepts: List[TermCode] = []
-        self.allowedUnits: List[TermCode] = []
-        self.precision = 1
-        self.min = None
-        self.max = None
-        self.referenceCriteriaSet = None
-        self.optional = True
+    type: VALUE_TYPE_OPTIONS
+    selectableConcepts: List[TermCode] = field(default_factory=list)
+    allowedUnits: List[TermCode] = field(default_factory=list)
+    precision: int = 1
+    min: float = None
+    max: float = None
+    referenceCriteriaSet: CriteriaSet = None
+    optional: bool = True
+
+    def to_dict(self):
+        data = asdict(self)
+        if self.referenceCriteriaSet is not None:
+            data['referenceCriteriaSet'] = self.referenceCriteriaSet.url
+        return data
 
 
+@dataclass
 class AttributeDefinition(ValueDefinition):
+    attributeCode: TermCode = None
+
+    # TODO: This is not best practice. See python dataclass non-default argument follows default argument
+    # However would require a lot of refactoring
     def __init__(self, attribute_code, value_type):
         super().__init__(value_type)
         self.attributeCode = attribute_code
@@ -41,22 +59,26 @@ def del_keys(dictionary, keys):
     return result
 
 
-class UIProfile(object):
-    DO_NOT_SERIALIZE = []
-
-    def __init__(self, name, time_restriction_allowed=True, value_definition=None, attribute_definitions=None):
-        self.name = name
-        self.timeRestrictionAllowed = time_restriction_allowed
-        self.valueDefinition = value_definition
-        self.attributeDefinitions = [] if attribute_definitions is None else attribute_definitions
+@dataclass
+class UIProfile:
+    name: str
+    timeRestrictionAllowed: bool = True
+    valueDefinition: ValueDefinition = None
+    attributeDefinitions: List[AttributeDefinition] = field(default_factory=list)
+    DO_NOT_SERIALIZE: ClassVar[List[str]] = []  # ClassVar indicates that it's a class-level variable
 
     @classmethod
     def from_json(cls, json_string):
         return cls(**json.loads(json_string))
 
     def to_json(self):
-        return json.dumps(self, default=lambda o: del_none(
-            del_keys(o.__dict__, self.DO_NOT_SERIALIZE)), sort_keys=True, indent=4)
+        return json.dumps(self.to_dict(), default=del_none, sort_keys=True, indent=4)
+
+    def to_dict(self):
+        data = asdict(self)
+        if self.attributeDefinitions:
+            data["attributeDefinitions"] = [attr.to_dict() for attr in self.attributeDefinitions]
+        return data
 
     def __eq__(self, other):
         return self.name == other.name
