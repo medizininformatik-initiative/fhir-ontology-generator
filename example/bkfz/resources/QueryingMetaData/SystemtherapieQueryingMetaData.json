@@ -1,0 +1,17 @@
+{
+  "name": "Systemtherapie",
+  "resource_type": "Procedure",
+  "context": {
+    "system": "bzkf.dktk.oncology",
+    "code": "Systemtherapie",
+    "display": "Systemtherapie"
+  },
+  "term_code_defining_id": "MedicationStatement.medication[x]",
+  "attribute_defining_id_type_map": {
+    "MedicationStatement.category": "",
+    "(MedicationStatement.extension:Intention).value[x]": "",
+    "(MedicationStatement.extension:StellungZurOp).value[x]": "",
+    "(MedicationStatement.extension:Protokoll).value[x]": ""
+  },
+  "time_restriction_defining_id": "MedicationStatement.effective[x]"
+}

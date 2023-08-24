@@ -1,0 +1,15 @@
+{
+  "resourceType": "SearchParameter",
+  "id": "SearchParamProtokoll",
+  "url": "https://diz.uk-erlangen.de/SearchParameter/protokoll",
+  "name": "protokoll",
+  "status": "active",
+  "experimental": false,
+  "description": "Suchparameter für die Extension Intention am Profil Operation",
+  "code": "protokoll",
+  "base": [
+    "MedicationStatement"
+  ],
+  "type": "token",
+  "expression": "MedicationStatement.extension.where(url='http://dktk.dkfz.de/fhir/StructureDefinition/onco-core-Extension-SystemischeTherapieProtokoll').value"
+}

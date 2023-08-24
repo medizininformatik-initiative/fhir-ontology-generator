@@ -19,5 +19,8 @@
     "TNM-y-Symbol": "TNM-y-Symbol",
     "TNM-r-Symbol": "TNM-r-Symbol",
     "TNM-m-Symbol": "TNM-m-Symbol",
-    "assessment": "assessment"
+    "assessment": "assessment",
+    "detail": "detail",
+    "StellungZurOp": "StellungZurOp",
+    "Protokoll": "Protokoll"
 }

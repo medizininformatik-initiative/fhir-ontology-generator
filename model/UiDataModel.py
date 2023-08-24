@@ -72,7 +72,7 @@ class CategoryEntry:
                           sort_keys=True, indent=4)
 
 
-@dataclass(frozen=True)
+@dataclass
 class TermCode:
     """
     A TermCode represents a concept from a terminology system.

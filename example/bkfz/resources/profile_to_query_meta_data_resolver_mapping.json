@@ -1,0 +1,51 @@
+{
+  "Primaerdiagnose": [
+    "Primaerdiagnose"
+  ],
+  "Operation": [
+    "Operation"
+  ],
+  "Strahlentherapie": [
+    "Strahlentherapie"
+  ],
+  "Systemtherapie": [
+    "Systemtherapie"
+  ],
+  "Fernmetastasen": [
+    "Fernmetastasen"
+  ],
+  "Grading": [
+    "Grading"
+  ],
+  "TNMc": [
+    "TNMc"
+  ],
+  "TNMp": [
+    "TNMp"
+  ],
+  "Histologie": [
+    "Histologie"
+  ],
+  "Specimen": [],
+  "Bioprobe": [
+    "Bioprobe"
+  ],
+  "Vitalstatus": [
+    "Vitalstatus"
+  ],
+  "Gesamtbeurteilung Tumorstatus": [
+    "GesamtbeurteilungTumorstatus"
+  ],
+  "Lokaler Tumorstatus": [
+    "LokalerTumorstatus"
+  ],
+  "Tumorstatus Lymphknoten": [
+    "TumorstatusLymphknoten"
+  ],
+  "Tumorstatus Fernmetastasen": [
+    "TumorstatusFernmetastasen"
+  ],
+  "Genetische Variante": [
+    "GenetischeVariante"
+  ]
+}

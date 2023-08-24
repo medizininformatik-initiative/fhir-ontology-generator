@@ -1,0 +1,131 @@
+{
+  "resourceType": "StructureDefinition",
+  "url": "https://www.medizininformatik-initiative.de/fhir/fdpg/StructureDefinition/onco-core-Observation-GesamtbeurteilungTumorstatus",
+  "version": "0.9.0",
+  "name": "Gesamtbeurteilung Tumorstatus",
+  "status": "active",
+  "description": "Gesamtbeurteilung der Erkrankung unter Berücksichtigung aller Manifestationen.",
+  "fhirVersion": "4.0.0",
+  "kind": "resource",
+  "abstract": false,
+  "type": "Observation",
+  "baseDefinition": "http://dktk.dkfz.de/fhir/StructureDefinition/onco-core-Observation-GesamtbeurteilungTumorstatus",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      {
+        "id": "Observation.status",
+        "path": "Observation.status",
+        "mustSupport": true
+      },
+      {
+        "id": "Observation.category.coding.system",
+        "path": "Observation.category.coding.system",
+        "min": 1,
+        "fixedUri": "http://hl7.org/fhir/observation-category"
+      },
+      {
+        "id": "Observation.category.coding.code",
+        "path": "Observation.category.coding.code",
+        "min": 1,
+        "fixedCode": "imaging"
+      },
+      {
+        "id": "Observation.code",
+        "path": "Observation.code",
+        "mustSupport": true
+      },
+      {
+        "id": "Observation.code.coding.system",
+        "path": "Observation.code.coding.system",
+        "min": 1,
+        "fixedUri": "http://loinc.org",
+        "mustSupport": true
+      },
+      {
+        "id": "Observation.code.coding.code",
+        "path": "Observation.code.coding.code",
+        "min": 1,
+        "fixedCode": "21976-6",
+        "mustSupport": true
+      },
+      {
+        "id": "Observation.subject",
+        "path": "Observation.subject",
+        "min": 1,
+        "type": [
+          {
+            "code": "Reference",
+            "targetProfile": [
+              "http://dktk.dkfz.de/fhir/StructureDefinition/onco-core-Patient-Patient",
+              "http://dktk.dkfz.de/fhir/StructureDefinition/onco-core-Patient-Pseudonym"
+            ]
+          }
+        ],
+        "mustSupport": true
+      },
+      {
+        "id": "Observation.subject.reference",
+        "path": "Observation.subject.reference",
+        "min": 1,
+        "mustSupport": true
+      },
+      {
+        "id": "Observation.encounter",
+        "path": "Observation.encounter",
+        "type": [
+          {
+            "code": "Reference",
+            "targetProfile": [
+              "http://dktk.dkfz.de/fhir/StructureDefinition/onco-core-Encounter-Fall"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "Observation.effective[x]",
+        "path": "Observation.effective[x]",
+        "type": [
+          {
+            "code": "dateTime"
+          }
+        ]
+      },
+      {
+        "id": "Observation.value[x]",
+        "path": "Observation.value[x]",
+        "short": "Ansprechen im Verlauf",
+        "definition": "Gibt die Gesamtbeurteilung der Erkrankung unter Berücksichtigung aller Manifestationen an",
+        "type": [
+          {
+            "code": "CodeableConcept"
+          }
+        ],
+        "mustSupport": true,
+        "binding": {
+          "strength": "required",
+          "valueSet": "http://dktk.dkfz.de/fhir/onco/core/ValueSet/GesamtbeurteilungTumorstatusVS"
+        }
+      },
+      {
+        "id": "Observation.value[x].coding.code",
+        "path": "Observation.value[x].coding.code",
+        "short": "Ansprechen im Verlauf",
+        "definition": "Gibt die Gesamtbeurteilung der Erkrankung unter Berücksichtigung aller Manifestationen an",
+        "min": 1,
+        "mapping": [
+          {
+            "identity": "ADT-GEKID",
+            "map": "Verlauf:Gesamtbeurteilung_Tumorstatus",
+            "comment": "Verlauf:Gesamtbeurteilung_Tumorstatus"
+          },
+          {
+            "identity": "ISO-11179",
+            "map": "urn:dktk:dataelement:84:2, urn:dktk:dataelement:24:3",
+            "comment": "urn:dktk:dataelement:84:2, urn:dktk:dataelement:24:3"
+          }
+        ]
+      }
+    ]
+  }
+}
