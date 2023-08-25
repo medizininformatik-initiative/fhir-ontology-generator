@@ -11,6 +11,23 @@ Access to a terminology server with all value sets used in the FHIR profiles
 | Var | Description | Example |
 |--------|-------------|---------|
 |ONTOLOGY_SERVER_ADDRESS | Address of the Ontology server fhir api| my_onto_server.com/fhir
+|SERVER_CERTIFICATE | Path to the certificate of the Ontology server fhir api| C:\Users\Certs\certificate.pem
+|PRIVATE_KEY | Path to the private key for the Ontology server | C:\Users\Certs\private_key.pem
+
+## Usage of the Examples
+In the example folder you can find different examples that utilize the generator. Each has an generate_*.py file that
+can be executed to generate the ontology. 
+To execute the generator run the following command. Ensure that the required environment variables are set.
+    
+```shell
+python generate_*.py [--generate_snapthot] [--generate_ui_trees] [--generate_ui_profiles] [--generate_mapping]
+```
+
+The generator will create the results in the folders ui-trees, mapping-tree, mapping-old as well as generate a 
+R__Load_latest_ui_profile.sql file. Be aware while you can generate the parts individually, if you are not familiar with
+the interdependencies of the parts, you should generate all parts at once. Only --gnerate_snapshot should only be used 
+once.
+
 
 ## About
 

@@ -8,10 +8,10 @@
     "icd-o-3": "icd-o-3",
     "ADT-Seitenlokalisation": "ADT-Seitenlokalisation",
     "category": "category",
-    "reasonReference": "reasonReference",
-    "Intention": "Intention",
+    "reasonReference": "Zugrunde liegende Erkrankung",
+    "Intention": "Absicht",
     "Fernmetastasen": "Fernmetastasen",
-    "specimen": "specimen",
+    "specimen": "Bioprobe",
     "value[x]": "value[x]",
     "TNM-T": "TNM-T",
     "TNM-N": "TNM-N",
@@ -21,6 +21,10 @@
     "TNM-m-Symbol": "TNM-m-Symbol",
     "assessment": "assessment",
     "detail": "detail",
-    "StellungZurOp": "StellungZurOp",
-    "Protokoll": "Protokoll"
+    "StellungZurOp": "Stellung zur Op",
+    "Protokoll": "Protokoll",
+    "histology": "Histologie",
+    "genetischeVariante": "Genetische Variante",
+    "tnmc": "TNMc",
+    "tnmp": "TNMp"
 }

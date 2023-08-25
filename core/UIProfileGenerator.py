@@ -191,7 +191,6 @@ class UIProfileGenerator:
             attribute_definition.allowedUnits = self.parser.get_units(unit_defining_elements[0],
                                                                       profile_snapshot.get("name"))
         elif attribute_type == "reference":
-            # raise InvalidValueTypeException("Reference type need to be resolved using the Resolve().elementid syntax")
             attribute_definition = self.generate_reference_attribute_definition(profile_snapshot,
                                                                                 attribute_defining_element_id)
         elif attribute_type == "composite":

@@ -27,7 +27,7 @@ from model.UiDataModel import TermEntry, TermCode
 
 WINDOWS_RESERVED_CHARACTERS = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
 
-core_data_sets = [DKTK]
+core_data_sets = [DKTK, MII_SPECIMEN, MII_PERSON]
 
 
 class BKFZDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):

@@ -11,8 +11,10 @@
     "Condition.bodySite.coding:ADT-Seitenlokalisation": "",
     "((Condition.extension:Fernmetastasen).value[x]).bodySite": "",
     "((Condition.extension:specimen).value[x]).type.coding:sct": "reference",
-    "(Condition.stage.assessment).code.coding": "reference",
-    "(Condition.evidence.detail).code.coding": "reference"
+    "(Condition.stage.assessment:tnmc).code.coding": "reference",
+    "(Condition.stage.assessment:tnmp).code.coding": "reference",
+    "(Condition.evidence.detail:histology).code.coding": "reference",
+    "(Condition.evidence.detail:genetischeVariante).code.coding": "reference"
   },
   "time_restriction_defining_id": "Condition.onset[x]"
 }
