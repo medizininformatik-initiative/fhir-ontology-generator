@@ -17,8 +17,13 @@ Access to a terminology server with all value sets used in the FHIR profiles
 ## Usage of the Examples
 In the example folder you can find different examples that utilize the generator. Each has an generate_*.py file that
 can be executed to generate the ontology. 
-To execute the generator run the following command. Ensure that the required environment variables are set.
-    
+To execute the generator run the following command. Ensure that the required environment variables are set. On windows use 
+```shell
+$env:ONTOLOGY_SERVER_ADDRESS = "https://your-onto-server-address.com"
+```
+
+Follow https://docs.python.org/3/tutorial/venv.html to create an venv, activate it and install the requirements from requirements.txt or use your ide to do it for you.
+
 ```shell
 python generate_*.py [--generate_snapthot] [--generate_ui_trees] [--generate_ui_profiles] [--generate_mapping]
 ```
