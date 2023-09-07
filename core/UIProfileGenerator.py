@@ -118,7 +118,7 @@ class UIProfileGenerator:
         value_type = querying_meta_data.value_type if querying_meta_data.value_type else \
             self.parser.extract_value_type(value_defining_element, profile_snapshot.get("name"))
         value_definition = ValueDefinition(value_type)
-        if value_type == "concept":
+        if value_type == "concept" or value_type == "code":
             value_definition.selectableConcepts = self.parser.get_selectable_concepts(value_defining_element,
                                                                                       profile_snapshot.get("name"))
         elif value_type == "quantity":

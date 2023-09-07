@@ -514,7 +514,7 @@ if __name__ == '__main__':
 
     result = container.exec_run(
         'pg_dump --dbname="codex_ui" -U codex-postgres -a -O -t termcode -t context -t ui_profile -t mapping'
-        ' -t contextualized_termcode -t contextualized_termcode_to_criteria_set -t criteria_set -f /opt/db_data/codex_ui.sql')
+        ' -t contextualized_termcode -t contextualized_termcode_to_criteria_set -t criteria_set -f /opt/db_data/R__Load_latest_ui_profile.sql')
     print("Dumped db")
     container.stop()
     container.remove()
