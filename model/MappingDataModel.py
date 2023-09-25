@@ -11,14 +11,22 @@ from model.UiDataModel import TermCode
 from model.helper import del_none
 
 
-class FixedCriteria:
-    def __init__(self, criteria_type, search_parameter, fhir_path, value=None):
+class FixedFHIRCriteria:
+    def __init__(self, criteria_type, search_parameter, value=None):
+        if value is None:
+            value = []
+        self.type = criteria_type
+        self.value = value
+        self.searchParameter = search_parameter
+
+
+class FixedCQLCriteria:
+    def __init__(self, criteria_type, fhir_path, value=None):
         if value is None:
             value = []
         self.type = criteria_type
         self.value = value
         self.fhirPath = fhir_path
-        self.searchParameter = search_parameter
 
 
 class AttributeSearchParameter:
@@ -76,6 +84,7 @@ class FhirMapping:
         # only required for version 1 support / json representation
         self.key = None
         self.context = None
+        self.fixedCriteria: List[FixedFHIRCriteria] = []
 
     def to_json(self):
         return json.dumps(self, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)

@@ -22,6 +22,16 @@ from model.UiDataModel import TermEntry, TermCode, CategoryEntry
 
 core_data_sets = [GECCO, MII_LAB]
 WINDOWS_RESERVED_CHARACTERS = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
+"""
+    Date of birth requires date selection in the ui
+    ResuscitationOrder Consent is not mappable for fhir search
+    RespiratoryOutcome needs special handling its a condition but has a value in the verification status:
+        Confirmed -> Patient dependent on ventilator 
+        Refuted -> Patient not dependent on ventilator 
+    Severity is handled within Symptoms
+"""
+IGNORE_LIST = ["Date of birth", "Severity", "OrganizationSammlungBiobank", "SubstanceAdditiv",
+               "MedicationMedikation", "MedicationStatementMedikation", "ProbandIn", "Laborbefund", "Laboranforderung"]
 
 
 class GeccoDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):

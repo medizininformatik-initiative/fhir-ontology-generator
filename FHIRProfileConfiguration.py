@@ -16,14 +16,3 @@ MII_MEDICATION_DATA_SET = "resources/core_data_sets/de.medizininformatikinitiati
                           "/package"
 SPECIMEN_VS = "https://www.medizininformatik-initiative.de/fhir/abide/ValueSet/sct-specimen-type-napkon-sprec"
 
-"""
-    Date of birth requires date selection in the ui
-    ResuscitationOrder Consent is not mappable for fhir search
-    RespiratoryOutcome needs special handling its a condition but has a value in the verification status:
-        Confirmed -> Patient dependent on ventilator 
-        Refuted -> Patient not dependent on ventilator 
-    Severity is handled within Symptoms
-"""
-
-IGNORE_LIST = ["Date of birth", "Severity", "OrganizationSammlungBiobank", "SubstanceAdditiv",
-               "MedicationMedikation", "MedicationStatementMedikation", "ProbandIn", "Laborbefund", "Laboranforderung"]
