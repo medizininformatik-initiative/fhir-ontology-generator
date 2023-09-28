@@ -117,8 +117,12 @@ class UIProfileGenerator:
                                                                  self.data_set_dir, self.module_dir)
         value_type = querying_meta_data.value_type if querying_meta_data.value_type else \
             self.parser.extract_value_type(value_defining_element, profile_snapshot.get("name"))
+        # The only way the value_type equals "code" is if the query_meta_data sets it to "code". This might be necessary
+        # for the mapping but the UI profile only supports "concept" so we have to convert it here.
+        if value_type == "code":
+            value_type = "concept"
         value_definition = ValueDefinition(value_type)
-        if value_type == "concept" or value_type == "code":
+        if value_type == "concept":
             value_definition.selectableConcepts = self.parser.get_selectable_concepts(value_defining_element,
                                                                                       profile_snapshot.get("name"))
         elif value_type == "quantity":

@@ -588,13 +588,13 @@ if __name__ == '__main__':
         db_writer.write_vs_to_db(named_ui_profiles_dict.values())
 
     if args.generate_mapping:
-        # cql_generator = CQLMappingGenerator(resolver)
-        # cql_mappings = cql_generator.generate_mapping("resources/fdpg_differential")
-        # cql_term_code_mappings = cql_mappings[0]
-        # cql_concept_mappings = cql_mappings[1]
-        # write_mappings_to_files(cql_concept_mappings.values())
-        # v1_cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
-        # write_v1_mapping_to_file(v1_cql_mappings, "mapping-old")
+        cql_generator = CQLMappingGenerator(resolver)
+        cql_mappings = cql_generator.generate_mapping("resources/fdpg_differential")
+        cql_term_code_mappings = cql_mappings[0]
+        cql_concept_mappings = cql_mappings[1]
+        write_mappings_to_files(cql_concept_mappings.values())
+        v1_cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
+        write_v1_mapping_to_file(v1_cql_mappings, "mapping-old")
 
         search_param_resolver = MIICoreDataSetSearchParameterResolver()
         fhir_search_generator = FHIRSearchMappingGenerator(resolver, search_param_resolver)
