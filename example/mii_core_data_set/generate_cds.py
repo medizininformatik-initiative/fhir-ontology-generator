@@ -4,7 +4,7 @@ import argparse
 import copy
 import json
 import os
-from typing import List, ValuesView, Dict
+from typing import List, ValuesView, Dict, Tuple
 
 import docker
 from jsonschema import validate
@@ -419,6 +419,14 @@ def reformate_procedure_tree(ui_tree: TermEntry):
     return ui_tree
 
 
+def update_patient_gender_ui_profile(ui_profile: UIProfile) -> UIProfile:
+    # Probably the wrong way of doing it. Gender should be mandatory by default. But due to bad design decisions
+    # in the past, we now do it this way until people understand that it makes no sense to query the existence of
+    # mandatory fields...
+    ui_profile.valueDefinition.optional = False
+    return ui_profile
+
+
 def apply_additional_tree_rules(ui_tree):
     term_code_reformat_map = {
         TermCode("fdpg.mii.cds", "Laboruntersuchung", "Laboruntersuchung"): reformat_lab_tree,
@@ -533,6 +541,17 @@ def get_combined_consent_fixed_critieria():
             mdat_wissenschaftlich_nutzen_eu_dsgvo_niveau_fixed_critiera, mdat_zusammenfuehren_dritte_fixed_critiera]
 
 
+def apply_additional_profile_rules(named_profile: Tuple[str, UIProfile]):
+    ui_profile_reformat_map = {
+        "Person1": update_patient_gender_ui_profile
+    }
+    reformat_function = ui_profile_reformat_map.get(named_profile[0])
+    if reformat_function is not None:
+        return reformat_function(named_profile[1])
+    else:
+        return named_profile[1]
+
+
 if __name__ == '__main__':
     client = docker.from_env()
     # Check if container with the name "test_db" already exists
@@ -584,6 +603,8 @@ if __name__ == '__main__':
         profile_generator = UIProfileGenerator(resolver)
         contextualized_term_code_ui_profile_mapping, named_ui_profiles_dict = \
             profile_generator.generate_ui_profiles("resources/fdpg_differential")
+        named_ui_profiles_dict = {name: apply_additional_profile_rules((name, profile)) for name, profile in
+                                  named_ui_profiles_dict.items()}
         db_writer.write_ui_profiles_to_db(contextualized_term_code_ui_profile_mapping, named_ui_profiles_dict)
         db_writer.write_vs_to_db(named_ui_profiles_dict.values())
 
