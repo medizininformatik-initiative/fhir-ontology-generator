@@ -8,7 +8,7 @@ from TerminologService.ValueSetResolver import get_termcodes_from_onto_server
 from core import ResourceQueryingMetaDataResolver
 from core import StrucutureDefinitionParser as FHIRParser
 from core.StrucutureDefinitionParser import InvalidValueTypeException, UCUM_SYSTEM, get_binding_value_set_url, \
-    ProcessedElementResult, get_fixed_term_codes
+    ProcessedElementResult, get_fixed_term_codes, FHIR_TYPES_TO_VALUE_TYPES, extract_value_type
 from helper import generate_attribute_key
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import ValueDefinition, UIProfile, AttributeDefinition, CriteriaSet
@@ -116,7 +116,10 @@ class UIProfileGenerator:
         value_defining_element = self.parser.resolve_defining_id(profile_snapshot, querying_meta_data.value_defining_id,
                                                                  self.data_set_dir, self.module_dir)
         value_type = querying_meta_data.value_type if querying_meta_data.value_type else \
-            self.parser.extract_value_type(value_defining_element, profile_snapshot.get("name"))
+            FHIR_TYPES_TO_VALUE_TYPES.get(extract_value_type(value_defining_element, profile_snapshot.get('name'))) \
+            if extract_value_type(value_defining_element,
+                                  profile_snapshot.get('name')) in FHIR_TYPES_TO_VALUE_TYPES else extract_value_type(
+            value_defining_element, profile_snapshot.get('name'))
         # The only way the value_type equals "code" is if the query_meta_data sets it to "code". This might be necessary
         # for the mapping but the UI profile only supports "concept" so we have to convert it here.
         if value_type == "code":
@@ -179,8 +182,11 @@ class UIProfileGenerator:
         attribute_defining_elements = self.parser.get_element_defining_elements(attribute_defining_element_id,
                                                                                 profile_snapshot, self.module_dir,
                                                                                 self.data_set_dir)
-        attribute_type = attribute_type if attribute_type else self.parser.extract_value_type(
-            attribute_defining_elements[-1], profile_snapshot.get("name"))
+        attribute_type = attribute_type if attribute_type else FHIR_TYPES_TO_VALUE_TYPES.get(extract_value_type(
+            attribute_defining_elements[-1], profile_snapshot.get('name'))) \
+            if extract_value_type(attribute_defining_elements[-1],
+                                  profile_snapshot.get('name')) in FHIR_TYPES_TO_VALUE_TYPES else extract_value_type(
+            attribute_defining_elements[-1], profile_snapshot.get('name'))
         attribute_code = generate_attribute_key(attribute_defining_element_id)
         attribute_definition = AttributeDefinition(attribute_code, attribute_type)
         if attribute_type == "concept":

@@ -116,6 +116,7 @@ class CQLMapping:
     name: str
     termCodeFhirPath: Optional[str] = None
     valueFhirPath: Optional[str] = None
+    valueType = None
     timeRestrictionPath: Optional[str] = None
     attributeFhirPath: List[CQLAttributeSearchParameter] = field(default_factory=list)
     # only required for version 1 support

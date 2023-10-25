@@ -227,8 +227,7 @@ def extract_value_type(value_defining_element: dict, profile_name: str = "") -> 
     if len(fhir_value_types) > 1:
         raise InvalidValueTypeException(f"More than one value type defined in element: "
                                         f"{str(value_defining_element)} refine the profile: " + profile_name)
-    return FHIR_TYPES_TO_VALUE_TYPES.get(fhir_value_types[0].get("code")) \
-        if fhir_value_types[0].get("code") in FHIR_TYPES_TO_VALUE_TYPES else fhir_value_types[0].get("code")
+    return fhir_value_types[0].get("code")
 
 
 def get_selectable_concepts(concept_defining_element, profile_name: str = "") -> List[TermCode]:

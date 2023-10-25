@@ -6,7 +6,7 @@ from typing import Dict, Tuple, List, OrderedDict
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from core import StrucutureDefinitionParser as FHIRParser
 from core.SearchParameterResolver import SearchParameterResolver
-from core.StrucutureDefinitionParser import extract_value_type, resolve_defining_id
+from core.StrucutureDefinitionParser import extract_value_type, resolve_defining_id, FHIR_TYPES_TO_VALUE_TYPES
 from helper import generate_attribute_key
 from model.MappingDataModel import FhirMapping
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
@@ -203,7 +203,10 @@ class FHIRSearchMappingGenerator(object):
         if " as ValueSet" in attribute_id:
             attribute_id = attribute_id.replace(" as ValueSet", "")
         attribute_element = resolve_defining_id(profile_snapshot, attribute_id, self.data_set_dir, self.module_dir)
-        return extract_value_type(attribute_element, profile_snapshot.get('name'))
+        return FHIR_TYPES_TO_VALUE_TYPES.get(extract_value_type(attribute_element, profile_snapshot.get('name'))) \
+            if extract_value_type(attribute_element,
+                                  profile_snapshot.get('name')) in FHIR_TYPES_TO_VALUE_TYPES else extract_value_type(
+            attribute_element, profile_snapshot.get('name'))
 
     def translate_element_id_to_fhir_path_expressions(self, element_id, profile_snapshot: dict) -> List[str]:
         """

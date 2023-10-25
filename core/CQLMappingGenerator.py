@@ -99,11 +99,12 @@ class CQLMappingGenerator(object):
         cql_mapping = CQLMapping(querying_meta_data.name)
         cql_mapping.resource_type = querying_meta_data.resource_type
         if tc_defining_id := querying_meta_data.term_code_defining_id:
-            cql_mapping.termCodeFhirPath = self.translate_element_id_to_fhir_path_expressions(
+            cql_mapping.termCodeFhirPath = self.translate_term_element_id_to_fhir_path_expression(
                 tc_defining_id, profile_snapshot)
         if val_defining_id := querying_meta_data.value_defining_id:
-            cql_mapping.termValueFhirPath = self.translate_element_id_to_fhir_path_expressions(
+            cql_mapping.valueFhirPath = self.translate_element_id_to_fhir_path_expressions(
                 val_defining_id, profile_snapshot)
+            cql_mapping.valueType = self.get_attribute_type(profile_snapshot, val_defining_id)
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
             cql_mapping.timeRestrictionPath = self.translate_element_id_to_fhir_path_expressions(
                 time_defining_id, profile_snapshot)
@@ -115,6 +116,18 @@ class CQLMappingGenerator(object):
                                                                                      profile_snapshot)
             cql_mapping.add_attribute(attribute_type, attribute_key, attribute_fhir_path)
         return cql_mapping
+
+    def translate_term_element_id_to_fhir_path_expression(self, element_id, profile_snapshot) -> str:
+        elements = self.parser.get_element_defining_elements(element_id, profile_snapshot, self.module_dir,
+                                                             self.data_set_dir)
+        # TODO: Revisit and evaluate if this really the way to go.
+        for element in elements:
+            for element_type in element.get("type"):
+                if element_type.get("code") == "Reference":
+                    return self.get_old_path_expression(
+                        self.parser.translate_element_to_fhir_path_expression(elements, profile_snapshot)[
+                            0]) + ".reference"
+        return self.translate_element_id_to_fhir_path_expressions(element_id, profile_snapshot)
 
     def translate_element_id_to_fhir_path_expressions(self, element_id, profile_snapshot: dict) -> str:
         """
