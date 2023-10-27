@@ -64,7 +64,7 @@ class CQLAttributeSearchParameter(AttributeSearchParameter):
         :param fhir_path:
         """
         super().__init__(criteria_type, attribute_code)
-        self.fhirPath = fhir_path
+        self.attributePath = fhir_path
 
 
 class FhirMapping:
@@ -117,8 +117,8 @@ class CQLMapping:
     termCodeFhirPath: Optional[str] = None
     valueFhirPath: Optional[str] = None
     valueType = None
-    timeRestrictionPath: Optional[str] = None
-    attributeFhirPath: List[CQLAttributeSearchParameter] = field(default_factory=list)
+    timeRestrictionFhirPath: Optional[str] = None
+    attributeFhirPaths: List[CQLAttributeSearchParameter] = field(default_factory=list)
     # only required for version 1 support
     key: Optional[str] = None
 

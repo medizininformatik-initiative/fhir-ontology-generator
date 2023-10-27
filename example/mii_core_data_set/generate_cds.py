@@ -456,7 +456,7 @@ def get_combined_consent_fhir_mapping():
 
 def get_combined_consent_cql_mapping():
     combined_consent_cql_mapping = CQLMapping("CombinedConsent")
-    combined_consent_cql_mapping.timeRestrictionPath = "Consent.datetime"
+    combined_consent_cql_mapping.timeRestrictionFhirPath = "Consent.datetime"
     combined_consent_cql_mapping.fhirResourceType = "Consent"
     primaryCode = TermCode("http://loinc.org", "54133-1", "Consent Document")
     combined_consent_cql_mapping.primaryCode = primaryCode

@@ -97,7 +97,7 @@ class CQLMappingGenerator(object):
         :return: CQL mapping
         """
         cql_mapping = CQLMapping(querying_meta_data.name)
-        cql_mapping.resource_type = querying_meta_data.resource_type
+        cql_mapping.resourceType = querying_meta_data.resource_type
         if tc_defining_id := querying_meta_data.term_code_defining_id:
             cql_mapping.termCodeFhirPath = self.translate_term_element_id_to_fhir_path_expression(
                 tc_defining_id, profile_snapshot)
@@ -106,7 +106,7 @@ class CQLMappingGenerator(object):
                 val_defining_id, profile_snapshot)
             cql_mapping.valueType = self.get_attribute_type(profile_snapshot, val_defining_id)
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
-            cql_mapping.timeRestrictionPath = self.translate_element_id_to_fhir_path_expressions(
+            cql_mapping.timeRestrictionFhirPath = self.translate_element_id_to_fhir_path_expressions(
                 time_defining_id, profile_snapshot)
         for attr_defining_id, attr_type in querying_meta_data.attribute_defining_id_type_map.items():
             attribute_key = generate_attribute_key(attr_defining_id)
