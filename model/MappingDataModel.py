@@ -122,9 +122,8 @@ class CQLMapping:
     # only required for version 1 support
     key: Optional[str] = None
 
-    def add_attribute(self, attribute_type, attribute_key, attribute_fhir_path):
-        self.attributeFhirPath.append(
-            CQLAttributeSearchParameter(attribute_type, attribute_key, attribute_fhir_path))
+    def add_attribute(self, attribute_search_parameter: CQLAttributeSearchParameter):
+        self.attributeFhirPaths.append(attribute_search_parameter)
 
     @classmethod
     def from_json(cls, json_dict):

@@ -11,7 +11,7 @@
     "Specimen"
   ],
   "type": "reference",
-  "expression": "Specimen.extension.where(url='https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Diagnose').value",
+  "expression": "Specimen.extension.where(url='https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Diagnose').value as Reference",
   "target": [
     "Condition"
   ],

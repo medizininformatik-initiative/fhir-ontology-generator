@@ -230,6 +230,26 @@ def extract_value_type(value_defining_element: dict, profile_name: str = "") -> 
     return fhir_value_types[0].get("code")
 
 
+def extract_reference_type(value_defining_element: dict, data_set_dir: str, profile_name: str = "") -> str:
+    """
+    Extracts the reference type from the given value defining element
+    :param value_defining_element: element that defines the value
+    :param data_set_dir: path to the FHIR dataset directory
+    :param profile_name: name of the FHIR profile for debugging purposes can be omitted
+    :return: reference type
+    """
+    if not value_defining_element:
+        print(f"Could not find value defining element for {profile_name}")
+    # if len(target_profiles) > 1:
+    #     raise Exception("Reference with multiple types not supported")
+    if not value_defining_element.get("targetProfile"):
+        print(f"Could not find target profile for {profile_name}")
+    target_resource_type = value_defining_element.get("targetProfile")[0]
+    print(target_resource_type, data_set_dir)
+    referenced_profile, module_dir = get_profiles_with_base_definition(data_set_dir, target_resource_type)
+    return referenced_profile.get("type")
+
+
 def get_selectable_concepts(concept_defining_element, profile_name: str = "") -> List[TermCode]:
     """
     Returns the answer options for the given concept defining element
@@ -343,27 +363,35 @@ def translate_element_to_fhir_path_expression(elements: List[dict], profile_snap
     element_type = get_element_type(element)
     if element_type == "Extension":
         if elements[0].get("id") == "Extension.value[x]":
-            element_path = f"{element_path}.where(url='{get_extension_url(element)}').value"
+            element_type = get_element_type(elements[0])
+            element_path = f"{element_path}.where(url='{get_extension_url(element)}').value[x]"
+            element_path = replace_x_with_cast_expression(element_path, element_type)
         # FIXME: Currently hard coded should be generalized
         elif elements[0].get("id") == "Extension.extension:age.value[x]":
-            element_path = f"{element_path}.where(url='{get_extension_url(element)}').extension.where(url='age').value"
-    if '[x]' in element_path and 'Extension' not in element_path:
+            element_path = f"{element_path}.where(url='{get_extension_url(element)}').extension.where(url='age').value[x]"
+            element_path = replace_x_with_cast_expression(element_path, element_type)
+    if '[x]' in element_path and "Extension" not in element_path:
         element_type = get_parent_element_type(element.get("id"), profile_snapshot)
-        # Regular expression to capture [x] and [x]:arbitrary_slicing
-        match = re.search(r'(\[x\](?::[\w]+)?)', element_path)
-        if match:
-            pre_match = element_path[:match.start()]
-            post_match = element_path[match.end():]
-            # If there's a following attribute expression, add parentheses
-            if '.' in post_match:
-                replacement = f'({pre_match} as {element_type}){post_match}'
-            else:
-                replacement = f'{pre_match} as {element_type}'
-            element_path = replacement
+        element_path = replace_x_with_cast_expression(element_path, element_type)
     result = [element_path]
     if elements:
         result.extend(translate_element_to_fhir_path_expression(elements, profile_snapshot))
     return result
+
+
+def replace_x_with_cast_expression(element_path, element_type):
+    # Regular expression to capture [x] and [x]:arbitrary_slicing
+    match = re.search(r'(\[x\](?::[\w]+)?)', element_path)
+    if match:
+        pre_match = element_path[:match.start()]
+        post_match = element_path[match.end():]
+        # If there's a following attribute expression, add parentheses
+        if '.' in post_match:
+            replacement = f'({pre_match} as {element_type}){post_match}'
+        else:
+            replacement = f'{pre_match} as {element_type}'
+        return replacement
+    return element_path
 
 
 def get_parent_element_type(element_id, profile_snapshot):

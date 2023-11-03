@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from typing import Tuple, List, Dict
 
 from core import StrucutureDefinitionParser as FHIRParser
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
-from core.StrucutureDefinitionParser import resolve_defining_id, extract_value_type
+from core.StrucutureDefinitionParser import resolve_defining_id, extract_value_type, extract_reference_type
 from helper import generate_attribute_key
-from model.MappingDataModel import CQLMapping
+from model.MappingDataModel import CQLMapping, CQLAttributeSearchParameter
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import VALUE_TYPE_OPTIONS
 from model.UiDataModel import TermCode
@@ -112,9 +113,17 @@ class CQLMappingGenerator(object):
             attribute_key = generate_attribute_key(attr_defining_id)
             attribute_type = attr_type if attr_type else self.get_attribute_type(profile_snapshot,
                                                                                  attr_defining_id)
-            attribute_fhir_path = self.translate_element_id_to_fhir_path_expressions(attr_defining_id,
-                                                                                     profile_snapshot)
-            cql_mapping.add_attribute(attribute_type, attribute_key, attribute_fhir_path)
+            # FIXME:
+            # This is a hack to change the attribute_type to upper-case Reference to match the FHIR Type while
+            # Fhir Search does not use the FHIR types...
+            attribute_type = "Reference" if attr_type == "reference" else attribute_type
+            attribute_fhir_path = self.translate_term_element_id_to_fhir_path_expression(attr_defining_id,
+                                                                                         profile_snapshot)
+            attribute = CQLAttributeSearchParameter(attribute_type, attribute_key, attribute_fhir_path)
+            if attribute_type == "Reference":
+                attribute.attributeReferenceTargetType = self.get_reference_type(profile_snapshot, attr_defining_id)
+            cql_mapping.add_attribute(attribute)
+
         return cql_mapping
 
     def translate_term_element_id_to_fhir_path_expression(self, element_id, profile_snapshot) -> str:
@@ -124,7 +133,7 @@ class CQLMappingGenerator(object):
         for element in elements:
             for element_type in element.get("type"):
                 if element_type.get("code") == "Reference":
-                    return self.get_old_path_expression(
+                    return self.get_cql_optimized_path_expression(
                         self.parser.translate_element_to_fhir_path_expression(elements, profile_snapshot)[
                             0]) + ".reference"
         return self.translate_element_id_to_fhir_path_expressions(element_id, profile_snapshot)
@@ -139,21 +148,47 @@ class CQLMappingGenerator(object):
         elements = self.parser.get_element_defining_elements(element_id, profile_snapshot, self.module_dir,
                                                              self.data_set_dir)
         expressions = self.parser.translate_element_to_fhir_path_expression(elements, profile_snapshot)
-        return ".".join([self.get_old_path_expression(expression) for expression in expressions])
+        return ".".join([self.get_cql_optimized_path_expression(expression) for expression in expressions])
 
-    @staticmethod
-    def get_old_path_expression(path_expression: str) -> str:
+    def get_cql_optimized_path_expression(self, path_expression: str) -> str:
         # TODO: Remove this method once the new path expressions are compatible with the cql implementation?
         """
-        Translates a path expression to the old path expression
+        Translates a path expression to a cql optimized path expression
         :param path_expression: path expression
-        :return: old path expression
+        :return: cql optimized path expression
         """
-        path = path_expression[path_expression.find('.') + 1:]
-        # remove " as *" part
-        if " as " in path:
-            path = path[:path.find(" as ")]
-        return path
+        cql_path_expression = self.convert_as_to_dot_as(path_expression)
+        cql_path_expression = self.add_first_after_extension_where_expression(cql_path_expression)
+        return cql_path_expression
+
+    @staticmethod
+    def convert_as_to_dot_as(path_expression: str) -> str:
+        """
+        Converts the " as " pattern to ".as("
+        :param path_expression: path expression
+        :return: converted path expression
+        """
+        # Discard everything before the first dot
+        _, _, path_after_dot = path_expression.partition('.')
+
+        # If there's no content after the first dot, return the original path_expression
+        if not path_after_dot:
+            return path_expression
+
+        # Partition based on " as " to handle conversion
+        before_as, _, remainder = path_after_dot.partition(" as ")
+
+        # If there's no " as " pattern, just return the path after the first dot
+        if not remainder:
+            return path_after_dot
+
+        after_as, _, rest = remainder.partition('.')
+        transformed = f"{before_as}.as({after_as})"
+
+        # Append the rest of the path if there's more after "as "
+        if rest:
+            transformed += f".{rest}"
+        return transformed
 
     def get_attribute_type(self, profile_snapshot: dict, attribute_id: str) -> VALUE_TYPE_OPTIONS:
         """
@@ -167,3 +202,36 @@ class CQLMappingGenerator(object):
             attribute_id = attribute_id.replace(" as ValueSet", "")
         attribute_element = resolve_defining_id(profile_snapshot, attribute_id, self.data_set_dir, self.module_dir)
         return extract_value_type(attribute_element, profile_snapshot.get('name'))
+
+    def get_reference_type(self, profile_snapshot: dict, attr_defining_id):
+        """
+        Returns the type of the given attribute
+        :param profile_snapshot: FHIR profile snapshot
+        :param attr_defining_id: attribute id
+        :return: attribute type
+        """
+        elements = self.parser.get_element_defining_elements(attr_defining_id, profile_snapshot, self.module_dir,
+                                                             self.data_set_dir)
+        for element in elements:
+            for element_type in element.get("type"):
+                if element_type.get("code") == "Reference":
+                    return extract_reference_type(element_type, self.data_set_dir, profile_snapshot.get('name'))
+
+    @staticmethod
+    def add_first_after_extension_where_expression(cql_path_expression):
+        """
+        Adds the first() after an extension where expression
+        :param cql_path_expression: cql path expression
+        :return: cql path expression with first() added
+        """
+        # TODO: Find a better rule than contains extension.where(...) to apply the first() rule
+        # Use regex to find the pattern "extension.where(...)"
+        match = re.search(r'(extension\.where\([^)]+\))(.+)', cql_path_expression)
+
+        if match:
+            before_extension = match.group(1)
+            after_extension = match.group(2)
+            return f"{before_extension}.first(){after_extension}"
+
+        # If no match is found, return the original string
+        return cql_path_expression
