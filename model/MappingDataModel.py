@@ -213,7 +213,7 @@ class MapEntryList:
         for entry in self.entries:
             code_systems.add(entry.key.system)
             for fixed_criteria in entry.fixedCriteria:
-                if fixed_criteria.type == "coding":
+                if fixed_criteria.type == "Coding":
                     for value in fixed_criteria.value:
                         code_systems.add(value.system)
         return code_systems
