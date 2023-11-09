@@ -432,6 +432,14 @@ def update_patient_gender_ui_profile(ui_profile: UIProfile) -> UIProfile:
     return ui_profile
 
 
+def update_patient_age_ui_profile(ui_profile: UIProfile) -> UIProfile:
+    # Probably the wrong way of doing it. Age should be mandatory by default. But due to bad design decisions
+    # in the past, we now do it this way until people understand that it makes no sense to query the existence of
+    # mandatory fields...
+    ui_profile.valueDefinition.optional = False
+    return ui_profile
+
+
 def apply_additional_tree_rules(ui_tree):
     term_code_reformat_map = {
         TermCode("fdpg.mii.cds", "Laboruntersuchung", "Laboruntersuchung"): reformat_lab_tree,
@@ -548,7 +556,8 @@ def get_combined_consent_fixed_critieria():
 
 def apply_additional_profile_rules(named_profile: Tuple[str, UIProfile]):
     ui_profile_reformat_map = {
-        "Person1": update_patient_gender_ui_profile
+        "Person1": update_patient_gender_ui_profile,
+        "Person": update_patient_age_ui_profile
     }
     reformat_function = ui_profile_reformat_map.get(named_profile[0])
     if reformat_function is not None:
