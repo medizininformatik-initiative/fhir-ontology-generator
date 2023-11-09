@@ -13,6 +13,7 @@ from lxml import etree
 from FHIRProfileConfiguration import *
 from core.CQLMappingGenerator import CQLMappingGenerator
 from core.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
+from core.PathlingMappingGenerator import PathlingMappingGenerator
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from core.SearchParameterResolver import SearchParameterResolver
 from core.StrucutureDefinitionParser import get_element_from_snapshot
@@ -21,7 +22,7 @@ from core.UITreeGenerator import UITreeGenerator
 from database.DataBaseWriter import DataBaseWriter
 from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, load_querying_meta_data, \
     generate_result_folder
-from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList, FixedFHIRCriteria
+from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList, FixedFHIRCriteria, PathlingMapping
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import UIProfile
 from model.UiDataModel import TermEntry, TermCode
@@ -366,6 +367,8 @@ def write_mappings_to_files(mappings, mapping_folder="mapping"):
             mapping_dir = f"{mapping_folder}/cql/"
         elif isinstance(mapping, FhirMapping):
             mapping_dir = f"{mapping_folder}/fhir/"
+        elif isinstance(mapping, PathlingMapping):
+            mapping_dir = f"{mapping_folder}/pathling/"
         else:
             raise ValueError("Mapping type not supported" + str(type(mapping)))
         with open(mapping_dir + mapping.name + ".json", 'w', encoding="utf-8") as f:
@@ -384,6 +387,8 @@ def write_v1_mapping_to_file(mapping, mapping_folder="mapping-old"):
         mapping_file = f"{mapping_folder}/cql/mapping_cql.json"
     elif isinstance(mapping.entries[0], FhirMapping):
         mapping_file = f"{mapping_folder}/fhir/mapping_fhir.json"
+    elif isinstance(mapping.entries[0], PathlingMapping):
+        mapping_file = f"{mapping_folder}/pathling/mapping_pathling.json"
     else:
         raise ValueError("Mapping type not supported" + str(type(mapping)))
     with open(mapping_file, 'w', encoding="utf-8") as f:
@@ -616,6 +621,15 @@ if __name__ == '__main__':
         write_mappings_to_files(cql_concept_mappings.values())
         v1_cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
         write_v1_mapping_to_file(v1_cql_mappings, "mapping-old")
+
+
+        pathling_generator = PathlingMappingGenerator(resolver)
+        pathling_mappings = pathling_generator.generate_mapping("resources/fdpg_differential")
+        pathling_term_code_mappings = pathling_mappings[0]
+        pathling_concept_mappings = pathling_mappings[1]
+        write_mappings_to_files(pathling_concept_mappings.values())
+        v1_pathling_mappings = denormalize_mapping_to_old_format(pathling_term_code_mappings, pathling_concept_mappings)
+        write_v1_mapping_to_file(v1_pathling_mappings, "mapping-old")
 
         search_param_resolver = MIICoreDataSetSearchParameterResolver()
         fhir_search_generator = FHIRSearchMappingGenerator(resolver, search_param_resolver)
