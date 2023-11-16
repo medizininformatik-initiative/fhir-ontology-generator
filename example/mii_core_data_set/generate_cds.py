@@ -440,7 +440,19 @@ def update_patient_age_ui_profile(ui_profile: UIProfile) -> UIProfile:
     return ui_profile
 
 
+def set_selectable_false_if_too_many_descendents(node: TermEntry) -> int:
+    if not node:
+        return 0
+    total_descendants = 0
+    for child in node.children:
+        total_descendants += set_selectable_false_if_too_many_descendents(child)
+    if total_descendants > 400:
+        node.selectable = False
+    return total_descendants + 1
+
+
 def apply_additional_tree_rules(ui_tree):
+    set_selectable_false_if_too_many_descendents(ui_tree)
     term_code_reformat_map = {
         TermCode("fdpg.mii.cds", "Laboruntersuchung", "Laboruntersuchung"): reformat_lab_tree,
         TermCode("fdpg.mii.cds", "Diagnose", "Diagnose"): reformat_diagnosis_tree,
@@ -563,7 +575,8 @@ def get_combined_cql_consent_fixed_critieria():
     idat_bereitstellen_eu_dsgvo_niveau_display = "IDAT bereitstellen EU DSGVO NIVEAU"
     idat_bereitstellen_eu_dsgvo_niveau = TermCode(consent_system, idat_bereitstellen_eu_dsgvo_niveau_code,
                                                   idat_bereitstellen_eu_dsgvo_niveau_display)
-    idat_bereitstellen_eu_dsgvo_niveau_fixed_critiera = FixedFHIRCriteria("Coding", "mii-provision-provision-code.coding",
+    idat_bereitstellen_eu_dsgvo_niveau_fixed_critiera = FixedFHIRCriteria("Coding",
+                                                                          "mii-provision-provision-code.coding",
                                                                           [idat_bereitstellen_eu_dsgvo_niveau])
     idat_erheben_code = "2.16.840.1.113883.3.1937.777.24.5.3.2"
     idat_erheben_display = "IDAT erheben"
@@ -707,7 +720,6 @@ if __name__ == '__main__':
         write_mappings_to_files(cql_concept_mappings.values())
         v1_cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
         write_v1_mapping_to_file(v1_cql_mappings, "mapping-old")
-
 
         pathling_generator = PathlingMappingGenerator(resolver)
         pathling_mappings = pathling_generator.generate_mapping("resources/fdpg_differential")

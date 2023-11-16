@@ -4,6 +4,7 @@ import json
 import os
 import re
 from typing import Tuple, List, Dict
+from lxml import etree
 
 from core import StrucutureDefinitionParser as FHIRParser
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
@@ -22,10 +23,25 @@ class CQLMappingGenerator(object):
         snapshot
         """
         self.querying_meta_data_resolver = querying_meta_data_resolver
+        self.primary_paths = self.get_primary_paths_per_resource()
+        print(self.primary_paths)
         self.generated_mappings = []
         self.parser = parser
         self.data_set_dir: str = ""
         self.module_dir: str = ""
+
+    @staticmethod
+    def get_primary_paths_per_resource() -> Dict[str, str]:
+        primary_paths = {}
+        with open("../../resources/cql/elm-modelinfo.xml", encoding="utf-8") as f:
+            root = etree.parse(f)
+            namespace_map = {'elm': 'urn:hl7-org:elm-modelinfo:r1'}
+            for type_info in root.xpath('.//elm:typeInfo', namespaces=namespace_map):
+                resource_type = type_info.get('name')
+                primary_path = type_info.get('primaryCodePath')
+                if resource_type and primary_path:
+                    primary_paths[resource_type] = primary_path
+        return primary_paths
 
     def resolve_fhir_path(self, element_id) -> str:
         """
@@ -89,6 +105,17 @@ class CQLMappingGenerator(object):
             term_code_mapping_name_mapping.update(table)
         return term_code_mapping_name_mapping, mapping_name_cql_mapping
 
+    def is_primary_path(self, resource_type, fhir_path: str) -> bool:
+        """
+        Checks if the given fhir path is not a primary path according to the cql elm modelinfo
+        :param resource_type: resource type
+        :param fhir_path: fhir path
+        :return: true if the given fhir path is not a primary path, false otherwise
+        """
+        if resource_type in self.primary_paths:
+            return self.sub_path_equals(self.primary_paths[resource_type], fhir_path)
+        return False
+
     def generate_cql_mapping(self, profile_snapshot, querying_meta_data: ResourceQueryingMetaData) \
             -> CQLMapping:
         """
@@ -100,14 +127,16 @@ class CQLMappingGenerator(object):
         cql_mapping = CQLMapping(querying_meta_data.name)
         cql_mapping.resourceType = querying_meta_data.resource_type
         if tc_defining_id := querying_meta_data.term_code_defining_id:
-            cql_mapping.termCodeFhirPath = self.translate_term_element_id_to_fhir_path_expression(
+            term_code_fhir_path = self.translate_term_element_id_to_fhir_path_expression(
                 tc_defining_id, profile_snapshot)
+            if not self.is_primary_path(cql_mapping.resourceType, term_code_fhir_path):
+                cql_mapping.termCodeFhirPath = term_code_fhir_path
         if val_defining_id := querying_meta_data.value_defining_id:
             cql_mapping.valueFhirPath = self.translate_element_id_to_fhir_path_expressions(
                 val_defining_id, profile_snapshot)
             cql_mapping.valueType = self.get_attribute_type(profile_snapshot, val_defining_id)
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
-            cql_mapping.timeRestrictionFhirPath = self.translate_element_id_to_fhir_path_expressions(
+            cql_mapping.timeRestrictionFhirPath = self.translate_element_id_to_fhir_path_expressions_time_restriction(
                 time_defining_id, profile_snapshot)
         for attr_defining_id, attr_type in querying_meta_data.attribute_defining_id_type_map.items():
             attribute_key = generate_attribute_key(attr_defining_id)
@@ -149,6 +178,37 @@ class CQLMappingGenerator(object):
                                                              self.data_set_dir)
         expressions = self.parser.translate_element_to_fhir_path_expression(elements, profile_snapshot)
         return ".".join([self.get_cql_optimized_path_expression(expression) for expression in expressions])
+
+    def translate_element_id_to_fhir_path_expressions_time_restriction(self, element_id, profile_snapshot: dict) -> str:
+        """
+        Translates an element id to a fhir search parameter
+        :param element_id: element id
+        :param profile_snapshot: FHIR profile snapshot containing the element id
+        :return: fhir search parameter
+        """
+        elements = self.parser.get_element_defining_elements(element_id, profile_snapshot, self.module_dir,
+                                                             self.data_set_dir)
+        expressions = self.parser.translate_element_to_fhir_path_expression(elements, profile_snapshot)
+        return ".".join([self.get_cql_path_time_restriction(expression) for expression in expressions])
+
+    def get_cql_path_time_restriction(self, path_expression: str) -> str:
+        cql_path_time_expression = self.remove_cast(path_expression)
+        return cql_path_time_expression
+
+    @staticmethod
+    def remove_cast(path_expression: str) -> str:
+        """
+        Removes the cast from the path expression
+        :param path_expression: path expression
+        :return: path expression without cast
+        """
+        # Discard everything before the first dot
+        _, _, path_after_dot = path_expression.partition('.')
+
+        # If there's no content after the first dot, return the original path_expression
+        if not path_after_dot:
+            return path_expression
+        return path_after_dot.split(" as ")[0]
 
     def get_cql_optimized_path_expression(self, path_expression: str) -> str:
         # TODO: Remove this method once the new path expressions are compatible with the cql implementation?
@@ -235,3 +295,22 @@ class CQLMappingGenerator(object):
 
         # If no match is found, return the original string
         return cql_path_expression
+
+    @staticmethod
+    def sub_path_equals(sub_path, path):
+        """
+        Checks if the given sub_path equals the given path or any truncated version of it.
+        :param sub_path: sub path
+        :param path: path
+        :return: true if the given sub_path equals the given path or any truncated version, false otherwise
+        """
+        if sub_path == path:
+            return True
+
+        path_elements = path.split('.')
+        # Iterate over the path elements from the end and check if the current truncated path matches the sub_path.
+        for i in range(len(path_elements), 0, -1):
+            current_path = '.'.join(path_elements[:i])
+            if sub_path == current_path:
+                return True
+        return False
