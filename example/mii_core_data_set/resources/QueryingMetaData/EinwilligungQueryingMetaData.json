@@ -4,7 +4,8 @@
   "context": {
     "system": "fdpg.mii.cds",
     "code": "Einwilligung",
-    "display": "Einwilligung"
+    "display": "Einwilligung",
+    "version": "1.0.0"
   },
   "term_code_defining_id": "Consent.provision.provision.code"
 }

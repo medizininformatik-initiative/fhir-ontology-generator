@@ -6,20 +6,23 @@ import locale
 
 from sortedcontainers import SortedSet
 
-from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS
+from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY
 from model.UiDataModel import TermCode, TermEntry
 
 locale.setlocale(locale.LC_ALL, 'de_DE')
 
 
-def expand_value_set(url: str):
+def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
     """
     Expands a value set and returns a set of term codes contained in the value set.
     :param url: canonical url of the value set
+    :param onto_server: address of the terminology server
     :return: sorted set of the term codes contained in the value set
     """
+    if '|' in url:
+        url = url.replace('|', '&version=')
     term_codes = SortedSet()
-    response = requests.get(TERMINOLOGY_SERVER_ADDRESS + f"ValueSet/$expand?url={url}")
+    response = requests.get(onto_server + f"ValueSet/$expand?url={url}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if response.status_code == 200:
         value_set_data = response.json()
         global_version = None
@@ -42,7 +45,9 @@ def expand_value_set(url: str):
             term_code = TermCode(system, code, display, version)
             term_codes.add(term_code)
     else:
-        raise Exception(response.status_code, response.content)
+        return []
+        print(f"Error expanding {url}")
+        # raise Exception(response.status_code, response.content)
     return term_codes
 
 
@@ -82,7 +87,8 @@ def create_concept_map():
         }]
     }
     headers = {"Content-type": "application/fhir+json"}
-    requests.post(TERMINOLOGY_SERVER_ADDRESS + "$closure", json=body, headers=headers)
+    requests.post(TERMINOLOGY_SERVER_ADDRESS + "$closure", json=body, headers=headers,
+                  cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
 
 
 def get_closure_map(term_codes):
@@ -107,7 +113,8 @@ def get_closure_map(term_codes):
                                       "version": f"{term_code.version}"
                                   }})
     headers = {"Content-type": "application/fhir+json"}
-    response = requests.post(TERMINOLOGY_SERVER_ADDRESS + "$closure", json=body, headers=headers)
+    response = requests.post(TERMINOLOGY_SERVER_ADDRESS + "$closure", json=body, headers=headers,
+                             cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if response.status_code == 200:
         closure_response = response.json()
     else:

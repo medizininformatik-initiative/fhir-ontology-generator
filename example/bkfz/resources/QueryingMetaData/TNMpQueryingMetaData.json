@@ -1,0 +1,20 @@
+{
+  "name": "TNMp",
+  "resource_type": "Observation",
+  "context": {
+    "system": "bzkf.dktk.oncology",
+    "code": "TNMp",
+    "display": "TNMp"
+  },
+  "term_code_defining_id": "Observation.code.coding",
+  "value_defining_id": "Observation.value[x]",
+  "attribute_defining_id_type_map": {
+    "Observation.component:TNM-T.value[x]": "",
+    "Observation.component:TNM-N.value[x]": "",
+    "Observation.component:TNM-M.value[x]": "",
+    "Observation.component:TNM-y-Symbol.value[x]": "",
+    "Observation.component:TNM-r-Symbol.value[x]": "",
+    "Observation.component:TNM-m-Symbol.value[x]": ""
+  },
+  "time_restriction_defining_id": "Observation.effective[x]"
+}

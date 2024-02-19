@@ -1,14 +1,11 @@
 from __future__ import annotations
 
 import errno
-import functools
 import json
-import math
 import os
 import re
-from collections import OrderedDict as orderedDict
 from os import path
-from typing import List, Set, Protocol, Dict, Tuple, OrderedDict
+from typing import List, Set, Protocol, Dict
 
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UiDataModel import TermCode
@@ -91,10 +88,12 @@ def generate_snapshots(package_dir: str, prerequisite_packages: List[str] = None
     :raises NotADirectoryError: if the package directory is not a directory
     """
 
+    print(prerequisite_packages)
+
     def install_prerequisites():
         os.system("fhir install hl7.fhir.r4.core")
         for package in prerequisite_packages:
-            os.system(f"fhir install {package}")
+            os.system(f"fhir install {package} --here")
 
     def generate_snapshot():
         os.system(f"fhir push {file}")
@@ -116,7 +115,13 @@ def generate_snapshots(package_dir: str, prerequisite_packages: List[str] = None
         for file in [f for f in os.listdir('.') if
                      os.path.isfile(f) and is_structure_definition(f) and "-snapshot" not in f
                      and f[:-5] + "-snapshot.json" not in os.listdir('.')]:
-            print(f"Generating snapshot for {file}")
+            generate_snapshot()
+        os.chdir(f"extension")
+        if reinstall or not (os.path.exists("fhirpkg.lock.json") and os.path.exists("package.json")):
+            install_prerequisites()
+        for file in [f for f in os.listdir('.') if
+                     os.path.isfile(f) and is_structure_definition(f) and "-snapshot" not in f
+                     and f[:-5] + "-snapshot.json" not in os.listdir('.')]:
             generate_snapshot()
         os.chdir(saved_path)
 
@@ -200,143 +205,6 @@ def flatten(lst) -> List:
                 yield element
 
 
-def get_cleaned_expressions(search_parameter: dict) -> List[str]:
-    """
-    Gets the cleaned expressions of a search parameter
-    :param search_parameter: the search parameter
-    :return: the cleaned expressions
-    """
-    expressions = search_parameter.get("expression")
-    if not expressions:
-        return []
-    expressions = [translate_as_function_to_operand(expression) if not re.match(r"\((.*?)\)", expression) else
-                   translate_as_function_to_operand(expression[1:-1]) for expression in
-                   expressions.split(" | ")]
-    expressions = [convert_of_type_to_as_operand(expression) for expression in expressions]
-    return expressions
-
-
-def convert_of_type_to_as_operand(expression: str) -> str:
-    """
-    Converts an of-type expression to an as expression
-    :param expression: the expression
-    :return: the converted expression
-    """
-    while ".ofType(" in expression:
-        expression = re.sub(r"\.ofType\((.*?)\)", r" as \1", expression)
-    return expression
-
-
-def translate_as_function_to_operand(expression) -> str:
-    """
-    fhirPath expressions like Observation.value.as(CodeableConcept) are deprecated and should be replaced with
-    Observation.value as CodeableConcept
-    :param expression: the expression to update
-    :return: the updated expression
-    """
-    while "as(" in expression:
-        as_start = expression.find(".as(")
-        as_end = expression.find(")", as_start)
-
-        expression = (expression[:as_start] + " as " + expression[as_start + 4:as_end] + expression[as_end + 1:])
-        if len(expression) > as_end + 1 and expression[as_end + 1] == ".":
-            Exception("Not implemented: Todo: Put operation in round brackets. "
-                      "I.e. Observation.(value as CodeableConcept).text")
-    return expression
-
-
-def find_search_parameter(fhir_path_expressions: List[str]) -> OrderedDict[str, dict]:
-    """
-    Finds the search parameter for a fhir path expression. Only the shortest expression is considered
-    :param fhir_path_expressions: fhir path expressions to be mapped to search parameters
-    :return: the search parameter
-    :raises ValueError: if the search parameter could not be found
-    """
-    # int parameter is used to find the shortest expression and not returned in the result
-    print(f"Finding search parameter for {fhir_path_expressions}")
-    fhir_path_expressions_to_search_parameter: OrderedDict[str, Tuple[dict, int]] = orderedDict(
-        [(expression, (None, math.inf)) for expression in fhir_path_expressions]
-    )
-    for search_parameter in get_all_search_parameters():
-        expressions = get_cleaned_expressions(search_parameter)
-        for path_expression in fhir_path_expressions:
-            if path_expression in expressions:
-                resource_type = path_expression.split('.')[0]
-                number_of_relevant_expressions = len(list(filter(lambda x: x.startswith(resource_type), expressions)))
-                if not fhir_path_expressions_to_search_parameter.get(path_expression) or \
-                        number_of_relevant_expressions \
-                        < fhir_path_expressions_to_search_parameter.get(path_expression)[1]:
-                    fhir_path_expressions_to_search_parameter[path_expression] = (search_parameter,
-                                                                                  number_of_relevant_expressions)
-    result = orderedDict([(key, value[0]) for key, value in fhir_path_expressions_to_search_parameter.items()])
-    if missing_search_parameters := [key for key, value in result.items() if not value]:
-        if any([" as " in fhir_path_expressions and '.' not in fhir_path_expressions.split("as")[1] for
-                fhir_path_expressions in missing_search_parameters]):
-            result_without_as_cast = find_search_parameter([fhir_path_expressions.split(" as ")[0] for
-                                                            fhir_path_expressions in missing_search_parameters])
-            result = orderedDict([(key if key.split(" as ")[0] not in result_without_as_cast else
-                                   key.split(" as ")[0],
-                                   value if key.split(" as ")[0] not in result_without_as_cast else
-                                   result_without_as_cast[key.split(" as ")[0]]) for key, value in result.items()])
-        else:
-            result_without_last_path_element = find_search_parameter([fhir_path_expressions.rsplit(".", 1)[0] for
-                                                                      fhir_path_expressions in
-                                                                      missing_search_parameters])
-            result = orderedDict([(key if key.rsplit(".", 1)[0] not in result_without_last_path_element else
-                                   key.rsplit(".", 1)[0], value if key.rsplit(".", 1)[0] not in
-                                                                   result_without_last_path_element else
-                                   result_without_last_path_element[key.rsplit(".", 1)[0]]) for key, value in
-                                  result.items()])
-        if missing_search_parameters := [key for key, value in result.items() if not value]:
-            raise ValueError(f"Could not find search parameter for {missing_search_parameters} \n"
-                             f"You may need to add an custom search parameter")
-    return result
-
-
-def validate_chainable(chainable_search_parameter) -> bool:
-    """
-    Validates the chaining of search parameters
-    :param chainable_search_parameter: the search parameter to be chained
-    :return: true if the search parameter can be chained else false
-    """
-    if not chainable_search_parameter:
-        raise ValueError("No search parameters to chain")
-    elif len(chainable_search_parameter) == 1:
-        return True
-    return functools.reduce(
-        lambda x, y: True if x and len(set(y.get("base", [])).intersection(x.get("target", []))) != 0 else False,
-        chainable_search_parameter)
-
-
-def get_all_search_parameters() -> List[Dict]:
-    # TODO: This has to be configurable
-    with open("../../resources/fhir_search_parameter_definition.json", 'r', encoding="utf-8") as f:
-        search_parameter_definition = json.load(f)
-    with open("../../resources/fhir-search-params/fhir-search-params.json", 'r', encoding="utf-8") as f:
-        search_parameter_definition.get("entry").extend(json.load(f).get("entry"))
-    with open(
-            "../../resources/core_data_sets/de.medizininformatikinitiative.kerndatensatz.biobank#1.0.3"
-            "/package/SearchParameter-SearchParamDiagnosis.json") as f:
-        search_parameter_definition.get("entry").append({"resource": json.load(f)})
-        return [entry.get("resource") for entry in search_parameter_definition.get("entry") if
-                entry.get("resource")]
-
-
-def get_expression_if_resource_and_type_match(search_parameter: Dict, resource_type: str,
-                                              attribute_type: str) -> str:
-    if resource_type in search_parameter.get("base") and attribute_type \
-            in search_parameter.get("type") or search_parameter.get("type") == "reference":
-        return search_parameter.get("expression")
-
-
-def expression_to_resource_relevant_expression(expression: str, resource_type: str) -> str:
-    resource_relevant_sub_expressions = [subexpression for subexpression in
-                                         expression.split("|") if
-                                         resource_type in subexpression]
-    filtered_expression = "|".join(resource_relevant_sub_expressions)
-    return filtered_expression
-
-
 def load_english_to_german_attribute_names() -> Dict[str, str]:
     with open("../../resources/english_to_german_attribute_names.json", "r", encoding="utf-8") as f:
         attribute_names = json.load(f)
@@ -385,7 +253,7 @@ def generate_result_folder():
     mkdir_if_not_exists("mapping")
     mkdir_if_not_exists("mapping/fhir")
     mkdir_if_not_exists("mapping/cql")
-    mkdir_if_not_exists("ui_trees")
+    mkdir_if_not_exists("ui-trees")
     mkdir_if_not_exists("csv")
     mkdir_if_not_exists("ui-profiles")
     mkdir_if_not_exists("ui-profiles-old")

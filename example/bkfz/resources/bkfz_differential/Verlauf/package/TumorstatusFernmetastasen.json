@@ -1,0 +1,16 @@
+{
+  "resourceType": "StructureDefinition",
+  "url": "https://www.medizininformatik-initiative.de/fhir/fdpg/StructureDefinition/onco-core-Observation-TumorstatusFernmetastasen",
+  "version": "0.9.0",
+  "name": "Tumorstatus Fernmetastasen",
+  "status": "active",
+  "description": "Beurteilung der Situation im Bereich der Fernmetastasen",
+  "fhirVersion": "4.0.0",
+  "kind": "resource",
+  "abstract": false,
+  "type": "Observation",
+  "baseDefinition": "http://dktk.dkfz.de/fhir/StructureDefinition/onco-core-Observation-TumorstatusFernmetastasen",
+  "derivation": "constraint",
+  "differential": {
+  }
+}

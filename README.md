@@ -1,5 +1,41 @@
 # FHIR Searchontology Generator
 
+## Requirements
+
+Python 3.8 or higher \
+Firely Terminal available at https://simplifier.net/downloads/firely-terminal v3.1.0 or higher  \
+Access to a terminology server with all value sets used in the FHIR profiles
+
+## Configuration
+
+| Var | Description | Example |
+|--------|-------------|---------|
+|ONTOLOGY_SERVER_ADDRESS | Address of the Ontology server fhir api| my_onto_server.com/fhir
+|SERVER_CERTIFICATE | Path to the certificate of the Ontology server fhir api| C:\Users\Certs\certificate.pem
+|PRIVATE_KEY | Path to the private key for the Ontology server | C:\Users\Certs\private_key.pem
+
+## Usage of the Examples
+In the example folder you can find different examples that utilize the generator. Each has an generate_*.py file that
+can be executed to generate the ontology. 
+To execute the generator run the following command. Ensure that the required environment variables are set. On windows use 
+```shell
+$env:ONTOLOGY_SERVER_ADDRESS = "https://your-onto-server-address.com"
+```
+
+Follow https://docs.python.org/3/tutorial/venv.html to create an venv, activate it and install the requirements from requirements.txt or use your ide to do it for you.
+
+```shell
+python generate_*.py [--generate_snapthot] [--generate_ui_trees] [--generate_ui_profiles] [--generate_mapping]
+```
+
+The generator will create the results in the folders ui-trees, mapping-tree, mapping-old as well as generate a 
+R__Load_latest_ui_profile.sql file. Be aware while you can generate the parts individually, if you are not familiar with
+the interdependencies of the parts, you should generate all parts at once. Only --gnerate_snapshot should only be used 
+once.
+
+
+## About
+
 This project generates a search ontology based on FHIR Profiles for the
 project https://github.com/medizininformatik-initiative/feasibility-deploy. Within a FHIR Profile all elements are
 identified that can be used as criteria. Each criterion consists of a defining TermCode and can be further specified
@@ -145,16 +181,4 @@ FHIR Search Mapping generated for Body Height Profile and the provided QueryingM
   "valueType": "quantity"
 }
 ```
-
-## Requirements
-
-Python 3.8 or higher \
-Firely Terminal available at https://simplifier.net/downloads/firely-terminal \
-Access to a terminology server with all value sets defined in the gecco dataset
-
-## Configuration
-
-| Var | Description | Example |
-|--------|-------------|---------|
-|ONTOLOGY_SERVER_ADDRESS | Address of the Ontology server fhir api| my_onto_server.com/fhir
 

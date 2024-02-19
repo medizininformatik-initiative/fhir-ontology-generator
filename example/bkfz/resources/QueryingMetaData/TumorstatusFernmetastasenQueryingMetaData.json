@@ -1,0 +1,12 @@
+{
+  "name": "TumorstatusFernmetastasen",
+  "resource_type": "Observation",
+  "context": {
+    "system": "bzkf.dktk.oncology",
+    "code": "TumorstatusFernmetastasen",
+    "display": "Tumorstatus Fernmetastasen"
+  },
+  "term_code_defining_id": "Observation.code.coding",
+  "value_defining_id": "Observation.value[x]",
+  "time_restriction_defining_id": "Observation.effective[x]"
+}

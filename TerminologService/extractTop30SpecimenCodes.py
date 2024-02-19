@@ -3,7 +3,7 @@ import re
 
 import requests
 
-from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS
+from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY
 
 if __name__ == '__main__':
     with open('SpecimenCodes.CSV', mode='r') as csv_file:
@@ -17,7 +17,8 @@ if __name__ == '__main__':
         in_vs = set()
         for value in values:
             response = requests.get(
-                TERMINOLOGY_SERVER_ADDRESS + "ValueSet/sct-specimen-type-napkon-sprec/$validate-code?system=http://snomed.info/sct&code=" + value)
+                TERMINOLOGY_SERVER_ADDRESS + "ValueSet/sct-specimen-type-napkon-sprec/$validate-code?system=http://snomed.info/sct&code=" + value,
+                cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
             json = response.json()
             for parameter in json.get("parameter"):
                 if parameter.get("name") == "result":
@@ -26,12 +27,14 @@ if __name__ == '__main__':
         codes = {}
         for value in values:
             response = requests.get(
-                TERMINOLOGY_SERVER_ADDRESS + "CodeSystem/$lookup?system=http://snomed.info/sct&code=" + value)
+                TERMINOLOGY_SERVER_ADDRESS + "CodeSystem/$lookup?system=http://snomed.info/sct&code=" + value, cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
             json = response.json()
             if issue := json.get("issue"):
                 print(issue)
                 continue
-            response = requests.get(TERMINOLOGY_SERVER_ADDRESS + "CodeSystem/$subsumes?system=http://snomed.info/sct&codeA=123038009&codeB=" + value)
+            response = requests.get(
+                TERMINOLOGY_SERVER_ADDRESS + "CodeSystem/$subsumes?system=http://snomed.info/sct&codeA=123038009&codeB=" + value,
+                cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
             json = response.json()
             for parameter in json.get("parameter"):
                 if parameter.get("name") == "outcome":

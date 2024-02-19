@@ -5,6 +5,7 @@ import json
 import random as rd
 import re
 import uuid
+from dataclasses import dataclass
 from typing import List
 
 
@@ -71,32 +72,36 @@ class CategoryEntry:
                           sort_keys=True, indent=4)
 
 
+@dataclass
 class TermCode:
     """
     A TermCode represents a concept from a terminology system.
-    :param system: the terminology system
-    :param code: the code for the concept
-    :param display: the display for the concept
-    :param version: the version of the terminology system
+    :system: the terminology system
+    :code: the code for the concept
+    :display: the display for the concept
+    :version: the version of the terminology system
     """
 
-    def __init__(self, system: str, code: str, display: str, version=None):
-        self.system = system
-        self.code = code
-        self.version = version
-        self.display = display
+    system: str
+    code: str
+    display: str
+    version: str = None
 
     def __eq__(self, other):
-        return self.system == other.system and self.code == other.code
+        if isinstance(other, TermCode):
+            return self.system == other.system and self.code == other.code
+        return False
 
     def __hash__(self):
         return hash(self.system + self.code)
 
     def __lt__(self, other):
-        return self.display.casefold() < other.display.casefold()
+        if isinstance(other, TermCode):
+            return self.display.casefold() < other.display.casefold()
+        return NotImplemented
 
     def __repr__(self):
-        return self.system + " " + self.code
+        return self.system + " " + self.code + " " + self.version
 
 
 class ValueDefinition:
@@ -128,6 +133,7 @@ class AttributeDefinition(ValueDefinition):
     """
     An AttributeDefinition defines an attribute.
     """
+
     def __init__(self, attribute_code, value_type):
         super().__init__(value_type)
         self.attributeCode = attribute_code
@@ -140,6 +146,7 @@ class Unit:
     :param display: the display name of the unit
     :param code: the UCUM code of the unit
     """
+
     def __init__(self, display, code):
         self.display = display
         self.code = code
@@ -157,10 +164,11 @@ class TermEntry(object):
     :param selectable: True if this TermEntry can be selected by the user
     :param context: The context of this TermEntry. All children of this TermEntry will have the same context.
     """
+
     # TODO: context should be after term_codes. This would be a breaking change -> requires updating all uses of this \
     # class
     def __init__(self, term_codes: List[TermCode], terminology_type=None, leaf=True,
-                 selectable=True, context: TermCode = None):
+                 selectable=True, context: TermCode = None, ui_profile=None):
         self.id = str(uuid.UUID(int=rd.getrandbits(128)))
         self.termCodes = term_codes
         self.termCode = term_codes[0]
@@ -186,6 +194,12 @@ class TermEntry(object):
 
     def __len__(self):
         return len(self.children) + 1
+
+    def __eq__(self, other):
+        return self.termCode == other.termCode and self.context == other.context
+
+    def __hash__(self):
+        return hash(self.termCode.system + self.termCode.code + self.context.system + self.context.code)
 
     def to_json(self):
         """

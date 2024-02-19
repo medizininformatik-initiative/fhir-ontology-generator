@@ -8,11 +8,11 @@ import uuid
 from typing import List, ValuesView, Dict
 
 from FHIRProfileConfiguration import *
-from api.CQLMappingGenerator import CQLMappingGenerator
-from api.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
-from api.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
-from api.UIProfileGenerator import UIProfileGenerator
-from api.UITreeGenerator import UITreeGenerator
+from core.CQLMappingGenerator import CQLMappingGenerator
+from core.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
+from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
+from core.UIProfileGenerator import UIProfileGenerator
+from core.UITreeGenerator import UITreeGenerator
 from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, generate_result_folder, \
     to_upper_camel_case
 from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList
@@ -22,6 +22,16 @@ from model.UiDataModel import TermEntry, TermCode, CategoryEntry
 
 core_data_sets = [GECCO, MII_LAB]
 WINDOWS_RESERVED_CHARACTERS = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
+"""
+    Date of birth requires date selection in the ui
+    ResuscitationOrder Consent is not mappable for fhir search
+    RespiratoryOutcome needs special handling its a condition but has a value in the verification status:
+        Confirmed -> Patient dependent on ventilator 
+        Refuted -> Patient not dependent on ventilator 
+    Severity is handled within Symptoms
+"""
+IGNORE_LIST = ["Date of birth", "Severity", "OrganizationSammlungBiobank", "SubstanceAdditiv",
+               "MedicationMedikation", "MedicationStatementMedikation", "ProbandIn", "Laborbefund", "Laboranforderung"]
 
 
 class GeccoDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
@@ -78,7 +88,7 @@ def validate_ui_profile(_profile_name: str):
     # validate(instance=json.load(f), schema=json.load(open("resources/schema/ui-profile-schema.json")))
 
 
-def write_ui_trees_to_files(trees: List[TermEntry], result_folder: str = "ui_trees"):
+def write_ui_trees_to_files(trees: List[TermEntry], result_folder: str = "ui-trees"):
     """
     Writes the ui trees to the ui-profiles folder
     :param trees: ui trees to write
@@ -372,7 +382,7 @@ if __name__ == '__main__':
     if args.generate_ui_trees:
         trees = generate_gecco_tree()
         move_back_other(trees)
-        write_ui_trees_to_files(trees, "ui_trees")
+        write_ui_trees_to_files(trees, "ui-trees")
 
     if args.generate_ui_profiles:
         profile_generator = UIProfileGenerator(resolver)

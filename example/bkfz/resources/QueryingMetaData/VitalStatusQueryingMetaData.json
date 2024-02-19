@@ -1,0 +1,12 @@
+{
+  "name": "Vitalstatus",
+  "resource_type": "Observation",
+  "context": {
+    "system": "bzkf.dktk.oncology",
+    "code": "Vitalstatus",
+    "display": "Vitalstatus"
+  },
+  "term_code_defining_id": "Observation.code.coding",
+  "value_defining_id": "Observation.value[x]",
+  "time_restriction_defining_id": "Observation.effective[x]"
+}

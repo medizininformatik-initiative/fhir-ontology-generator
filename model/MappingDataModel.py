@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import json
-from typing import List
+from dataclasses import dataclass, field
+from typing import List, Optional
 
 from sortedcontainers import SortedSet
 
@@ -10,14 +11,22 @@ from model.UiDataModel import TermCode
 from model.helper import del_none
 
 
-class FixedCriteria:
-    def __init__(self, criteria_type, search_parameter, fhir_path, value=None):
+class FixedFHIRCriteria:
+    def __init__(self, criteria_type, search_parameter, value=None):
+        if value is None:
+            value = []
+        self.type = criteria_type
+        self.value = value
+        self.searchParameter = search_parameter
+
+
+class FixedCQLCriteria:
+    def __init__(self, criteria_type, fhir_path, value=None):
         if value is None:
             value = []
         self.type = criteria_type
         self.value = value
         self.fhirPath = fhir_path
-        self.searchParameter = search_parameter
 
 
 class AttributeSearchParameter:
@@ -42,7 +51,7 @@ class FhirSearchAttributeSearchParameter(AttributeSearchParameter):
         :param search_parameter defines the FHIR search parameter for the attribute
         """
         super().__init__(criteria_type, attribute_code)
-        self.searchParameter = search_parameter
+        self.attributeSearchParameter = search_parameter
 
 
 class CQLAttributeSearchParameter(AttributeSearchParameter):
@@ -55,7 +64,7 @@ class CQLAttributeSearchParameter(AttributeSearchParameter):
         :param fhir_path:
         """
         super().__init__(criteria_type, attribute_code)
-        self.fhirPath = fhir_path
+        self.attributePath = fhir_path
 
 
 class FhirMapping:
@@ -71,8 +80,11 @@ class FhirMapping:
         self.valueType: str | None = None
         self.timeRestrictionParameter: str | None = None
         self.attributeSearchParameters: List[FhirSearchAttributeSearchParameter] = []
-        # only required for version 1 support
+        self.fhirResourceType: str | None = None
+        # only required for version 1 support / json representation
         self.key = None
+        self.context = None
+        self.fixedCriteria: List[FixedFHIRCriteria] = []
 
     def to_json(self):
         return json.dumps(self, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)
@@ -95,23 +107,27 @@ class FhirMapping:
         return hash(self.key)
 
 
+@dataclass
 class CQLMapping:
-    def __init__(self, name: str):
-        """
-        CQLMapping stores all necessary information to translate a structured query to a CQL query.
-        :param name: name of the mapping acting as primary key
-        """
-        self.name = name
-        self.termCodeFhirPath: str | None = None
-        self.valueFhirPath: str | None = None
-        self.timeRestrictionPath: str | None = None
-        self.attributeFhirPath: List[CQLAttributeSearchParameter] = []
-        # only required for version 1 support
-        self.key = None
+    """
+    CQLMapping stores all necessary information to translate a structured query to a CQL query.
+    :param name: name of the mapping acting as primary key
+    """
+    name: str
+    termCodeFhirPath: Optional[str] = None
+    valueFhirPath: Optional[str] = None
+    valueType = None
+    timeRestrictionFhirPath: Optional[str] = None
+    attributeFhirPaths: List[CQLAttributeSearchParameter] = field(default_factory=list)
+    # only required for version 1 support
+    key: Optional[str] = None
 
-    def add_attribute(self, attribute_type, attribute_key, attribute_fhir_path):
-        self.attributeFhirPath.append(
-            CQLAttributeSearchParameter(attribute_type, attribute_key, attribute_fhir_path))
+    def add_attribute(self, attribute_search_parameter: CQLAttributeSearchParameter):
+        self.attributeFhirPaths.append(attribute_search_parameter)
+
+    @classmethod
+    def from_json(cls, json_dict):
+        return cls(**json_dict)
 
     def to_json(self):
         return json.dumps(self, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)
@@ -130,6 +146,60 @@ class CQLMapping:
         return hash(self.key)
 
 
+class PathlingAttributeSearchParameter(AttributeSearchParameter):
+    def __init__(self, criteria_type, attribute_code: TermCode, fhir_path: str):
+        """
+        PathlingAttributeSearchParameter stores the information how to translate the attribute part of a criteria to a
+        Pathling query snippet
+        :param criteria_type:
+        :param attribute_code:
+        :param fhir_path:
+        """
+        super().__init__(criteria_type, attribute_code)
+        self.attributePath = fhir_path
+
+
+
+@dataclass
+class PathlingMapping:
+    """
+    PathlingMapping stores all necessary information to translate a structured query to a Pathling query.
+    :param name: name of the mapping acting as primary key
+    """
+    name: str
+    termCodeFhirPath: Optional[str] = None
+    valueFhirPath: Optional[str] = None
+    valueType = None
+    timeRestrictionFhirPath: Optional[str] = None
+    attributeFhirPaths: List[PathlingAttributeSearchParameter] = field(default_factory=list)
+    # only required for version 1 support
+    key: Optional[str] = None
+
+    def add_attribute(self, attribute_search_parameter: PathlingAttributeSearchParameter):
+        self.attributeFhirPaths.append(attribute_search_parameter)
+
+    @classmethod
+    def from_json(cls, json_dict):
+        return cls(**json_dict)
+
+    def to_json(self):
+        return json.dumps(self, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)
+
+    # only required for version 1 support
+    def __eq__(self, other):
+        return self.key == other.key
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __lt__(self, other):
+        return self.key < other.key
+
+    def __hash__(self):
+        return hash(self.key)
+
+
+
 class MapEntryList:
     def __init__(self):
         self.entries = SortedSet()
@@ -143,7 +213,7 @@ class MapEntryList:
         for entry in self.entries:
             code_systems.add(entry.key.system)
             for fixed_criteria in entry.fixedCriteria:
-                if fixed_criteria.type == "coding":
+                if fixed_criteria.type == "Coding":
                     for value in fixed_criteria.value:
                         code_systems.add(value.system)
         return code_systems

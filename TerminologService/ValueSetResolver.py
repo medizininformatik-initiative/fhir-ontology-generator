@@ -4,8 +4,8 @@ from typing import List
 
 import requests
 
-from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS
-from TerminologService.valueSetToRoots import create_vs_tree
+from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY
+from TerminologService.valueSetToRoots import create_vs_tree, expand_value_set
 from model.UiDataModel import TermCode
 
 POSSIBLE_CODE_SYSTEMS = ["http://loinc.org", "http://snomed.info/sct"]
@@ -41,22 +41,7 @@ def get_termcodes_from_onto_server(value_set_canonical_url: str, onto_server: st
     :return: returns the sorted list of term codes of the value set prioritized by the coding system:
     icd10 > snomed
     """
-    value_set_canonical_url = value_set_canonical_url.replace("|", "&version=")
-    print(value_set_canonical_url)
-    result = []
-    response = requests.get(
-        f"{onto_server}ValueSet/$expand?url={value_set_canonical_url}&includeDesignations=true")
-    if response.status_code == 200:
-        value_set_data = response.json()
-        if "contains" in value_set_data["expansion"]:
-            for contains in value_set_data["expansion"]["contains"]:
-                term_code = get_term_code_from_contains(contains)
-                result.append(term_code)
-    else:
-        # TODO: Raise?
-        print(f"{value_set_canonical_url} is empty")
-        return []
-    return sorted(result)
+    return list(expand_value_set(value_set_canonical_url, onto_server))
 
 
 def get_term_code_from_contains(contains):
@@ -103,7 +88,7 @@ def get_answer_list_vs(loinc_code: TermCode) -> str | None:
     """
     response = requests.get(
         f"{TERMINOLOGY_SERVER_ADDRESS}CodeSystem/$lookup?system=http://loinc.org&code={loinc_code.code}&property"
-        f"=answer-list")
+        f"=answer-list", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if answer_list_code := get_answer_list_code(response.json()):
         return "http://loinc.org/vs/" + answer_list_code
     return None
@@ -242,7 +227,7 @@ def get_term_code_display_from_onto_server(system: str, code: str,
     :param onto_server: address of the terminology server
     :return: The display of the term code or "" if no display is available
     """
-    response = requests.get(f"{onto_server}CodeSystem/$lookup?system={system}&code={code}")
+    response = requests.get(f"{onto_server}CodeSystem/$lookup?system={system}&code={code}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if response.status_code == 200:
         response_data = response.json()
         for parameter in response_data["parameter"]:
@@ -273,7 +258,7 @@ def get_value_set_definition(canonical_address: str, onto_server: str = TERMINOL
     :param onto_server: address of the terminology server
     :return: value set definition or None if no value set definition is available
     """
-    response = requests.get(f"{onto_server}ValueSet/?url={canonical_address}")
+    response = requests.get(f"{onto_server}ValueSet/?url={canonical_address}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if response.status_code == 200:
         response_data = response.json()
         for entry in response_data.get("entry", []):
@@ -292,7 +277,7 @@ def get_value_set_definition_by_id(value_set_id: str, onto_server: str = TERMINO
     :param onto_server: address of the terminology server
     :return: value set definition or None if no value set definition is available
     """
-    response = requests.get(f"{onto_server}ValueSet/{value_set_id}")
+    response = requests.get(f"{onto_server}ValueSet/{value_set_id}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if response.status_code == 200:
         return response.json()
     return {}

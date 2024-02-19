@@ -31,6 +31,9 @@
         "termCode": {
           "$ref": "#/definitions/termCode"
         },
+        "context": {
+          "$ref": "#/definitions/termCode"
+        },
         "children": {
           "type": "array",
           "minItems": 0,
