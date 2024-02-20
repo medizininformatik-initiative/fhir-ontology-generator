@@ -1,0 +1,13 @@
+{
+    "name": "Herzfrequenz",
+    "resource_type": "Observation",
+    "context": {
+      "system": "??",
+      "code": "Herzfrequenz",
+      "display": "Herzfrequenz"
+    },
+    "term_code_defining_id": "Observation.code.coding:sct",
+    "value_defining_id": "Observation.value[x]",
+    "time_restriction_defining_id": "Observation.effective[x]"
+  }
+  
