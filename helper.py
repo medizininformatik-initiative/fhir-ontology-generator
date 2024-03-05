@@ -108,7 +108,7 @@ def generate_snapshots(package_dir: str, prerequisite_packages: List[str] = None
     saved_path = os.getcwd()
     # module folders
     for folder in [f.path for f in os.scandir(package_dir) if f.is_dir()]:
-        os.chdir(f"{folder}\\package")
+        os.chdir(f"{folder}/package")
         if reinstall or not (os.path.exists("fhirpkg.lock.json") and os.path.exists("package.json")):
             install_prerequisites()
         # generates snapshots for all differential in the package if they do not exist

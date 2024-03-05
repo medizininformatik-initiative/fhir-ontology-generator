@@ -1,0 +1,18 @@
+{
+	"resourceType": "DeviceMetric",
+	"id": "BeispielGemesseneParameterEcmo",
+	"meta": {
+		"profile": [
+			"https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/devicemetric-eingestellte-gemessene-parameter-extrakorporale-verfahren"
+		]
+	},
+	"type": {
+		"coding": [{
+			"code": "182744004",
+			"system": "http://snomed.info/sct",
+			"display": "Extracorporeal circulation procedure (procedure)"
+		}]
+	},
+
+	"category": "measurement"
+}

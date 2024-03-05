@@ -1,0 +1,1786 @@
+{
+  "date": "2024-03-05T12:53:46.407154+01:00",
+  "index-version": 5,
+  "files": [
+    {
+      "filename": "basisprofil-de-r4.json",
+      "resourceType": "ImplementationGuide",
+      "id": null,
+      "url": "https://simplifier.net/guide/basisprofil-de-r4",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": "4.0.0"
+    },
+    {
+      "filename": "CodeSystem-behinderung-merkzeichen-de.json",
+      "resourceType": "CodeSystem",
+      "id": "cs-merkzeichen-de",
+      "url": "http://fhir.de/CodeSystem/merkzeichen-de",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-EkgLeads.json",
+      "resourceType": "ValueSet",
+      "id": "EkgLeads",
+      "url": "http://fhir.de/ValueSet/EkgLeads",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-supplement-diagnosis-role.json",
+      "resourceType": "CodeSystem",
+      "id": "diagnosis-role-supplement",
+      "url": "http://fhir.de/CodeSystem/diagnosis-role-supplement",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-KontaktEbene-de.json",
+      "resourceType": "ValueSet",
+      "id": "kontaktebene-de",
+      "url": "http://fhir.de/ValueSet/kontaktebene-de",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Extension-InformationRecipient-De.json",
+      "resourceType": "StructureDefinition",
+      "id": "informationrecipient",
+      "url": "http://fhir.de/StructureDefinition/informationrecipient",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Extension-dokumentationsdatum.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": "ProzedurDokumentationsdatum",
+      "url": "http://fhir.de/StructureDefinition/ProzedurDokumentationsdatum",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "CodeSystem-identifier-type-de-basis.json",
+      "resourceType": "CodeSystem",
+      "id": "identifier-type-de-basis",
+      "url": "http://fhir.de/CodeSystem/identifier-type-de-basis",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-coding-alpha-id-se.json",
+      "resourceType": "StructureDefinition",
+      "id": "CodingAlphaIDSE",
+      "url": "http://fhir.de/StructureDefinition/CodingAlphaIDSE",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Coding",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Extension-gkv-dmp-kennzeichen.json",
+      "resourceType": "StructureDefinition",
+      "id": "dmp-kennzeichen",
+      "url": "http://fhir.de/StructureDefinition/gkv/dmp-kennzeichen",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Profile-observation-VitalSignDE-Koerpergroesse.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": "observation-de-vitalsign-koerpergroesse",
+      "url": "http://fhir.de/StructureDefinition/observation-de-vitalsign-koerpergroesse",
+      "version": "1.3.2",
+      "kind": "resource",
+      "type": "Observation",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Profile-identifier-pseudo-kvid.json",
+      "resourceType": "StructureDefinition",
+      "id": "identifier-pseudo-kvid",
+      "url": "http://fhir.de/StructureDefinition/identifier-pseudo-kvid",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Identifier",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ValueSet-AufnahmegrundVierteStelleVS.json",
+      "resourceType": "ValueSet",
+      "id": "AufnahmegrundVierteStelleVS",
+      "url": "http://fhir.de/ValueSet/dkgev/AufnahmegrundVierteStelle",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-dkgev-EntlassungsgrundErsteUndZweiteStelle.json",
+      "resourceType": "CodeSystem",
+      "id": "EntlassungsgrundErsteUndZweiteStelle",
+      "url": "http://fhir.de/CodeSystem/dkgev/EntlassungsgrundErsteUndZweiteStelle",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "NamingSystem-kbv-pnr.json",
+      "resourceType": "NamingSystem",
+      "id": "namingSystem-kbv-pnr",
+      "url": null,
+      "version": null,
+      "kind": "identifier",
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-KontaktDiagnoseProzedur.json",
+      "resourceType": "CodeSystem",
+      "id": "KontaktDiagnoseProzedur",
+      "url": "http://fhir.de/CodeSystem/KontaktDiagnoseProzedur",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Extension-gkv-besondere-personengruppe.json",
+      "resourceType": "StructureDefinition",
+      "id": "besondere-personengruppe",
+      "url": "http://fhir.de/StructureDefinition/gkv/besondere-personengruppe",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ValueSet-1.2.276.0.76.11.39--20180713132816.json",
+      "resourceType": "ValueSet",
+      "id": "1.2.276.0.76.11.39--20180713132816",
+      "url": "http://ihe-d.de/ValueSets/IHEXDScontentTypeCode",
+      "version": "2018-07-13T13:28:16",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-humanname-de-basis.json",
+      "resourceType": "StructureDefinition",
+      "id": "humanname-de-basis",
+      "url": "http://fhir.de/StructureDefinition/humanname-de-basis",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "HumanName",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Profile-observation-VitalSignDE_Periphere_Artierielle_Sauerstoffsaettigung.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": "observation-de-vitalsign-sauerstoffsaettigung",
+      "url": "http://fhir.de/StructureDefinition/observation-de-vitalsign-sauerstoffsaettigung",
+      "version": "1.3.2",
+      "kind": "resource",
+      "type": "Observation",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "CodeSystem-kontaktart-de-basis.json",
+      "resourceType": "CodeSystem",
+      "id": "KontaktArtDe",
+      "url": "http://fhir.de/CodeSystem/kontaktart-de",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-identifier-pid.json",
+      "resourceType": "StructureDefinition",
+      "id": "identifier-pid",
+      "url": "http://fhir.de/StructureDefinition/identifier-pid",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Identifier",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ValueSet-VitalSignDE_Body_Weight_UCUM.json",
+      "resourceType": "ValueSet",
+      "id": "VitalSignDE-Body-Weigth-UCUM",
+      "url": "http://fhir.de/ValueSet/VitalSignDE_Body_Weigth_UCUM",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-reisepassnummer.json",
+      "resourceType": "StructureDefinition",
+      "id": "identifier-reisepassnummer",
+      "url": "http://fhir.de/StructureDefinition/identifier-reisepassnummer",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Identifier",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "CodeSystem-dimdi-atc.json",
+      "resourceType": "CodeSystem",
+      "id": "atc",
+      "url": "http://fhir.de/CodeSystem/bfarm/atc",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-abdata-wg14.json",
+      "resourceType": "ValueSet",
+      "id": "valueset-wg14",
+      "url": "http://fhir.de/ValueSet/abdata/wg14",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-dimdi-ops.json",
+      "resourceType": "ValueSet",
+      "id": "ops-vs",
+      "url": "http://fhir.de/ValueSet/bfarm/ops",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-identifier-zanr.json",
+      "resourceType": "StructureDefinition",
+      "id": "identifier-zanr",
+      "url": "http://fhir.de/StructureDefinition/identifier-zanr",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Identifier",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Extension-gkv-einlesedatum-karte.json",
+      "resourceType": "StructureDefinition",
+      "id": "einlesedatum-karte",
+      "url": "http://fhir.de/StructureDefinition/gkv/einlesedatum-karte",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Profile-identifier-telematikid.json",
+      "resourceType": "StructureDefinition",
+      "id": "identifier-telematik-id",
+      "url": "http://fhir.de/StructureDefinition/identifier-telematik-id",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Identifier",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ValueSet-FachabteilungsschluesselVS.json",
+      "resourceType": "ValueSet",
+      "id": "FachabteilungsschluesselVS",
+      "url": "http://fhir.de/ValueSet/dkgev/Fachabteilungsschluessel",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-1.2.276.0.76.11.35--20181214170712.json",
+      "resourceType": "ValueSet",
+      "id": "1.2.276.0.76.11.35--20181214170712",
+      "url": "http://ihe-d.de/ValueSets/IHEXDSformatCodeDE",
+      "version": "2018-12-14T17:07:12",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Namingsystem-de-basis.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": "namingsystem-de-basis",
+      "url": "http://fhir.de/StructureDefinition/namingsystem-de-basis",
+      "version": "1.3.2",
+      "kind": "resource",
+      "type": "NamingSystem",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "NamingSystem-kzv-zahnarztnummer.json",
+      "resourceType": "NamingSystem",
+      "id": "namingSystem-KzvZahnarztnummer",
+      "url": null,
+      "version": null,
+      "kind": "identifier",
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-dkgev-AufnahmegrundVierteStelle.json",
+      "resourceType": "CodeSystem",
+      "id": "AufnahmegrundVierteStelle",
+      "url": "http://fhir.de/CodeSystem/dkgev/AufnahmegrundVierteStelle",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "NamingSystem-bfarm-btmnr.json",
+      "resourceType": "NamingSystem",
+      "id": "namingsystem-bfarm-btmnr",
+      "url": null,
+      "version": null,
+      "kind": "identifier",
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "NamingSystem-gkv-hmnr.json",
+      "resourceType": "NamingSystem",
+      "id": "namingsystem-gkv-hmnr",
+      "url": null,
+      "version": null,
+      "kind": "identifier",
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-VitalSignDE_Body_Length_UCUM.json",
+      "resourceType": "ValueSet",
+      "id": "VitalSignDE-Body-Length-UCUM",
+      "url": "http://fhir.de/ValueSet/VitalSignDE_Body_Length_UCUM",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-supplement-iso-3166.json",
+      "resourceType": "CodeSystem",
+      "id": "supplement-iso-3166",
+      "url": "http://fhir.de/CodeSystem/supplement-iso-3166",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Extension-normgroesse.json",
+      "resourceType": "StructureDefinition",
+      "id": "normgroesse",
+      "url": "http://fhir.de/StructureDefinition/normgroesse",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Extension-gkv-versichertenart.json",
+      "resourceType": "StructureDefinition",
+      "id": "versichertenart",
+      "url": "http://fhir.de/StructureDefinition/gkv/versichertenart",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Extension-Abrechnungsart.json",
+      "resourceType": "StructureDefinition",
+      "id": "ExtensionAbrechnungsart",
+      "url": "http://fhir.de/StructureDefinition/ExtensionAbrechnungsart",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "CodeSystem-dkgev-EntlassungsgrundDritteStelle.json",
+      "resourceType": "CodeSystem",
+      "id": "EntlassungsgrundDritteStelle",
+      "url": "http://fhir.de/CodeSystem/dkgev/EntlassungsgrundDritteStelle",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Codesystem-iso-3166-2-de-laendercodes.json",
+      "resourceType": "CodeSystem",
+      "id": "CodeSystemISO31662DE",
+      "url": "urn:iso:std:iso:3166-2:de",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-gender-amtlich-de.json",
+      "resourceType": "CodeSystem",
+      "id": "gender-amtlich-de",
+      "url": "http://fhir.de/CodeSystem/gender-amtlich-de",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-supplement-identifier-type-v2.json",
+      "resourceType": "CodeSystem",
+      "id": "identifier-type-v2-supplement",
+      "url": "http://fhir.de/CodeSystem/identifier-type-v2-supplement",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-versicherungsart-de-basis.json",
+      "resourceType": "ValueSet",
+      "id": "valueset-VersicherungsartDeBasis",
+      "url": "http://fhir.de/ValueSet/versicherungsart-de-basis",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-coding-pzn.json",
+      "resourceType": "StructureDefinition",
+      "id": "CodingPZN",
+      "url": "http://fhir.de/StructureDefinition/CodingPZN",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Coding",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ValueSet-1.2.276.0.76.11.33--20180713132759.json",
+      "resourceType": "ValueSet",
+      "id": "1.2.276.0.76.11.33--20180713132759",
+      "url": "http://ihe-d.de/ValueSets/IHEXDSconfidentialityCode",
+      "version": "2018-07-13T13:27:59",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-AufnahmegrundDritteStelleVS.json",
+      "resourceType": "ValueSet",
+      "id": "AufnahmegrundDritteStelleVS",
+      "url": "http://fhir.de/ValueSet/dkgev/AufnahmegrundDritteStelle",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-ArgeIkKlassifikationVS.json",
+      "resourceType": "ValueSet",
+      "id": "ArgeIkKlassifikationVS",
+      "url": "http://fhir.de/ValueSet/arge-ik/klassifikation",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-1.2.276.0.76.11.31--20180713132208.json",
+      "resourceType": "ValueSet",
+      "id": "1.2.276.0.76.11.31--20180713132208",
+      "url": "http://ihe-d.de/ValueSets/IHEXDSauthorSpeciality",
+      "version": "2018-07-13T13:22:08",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Extension-gkv-onlinepruefung-egk.json",
+      "resourceType": "StructureDefinition",
+      "id": "onlinepruefung-egk",
+      "url": "http://fhir.de/StructureDefinition/gkv/onlinepruefung-egk",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ValueSet-AbrechnungsartVS.json",
+      "resourceType": "ValueSet",
+      "id": "AbrechnungsartVS",
+      "url": "http://fhir.de/ValueSet/dkgev/Abrechnungsart",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-alpha-id.json",
+      "resourceType": "ValueSet",
+      "id": "valueset-alpha-id",
+      "url": "http://fhir.de/ValueSet/bfarm/alpha-id",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "NamingSystem-gkv-kvnr-30.json",
+      "resourceType": "NamingSystem",
+      "id": "namingSystem-gkv-kvnr-30",
+      "url": null,
+      "version": null,
+      "kind": "identifier",
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-KontaktArt-de.json",
+      "resourceType": "ValueSet",
+      "id": "kontaktart-de",
+      "url": "http://fhir.de/ValueSet/kontaktart-de",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-identifier-efn.json",
+      "resourceType": "StructureDefinition",
+      "id": "identifier-efn",
+      "url": "http://fhir.de/StructureDefinition/identifier-efn",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Identifier",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ValueSet-1.2.276.0.76.11.32--20180713132315.json",
+      "resourceType": "ValueSet",
+      "id": "1.2.276.0.76.11.32--20180713132315",
+      "url": "http://ihe-d.de/ValueSets/IHEXDSclassCode",
+      "version": "2018-07-13T13:23:15",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-kontaktebene-de-basis.json",
+      "resourceType": "CodeSystem",
+      "id": "Kontaktebene",
+      "url": "http://fhir.de/CodeSystem/Kontaktebene",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-observation-VitalSignDE-Kopfumfang.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": "VitalSignDE-Kopfumfang",
+      "url": "http://fhir.de/StructureDefinition/observation-de-vitalsign-kopfumfang",
+      "version": "1.3.2",
+      "kind": "resource",
+      "type": "Observation",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Profile-observation-VitalSignDE_Blutdruck.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": "observation-de-vitalsign-blutdruck",
+      "url": "http://fhir.de/StructureDefinition/observation-de-vitalsign-blutdruck",
+      "version": "1.3.2",
+      "kind": "resource",
+      "type": "Observation",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "NamingSystem-kbv-lanr.json",
+      "resourceType": "NamingSystem",
+      "id": "namingSystem-kbv-lanr",
+      "url": null,
+      "version": null,
+      "kind": "identifier",
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-identifier-kzva.json",
+      "resourceType": "StructureDefinition",
+      "id": "identifier-kzva",
+      "url": "http://fhir.de/StructureDefinition/identifier-kzva",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Identifier",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Profile-identifier-pkv.json",
+      "resourceType": "StructureDefinition",
+      "id": "identifier-pkv",
+      "url": "http://fhir.de/StructureDefinition/identifier-pkv",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Identifier",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "CodeSystem-supplement-administrative-gender.json",
+      "resourceType": "CodeSystem",
+      "id": "administrative-gender-supplement",
+      "url": "http://fhir.de/CodeSystem/administrative-gender-supplement",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-EncounterStatus-de.json",
+      "resourceType": "ValueSet",
+      "id": "EncounterStatusDe",
+      "url": "http://fhir.de/ValueSet/EncounterStatusDe",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-supplement-observation-category.json",
+      "resourceType": "CodeSystem",
+      "id": "observation-category-supplement",
+      "url": "http://fhir.de/CodeSystem/observation-category-supplement",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-VitalSignDE_Body_Weight_Loinc.json",
+      "resourceType": "ValueSet",
+      "id": "VitalSignDE-Body-Weight-Loinc",
+      "url": "http://fhir.de/ValueSet/VitalSignDE_Body_Weight_Loinc",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-1.2.276.0.76.11.38--20180713162205.json",
+      "resourceType": "ValueSet",
+      "id": "1.2.276.0.76.11.38--20180713162205",
+      "url": "http://ihe-d.de/ValueSets/IHEXDStypeCode",
+      "version": "2018-07-13T16:22:05",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-1.2.276.0.76.11.34--20180713132843.json",
+      "resourceType": "ValueSet",
+      "id": "1.2.276.0.76.11.34--20180713132843",
+      "url": "http://ihe-d.de/ValueSets/IHEXDSeventCodeList",
+      "version": "2018-07-13T13:28:43",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-mehrfachkodierungs-kennzeichen.json",
+      "resourceType": "CodeSystem",
+      "id": "icd-10-gm-mehrfachcodierungs-kennzeichen",
+      "url": "http://fhir.de/CodeSystem/icd-10-gm-mehrfachcodierungs-kennzeichen",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-dimdi-icd-10-gm.json",
+      "resourceType": "CodeSystem",
+      "id": "icd-10-gm",
+      "url": "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "NamingSystem-gkv-kvid-10.json",
+      "resourceType": "NamingSystem",
+      "id": "namingsystem-gkv-kvid-10",
+      "url": null,
+      "version": null,
+      "kind": "identifier",
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Extension-dkgev-Entlassgrund.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": "Entlassungsgrund",
+      "url": "http://fhir.de/StructureDefinition/Entlassungsgrund",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Extension-Lebensphase.json",
+      "resourceType": "StructureDefinition",
+      "id": "ExtensionLebensphase",
+      "url": "http://fhir.de/StructureDefinition/lebensphase",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "NamingSystem-kzv-KzvAbrechnungsnummer.json",
+      "resourceType": "NamingSystem",
+      "id": "namingSystem-KzvAbrechnungsnummer",
+      "url": null,
+      "version": null,
+      "kind": "identifier",
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-deuev-anlage-8-laenderkennzeichen.json",
+      "resourceType": "CodeSystem",
+      "id": "anlage-8-laenderkennzeichen",
+      "url": "http://fhir.de/CodeSystem/deuev/anlage-8-laenderkennzeichen",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-UcumVitalsCommonDE.json",
+      "resourceType": "ValueSet",
+      "id": "UcumVitalsCommonDE",
+      "url": "http://fhir.de/ValueSet/UcumVitalsCommonDE",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-deuev-anlage-7-namenszusaetze.json",
+      "resourceType": "CodeSystem",
+      "id": "anlage-7-namenszusaetze",
+      "url": "http://fhir.de/CodeSystem/deuev/anlage-7-namenszusaetze",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-EncounterClass-de.json",
+      "resourceType": "ValueSet",
+      "id": "EncounterClassDE",
+      "url": "http://fhir.de/ValueSet/EncounterClassDE",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Extension-wahlleistungen.json",
+      "resourceType": "StructureDefinition",
+      "id": "Wahlleistung",
+      "url": "http://fhir.de/StructureDefinition/Wahlleistung",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Profile-coding-alpha-id.json",
+      "resourceType": "StructureDefinition",
+      "id": "CodingAlphaID",
+      "url": "http://fhir.de/StructureDefinition/CodingAlphaID",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Coding",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "CodeSystem-dkgev-AufnahmegrundDritteStelle.json",
+      "resourceType": "CodeSystem",
+      "id": "AufnahmegrundDritteStelle",
+      "url": "http://fhir.de/CodeSystem/dkgev/AufnahmegrundDritteStelle",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-supplement-marital-status.json",
+      "resourceType": "CodeSystem",
+      "id": "marital-status-supplement",
+      "url": "http://fhir.de/CodeSystem/marital-status-supplement",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-coding-atc.json",
+      "resourceType": "StructureDefinition",
+      "id": "CodingATC",
+      "url": "http://fhir.de/StructureDefinition/CodingATC",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Coding",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ValueSet-atc.json",
+      "resourceType": "ValueSet",
+      "id": "valueset-atc",
+      "url": "http://fhir.de/ValueSet/bfarm/atc",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "NamingSystem-kzbv-zahnarztnummer.json",
+      "resourceType": "NamingSystem",
+      "id": "namingSystem-KzbvZahnarztnummer",
+      "url": null,
+      "version": null,
+      "kind": "identifier",
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Extension-gkv-wop.json",
+      "resourceType": "StructureDefinition",
+      "id": "wop",
+      "url": "http://fhir.de/StructureDefinition/gkv/wop",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Profile-coding-icd10gm.json",
+      "resourceType": "StructureDefinition",
+      "id": "CodingICD10GM",
+      "url": "http://fhir.de/StructureDefinition/CodingICD10GM",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Coding",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Extension-icd-10-gm-mehrfachcodierungs-kennzeichen.json",
+      "resourceType": "StructureDefinition",
+      "id": "icd-10-gm-mehrfachcodierungs-kennzeichen",
+      "url": "http://fhir.de/StructureDefinition/icd-10-gm-mehrfachcodierungs-kennzeichen",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Extension-destatis-ags.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": "ags",
+      "url": "http://fhir.de/StructureDefinition/destatis/ags",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Profile-observation-VitalSignDE_Herzfrequenz.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": "observation-de-vitalsign-herzfrequenz",
+      "url": "http://fhir.de/StructureDefinition/observation-de-vitalsign-herzfrequenz",
+      "version": "1.3.2",
+      "kind": "resource",
+      "type": "Observation",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "CodeSystem-dkgev-abrechnungsart.json",
+      "resourceType": "CodeSystem",
+      "id": "Abrechnungsart",
+      "url": "http://fhir.de/CodeSystem/dkgev/Abrechnungsart",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-identifier-lanr.json",
+      "resourceType": "StructureDefinition",
+      "id": "identifier-lanr",
+      "url": "http://fhir.de/StructureDefinition/identifier-lanr",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Identifier",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "CodeSystem-versicherungsart-de-basis.json",
+      "resourceType": "CodeSystem",
+      "id": "versicherungsart-de-basis",
+      "url": "http://fhir.de/CodeSystem/versicherungsart-de-basis",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-ask.json",
+      "resourceType": "CodeSystem",
+      "id": "ask",
+      "url": "http://fhir.de/CodeSystem/ask",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "NamingSystem-gkv-pseudo-kvid.json",
+      "resourceType": "NamingSystem",
+      "id": "namingSystem-gkv-pseudo-kvid",
+      "url": null,
+      "version": null,
+      "kind": "identifier",
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-dimdi-ops.json",
+      "resourceType": "CodeSystem",
+      "id": "ops",
+      "url": "http://fhir.de/CodeSystem/bfarm/ops",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "NamingSystem-kbv-bsnr.json",
+      "resourceType": "NamingSystem",
+      "id": "namingSystem-kbv-bsnr",
+      "url": null,
+      "version": null,
+      "kind": "identifier",
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-coding-ask.json",
+      "resourceType": "StructureDefinition",
+      "id": "CodingASK",
+      "url": "http://fhir.de/StructureDefinition/CodingASK",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Coding",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ValueSet-ask.json",
+      "resourceType": "ValueSet",
+      "id": "valueset-ask",
+      "url": "http://fhir.de/ValueSet/ask",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-deuev-anlage-6-vorsatzworte.json",
+      "resourceType": "CodeSystem",
+      "id": "anlage-6-vorsatzworte",
+      "url": "http://fhir.de/CodeSystem/deuev/anlage-6-vorsatzworte",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Extension-gkv-abrechnendeIK.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": "AbrechnendeIK",
+      "url": "http://fhir.de/StructureDefinition/AbrechnendeIK",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Profile-observation-grad-der-behinderung.json",
+      "resourceType": "StructureDefinition",
+      "id": "GradDerBehinderung",
+      "url": "http://fhir.de/StructureDefinition/GradDerBehinderung",
+      "version": "1.3.2",
+      "kind": "resource",
+      "type": "Observation",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ValueSet-1.2.276.0.76.11.36--20181001183306.json",
+      "resourceType": "ValueSet",
+      "id": "1.2.276.0.76.11.36--20181001183306",
+      "url": "http://ihe-d.de/ValueSets/IHEXDShealthcareFacilityTypeCode",
+      "version": "2018-10-01T18:33:06",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-dkgev-Aufnahmeanlass.json",
+      "resourceType": "CodeSystem",
+      "id": "Aufnahmeanlass",
+      "url": "http://fhir.de/CodeSystem/dgkev/Aufnahmeanlass",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-iso-3166-2-de-laendercodes.json",
+      "resourceType": "ValueSet",
+      "id": "ValueSetISO31662DE",
+      "url": "http://fhir.de/ValueSet/iso/bundeslaender",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-identifier-vknr.json",
+      "resourceType": "StructureDefinition",
+      "id": "identifier-vknr",
+      "url": "http://fhir.de/StructureDefinition/identifier-vknr",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Identifier",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Profile-chargeitem-ebm.json",
+      "resourceType": "StructureDefinition",
+      "id": "chargeitem-de-ebm",
+      "url": "http://fhir.de/StructureDefinition/chargeitem-de-ebm",
+      "version": "1.3.2",
+      "kind": "resource",
+      "type": "ChargeItem",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Profile-identifier-standortnummer.json",
+      "resourceType": "StructureDefinition",
+      "id": "identifier-standortnummer",
+      "url": "http://fhir.de/StructureDefinition/identifier-standortnummer",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Identifier",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ValueSet-CommonTagDe.json",
+      "resourceType": "ValueSet",
+      "id": "vs-common-meta-tag-de",
+      "url": "http://fhir.de/ValueSet/common-meta-tag-de",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-EntlassungsgrundDritteStelleVS.json",
+      "resourceType": "ValueSet",
+      "id": "EntlassungsgrundDritteStelleVS",
+      "url": "http://fhir.de/ValueSet/dkgev/EntlassungsgrundDritteStelle",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-arge-ik-klassifikation.json",
+      "resourceType": "CodeSystem",
+      "id": "klassifikation",
+      "url": "http://fhir.de/CodeSystem/arge-ik/klassifikation",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-address-de-basis.json",
+      "resourceType": "StructureDefinition",
+      "id": "address-de-basis",
+      "url": "http://fhir.de/StructureDefinition/address-de-basis",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Address",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "CodeSystem-dkgev-AufnahmegrundErsteUndZweiteStelle.json",
+      "resourceType": "CodeSystem",
+      "id": "AufnahmegrundErsteUndZweiteStelle",
+      "url": "http://fhir.de/CodeSystem/dkgev/AufnahmegrundErsteUndZweiteStelle",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-identifier-bsnr.json",
+      "resourceType": "StructureDefinition",
+      "id": "identifier-bsnr",
+      "url": "http://fhir.de/StructureDefinition/identifier-bsnr",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Identifier",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ValueSet-AbrechnungsDiagnoseProzedur.json",
+      "resourceType": "ValueSet",
+      "id": "AbrechnungsDiagnoseProzedur",
+      "url": "http://fhir.de/ValueSet/AbrechnungsDiagnoseProzedur",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Extension-gkv-kostenerstattung.json",
+      "resourceType": "StructureDefinition",
+      "id": "kostenerstattung",
+      "url": "http://fhir.de/StructureDefinition/gkv/kostenerstattung",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ValueSet-behinderung-merkzeichen-de.json",
+      "resourceType": "ValueSet",
+      "id": "merkzeichen-de",
+      "url": "http://fhir.de/ValueSet/merkzeichen-de",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-1.2.276.0.76.11.40--20180713132721.json",
+      "resourceType": "ValueSet",
+      "id": "1.2.276.0.76.11.40--20180713132721",
+      "url": "http://ihe-d.de/ValueSets/IHEXDScodeList",
+      "version": "2018-07-13T13:27:21",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Extension-seitenlokalisation.json",
+      "resourceType": "StructureDefinition",
+      "id": "seitenlokalisation",
+      "url": "http://fhir.de/StructureDefinition/seitenlokalisation",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ValueSet-EntlassungsgrundErsteUndZweiteStelleVS.json",
+      "resourceType": "ValueSet",
+      "id": "EntlassungsgrundErsteUndZweiteStelleVS",
+      "url": "http://fhir.de/ValueSet/dkgev/EntlassungsgrundErsteUndZweiteStelle",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-observation-VitalSignDE-Koerpertemperatur.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": "observation-de-vitalsign-koerpertemperatur",
+      "url": "http://fhir.de/StructureDefinition/observation-de-vitalsign-koerpertemperatur",
+      "version": "1.3.2",
+      "kind": "resource",
+      "type": "Observation",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "NamingSystem-gkv-kvk-versichertennummer.json",
+      "resourceType": "NamingSystem",
+      "id": "namingSystem-gkv-kvk-versichertennummer",
+      "url": null,
+      "version": null,
+      "kind": "identifier",
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-ifa-pzn.json",
+      "resourceType": "ValueSet",
+      "id": "valueset-pzn",
+      "url": "http://fhir.de/ValueSet/ifa/pzn",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-1.2.276.0.76.11.30--20180713131246.json",
+      "resourceType": "ValueSet",
+      "id": "1.2.276.0.76.11.30--20180713131246",
+      "url": "http://ihe-d.de/ValueSets/IHEXDSauthorRole",
+      "version": "2018-07-13T13:12:46",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-coverage-de-basis.json",
+      "resourceType": "StructureDefinition",
+      "id": "coverage-de-basis",
+      "url": "http://fhir.de/StructureDefinition/coverage-de-basis",
+      "version": "1.3.2",
+      "kind": "resource",
+      "type": "Coverage",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Extension-AbrechnungsDiagnoseProzedur.json",
+      "resourceType": "StructureDefinition",
+      "id": "ExtensionAbrechnungsDiagnoseProzedur",
+      "url": "http://fhir.de/StructureDefinition/ExtensionAbrechnungsDiagnoseProzedur",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Profile-coverage-de-sel.json",
+      "resourceType": "StructureDefinition",
+      "id": "coverage-de-sel",
+      "url": "http://fhir.de/StructureDefinition/coverage-de-sel",
+      "version": "1.3.2",
+      "kind": "resource",
+      "type": "Coverage",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Profile-coverage-de-gkv.json",
+      "resourceType": "StructureDefinition",
+      "id": "coverage-de-gkv",
+      "url": "http://fhir.de/StructureDefinition/coverage-de-gkv",
+      "version": "1.3.2",
+      "kind": "resource",
+      "type": "Coverage",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "NamingSystem-asv-teamnummer.json",
+      "resourceType": "NamingSystem",
+      "id": "namingSystem-asv-teamnummer",
+      "url": null,
+      "version": null,
+      "kind": "identifier",
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "NamingSystem-kbv-vknr.json",
+      "resourceType": "NamingSystem",
+      "id": "namingSystem-kbv-vknr",
+      "url": null,
+      "version": null,
+      "kind": "identifier",
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-observation-de-ekg.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": "observation-de-ekg",
+      "url": "http://fhir.de/StructureDefinition/observation-de-ekg",
+      "version": "1.3.2",
+      "kind": "resource",
+      "type": "Observation",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ValueSet-VitalSignDE_Body_Height_Loinc.json",
+      "resourceType": "ValueSet",
+      "id": "ValueSetVitalSignDE-Body-Height-Loinc",
+      "url": "http://fhir.de/ValueSet/VitalSignDE_Body_Height_Loinc",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-Wahlleistung-de.json",
+      "resourceType": "CodeSystem",
+      "id": "wahlleistungen-de",
+      "url": "http://fhir.de/CodeSystem/wahlleistungen-de",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-identifier-aufnahmenummer.json",
+      "resourceType": "StructureDefinition",
+      "id": "identifier-aufnahmenummer",
+      "url": "http://fhir.de/StructureDefinition/identifier-aufnahmenummer",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Identifier",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Extension-gkv-version-vsdm.json",
+      "resourceType": "StructureDefinition",
+      "id": "version-vsdm",
+      "url": "http://fhir.de/StructureDefinition/gkv/version-vsdm",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Profile-observation-VitalSignDE_Atemfrequenz.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": "observation-de-vitalsign-atemfrequenz",
+      "url": "http://fhir.de/StructureDefinition/observation-de-vitalsign-atemfrequenz",
+      "version": "1.3.2",
+      "kind": "resource",
+      "type": "Observation",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "CodeSystem-dimdi-alpha-id.json",
+      "resourceType": "CodeSystem",
+      "id": "alpha-id",
+      "url": "http://fhir.de/CodeSystem/bfarm/alpha-id",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-dkgev-Fachabteilungsschluessel-erweitert.json",
+      "resourceType": "CodeSystem",
+      "id": "Fachabteilungsschluessel-erweitert",
+      "url": "http://fhir.de/CodeSystem/dkgev/Fachabteilungsschluessel-erweitert",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-1.2.276.0.76.11.59--20180713162125.json",
+      "resourceType": "ValueSet",
+      "id": "1.2.276.0.76.11.59--20180713162125",
+      "url": "http://art-decor.org/fhir/ValueSet/1.2.276.0.76.11.59--20180713162125",
+      "version": "2018-07-13T16:21:25",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-icd-mehrfachkodierungs-kennzeichen.json",
+      "resourceType": "ValueSet",
+      "id": "icd-10-gm-mehrfachcodierungs-kennzeichen",
+      "url": "http://fhir.de/ValueSet/icd-10-gm-mehrfachcodierungs-kennzeichen",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-FachabteilungsschluesselErweitert.json",
+      "resourceType": "ValueSet",
+      "id": "FachabteilungsschluesselErweitert",
+      "url": "http://fhir.de/ValueSet/dkgev/Fachabteilungsschluessel-erweitert",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-DiagnoseTyp.json",
+      "resourceType": "ValueSet",
+      "id": "DiagnoseTyp",
+      "url": "http://fhir.de/ValueSet/DiagnoseTyp",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-Diagnosesubtyp.json",
+      "resourceType": "ValueSet",
+      "id": "Diagnosesubtyp",
+      "url": "http://fhir.de/ValueSet/Diagnosesubtyp",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-1.2.276.0.76.11.37--20190517134631.json",
+      "resourceType": "ValueSet",
+      "id": "1.2.276.0.76.11.37--20190517134631",
+      "url": "http://ihe-d.de/ValueSets/IHEXDSpracticeSettingCode",
+      "version": "2019-05-17T13:46:31",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "NamingSystem-bundesaerztekammer-efn.json",
+      "resourceType": "NamingSystem",
+      "id": "namingsystem-BundesaerztekammerEfn",
+      "url": null,
+      "version": null,
+      "kind": "identifier",
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-dimdi-icd10-gm.json",
+      "resourceType": "ValueSet",
+      "id": "valueset-ICD-10-GM",
+      "url": "http://fhir.de/ValueSet/bfarm/icd-10-gm",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-CommonTag-De.json",
+      "resourceType": "CodeSystem",
+      "id": "cs-common-meta-tag-de",
+      "url": "http://fhir.de/CodeSystem/common-meta-tag-de",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-coding-ops.json",
+      "resourceType": "StructureDefinition",
+      "id": "CodingOPS",
+      "url": "http://fhir.de/StructureDefinition/CodingOPS",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Coding",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ValueSet-ops-pflegegrad.json",
+      "resourceType": "ValueSet",
+      "id": "valueset-pflegegrad-de",
+      "url": "http://fhir.de/ValueSet/pflegegrad-de",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Extension-dkgev-Aufnahmegrund.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": "Aufnahmegrund",
+      "url": "http://fhir.de/StructureDefinition/Aufnahmegrund",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ValueSet-AufnahmegrundErsteUndZweiteStelleVS.json",
+      "resourceType": "ValueSet",
+      "id": "AufnahmegrundErsteUndZweiteStelleVS",
+      "url": "http://fhir.de/ValueSet/dkgev/AufnahmegrundErsteUndZweiteStelle",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-1.2.276.0.76.11.58--20180713162142.json",
+      "resourceType": "ValueSet",
+      "id": "1.2.276.0.76.11.58--20180713162142",
+      "url": "http://art-decor.org/fhir/ValueSet/1.2.276.0.76.11.58--20180713162142",
+      "version": "2018-07-13T16:21:42",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystem-abdata-wg14.json",
+      "resourceType": "CodeSystem",
+      "id": "wg14",
+      "url": "http://fhir.de/CodeSystem/abdata/wg14",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-identifier-kvid10.json",
+      "resourceType": "StructureDefinition",
+      "id": "identifier-kvid-10",
+      "url": "http://fhir.de/StructureDefinition/identifier-kvid-10",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Identifier",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ConceptMap-OPS-SNOMED-Category.json",
+      "resourceType": "ConceptMap",
+      "id": "ConceptMap-OPS-SNOMED-Category-Mapping",
+      "url": "http://fhir.de/ConceptMap/OPS-SNOMED-Category",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-identifier-iknr.json",
+      "resourceType": "StructureDefinition",
+      "id": "identifier-iknr",
+      "url": "http://fhir.de/StructureDefinition/identifier-iknr",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Identifier",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Extension-gkv-generation-egk.json",
+      "resourceType": "StructureDefinition",
+      "id": "generation-egk",
+      "url": "http://fhir.de/StructureDefinition/gkv/generation-egk",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "CodeSystem-ifa-pzn.json",
+      "resourceType": "CodeSystem",
+      "id": "pzn",
+      "url": "http://fhir.de/CodeSystem/ifa/pzn",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Profile-observation-VitalSignDE_GCS.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": "observation-de-vitalsign-gcs",
+      "url": "http://fhir.de/StructureDefinition/observation-de-vitalsign-gcs",
+      "version": "1.3.2",
+      "kind": "resource",
+      "type": "Observation",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Profile-observation-VitalSignDE-Koerpergewicht.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": "observation-de-vitalsign-koerpergewicht",
+      "url": "http://fhir.de/StructureDefinition/observation-de-vitalsign-koerpergewicht",
+      "version": "1.3.2",
+      "kind": "resource",
+      "type": "Observation",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Extension-gender-amtlich-de.json",
+      "resourceType": "StructureDefinition",
+      "id": "gender-amtlich-de",
+      "url": "http://fhir.de/StructureDefinition/gender-amtlich-de",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ValueSet-AufnahmeanlassVS.json",
+      "resourceType": "ValueSet",
+      "id": "AufnahmeanlassVS",
+      "url": "http://fhir.de/ValueSet/dgkev/Aufnahmeanlass",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-gender-amtlich-de.json",
+      "resourceType": "ValueSet",
+      "id": "ValueSet-GenderOtherDE",
+      "url": "http://fhir.de/ValueSet/gender-other-de",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "NamingSystem-arge-ik-iknr.json",
+      "resourceType": "NamingSystem",
+      "id": "namingSystem-arge-ik-iknr",
+      "url": null,
+      "version": null,
+      "kind": "identifier",
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Condition-related.json",
+      "resourceType": "SearchParameter",
+      "id": "Condition-related",
+      "url": "http://fhir.de/SearchParameter/Condition-related",
+      "version": "1.3.2",
+      "kind": null,
+      "type": "reference",
+      "fhirVersion": null
+    },
+    {
+      "filename": "Extension-humanname-namenszusatz.json",
+      "resourceType": "StructureDefinition",
+      "id": "humanname-namenszusatz",
+      "url": "http://fhir.de/StructureDefinition/humanname-namenszusatz",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Observation-pflegegrad.json",
+      "resourceType": "StructureDefinition",
+      "id": "observation-de-pflegegrad",
+      "url": "http://fhir.de/StructureDefinition/observation-de-pflegegrad",
+      "version": "1.3.2",
+      "kind": "resource",
+      "type": "Observation",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "ValueSet-Lebensphase.json",
+      "resourceType": "ValueSet",
+      "id": "ValueSetLebensphaseDe",
+      "url": "http://fhir.de/ValueSet/lebensphase-de",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Extension-gkv-zuzahlungsstatus.json",
+      "resourceType": "StructureDefinition",
+      "id": "zuzahlungsstatus",
+      "url": "http://fhir.de/StructureDefinition/gkv/zuzahlungsstatus",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Extension-gkv-ruhender-leistungsanspruch.json",
+      "resourceType": "StructureDefinition",
+      "id": "ruhender-leistungsanspruch",
+      "url": "http://fhir.de/StructureDefinition/gkv/ruhender-leistungsanspruch",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "Profile-observation-VitalSignDE.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": "VitalSignDE",
+      "url": "http://fhir.de/StructureDefinition/observation-de-vitalsign",
+      "version": "1.3.2",
+      "kind": "resource",
+      "type": "Observation",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "CodeSystem-dkgev-Fachabteilungsschluessel.json",
+      "resourceType": "CodeSystem",
+      "id": "Fachabteilungsschluessel",
+      "url": "http://fhir.de/CodeSystem/dkgev/Fachabteilungsschluessel",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-identifier-type-de-basis.json",
+      "resourceType": "ValueSet",
+      "id": "valueset-identifier-type-de-basis",
+      "url": "http://fhir.de/ValueSet/identifier-type-de-basis",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "ValueSet-Wahlleistung-de.json",
+      "resourceType": "ValueSet",
+      "id": "wahlleistungen-de",
+      "url": "http://fhir.de/ValueSet/wahlleistungen-de",
+      "version": "1.3.2",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Extension-icd-10-gm-diagnosesicherheit.json",
+      "resourceType": "StructureDefinition",
+      "id": "icd-10-gm-diagnosesicherheit",
+      "url": "http://fhir.de/StructureDefinition/icd-10-gm-diagnosesicherheit",
+      "version": "1.3.2",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    }
+  ]
+}
