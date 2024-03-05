@@ -11,12 +11,10 @@ from typing import List, ValuesView, Dict
 import docker
 from jsonschema import validate
 
-from FHIRProfileConfiguration import *
 from core.CQLMappingGenerator import CQLMappingGenerator
 from core.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from core.SearchParameterResolver import SearchParameterResolver
-from core.StrucutureDefinitionParser import get_element_from_snapshot
 from core.UIProfileGenerator import UIProfileGenerator
 from core.UITreeGenerator import UITreeGenerator
 from database.DataBaseWriter import DataBaseWriter
