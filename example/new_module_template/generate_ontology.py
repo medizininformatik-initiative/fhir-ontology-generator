@@ -23,11 +23,9 @@ from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import UIProfile
 from model.UiDataModel import TermEntry, TermCode
+from model.termCodeTree import to_term_code_node
 
 WINDOWS_RESERVED_CHARACTERS = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
-
-required_packages = ["de.medizininformatikinitiative.kerndatensatz.icu 1.0.0"]
-
 
 class StandardDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
     def __init__(self):
@@ -156,11 +154,9 @@ def configure_args_parser():
     arg_parser = argparse.ArgumentParser(description='Generate the UI-Profile of the core data set for the MII-FDPG')
     arg_parser.add_argument('--download_packages', action='store_true')
     arg_parser.add_argument('--generate_snapshot', action='store_true')
-    arg_parser.add_argument('--generate_csv', action='store_true')
     arg_parser.add_argument('--generate_ui_trees', action='store_true')
     arg_parser.add_argument('--generate_ui_profiles', action='store_true')
     arg_parser.add_argument('--generate_mapping', action='store_true')
-    arg_parser.add_argument('--generate_old_format', action='store_true')
     arg_parser.add_argument("--loglevel", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], default="INFO",
                         help="Set the log level")
     return arg_parser
@@ -176,6 +172,7 @@ def generate_result_folder(onto_dir = ""):
         mkdir_if_not_exists(f"{onto_dir}")
 
     mkdir_if_not_exists(f"{onto_dir}mapping")
+    mkdir_if_not_exists(f"{onto_dir}mapping-tree")
     mkdir_if_not_exists(f"{onto_dir}mapping")
     mkdir_if_not_exists(f"{onto_dir}mapping/fhir")
     mkdir_if_not_exists(f"{onto_dir}mapping/cql")
@@ -183,9 +180,6 @@ def generate_result_folder(onto_dir = ""):
     mkdir_if_not_exists(f"{onto_dir}csv")
     mkdir_if_not_exists(f"{onto_dir}ui-profiles")
     mkdir_if_not_exists(f"{onto_dir}ui-profiles-old")
-    mkdir_if_not_exists(f"{onto_dir}mapping-old")
-    mkdir_if_not_exists(f"{onto_dir}mapping-old/fhir")
-    mkdir_if_not_exists(f"{onto_dir}mapping-old/cql")
 
 def remove_reserved_characters(file_name):
     return file_name.translate({ord(c): None for c in WINDOWS_RESERVED_CHARACTERS})
@@ -224,6 +218,11 @@ def write_mapping_to_file(mapping, mapping_folder="mapping-old"):
         f.write(mapping.to_json())
     f.close()
 
+def write_mapping_tree_to_file(tree, mapping_tree_folder="mapping-tree"):
+    with open(mapping_tree_folder + "/mapping_tree.json", 'w', encoding="utf-8") as f:
+        f.write(tree.to_json())
+    f.close()
+
 def validate_fhir_mapping(mapping_name: str):
     """
     Validates the fhir mapping with the given name against the fhir mapping schema
@@ -233,6 +232,16 @@ def validate_fhir_mapping(mapping_name: str):
     """
     f = open("generated-ontology/mapping/fhir/" + mapping_name + ".json", 'r')
     validate(instance=json.load(f), schema=json.load(open("../../resources/schema/fhir-mapping-schema.json")))
+
+def validate_mapping_tree(tree_name: str, mapping_tree_folder="mapping-tree"):
+    """
+    Validates the mapping tree with the given name against the mapping tree schema
+    :param tree_name: name of the mapping tree
+    :raises: jsonschema.exceptions.ValidationError if the mapping tree is not valid
+             jsonschema.exceptions.SchemaError if the mapping tree schema is not valid
+    """
+    f = open(f'{mapping_tree_folder}/{tree_name}.json', 'r')
+    validate(instance=json.load(f), schema=json.load(open("../../resources/schema/codex-code-tree-schema.json")))
 
 def setup_logging(log_level):
     # Configure logging
@@ -280,6 +289,9 @@ if __name__ == '__main__':
 
     if args.download_packages:
         log.info(f"# Downloading Packages...")
+        with open("resources/required_packages.json", "r") as f:
+            required_packages = json.load(f)
+
         download_simplifier_packages(required_packages)
 
     if args.generate_snapshot:
@@ -294,6 +306,10 @@ if __name__ == '__main__':
         tree_generator = UITreeGenerator(resolver)
         ui_trees = tree_generator.generate_ui_trees(differential_folder)
         write_ui_trees_to_files(ui_trees, f'{onto_result_dir}/ui-trees')
+
+        mapping_tree = to_term_code_node(ui_trees)
+        write_mapping_tree_to_file(mapping_tree, f'{onto_result_dir}/mapping')
+        validate_mapping_tree("mapping_tree", f'{onto_result_dir}/mapping' )
 
     if args.generate_ui_profiles:
         log.info(f"# Generating UI Profiles...")
@@ -328,6 +344,8 @@ if __name__ == '__main__':
                                                                    fhir_search_concept_mappings)
         write_mapping_to_file(fhir_search_mapping, f'{onto_result_dir}/mapping')
         validate_fhir_mapping("mapping_fhir")
+
+
 
     container.stop()
     container.remove()
