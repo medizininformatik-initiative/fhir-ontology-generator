@@ -1,0 +1,46 @@
+{
+  "date": "2024-03-05T12:53:48.623622+01:00",
+  "index-version": 5,
+  "files": [
+    {
+      "filename": "medizininformatikinitiative-implementationguide-template.json",
+      "resourceType": "ImplementationGuide",
+      "id": null,
+      "url": "https://simplifier.net/guide/medizininformatikinitiative-implementationguide-template",
+      "version": "1.0",
+      "kind": null,
+      "type": null,
+      "fhirVersion": "4.0.0"
+    },
+    {
+      "filename": "medizininformatikinitiative-implementationguide-manteldokume.json",
+      "resourceType": "ImplementationGuide",
+      "id": null,
+      "url": "https://simplifier.net/guide/medizininformatikinitiative-implementationguide-manteldokument",
+      "version": "1.0",
+      "kind": null,
+      "type": null,
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "MII-Reference.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": null,
+      "url": "https://www.medizininformatik-initiative.de/fhir/core/StructureDefinition/MII-Reference",
+      "version": "1.0",
+      "kind": "complex-type",
+      "type": "Reference",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "core-location-identifier.CodeSystem.json",
+      "resourceType": "CodeSystem",
+      "id": null,
+      "url": "https://www.medizininformatik-initiative.de/fhir/core/CodeSystem/core-location-identifier",
+      "version": "1.0",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    }
+  ]
+}

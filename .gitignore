@@ -2,3 +2,6 @@
 /.idea/
 /csv/
 /geccoDataset/
+certs
+__pycache__/
+dependencies

@@ -1,0 +1,13 @@
+{
+  "name": "de.medizininformatikinitiative.kerndatensatz.prozedur",
+  "version": "2.0.0-alpha5",
+  "description": "Medizininformatik Initiative - Modul Prozedur",
+  "author": "alexanderzautke",
+  "fhirVersions": [
+    "4.0.1"
+  ],
+  "dependencies": {
+    "de.basisprofil.r4": "1.3.2",
+    "de.medizininformatikinitiative.kerndatensatz.meta": "1.0.3"
+  }
+}

@@ -1,0 +1,18 @@
+{
+	"resourceType": "DeviceMetric",
+	"id": "BeispielGemesseneParameterBeatmung",
+	"meta": {
+		"profile": [
+			"https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/devicemetric-eingestellte-gemessene-parameter-beatmung"
+		]
+	},
+	"type": {
+		"coding": [{
+			"code": "40617009",
+			"system": "http://snomed.info/sct",
+			"display": "Artificial respiration (procedure)"
+		}]
+	},
+
+	"category": "measurement"
+}

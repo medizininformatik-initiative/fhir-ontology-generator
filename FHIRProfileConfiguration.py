@@ -10,6 +10,7 @@ MII_SPECIMEN = "de.medizininformatikinitiative.kerndatensatz.biobank 1.0.1"
 MII_CONSENT = "de.medizininformatikinitiative.kerndatensatz.consent 1.0.4"
 DKTK = "de.dktk.oncology 1.3.0"
 BBMRI = "bbmri.de"
+ICU = "de.medizininformatikinitiative.kerndatensatz.icu 1.0.0"
 
 GECCO_DATA_SET = "resources/core_data_sets/de.gecco#1.0.5/package"
 MII_MEDICATION_DATA_SET = "resources/core_data_sets/de.medizininformatikinitiative.kerndatensatz.medikation#1.0.10" \
