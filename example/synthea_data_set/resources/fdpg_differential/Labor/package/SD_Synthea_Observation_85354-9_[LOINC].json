@@ -1,0 +1,168 @@
+{
+    "resourceType": "StructureDefinition",
+    "url": "https://fhir.imi.uni-luebeck.de/fhir/StructureDefintion/synthea-observation-loinc-85354-9",
+    "name": "SD_Synthea_Observation_85354-9_[LOINC]",
+    "status": "active",
+    "fhirVersion": "4.0.1",
+    "kind": "resource",
+    "abstract": false,
+    "type": "Observation",
+    "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Observation",
+    "derivation": "constraint",
+    "differential": {
+        "element": [
+            {
+                "id": "Observation.code.coding",
+                "path": "Observation.code.coding",
+                "slicing": {
+                    "discriminator": [
+                        {
+                            "type": "pattern",
+                            "path": "$this"
+                        }
+                    ],
+                    "rules": "open"
+                },
+                "min": 1
+            },
+            {
+                "id": "Observation.code.coding:loinc",
+                "path": "Observation.code.coding",
+                "sliceName": "loinc",
+                "min": 1,
+                "max": "*",
+                "patternCoding": {
+                    "system": "http://loinc.org",
+                    "code": "85354-9"
+                }
+            },
+            {
+                "id": "Observation.code.coding:loinc.system",
+                "path": "Observation.code.coding.system",
+                "min": 1
+            },
+            {
+                "id": "Observation.code.coding:loinc.code",
+                "path": "Observation.code.coding.code",
+                "min": 1
+            },
+            {
+                "id": "Observation.componentSlicing",
+                "path": "Observation.component",
+                "slicing": {
+                    "discriminator": [
+                        {
+                            "type": "pattern",
+                            "path": "$this.code.coding"
+                        }
+                    ],
+                    "rules": "open"
+                },
+                "min": 1
+            },
+            [
+                {
+                    "id": "Observation.component:loinc_8480-6",
+                    "path": "Observation.component",
+                    "sliceName": "loinc_8480-6",
+                    "min": 1,
+                    "max": "*",
+                    "patternCoding": {
+                        "system": "http://loinc.org",
+                        "code": "8480-6"
+                    }
+                }
+            ],
+            {
+                "id": "Observation.component:loinc_8480-6.value[x]:valueQuantity",
+                "path": "Observation.component:loinc_8480-6.value[x]",
+                "sliceName": "valueQuantity",
+                "min": 1,
+                "max": "1",
+                "type": [
+                    {
+                        "code": "Quantity"
+                    }
+                ]
+            },
+            {
+                "id": "Observation.component:loinc_8480-6.value[x]:valueQuantity.value",
+                "path": "Observation.component:loinc_8480-6.value[x].value",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_8480-6.value[x]:valueQuantity.unit",
+                "path": "Observation.component:loinc_8480-6.value[x].unit",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_8480-6.value[x]:valueQuantity.system",
+                "path": "Observation.component:loinc_8480-6.value[x].system",
+                "min": 1,
+                "patternUri": "http://unitsofmeasure.org",
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_8480-6.value[x]:valueQuantity.code",
+                "path": "Observation.component:loinc_8480-6.value[x].code",
+                "min": 1,
+                "mustSupport": true,
+                "fixedCode": "mm[Hg]"
+            },
+            [
+                {
+                    "id": "Observation.component:loinc_8462-4",
+                    "path": "Observation.component",
+                    "sliceName": "loinc_8462-4",
+                    "min": 1,
+                    "max": "*",
+                    "patternCoding": {
+                        "system": "http://loinc.org",
+                        "code": "8462-4"
+                    }
+                }
+            ],
+            {
+                "id": "Observation.component:loinc_8462-4.value[x]:valueQuantity",
+                "path": "Observation.component:loinc_8462-4.value[x]",
+                "sliceName": "valueQuantity",
+                "min": 1,
+                "max": "1",
+                "type": [
+                    {
+                        "code": "Quantity"
+                    }
+                ]
+            },
+            {
+                "id": "Observation.component:loinc_8462-4.value[x]:valueQuantity.value",
+                "path": "Observation.component:loinc_8462-4.value[x].value",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_8462-4.value[x]:valueQuantity.unit",
+                "path": "Observation.component:loinc_8462-4.value[x].unit",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_8462-4.value[x]:valueQuantity.system",
+                "path": "Observation.component:loinc_8462-4.value[x].system",
+                "min": 1,
+                "patternUri": "http://unitsofmeasure.org",
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_8462-4.value[x]:valueQuantity.code",
+                "path": "Observation.component:loinc_8462-4.value[x].code",
+                "min": 1,
+                "mustSupport": true,
+                "fixedCode": "mm[Hg]"
+            }
+        ]
+    },
+    "id": "b2d5010d-51f1-4e60-9244-fe981b9f2540"
+}

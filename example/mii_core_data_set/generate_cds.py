@@ -311,7 +311,7 @@ def denormalize_mapping_to_old_format(term_code_to_mapping_name, mapping_name_to
             mapping = copy.copy(mapping_name_to_mapping[mapping_name])
             mapping.key = context_and_term_code[1]
             mapping.context = context_and_term_code[0]
-            result.entries.add(mapping)
+            result.entries.append(mapping)
         except KeyError:
             print("No mapping found for term code " + context_and_term_code[1].code)
     return result
@@ -738,7 +738,7 @@ if __name__ == '__main__':
 
         v1_fhir_search_mapping = denormalize_mapping_to_old_format(fhir_search_term_code_mappings,
                                                                    fhir_search_concept_mappings)
-        v1_fhir_search_mapping.entries.add(get_combined_consent_fhir_mapping())
+        v1_fhir_search_mapping.entries.append(get_combined_consent_fhir_mapping())
         write_v1_mapping_to_file(v1_fhir_search_mapping, "mapping-old")
         validate_fhir_mapping("mapping_fhir")
 

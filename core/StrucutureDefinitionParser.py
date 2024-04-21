@@ -32,6 +32,9 @@ def get_element_from_snapshot(profile_snapshot, element_id) -> dict:
     :param element_id: element id
     :return: element
     """
+
+    if not profile_snapshot.get("snapshot"):
+        raise KeyError(f"KeyError the snapshot has no snapshot elements. The snapshot: {profile_snapshot.get('name')}")
     try:
         for element in profile_snapshot["snapshot"]["element"]:
             if "id" in element and element["id"] == element_id:
@@ -180,6 +183,7 @@ def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, dat
             profile_urls = element.get("profile")
             if len(profile_urls) > 1:
                 raise Exception("Extension with multiple types not supported")
+            print(profile_urls)
             extension = get_extension_definition(module_dir, profile_urls[0])
             element_ids[0] = f"Extension" + element_ids[0]
             result.extend(process_element_id(element_ids, extension, module_dir, data_set_dir))
@@ -328,7 +332,6 @@ def pattern_codeable_concept_to_term_code(element):
     code = element["patternCodeableConcept"]["coding"][0]["code"]
     system = element["patternCodeableConcept"]["coding"][0]["system"]
     display = get_term_code_display_from_onto_server(system, code)
-    print(display)
     if display.isupper():
         display = display.title()
     term_code = TermCode(system, code, display)
@@ -399,13 +402,17 @@ def get_parent_element_type(element_id, profile_snapshot):
     If the path indicates an arbitrary type [x] the parent element can give insight on its type. This function
     returns the type of the parent element. By searching the element at [x] or at its slicing.
     """
-    if ':' not in element_id:
+    if '[x]:' not in element_id:
         # remove everything after the [x]
         element_id = re.sub(r'(\[x\]).*', r'\1', element_id)
     else:
         # remove everything after the [x] and the slicing -> everything until the next . after [x]:
         element_id = re.sub(r'(\[x\]).*?(?=\.)', r'\1', element_id)
-    parent_element = get_element_from_snapshot(profile_snapshot, element_id)
+    try:
+        parent_element = get_element_from_snapshot(profile_snapshot, element_id)
+    except Exception as e:
+        element_id = re.sub(r'(\[x\]).*', r'\1', element_id)
+        parent_element = get_element_from_snapshot(profile_snapshot, element_id)
     return get_element_type(parent_element)
 
 
@@ -430,6 +437,9 @@ def get_element_type(element):
         types = [element_type.get("code") for element_type in element_types]
         if "dateTime" in types and "Period" in types:
             return "dateTime"
+        # FIXME: Currently hard coded should be generalized
+        if "Reference" in types and "CodeableConcept" in types:
+            return "CodeableConcept"
         else:
             raise Exception("Multiple types are currently not supported")
     elif not element_types:

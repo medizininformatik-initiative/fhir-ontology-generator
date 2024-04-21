@@ -1,0 +1,12 @@
+{
+  "name": "AllergyIntolerance",
+  "resource_type": "AllergyIntolerance",
+  "context": {
+    "system": "fdpg.mii.synthea",
+    "code": "AllergyIntolerance",
+    "display": "AllergyIntolerance",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "AllergyIntolerance.code.coding:rxnorm",
+  "time_restriction_defining_id": "AllergyIntolerance.reaction.onset"
+}

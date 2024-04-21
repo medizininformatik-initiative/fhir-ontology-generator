@@ -1,0 +1,627 @@
+{
+    "resourceType": "StructureDefinition",
+    "url": "https://fhir.imi.uni-luebeck.de/fhir/StructureDefintion/synthea-observation-loinc-99999-0",
+    "name": "SD_Synthea_Observation_99999-0_[LOINC]",
+    "status": "active",
+    "fhirVersion": "4.0.1",
+    "kind": "resource",
+    "abstract": false,
+    "type": "Observation",
+    "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Observation",
+    "derivation": "constraint",
+    "differential": {
+        "element": [
+            {
+                "id": "Observation.code.coding",
+                "path": "Observation.code.coding",
+                "slicing": {
+                    "discriminator": [
+                        {
+                            "type": "pattern",
+                            "path": "$this"
+                        }
+                    ],
+                    "rules": "open"
+                },
+                "min": 1
+            },
+            {
+                "id": "Observation.code.coding:loinc",
+                "path": "Observation.code.coding",
+                "sliceName": "loinc",
+                "min": 1,
+                "max": "*",
+                "patternCoding": {
+                    "system": "http://loinc.org",
+                    "code": "99999-0"
+                }
+            },
+            {
+                "id": "Observation.code.coding:loinc.system",
+                "path": "Observation.code.coding.system",
+                "min": 1
+            },
+            {
+                "id": "Observation.code.coding:loinc.code",
+                "path": "Observation.code.coding.code",
+                "min": 1
+            },
+            {
+                "id": "Observation.componentSlicing",
+                "path": "Observation.component",
+                "slicing": {
+                    "discriminator": [
+                        {
+                            "type": "pattern",
+                            "path": "$this.code.coding"
+                        }
+                    ],
+                    "rules": "open"
+                },
+                "min": 1
+            },
+            [
+                {
+                    "id": "Observation.component:loinc_99999-1",
+                    "path": "Observation.component",
+                    "sliceName": "loinc_99999-1",
+                    "min": 1,
+                    "max": "*",
+                    "patternCoding": {
+                        "system": "http://loinc.org",
+                        "code": "99999-1"
+                    }
+                }
+            ],
+            {
+                "id": "Observation.component:loinc_99999-1.value[x]:valueQuantity",
+                "path": "Observation.component:loinc_99999-1.value[x]",
+                "sliceName": "valueQuantity",
+                "min": 1,
+                "max": "1",
+                "type": [
+                    {
+                        "code": "Quantity"
+                    }
+                ]
+            },
+            {
+                "id": "Observation.component:loinc_99999-1.value[x]:valueQuantity.value",
+                "path": "Observation.component:loinc_99999-1.value[x].value",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-1.value[x]:valueQuantity.unit",
+                "path": "Observation.component:loinc_99999-1.value[x].unit",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-1.value[x]:valueQuantity.system",
+                "path": "Observation.component:loinc_99999-1.value[x].system",
+                "min": 1,
+                "patternUri": "http://unitsofmeasure.org",
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-1.value[x]:valueQuantity.code",
+                "path": "Observation.component:loinc_99999-1.value[x].code",
+                "min": 1,
+                "mustSupport": true,
+                "fixedCode": "{score}"
+            },
+            [
+                {
+                    "id": "Observation.component:loinc_99999-2",
+                    "path": "Observation.component",
+                    "sliceName": "loinc_99999-2",
+                    "min": 1,
+                    "max": "*",
+                    "patternCoding": {
+                        "system": "http://loinc.org",
+                        "code": "99999-2"
+                    }
+                }
+            ],
+            {
+                "id": "Observation.component:loinc_99999-2.value[x]:valueQuantity",
+                "path": "Observation.component:loinc_99999-2.value[x]",
+                "sliceName": "valueQuantity",
+                "min": 1,
+                "max": "1",
+                "type": [
+                    {
+                        "code": "Quantity"
+                    }
+                ]
+            },
+            {
+                "id": "Observation.component:loinc_99999-2.value[x]:valueQuantity.value",
+                "path": "Observation.component:loinc_99999-2.value[x].value",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-2.value[x]:valueQuantity.unit",
+                "path": "Observation.component:loinc_99999-2.value[x].unit",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-2.value[x]:valueQuantity.system",
+                "path": "Observation.component:loinc_99999-2.value[x].system",
+                "min": 1,
+                "patternUri": "http://unitsofmeasure.org",
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-2.value[x]:valueQuantity.code",
+                "path": "Observation.component:loinc_99999-2.value[x].code",
+                "min": 1,
+                "mustSupport": true,
+                "fixedCode": "{score}"
+            },
+            [
+                {
+                    "id": "Observation.component:loinc_99999-3",
+                    "path": "Observation.component",
+                    "sliceName": "loinc_99999-3",
+                    "min": 1,
+                    "max": "*",
+                    "patternCoding": {
+                        "system": "http://loinc.org",
+                        "code": "99999-3"
+                    }
+                }
+            ],
+            {
+                "id": "Observation.component:loinc_99999-3.value[x]:valueQuantity",
+                "path": "Observation.component:loinc_99999-3.value[x]",
+                "sliceName": "valueQuantity",
+                "min": 1,
+                "max": "1",
+                "type": [
+                    {
+                        "code": "Quantity"
+                    }
+                ]
+            },
+            {
+                "id": "Observation.component:loinc_99999-3.value[x]:valueQuantity.value",
+                "path": "Observation.component:loinc_99999-3.value[x].value",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-3.value[x]:valueQuantity.unit",
+                "path": "Observation.component:loinc_99999-3.value[x].unit",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-3.value[x]:valueQuantity.system",
+                "path": "Observation.component:loinc_99999-3.value[x].system",
+                "min": 1,
+                "patternUri": "http://unitsofmeasure.org",
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-3.value[x]:valueQuantity.code",
+                "path": "Observation.component:loinc_99999-3.value[x].code",
+                "min": 1,
+                "mustSupport": true,
+                "fixedCode": "{score}"
+            },
+            [
+                {
+                    "id": "Observation.component:loinc_99999-4",
+                    "path": "Observation.component",
+                    "sliceName": "loinc_99999-4",
+                    "min": 1,
+                    "max": "*",
+                    "patternCoding": {
+                        "system": "http://loinc.org",
+                        "code": "99999-4"
+                    }
+                }
+            ],
+            {
+                "id": "Observation.component:loinc_99999-4.value[x]:valueQuantity",
+                "path": "Observation.component:loinc_99999-4.value[x]",
+                "sliceName": "valueQuantity",
+                "min": 1,
+                "max": "1",
+                "type": [
+                    {
+                        "code": "Quantity"
+                    }
+                ]
+            },
+            {
+                "id": "Observation.component:loinc_99999-4.value[x]:valueQuantity.value",
+                "path": "Observation.component:loinc_99999-4.value[x].value",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-4.value[x]:valueQuantity.unit",
+                "path": "Observation.component:loinc_99999-4.value[x].unit",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-4.value[x]:valueQuantity.system",
+                "path": "Observation.component:loinc_99999-4.value[x].system",
+                "min": 1,
+                "patternUri": "http://unitsofmeasure.org",
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-4.value[x]:valueQuantity.code",
+                "path": "Observation.component:loinc_99999-4.value[x].code",
+                "min": 1,
+                "mustSupport": true,
+                "fixedCode": "{score}"
+            },
+            [
+                {
+                    "id": "Observation.component:loinc_99999-5",
+                    "path": "Observation.component",
+                    "sliceName": "loinc_99999-5",
+                    "min": 1,
+                    "max": "*",
+                    "patternCoding": {
+                        "system": "http://loinc.org",
+                        "code": "99999-5"
+                    }
+                }
+            ],
+            {
+                "id": "Observation.component:loinc_99999-5.value[x]:valueQuantity",
+                "path": "Observation.component:loinc_99999-5.value[x]",
+                "sliceName": "valueQuantity",
+                "min": 1,
+                "max": "1",
+                "type": [
+                    {
+                        "code": "Quantity"
+                    }
+                ]
+            },
+            {
+                "id": "Observation.component:loinc_99999-5.value[x]:valueQuantity.value",
+                "path": "Observation.component:loinc_99999-5.value[x].value",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-5.value[x]:valueQuantity.unit",
+                "path": "Observation.component:loinc_99999-5.value[x].unit",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-5.value[x]:valueQuantity.system",
+                "path": "Observation.component:loinc_99999-5.value[x].system",
+                "min": 1,
+                "patternUri": "http://unitsofmeasure.org",
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-5.value[x]:valueQuantity.code",
+                "path": "Observation.component:loinc_99999-5.value[x].code",
+                "min": 1,
+                "mustSupport": true,
+                "fixedCode": "{score}"
+            },
+            [
+                {
+                    "id": "Observation.component:loinc_99999-6",
+                    "path": "Observation.component",
+                    "sliceName": "loinc_99999-6",
+                    "min": 1,
+                    "max": "*",
+                    "patternCoding": {
+                        "system": "http://loinc.org",
+                        "code": "99999-6"
+                    }
+                }
+            ],
+            {
+                "id": "Observation.component:loinc_99999-6.value[x]:valueQuantity",
+                "path": "Observation.component:loinc_99999-6.value[x]",
+                "sliceName": "valueQuantity",
+                "min": 1,
+                "max": "1",
+                "type": [
+                    {
+                        "code": "Quantity"
+                    }
+                ]
+            },
+            {
+                "id": "Observation.component:loinc_99999-6.value[x]:valueQuantity.value",
+                "path": "Observation.component:loinc_99999-6.value[x].value",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-6.value[x]:valueQuantity.unit",
+                "path": "Observation.component:loinc_99999-6.value[x].unit",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-6.value[x]:valueQuantity.system",
+                "path": "Observation.component:loinc_99999-6.value[x].system",
+                "min": 1,
+                "patternUri": "http://unitsofmeasure.org",
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-6.value[x]:valueQuantity.code",
+                "path": "Observation.component:loinc_99999-6.value[x].code",
+                "min": 1,
+                "mustSupport": true,
+                "fixedCode": "{score}"
+            },
+            [
+                {
+                    "id": "Observation.component:loinc_99999-7",
+                    "path": "Observation.component",
+                    "sliceName": "loinc_99999-7",
+                    "min": 1,
+                    "max": "*",
+                    "patternCoding": {
+                        "system": "http://loinc.org",
+                        "code": "99999-7"
+                    }
+                }
+            ],
+            {
+                "id": "Observation.component:loinc_99999-7.value[x]:valueQuantity",
+                "path": "Observation.component:loinc_99999-7.value[x]",
+                "sliceName": "valueQuantity",
+                "min": 1,
+                "max": "1",
+                "type": [
+                    {
+                        "code": "Quantity"
+                    }
+                ]
+            },
+            {
+                "id": "Observation.component:loinc_99999-7.value[x]:valueQuantity.value",
+                "path": "Observation.component:loinc_99999-7.value[x].value",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-7.value[x]:valueQuantity.unit",
+                "path": "Observation.component:loinc_99999-7.value[x].unit",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-7.value[x]:valueQuantity.system",
+                "path": "Observation.component:loinc_99999-7.value[x].system",
+                "min": 1,
+                "patternUri": "http://unitsofmeasure.org",
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-7.value[x]:valueQuantity.code",
+                "path": "Observation.component:loinc_99999-7.value[x].code",
+                "min": 1,
+                "mustSupport": true,
+                "fixedCode": "{score}"
+            },
+            [
+                {
+                    "id": "Observation.component:loinc_99999-8",
+                    "path": "Observation.component",
+                    "sliceName": "loinc_99999-8",
+                    "min": 1,
+                    "max": "*",
+                    "patternCoding": {
+                        "system": "http://loinc.org",
+                        "code": "99999-8"
+                    }
+                }
+            ],
+            {
+                "id": "Observation.component:loinc_99999-8.value[x]:valueQuantity",
+                "path": "Observation.component:loinc_99999-8.value[x]",
+                "sliceName": "valueQuantity",
+                "min": 1,
+                "max": "1",
+                "type": [
+                    {
+                        "code": "Quantity"
+                    }
+                ]
+            },
+            {
+                "id": "Observation.component:loinc_99999-8.value[x]:valueQuantity.value",
+                "path": "Observation.component:loinc_99999-8.value[x].value",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-8.value[x]:valueQuantity.unit",
+                "path": "Observation.component:loinc_99999-8.value[x].unit",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-8.value[x]:valueQuantity.system",
+                "path": "Observation.component:loinc_99999-8.value[x].system",
+                "min": 1,
+                "patternUri": "http://unitsofmeasure.org",
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-8.value[x]:valueQuantity.code",
+                "path": "Observation.component:loinc_99999-8.value[x].code",
+                "min": 1,
+                "mustSupport": true,
+                "fixedCode": "{score}"
+            },
+            [
+                {
+                    "id": "Observation.component:loinc_99999-9",
+                    "path": "Observation.component",
+                    "sliceName": "loinc_99999-9",
+                    "min": 1,
+                    "max": "*",
+                    "patternCoding": {
+                        "system": "http://loinc.org",
+                        "code": "99999-9"
+                    }
+                }
+            ],
+            {
+                "id": "Observation.component:loinc_99999-9.value[x]:valueQuantity",
+                "path": "Observation.component:loinc_99999-9.value[x]",
+                "sliceName": "valueQuantity",
+                "min": 1,
+                "max": "1",
+                "type": [
+                    {
+                        "code": "Quantity"
+                    }
+                ]
+            },
+            {
+                "id": "Observation.component:loinc_99999-9.value[x]:valueQuantity.value",
+                "path": "Observation.component:loinc_99999-9.value[x].value",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-9.value[x]:valueQuantity.unit",
+                "path": "Observation.component:loinc_99999-9.value[x].unit",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-9.value[x]:valueQuantity.system",
+                "path": "Observation.component:loinc_99999-9.value[x].system",
+                "min": 1,
+                "patternUri": "http://unitsofmeasure.org",
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-9.value[x]:valueQuantity.code",
+                "path": "Observation.component:loinc_99999-9.value[x].code",
+                "min": 1,
+                "mustSupport": true,
+                "fixedCode": "{score}"
+            },
+            [
+                {
+                    "id": "Observation.component:loinc_99999-10",
+                    "path": "Observation.component",
+                    "sliceName": "loinc_99999-10",
+                    "min": 1,
+                    "max": "*",
+                    "patternCoding": {
+                        "system": "http://loinc.org",
+                        "code": "99999-10"
+                    }
+                }
+            ],
+            {
+                "id": "Observation.component:loinc_99999-10.value[x]:valueQuantity",
+                "path": "Observation.component:loinc_99999-10.value[x]",
+                "sliceName": "valueQuantity",
+                "min": 1,
+                "max": "1",
+                "type": [
+                    {
+                        "code": "Quantity"
+                    }
+                ]
+            },
+            {
+                "id": "Observation.component:loinc_99999-10.value[x]:valueQuantity.value",
+                "path": "Observation.component:loinc_99999-10.value[x].value",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-10.value[x]:valueQuantity.unit",
+                "path": "Observation.component:loinc_99999-10.value[x].unit",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-10.value[x]:valueQuantity.system",
+                "path": "Observation.component:loinc_99999-10.value[x].system",
+                "min": 1,
+                "patternUri": "http://unitsofmeasure.org",
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-10.value[x]:valueQuantity.code",
+                "path": "Observation.component:loinc_99999-10.value[x].code",
+                "min": 1,
+                "mustSupport": true,
+                "fixedCode": "{score}"
+            },
+            [
+                {
+                    "id": "Observation.component:loinc_99999-11",
+                    "path": "Observation.component",
+                    "sliceName": "loinc_99999-11",
+                    "min": 1,
+                    "max": "*",
+                    "patternCoding": {
+                        "system": "http://loinc.org",
+                        "code": "99999-11"
+                    }
+                }
+            ],
+            {
+                "id": "Observation.component:loinc_99999-11.value[x]:valueQuantity",
+                "path": "Observation.component:loinc_99999-11.value[x]",
+                "sliceName": "valueQuantity",
+                "min": 1,
+                "max": "1",
+                "type": [
+                    {
+                        "code": "Quantity"
+                    }
+                ]
+            },
+            {
+                "id": "Observation.component:loinc_99999-11.value[x]:valueQuantity.value",
+                "path": "Observation.component:loinc_99999-11.value[x].value",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-11.value[x]:valueQuantity.unit",
+                "path": "Observation.component:loinc_99999-11.value[x].unit",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-11.value[x]:valueQuantity.system",
+                "path": "Observation.component:loinc_99999-11.value[x].system",
+                "min": 1,
+                "patternUri": "http://unitsofmeasure.org",
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.component:loinc_99999-11.value[x]:valueQuantity.code",
+                "path": "Observation.component:loinc_99999-11.value[x].code",
+                "min": 1,
+                "mustSupport": true,
+                "fixedCode": "{score}"
+            }
+        ]
+    },
+    "id": "04faba4b-046d-4f38-a7e6-b62ef6b061df"
+}

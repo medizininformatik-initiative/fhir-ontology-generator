@@ -38,6 +38,7 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
             self.module_dir = module_dir.path
             files = [file.path for file in os.scandir(f"{module_dir.path}/package") if file.is_file()
                      and file.name.endswith("snapshot.json") and is_structure_definition(file.path)]
+            print(files)
             result.append(self.generate_module_ui_tree(module_dir.name, files))
         return result
 
@@ -101,12 +102,12 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
         root = TermEntry([root_term_code], "Category", selectable=False, leaf=False,
                          context=root_term_code)
         if len(files) == 1:
-            with open(files[0], 'r') as snapshot:
+            with open(files[0], 'r', encoding="utf-8") as snapshot:
                 snapshot_json = json.load(snapshot)
                 root.children = self.generate_ui_subtree(snapshot_json, module_name)
-
         else:
             for snapshot_file in files:
+                print(snapshot_file)
                 with open(snapshot_file, encoding="utf8") as snapshot:
                     snapshot_json = json.load(snapshot)
                     sub_entry_term_code = TermCode("fdpg.mii.cds", snapshot_json.get("name"),

@@ -106,19 +106,22 @@ def generate_snapshots(package_dir: str, prerequisite_packages: List[str] = None
     if not os.path.isdir(package_dir):
         raise NotADirectoryError("package_dir must be a directory")
     saved_path = os.getcwd()
+    if reinstall or not (os.path.exists("fhirpkg.lock.json") and os.path.exists("package.json")):
+        install_prerequisites()
     # module folders
     for folder in [f.path for f in os.scandir(package_dir) if f.is_dir()]:
+        if folder.endswith("dependencies"):
+            continue
         os.chdir(f"{folder}\\package")
-        if reinstall or not (os.path.exists("fhirpkg.lock.json") and os.path.exists("package.json")):
-            install_prerequisites()
         # generates snapshots for all differential in the package if they do not exist
         for file in [f for f in os.listdir('.') if
                      os.path.isfile(f) and is_structure_definition(f) and "-snapshot" not in f
                      and f[:-5] + "-snapshot.json" not in os.listdir('.')]:
             generate_snapshot()
+        if not os.path.exists("extension"):
+            os.chdir(saved_path)
+            continue
         os.chdir(f"extension")
-        if reinstall or not (os.path.exists("fhirpkg.lock.json") and os.path.exists("package.json")):
-            install_prerequisites()
         for file in [f for f in os.listdir('.') if
                      os.path.isfile(f) and is_structure_definition(f) and "-snapshot" not in f
                      and f[:-5] + "-snapshot.json" not in os.listdir('.')]:

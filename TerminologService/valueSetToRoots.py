@@ -23,6 +23,7 @@ def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
         url = url.replace('|', '&version=')
     term_codes = SortedSet()
     response = requests.get(onto_server + f"ValueSet/$expand?url={url}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
+    print(response.status_code)
     if response.status_code == 200:
         value_set_data = response.json()
         global_version = None
@@ -48,6 +49,7 @@ def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
         return []
         print(f"Error expanding {url}")
         # raise Exception(response.status_code, response.content)
+    print(term_codes)
     return term_codes
 
 
@@ -60,18 +62,21 @@ def create_vs_tree(canonical_url: str):
     create_concept_map()
     vs = expand_value_set(canonical_url)
     vs_dict = {term_code.code: TermEntry([term_code], leaf=True, selectable=True) for term_code in vs}
-    closure_map_data = get_closure_map(vs)
-    if groups := closure_map_data.get("group"):
-        for group in groups:
-            subsumption_map = group["element"]
-            subsumption_map = {item['code']: [target['code'] for target in item['target']] for item in subsumption_map}
-            for code, parents in subsumption_map.items():
-                remove_non_direct_ancestors(parents, subsumption_map)
-            for node, parents, in subsumption_map.items():
-                for parent in parents:
-                    bisect.insort(vs_dict[parent].children, vs_dict[node])
-                    vs_dict[node].root = False
-                    vs_dict[parent].leaf = False
+    try:
+        closure_map_data = get_closure_map(vs)
+        if groups := closure_map_data.get("group"):
+            for group in groups:
+                subsumption_map = group["element"]
+                subsumption_map = {item['code']: [target['code'] for target in item['target']] for item in subsumption_map}
+                for code, parents in subsumption_map.items():
+                    remove_non_direct_ancestors(parents, subsumption_map)
+                for node, parents, in subsumption_map.items():
+                    for parent in parents:
+                        bisect.insort(vs_dict[parent].children, vs_dict[node])
+                        vs_dict[node].root = False
+                        vs_dict[parent].leaf = False
+    except Exception as e:
+        print(e)
     return sorted([term_entry for term_entry in vs_dict.values() if term_entry.root])
 
 
