@@ -45,9 +45,10 @@ def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
             term_code = TermCode(system, code, display, version)
             term_codes.add(term_code)
     else:
-        return []
         print(f"Error expanding {url}")
-        # raise Exception(response.status_code, response.content)
+        raise Exception(response.status_code, response.content)
+        return []
+
     return term_codes
 
 

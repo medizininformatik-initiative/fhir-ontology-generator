@@ -1,0 +1,146 @@
+{
+  "date": "2024-03-05T12:53:46.215379+01:00",
+  "index-version": 5,
+  "files": [
+    {
+      "filename": "procedure-category-sct.json",
+      "resourceType": "ValueSet",
+      "id": "ValueSet-MII-SnomedProcedure-Category",
+      "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/ValueSet/procedures-category-sct",
+      "version": "1.0",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "Prozedur.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": "Profile-MII-Procedure-Prozedur",
+      "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/StructureDefinition/Procedure",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "Procedure",
+      "fhirVersion": "4.0.1"
+    },
+    {
+      "filename": "CodeSystemOPS2021.json",
+      "resourceType": "CodeSystem",
+      "id": "CodeSystemOPS2021",
+      "url": "http://fhir.de/CodeSystem/bfarm/ops",
+      "version": "2021",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystemOPS2017.json",
+      "resourceType": "CodeSystem",
+      "id": "CodeSystemOPS2017",
+      "url": "http://fhir.de/CodeSystem/bfarm/ops",
+      "version": "2017",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystemOPS2016.json",
+      "resourceType": "CodeSystem",
+      "id": "CodeSystemOPS2016",
+      "url": "http://fhir.de/CodeSystem/bfarm/ops",
+      "version": "2016",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystemOPS2020.json",
+      "resourceType": "CodeSystem",
+      "id": "CodeSystemOPS2020",
+      "url": "http://fhir.de/CodeSystem/bfarm/ops",
+      "version": "2020",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "procedure-sct.json",
+      "resourceType": "ValueSet",
+      "id": "ValueSet-MII-SnomedProcedureCodes",
+      "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/ValueSet/procedures-sct",
+      "version": "1.0",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystemOPS2019.json",
+      "resourceType": "CodeSystem",
+      "id": "CodeSystemOPS2019",
+      "url": "http://fhir.de/CodeSystem/bfarm/ops",
+      "version": "2019",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "medizininformatikinitiative-modulprozeduren-implementationgu.json",
+      "resourceType": "ImplementationGuide",
+      "id": null,
+      "url": "https://simplifier.net/guide/medizininformatikinitiative-modulprozeduren-implementationguide",
+      "version": "2.0.0",
+      "kind": null,
+      "type": null,
+      "fhirVersion": "4.0.0"
+    },
+    {
+      "filename": "CodeSystemOPS2015.json",
+      "resourceType": "CodeSystem",
+      "id": "CodeSystemOPS2015",
+      "url": "http://fhir.de/CodeSystem/bfarm/ops",
+      "version": "2015",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystemOPS2014.json",
+      "resourceType": "CodeSystem",
+      "id": "CodeSystemOPS2014",
+      "url": "http://fhir.de/CodeSystem/bfarm/ops",
+      "version": "2014",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "CodeSystemOPS2018.json",
+      "resourceType": "CodeSystem",
+      "id": "CodeSystemOPS2018",
+      "url": "http://fhir.de/CodeSystem/bfarm/ops",
+      "version": "2018",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "procedures-intend.json",
+      "resourceType": "ValueSet",
+      "id": "ValueSet-MII-Durchfuehrungsabsicht",
+      "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/ValueSet/procedures-intend",
+      "version": "1.0",
+      "kind": null,
+      "type": null,
+      "fhirVersion": null
+    },
+    {
+      "filename": "procedure-durchfuehrungsabsicht.StructureDefinition.json",
+      "resourceType": "StructureDefinition",
+      "id": "Extension-MII-Durchfuehrungsabsicht",
+      "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/StructureDefinition/Durchfuehrungsabsicht",
+      "version": "1.0",
+      "kind": "complex-type",
+      "type": "Extension",
+      "fhirVersion": "4.0.1"
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+generated-ontology/*
+!generated-ontology/README.md

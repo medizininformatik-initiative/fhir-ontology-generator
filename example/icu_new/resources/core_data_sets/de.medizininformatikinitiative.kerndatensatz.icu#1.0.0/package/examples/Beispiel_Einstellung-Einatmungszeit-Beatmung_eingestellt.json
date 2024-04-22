@@ -1,0 +1,60 @@
+{
+  "resourceType": "Observation",
+  "id": "Einstellung-Einatmungszeit-Beatmung",
+  "meta": {
+    "profile": [
+      "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/einstellung-einatmungszeit-beatmung"
+    ]
+  },
+  "partOf": [
+    {
+      "reference": "Procedure/example"
+    }
+  ],
+  "status": "final",
+  "category": [
+    {
+      "coding": [
+        {
+          "system": "http://snomed.info/sct",
+          "code": "40617009",
+		  "display": "Artificial respiration (procedure)"
+        }
+      ]
+    }
+  ],
+  "code": {
+    "coding": [
+	  {
+		"system": "http://snomed.info/sct",
+		"code": "250819002",
+		"display": "Inspiratory time (observable entity)"
+	  },
+      {
+        "system": "http://loinc.org",
+        "code": "76334-2",
+		"display": "Inspiratory time setting Ventilator"
+      },
+      {
+        "system": "urn:iso:std:iso:11073:10101",
+        "code": "16929632",
+		"display": "Inspiratory time setting"
+      }
+    ]
+  },
+  "subject": {
+    "reference": "Patient/111"
+  },
+  "effectivePeriod": {
+    "start": "2019-12-23T09:30:10+01:00",
+    "end": "2019-12-23T10:30:10+01:00"
+  },
+  "valueQuantity": {
+    "value": 0.5,
+    "system": "http://unitsofmeasure.org",
+    "code": "s"
+  },
+  "device": {
+    "reference": "DeviceMetric/Example_Eingestellte_Parameter_Beatmung"
+  }
+}

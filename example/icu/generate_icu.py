@@ -119,7 +119,7 @@ if __name__ == '__main__':
     # ----Time consuming: Only execute initially or on changes----
     if args.generate_snapshot:
         # generate_snapshots("resources/core_data_sets")
-        generate_snapshots("resources/bkfz_differential", core_data_sets)
+        generate_snapshots("resources/icu_differential", core_data_sets)
     # -------------------------------------------------------------
 
     # You shouldn't need different implementations for the different generators
@@ -127,13 +127,13 @@ if __name__ == '__main__':
 
     if args.generate_ui_trees:
         tree_generator = UITreeGenerator(resolver)
-        ui_trees = tree_generator.generate_ui_trees("resources/bkfz_differential")
+        ui_trees = tree_generator.generate_ui_trees("resources/icu_differential")
         write_ui_trees_to_files(ui_trees)
 
     if args.generate_ui_profiles:
         profile_generator = UIProfileGenerator(resolver)
         contextualized_term_code_ui_profile_mapping, named_ui_profiles_dict = \
-            profile_generator.generate_ui_profiles("resources/bkfz_differential")
+            profile_generator.generate_ui_profiles("resources/icu_differential")
         db_writer.write_ui_profiles_to_db(contextualized_term_code_ui_profile_mapping, named_ui_profiles_dict)
         db_writer.write_vs_to_db(named_ui_profiles_dict.values())
 
@@ -141,7 +141,7 @@ if __name__ == '__main__':
         search_parameter_resolver = ICUSearchParameterResolver()
         fhir_search_generator = FHIRSearchMappingGenerator(resolver, search_parameter_resolver)
         fhir_search_term_code_mappings, fhir_search_concept_mappings = fhir_search_generator.generate_mapping(
-            "resources/bkfz_differential")
+            "resources/icu_differential")
         # write_mapping_to_db(db_writer, fhir_search_term_code_mappings, fhir_search_concept_mappings, "FHIR_SEARCH",
         #                     args.generate_ui_profiles)
 
