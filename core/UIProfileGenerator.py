@@ -132,8 +132,6 @@ class UIProfileGenerator:
             # "Observation.valueQuantity" -> "Observation.valueQuantity.code"
             unit_defining_path = value_defining_element.get("path") + ".code"
             unit_defining_elements = self.parser.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
-            print(unit_defining_elements)
-            print(unit_defining_path)
             if len(unit_defining_elements) > 1:
                 raise Exception(f"More than one element found for path {unit_defining_path}")
             value_definition.allowedUnits = self.parser.get_units(unit_defining_elements[0],
