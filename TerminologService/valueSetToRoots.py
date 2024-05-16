@@ -22,7 +22,6 @@ def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
     if '|' in url:
         url = url.replace('|', '&version=')
     term_codes = SortedSet()
-    print(onto_server + f"ValueSet/$expand?url={url}")
     response = requests.get(onto_server + f"ValueSet/$expand?url={url}" + '&system-version=http%3A%2F%2Fsnomed.info%2Fsct|http%3A%2F%2Fsnomed.info%2Fsct%2F900000000000207008%2Fversion%2F20240101', cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
 
     if response.status_code == 200:
