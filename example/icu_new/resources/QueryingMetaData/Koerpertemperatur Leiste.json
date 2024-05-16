@@ -1,0 +1,12 @@
+{
+    "name": "Koerpertemperatur Leiste",
+    "resource_type": "Observation",
+    "context": {
+        "system": "fdpg.mii.icu",
+        "code": "Koerpertemperatur Leiste",
+        "display": "Koerpertemperatur Leiste",
+        "version": "1.0.0"
+    },
+    "term_code_defining_id": "Observation.code.coding:sct",
+    "time_restriction_defining_id": "Observation.effective[x]"
+}

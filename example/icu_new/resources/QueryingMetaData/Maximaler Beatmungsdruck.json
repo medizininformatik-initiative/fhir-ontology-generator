@@ -1,0 +1,12 @@
+{
+    "name": "Maximaler Beatmungsdruck",
+    "resource_type": "Observation",
+    "context": {
+        "system": "fdpg.mii.icu",
+        "code": "Maximaler Beatmungsdruck",
+        "display": "Maximaler Beatmungsdruck",
+        "version": "1.0.0"
+    },
+    "term_code_defining_id": "Observation.code.coding:sct",
+    "time_restriction_defining_id": "Observation.effective[x]"
+}

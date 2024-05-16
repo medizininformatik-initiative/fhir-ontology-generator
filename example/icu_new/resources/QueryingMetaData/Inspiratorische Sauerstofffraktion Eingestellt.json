@@ -1,0 +1,12 @@
+{
+    "name": "Inspiratorische Sauerstofffraktion Eingestellt",
+    "resource_type": "Observation",
+    "context": {
+        "system": "fdpg.mii.icu",
+        "code": "Inspiratorische Sauerstofffraktion Eingestellt",
+        "display": "Inspiratorische Sauerstofffraktion Eingestellt",
+        "version": "1.0.0"
+    },
+    "term_code_defining_id": "Observation.code.coding:sct",
+    "time_restriction_defining_id": "Observation.effective[x]"
+}

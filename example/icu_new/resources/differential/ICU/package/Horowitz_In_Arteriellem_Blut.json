@@ -1,0 +1,50 @@
+{
+    "name": "Horowitz In Arteriellem Blut",
+    "resourceType": "StructureDefinition",
+    "id": "horowitz in arteriellem blut",
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/horowitz-in-arteriellem-blut",
+    "version": "1.0.0",
+    "title": "Horowitz In Arteriellem Blut",
+    "status": "active",
+    "fhirVersion": "4.0.1",
+    "kind": "resource",
+    "abstract": false,
+    "type": "Observation",
+    "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/parameter-von-beatmung",
+    "differential": {
+        "element": [
+            {
+                "id": "Observation.category:vs-cat",
+                "path": "Observation.category",
+                "sliceName": "vs-cat"
+            },
+            {
+                "id": "Observation.code.coding:loinc",
+                "path": "Observation.code.coding",
+                "sliceName": "loinc",
+                "patternCoding": {
+                    "system": "http://loinc.org",
+                    "code": "50984-4"
+                }
+            },
+            {
+                "id": "Observation.code.coding:IEEE-11073",
+                "path": "Observation.code.coding",
+                "sliceName": "IEEE-11073",
+                "patternCoding": {
+                    "system": "urn:iso:std:iso:11073:10101",
+                    "code": "150656"
+                }
+            },
+            {
+                "id": "Observation.value[x]:valueQuantity",
+                "path": "Observation.value[x]",
+                "sliceName": "valueQuantity",
+                "patternQuantity": {
+                    "system": "http://unitsofmeasure.org",
+                    "code": "mm[Hg]"
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,96 @@
+{
+    "name": "Linksatrialer Druck",
+    "resourceType": "StructureDefinition",
+    "id": "linksatrialer druck",
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/linksatrialer-druck",
+    "version": "1.0.0",
+    "title": "Linksatrialer Druck",
+    "status": "active",
+    "fhirVersion": "4.0.1",
+    "kind": "resource",
+    "abstract": false,
+    "type": "Observation",
+    "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/blutdruck-generisch",
+    "differential": {
+        "element": [
+            {
+                "id": "Observation.code.coding:sct",
+                "path": "Observation.code.coding",
+                "sliceName": "sct",
+                "patternCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "276762004"
+                }
+            },
+            {
+                "id": "Observation.component:SystolicBP",
+                "path": "Observation.component",
+                "sliceName": "SystolicBP"
+            },
+            {
+                "id": "Observation.component:SystolicBP.code.coding:IEEE-11073",
+                "path": "Observation.component.code.coding",
+                "sliceName": "IEEE-11073",
+                "patternCoding": {
+                    "system": "urn:iso:std:iso:11073:10101",
+                    "code": "150065"
+                }
+            },
+            {
+                "id": "Observation.component:SystolicBP.code.coding:loinc-detailed",
+                "path": "Observation.component.code.coding",
+                "sliceName": "loinc-detailed",
+                "patternCoding": {
+                    "system": "http://loinc.org",
+                    "code": "60989-1"
+                }
+            },
+            {
+                "id": "Observation.component:DiastolicBP",
+                "path": "Observation.component",
+                "sliceName": "DiastolicBP"
+            },
+            {
+                "id": "Observation.component:DiastolicBP.code.coding:IEEE-11073",
+                "path": "Observation.component.code.coding",
+                "sliceName": "IEEE-11073",
+                "patternCoding": {
+                    "system": "urn:iso:std:iso:11073:10101",
+                    "code": "150066"
+                }
+            },
+            {
+                "id": "Observation.component:DiastolicBP.code.coding:loinc-detailed",
+                "path": "Observation.component.code.coding",
+                "sliceName": "loinc-detailed",
+                "patternCoding": {
+                    "system": "http://loinc.org",
+                    "code": "75933-2"
+                }
+            },
+            {
+                "id": "Observation.component:meanBP",
+                "path": "Observation.component",
+                "sliceName": "meanBP"
+            },
+            {
+                "id": "Observation.component:meanBP.code.coding:IEEE-11073",
+                "path": "Observation.component.code.coding",
+                "sliceName": "IEEE-11073",
+                "patternCoding": {
+                    "system": "urn:iso:std:iso:11073:10101",
+                    "code": "150067"
+                }
+            },
+            {
+                "id": "Observation.component:meanBP.code.coding:loinc-detailed",
+                "path": "Observation.component.code.coding",
+                "sliceName": "loinc-detailed",
+                "patternCoding": {
+                    "system": "http://loinc.org",
+                    "code": "8399-8"
+                }
+            }
+        ]
+    }
+}

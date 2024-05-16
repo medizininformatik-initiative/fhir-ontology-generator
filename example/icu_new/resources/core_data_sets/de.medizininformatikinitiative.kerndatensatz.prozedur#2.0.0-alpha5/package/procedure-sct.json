@@ -1,0 +1,27 @@
+{
+    "resourceType": "ValueSet",
+    "id": "ValueSet-MII-SnomedProcedureCodes",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/ValueSet/procedures-sct",
+    "version": "1.0",
+    "name": "ValueSet_MII_SnomedProcedureCodes",
+    "title": "ValueSet - MI-I - SNOMED CT Procedure Codes",
+    "status": "active",
+    "experimental": false,
+    "date": "2020-04-22",
+    "publisher": "https://www.medizininformatik-initiative.de",
+    "description": "Enthaelt alle SNOMED CT Procedure Codes",
+    "compose": {
+        "include": [
+            {
+                "system": "http://snomed.info/sct",
+                "filter": [
+                    {
+                        "property": "concept",
+                        "op": "descendent-of",
+                        "value": "71388002"
+                    }
+                ]
+            }
+        ]
+    }
+}

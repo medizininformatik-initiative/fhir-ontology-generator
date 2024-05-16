@@ -1,0 +1,12 @@
+{
+    "name": "Beatmungszeit Niedrigem Druck",
+    "resource_type": "Observation",
+    "context": {
+        "system": "fdpg.mii.icu",
+        "code": "Beatmungszeit Niedrigem Druck",
+        "display": "Beatmungszeit Niedrigem Druck",
+        "version": "1.0.0"
+    },
+    "term_code_defining_id": "Observation.code.coding:sct",
+    "time_restriction_defining_id": "Observation.effective[x]"
+}

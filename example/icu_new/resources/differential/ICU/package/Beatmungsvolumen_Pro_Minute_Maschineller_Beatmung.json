@@ -1,0 +1,72 @@
+{
+    "name": "Beatmungsvolumen Pro Minute Maschineller Beatmung",
+    "resourceType": "StructureDefinition",
+    "id": "beatmungsvolumen pro minute maschineller beatmung",
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/beatmungsvolumen-pro-minute-maschineller-beatmung",
+    "version": "1.0.0",
+    "title": "Beatmungsvolumen Pro Minute Maschineller Beatmung",
+    "status": "active",
+    "fhirVersion": "4.0.1",
+    "kind": "resource",
+    "abstract": false,
+    "type": "Observation",
+    "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/parameter-von-beatmung",
+    "differential": {
+        "element": [
+            {
+                "id": "Observation.code.coding:sct",
+                "path": "Observation.code.coding",
+                "sliceName": "sct",
+                "patternCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "250875001"
+                }
+            },
+            {
+                "id": "Observation.code.coding:loinc",
+                "path": "Observation.code.coding",
+                "sliceName": "loinc",
+                "patternCoding": {
+                    "system": "http://loinc.org",
+                    "code": "76009-0"
+                }
+            },
+            {
+                "id": "Observation.code.coding:IEEE-11073",
+                "path": "Observation.code.coding",
+                "sliceName": "IEEE-11073",
+                "patternCoding": {
+                    "system": "urn:iso:std:iso:11073:10101",
+                    "code": "152004"
+                }
+            },
+            {
+                "id": "Observation.effective[x]",
+                "path": "Observation.effective[x]",
+                "min": 1
+            },
+            {
+                "id": "Observation.value[x]",
+                "path": "Observation.value[x]",
+                "slicing": {
+                    "discriminator": [
+                        {
+                            "type": "type",
+                            "path": "$this"
+                        }
+                    ],
+                    "rules": "closed"
+                }
+            },
+            {
+                "id": "Observation.value[x]:valueQuantity",
+                "path": "Observation.value[x]",
+                "sliceName": "valueQuantity",
+                "patternQuantity": {
+                    "system": "http://unitsofmeasure.org",
+                    "code": "L/min"
+                }
+            }
+        ]
+    }
+}

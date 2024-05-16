@@ -1,0 +1,73 @@
+{
+    "name": "Spontanes Atemzugvolumen",
+    "resourceType": "StructureDefinition",
+    "id": "spontanes atemzugvolumen",
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/spontanes-atemzugvolumen",
+    "version": "1.0.0",
+    "title": "Spontanes Atemzugvolumen",
+    "status": "active",
+    "fhirVersion": "4.0.1",
+    "kind": "resource",
+    "abstract": false,
+    "type": "Observation",
+    "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/parameter-von-beatmung",
+    "differential": {
+        "element": [
+            {
+                "id": "Observation.code.coding:sct",
+                "path": "Observation.code.coding",
+                "sliceName": "sct",
+                "patternCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "250816009"
+                }
+            },
+            {
+                "id": "Observation.code.coding:loinc",
+                "path": "Observation.code.coding",
+                "sliceName": "loinc",
+                "patternCoding": {
+                    "system": "http://loinc.org",
+                    "code": "20116-0"
+                }
+            },
+            {
+                "id": "Observation.effective[x]",
+                "path": "Observation.effective[x]",
+                "min": 1
+            },
+            {
+                "id": "Observation.value[x]:valueQuantity",
+                "path": "Observation.valueQuantity",
+                "sliceName": "valueQuantity",
+                "patternQuantity": {
+                    "system": "http://unitsofmeasure.org",
+                    "code": "mL"
+                }
+            },
+            {
+                "id": "Observation.value[x]:valueQuantity.value",
+                "path": "Observation.valueQuantity.value",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.value[x]:valueQuantity.unit",
+                "path": "Observation.valueQuantity.unit",
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.value[x]:valueQuantity.system",
+                "path": "Observation.valueQuantity.system",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.value[x]:valueQuantity.code",
+                "path": "Observation.valueQuantity.code",
+                "min": 1,
+                "mustSupport": true
+            }
+        ]
+    }
+}

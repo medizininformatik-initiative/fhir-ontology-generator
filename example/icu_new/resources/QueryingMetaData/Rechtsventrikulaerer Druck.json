@@ -1,0 +1,12 @@
+{
+    "name": "Rechtsventrikulaerer Druck",
+    "resource_type": "Observation",
+    "context": {
+        "system": "fdpg.mii.icu",
+        "code": "Rechtsventrikulaerer Druck",
+        "display": "Rechtsventrikulaerer Druck",
+        "version": "1.0.0"
+    },
+    "term_code_defining_id": "Observation.code.coding:sct",
+    "time_restriction_defining_id": "Observation.effective[x]"
+}

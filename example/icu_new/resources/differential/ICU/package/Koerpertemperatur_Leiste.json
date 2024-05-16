@@ -1,0 +1,47 @@
+{
+    "name": "Koerpertemperatur Leiste",
+    "resourceType": "StructureDefinition",
+    "id": "koerpertemperatur leiste",
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-leiste",
+    "version": "1.0.0",
+    "title": "Koerpertemperatur Leiste",
+    "status": "active",
+    "fhirVersion": "4.0.1",
+    "kind": "resource",
+    "abstract": false,
+    "type": "Observation",
+    "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-generisch",
+    "differential": {
+        "element": [
+            {
+                "id": "Observation.code.coding:sct",
+                "path": "Observation.code.coding",
+                "sliceName": "sct",
+                "patternCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "415929009"
+                }
+            },
+            {
+                "id": "Observation.value[x]",
+                "path": "Observation.value[x]",
+                "patternQuantity": {
+                    "system": "http://unitsofmeasure.org",
+                    "code": "Cel"
+                }
+            },
+            {
+                "id": "Observation.bodySite",
+                "path": "Observation.bodySite",
+                "patternCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "26893007"
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}

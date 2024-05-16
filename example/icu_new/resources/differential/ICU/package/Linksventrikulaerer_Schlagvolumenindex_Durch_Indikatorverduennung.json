@@ -1,0 +1,53 @@
+{
+    "name": "Linksventrikulaerer Schlagvolumenindex Durch Indikatorverduennung",
+    "resourceType": "StructureDefinition",
+    "id": "linksventrikulaerer schlagvolumenindex durch indikatorverduennung",
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/linksventrikulaerer-schlagvolumenindex-durch-indikatorverduennung",
+    "version": "1.0.0",
+    "title": "Linksventrikulaerer Schlagvolumenindex Durch Indikatorverduennung",
+    "status": "active",
+    "fhirVersion": "4.0.1",
+    "kind": "resource",
+    "abstract": false,
+    "type": "Observation",
+    "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/monitoring-und-vitaldaten",
+    "differential": {
+        "element": [
+            {
+                "id": "Observation.code.coding:loinc",
+                "path": "Observation.code.coding",
+                "sliceName": "loinc",
+                "patternCoding": {
+                    "system": "http://loinc.org",
+                    "code": "8791-6"
+                }
+            },
+            {
+                "id": "Observation.value[x]",
+                "path": "Observation.value[x]",
+                "slicing": {
+                    "discriminator": [
+                        {
+                            "type": "type",
+                            "path": "$this"
+                        }
+                    ],
+                    "rules": "open"
+                }
+            },
+            {
+                "id": "Observation.value[x]:valueQuantity",
+                "path": "Observation.valueQuantity",
+                "sliceName": "valueQuantity"
+            },
+            {
+                "id": "Observation.value[x]:valueQuantity.code",
+                "path": "Observation.valueQuantity.code",
+                "binding": {
+                    "strength": "required",
+                    "valueSet": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/ValueSet-Unit-equivalent-UCUM-L-per-minute-and-squaremeter"
+                }
+            }
+        ]
+    }
+}
