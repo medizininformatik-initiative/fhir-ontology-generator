@@ -21,7 +21,7 @@ def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
     if '|' in url:
         url = url.replace('|', '&version=')
     term_codes = SortedSet()
-    response = requests.get(onto_server + f"ValueSet/$expand?url={url}")
+    response = requests.get(onto_server + f"ValueSet/$expand?url={url}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if response.status_code == 200:
         value_set_data = response.json()
         global_version = None

@@ -1,0 +1,11 @@
+{
+  "name": "Bildgebung",
+  "resource_type": "ImagingStudy",
+  "context": {
+    "system": "mii.bg",
+    "code": "BILDGEBUNG",
+    "display": "Bildgebung"
+  },
+  "term_code_defining_id": "ImagingStudy.modality",
+  "time_restriction_defining_id": "ImagingStudy.started"
+}

@@ -1,0 +1,15 @@
+{
+"resourceType": "StructureDefinition",
+    "id": "sd-mii-bildgebung",
+    "url": "https://www.hl7.org/fhir/imagingstudy.html",
+    "version": "1.0.0",
+    "name": "SD_MII_BILDGEBUNG",
+    "title": "SD MII BILDGEBUNG",
+    "status": "active",
+    "fhirVersion": "4.0.1",
+    "kind": "resource",
+    "abstract": false,
+    "type": "ImagingStudy",
+    "baseDefinition": "https://www.hl7.org/fhir/imagingstudy",
+    "derivation": "constraint"
+}

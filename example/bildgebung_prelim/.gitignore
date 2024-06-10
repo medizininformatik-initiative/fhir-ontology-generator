@@ -1,0 +1,4 @@
+generated-ontology/*
+!generated-ontology/README.md
+/resources/differential/Bildgebung/package/dependencies/*
+/resources/core_data_sets/*
