@@ -24,8 +24,8 @@ def get_term_entries_from_onto_server(value_set_canonical_url: str):
     print(value_set_canonical_url)
     # In Gecco 1.04 all icd10 elements with children got removed this brings them back. Requires matching valuesSets on
     # Ontoserver
-    if value_set_canonical_url.endswith("icd"):
-        value_set_canonical_url = value_set_canonical_url + "-with-parent"
+    # if value_set_canonical_url.endswith("icd"):
+    #     value_set_canonical_url = value_set_canonical_url + "-with-parent"
     result = create_vs_tree(value_set_canonical_url)
     if len(result) < 1:
         raise Exception("ERROR", value_set_canonical_url)

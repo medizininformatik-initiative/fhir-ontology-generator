@@ -102,6 +102,32 @@ class MIICoreDataSetSearchParameterResolver(SearchParameterResolver):
         return params
 
 
+def get_code_blue_lab_codes(context):
+    root = TermEntry([TermCode("fdpg.mii.cds", "Andere", "Andere")], context=context, leaf=False, selectable=False)
+
+    # Potassium
+    potassium = TermEntry([TermCode("http://loinc.org", "75940-7", "Potassium [Mass/volume] in Blood")],
+                          context=context, leaf=True, selectable=True)
+    # Systolic blood pressure
+    systolic_bp = TermEntry([TermCode("http://loinc.org", "8480-6", "Systolic blood pressure")], context=context,
+                            leaf=True, selectable=True)
+    # Diastolic blood pressure
+    diastolic_bp = TermEntry([TermCode("http://loinc.org", "8462-4", "Diastolic blood pressure")], context=context,
+                             leaf=True, selectable=True)
+    # Mean blood pressure
+    mean_bp = TermEntry([TermCode("http://loinc.org", "8478-0", "Mean blood pressure")], context=context, leaf=True,
+                        selectable=True)
+    # Heart rate
+    heart_rate = TermEntry([TermCode("http://loinc.org", "8867-4", "Heart rate")], context=context, leaf=True,
+                           selectable=True)
+    # Body temperature
+    body_temp = TermEntry([TermCode("http://loinc.org", "8310-5", "Body temperature")], context=context, leaf=True,
+                          selectable=True)
+    root.children = sorted([potassium, systolic_bp, diastolic_bp, mean_bp, heart_rate, body_temp])
+
+    return root
+
+
 def generate_top_300_loinc_tree():
     top_loinc_tree = etree.parse("resources/additional_resources/Top300Loinc.xml")
     lab_context = TermCode("fdpg.mii.cds", "Laboruntersuchung", "Laboruntersuchung")
@@ -109,6 +135,8 @@ def generate_top_300_loinc_tree():
                                   context=lab_context)
     terminology_entry.children = sorted(get_terminology_entry_from_top_300_loinc("11ccdc84-a237-49a5-860a-b0f65068c023",
                                                                                  top_loinc_tree).children)
+    terminology_entry.children.append(get_code_blue_lab_codes(lab_context))
+
     terminology_entry.leaf = False
     terminology_entry.selectable = False
     return terminology_entry
