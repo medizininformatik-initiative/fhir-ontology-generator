@@ -135,6 +135,7 @@ def generate_top_300_loinc_tree():
                                   context=lab_context)
     terminology_entry.children = sorted(get_terminology_entry_from_top_300_loinc("11ccdc84-a237-49a5-860a-b0f65068c023",
                                                                                  top_loinc_tree).children)
+    lab_context = TermCode("fdpg.mii.cds", "Laboruntersuchung", "Laboruntersuchung", "1.0.0")
     terminology_entry.children.append(get_code_blue_lab_codes(lab_context))
 
     terminology_entry.leaf = False
