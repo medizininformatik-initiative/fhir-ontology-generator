@@ -6,7 +6,7 @@ import psycopg2.extras
 import psycopg2
 
 from TerminologService.ValueSetResolver import get_termcodes_from_onto_server
-from model.UIProfileModel import UIProfile
+from model.UIProfileModel import UIProfile, CriteriaSet
 from model.UiDataModel import TermCode, TermEntry
 
 NAMESPACE_UUID = uuid.UUID('00000000-0000-0000-0000-000000000000')
@@ -25,6 +25,7 @@ create_term_code_table = """
     UNIQUE NULLS NOT DISTINCT (system, code, version),
     display TEXT NOT NULL
     );
+    ALTER SEQUENCE termcode_id_seq RESTART WITH {ICU_OFFSET};
 """
 
 """
@@ -34,10 +35,11 @@ With the combination of system, code and version as primary key
 """
 create_ui_profile_table = """
     CREATE TABLE IF NOT EXISTS ui_profile(
-    id         SERIAL PRIMARY KEY,
-    name       TEXT NOT NULL,
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
     ui_profile JSON NOT NULL
     );
+    ALTER SEQUENCE ui_profile_id_seq RESTART WITH {ICU_OFFSET};;
 """
 
 """
@@ -46,12 +48,13 @@ id | name | type| content
 """
 create_mapping_table = """
     CREATE TABLE IF NOT EXISTS mapping(
-        id      SERIAL PRIMARY KEY,
-        name    TEXT NOT NULL,
-        type    TEXT NOT NULL,
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
         UNIQUE (name, type),
         content JSON NOT NULL
     );
+    ALTER SEQUENCE mapping_id_seq RESTART WITH {ICU_OFFSET};;
 """
 
 """
@@ -68,6 +71,7 @@ create_context_table = """
     UNIQUE NULLS NOT DISTINCT (system, code, version),
     display TEXT NOT NULL
     );
+    ALTER SEQUENCE context_id_seq RESTART WITH {ICU_OFFSET};;
 """
 
 """
@@ -77,12 +81,12 @@ context_termcode_hash | context_id | termcode_id | mapping_id | ui_profile_id
 create_contextualized_term_code = """
     CREATE TABLE IF NOT EXISTS contextualized_termcode(
     context_termcode_hash TEXT PRIMARY KEY,
-    context_id            INTEGER NOT NULL,
-    termcode_id           INTEGER NOT NULL,
-    mapping_id            INTEGER,
-    ui_profile_id         INTEGER,
+    context_id INTEGER NOT NULL,
+    termcode_id INTEGER NOT NULL,
+    mapping_id INTEGER,
+    ui_profile_id INTEGER,
     CONSTRAINT CONTEXT_ID_FK FOREIGN KEY (context_id)
-        REFERENCES CONTEXT (id) ON DELETE CASCADE,
+        REFERENCES context (id) ON DELETE CASCADE,
     CONSTRAINT CONCEPT_ID_FK FOREIGN KEY (termcode_id)
         REFERENCES termcode (id) ON DELETE CASCADE,
     CONSTRAINT mapping_id_fk FOREIGN KEY (mapping_id)
@@ -101,6 +105,7 @@ create_contextualized_value_set = """
     id  SERIAL PRIMARY KEY,
     url TEXT UNIQUE NOT NULL
     );
+    ALTER SEQUENCE criteria_set_id_seq RESTART WITH {ICU_OFFSET};
 """
 
 """
@@ -108,13 +113,13 @@ creates the contextualized term code to contextualized value set table:
 """
 create_contextualized_term_code_to_contextualized_value_set = """
     CREATE TABLE IF NOT EXISTS contextualized_termcode_to_criteria_set(
-    context_termcode_hash       TEXT    NOT NULL,
+    context_termcode_hash TEXT NOT NULL,
     criteria_set_id INTEGER NOT NULL,
     UNIQUE (context_termcode_hash, criteria_set_id),
     CONSTRAINT criteria_set_ID_FK FOREIGN KEY (criteria_set_id)
-        REFERENCES criteria_set (id) ON DELETE CASCADE ,
+        REFERENCES criteria_set (id) ON DELETE CASCADE,
     CONSTRAINT CONTEXTUALIZED_TERMCODE_ID_FK FOREIGN KEY (context_termcode_hash)
-        REFERENCES CONTEXTUALIZED_TERMCODE (context_termcode_hash) ON DELETE CASCADE
+        REFERENCES contextualized_termcode (context_termcode_hash) ON DELETE CASCADE
     );
 """
 
@@ -128,6 +133,7 @@ add_comment_on_context_termcode_hash = """
     the concatenated string of (context.system, context.code, context.version, termcode.system, termcode.code, 
     termcode.version), omitting null values for version and without any delimiters.';
 """
+
 
 
 class DataBaseWriter:
@@ -198,7 +204,8 @@ class DataBaseWriter:
             (term_code.system, term_code.code, term_code.version if term_code.version else "", term_code.display)
             for term_code in term_codes)
         psycopg2.extras.execute_batch(self.cursor,
-                                      "INSERT INTO termcode (system, code, version, display) VALUES (%s, %s, %s, %s)",
+                                      "INSERT INTO termcode (system, code, version, display) VALUES (%s, %s, %s, %s)"
+                                      "ON CONFLICT DO NOTHING",
                                       values)
         self.db_connection.commit()
 
@@ -211,7 +218,8 @@ class DataBaseWriter:
                       context_code.display)
                      for context_code in context_codes)
         psycopg2.extras.execute_batch(self.cursor,
-                                      "INSERT INTO context (system, code, version, display) VALUES (%s, %s, %s, %s)",
+                                      "INSERT INTO context (system, code, version, display) VALUES (%s, %s, %s, %s)"
+                                      "ON CONFLICT DO NOTHING",
                                       values)
         self.db_connection.commit()
 
@@ -363,21 +371,26 @@ class DataBaseWriter:
         print(result)
         return result[0][0] if result else None
 
-    def add_value_set(self, canonical_url, entries: List[TermCode]):
+    def add_critieria_set(self, criteria_set: CriteriaSet):
         """
         Adds the value set to the database
-        :param canonical_url: canonical url of the value set
-        :param entries: entries to add to the value set
+        :param criteria_set: the criteria set to be added
         """
+        canonical_url = criteria_set.url
+        entries = criteria_set.contextualized_term_codes
         self.cursor.execute(
             """INSERT INTO criteria_set (url) VALUES (%s) ON CONFLICT DO NOTHING""",
             (canonical_url,))
         # TODO: Remove this context once we know the context:
-        context = TermCode("fdpg.mii.cds", "Diagnose", "Diagnose", "1.0.0")
+        self.insert_context_codes([entry[0] for entry in entries])
+
+        self.insert_term_codes(entry[1] for entry in entries)
+
         contextualized_termcode_values = [
             (self.calculate_context_term_code_hash(context, term_code), context.system, context.code,
              context.version if context.version else '',
-             term_code.system, term_code.code, term_code.version if term_code.version else '') for term_code in entries]
+             term_code.system, term_code.code, term_code.version if term_code.version else '') for context, term_code in
+            entries]
         psycopg2.extras.execute_batch(self.cursor,
                                       """INSERT INTO contextualized_termcode (context_termcode_hash, context_id, termcode_id) 
                                          SELECT %s, C.id, T.id
@@ -387,7 +400,9 @@ class DataBaseWriter:
                                          ON CONFLICT DO NOTHING""", contextualized_termcode_values)
         self.db_connection.commit()
 
-        values = [(self.calculate_context_term_code_hash(context, term_code), canonical_url) for term_code in entries]
+        values = [(self.calculate_context_term_code_hash(context, term_code), canonical_url) for context, term_code in
+                  entries]
+        print(canonical_url)
         psycopg2.extras.execute_batch(self.cursor,
                                       """
                                       INSERT INTO contextualized_termcode_to_criteria_set (context_termcode_hash, criteria_set_id) 
@@ -447,7 +462,6 @@ class DataBaseWriter:
         for ui_profile in profiles:
             for attribute_definition in ui_profile.attributeDefinitions:
                 if attribute_definition.type == "reference":
-                    vs = attribute_definition.referenceCriteriaSet
+                    criteria_set = attribute_definition.referenceCriteriaSet
                     # TODO: Maybe better to get them upfront
-                    term_codes = get_termcodes_from_onto_server(vs)
-                    self.add_value_set(vs, term_codes)
+                    self.add_critieria_set(criteria_set)
