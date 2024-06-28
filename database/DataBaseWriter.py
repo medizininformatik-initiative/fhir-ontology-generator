@@ -25,6 +25,7 @@ create_term_code_table = """
     UNIQUE NULLS NOT DISTINCT (system, code, version),
     display TEXT NOT NULL
     );
+    ALTER SEQUENCE termcode_id_seq RESTART WITH 100000;
 """
 
 """
@@ -34,10 +35,11 @@ With the combination of system, code and version as primary key
 """
 create_ui_profile_table = """
     CREATE TABLE IF NOT EXISTS ui_profile(
-    id         SERIAL PRIMARY KEY,
-    name       TEXT NOT NULL,
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
     ui_profile JSON NOT NULL
     );
+    ALTER SEQUENCE ui_profile_id_seq RESTART WITH 100000;
 """
 
 """
@@ -46,12 +48,13 @@ id | name | type| content
 """
 create_mapping_table = """
     CREATE TABLE IF NOT EXISTS mapping(
-        id      SERIAL PRIMARY KEY,
-        name    TEXT NOT NULL,
-        type    TEXT NOT NULL,
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
         UNIQUE (name, type),
         content JSON NOT NULL
     );
+    ALTER SEQUENCE mapping_id_seq RESTART WITH 100000;
 """
 
 """
@@ -68,6 +71,7 @@ create_context_table = """
     UNIQUE NULLS NOT DISTINCT (system, code, version),
     display TEXT NOT NULL
     );
+    ALTER SEQUENCE context_id_seq RESTART WITH 100000;
 """
 
 """
@@ -77,12 +81,12 @@ context_termcode_hash | context_id | termcode_id | mapping_id | ui_profile_id
 create_contextualized_term_code = """
     CREATE TABLE IF NOT EXISTS contextualized_termcode(
     context_termcode_hash TEXT PRIMARY KEY,
-    context_id            INTEGER NOT NULL,
-    termcode_id           INTEGER NOT NULL,
-    mapping_id            INTEGER,
-    ui_profile_id         INTEGER,
+    context_id INTEGER NOT NULL,
+    termcode_id INTEGER NOT NULL,
+    mapping_id INTEGER,
+    ui_profile_id INTEGER,
     CONSTRAINT CONTEXT_ID_FK FOREIGN KEY (context_id)
-        REFERENCES CONTEXT (id) ON DELETE CASCADE,
+        REFERENCES context (id) ON DELETE CASCADE,
     CONSTRAINT CONCEPT_ID_FK FOREIGN KEY (termcode_id)
         REFERENCES termcode (id) ON DELETE CASCADE,
     CONSTRAINT mapping_id_fk FOREIGN KEY (mapping_id)
@@ -101,6 +105,7 @@ create_contextualized_value_set = """
     id  SERIAL PRIMARY KEY,
     url TEXT UNIQUE NOT NULL
     );
+    ALTER SEQUENCE criteria_set_id_seq RESTART WITH 100000;
 """
 
 """
@@ -108,13 +113,13 @@ creates the contextualized term code to contextualized value set table:
 """
 create_contextualized_term_code_to_contextualized_value_set = """
     CREATE TABLE IF NOT EXISTS contextualized_termcode_to_criteria_set(
-    context_termcode_hash       TEXT    NOT NULL,
+    context_termcode_hash TEXT NOT NULL,
     criteria_set_id INTEGER NOT NULL,
     UNIQUE (context_termcode_hash, criteria_set_id),
     CONSTRAINT criteria_set_ID_FK FOREIGN KEY (criteria_set_id)
-        REFERENCES criteria_set (id) ON DELETE CASCADE ,
+        REFERENCES criteria_set (id) ON DELETE CASCADE,
     CONSTRAINT CONTEXTUALIZED_TERMCODE_ID_FK FOREIGN KEY (context_termcode_hash)
-        REFERENCES CONTEXTUALIZED_TERMCODE (context_termcode_hash) ON DELETE CASCADE
+        REFERENCES contextualized_termcode (context_termcode_hash) ON DELETE CASCADE
     );
 """
 
@@ -128,6 +133,7 @@ add_comment_on_context_termcode_hash = """
     the concatenated string of (context.system, context.code, context.version, termcode.system, termcode.code, 
     termcode.version), omitting null values for version and without any delimiters.';
 """
+
 
 
 class DataBaseWriter:
