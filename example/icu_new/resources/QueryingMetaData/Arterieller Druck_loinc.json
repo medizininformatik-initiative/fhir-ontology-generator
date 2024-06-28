@@ -1,0 +1,12 @@
+{
+    "name": "Arterieller Druck",
+    "resource_type": "Observation",
+    "context": {
+        "system": "fdpg.mii.icu",
+        "code": "Arterieller Druck",
+        "display": "Arterieller Druck",
+        "version": "1.0.0"
+    },
+    "term_code_defining_id": "Observation.code.coding:loinc",
+    "time_restriction_defining_id": "Observation.effective[x]"
+}

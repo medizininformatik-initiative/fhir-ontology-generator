@@ -3,8 +3,8 @@
   "id": "sd-mii-icu-monitoring-und-vitaldaten",
   "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/monitoring-und-vitaldaten",
   "version": "1.0.0",
-  "name": "SD_MII_ICU_Monitoring_Und_Vitaldaten",
-  "title": "SD MII ICU Monitoring und Vitaldaten",
+  "name": "Monitoring Und Vitaldaten",
+  "title": "Monitoring und Vitaldaten",
   "status": "active",
   "fhirVersion": "4.0.1",
   "mapping": [

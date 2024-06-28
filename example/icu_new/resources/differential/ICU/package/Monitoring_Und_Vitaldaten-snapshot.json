@@ -1,16 +1,49 @@
 {
   "resourceType": "StructureDefinition",
-  "id": "monitoring und vitaldaten",
+  "id": "sd-mii-icu-monitoring-und-vitaldaten",
   "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/monitoring-und-vitaldaten",
   "version": "1.0.0",
   "name": "Monitoring und Vitaldaten",
   "title": "Monitoring und Vitaldaten",
   "status": "active",
   "fhirVersion": "4.0.1",
+  "mapping": [
+    {
+      "identity": "workflow",
+      "uri": "http://hl7.org/fhir/workflow",
+      "name": "Workflow Pattern"
+    },
+    {
+      "identity": "sct-concept",
+      "uri": "http://snomed.info/conceptdomain",
+      "name": "SNOMED CT Concept Domain Binding"
+    },
+    {
+      "identity": "v2",
+      "uri": "http://hl7.org/v2",
+      "name": "HL7 v2 Mapping"
+    },
+    {
+      "identity": "rim",
+      "uri": "http://hl7.org/v3",
+      "name": "RIM Mapping"
+    },
+    {
+      "identity": "w5",
+      "uri": "http://hl7.org/fhir/fivews",
+      "name": "FiveWs Pattern Mapping"
+    },
+    {
+      "identity": "sct-attr",
+      "uri": "http://snomed.org/attributebinding",
+      "name": "SNOMED CT Attribute Binding"
+    }
+  ],
   "kind": "resource",
   "abstract": false,
   "type": "Observation",
   "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Observation",
+  "derivation": "constraint",
   "snapshot": {
     "element": [
       {
@@ -104,7 +137,7 @@
             "severity": "error",
             "human": "If there is no component or hasMember element then either a value[x] or a data absent reason must be present",
             "expression": "(component.empty() and hasMember.empty()) implies (dataAbsentReason.exists() or value.exists())",
-            "source": "http://fhir.de/StructureDefinition/observation-de-vitalsign"
+            "source": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/monitoring-und-vitaldaten"
           }
         ],
         "mapping": [
@@ -913,7 +946,7 @@
         "comment": "In addition to the required category valueset, this element allows various categorization schemes based on the owner’s definition of the category and effectively multiple categories can be used at once.  The level of granularity is defined by the category concepts in the value set.",
         "requirements": "Used for filtering what observations are retrieved and displayed.",
         "min": 1,
-        "max": "1",
+        "max": "*",
         "base": {
           "path": "Observation.category",
           "min": 0,
@@ -994,7 +1027,7 @@
         "definition": "A code that classifies the general type of observation being made.",
         "comment": "In addition to the required category valueset, this element allows various categorization schemes based on the owner’s definition of the category and effectively multiple categories can be used at once.  The level of granularity is defined by the category concepts in the value set.",
         "requirements": "Used for filtering what observations are retrieved and displayed.",
-        "min": 0,
+        "min": 1,
         "max": "1",
         "base": {
           "path": "Observation.category",
@@ -7072,7 +7105,7 @@
           "min": 0,
           "max": "*"
         },
-        "contentReference": "#Observation.referenceRange",
+        "contentReference": "http://hl7.org/fhir/StructureDefinition/Observation#Observation.referenceRange",
         "mustSupport": true,
         "mapping": [
           {
@@ -7097,8 +7130,7 @@
             "key": "vs-de-2",
             "severity": "error",
             "human": "If there is no component or hasMember element then either a value[x] or a data absent reason must be present",
-            "expression": "(component.empty() and hasMember.empty()) implies (dataAbsentReason.exists() or value.exists())",
-            "source": "http://fhir.de/StructureDefinition/observation-de-vitalsign"
+            "expression": "(component.empty() and hasMember.empty()) implies (dataAbsentReason.exists() or value.exists())"
           }
         ]
       },
@@ -7146,13 +7178,13 @@
           "rules": "open"
         },
         "min": 1,
-        "max": "1",
         "mustSupport": true
       },
       {
         "id": "Observation.category:vs-cat",
         "path": "Observation.category",
         "sliceName": "vs-cat",
+        "min": 1,
         "max": "1",
         "patternCodeableConcept": {
           "coding": [
@@ -7221,8 +7253,7 @@
             "key": "code-coding-icu",
             "severity": "error",
             "human": "Es muss mindestens ein snomed oder loinc code vorhanden sein",
-            "expression": "coding.exists() implies coding.where(system = 'http://snomed.info/sct').exists() or coding.where(system = 'http://loinc.org').exists()",
-            "source": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/monitoring-und-vitaldaten"
+            "expression": "coding.exists() implies coding.where(system = 'http://snomed.info/sct').exists() or coding.where(system = 'http://loinc.org').exists()"
           }
         ],
         "mustSupport": true
