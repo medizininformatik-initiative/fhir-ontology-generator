@@ -1,0 +1,12 @@
+{
+    "name": "Spontane Mechanische Atemfrequenz Beatmet",
+    "resource_type": "Observation",
+    "context": {
+        "system": "fdpg.mii.icu",
+        "code": "Spontane Mechanische Atemfrequenz Beatmet",
+        "display": "Spontane Mechanische Atemfrequenz Beatmet",
+        "version": "1.0.0"
+    },
+    "term_code_defining_id": "Observation.code.coding:sct",
+    "time_restriction_defining_id": "Observation.effective[x]"
+}

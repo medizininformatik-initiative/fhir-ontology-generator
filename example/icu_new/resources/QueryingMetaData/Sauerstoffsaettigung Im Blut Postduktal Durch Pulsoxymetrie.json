@@ -1,0 +1,12 @@
+{
+    "name": "Sauerstoffsaettigung Im Blut Postduktal Durch Pulsoxymetrie",
+    "resource_type": "Observation",
+    "context": {
+        "system": "fdpg.mii.icu",
+        "code": "Sauerstoffsaettigung Im Blut Postduktal Durch Pulsoxymetrie",
+        "display": "Sauerstoffsaettigung Im Blut Postduktal Durch Pulsoxymetrie",
+        "version": "1.0.0"
+    },
+    "term_code_defining_id": "Observation.code.coding:sct",
+    "time_restriction_defining_id": "Observation.effective[x]"
+}

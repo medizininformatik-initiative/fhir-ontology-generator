@@ -1,0 +1,100 @@
+{
+    "name": "Blutdruck",
+    "resourceType": "StructureDefinition",
+    "id": "blutdruck",
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/blutdruck",
+    "version": "1.0.0",
+    "title": "Blutdruck",
+    "status": "active",
+    "fhirVersion": "4.0.1",
+    "kind": "resource",
+    "abstract": false,
+    "type": "Observation",
+    "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/blutdruck-generisch",
+    "differential": {
+        "element": [
+            {
+                "id": "Observation.code.coding:sct",
+                "path": "Observation.code.coding",
+                "sliceName": "sct",
+                "patternCoding": {
+                    "system": "http://snomed.info/sct"
+                }
+            },
+            {
+                "id": "Observation.component",
+                "path": "Observation.component",
+                "max": "3"
+            },
+            {
+                "id": "Observation.component:SystolicBP",
+                "path": "Observation.component",
+                "sliceName": "SystolicBP"
+            },
+            {
+                "id": "Observation.component:SystolicBP.code.coding:sct",
+                "path": "Observation.component.code.coding",
+                "sliceName": "sct",
+                "patternCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "271649006"
+                }
+            },
+            {
+                "id": "Observation.component:SystolicBP.code.coding:IEEE-11073",
+                "path": "Observation.component.code.coding",
+                "sliceName": "IEEE-11073",
+                "patternCoding": {
+                    "system": "urn:iso:std:iso:11073:10101",
+                    "code": "150017"
+                }
+            },
+            {
+                "id": "Observation.component:DiastolicBP",
+                "path": "Observation.component",
+                "sliceName": "DiastolicBP"
+            },
+            {
+                "id": "Observation.component:DiastolicBP.code.coding:sct",
+                "path": "Observation.component.code.coding",
+                "sliceName": "sct",
+                "patternCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "271650006"
+                }
+            },
+            {
+                "id": "Observation.component:DiastolicBP.code.coding:IEEE-11073",
+                "path": "Observation.component.code.coding",
+                "sliceName": "IEEE-11073",
+                "patternCoding": {
+                    "system": "urn:iso:std:iso:11073:10101",
+                    "code": "150018"
+                }
+            },
+            {
+                "id": "Observation.component:meanBP",
+                "path": "Observation.component",
+                "sliceName": "meanBP"
+            },
+            {
+                "id": "Observation.component:meanBP.code.coding:sct",
+                "path": "Observation.component.code.coding",
+                "sliceName": "sct",
+                "patternCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "6797001"
+                }
+            },
+            {
+                "id": "Observation.component:meanBP.code.coding:IEEE-11073",
+                "path": "Observation.component.code.coding",
+                "sliceName": "IEEE-11073",
+                "patternCoding": {
+                    "system": "urn:iso:std:iso:11073:10101",
+                    "code": "150019"
+                }
+            }
+        ]
+    }
+}

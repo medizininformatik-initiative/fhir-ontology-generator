@@ -1,0 +1,12 @@
+{
+    "name": "Linksventrikulaerer Schlagvolumenindex Durch Indikatorverduennung",
+    "resource_type": "Observation",
+    "context": {
+        "system": "fdpg.mii.icu",
+        "code": "Linksventrikulaerer Schlagvolumenindex Durch Indikatorverduennung",
+        "display": "Linksventrikulaerer Schlagvolumenindex Durch Indikatorverduennung",
+        "version": "1.0.0"
+    },
+    "term_code_defining_id": "Observation.code.coding:sct",
+    "time_restriction_defining_id": "Observation.effective[x]"
+}

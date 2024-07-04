@@ -1,0 +1,12 @@
+{
+    "name": "Pulmonalarterieller Blutdruck",
+    "resource_type": "Observation",
+    "context": {
+        "system": "fdpg.mii.icu",
+        "code": "Pulmonalarterieller Blutdruck",
+        "display": "Pulmonalarterieller Blutdruck",
+        "version": "1.0.0"
+    },
+    "term_code_defining_id": "Observation.code.coding:sct",
+    "time_restriction_defining_id": "Observation.effective[x]"
+}

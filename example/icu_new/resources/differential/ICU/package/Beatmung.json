@@ -1,0 +1,125 @@
+{
+    "name": "Beatmung",
+    "resourceType": "StructureDefinition",
+    "id": "beatmung",
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/beatmung",
+    "version": "1.0.0",
+    "title": "Beatmung",
+    "status": "active",
+    "fhirVersion": "4.0.1",
+    "kind": "resource",
+    "abstract": false,
+    "type": "Procedure",
+    "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/StructureDefinition/Procedure",
+    "differential": {
+        "element": [
+            {
+                "id": "Procedure.partOf",
+                "path": "Procedure.partOf",
+                "type": [
+                    {
+                        "code": "Reference",
+                        "profile": [
+                            "https://www.medizininformatik-initiative.de/fhir/core/StructureDefinition/MII-Reference"
+                        ],
+                        "targetProfile": [
+                            "http://hl7.org/fhir/StructureDefinition/Procedure",
+                            "http://hl7.org/fhir/StructureDefinition/Observation"
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": "Procedure.category",
+                "path": "Procedure.category",
+                "min": 1
+            },
+            {
+                "id": "Procedure.category.coding",
+                "path": "Procedure.category.coding"
+            },
+            {
+                "id": "Procedure.category.coding:sct",
+                "path": "Procedure.category.coding",
+                "sliceName": "sct",
+                "binding": {
+                    "strength": "required",
+                    "valueSet": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Category-Procedure-Beatmung-SNOMED"
+                }
+            },
+            {
+                "id": "Procedure.category.coding:sct.display",
+                "path": "Procedure.category.coding.display",
+                "mustSupport": true
+            },
+            {
+                "id": "Procedure.code.coding",
+                "path": "Procedure.code.coding"
+            },
+            {
+                "id": "Procedure.code.coding:sct",
+                "path": "Procedure.code.coding",
+                "sliceName": "sct",
+                "patternCoding": {
+                    "system": "http://snomed.info/sct"
+                },
+                "binding": {
+                    "strength": "required",
+                    "valueSet": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/MII-Code-Procedure-Beatmung-SNOMED"
+                }
+            },
+            {
+                "id": "Procedure.code.coding:sct.display",
+                "path": "Procedure.code.coding.display",
+                "mustSupport": true
+            },
+            {
+                "id": "Procedure.subject",
+                "path": "Procedure.subject",
+                "type": [
+                    {
+                        "code": "Reference",
+                        "targetProfile": [
+                            "http://hl7.org/fhir/StructureDefinition/Patient"
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": "Procedure.encounter",
+                "path": "Procedure.encounter",
+                "type": [
+                    {
+                        "code": "Reference",
+                        "profile": [
+                            "https://www.medizininformatik-initiative.de/fhir/core/StructureDefinition/MII-Reference"
+                        ]
+                    }
+                ],
+                "mustSupport": true
+            },
+            {
+                "id": "Procedure.performed[x]",
+                "path": "Procedure.performed[x]",
+                "type": [
+                    {
+                        "code": "Period"
+                    }
+                ]
+            },
+            {
+                "id": "Procedure.recorder",
+                "path": "Procedure.recorder",
+                "type": [
+                    {
+                        "code": "Reference",
+                        "profile": [
+                            "https://www.medizininformatik-initiative.de/fhir/core/StructureDefinition/MII-Reference"
+                        ]
+                    }
+                ],
+                "mustSupport": true
+            }
+        ]
+    }
+}

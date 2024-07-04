@@ -1,0 +1,67 @@
+{
+    "name": "Puls",
+    "resourceType": "StructureDefinition",
+    "id": "puls",
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/puls",
+    "version": "1.0.0",
+    "title": "Puls",
+    "status": "active",
+    "fhirVersion": "4.0.1",
+    "kind": "resource",
+    "abstract": false,
+    "type": "Observation",
+    "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/monitoring-und-vitaldaten",
+    "differential": {
+        "element": [
+            {
+                "id": "Observation.code.coding:sct",
+                "path": "Observation.code.coding",
+                "sliceName": "sct",
+                "patternCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "8499008"
+                }
+            },
+            {
+                "id": "Observation.code.coding:IEEE-11073",
+                "path": "Observation.code.coding",
+                "sliceName": "IEEE-11073",
+                "patternCoding": {
+                    "system": "urn:iso:std:iso:11073:10101",
+                    "code": "149514"
+                }
+            },
+            {
+                "id": "Observation.value[x]",
+                "path": "Observation.value[x]",
+                "min": 1
+            },
+            {
+                "id": "Observation.dataAbsentReason",
+                "path": "Observation.dataAbsentReason",
+                "max": "0"
+            },
+            {
+                "id": "Observation.bodySite.coding",
+                "path": "Observation.bodySite.coding",
+                "patternCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "11527006"
+                },
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.bodySite.coding.system",
+                "path": "Observation.bodySite.coding.system",
+                "min": 1,
+                "mustSupport": true
+            },
+            {
+                "id": "Observation.bodySite.coding.code",
+                "path": "Observation.bodySite.coding.code",
+                "min": 1,
+                "mustSupport": true
+            }
+        ]
+    }
+}

@@ -1,0 +1,12 @@
+{
+    "name": "Beatmungsvolumen Pro Minute Maschineller Beatmung",
+    "resource_type": "Observation",
+    "context": {
+        "system": "fdpg.mii.icu",
+        "code": "Beatmungsvolumen Pro Minute Maschineller Beatmung",
+        "display": "Beatmungsvolumen Pro Minute Maschineller Beatmung",
+        "version": "1.0.0"
+    },
+    "term_code_defining_id": "Observation.code.coding:sct",
+    "time_restriction_defining_id": "Observation.effective[x]"
+}

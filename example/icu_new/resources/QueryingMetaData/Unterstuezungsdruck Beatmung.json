@@ -1,0 +1,12 @@
+{
+    "name": "Unterstuezungsdruck Beatmung",
+    "resource_type": "Observation",
+    "context": {
+        "system": "fdpg.mii.icu",
+        "code": "Unterstuezungsdruck Beatmung",
+        "display": "Unterstuezungsdruck Beatmung",
+        "version": "1.0.0"
+    },
+    "term_code_defining_id": "Observation.code.coding:sct",
+    "time_restriction_defining_id": "Observation.effective[x]"
+}
