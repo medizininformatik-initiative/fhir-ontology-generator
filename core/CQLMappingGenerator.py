@@ -24,7 +24,6 @@ class CQLMappingGenerator(object):
         """
         self.querying_meta_data_resolver = querying_meta_data_resolver
         self.primary_paths = self.get_primary_paths_per_resource()
-        print(self.primary_paths)
         self.generated_mappings = []
         self.parser = parser
         self.data_set_dir: str = ""
@@ -139,21 +138,75 @@ class CQLMappingGenerator(object):
             cql_mapping.timeRestrictionFhirPath = self.translate_element_id_to_fhir_path_expressions_time_restriction(
                 time_defining_id, profile_snapshot)
         for attr_defining_id, attr_type in querying_meta_data.attribute_defining_id_type_map.items():
-            attribute_key = generate_attribute_key(attr_defining_id)
-            attribute_type = attr_type if attr_type else self.get_attribute_type(profile_snapshot,
-                                                                                 attr_defining_id)
-            # FIXME:
-            # This is a hack to change the attribute_type to upper-case Reference to match the FHIR Type while
-            # Fhir Search does not use the FHIR types...
-            attribute_type = "Reference" if attr_type == "reference" else attribute_type
-            attribute_fhir_path = self.translate_term_element_id_to_fhir_path_expression(attr_defining_id,
-                                                                                         profile_snapshot)
-            attribute = CQLAttributeSearchParameter(attribute_type, attribute_key, attribute_fhir_path)
-            if attribute_type == "Reference":
-                attribute.attributeReferenceTargetType = self.get_reference_type(profile_snapshot, attr_defining_id)
-            cql_mapping.add_attribute(attribute)
+            self.set_attribute_search_param(attr_defining_id, cql_mapping, attr_type, profile_snapshot)
 
         return cql_mapping
+
+    def set_attribute_search_param(self, attr_defining_id, cql_mapping, attr_type, profile_snapshot):
+        attribute_key = generate_attribute_key(attr_defining_id)
+        attribute_type = attr_type if attr_type else self.get_attribute_type(profile_snapshot,
+                                                                             attr_defining_id)
+        # FIXME:
+        # This is a hack to change the attribute_type to upper-case Reference to match the FHIR Type while
+        # Fhir Search does not use the FHIR types...
+        attribute_type = "Reference" if attr_type == "reference" else attribute_type
+        if attribute_type == "composite":
+            attribute_fhir_path = self.translate_composite_attribute_to_fhir_path_expression(
+                attr_defining_id, profile_snapshot)
+            attribute_key = self.get_composite_code(attr_defining_id, profile_snapshot)
+        else:
+            attribute_fhir_path = self.translate_term_element_id_to_fhir_path_expression(attr_defining_id,
+                                                                                         profile_snapshot)
+        attribute = CQLAttributeSearchParameter(attribute_type, attribute_key, attribute_fhir_path)
+        if attribute_type == "Reference":
+            attribute.attributeReferenceTargetType = self.get_reference_type(profile_snapshot, attr_defining_id)
+
+        cql_mapping.add_attribute(attribute)
+
+    def get_composite_code(self, attribute, profile_snapshot):
+        attribute_parsed = self.parser.get_element_defining_elements(attribute, profile_snapshot, self.module_dir,
+                                                                     self.data_set_dir)
+        if len(attribute_parsed) != 2:
+            raise ValueError("Composite search parameters must have exactly two elements")
+        where_clause_element = attribute_parsed[-1]
+        return self.parser.get_fixed_term_codes(where_clause_element, profile_snapshot, self.data_set_dir,
+                                                self.module_dir)
+
+    def translate_composite_attribute_to_fhir_path_expression(self, attribute, profile_snapshot):
+        elements = self.parser.get_element_defining_elements(attribute, profile_snapshot, self.module_dir,
+                                                             self.data_set_dir)
+        expressions = self.parser.translate_element_to_fhir_path_expression(elements, profile_snapshot)
+        value_clause = expressions[0]
+        composite_code = self.get_composite_code(attribute, profile_snapshot)[0]
+        updated_where_clause = f".where(code.coding.exists(system = {composite_code.system} and code = {composite_code.code}))"
+        # replace original where clause in attribute using string manipulation and regex
+        updated_attribute_path = re.sub(r"\.where\([^\)]*\)", f"{updated_where_clause}", attribute)
+
+        where_clause_match = re.search(r"\.where\([^\)]*\)", updated_attribute_path)
+        if where_clause_match:
+            where_clause = where_clause_match.group(0)
+            prefix = updated_attribute_path[:where_clause_match.end()]
+        else:
+            where_clause = ""
+            prefix = ""
+
+        # Find the common prefix dynamically
+        common_prefix_length = 0
+        for i in range(min(len(updated_attribute_path), len(value_clause))):
+            if updated_attribute_path[i] == value_clause[i]:
+                common_prefix_length = i + 1
+            else:
+                break
+
+        common_prefix = updated_attribute_path[:common_prefix_length]
+
+        # Remove the common prefix from expr2 to get the uncommon part
+        uncommon_expr2 = value_clause[len(common_prefix):]
+
+        # Construct the new expression
+        full_composite_path = prefix + "." + uncommon_expr2 if uncommon_expr2[0] != "." else prefix + uncommon_expr2
+
+        return full_composite_path
 
     def translate_term_element_id_to_fhir_path_expression(self, element_id, profile_snapshot) -> str:
         elements = self.parser.get_element_defining_elements(element_id, profile_snapshot, self.module_dir,

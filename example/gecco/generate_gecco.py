@@ -11,6 +11,7 @@ from FHIRProfileConfiguration import *
 from core.CQLMappingGenerator import CQLMappingGenerator
 from core.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
+from core.SearchParameterResolver import SearchParameterResolver
 from core.UIProfileGenerator import UIProfileGenerator
 from core.UITreeGenerator import UITreeGenerator
 from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, generate_result_folder, \
@@ -49,8 +50,11 @@ class GeccoDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
         key = fhir_profile_snapshot.get("name")
         mapping = self._get_query_meta_data_mapping()
         for value in mapping[key]:
-            with open(f"resources/QueryingMetaData/{value}QueryingMetaData.json", "r") as file:
-                result.append(ResourceQueryingMetaData.from_json(file))
+            try:
+                with open(f"resources/QueryingMetaData/{value}QueryingMetaData.json", "r") as file:
+                    result.append(ResourceQueryingMetaData.from_json(file))
+            except FileNotFoundError:
+                continue
         return result
 
     @staticmethod
@@ -305,6 +309,18 @@ def generate_gecco_tree():
     return create_terminology_definition_for(get_gecco_categories())
 
 
+class GeccoSearchParameterResolver(SearchParameterResolver):
+    def _load_module_search_parameters(self) -> List[Dict]:
+        params = []
+        for file in os.listdir("resources/search_parameter"):
+            if file.endswith(".json"):
+                with open(os.path.join("resources/search_parameter", file), "r", encoding="utf-8") as f:
+                    json_params = json.load(f)
+                    params += [entry.get("resource", {}) for entry in json_params["entry"]]
+        print(f"Loaded {len(params)} search parameters")
+        return params
+
+
 def denormalize_ui_profile_to_old_format(ui_tree: List[TermEntry], term_code_to_profile_name: Dict[TermCode, str],
                                          ui_profile_name_to_profile: Dict[str, UIProfile]):
     """
@@ -342,7 +358,7 @@ def denormalize_mapping_to_old_format(term_code_to_mapping_name, mapping_name_to
         try:
             mapping = copy.copy(mapping_name_to_mapping[mapping_name])
             mapping.key = context_and_term_code[1]
-            result.entries.add(mapping)
+            result.entries.append(mapping)
         except KeyError:
             print("No mapping found for term code " + context_and_term_code[1].code)
     return result
@@ -398,7 +414,8 @@ if __name__ == '__main__':
         v1_cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
         write_v1_mapping_to_file(v1_cql_mappings, "mapping-old")
 
-        fhir_search_generator = FHIRSearchMappingGenerator(resolver)
+        gecco_search_paramter_resolver = GeccoSearchParameterResolver()
+        fhir_search_generator = FHIRSearchMappingGenerator(resolver, gecco_search_paramter_resolver)
         fhir_search_mappings = fhir_search_generator.generate_mapping("resources/differential")
         fhir_search_term_code_mappings = fhir_search_mappings[0]
         fhir_search_concept_mappings = fhir_search_mappings[1]

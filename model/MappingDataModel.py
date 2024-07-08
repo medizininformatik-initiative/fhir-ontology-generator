@@ -42,16 +42,19 @@ class AttributeSearchParameter:
 
 
 class FhirSearchAttributeSearchParameter(AttributeSearchParameter):
-    def __init__(self, criteria_type: VALUE_TYPE_OPTIONS, attribute_code: TermCode, search_parameter: str):
+    def __init__(self, criteria_type: VALUE_TYPE_OPTIONS, attribute_code: TermCode, search_parameter: str,
+                 composite_code=None):
         """
         FhirSearchAttributeSearchParameter stores the information how to translate the attribute part of a criteria to a
         FHIR Search query snippet
         :param criteria_type defines the type of the criteria
         :param attribute_code defines the code of the attribute and acts as unique identifier within the ui_profile
         :param search_parameter defines the FHIR search parameter for the attribute
+        :param composite_code defines the composite code for the attribute
         """
         super().__init__(criteria_type, attribute_code)
         self.attributeSearchParameter = search_parameter
+        self.compositeCode = composite_code
 
 
 class CQLAttributeSearchParameter(AttributeSearchParameter):
@@ -89,9 +92,9 @@ class FhirMapping:
     def to_json(self):
         return json.dumps(self, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)
 
-    def add_attribute(self, attribute_type, attribute_key, attribute_search_parameter):
+    def add_attribute(self, attribute_type, attribute_key, attribute_search_parameter, composite_code=None):
         self.attributeSearchParameters.append(
-            FhirSearchAttributeSearchParameter(attribute_type, attribute_key, attribute_search_parameter))
+            FhirSearchAttributeSearchParameter(attribute_type, attribute_key, attribute_search_parameter, composite_code))
 
     #  only required for version 1 support
     def __eq__(self, other):
