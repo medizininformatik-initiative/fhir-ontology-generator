@@ -4,7 +4,7 @@ from typing import List
 
 import requests
 
-from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY
+from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, MAPPING_ONTO_VERSION
 from TerminologService.valueSetToRoots import create_vs_tree, expand_value_set
 from model.UiDataModel import TermCode
 
@@ -258,6 +258,14 @@ def get_value_set_definition(canonical_address: str, onto_server: str = TERMINOL
     :param onto_server: address of the terminology server
     :return: value set definition or None if no value set definition is available
     """
+
+    version = MAPPING_ONTO_VERSION.get("canonical_address")
+
+    if version:
+        canonical_address = f'{canonical_address}&system-version={version}'
+    else:
+        logging.debug("no version")
+
     response = requests.get(f"{onto_server}ValueSet/?url={canonical_address}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if response.status_code == 200:
         response_data = response.json()
