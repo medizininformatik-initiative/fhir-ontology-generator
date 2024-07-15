@@ -37,8 +37,6 @@ class SearchParameterResolver(ABC):
                 return orderedDict({joined_path: composite_search_parameter})
         raise ValueError("Composite search parameter not found.")
 
-
-
     def find_search_parameter(self, fhir_path_expressions: List[str]) -> OrderedDict[str, dict]:
         """
         Finds the search parameter for a fhir path expression. Only the shortest expression is considered
@@ -46,6 +44,7 @@ class SearchParameterResolver(ABC):
         :return: the search parameter
         :raises ValueError: if the search parameter could not be found
         """
+
         def shortened_path(fhir_path: str) -> str:
             """Returns the path without its last element."""
             return fhir_path.rsplit(".", 1)[0]

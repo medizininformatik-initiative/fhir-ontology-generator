@@ -198,7 +198,6 @@ def flatten(lst) -> List:
     :param lst: the list to flatten
     :return: the flattened list
     """
-    print(lst)
     if not isinstance(lst, list):
         yield lst
     else:

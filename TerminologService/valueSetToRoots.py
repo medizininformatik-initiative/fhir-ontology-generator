@@ -23,7 +23,6 @@ def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
         url = url.replace('|', '&version=')
     term_codes = SortedSet()
     response = requests.get(onto_server + f"ValueSet/$expand?url={url}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
-    print(response.status_code)
     if response.status_code == 200:
         value_set_data = response.json()
         global_version = None
@@ -50,7 +49,6 @@ def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
         print(response.content)
         return []
         # raise Exception(response.status_code, response.content)
-    print(term_codes)
     return term_codes
 
 
@@ -77,7 +75,7 @@ def create_vs_tree(canonical_url: str):
                         vs_dict[node].root = False
                         vs_dict[parent].leaf = False
     except Exception as e:
-        print(e)
+        print("Exception: ", e)
     return sorted([term_entry for term_entry in vs_dict.values() if term_entry.root])
 
 

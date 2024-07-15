@@ -269,7 +269,7 @@ def resolve_terminology_entry_profile(terminology_entry, element=None):
         if name in filename and "snapshot" in filename:
             with open("resources/differential/gecco/package" + "/" + filename, encoding="UTF-8") as profile_file:
                 profile_data = json.load(profile_file)
-                sub_trees = tree_generator.generate_ui_subtree(profile_data)
+                sub_trees = tree_generator.generate_ui_subtree(profile_data, "gecco")
                 if len(sub_trees) > 1:
                     terminology_entry.children += sub_trees
                     terminology_entry.leaf = False

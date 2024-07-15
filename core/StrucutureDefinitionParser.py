@@ -115,7 +115,6 @@ def parse(chained_fhir_element_id) -> List[str] | str:
     :param chained_fhir_element_id: the chained fhir element id
     :return: the parsed fhir element id
     """
-
     if '.where' in chained_fhir_element_id:
         main_part, condition_and_rest = chained_fhir_element_id.split('.where', 1)
         condition_part, rest_part = condition_and_rest.split(')', 1)

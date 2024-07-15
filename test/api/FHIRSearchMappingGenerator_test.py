@@ -3,9 +3,27 @@ import unittest
 
 from core.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
 from example.mii_core_data_set.generate_cds import MIICoreDataSetQueryingMetaDataResolver
+from example.gecco.generate_gecco import GeccoDataSetQueryingMetaDataResolver, GeccoSearchParameterResolver
 
 
 class MyTestCase(unittest.TestCase):
+
+    # def test_resolve_composite_code_quantity_search_parameter(self):
+    #     resolver = GeccoDataSetQueryingMetaDataResolver
+    #     gecco_search_parameter_resolver = GeccoSearchParameterResolver()
+    #     mapping_generator = FHIRSearchMappingGenerator(resolver)
+    #     mapping_generator.module_dir = "../../example/gecco/resources/differential/gecco/"
+    #     mapping_generator.data_set_dir = "../../example/gecco/resources/differential/"
+    #     with open("../../example/gecco/resources/differential/gecco/package/Profile-Observation-BloodPressure-snapshot.json") as f:
+    #         profile_snapshot = json.load(f)
+    #         actual_search_parameter = mapping_generator.resolve_fhir_search_parameter(
+    #             "Observation.component.where(Observation.component:systolicBloodPressure.code):systolicBloodPressure.value[x]",
+    #             profile_snapshot, "composite")
+    #         print(actual_search_parameter)
+    #         expected_search_parameter = [
+    #             "component-code-value-quantity"]
+    #         self.assertEqual(expected_search_parameter, actual_search_parameter)  # add assertion here
+
 
     def test_complex_specimen_id_to_path_translation(self):
         resolver = MIICoreDataSetQueryingMetaDataResolver()

@@ -169,6 +169,7 @@ class FHIRSearchMappingGenerator(object):
         if attribute_type == "composite":
             attribute_type = self.get_composite_attribute_type(attribute, profile_snapshot)
             composite_code = self.get_composite_code(attribute, profile_snapshot)
+            attribute_key = composite_code
         fhir_mapping.add_attribute(attribute_type, attribute_key,
                                    self._handle_search_parameter(attribute_type, attribute_search_params),
                                    composite_code)
