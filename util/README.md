@@ -11,10 +11,11 @@ The selection of the components to be merged can be done via script parameters, 
 ```
 --merge_sqldump
 ```
-| Var | Description | Example | Default |
-|--------|-------------|---------|--------|
-|ONTOPATH_JOINED|Output Path |example/joinTest/|-|
-|ONTOPATH_LEFT|Path of the base ontology the extension will be joined into|example/bildgebung_prelim/generated-ontology/|-|
-|ONTOPATH_RIGHT|Path of the extension ontology|example/dktk_oncology/generated-ontology/|-|
-|UITREE_DIR_LEFT|UI-tree folder for the base ontology|trees/|ui-trees/|
-|UITREE_DIR_RIGHT|UI-tree folder for the extension ontology|trees/|ui-trees/|
+| Var              | Description                                                 | Example                                       | Default   |
+|------------------|-------------------------------------------------------------|-----------------------------------------------|-----------|
+| ONTOPATH_JOINED  | Output Path                                                 | example/joinTest/                             | -         |
+| ONTOPATH_LEFT    | Path of the base ontology the extension will be joined into | example/bildgebung_prelim/generated-ontology/ | -         |
+| ONTOPATH_RIGHT   | Path of the extension ontology                              | example/dktk_oncology/generated-ontology/     | -         |
+| UITREE_DIR_LEFT  | UI-tree folder for the base ontology                        | trees/                                        | ui-trees/ |
+| UITREE_DIR_RIGHT | UI-tree folder for the extension ontology                   | trees/                                        | ui-trees/ |
+| SQL_SCRIPT_DIR   | Path to the different SQL Dumps                             | /tmp/sqldumps/                                |           |
