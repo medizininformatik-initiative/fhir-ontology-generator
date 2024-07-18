@@ -159,7 +159,6 @@ class PathlingAttributeSearchParameter(AttributeSearchParameter):
         self.attributePath = fhir_path
 
 
-
 @dataclass
 class PathlingMapping:
     """
@@ -199,10 +198,9 @@ class PathlingMapping:
         return hash(self.key)
 
 
-
 class MapEntryList:
     def __init__(self):
-        self.entries = SortedSet()
+        self.entries = []
 
     def to_json(self):
         self.entries = list(self.entries)

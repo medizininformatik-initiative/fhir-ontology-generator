@@ -4,7 +4,7 @@ from typing import List
 
 import requests
 
-from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY
+from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, MAPPING_ONTO_VERSION
 from TerminologService.valueSetToRoots import create_vs_tree, expand_value_set
 from model.UiDataModel import TermCode
 
@@ -24,8 +24,8 @@ def get_term_entries_from_onto_server(value_set_canonical_url: str):
     print(value_set_canonical_url)
     # In Gecco 1.04 all icd10 elements with children got removed this brings them back. Requires matching valuesSets on
     # Ontoserver
-    if value_set_canonical_url.endswith("icd"):
-        value_set_canonical_url = value_set_canonical_url + "-with-parent"
+    # if value_set_canonical_url.endswith("icd"):
+    #     value_set_canonical_url = value_set_canonical_url + "-with-parent"
     result = create_vs_tree(value_set_canonical_url)
     if len(result) < 1:
         raise Exception("ERROR", value_set_canonical_url)
@@ -256,18 +256,33 @@ def get_value_set_definition(canonical_address: str, onto_server: str = TERMINOL
     Get the value set definition from the terminology server based on the canonical address.
     :param canonical_address: canonical address of the value set
     :param onto_server: address of the terminology server
-    :return: value set definition or None if no value set definition is available
+    :return: value set definition or an empty dict if no value set definition is available
     """
-    response = requests.get(f"{onto_server}ValueSet/?url={canonical_address}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
+    version = MAPPING_ONTO_VERSION.get(canonical_address)  # Ensure we get the correct value for the address
+
+    if version:
+        canonical_address = f'{canonical_address}&system-version={version}'
+    else:
+        logging.debug(f"No version found for canonical address: {canonical_address}")
+
+    try:
+        response = requests.get(f"{onto_server}ValueSet/?url={canonical_address}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Request failed: {e}")
+        return {}
+
     if response.status_code == 200:
         response_data = response.json()
         for entry in response_data.get("entry", []):
-            if resource := entry.get("resource"):
-                if "id" in resource:
-                    return get_value_set_definition_by_id(resource["id"], onto_server)
-    print(canonical_address)
-    return {}
+            resource = entry.get("resource")
+            if resource and "id" in resource:
+                return get_value_set_definition_by_id(resource["id"], onto_server)
+    else:
+        logging.warning(f"Failed to retrieve value set definition. Status code: {response.status_code}")
 
+    logging.info(f"Canonical address processed: {canonical_address}")
+    return {}
 
 # TODO: Check if we can use that for any resource type
 def get_value_set_definition_by_id(value_set_id: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS) -> dict:

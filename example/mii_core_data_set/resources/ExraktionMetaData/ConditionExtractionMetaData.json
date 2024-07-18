@@ -1,0 +1,29 @@
+{
+  "name": "ConditionExtractionMetaData",
+  "paths_of_interest": [
+    {
+      "type": "String",
+      "name": "clinicalStatus",
+      "path": "Condition.clinicalStatus.coding[0].display"
+    },
+    {
+      "type": "CodeableConcept",
+      "name": "code",
+      "paths": [
+        {
+          "path": "Condition.code.coding[0].system",
+          "name": "system"
+        },
+        {
+          "path": "Condition.code.coding[0].code",
+          "name": "code"
+        },
+        {
+          "path": "Condition.code.coding[0].display",
+          "name": "display"
+        }
+      ]
+    },
+
+  ]
+}

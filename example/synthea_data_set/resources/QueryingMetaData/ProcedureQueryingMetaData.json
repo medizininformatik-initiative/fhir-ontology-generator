@@ -1,0 +1,12 @@
+{
+  "name": "Procedure",
+  "resource_type": "Procedure",
+  "context": {
+    "system": "fdpg.mii.synthea",
+    "code": "Procedure",
+    "display": "Prozedur",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "Procedure.code.coding:sct",
+  "time_restriction_defining_id": "Procedure.performed[x]"
+}
