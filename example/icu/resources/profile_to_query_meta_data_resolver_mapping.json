@@ -1,25 +1,248 @@
 {
-  "Extrakorporale Verfahren": [
-    "Extrakorporale Verfahren"
-  ],
-  "Beatmung": [
-    "Beatmung"
-  ],
-  "Monitoring und Vitaldaten": [
-    "Monitoring und Vitaldaten"
-  ],
-  "Blutdruck": [
-    "Blutdruck"
-  ],
-  "Körpertemperatur": [
-    "Körpertemperatur"
-  ],
-  "Sauerstoffsättigung im arteriellen Blut (Pulsoxy)":
-  [
-    "Sauerstoffsättigung im arteriellen Blut (Pulsoxy)"
-  ],
-  "Herzfrequenz": 
-  [
-    "Herzfrequenz"
-  ]
+    "Arterieller Druck": [
+        "Arterieller Druck"
+    ],
+    "Arterieller Druck": [
+        "Arterieller Druck_loinc"
+    ],
+    "Atemfrequenz": [
+        "Atemfrequenz"
+    ],
+    "Atemwegsdruck Bei Mittlerem Expiratorischem Gasfluss": [
+        "Atemwegsdruck Bei Mittlerem Expiratorischem Gasfluss"
+    ],
+    "Atemwegsdruck Bei Null Expiratorischem Gasfluss": [
+        "Atemwegsdruck Bei Null Expiratorischem Gasfluss"
+    ],
+    "Atemzugvolumen Einstellung": [
+        "Atemzugvolumen Einstellung"
+    ],
+    "Atemzugvolumen Waehrend Beatmung": [
+        "Atemzugvolumen Waehrend Beatmung"
+    ],
+    "Beatmung": [
+        "Beatmung"
+    ],
+    "Beatmungsvolumen Pro Minute Maschineller Beatmung": [
+        "Beatmungsvolumen Pro Minute Maschineller Beatmung"
+    ],
+    "Beatmungszeit Hohem Druck": [
+        "Beatmungszeit Hohem Druck"
+    ],
+    "Beatmungszeit Niedrigem Druck": [
+        "Beatmungszeit Niedrigem Druck"
+    ],
+    "Blutdruck": [
+        "Blutdruck"
+    ],
+    "Blutfluss Cardiovasculaeres Geraet": [
+        "Blutfluss Cardiovasculaeres Geraet"
+    ],
+    "Blutfluss Extrakorporaler Gasaustausch": [
+        "Blutfluss Extrakorporaler Gasaustausch"
+    ],
+    "Druckdifferenz Beatmung": [
+        "Druckdifferenz Beatmung"
+    ],
+    "Dynamische Kompliance": [
+        "Dynamische Kompliance"
+    ],
+    "Eingestellter Inspiratorischer Gasfluss": [
+        "Eingestellter Inspiratorischer Gasfluss"
+    ],
+    "Einstellung Ausatmungszeit Beatmung": [
+        "Einstellung Ausatmungszeit Beatmung"
+    ],
+    "Einstellung Einatmungszeit Beatmung": [
+        "Einstellung Einatmungszeit Beatmung"
+    ],
+    "Endexpiratorischer Kohlendioxidpartialdruck": [
+        "Endexpiratorischer Kohlendioxidpartialdruck"
+    ],
+    "Exspiratorischer Gasfluss": [
+        "Exspiratorischer Gasfluss"
+    ],
+    "Exspiratorischer Sauerstoffpartialdruck": [
+        "Exspiratorischer Sauerstoffpartialdruck"
+    ],
+    "Extrakorporales Verfahren": [
+        "Extrakorporales Verfahren"
+    ],
+    "Herzzeitvolumen": [
+        "Herzzeitvolumen"
+    ],
+    "Horowitz In Arteriellem Blut": [
+        "Horowitz In Arteriellem Blut"
+    ],
+    "Ideales Koerpergewicht": [
+        "Ideales Koerpergewicht"
+    ],
+    "Inspiratorische Sauerstofffraktion Eingestellt": [
+        "Inspiratorische Sauerstofffraktion Eingestellt"
+    ],
+    "Inspiratorische Sauerstofffraktion": [
+        "Inspiratorische Sauerstofffraktion"
+    ],
+    "Inspiratorischer Gasfluss": [
+        "Inspiratorischer Gasfluss"
+    ],
+    "Intrakranieller Druck ICP": [
+        "Intrakranieller Druck ICP"
+    ],
+    "Koerpertemperatur Achsel": [
+        "Koerpertemperatur Achsel"
+    ],
+    "Koerpertemperatur Atemwege": [
+        "Koerpertemperatur Atemwege"
+    ],
+    "Koerpertemperatur Blut": [
+        "Koerpertemperatur Blut"
+    ],
+    "Koerpertemperatur Brust": [
+        "Koerpertemperatur Brust"
+    ],
+    "Koerpertemperatur Brustwirbelsaeule": [
+        "Koerpertemperatur Brustwirbelsaeule"
+    ],
+    "Koerpertemperatur Gelenk": [
+        "Koerpertemperatur Gelenk"
+    ],
+    "Koerpertemperatur Generisch": [
+        "Koerpertemperatur Generisch"
+    ],
+    "Koerpertemperatur Halswirbelsaeule": [
+        "Koerpertemperatur Halswirbelsaeule"
+    ],
+    "Koerpertemperatur Harnblase": [
+        "Koerpertemperatur Harnblase"
+    ],
+    "Koerpertemperatur Leiste": [
+        "Koerpertemperatur Leiste"
+    ],
+    "Koerpertemperatur Lendenwirbelsaeule": [
+        "Koerpertemperatur Lendenwirbelsaeule"
+    ],
+    "Koerpertemperatur Myokard": [
+        "Koerpertemperatur Myokard"
+    ],
+    "Koerpertemperatur nasal": [
+        "Koerpertemperatur nasal"
+    ],
+    "Koerpertemperatur Nasen-Rachen-Raum": [
+        "Koerpertemperatur Nasen-Rachen-Raum"
+    ],
+    "Koerpertemperatur rektal": [
+        "Koerpertemperatur rektal"
+    ],
+    "Koerpertemperatur Speiseroehre": [
+        "Koerpertemperatur Speiseroehre"
+    ],
+    "Koerpertemperatur Stirn": [
+        "Koerpertemperatur Stirn"
+    ],
+    "Koerpertemperatur Trommelfell": [
+        "Koerpertemperatur Trommelfell"
+    ],
+    "Koerpertemperatur unter der Zunge": [
+        "Koerpertemperatur unter der Zunge"
+    ],
+    "Koerpertemperatur vaginal": [
+        "Koerpertemperatur vaginal"
+    ],
+    "Linksatrialer Druck": [
+        "Linksatrialer Druck"
+    ],
+    "Linksventrikulaerer Druck": [
+        "Linksventrikulaerer Druck"
+    ],
+    "Linksventrikulaerer Herzindex durch Indikatorverduennung": [
+        "Linksventrikulaerer Herzindex durch Indikatorverduennung"
+    ],
+    "Linksventrikulaerer Herzindex": [
+        "Linksventrikulaerer Herzindex"
+    ],
+    "Linksventrikulaerer Schlagvolumenindex Durch Indikatorverduennung": [
+        "Linksventrikulaerer Schlagvolumenindex Durch Indikatorverduennung"
+    ],
+    "Linksventrikulaeres Herzzeitvolumen Durch Indikatorverduennung": [
+        "Linksventrikulaeres Herzzeitvolumen Durch Indikatorverduennung"
+    ],
+    "Linksventrikulaeres Schlagvolumen Durch Indikatorverduennung": [
+        "Linksventrikulaeres Schlagvolumen Durch Indikatorverduennung"
+    ],
+    "Linksventrikulaeres Schlagvolumen": [
+        "Linksventrikulaeres Schlagvolumen"
+    ],
+    "Linksventrikulaeres Schlagvolumenindex": [
+        "Linksventrikulaeres Schlagvolumenindex"
+    ],
+    "Maximaler Beatmungsdruck": [
+        "Maximaler Beatmungsdruck"
+    ],
+    "Mechanische Atemfrequenz Beatmet": [
+        "Mechanische Atemfrequenz Beatmet"
+    ],
+    "Mittlerer Beatmungsdruck": [
+        "Mittlerer Beatmungsdruck"
+    ],
+    "Monitoring und Vitaldaten": [
+        "Monitoring und Vitaldaten"
+    ],
+    "Positiv Endexpiratorischer Druck": [
+        "Positiv Endexpiratorischer Druck"
+    ],
+    "Pulmonalarterieller Blutdruck": [
+        "Pulmonalarterieller Blutdruck"
+    ],
+    "Pulmonalarterieller Wedge Druck": [
+        "Pulmonalarterieller Wedge Druck"
+    ],
+    "Pulmonalvaskulaerer Widerstandsindex": [
+        "Pulmonalvaskulaerer Widerstandsindex"
+    ],
+    "Puls": [
+        "Puls"
+    ],
+    "Rechtsatrialer Druck": [
+        "Rechtsatrialer Druck"
+    ],
+    "Rechtsventrikulaerer Druck": [
+        "Rechtsventrikulaerer Druck"
+    ],
+    "Sauerstoffgasfluss": [
+        "Sauerstoffgasfluss"
+    ],
+    "Sauerstoffsaettigung Im Arteriellen Blut Durch Pulsoxymetrie": [
+        "Sauerstoffsaettigung Im Arteriellen Blut Durch Pulsoxymetrie"
+    ],
+    "Sauerstoffsaettigung Im Blut Postduktal Durch Pulsoxymetrie": [
+        "Sauerstoffsaettigung Im Blut Postduktal Durch Pulsoxymetrie"
+    ],
+    "Sauerstoffsaettigung Im Blut Preduktal Durch Pulsoxymetrie": [
+        "Sauerstoffsaettigung Im Blut Preduktal Durch Pulsoxymetrie"
+    ],
+    "Spontane Atemfrequenz Beatmet": [
+        "Spontane Atemfrequenz Beatmet"
+    ],
+    "Spontane Mechanische Atemfrequenz Beatmet": [
+        "Spontane Mechanische Atemfrequenz Beatmet"
+    ],
+    "Spontanes Atemzugvolumen": [
+        "Spontanes Atemzugvolumen"
+    ],
+    "Spontanes Mechanisches Atemzugvolumen Waehrend Beatmung": [
+        "Spontanes Mechanisches Atemzugvolumen Waehrend Beatmung"
+    ],
+    "Unterstuezungsdruck Beatmung": [
+        "Unterstuezungsdruck Beatmung"
+    ],
+    "Venoeser Druck": [
+        "Venoeser Druck"
+    ],
+    "Zeitverhaeltnis Ein Ausatmung": [
+        "Zeitverhaeltnis Ein Ausatmung"
+    ],
+    "Zentralvenoeser Blutdruck": [
+        "Zentralvenoeser Blutdruck"
+    ]
 }
