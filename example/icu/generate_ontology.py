@@ -27,6 +27,7 @@ from model.termCodeTree import to_term_code_node
 
 WINDOWS_RESERVED_CHARACTERS = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
 
+
 class StandardDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
     def __init__(self):
         super().__init__()
@@ -34,9 +35,7 @@ class StandardDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
     def get_query_meta_data(self, fhir_profile_snapshot: dict, _context: TermCode) -> List[ResourceQueryingMetaData]:
         result = []
         profile_name = fhir_profile_snapshot.get("name")
-        print(profile_name)
         mapping = self._get_query_meta_data_mapping()
-        print(mapping)
         for metadata_name in mapping[profile_name]:
             with open(f"resources/QueryingMetaData/{metadata_name}.json", "r") as file:
                 result.append(ResourceQueryingMetaData.from_json(file))
@@ -88,7 +87,6 @@ def write_ui_trees_to_files(trees: List[TermEntry], directory: str = "ui-trees")
 
 
 def write_cds_ui_profile(module_category_entry):
-
     f = open("ui-profiles/" + module_category_entry.display + ".json", 'w', encoding="utf-8")
     if len(module_category_entry.children) == 1:
         f.write(module_category_entry.children[0].to_json())
@@ -160,10 +158,11 @@ def configure_args_parser():
     arg_parser.add_argument('--generate_ui_profiles', action='store_true')
     arg_parser.add_argument('--generate_mapping', action='store_true')
     arg_parser.add_argument("--loglevel", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], default="INFO",
-                        help="Set the log level")
+                            help="Set the log level")
     return arg_parser
 
-def generate_result_folder(onto_dir = ""):
+
+def generate_result_folder(onto_dir=""):
     """
     Generates the mapping, csv and ui-profiles folder if they do not exist in the result folder
     :return:
@@ -182,6 +181,7 @@ def generate_result_folder(onto_dir = ""):
     mkdir_if_not_exists(f"{onto_dir}csv")
     mkdir_if_not_exists(f"{onto_dir}ui-profiles")
     mkdir_if_not_exists(f"{onto_dir}ui-profiles-old")
+
 
 def remove_reserved_characters(file_name):
     return file_name.translate({ord(c): None for c in WINDOWS_RESERVED_CHARACTERS})
@@ -220,10 +220,12 @@ def write_mapping_to_file(mapping, mapping_folder="mapping-old"):
         f.write(mapping.to_json())
     f.close()
 
+
 def write_mapping_tree_to_file(tree, mapping_tree_folder="mapping-tree"):
     with open(mapping_tree_folder + "/mapping_tree.json", 'w', encoding="utf-8") as f:
         f.write(tree.to_json())
     f.close()
+
 
 def validate_fhir_mapping(mapping_name: str):
     """
@@ -235,6 +237,7 @@ def validate_fhir_mapping(mapping_name: str):
     f = open("generated-ontology/mapping/fhir/" + mapping_name + ".json", 'r')
     validate(instance=json.load(f), schema=json.load(open("../../resources/schema/fhir-mapping-schema.json")))
 
+
 def validate_mapping_tree(tree_name: str, mapping_tree_folder="mapping-tree"):
     """
     Validates the mapping tree with the given name against the mapping tree schema
@@ -244,6 +247,7 @@ def validate_mapping_tree(tree_name: str, mapping_tree_folder="mapping-tree"):
     """
     f = open(f'{mapping_tree_folder}/{tree_name}.json', 'r')
     validate(instance=json.load(f), schema=json.load(open("../../resources/schema/codex-code-tree-schema.json")))
+
 
 def setup_logging(log_level):
     # Configure logging
@@ -259,6 +263,7 @@ def setup_logging(log_level):
     logger.addHandler(stream_handler)
 
     return logger
+
 
 if __name__ == '__main__':
 
@@ -277,7 +282,8 @@ if __name__ == '__main__':
 
     container = client.containers.run("postgres:latest", detach=True, ports={'5432/tcp': 5430},
                                       name="test_db",
-                                      volumes={f"{os.getcwd()}/generated-ontology": {'bind': '/opt/db_data', 'mode': 'rw'}},
+                                      volumes={
+                                          f"{os.getcwd()}/generated-ontology": {'bind': '/opt/db_data', 'mode': 'rw'}},
                                       environment={
                                           'POSTGRES_USER': 'codex-postgres',
                                           'POSTGRES_PASSWORD': 'codex-password',
@@ -300,7 +306,6 @@ if __name__ == '__main__':
         log.info(f"# Generating Snapshots...")
         with open("resources/required_packages.json", "r") as f:
             required_packages = json.load(f)
-
         generate_snapshots(differential_folder)
         generate_snapshots(differential_folder, required_packages)
 
@@ -314,7 +319,7 @@ if __name__ == '__main__':
 
         mapping_tree = to_term_code_node(ui_trees)
         write_mapping_tree_to_file(mapping_tree, f'{onto_result_dir}/mapping')
-        validate_mapping_tree("mapping_tree", f'{onto_result_dir}/mapping' )
+        validate_mapping_tree("mapping_tree", f'{onto_result_dir}/mapping')
 
     if args.generate_ui_profiles:
         log.info(f"# Generating UI Profiles...")
@@ -338,7 +343,7 @@ if __name__ == '__main__':
         cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
         write_mapping_to_file(cql_mappings, f'{onto_result_dir}/mapping')
 
-        #FHIR
+        # FHIR
         log.info(f"# Generating FHIR Mapping...")
         search_parameter_resolver = StandardSearchParameterResolver()
         fhir_search_generator = FHIRSearchMappingGenerator(resolver, search_parameter_resolver)
@@ -346,11 +351,9 @@ if __name__ == '__main__':
             differential_folder)
 
         fhir_search_mapping = denormalize_mapping_to_old_format(fhir_search_term_code_mappings,
-                                                                   fhir_search_concept_mappings)
+                                                                fhir_search_concept_mappings)
         write_mapping_to_file(fhir_search_mapping, f'{onto_result_dir}/mapping')
         validate_fhir_mapping("mapping_fhir")
-
-
 
     container.stop()
     container.remove()

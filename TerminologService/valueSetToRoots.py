@@ -22,8 +22,7 @@ def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
     if '|' in url:
         url = url.replace('|', '&version=')
     term_codes = SortedSet()
-    response = requests.get(onto_server + f"ValueSet/$expand?url={url}" + '&system-version=http%3A%2F%2Fsnomed.info%2Fsct|http%3A%2F%2Fsnomed.info%2Fsct%2F900000000000207008%2Fversion%2F20240101', cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
-
+    response = requests.get(onto_server + f"ValueSet/$expand?url={url}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if response.status_code == 200:
         value_set_data = response.json()
         global_version = None
@@ -44,46 +43,12 @@ def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
             else:
                 version = global_version
             term_code = TermCode(system, code, display, version)
-        term_codes.add(term_code)
-        return term_codes
-
+            term_codes.add(term_code)
     else:
-        #response = requests.get(onto_server + f"ValueSet?url={url}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
-        #response_json = response.json()
-        #full_set_url = response_json['entry'][0]['fullUrl']
-        #response_full_set = requests.get(full_set_url,
-#                                         cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
-
-        #print(response_full_set.json())
-        #value_set_data = response_full_set.json()
-        #if (value_set_data['resourceType'] == 'ValueSet') and response.status_code == 200:
-            #return read_valueSet(value_set_data)
-        #else:
-        return []
         print(f"Error expanding {url}")
         raise Exception(response.status_code, response.content)
+        return []
 
-def read_valueSet(valueSet):
-    """
-    Extracts term codes from a ValueSet resource.
-    :param valueSet: ValueSet resource JSON object
-    :return: set of term codes contained in the ValueSet
-    """
-    term_codes = set()
-    global_version = valueSet.get("meta", {}).get("versionId", "1.0.0")
-
-    if "compose" in valueSet and "include" in valueSet["compose"]:
-        include = valueSet["compose"]["include"]
-        for concept in include:
-            if "concept" in concept:
-                for item in concept["concept"]:
-                    system = concept.get("system", "")
-                    code = item.get("code", "")
-                    display = item.get("display", "")
-                    version = item.get("version", "1.0.0")  # Set default version if not present
-                    term_code = TermCode(system, code, display, global_version)
-                    term_codes.add(term_code)
-    print(term_codes)
     return term_codes
 
 
@@ -149,7 +114,6 @@ def get_closure_map(term_codes):
                                       "version": f"{term_code.version}"
                                   }})
     headers = {"Content-type": "application/fhir+json"}
-    print(body)
     response = requests.post(TERMINOLOGY_SERVER_ADDRESS + "$closure", json=body, headers=headers,
                              cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if response.status_code == 200:

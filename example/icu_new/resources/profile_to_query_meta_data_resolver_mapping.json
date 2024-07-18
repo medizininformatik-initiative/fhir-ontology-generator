@@ -1,0 +1,17 @@
+{
+  "SD_MII_ICU_Arterieller_Blutdruck": [
+    "Arterieller_Blutdruck"
+  ],
+  "SD_MII_ICU_Beatmung": [
+    "Beatmung"
+  ],
+  "SD_MII_ICU_Extrakorporales_Verfahren": [
+    "ExtrakorporalesVerfahren"
+  ],
+  "SD_MII_ICU_Herzfrequenz": [
+    "Herzfrequenz"
+  ],
+  "SD_MII_ICU_Monitoring_Und_Vitaldaten": [
+    "MonitoringUndVitaldaten"
+  ]
+}
