@@ -4,7 +4,7 @@ from typing import List
 
 import requests
 
-from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY
+from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, MAPPING_ONTO_VERSION
 from TerminologService.valueSetToRoots import create_vs_tree, expand_value_set
 from model.UiDataModel import TermCode
 
