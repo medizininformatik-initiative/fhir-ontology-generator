@@ -129,7 +129,7 @@ def denormalize_mapping_to_old_format(term_code_to_mapping_name, mapping_name_to
             mapping = copy.copy(mapping_name_to_mapping[mapping_name])
             mapping.key = context_and_term_code[1]
             mapping.context = context_and_term_code[0]
-            result.entries.add(mapping)
+            result.entries.append(mapping)
         except KeyError:
             print("No mapping found for term code " + context_and_term_code[1].code)
     return result
