@@ -1,4 +1,5 @@
 import bisect
+import logging
 from typing import List
 
 import requests
@@ -6,7 +7,7 @@ import locale
 
 from sortedcontainers import SortedSet
 
-from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY
+from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, MAPPING_ONTO_VERSION
 from model.UiDataModel import TermCode, TermEntry
 
 locale.setlocale(locale.LC_ALL, 'de_DE')
@@ -22,7 +23,23 @@ def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
     if '|' in url:
         url = url.replace('|', '&version=')
     term_codes = SortedSet()
-    response = requests.get(onto_server + f"ValueSet/$expand?url={url}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
+    version = MAPPING_ONTO_VERSION.get('canonical_address')
+    onto_server = TERMINOLOGY_SERVER_ADDRESS
+
+    if version:
+        canonical_address = f"ValueSet/$expand?url={url}&system-version={version}"
+    else:
+        canonical_address = f"ValueSet/$expand?url={url}"
+        logging.debug(f"No version found for canonical address: {canonical_address}")
+
+    complete_url = onto_server + canonical_address
+    print(complete_url)
+    try:
+        response = requests.get(complete_url, cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        logging.error(f"An error occurred while requesting the ontology server: {e}")
+
     print(response.status_code)
     if response.status_code == 200:
         value_set_data = response.json()
@@ -50,7 +67,6 @@ def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
         print(response.content)
         return []
         # raise Exception(response.status_code, response.content)
-    print(term_codes)
     return term_codes
 
 
