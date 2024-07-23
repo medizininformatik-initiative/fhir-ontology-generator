@@ -111,8 +111,8 @@ def pattern_coding_to_termcode(element):
 
 def pattern_quantity_to_termcode(element):
     """
-    Converts a patternCoding to a term code
-    :param element: element node from the snapshot with a patternCoding
+    Converts a patternQuantity to a term code
+    :param element: element node from the snapshot with a patternQuantity
     :return: term code
     """
     code = element["patternQuantity"]["code"]
