@@ -8,5 +8,6 @@
         "version": "1.0.0"
     },
     "term_code_defining_id": "Observation.code.coding:loinc",
-    "time_restriction_defining_id": "Observation.effective[x]"
+    "time_restriction_defining_id": "Observation.effective[x]",
+    "value_defining_id": "Observation.value[x]:valueQuantity"
 }

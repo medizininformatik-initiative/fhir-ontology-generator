@@ -1,10 +1,11 @@
 {
-  "name": "Herzfrequenz",
-  "resource_type": "Observation",
-  "context": {
-    "system": "mii.icu",
-    "code": "ICU",
-    "display": "Herzfrequenz"
-  },
-  "term_code_defining_id": "Observation.code.coding:sct"
+    "name": "Herzfrequenz",
+    "resource_type": "Observation",
+    "context": {
+        "system": "mii.icu",
+        "code": "ICU",
+        "display": "Herzfrequenz"
+    },
+    "term_code_defining_id": "Observation.code.coding:sct",
+    "value_defining_id": "Observation.value[x]"
 }

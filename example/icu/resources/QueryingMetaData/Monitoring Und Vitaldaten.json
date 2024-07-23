@@ -1,10 +1,10 @@
 {
-    "name": "Koerpertemperatur Trommelfell",
+    "name": "Monitoring Und Vitaldaten",
     "resource_type": "Observation",
     "context": {
         "system": "fdpg.mii.icu",
-        "code": "Koerpertemperatur Trommelfell",
-        "display": "Koerpertemperatur Trommelfell",
+        "code": "Monitoring Und Vitaldaten",
+        "display": "Monitoring Und Vitaldaten",
         "version": "1.0.0"
     },
     "term_code_defining_id": "Observation.code.coding:sct",
