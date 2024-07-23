@@ -109,6 +109,20 @@ def pattern_coding_to_termcode(element):
     term_code = TermCode(system, code, display)
     return term_code
 
+def pattern_quantity_to_termcode(element):
+    """
+    Converts a patternCoding to a term code
+    :param element: element node from the snapshot with a patternCoding
+    :return: term code
+    """
+    code = element["patternQuantity"]["code"]
+    system = element["patternQuantity"]["system"]
+    display = get_term_code_display_from_onto_server(system, code)
+    if display.isupper():
+        display = display.title()
+    term_code = TermCode(system, code, display)
+    return [term_code]
+
 
 def pattern_codeable_concept_to_termcode(element):
     """

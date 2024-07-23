@@ -4,7 +4,7 @@ import json
 import os
 from typing import Dict, Tuple, List
 
-from TerminologService.ValueSetResolver import get_termcodes_from_onto_server
+from TerminologService.ValueSetResolver import get_termcodes_from_onto_server, pattern_quantity_to_termcode
 from core import ResourceQueryingMetaDataResolver
 from core import StrucutureDefinitionParser as FHIRParser
 from core.StrucutureDefinitionParser import InvalidValueTypeException, UCUM_SYSTEM, get_binding_value_set_url, \
@@ -113,6 +113,7 @@ class UIProfileGenerator:
         :return: value definition
         :raises InvalidValueTypeException: if the value type is not supported
         """
+        print(profile_snapshot.get("name"))
         value_defining_element = self.parser.resolve_defining_id(profile_snapshot, querying_meta_data.value_defining_id,
                                                                  self.data_set_dir, self.module_dir)
         value_type = querying_meta_data.value_type if querying_meta_data.value_type else \
@@ -130,12 +131,17 @@ class UIProfileGenerator:
                                                                                       profile_snapshot.get("name"))
         elif value_type == "quantity":
             # "Observation.valueQuantity" -> "Observation.valueQuantity.code"
-            unit_defining_path = value_defining_element.get("path") + ".code"
-            unit_defining_elements = self.parser.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
-            if len(unit_defining_elements) > 1:
-                raise Exception(f"More than one element found for path {unit_defining_path}")
-            value_definition.allowedUnits = self.parser.get_units(unit_defining_elements[0],
-                                                                  profile_snapshot.get("name"))
+            #unit_defining_path = value_defining_element.get("path") + ".code"
+            #unit_defining_elements = self.parser.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
+            #if len(unit_defining_elements) > 1:
+                #for element in profile_snapshot["snapshot"]["element"]:
+            if "patternQuantity" in value_defining_element:
+                if "code" in value_defining_element["patternQuantity"]:
+                    value_definition.type = "quantity"
+                    value_definition.allowedUnits = pattern_quantity_to_termcode(value_defining_element)
+            else:
+                value_definition.allowedUnits = self.parser.get_units(value_defining_element,
+                                                                      profile_snapshot.get("name"))
         elif value_type == "Age":
             value_definition.type = "quantity"
             # TODO: This could be the better option once the ValueSet is available, but then we might want to limit the
