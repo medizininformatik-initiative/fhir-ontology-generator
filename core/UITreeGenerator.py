@@ -7,7 +7,7 @@ from TerminologService.ValueSetResolver import get_term_entries_from_onto_server
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from helper import is_structure_definition
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
-from model.UiDataModel import TermEntry, TermCode
+from model.UiDataModel import TermEntry, TermCode, Module
 
 
 class UITreeGenerator(ResourceQueryingMetaDataResolver):
@@ -78,7 +78,10 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
                 print(f"Term code defining id: {applicable_querying_meta_data.term_code_defining_id}")
                 sub_tree = self.get_term_entries_by_id(fhir_profile_snapshot, applicable_querying_meta_data.
                                                        term_code_defining_id)
+                module_definition = applicable_querying_meta_data.module
+                module_instance = Module(module_definition.get('code'), module_definition.get('display'))
                 self.set_context(sub_tree, applicable_querying_meta_data.context)
+                self.set_module(sub_tree, module_instance)
                 result += sub_tree
             elif applicable_querying_meta_data.term_codes:
                 result += [
@@ -90,6 +93,12 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
             entry.context = context
             if entry.children:
                 self.set_context(entry.children, context)
+
+    def set_module(self, entries: List[TermEntry], module: Module):
+        for entry in entries:
+            entry.module = module
+            if entry.children:
+                self.set_module(entry.children, module)
 
     def generate_module_ui_tree(self, module_name, files: List[str]) -> TermEntry:
         """
