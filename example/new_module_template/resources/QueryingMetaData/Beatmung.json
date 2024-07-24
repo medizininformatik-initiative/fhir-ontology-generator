@@ -1,6 +1,10 @@
 {
   "name": "Beatmung",
   "resource_type": "Procedure",
+  "module": {
+    "code": "mii-icu",
+    "display": "ICU"
+  },
   "context": {
     "system": "mii.icu",
     "code": "ICU",

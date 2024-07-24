@@ -304,6 +304,7 @@ if __name__ == '__main__':
     if args.generate_ui_trees:
         log.info(f"# Generating UI Trees...")
         tree_generator = UITreeGenerator(resolver)
+        differential_folder = "resources/differential"
         ui_trees = tree_generator.generate_ui_trees(differential_folder)
         write_ui_trees_to_files(ui_trees, f'{onto_result_dir}/ui-trees')
 
