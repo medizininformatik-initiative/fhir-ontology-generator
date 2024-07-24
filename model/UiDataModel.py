@@ -152,6 +152,13 @@ class Unit:
         self.code = code
 
 
+class Module:
+
+    def __init__(self, code, display):
+        self.code = code
+        self.display = display
+
+
 class TermEntry(object):
     DO_NOT_SERIALIZE = ["terminologyType", "path", "DO_NOT_SERIALIZE", "fhirMapperType", "termCode", "valueDefinitions",
                         "root"]
@@ -168,7 +175,7 @@ class TermEntry(object):
     # TODO: context should be after term_codes. This would be a breaking change -> requires updating all uses of this \
     # class
     def __init__(self, term_codes: List[TermCode], terminology_type=None, leaf=True,
-                 selectable=True, context: TermCode = None, ui_profile=None):
+                 selectable=True, context: TermCode = None, ui_profile=None, module: Module = None):
         self.id = str(uuid.UUID(int=rd.getrandbits(128)))
         self.termCodes = term_codes
         self.termCode = term_codes[0]
@@ -183,6 +190,7 @@ class TermEntry(object):
         self.display = (self.termCode.display if self.termCode else None)
         self.root = True
         self.context = context
+        self.module = module
 
     def __lt__(self, other):
         if self.display and other.display:
