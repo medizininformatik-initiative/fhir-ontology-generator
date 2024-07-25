@@ -20,6 +20,7 @@ from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import UIProfile
 from model.UiDataModel import TermEntry, TermCode, CategoryEntry
+from model.termCodeTree import to_term_code_node
 
 core_data_sets = [GECCO, MII_LAB]
 WINDOWS_RESERVED_CHARACTERS = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
@@ -206,7 +207,8 @@ def get_categories(element):
 
 def create_category_terminology_entry(category_entry):
     term_code = [TermCode("mii.abide", category_entry.display, category_entry.display)]
-    result = TermEntry(term_code, "Category", leaf=False, selectable=False)
+    default_gecco_context = TermCode("mii.aide", "GECCO", "GECCO")
+    result = TermEntry(term_code, "Category", leaf=False, selectable=False, context=default_gecco_context)
     result.path = category_entry.path
     return result
 
@@ -235,7 +237,8 @@ def add_terminology_entry_to_category(element, categories, terminology_type):
     for category_entry in categories:
         # same path -> sub element of that category
         if category_entry.path in element["base"]["path"]:
-            terminology_entry = TermEntry(get_term_codes(element), terminology_type)
+            default_gecco_context = TermCode("mii.abide", "GECCO", "GECCO")
+            terminology_entry = TermEntry(get_term_codes(element), terminology_type, context=default_gecco_context)
             # We use the english display to resolve after we switch to german.
             terminology_entry.display = element["short"]
             if terminology_entry.display in IGNORE_LIST:
@@ -358,6 +361,7 @@ def denormalize_mapping_to_old_format(term_code_to_mapping_name, mapping_name_to
         try:
             mapping = copy.copy(mapping_name_to_mapping[mapping_name])
             mapping.key = context_and_term_code[1]
+            mapping.context = context_and_term_code[0]
             result.entries.append(mapping)
         except KeyError:
             print("No mapping found for term code " + context_and_term_code[1].code)
@@ -373,6 +377,11 @@ def write_v1_mapping_to_file(mapping, mapping_folder="mapping-old"):
         raise ValueError("Mapping type not supported" + str(type(mapping)))
     with open(mapping_file, 'w', encoding="utf-8") as f:
         f.write(mapping.to_json())
+    f.close()
+
+def write_mapping_tree_to_file(tree, mapping_tree_folder="mapping-tree"):
+    with open(mapping_tree_folder + "/mapping_tree.json", 'w', encoding="utf-8") as f:
+        f.write(tree.to_json())
     f.close()
 
 
@@ -399,6 +408,9 @@ if __name__ == '__main__':
         trees = generate_gecco_tree()
         move_back_other(trees)
         write_ui_trees_to_files(trees, "ui-trees")
+
+        mappping_tree = to_term_code_node(trees)
+        write_mapping_tree_to_file(mappping_tree)
 
     if args.generate_ui_profiles:
         profile_generator = UIProfileGenerator(resolver)

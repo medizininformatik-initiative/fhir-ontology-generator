@@ -154,6 +154,7 @@ class CQLMappingGenerator(object):
             attribute_fhir_path = self.translate_composite_attribute_to_fhir_path_expression(
                 attr_defining_id, profile_snapshot)
             attribute_key = self.get_composite_code(attr_defining_id, profile_snapshot)
+            attribute_type = self.get_composite_attribute_type(attr_defining_id, profile_snapshot)
         else:
             attribute_fhir_path = self.translate_term_element_id_to_fhir_path_expression(attr_defining_id,
                                                                                          profile_snapshot)
@@ -170,25 +171,52 @@ class CQLMappingGenerator(object):
             raise ValueError("Composite search parameters must have exactly two elements")
         where_clause_element = attribute_parsed[-1]
         return self.parser.get_fixed_term_codes(where_clause_element, profile_snapshot, self.data_set_dir,
-                                                self.module_dir)
+                                                self.module_dir)[0]
+
+    def get_composite_attribute_type(self, attribute, profile_snapshot):
+        attribute_parsed = self.parser.get_element_defining_elements(attribute, profile_snapshot, self.module_dir,
+                                                                     self.data_set_dir)
+        if len(attribute_parsed) != 2:
+            raise ValueError("Composite search parameters must have exactly two elements")
+        value_element = attribute_parsed[0]
+        return self.parser.get_element_type(value_element)
+
+    @staticmethod
+    def find_balanced_parentheses(s):
+        stack = []
+        start = 0
+        for i, char in enumerate(s):
+            if char == '(':
+                if not stack:
+                    start = i
+                stack.append(char)
+            elif char == ')':
+                stack.pop()
+                if not stack:
+                    return s[start:i + 1]
+        return ""
+
+    def extract_where_clause(self, updated_attribute_path):
+        where_clause_match = re.search(r"\.where\(", updated_attribute_path)
+        if where_clause_match:
+            remaining_string = updated_attribute_path[where_clause_match.end() - 1:]
+            where_clause = self.find_balanced_parentheses(remaining_string)
+            prefix = updated_attribute_path[:where_clause_match.end() - 1 + len(where_clause)]
+            return where_clause, prefix
+        else:
+            return "", ""
 
     def translate_composite_attribute_to_fhir_path_expression(self, attribute, profile_snapshot):
         elements = self.parser.get_element_defining_elements(attribute, profile_snapshot, self.module_dir,
                                                              self.data_set_dir)
         expressions = self.parser.translate_element_to_fhir_path_expression(elements, profile_snapshot)
         value_clause = expressions[0]
-        composite_code = self.get_composite_code(attribute, profile_snapshot)[0]
+        composite_code = self.get_composite_code(attribute, profile_snapshot)
         updated_where_clause = f".where(code.coding.exists(system = {composite_code.system} and code = {composite_code.code}))"
         # replace original where clause in attribute using string manipulation and regex
         updated_attribute_path = re.sub(r"\.where\([^\)]*\)", f"{updated_where_clause}", attribute)
 
-        where_clause_match = re.search(r"\.where\([^\)]*\)", updated_attribute_path)
-        if where_clause_match:
-            where_clause = where_clause_match.group(0)
-            prefix = updated_attribute_path[:where_clause_match.end()]
-        else:
-            where_clause = ""
-            prefix = ""
+        where_clause, prefix = self.extract_where_clause(updated_attribute_path)
 
         # Find the common prefix dynamically
         common_prefix_length = 0
@@ -205,7 +233,6 @@ class CQLMappingGenerator(object):
 
         # Construct the new expression
         full_composite_path = prefix + "." + uncommon_expr2 if uncommon_expr2[0] != "." else prefix + uncommon_expr2
-
         return full_composite_path
 
     def translate_term_element_id_to_fhir_path_expression(self, element_id, profile_snapshot) -> str:
@@ -367,3 +394,5 @@ class CQLMappingGenerator(object):
             if sub_path == current_path:
                 return True
         return False
+
+

@@ -181,7 +181,7 @@ class FHIRSearchMappingGenerator(object):
             raise ValueError("Composite search parameters must have exactly two elements")
         where_clause_element = attribute_parsed[-1]
         return self.parser.get_fixed_term_codes(where_clause_element, profile_snapshot, self.data_set_dir,
-                                                self.module_dir)
+                                                self.module_dir)[0]
 
     def get_composite_attribute_type(self, attribute, profile_snapshot):
         search_param_components = self.resolve_fhir_search_parameter(attribute, profile_snapshot, "")
