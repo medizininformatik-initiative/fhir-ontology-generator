@@ -6,6 +6,31 @@ import time
 import psycopg2
 
 
+def insert_content(base_file, content_to_insert, insert_after='SET row_security = off;'):
+    with open(content_to_insert, 'r') as inserted_content_file:
+        inserted_content = inserted_content_file.read()
+
+    with open(base_file, 'r') as target_file:
+        base_content = target_file.readlines()
+
+    if insert_after is not None:
+        for i, line in enumerate(base_content):
+            if insert_after in line:
+                insert_index = i + 1
+                break
+        else:
+            raise ValueError(f"Anchor '{insert_after}' not found in {base_file}")
+    else:
+        raise ValueError("No place to insert content was given.")
+
+    base_content.insert(insert_index, inserted_content + "\n")
+
+    with open(base_file, 'w') as target_file:
+        target_file.writelines(base_content)
+
+    print(f"Content of {content_to_insert} has been inserted into {base_file}.")
+
+
 class SqlMerger:
 
     def __init__(self,
@@ -217,6 +242,7 @@ class SqlMerger:
         cmd = f"pg_dump -U {self.db_user} -d {self.db_name} -a -O -t termcode -t context -t ui_profile -t mapping -t contextualized_termcode -t contextualized_termcode_to_criteria_set -t criteria_set -f {self.sql_mapped_dir}/R__Load_latest_ui_profile.sql"
         self.db_container.exec_run(cmd=cmd)
         self.db_container.exec_run(cmd=f'chown 1000:1000 {self.sql_mapped_dir}/R__Load_latest_ui_profile.sql')
+        insert_content(f'{self.sql_script_dir}/R__Load_latest_ui_profile.sql', f'{self.sql_init_script_dir}/delete_statements.sql', )
 
     def create_functions(self):
         cmd = f"sh -c 'psql -U {self.db_user} -d {self.db_name} < {self.sql_mapped_dir}/create_functions.sql'"
