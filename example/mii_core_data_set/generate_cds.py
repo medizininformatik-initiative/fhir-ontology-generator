@@ -374,6 +374,7 @@ def configure_args_parser():
     arg_parser.add_argument('--generate_ui_profiles', action='store_true')
     arg_parser.add_argument('--generate_mapping', action='store_true')
     arg_parser.add_argument('--generate_old_format', action='store_true')
+    arg_parser.add_argument('--add_delete_statements', action='store_true')
     return arg_parser
 
 
@@ -685,6 +686,31 @@ def apply_additional_profile_rules(named_profile: Tuple[str, UIProfile]):
         return named_profile[1]
 
 
+def insert_content(base_file, content_to_insert, insert_after):
+    with open(content_to_insert, 'r') as inserted_content_file:
+        inserted_content = inserted_content_file.read()
+
+    with open(base_file, 'r') as target_file:
+        base_content = target_file.readlines()
+
+    if insert_after is not None:
+        for i, line in enumerate(base_content):
+            if insert_after in line:
+                insert_index = i + 1
+                break
+        else:
+            raise ValueError(f"Anchor '{insert_after}' not found in {base_file}")
+    else:
+        raise ValueError("No place to insert content was given.")
+
+    base_content.insert(insert_index, inserted_content + "\n")
+
+    with open(base_file, 'w') as target_file:
+        target_file.writelines(base_content)
+
+    print(f"Content of {content_to_insert} has been inserted into {base_file}.")
+
+
 if __name__ == '__main__':
     client = docker.from_env()
     # Check if container with the name "test_db" already exists
@@ -788,6 +814,12 @@ if __name__ == '__main__':
     print("Dumped db")
     container.stop()
     container.remove()
+
+    if args.add_delete_statements:
+        insert_content(base_file=f'{os.getcwd()}/R__Load_latest_ui_profile.sql',
+                       content_to_insert='resources/delete_statements.sql',
+                       insert_after='SET row_security = off;')
+
 
     # core_data_category_entries = generate_core_data_set()
     #
