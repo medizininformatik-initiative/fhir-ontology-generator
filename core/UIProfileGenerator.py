@@ -257,7 +257,7 @@ class UIProfileGenerator:
         composite_attribute_code = self.parser.get_fixed_term_codes(element, profile_snapshot,
                                                                     self.module_dir, self.data_set_dir)
         if composite_attribute_code:
-            return composite_attribute_code
+            return composite_attribute_code[0]
 
         else:
             raise InvalidValueTypeException(
