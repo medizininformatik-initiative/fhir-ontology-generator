@@ -74,58 +74,48 @@ class ElasticSearchGenerator:
                     obj['children'].append(child_obj)
                 ElasticSearchGenerator.__iterate_tree(child, target, node, namespace_uuid_str=namespace_uuid_str)
 
+
     @staticmethod
-    def generate_elasticsearch_files(input_file,
-                                     output_file,
-                                     include_additional_files,
-                                     work_dir='.',
-                                     namespace_uuid_str='00000000-0000-0000-0000-000000000000',
-                                     index_name='ontology',
-                                     filename_prefix='onto_es_',
-                                     max_filesize_mb=20):
-        extension = '.json'
-        zip_folder = 'ontology/backend'
+    def __convert_value_set(value_set, json_flat, namespace_uuid_str):
 
-        with ZipFile(input_file, 'r') as backend_zip:
-            zip_contents = backend_zip.namelist()
+        for termcode in value_set['expansion']['contains']:
 
-            source_files = [file for file in zip_contents if file.startswith(zip_folder) and file.endswith(extension)]
-            current_file_index = 1
-            current_file_size = 0
+            termcode_hash_input = f"{termcode['code']}{termcode['system']}"
+            namespace_uuid = uuid.UUID(namespace_uuid_str)
+            termcode_hash = str(uuid.uuid3(namespace_uuid, termcode_hash_input))
 
-            for source_file in source_files:
-                with backend_zip.open(source_file) as f:
+            json_flat.append({"hash": termcode_hash, "termcode": {"code": termcode['code'], "display": termcode['display'], "system": termcode['system'], "version": 2099},
+             "valuesets": [value_set['url']]})
+
+    @staticmethod
+    def __write_es_import_to_file(current_file_index, current_file_name, json_flat, index_name, max_filesize_mb, filename_prefix, extension,
+                                  work_dir):
+        current_file_subindex = 1
+        current_file_size = 0
+
+        with open(current_file_name, 'a', encoding='utf-8') as current_file:
+            for obj in json_flat:
+                obj_hash = obj['hash']
+                del obj['hash']
+                current_line = f'{{"index": {{"_index": "{index_name}", "_id": "{obj_hash}"}}}}\n'
+                current_file.write(current_line)
+                current_file_size += len(current_line)
+                current_line = json.dumps(obj) + "\n"
+                current_file.write(current_line)
+                current_file_size += len(current_line)
+
+                if current_file_size > max_filesize_mb * 1024 * 1024:
+                    current_file_subindex += 1
                     if work_dir:
-                        current_file_name = f"{work_dir}/{filename_prefix}_{current_file_index}{extension}"
+                        current_file_name = f"{work_dir}/{filename_prefix}_{current_file_index}_{current_file_subindex}{extension}"
                     else:
-                        current_file_name = f"{filename_prefix}_{current_file_index}{extension}"
-                    json_tree = json.load(f)
-                    json_flat = []
+                        current_file_name = f"{filename_prefix}_{current_file_index}_{current_file_subindex}{extension}"
+                    current_file_size = 0
+                    current_file.close()
+                    current_file = open(current_file_name, 'w')
 
-                    ElasticSearchGenerator.__iterate_tree(json_tree, json_flat, None,
-                                                          namespace_uuid_str=namespace_uuid_str)
-
-                    with open(current_file_name, 'a', encoding='utf-8') as current_file:
-                        for obj in json_flat:
-                            obj_hash = obj['hash']
-                            del obj['hash']
-                            current_line = f'{{"index": {{"_index": "{index_name}", "_id": "{obj_hash}"}}}}\n'
-                            current_file.write(current_line)
-                            current_file_size += len(current_line)
-                            current_line = json.dumps(obj) + "\n"
-                            current_file.write(current_line)
-                            current_file_size += len(current_line)
-
-                            if current_file_size > max_filesize_mb * 1024 * 1024:
-                                current_file_index += 1
-                                if work_dir:
-                                    current_file_name = f"{work_dir}/{filename_prefix}_{current_file_index}{extension}"
-                                else:
-                                    current_file_name = f"{filename_prefix}_{current_file_index}{extension}"
-                                current_file_size = 0
-                                current_file.close()
-                                current_file = open(current_file_name, 'w')
-
+    @staticmethod
+    def __zip_elastic_files(output_file, work_dir, filename_prefix, extension, include_additional_files):
         with ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as elastic_zip:
             # Add the new files to the zipfile
             for root, dirs, files in os.walk(work_dir):
@@ -140,3 +130,69 @@ class ElasticSearchGenerator:
                     for file in files:
                         file_path = os.path.join(root, file)
                         elastic_zip.write(file_path, os.path.relpath(file_path, include_additional_files))
+
+
+    @staticmethod
+    def generate_elasticsearch_files(input_file,
+                                     output_file,
+                                     include_additional_files,
+                                     work_dir='.',
+                                     namespace_uuid_str='00000000-0000-0000-0000-000000000000',
+                                     index_name='ontology',
+                                     filename_prefix='onto_es_',
+                                     max_filesize_mb=20):
+        extension = '.json'
+        zip_folder = 'ontology/backend/ui-trees'
+        current_file_index = 0
+
+        with ZipFile(input_file, 'r') as backend_zip:
+            zip_contents = backend_zip.namelist()
+
+            # Generate criteria import from ui-trees
+            source_files = [file for file in zip_contents if file.startswith(zip_folder) and file.endswith(extension)]
+
+
+            for source_file in source_files:
+                with backend_zip.open(source_file) as f:
+                    if work_dir:
+                        current_file_name = f"{work_dir}/{filename_prefix}_{current_file_index}{extension}"
+                    else:
+                        current_file_name = f"{filename_prefix}_{current_file_index}{extension}"
+                    json_tree = json.load(f)
+                    json_flat = []
+
+                    ElasticSearchGenerator.__iterate_tree(json_tree, json_flat, None,
+                                                          namespace_uuid_str=namespace_uuid_str)
+
+                    ElasticSearchGenerator.__write_es_import_to_file(current_file_index, current_file_name, json_flat, index_name,
+                                                                     max_filesize_mb, filename_prefix, extension,
+                                                                     work_dir)
+
+                    current_file_index = current_file_index + 1
+
+            # Generate import from value-set files
+            zip_folder = 'ontology/backend/value-sets'
+            index_name = 'codeable_concept'
+
+            source_files = [file for file in zip_contents if file.startswith(zip_folder) and file.endswith(extension)]
+
+            for source_file in source_files:
+                with backend_zip.open(source_file) as f:
+                    if work_dir:
+                        current_file_name = f"{work_dir}/{filename_prefix}_{current_file_index}{extension}"
+                    else:
+                        current_file_name = f"{filename_prefix}_{current_file_index}{extension}"
+                    value_set = json.load(f)
+                    json_flat = []
+
+                    ElasticSearchGenerator.__convert_value_set(value_set, json_flat, namespace_uuid_str)
+
+                    ElasticSearchGenerator.__write_es_import_to_file(current_file_index, current_file_name, json_flat, index_name,
+                                                                     max_filesize_mb, filename_prefix,
+                                                                     extension,
+                                                                     work_dir)
+
+                    current_file_index = current_file_index + 1
+
+            ElasticSearchGenerator.__zip_elastic_files(output_file, work_dir, filename_prefix, extension, include_additional_files)
+
