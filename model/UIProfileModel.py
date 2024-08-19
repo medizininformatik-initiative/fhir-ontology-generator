@@ -1,7 +1,7 @@
 import copy
 import json
 from dataclasses import dataclass, field, asdict
-from typing import Literal, List, Tuple, ClassVar
+from typing import Literal, List, Tuple, ClassVar, Dict
 
 from model.UiDataModel import TermCode
 from model.helper import del_none
@@ -16,11 +16,32 @@ class CriteriaSet:
     url: str
     contextualized_term_codes: List[Tuple[TermCode, TermCode]] = field(default_factory=list)
 
+    def to_json(self):
+        def custom_serializer(obj):
+            if isinstance(obj, TermCode):
+                return asdict(obj)
+            if isinstance(obj, CriteriaSet):
+                return asdict(obj)
+            raise TypeError(f"Type {type(obj)} not serializable")
+
+        criteria_dict = asdict(self)
+
+        return json.dumps(criteria_dict, default=custom_serializer, indent=4)
+
+
+@dataclass
+class ValueSet:
+    url: str
+    valueSet: Dict = field(default_factory=dict)
+
+    def to_json(self):
+        return json.dumps(self, default=lambda o: del_none(self.valueSet), indent=4)
+
 
 @dataclass
 class ValueDefinition:
     type: VALUE_TYPE_OPTIONS
-    selectableConcepts: List[TermCode] = field(default_factory=list)
+    selectableConcepts: ValueSet = None
     allowedUnits: List[TermCode] = field(default_factory=list)
     precision: int = 1
     min: float = None
@@ -32,6 +53,8 @@ class ValueDefinition:
         data = asdict(self)
         if self.referenceCriteriaSet is not None:
             data['referenceCriteriaSet'] = self.referenceCriteriaSet.url
+        if self.selectableConcepts is not None:
+            data['selectableConcepts'] = self.selectableConcepts.url
         return data
 
 

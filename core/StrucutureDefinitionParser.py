@@ -7,8 +7,9 @@ from collections import namedtuple
 from typing import List, Tuple
 
 from TerminologService.ValueSetResolver import get_termcodes_from_onto_server, get_term_code_display_from_onto_server
+from TerminologService.valueSetToRoots import get_value_set_expansion
 from helper import flatten
-from model.UIProfileModel import VALUE_TYPE_OPTIONS
+from model.UIProfileModel import VALUE_TYPE_OPTIONS, ValueSet
 from model.UiDataModel import TermCode
 
 UCUM_SYSTEM = "http://unitsofmeasure.org"
@@ -264,7 +265,7 @@ def get_selectable_concepts(concept_defining_element, profile_name: str = "") ->
     """
     if binding := concept_defining_element.get("binding"):
         if value_set_url := binding.get("valueSet"):
-            return get_termcodes_from_onto_server(value_set_url)
+            return ValueSet(value_set_url, get_value_set_expansion(value_set_url))
         else:
             raise InvalidValueTypeException(f"No value set defined in element: {str(binding)}"
                                             f" in profile: {profile_name}")
