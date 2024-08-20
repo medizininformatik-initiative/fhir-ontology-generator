@@ -1,0 +1,13 @@
+{
+  "name": "Vitalstatus",
+  "resource_type": "Observation",
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "Vitalstatus",
+    "display": "Vitalstatus",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "Observation.code.coding:loinc",
+  "value_defining_id": "Observation.value[x].coding:Vitalstatus",
+  "time_restriction_defining_id": "Observation.effective[x]"
+}

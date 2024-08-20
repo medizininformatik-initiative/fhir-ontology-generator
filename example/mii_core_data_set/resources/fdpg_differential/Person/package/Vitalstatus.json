@@ -1,0 +1,30 @@
+{
+  "resourceType": "StructureDefinition",
+  "id": "mii-pr-person-vitalstatus",
+  "url": "https://medizininformatik-initative.de/fhir/fdpg/StructureDefinition/Vitalstatus",
+  "version": "2024.0.0",
+  "name": "Vitalstatus",
+  "title": "MII PR Person Vitalstatus",
+  "status": "active",
+  "date": "2024-02-08",
+  "publisher": "Medizininformatik Initiative",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://www.medizininformatik-initiative.de"
+        }
+      ]
+    }
+  ],
+  "description": "Dieses Profil beschreibt den Vitalstatus der Patient*in in der Medizininformatik-Initiative.",
+  "fhirVersion": "4.0.1",
+  "kind": "resource",
+  "abstract": false,
+  "type": "Observation",
+  "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Vitalstatus",
+  "derivation": "constraint",
+  "differential": {
+  }
+}
