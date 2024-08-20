@@ -750,13 +750,13 @@ if __name__ == '__main__':
         v1_cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
         write_v1_mapping_to_file(v1_cql_mappings, "mapping-old")
 
-        pathling_generator = PathlingMappingGenerator(resolver)
-        pathling_mappings = pathling_generator.generate_mapping("resources/fdpg_differential")
-        pathling_term_code_mappings = pathling_mappings[0]
-        pathling_concept_mappings = pathling_mappings[1]
-        write_mappings_to_files(pathling_concept_mappings.values())
-        v1_pathling_mappings = denormalize_mapping_to_old_format(pathling_term_code_mappings, pathling_concept_mappings)
-        write_v1_mapping_to_file(v1_pathling_mappings, "mapping-old")
+        #pathling_generator = PathlingMappingGenerator(resolver)
+        #pathling_mappings = pathling_generator.generate_mapping("resources/fdpg_differential")
+        #pathling_term_code_mappings = pathling_mappings[0]
+        #pathling_concept_mappings = pathling_mappings[1]
+        #write_mappings_to_files(pathling_concept_mappings.values())
+        #v1_pathling_mappings = denormalize_mapping_to_old_format(pathling_term_code_mappings, pathling_concept_mappings)
+        #write_v1_mapping_to_file(v1_pathling_mappings, "mapping-old")
 
         search_param_resolver = MIICoreDataSetSearchParameterResolver()
         fhir_search_generator = FHIRSearchMappingGenerator(resolver, search_param_resolver)

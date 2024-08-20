@@ -1,8 +1,8 @@
 {
   "resourceType": "StructureDefinition",
   "id": "18089f89-796b-4dc7-99bd-13e3e10c5516",
-  "url": "https://www.medizininformatik-initiative.de/fhir/fdpg/StructureDefinition/ExtensionDiagnose",
-  "name": "ExtensionDiagnose",
+  "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Diagnose",
+  "name",: "ExtensionDiagnose",
   "title": "Extension - Diagnose",
   "status": "active",
   "description": "Mittels dieser Extension kann ausgedrückt werden, dass Material mit der referenzierten Diagnose in der Probe enthalten ist.",
