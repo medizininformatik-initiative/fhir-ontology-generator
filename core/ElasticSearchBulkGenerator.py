@@ -155,7 +155,7 @@ class ElasticSearchGenerator:
             for source_file in source_files:
                 with backend_zip.open(source_file) as f:
                     if work_dir:
-                        current_file_name = f"{work_dir}/{filename_prefix}_{current_file_index}{extension}"
+                        current_file_name = f"{work_dir}/{filename_prefix}_{index_name}_{current_file_index}{extension}"
                     else:
                         current_file_name = f"{filename_prefix}_{current_file_index}{extension}"
                     json_tree = json.load(f)
@@ -179,7 +179,7 @@ class ElasticSearchGenerator:
             for source_file in source_files:
                 with backend_zip.open(source_file) as f:
                     if work_dir:
-                        current_file_name = f"{work_dir}/{filename_prefix}_{current_file_index}{extension}"
+                        current_file_name = f"{work_dir}/{filename_prefix}_{index_name}_{current_file_index}{extension}"
                     else:
                         current_file_name = f"{filename_prefix}_{current_file_index}{extension}"
                     value_set = json.load(f)
