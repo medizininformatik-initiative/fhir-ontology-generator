@@ -289,6 +289,42 @@ def write_ui_trees_to_files(trees: List[TermEntry], directory: str = "ui-trees")
         write_object_as_json(tree, f"{directory}/{tree.display}.json")
 
 
+def write_used_value_sets_to_files(ui_profiles: List[UIProfile], directory: str = "value-sets"):
+    """
+    Writes the value sets used in the ui profiles to the value-sets folder
+    :param ui_profiles: ui profiles to extract the value sets from
+    :param directory: directory to write the value sets to
+    """
+    value_sets = list()
+    for ui_profile in ui_profiles:
+        if ui_profile.valueDefinition:
+            if value_set := ui_profile.valueDefinition.referencedValueSet:
+                value_sets.append(value_set)
+        if ui_profile.attributeDefinitions:
+            for attribute_definition in ui_profile.attributeDefinitions:
+                if value_set := attribute_definition.referencedValueSet:
+                    value_sets.append(value_set)
+    for value_set in value_sets:
+        write_object_as_json(value_set, f"{directory}/{remove_reserved_characters(value_set.url.split('/')[-1])}.json")
+
+
+def write_used_criteria_sets_to_files(ui_profiles: List[UIProfile], directory: str = "criteria-sets"):
+    """
+    Writes the criteria sets used in the ui profiles to the criteria-sets folder
+    :param ui_profiles: ui profiles to extract the criteria sets from
+    :param directory: directory to write the criteria sets to
+    """
+    criteria_sets = list()
+    for ui_profile in ui_profiles:
+        if ui_profile.attributeDefinitions:
+            for attribute_definition in ui_profile.attributeDefinitions:
+                if criteria_set := attribute_definition.referenceCriteriaSet:
+                    criteria_sets.append(criteria_set)
+
+    for criteria_set in criteria_sets:
+        write_object_as_json(criteria_set, f"{directory}/{remove_reserved_characters(criteria_set.url.split('/')[-1])}.json")
+
+
 # Todo: this should be an abstract method that has to be implemented for each use-case
 # Todo: move this concrete implementation elsewhere
 
@@ -738,6 +774,9 @@ if __name__ == '__main__':
             profile_generator.generate_ui_profiles("resources/fdpg_differential")
         named_ui_profiles_dict = {name: apply_additional_profile_rules((name, profile)) for name, profile in
                                   named_ui_profiles_dict.items()}
+        write_ui_profiles_to_files(named_ui_profiles_dict.values())
+        write_used_value_sets_to_files(named_ui_profiles_dict.values())
+        write_used_criteria_sets_to_files(named_ui_profiles_dict.values())
         db_writer.write_ui_profiles_to_db(contextualized_term_code_ui_profile_mapping, named_ui_profiles_dict)
         db_writer.write_vs_to_db(named_ui_profiles_dict.values())
 
@@ -750,13 +789,13 @@ if __name__ == '__main__':
         v1_cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
         write_v1_mapping_to_file(v1_cql_mappings, "mapping-old")
 
-        #pathling_generator = PathlingMappingGenerator(resolver)
-        #pathling_mappings = pathling_generator.generate_mapping("resources/fdpg_differential")
-        #pathling_term_code_mappings = pathling_mappings[0]
-        #pathling_concept_mappings = pathling_mappings[1]
-        #write_mappings_to_files(pathling_concept_mappings.values())
-        #v1_pathling_mappings = denormalize_mapping_to_old_format(pathling_term_code_mappings, pathling_concept_mappings)
-        #write_v1_mapping_to_file(v1_pathling_mappings, "mapping-old")
+        # pathling_generator = PathlingMappingGenerator(resolver)
+        # pathling_mappings = pathling_generator.generate_mapping("resources/fdpg_differential")
+        # pathling_term_code_mappings = pathling_mappings[0]
+        # pathling_concept_mappings = pathling_mappings[1]
+        # write_mappings_to_files(pathling_concept_mappings.values())
+        # v1_pathling_mappings = denormalize_mapping_to_old_format(pathling_term_code_mappings, pathling_concept_mappings)
+        # write_v1_mapping_to_file(v1_pathling_mappings, "mapping-old")
 
         search_param_resolver = MIICoreDataSetSearchParameterResolver()
         fhir_search_generator = FHIRSearchMappingGenerator(resolver, search_param_resolver)

@@ -122,7 +122,7 @@ class ValueDefinition:
                  allowed_units: List[TermCode] | None = None, precision: int | None = None,
                  min_val: float | None = None, max_val: float | None = None):
         self.type = value_type
-        self.selectableConcepts = selectable_concepts if selectable_concepts else []
+        self.referencedValueSet = selectable_concepts if selectable_concepts else []
         self.allowedUnits = allowed_units if allowed_units else []
         self.precision = precision if precision else 1
         self.min: float = min_val

@@ -1,7 +1,7 @@
 import copy
 import json
 from dataclasses import dataclass, field, asdict
-from typing import Literal, List, Tuple, ClassVar
+from typing import Literal, List, Tuple, ClassVar, Dict
 
 from model.UiDataModel import TermCode
 from model.helper import del_none
@@ -16,11 +16,32 @@ class CriteriaSet:
     url: str
     contextualized_term_codes: List[Tuple[TermCode, TermCode]] = field(default_factory=list)
 
+    def to_json(self):
+        def custom_serializer(obj):
+            if isinstance(obj, TermCode):
+                return asdict(obj)
+            if isinstance(obj, CriteriaSet):
+                return asdict(obj)
+            raise TypeError(f"Type {type(obj)} not serializable")
+
+        criteria_dict = asdict(self)
+
+        return json.dumps(criteria_dict, default=custom_serializer, indent=4)
+
+
+@dataclass
+class ValueSet:
+    url: str
+    valueSet: Dict = field(default_factory=dict)
+
+    def to_json(self):
+        return json.dumps(self, default=lambda o: del_none(self.valueSet), indent=4)
+
 
 @dataclass
 class ValueDefinition:
     type: VALUE_TYPE_OPTIONS
-    selectableConcepts: List[TermCode] = field(default_factory=list)
+    referencedValueSet: ValueSet = None
     allowedUnits: List[TermCode] = field(default_factory=list)
     precision: int = 1
     min: float = None
@@ -30,8 +51,10 @@ class ValueDefinition:
 
     def to_dict(self):
         data = asdict(self)
-        if self.referenceCriteriaSet is not None:
+        if self.referenceCriteriaSet:
             data['referenceCriteriaSet'] = self.referenceCriteriaSet.url
+        if self.referencedValueSet:
+            data['referencedValueSet'] = self.referencedValueSet.url
         return data
 
 
@@ -76,6 +99,8 @@ class UIProfile:
 
     def to_dict(self):
         data = asdict(self)
+        if self.valueDefinition:
+            data["valueDefinition"] = self.valueDefinition.to_dict()
         if self.attributeDefinitions:
             data["attributeDefinitions"] = [attr.to_dict() for attr in self.attributeDefinitions]
         return data

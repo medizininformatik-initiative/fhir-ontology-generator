@@ -34,11 +34,11 @@ def to_csv(category_list):
         for child in terminology_entry.children:
             add_terminology_entry(child)
         if terminology_entry.uiProfile and terminology_entry.uiProfile.valueDefinition:
-            for concept in terminology_entry.uiProfile.valueDefinition.selectableConcepts:
+            for concept in terminology_entry.uiProfile.valueDefinition.referencedValueSet:
                 sheet.writerow(get_termcode_row(concept))
         if terminology_entry.uiProfile and terminology_entry.uiProfile.attributeDefinitions:
             for definition in terminology_entry.uiProfile.attributeDefinitions:
-                for concept in definition.selectableConcepts:
+                for concept in definition.referencedValueSet:
                     sheet.writerow(get_termcode_row(concept))
 
     for category in category_list:

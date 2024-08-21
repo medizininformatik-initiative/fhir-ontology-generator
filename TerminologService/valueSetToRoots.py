@@ -12,6 +12,22 @@ from model.UiDataModel import TermCode, TermEntry
 locale.setlocale(locale.LC_ALL, 'de_DE')
 
 
+def get_value_set_expansion(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
+    """
+    Retrieves the value set expansion from the terminology server.
+    :param url: canonical url of the value set
+    :param onto_server: address of the terminology server
+    :return: json data of the value set expansion
+    """
+    if '|' in url:
+        url = url.replace('|', '&version=')
+    response = requests.get(f"{onto_server}ValueSet/$expand?url={url}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise Exception(response.status_code, response.content, url)
+
+
 def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
     """
     Expands a value set and returns a set of term codes contained in the value set.
@@ -19,13 +35,9 @@ def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
     :param onto_server: address of the terminology server
     :return: sorted set of the term codes contained in the value set
     """
-    if '|' in url:
-        url = url.replace('|', '&version=')
     term_codes = SortedSet()
-    response = requests.get(onto_server + f"ValueSet/$expand?url={url}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
-    print(response.status_code)
-    if response.status_code == 200:
-        value_set_data = response.json()
+    value_set_data = get_value_set_expansion(url, onto_server)
+    if "expansion" in value_set_data:
         global_version = None
         for parameter in value_set_data["expansion"]["parameter"]:
             if parameter["name"] == "version":
@@ -47,10 +59,8 @@ def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
             term_codes.add(term_code)
     else:
         print(f"Error expanding {url}")
-        print(response.content)
         return []
         # raise Exception(response.status_code, response.content)
-    print(term_codes)
     return term_codes
 
 
@@ -68,7 +78,8 @@ def create_vs_tree(canonical_url: str):
         if groups := closure_map_data.get("group"):
             for group in groups:
                 subsumption_map = group["element"]
-                subsumption_map = {item['code']: [target['code'] for target in item['target']] for item in subsumption_map}
+                subsumption_map = {item['code']: [target['code'] for target in item['target']] for item in
+                                   subsumption_map}
                 for code, parents in subsumption_map.items():
                     remove_non_direct_ancestors(parents, subsumption_map)
                 for node, parents, in subsumption_map.items():
