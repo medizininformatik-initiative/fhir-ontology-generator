@@ -29,7 +29,7 @@ class ProfileDetailGenerator():
             if "binding" in elem:
                 value_sets.append(elem["binding"]["valueSet"])
 
-            elif "patternCoding" or "fixed" in elem:
+            elif "patternCoding" in elem or "fixed" in elem:
                 return None
 
         if len(value_sets) > 0:
@@ -38,12 +38,13 @@ class ProfileDetailGenerator():
         pattern = rf"{type}\.{code_path}($|\.coding$)"
 
         for elem in (elem for elem in elements if re.search(pattern, elem['id'])):
+
             if "binding" in elem:
 
                 if elem["binding"]["valueSet"] not in self.blacklistedValueSets:
                     value_sets.append(elem["binding"]["valueSet"])
 
-            elif "patternCoding" or "fixed" in elem:
+            elif "patternCoding" in elem or "fixed" in elem:
                 return None
 
         if len(value_sets) == 0:
