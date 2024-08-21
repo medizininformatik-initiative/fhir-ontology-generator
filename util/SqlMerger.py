@@ -5,7 +5,6 @@ import docker
 import time
 import psycopg2
 
-
 def insert_content(base_file, content_to_insert, insert_after='SET row_security = off;'):
     with open(content_to_insert, 'r') as inserted_content_file:
         inserted_content = inserted_content_file.read()
@@ -58,7 +57,7 @@ class SqlMerger:
         self.match_expression = f"^{repeatable_scripts_prefix}(\\d+)\\.sql$"
         self.pattern = re.compile(self.match_expression)
 
-    def __del__(self):
+    def shutdown(self):
         if self.conn:
             print('closing db connection')
             self.conn.close()
@@ -138,7 +137,10 @@ class SqlMerger:
                         target.write(f"CREATE schema {schema_name};\n")
                         target.write(f"SET search_path TO {schema_name};\n\n")
                         target.write(template.read())
+
                     cmd = f"sh -c 'psql -U {self.db_user} -d {self.db_name} < {self.sql_mapped_dir}/init_{db_index}.sql'"
+                    time.sleep(5)
+                    print(f"Executing command {cmd}")
                     self.db_container.exec_run(cmd=cmd)
                     os.remove(f"{self.sql_script_dir}/init_{db_index}.sql")
 
@@ -147,6 +149,8 @@ class SqlMerger:
                             f"{self.sql_script_dir}/modified_{filename}", 'w') as target:
                         target.write(template.read().replace('public.', f'{schema_name}.'))
                     cmd = f"sh -c 'psql -U {self.db_user} -d {self.db_name} < {self.sql_mapped_dir}/modified_{filename}'"
+                    time.sleep(5)
+                    print(f"Executing command {cmd}")
                     self.db_container.exec_run(cmd=cmd)
                     os.remove(f"{self.sql_script_dir}/modified_{filename}")
 
@@ -156,6 +160,8 @@ class SqlMerger:
                         target.write(f"SET search_path TO {schema_name};\n\n")
                         target.write(template.read())
                     cmd = f"sh -c 'psql -U {self.db_user} -d {self.db_name} < {self.sql_mapped_dir}/modified_remove_fk_constraints.sql'"
+                    time.sleep(5)
+                    print(f"Executing command {cmd}")
                     self.db_container.exec_run(cmd=cmd)
                     os.remove(f"{self.sql_script_dir}/modified_remove_fk_constraints.sql")
                 else:

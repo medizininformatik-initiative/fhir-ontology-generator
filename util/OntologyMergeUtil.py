@@ -14,8 +14,27 @@ def configure_args_parser():
     arg_parser.add_argument('--merge_mappings', action='store_true')
     arg_parser.add_argument('--merge_uitrees', action='store_true')
     arg_parser.add_argument('--merge_sqldump', action='store_true')
-    arg_parser.add_argument("--loglevel", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], default="INFO",
-                        help="Set the log level")
+    arg_parser.add_argument(
+        '-d', '--ontodirs',
+        nargs='+',  # Allows multiple arguments for this option
+        required=True,  # Makes this argument required
+        help="List of directory paths to ontologies to be merged"
+    )
+
+    arg_parser.add_argument(
+        '-o', '--outputdir',
+        required=True,  # Makes this argument required
+        help="output directory for merged ontology"
+    )
+
+    arg_parser.add_argument(
+        '--log-level',
+        type=str,
+        default='DEBUG',  # Default log level if not provided
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],  # Valid log levels
+        help="Set the logging level"
+    )
+
     return arg_parser
 
 
@@ -38,9 +57,20 @@ def setup_logging(log_level):
 def path_for_file(base, filename):
     for root, dir, files in os.walk(base):
         if filename in files:
-             return os.path.join(root, filename)
+            return os.path.join(root, filename)
     log.error(f"no {filename} in {base}")
     quit()
+
+
+def load_ontology_file(ontodir, filename):
+    file_path = path_for_file(ontodir, filename)
+    with open(file_path, "r") as file:
+        return json.load(file)
+
+
+def write_json_to_file(filepath, object):
+    with open(filepath, "w+") as file:
+        json.dump(object, file)
 
 
 if __name__ == '__main__':
@@ -48,67 +78,64 @@ if __name__ == '__main__':
     parser = configure_args_parser()
     args = parser.parse_args()
 
-    log_level = getattr(logging, args.loglevel)
+    log_level = args.log_level
     log = setup_logging(log_level)
-    log.info(f"# Starting fhir ontology merger with logging level: {args.loglevel}")
+    log.info(f"# Starting fhir ontology merger with logging level: {log_level}")
 
-    if "ONTOPATH_LEFT" in os.environ and "ONTOPATH_RIGHT" in os.environ and "ONTOPATH_JOINED" in os.environ and "SQL_SCRIPT_DIR" in os.environ:
-        ontopath_left = os.environ.get("ONTOPATH_LEFT")
-        ontopath_right = os.environ.get("ONTOPATH_RIGHT")
-        ontopath_joined = os.environ.get("ONTOPATH_JOINED")
-        sql_scriptdir = os.environ.get("SQL_SCRIPT_DIR")
-        uitree_dir_left = os.getenv("UITREE_DIR_LEFT", "ui-trees/")
-        uitree_dir_right = os.getenv("UITREE_DIR_RIGHT", "ui-trees/")
-        log.info(f"# merging ontologies on paths, left: {ontopath_left}, right: {ontopath_right}, to: {ontopath_joined}")
-    else:
-        log.error("NOT ALL REQUIRED ENVIRONMENT VARIABLES SET")
-        quit()
-
-    if args.merge_mappings or args.merge_uitrees or args.merge_sqldump:
-        Path(ontopath_joined).mkdir(parents=True, exist_ok=True)
-        Path(ontopath_joined + "ui_trees/").mkdir(parents=True, exist_ok=True)
-        Path(ontopath_joined + "migration/").mkdir(parents=True, exist_ok=True)
+    log.info(f"Merging ontologies from folders: {args.ontodirs}")
 
     if args.merge_mappings:
-        log.info(f"# merging cql mapping ")
-        ontopath_left_cqlmapping = path_for_file(ontopath_left, "mapping_cql.json")
-        ontopath_right_cqlmapping = path_for_file(ontopath_right, "mapping_cql.json")
-        with open(ontopath_left_cqlmapping, "r") as onto_left, open(ontopath_right_cqlmapping, "r") as onto_right:
-            onto_left_json = json.load(onto_left)
-            onto_right_json = json.load(onto_right)
-            onto_joined_json = onto_left_json + onto_right_json
-            with open(ontopath_joined + "mapping_cql.json", "w+") as onto_joined_file:
-                json.dump(onto_joined_json, onto_joined_file)
 
-        ontopath_left_fhirmapping = path_for_file(ontopath_left, "mapping_fhir.json")
-        ontopath_right_fhirmapping = path_for_file(ontopath_right, "mapping_fhir.json")
-        log.info(f"merging fhir mapping")
-        with open(ontopath_left_fhirmapping, "r") as onto_left, open(ontopath_right_fhirmapping, "r") as onto_right:
-            onto_left_json = json.load(onto_left)
-            onto_right_json = json.load(onto_right)
-            onto_joined_json = onto_left_json + onto_right_json
-            with open(ontopath_joined + "mapping_fhir.json", "w+") as onto_joined_file:
-                json.dump(onto_joined_json, onto_joined_file)
+        mapping_cql = []
+        mapping_fhir = []
+        mapping_tree = {"children": [],
+                        "context": {
+                            "code": "",
+                            "display": "",
+                            "system": ""
+                        },
+                        "termCode": {
+                            "code": "",
+                            "display": "",
+                            "system": ""
+                        }}
 
-        ontopath_left_mappingtree = path_for_file(ontopath_left, "mapping_tree.json")
-        ontopath_right_mappingtree = path_for_file(ontopath_right, "mapping_tree.json")
-        log.info(f"merging mapping tree")
-        with open(ontopath_left_mappingtree, "r") as onto_left, open(ontopath_right_mappingtree, "r") as onto_right:
-            onto_left_json = json.load(onto_left)
-            onto_right_json = json.load(onto_right)
-            onto_joined_json = onto_left_json["children"].extend(onto_right_json["children"])
-            with open(ontopath_joined + "mapping_tree.json", "w+") as onto_joined_file:
-                json.dump(onto_joined_json, onto_joined_file)
+        for ontodir in args.ontodirs:
+            mapping_cql = mapping_cql + load_ontology_file(ontodir, "mapping_cql.json")
+            mapping_fhir = mapping_fhir + load_ontology_file(ontodir, "mapping_fhir.json")
+            cur_mapping_tree = load_ontology_file(ontodir, "mapping_tree.json")
+            mapping_tree["children"].extend(cur_mapping_tree["children"])
+
+        cql_dir = f"{args.outputdir}/mapping/cql"
+        fhir_dir = f"{args.outputdir}/mapping/fhir"
+        os.makedirs(cql_dir, exist_ok=True)
+        os.makedirs(fhir_dir, exist_ok=True)
+
+        write_json_to_file(f"{cql_dir}/mapping_cql.json", mapping_cql)
+        write_json_to_file(f"{fhir_dir}/mapping_fhir.json", mapping_fhir)
+        write_json_to_file(f"{args.outputdir}/mapping/mapping_tree.json", mapping_tree)
 
     if args.merge_uitrees:
-        log.info(f"merging ui trees")
-        for filename in os.listdir(ontopath_left + uitree_dir_left):
-            shutil.copy(ontopath_left + uitree_dir_left + filename, ontopath_joined + "ui_trees/")
-            log.info("copying ui tree: " + filename)
-        for filename in os.listdir(ontopath_right + uitree_dir_left):
-            shutil.copy(ontopath_right + uitree_dir_left + filename, ontopath_joined + "ui_trees/")
-            log.info("copying ui tree: " + filename)
+
+        output_ui_tree_dir = f'{args.outputdir}/ui-trees'
+        os.makedirs(output_ui_tree_dir, exist_ok=True)
+
+        for ontodir in args.ontodirs:
+            cur_ui_tree_dir = f'{ontodir}/ui-trees'
+
+            for filename in os.listdir(cur_ui_tree_dir):
+                shutil.copy(f'{cur_ui_tree_dir}/{filename}', f'{output_ui_tree_dir}/{filename}')
 
     if args.merge_sqldump:
-        sql_merger = SqlMerger(sql_script_dir=sql_scriptdir)
+        output_sql_script_dir = f'{args.outputdir}/sql_scripts'
+        sql_script_index = 0
+        os.makedirs(output_sql_script_dir, exist_ok=True)
+
+        for ontodir in args.ontodirs:
+            cur_sql_file_path = path_for_file(ontodir, "R__Load_latest_ui_profile.sql")
+            shutil.copy(f'{cur_sql_file_path}',
+                        f'{output_sql_script_dir}/R__Load_latest_ui_profile_{str(sql_script_index)}.sql')
+
+        sql_merger = SqlMerger(sql_script_dir=output_sql_script_dir)
         sql_merger.execute_merge()
+        sql_merger.shutdown()
