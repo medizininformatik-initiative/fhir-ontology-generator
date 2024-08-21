@@ -298,11 +298,11 @@ def write_used_value_sets_to_files(ui_profiles: List[UIProfile], directory: str 
     value_sets = list()
     for ui_profile in ui_profiles:
         if ui_profile.valueDefinition:
-            if value_set := ui_profile.valueDefinition.selectableConcepts:
+            if value_set := ui_profile.valueDefinition.referencedValueSet:
                 value_sets.append(value_set)
         if ui_profile.attributeDefinitions:
             for attribute_definition in ui_profile.attributeDefinitions:
-                if value_set := attribute_definition.selectableConcepts:
+                if value_set := attribute_definition.referencedValueSet:
                     value_sets.append(value_set)
     for value_set in value_sets:
         write_object_as_json(value_set, f"{directory}/{remove_reserved_characters(value_set.url.split('/')[-1])}.json")

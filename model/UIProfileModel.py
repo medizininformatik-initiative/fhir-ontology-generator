@@ -41,7 +41,7 @@ class ValueSet:
 @dataclass
 class ValueDefinition:
     type: VALUE_TYPE_OPTIONS
-    selectableConcepts: ValueSet = None
+    referencedValueSet: ValueSet = None
     allowedUnits: List[TermCode] = field(default_factory=list)
     precision: int = 1
     min: float = None
@@ -51,10 +51,10 @@ class ValueDefinition:
 
     def to_dict(self):
         data = asdict(self)
-        if self.referenceCriteriaSet is not None:
+        if self.referenceCriteriaSet:
             data['referenceCriteriaSet'] = self.referenceCriteriaSet.url
-        if self.selectableConcepts is not None:
-            data['selectableConcepts'] = self.selectableConcepts.url
+        if self.referencedValueSet:
+            data['referencedValueSet'] = self.referencedValueSet.url
         return data
 
 
@@ -99,6 +99,8 @@ class UIProfile:
 
     def to_dict(self):
         data = asdict(self)
+        if self.valueDefinition:
+            data["valueDefinition"] = self.valueDefinition.to_dict()
         if self.attributeDefinitions:
             data["attributeDefinitions"] = [attr.to_dict() for attr in self.attributeDefinitions]
         return data

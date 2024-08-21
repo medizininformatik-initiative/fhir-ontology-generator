@@ -126,7 +126,7 @@ class UIProfileGenerator:
             value_type = "concept"
         value_definition = ValueDefinition(value_type)
         if value_type == "concept":
-            value_definition.selectableConcepts = self.parser.get_selectable_concepts(value_defining_element,
+            value_definition.referencedValueSet = self.parser.get_selectable_concepts(value_defining_element,
                                                                                       profile_snapshot.get("name"))
         elif value_type == "quantity":
             # "Observation.valueQuantity" -> "Observation.valueQuantity.code"
@@ -190,7 +190,7 @@ class UIProfileGenerator:
         attribute_code = generate_attribute_key(attribute_defining_element_id)
         attribute_definition = AttributeDefinition(attribute_code, attribute_type)
         if attribute_type == "concept":
-            attribute_definition.selectableConcepts = self.parser.get_selectable_concepts(
+            attribute_definition.referencedValueSet = self.parser.get_selectable_concepts(
                 attribute_defining_elements[-1],
                 profile_snapshot.get("name"))
         elif attribute_type == "quantity":
@@ -230,7 +230,7 @@ class UIProfileGenerator:
                                                                       profile_snapshot.get("name"))
             return attribute_definition
         elif attribute_type == "CodeableConcept":
-            attribute_definition.selectableConcepts = self.parser.get_selectable_concepts(
+            attribute_definition.referencedValueSet = self.parser.get_selectable_concepts(
                 attribute_defining_elements[-1],
                 profile_snapshot.get("name"))
             return attribute_definition
