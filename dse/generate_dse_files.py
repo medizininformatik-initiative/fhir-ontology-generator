@@ -22,7 +22,7 @@ def download_simplifier_packages(package_names):
         os.system(f"fhir install {package} --here")
 
 def download_and_save_value_set(value_set_url, session):
-    value_set_folder = 'generated/value_sets'
+    value_set_folder = 'generated/value-sets'
 
     onto_server_value_set_url = f'{TERMINOLOGY_SERVER_ADDRESS}ValueSet/$expand?url={value_set_url}'
 

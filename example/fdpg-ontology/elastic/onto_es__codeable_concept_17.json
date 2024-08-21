@@ -1,0 +1,22 @@
+{"index": {"_index": "codeable_concept", "_id": "da23eb49-4a34-37c4-b6cf-b9cc65a4fc9d"}}
+{"termcode": {"code": "444479000", "display": "Rate of blood flow through cardiovascular device (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-extrakorporale-Verfahren-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "bf54ce66-35c9-341c-af51-625b8ce08c01"}}
+{"termcode": {"code": "445940005", "display": "Duration of hemodialysis session (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-extrakorporale-Verfahren-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "f7943d0b-f7c5-3890-bac6-f86f83632d6d"}}
+{"termcode": {"code": "401000124105", "display": "Duration of hemodialysis session (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-extrakorporale-Verfahren-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "2d78b9d3-8c8e-3d04-b948-6e2d7bc35823"}}
+{"termcode": {"code": "708513005", "display": "Substitution flow rate (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-extrakorporale-Verfahren-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "4ac9f934-5887-3559-9875-ca3f27e3516d"}}
+{"termcode": {"code": "708514004", "display": "Substitution volume (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-extrakorporale-Verfahren-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "c4ae723c-6f85-3df8-85e7-61dae9515428"}}
+{"termcode": {"code": "251286000", "display": "Extracorporeal gas exchange duration (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-extrakorporale-Verfahren-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "98811cfe-2cac-3497-8bdd-79bde403cabd"}}
+{"termcode": {"code": "251288004", "display": "Extracorporeal gas exchange flow rate (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-extrakorporale-Verfahren-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "61d23615-fe7c-32cc-9174-61ea8f97fa21"}}
+{"termcode": {"code": "251289007", "display": "Extracorporeal gas exchange flow index (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-extrakorporale-Verfahren-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "4d0d45ef-9020-3ee5-aa73-6a2b953fc09e"}}
+{"termcode": {"code": "252076005", "display": "Venous pressure (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-extrakorporale-Verfahren-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "3cb71a0d-2cdf-35e9-891a-2918919ef87c"}}
+{"termcode": {"code": "386534000", "display": "Arterial blood pressure (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-extrakorporale-Verfahren-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "44c6a073-056d-35e1-8386-3ed0df141fe3"}}
+{"termcode": {"code": "79063001", "display": "Gas flow rate (v) (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-extrakorporale-Verfahren-SNOMED"]}

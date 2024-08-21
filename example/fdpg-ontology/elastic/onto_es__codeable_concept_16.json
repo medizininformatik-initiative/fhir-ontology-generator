@@ -1,0 +1,102 @@
+{"index": {"_index": "codeable_concept", "_id": "da2ecac5-69f5-362c-83a5-744376975c7a"}}
+{"termcode": {"code": "8867-4", "display": "Heart Rate", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "d369698e-9a3b-3af8-bfdd-51eb2b3a18f7"}}
+{"termcode": {"code": "8480-6", "display": "Systolic blood Pressure", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "66936d14-11b0-330f-8b9f-88df162df0ed"}}
+{"termcode": {"code": "8478-0", "display": "Mean blood Pressure", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "0b4b0913-fed2-3b49-8c4d-e159475354a2"}}
+{"termcode": {"code": "8462-4", "display": "Diastolic blood pressure", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "516c6d15-4b39-3112-96b5-c9b317f183be"}}
+{"termcode": {"code": "60985-9", "display": "Central venous pressure (CVP)", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "473e6460-c89c-327c-8ad3-964c907a8c14"}}
+{"termcode": {"code": "8440-0", "display": "Pulmonary artery Systolic blood pressure", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "d18e8aa7-6cf5-315a-948b-869633eba31c"}}
+{"termcode": {"code": "8414-5", "display": "Pulmonary artery Mean blood pressure", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "ecf9f408-46ec-32e5-86b5-1e9457a40e7c"}}
+{"termcode": {"code": "8385-7", "display": "Pulmonary artery Diastolic blood pressure", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "cd868ec1-0cba-3e71-bd8f-6392788d0b75"}}
+{"termcode": {"code": "75994-4", "display": "Pulmonary artery wedge pressure", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "e07715ab-27cc-330e-b576-29631ea80f86"}}
+{"termcode": {"code": "8737-9", "display": "Left ventricular Cardiac output by Indicator dilution", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "13feaa0b-bae1-32e4-8a4f-c4a028b46189"}}
+{"termcode": {"code": "8751-0", "display": "Left ventricular Cardiac index by Indicator dilution", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "9cf364be-c301-33c2-9651-6ed3009beff5"}}
+{"termcode": {"code": "8741-1", "display": "Left ventricular Cardiac output", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "5a577598-578e-354f-b8b7-16e4766ff684"}}
+{"termcode": {"code": "75919-1", "display": "Left ventricular Cardiac index", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "5d5c4cb4-74cf-3274-be98-04e15e9b2b02"}}
+{"termcode": {"code": "8837-7", "display": "Systemic vascular Resistance index", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "c73fb736-ccc9-3354-8016-83c42d6dabfa"}}
+{"termcode": {"code": "8834-4", "display": "Pulmonary vascular Resistance index", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "23ae18a0-803c-32ab-87f3-2d9509f64c0d"}}
+{"termcode": {"code": "8771-8", "display": "Left ventricular Stroke volume by Indicator dilution", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "8b0affb0-560c-3c0f-a18a-ac72c83e0b2d"}}
+{"termcode": {"code": "8791-6", "display": "Left ventricular Stroke volume index by Indicator dilution", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "4f34fa10-d538-3a8a-b28a-a58cd5864a6d"}}
+{"termcode": {"code": "20562-5", "display": "Left ventricular Stroke volume", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "c98c146c-dbb0-3dcb-ad7f-178e9094386d"}}
+{"termcode": {"code": "76297-1", "display": "Left ventricular Stroke volume index", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "2229c2c1-c92a-3e2d-93fd-11bf7b2bbbbb"}}
+{"termcode": {"code": "8329-5", "display": "Body temperature - Core", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "6b21b219-3829-3fef-85d6-3921e884f112"}}
+{"termcode": {"code": "59408-5", "display": "Oxygen saturation in Arterial blood by Pulse oximetry", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "fb4e056d-de47-343c-ada4-91bfd8abb485"}}
+{"termcode": {"code": "59418-4", "display": "Oxygen saturation in Blood Postductal by Pulse oximetry", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "13154e07-65ab-358f-a632-8bf129b5193b"}}
+{"termcode": {"code": "59407-7", "display": "Oxygen saturation in Blood Preductal by Pulse oximetry", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "4054ab20-a036-393e-8d7d-36d94268eb37"}}
+{"termcode": {"code": "60956-0", "display": "Intracranial pressure (ICP)", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "94fc4034-976d-33b1-adee-b7053b84a833"}}
+{"termcode": {"code": "8404-6", "display": "Left ventricular Intrachamber mean pressure", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "fd640c3d-bd31-3d7c-9926-3be3714985a3"}}
+{"termcode": {"code": "8406-1", "display": "Right ventricular Intrachamber mean pressure", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "0669041f-dce7-39b3-99ee-9f9da57906e1"}}
+{"termcode": {"code": "8430-1", "display": "Left ventricular Intrachamber systolic pressure", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "f6e1ba45-dc05-30fa-bbd3-5bb7077b8327"}}
+{"termcode": {"code": "8432-7", "display": "Right ventricular Intrachamber systolic pressure", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "548adc82-5248-35bd-b599-f1f6ad358727"}}
+{"termcode": {"code": "8375-8", "display": "Left ventricular Intrachamber diastolic pressure", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "f43bfe2c-9bba-38b1-8978-be8ad2b7dd77"}}
+{"termcode": {"code": "8377-4", "display": "Right ventricular Intrachamber diastolic pressure", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "3cceb456-db79-3040-86dc-1d90ba71531e"}}
+{"termcode": {"code": "60998-2", "display": "Right atrial pressure Systolic", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "cf9ac042-9c49-3a43-89e8-55caf547a3ce"}}
+{"termcode": {"code": "60989-1", "display": "Left atrial pressure Systolic", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "4f5ddd63-c22f-3289-bc1b-517050eacdb4"}}
+{"termcode": {"code": "8399-8", "display": "Left atrial Intrachamber mean pressure", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "5024c069-3ffd-3cb0-9599-1cb9a734a9cd"}}
+{"termcode": {"code": "8400-4", "display": "Right atrial Intrachamber mean pressure", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "3d92de54-7ab3-305c-a69a-e52eb04a7038"}}
+{"termcode": {"code": "75933-2", "display": "Left atrial pressure Diastolic", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "977667e5-5029-3b1e-88f3-48ec0ab19bd1"}}
+{"termcode": {"code": "60997-4", "display": "Right atrial pressure Diastolic", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "210b2fd1-474f-37c3-80a9-0d5941663daf"}}
+{"termcode": {"code": "29463-7", "display": "Body weight", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "ba717c40-6cde-3131-b0c6-38d03b73832a"}}
+{"termcode": {"code": "50064-5", "display": "Ideal body weight", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "207a722e-77d0-3f79-997c-7787ce87ac22"}}
+{"termcode": {"code": "8302-2", "display": "Body height", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "a58fd200-016e-3d80-a943-c03b9facd3c2"}}
+{"termcode": {"code": "8303-0", "display": "Body height [Percentile]", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "0a0e3ae1-7ea0-3a78-b0a8-e59ce0231d76"}}
+{"termcode": {"code": "8336-0", "display": "Body weight [Percentile] Per age", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "e115ac31-a516-3309-91a9-507a1df10342"}}
+{"termcode": {"code": "8333-7", "display": "Tympanic membrane temperature", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "1840fe93-c564-33cd-9413-3b1c43ea3d05"}}
+{"termcode": {"code": "8332-9", "display": "Rectal temperature", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "e565cb7d-0d11-3388-bf0a-e19fa54eb567"}}
+{"termcode": {"code": "60836-4", "display": "Esophageal temperature", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "2d1bba2c-b181-32ca-bbfd-245245f862b0"}}
+{"termcode": {"code": "8334-5", "display": "Body temperature - Urinary bladder", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "8354b560-dfac-3dcc-9bb4-ac515a1e4fcd"}}
+{"termcode": {"code": "8328-7", "display": "Axillary temperature", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "979119ef-8b1c-3dfd-bf20-b68a5cf3b26b"}}
+{"termcode": {"code": "8331-1", "display": "Oral temperature", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "7ac8086a-aef5-3d66-9315-709a80e59ef3"}}
+{"termcode": {"code": "60834-9", "display": "Blood temperature", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "adf2f591-0227-39f3-998d-2893efcca39b"}}
+{"termcode": {"code": "60955-2", "display": "Airway tempertaure", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "f1ed306a-636e-318e-a19f-c292a21014fc"}}
+{"termcode": {"code": "61009-7", "display": "Myocardial temperature", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "6349d898-9a77-3171-a8fd-60cfe183e0dc"}}
+{"termcode": {"code": "76010-8", "display": "Nasal temperature", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Monitoring-und-Vitaldaten-LOINC"]}

@@ -1,1 +1,0 @@
-# Folder to store generated dse ontology value sets

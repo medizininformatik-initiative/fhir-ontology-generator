@@ -1,0 +1,36 @@
+{"index": {"_index": "codeable_concept", "_id": "b3c61c93-2748-3624-9369-d973ea0e5cf5"}}
+{"termcode": {"code": "250822000", "display": "Inspiration/expiration time ratio (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "f4706abe-8e89-3ad5-bb57-1cd1c8fd4972"}}
+{"termcode": {"code": "416811008", "display": "Tidal volume setting (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "60a9fadd-5a1a-369f-9bda-2a6ae5642896"}}
+{"termcode": {"code": "250874002", "display": "Ventilator delivered tidal volume (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "3c3a3c98-4df7-3aad-8058-5fa1f2838e55"}}
+{"termcode": {"code": "250816009", "display": "Spontaneous tidal volume (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "f103b91c-499d-3457-a28b-0f1c965fd732"}}
+{"termcode": {"code": "426102006", "display": "Inspiratory minute volume (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "16e77be9-ca4e-3bea-a72d-fe6c62e5f565"}}
+{"termcode": {"code": "442720002", "display": "Expired oxygen tension (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "a5048df9-0070-32cf-b973-1cbb72f35855"}}
+{"termcode": {"code": "250823005", "display": "Total dynamic compliance (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "1e57576f-567e-38a0-beb3-7980dc5b6b46"}}
+{"termcode": {"code": "250854009", "display": "Positive end expiratory pressure (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "295ed33f-213d-3aa4-a0fb-a69239e3c9f1"}}
+{"termcode": {"code": "250784008", "display": "End tidal carbon dioxide concentration (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "204914f1-3c17-3ebb-995c-6a0ac388386e"}}
+{"termcode": {"code": "250875001", "display": "Ventilator delivered minute volume (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "051d1f04-467a-32d4-b788-ced946f2c6d2"}}
+{"termcode": {"code": "250820008", "display": "Expiratory time (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "f7d4f897-6420-3d96-a03b-5b51e08aef8f"}}
+{"termcode": {"code": "250819002", "display": "Inspiratory time (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "9a84538f-8cfa-3a72-985b-e2672b1800cc"}}
+{"termcode": {"code": "27913002", "display": "Maximum inspiratory pressure (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "349d1541-4410-35aa-890f-d9514debce77"}}
+{"termcode": {"code": "250876000", "display": "Ventilator rate (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "d4a0fce9-adfd-3625-a108-eac7157374e0"}}
+{"termcode": {"code": "698821009", "display": "Mean inspiratory airway pressure (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "16c74273-b682-38aa-843b-f535ac274657"}}
+{"termcode": {"code": "271625008", "display": "Rate of spontaneous respiration (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "31f6aefc-508b-342d-9711-29e16c03a380"}}
+{"termcode": {"code": "250810003", "display": "Total breath rate (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-SNOMED"]}
+{"index": {"_index": "codeable_concept", "_id": "cadf2be8-7d04-3b87-a230-7808e02c704b"}}
+{"termcode": {"code": "250774007", "display": "Inspired oxygen concentration (observable entity)", "system": "http://snomed.info/sct", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-SNOMED"]}

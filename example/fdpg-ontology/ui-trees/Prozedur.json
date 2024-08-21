@@ -1,0 +1,18 @@
+{
+    "context": {
+        "code": "Prozedur",
+        "display": "Prozedur",
+        "system": "fdpg.mii.cds"
+    },
+    "display": "Prozedur",
+    "id": "171dbdac-5755-589b-64d5-725ae359a44a",
+    "leaf": false,
+    "selectable": false,
+    "termCodes": [
+        {
+            "code": "Prozedur",
+            "display": "Prozedur",
+            "system": "fdpg.mii.cds"
+        }
+    ]
+}

@@ -1,0 +1,40 @@
+{"index": {"_index": "codeable_concept", "_id": "9f3d9f85-fff0-3a94-b864-febfea6b8d00"}}
+{"termcode": {"code": "150656", "display": "Oxygenation Ratio", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}
+{"index": {"_index": "codeable_concept", "_id": "be891e8d-852d-3164-9838-013931db0e47"}}
+{"termcode": {"code": "151586", "display": "Ventilation rate", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}
+{"index": {"_index": "codeable_concept", "_id": "d206fbff-54b5-337f-b00f-e3e9165d1a96"}}
+{"termcode": {"code": "152498", "display": "Unassisted spontaneous breath rate; respiration rate", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}
+{"index": {"_index": "codeable_concept", "_id": "e832967f-3d5a-38a7-be19-67c8ba28103e"}}
+{"termcode": {"code": "152490", "display": "Total respiratory rate; total breath rate", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}
+{"index": {"_index": "codeable_concept", "_id": "127fae8b-7366-3d53-980b-0ee97aefa244"}}
+{"termcode": {"code": "16929632", "display": "Inspiratory time setting", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}
+{"index": {"_index": "codeable_concept", "_id": "96433837-3a7b-32a2-bfef-4b1a26aceade"}}
+{"termcode": {"code": "151832", "display": "Ratio inspiration expiration time", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}
+{"index": {"_index": "codeable_concept", "_id": "1dc2eb63-5e0a-322b-95e8-4abc805dc246"}}
+{"termcode": {"code": "16929196", "display": "Tidal volume setting", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}
+{"index": {"_index": "codeable_concept", "_id": "5f5f2059-dd53-3e3d-bdb8-1dc284ad8e51"}}
+{"termcode": {"code": "151980", "display": "Ventilation tidal volume", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}
+{"index": {"_index": "codeable_concept", "_id": "04c5c231-58cf-32a2-bd19-85083c2febae"}}
+{"termcode": {"code": "152004", "display": "Ventilation inspiratory minute volume", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}
+{"index": {"_index": "codeable_concept", "_id": "f26283d7-c876-3f8d-8593-d71345652b37"}}
+{"termcode": {"code": "16929860", "display": "High pressure hold time setting Ventilator", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}
+{"index": {"_index": "codeable_concept", "_id": "e264aa69-50c0-3758-bf64-d7ae95b14a83"}}
+{"termcode": {"code": "16929864", "display": "Low pressure hold time setting Ventilator", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}
+{"index": {"_index": "codeable_concept", "_id": "2d983e94-6ae1-3d63-afd3-5a6dfd7a8387"}}
+{"termcode": {"code": "151948", "display": "Ventilation inspiratory flow", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}
+{"index": {"_index": "codeable_concept", "_id": "0376d4b0-94a6-3d48-ae96-3bf1275d76df"}}
+{"termcode": {"code": "151944", "display": "Ventilation expiratory flow", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}
+{"index": {"_index": "codeable_concept", "_id": "fa87c911-5b3b-3f71-af69-370d45bf520c"}}
+{"termcode": {"code": "153132", "display": "Expired oxygen concentration (or partial pressure) in airway gas", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}
+{"index": {"_index": "codeable_concept", "_id": "b6ced82d-b335-31ae-afda-63e13311a476"}}
+{"termcode": {"code": "151975", "display": "Mean pressure Respiratory system airway --on ventilator", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}
+{"index": {"_index": "codeable_concept", "_id": "246995f3-45ba-32a6-b2d5-86e7a0fca799"}}
+{"termcode": {"code": "151973", "display": "Pressure.max Respiratory system airway --on ventilator", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}
+{"index": {"_index": "codeable_concept", "_id": "61488639-79c3-3117-b402-f6a1c2461a48"}}
+{"termcode": {"code": "151692", "display": "Thoracic compliance", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}
+{"index": {"_index": "codeable_concept", "_id": "a6e06362-875e-3023-a9ae-9f729be48fdf"}}
+{"termcode": {"code": "151976", "display": "Applied PEEP", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}
+{"index": {"_index": "codeable_concept", "_id": "170d382e-521f-3852-b1f2-f3c1968f3c82"}}
+{"termcode": {"code": "152720", "display": "Inspiratory airway pressure relative to PEEP or BAP", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}
+{"index": {"_index": "codeable_concept", "_id": "d7334312-d81d-3d3b-84f4-e23b9538b135"}}
+{"termcode": {"code": "151708", "display": "End tidal carbon dioxide concentration (or partial pressure) in airway gas", "system": "urn:iso:std:iso:11073:10101", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-ISO11073"]}

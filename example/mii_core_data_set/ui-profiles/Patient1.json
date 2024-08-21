@@ -1,0 +1,40 @@
+{
+    "attributeDefinitions": [],
+    "name": "Patient1",
+    "timeRestrictionAllowed": false,
+    "valueDefinition": {
+        "allowedUnits": [
+            {
+                "code": "a",
+                "display": "a",
+                "system": "http://unitsofmeasure.org",
+                "version": null
+            },
+            {
+                "code": "mo",
+                "display": "mo",
+                "system": "http://unitsofmeasure.org",
+                "version": null
+            },
+            {
+                "code": "wk",
+                "display": "wk",
+                "system": "http://unitsofmeasure.org",
+                "version": null
+            },
+            {
+                "code": "d",
+                "display": "d",
+                "system": "http://unitsofmeasure.org",
+                "version": null
+            }
+        ],
+        "max": null,
+        "min": null,
+        "optional": true,
+        "precision": 1,
+        "referenceCriteriaSet": null,
+        "referencedValueSet": null,
+        "type": "quantity"
+    }
+}

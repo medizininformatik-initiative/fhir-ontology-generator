@@ -152,6 +152,7 @@ class SqlMerger:
                     time.sleep(5)
                     print(f"Executing command {cmd}")
                     self.db_container.exec_run(cmd=cmd)
+                    os.remove(f"{self.sql_script_dir}/{filename}")
                     os.remove(f"{self.sql_script_dir}/modified_{filename}")
 
                     # remove fk constraints

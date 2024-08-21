@@ -1,0 +1,18 @@
+{
+    "context": {
+        "code": "Medikamentenverabreichung",
+        "display": "Medikamentenverabreichung",
+        "system": "fdpg.mii.cds"
+    },
+    "display": "Medikamentenverabreichung",
+    "id": "6792e2ed-20ef-4f82-8604-8ce9ea355f64",
+    "leaf": false,
+    "selectable": false,
+    "termCodes": [
+        {
+            "code": "Medikamentenverabreichung",
+            "display": "Medikamentenverabreichung",
+            "system": "fdpg.mii.cds"
+        }
+    ]
+}

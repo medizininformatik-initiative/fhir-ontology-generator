@@ -1,0 +1,4 @@
+{"index": {"_index": "codeable_concept", "_id": "2063f71d-8727-3c03-bd50-dbc9b6489a1b"}}
+{"termcode": {"code": "83064-6", "display": "Calcium.ionized [Moles/volume] in Blood drawn from CRRT circuit", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-extrakorporale-Verfahren-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "b1492faa-7af7-31e3-865b-978e290e7d2c"}}
+{"termcode": {"code": "19941-4", "display": "Oxygen gas flow Oxygen delivery system", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-extrakorporale-Verfahren-LOINC"]}

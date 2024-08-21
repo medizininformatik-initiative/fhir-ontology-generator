@@ -1,0 +1,2110 @@
+{
+    "resourceType": "ValueSet",
+    "extension": [
+        {
+            "url": "http://hl7.org/fhir/StructureDefinition/cqf-scope",
+            "valueString": "@mii-termserv/de.medizininformatikinitiative.kerndatensatz.terminology.biobank"
+        }
+    ],
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/ValueSet/icd-o-3-topography",
+    "name": "ValueSetICDO3Topography",
+    "title": "ValueSet - ICD-O-3 Topography",
+    "status": "active",
+    "expansion": {
+        "identifier": "urn:uuid:45e916cf-3adb-470c-bc12-fe73a6367304",
+        "timestamp": "2024-08-21T11:16:44+00:00",
+        "total": 416,
+        "parameter": [
+            {
+                "name": "version",
+                "valueUri": "http://terminology.hl7.org/CodeSystem/icd-o-3|2019"
+            },
+            {
+                "name": "used-codesystem",
+                "valueUri": "http://terminology.hl7.org/CodeSystem/icd-o-3|2019"
+            }
+        ],
+        "contains": [
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C76.2",
+                "display": "Abdomen o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C24.1",
+                "display": "Ampulla Vateri"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C21.1",
+                "display": "Analkanal"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C21",
+                "display": "Analkanal und Anus"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C76-C80",
+                "display": "Anderer oder mangelhaft bezeichneter Sitz"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C16.3",
+                "display": "Antrum ventriculi"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C21.0",
+                "display": "Anus o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C18.1",
+                "display": "Appendix vermiformis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C30-C39",
+                "display": "Atemwege [Respirationstrakt] und intrathorakale Organe"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C39.8",
+                "display": "Atemwege [Respirationstrakt] und intrathorakale Organe, mehrere Bereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C69.9",
+                "display": "Auge o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C69",
+                "display": "Auge und Augenanhangsgebilde"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C69.8",
+                "display": "Auge und Augenanhangsgebilde, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C69-C72",
+                "display": "Auge, Gehirn und sonstige Teile des Zentralnervensystems"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C44.1",
+                "display": "Augenlid"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C47.9",
+                "display": "Autonomes Nervensystem o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C76.3",
+                "display": "Becken o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C41.4",
+                "display": "Beckenknochen, Kreuzbein, Stei\u00dfbein und zugeh\u00f6rige Gelenke"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C77.5",
+                "display": "Beckenlymphknoten"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C44.4",
+                "display": "Behaarte Kopfhaut und Haut am Hals"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C49",
+                "display": "Bindegewebe, Subkutangewebe und sonstige Weichteile"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C49-C49",
+                "display": "Bindegewebe, Subkutangewebe und sonstige Weichteile"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C49.1",
+                "display": "Bindegewebe, Subkutangewebe und sonstige Weichteile der oberen Extremit\u00e4t und der Schulter"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C49.2",
+                "display": "Bindegewebe, Subkutangewebe und sonstige Weichteile der unteren Extremit\u00e4t und der H\u00fcfte"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C49.5",
+                "display": "Bindegewebe, Subkutangewebe und sonstige Weichteile des Beckens"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C49.0",
+                "display": "Bindegewebe, Subkutangewebe und sonstige Weichteile des Kopfes, des Gesichtes und des Halses"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C49.6",
+                "display": "Bindegewebe, Subkutangewebe und sonstige Weichteile des Stammes o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C49.3",
+                "display": "Bindegewebe, Subkutangewebe und sonstige Weichteile des Thorax"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C49.9",
+                "display": "Bindegewebe, Subkutangewebe und sonstige Weichteile o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C49.8",
+                "display": "Bindegewebe, Subkutangewebe und sonstige Weichteile, mehrere Bereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C49.4",
+                "display": "Bindegewebe, Subkutangewebe und sonstige Weichteilgewebe des Abdomen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C67.9",
+                "display": "Blase o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C67.1",
+                "display": "Blasendach"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C42.0",
+                "display": "Blut"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C34",
+                "display": "Bronchus und Lunge"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C50",
+                "display": "Brust [Mamma]"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C50-C50",
+                "display": "Brust [Mamma]"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C50.9",
+                "display": "Brust o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C50.8",
+                "display": "Brust, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C69.4",
+                "display": "Bulbus oculi"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C72.1",
+                "display": "Cauda equina"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C71.0",
+                "display": "Cerebrum"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C53.9",
+                "display": "Cervix uteri"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C53",
+                "display": "Cervix uteri"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C53.8",
+                "display": "Cervix uteri, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C69.3",
+                "display": "Chorioidea"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C18.9",
+                "display": "Colon"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C18.2",
+                "display": "Colon ascendens"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C18.6",
+                "display": "Colon descendens"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C18.7",
+                "display": "Colon sigmoideum"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C18.4",
+                "display": "Colon transversum"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C54.9",
+                "display": "Corpus uteri"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C54",
+                "display": "Corpus uteri"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C54.8",
+                "display": "Corpus uteri, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C16.2",
+                "display": "Corpus ventriculi"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C62.1",
+                "display": "Deszendierter Hoden"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C02.0",
+                "display": "Dorsale Oberfl\u00e4che der Zunge"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C75.2",
+                "display": "Ductus craniopharyngealis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C25.3",
+                "display": "Ductus pancreaticus"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C17.0",
+                "display": "Duodenum"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C17",
+                "display": "D\u00fcnndarm"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C17.9",
+                "display": "D\u00fcnndarm o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C17.8",
+                "display": "D\u00fcnndarm, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C57.0",
+                "display": "Eileiter"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C53.1",
+                "display": "Ektozervix"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C75.9",
+                "display": "Endokrine Dr\u00fcse o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C75.8",
+                "display": "Endokrine Dr\u00fcsen und verwandte Strukturen, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C54.1",
+                "display": "Endometrium"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C53.0",
+                "display": "Endozervix"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C24.0",
+                "display": "Extrahepatischer Gallengang"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C18.3",
+                "display": "Flexura hepatica"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C18.5",
+                "display": "Flexura lienalis coli"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C09.0",
+                "display": "Fossa tonsillaris"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C71.1",
+                "display": "Frontallappen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C54.3",
+                "display": "Fundus uteri"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C16.1",
+                "display": "Fundus ventriculi"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C23.9",
+                "display": "Gallenblase"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C23",
+                "display": "Gallenblase"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C24.9",
+                "display": "Gallenwege o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C24.8",
+                "display": "Gallenwege, mehrere Bereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C26.9",
+                "display": "Gastrointestinaltrakt o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C05",
+                "display": "Gaumen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C05.9",
+                "display": "Gaumen o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C05.8",
+                "display": "Gaumen, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C09.1",
+                "display": "Gaumenbogen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C71",
+                "display": "Gehirn"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C71.9",
+                "display": "Gehirn o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C72.8",
+                "display": "Gehirn und andere Teile des Zentralnervensystems, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C71.8",
+                "display": "Gehirn, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C75.3",
+                "display": "Glandula pinealis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C08.1",
+                "display": "Glandula sublingualis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C08.0",
+                "display": "Glandula submandibularis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C60.1",
+                "display": "Glans penis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C75.5",
+                "display": "Glomus aorticum und sonstige Paraganglien"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C75.4",
+                "display": "Glomus caroticum"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C32.0",
+                "display": "Glottis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C16.6",
+                "display": "Gro\u00dfe Kurvatur o.n.A"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C08.9",
+                "display": "Gro\u00dfe Speicheldr\u00fcsen o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C08.8",
+                "display": "Gro\u00dfe Speicheldr\u00fcsen, mehrere Bereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C67",
+                "display": "Harnblase"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C67.8",
+                "display": "Harnblase, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C67.5",
+                "display": "Harnblasenhals"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C64-C68",
+                "display": "Harntrakt"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C68.9",
+                "display": "Harntrakt o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C68.8",
+                "display": "Harntrakt, mehrere Bereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C05.0",
+                "display": "Harter Gaumen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C34.0",
+                "display": "Hauptbronchus"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C44",
+                "display": "Haut"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C44-C44",
+                "display": "Haut"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C44.5",
+                "display": "Haut am Stamm"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C44.6",
+                "display": "Haut der oberen Extremit\u00e4ten und der Schulter"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C44.7",
+                "display": "Haut der unteren Extremit\u00e4t und der H\u00fcfte"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C44.9",
+                "display": "Haut o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C44.3",
+                "display": "Haut sonstiger und nicht n\u00e4her bezeichneter Teile des Gesichtes"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C44.8",
+                "display": "Haut, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C38.0",
+                "display": "Herz"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C38",
+                "display": "Herz, Mediastinum und Pleura"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C38.8",
+                "display": "Herz, Mediastinum und Pleura, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C67.4",
+                "display": "Hintere Harnblasenwand"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C38.2",
+                "display": "Hinteres Mediastinum"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C13.2",
+                "display": "Hinterwand des Hypopharynx"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C11.1",
+                "display": "Hinterwand des Nasopharynx"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C10.3",
+                "display": "Hinterwand des Oropharynx"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C75.1",
+                "display": "Hirnanhangsdr\u00fcse"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C70.0",
+                "display": "Hirnh\u00e4ute"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C72.5",
+                "display": "Hirnnerven o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C71.7",
+                "display": "Hirnstamm"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C13",
+                "display": "Hypopharynx"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C13.9",
+                "display": "Hypopharynx o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C13.8",
+                "display": "Hypopharynx, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C42.4",
+                "display": "H\u00e4matopoetisches System o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C42",
+                "display": "H\u00e4matopoetisches und retikuloendotheliales System"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C42-C42",
+                "display": "H\u00e4matopoetisches und retikuloendotheliales System"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C17.2",
+                "display": "Ileum"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C26.0",
+                "display": "Intestinaltrakt o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C77.2",
+                "display": "Intraabdominaler Lymphknoten"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C22.1",
+                "display": "Intrahepatische Galleng\u00e4nge"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C77.1",
+                "display": "Intrathorakaler Lymphknoten"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C54.0",
+                "display": "Isthmus uteri"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C17.1",
+                "display": "Jejunum"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C16.0",
+                "display": "Kardia o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C32.9",
+                "display": "Kehlkopf o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C10.4",
+                "display": "Kiemengang"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C16.5",
+                "display": "Kleine Kurvatur o.n.A"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C71.6",
+                "display": "Kleinhirn o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C51.2",
+                "display": "Klitoris"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C21.2",
+                "display": "Kloakenregion"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C41.0",
+                "display": "Knochen des Hirn- und Gesichtssch\u00e4dels und zugeh\u00f6rige Gelenke"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C40.9",
+                "display": "Knochen einer Extremit\u00e4t o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C41.9",
+                "display": "Knochen o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C40-C41",
+                "display": "Knochen, Gelenke und Gelenkknorpel"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C40",
+                "display": "Knochen, Gelenke und Gelenkknorpel der Extremit\u00e4ten"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C40.8",
+                "display": "Knochen, Gelenke und Gelenkknorpel der Extremit\u00e4ten, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C41",
+                "display": "Knochen, Gelenke und Gelenkknorpel sonstiger und nicht n\u00e4her bezeichneter Lokalisationen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C41.8",
+                "display": "Knochen, Gelenke und Gelenkknorpel, mehrere Bereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C42.1",
+                "display": "Knochenmark"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C18",
+                "display": "Kolon"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C18.8",
+                "display": "Kolon, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C69.0",
+                "display": "Konjunktiva"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C76.0",
+                "display": "Kopf, Gesicht oder Hals o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C69.1",
+                "display": "Kornea o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C62.0",
+                "display": "Kryptorchider Hoden"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C40.1",
+                "display": "Kurze Knochen der oberen Extremit\u00e4ten und zugeh\u00f6rige Gelenke"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C40.3",
+                "display": "Kurze Knochen der unteren Extremit\u00e4ten und zugeh\u00f6rige Gelenke"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C51.0",
+                "display": "Labium majus"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C51.1",
+                "display": "Labium minus"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C40.2",
+                "display": "Lange Knochen der unteren Extremit\u00e4ten und zugeh\u00f6rige Gelenke"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C40.0",
+                "display": "Lange Knochen von Arm und Schulter und zugeh\u00f6rige Gelenke"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C32",
+                "display": "Larynx"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C32.8",
+                "display": "Larynx, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C32.3",
+                "display": "Larynxknorpel"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C67.2",
+                "display": "Laterale Harnblasenwand"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C22.0",
+                "display": "Leber"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C22",
+                "display": "Leber und intrahepatische Galleng\u00e4nge"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C57.1",
+                "display": "Ligamentum latum uteri"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C57.2",
+                "display": "Ligamentum rotundum"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C00",
+                "display": "Lippe"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C00.9",
+                "display": "Lippe o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C00.8",
+                "display": "Lippe, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C00-C14",
+                "display": "Lippe, Mundh\u00f6hle und Pharynx"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C14.8",
+                "display": "Lippe, Mundh\u00f6hle und Pharynx, mehrere Bereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C44.0",
+                "display": "Lippenhaut o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C00.6",
+                "display": "Lippenkommissur"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C00.5",
+                "display": "Lippenschleimhaut o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C34.9",
+                "display": "Lunge o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C34.8",
+                "display": "Lunge, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C34.2",
+                "display": "Lungenmittellappen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C34.1",
+                "display": "Lungenoberlappen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C34.3",
+                "display": "Lungenunterlappen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C77",
+                "display": "Lymphknoten"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C77.3",
+                "display": "Lymphknoten der Achseln und Arme"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C77.4",
+                "display": "Lymphknoten der Inguinalregion und des Beines"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C77.0",
+                "display": "Lymphknoten des Kopfes, des Gesichtes und des Halses"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C77.8",
+                "display": "Lymphknoten mehrerer Regionen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C77.9",
+                "display": "Lymphknoten o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C16",
+                "display": "Magen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C16.9",
+                "display": "Magen o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C16.8",
+                "display": "Magen, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C50.0",
+                "display": "Mamille"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C41.1",
+                "display": "Mandibula"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C39.9",
+                "display": "Mangelhaft bezeichneter Sitz innerhalb der Atmungsorgane"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C76.8",
+                "display": "Mangelhaft bezeichneter Sitz, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C17.3",
+                "display": "Meckel-Divertikel"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C38.3",
+                "display": "Mediastinum o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C70",
+                "display": "Meningen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C70.9",
+                "display": "Meningen o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C42.2",
+                "display": "Milz"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C30.1",
+                "display": "Mittelohr"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C06.9",
+                "display": "Mund o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C04",
+                "display": "Mundboden"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C04.9",
+                "display": "Mundboden o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C04.8",
+                "display": "Mundboden, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C54.2",
+                "display": "Myometrium"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C60-C63",
+                "display": "M\u00e4nnliche Geschlechtsorgane"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C63.9",
+                "display": "M\u00e4nnliche Geschlechtsorgane o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C63.8",
+                "display": "M\u00e4nnliche Geschlechtsorgane, mehrere Bereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C72.4",
+                "display": "N. acusticus"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C72.2",
+                "display": "N. olfactorius"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C72.3",
+                "display": "N. opticus"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C30.0",
+                "display": "Nasenh\u00f6hle"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C30",
+                "display": "Nasenh\u00f6hle und Mittelohr"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C31",
+                "display": "Nasennebenh\u00f6hlen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C31.9",
+                "display": "Nasennebenh\u00f6hlen o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C31.8",
+                "display": "Nasennebenh\u00f6hlen, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C11",
+                "display": "Nasopharynx [Nasenrachenraum]"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C11.9",
+                "display": "Nasopharynx o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C11.8",
+                "display": "Nasopharynx, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C63.0",
+                "display": "Nebenhoden"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C74",
+                "display": "Nebenniere"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C74.9",
+                "display": "Nebenniere o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C74.1",
+                "display": "Nebennierenmark"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C74.0",
+                "display": "Nebennierenrinde"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C75.0",
+                "display": "Nebenschilddr\u00fcse"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C72.9",
+                "display": "Nervensystem"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C64",
+                "display": "Niere"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C64.9",
+                "display": "Niere o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C65.9",
+                "display": "Nierenbecken"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C65",
+                "display": "Nierenbecken"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C48.1",
+                "display": "N\u00e4her bezeichnete Teile des Peritoneums"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C39.0",
+                "display": "Obere Atemwege o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C76.4",
+                "display": "Obere Extremit\u00e4t o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C11.0",
+                "display": "Obere Wand des Nasopharynx"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C50.2",
+                "display": "Oberer innerer Quadrant der Brust"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C50.4",
+                "display": "Oberer \u00e4u\u00dferer Quadrant der Brust"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C03.0",
+                "display": "Oberkieferzahnfleisch"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C71.4",
+                "display": "Okzipitallappen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C69.6",
+                "display": "Orbita o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C10",
+                "display": "Oropharynx"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C10.9",
+                "display": "Oropharynx o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C10.8",
+                "display": "Oropharynx, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C67.6",
+                "display": "Ostium ureteris"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C56.9",
+                "display": "Ovar"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C56",
+                "display": "Ovar"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C25",
+                "display": "Pankreas"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C25.9",
+                "display": "Pankreas o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C25.8",
+                "display": "Pankreas, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C25.4",
+                "display": "Pankreas-Inselzellen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C25.0",
+                "display": "Pankreaskopf"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C25.1",
+                "display": "Pankreask\u00f6rper"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C25.2",
+                "display": "Pankreasschwanz"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C57.3",
+                "display": "Parametrium"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C68.1",
+                "display": "Paraurethrale Dr\u00fcse"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C71.3",
+                "display": "Parietallappen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C07.9",
+                "display": "Parotis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C07",
+                "display": "Parotis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C60",
+                "display": "Penis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C60.9",
+                "display": "Penis o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C60.8",
+                "display": "Penis, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C60.2",
+                "display": "Penisschaft"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C47",
+                "display": "Periphere Nerven und autonomes Nervensystem"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C47-C47",
+                "display": "Periphere Nerven und autonomes Nervensystem"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C47.1",
+                "display": "Periphere Nerven und autonomes Nervensystem der oberen Extremit\u00e4t und der Schulter"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C47.2",
+                "display": "Periphere Nerven und autonomes Nervensystem der unteren Extremit\u00e4t und der H\u00fcfte"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C47.4",
+                "display": "Periphere Nerven und autonomes Nervensystem des Abdomens"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C47.5",
+                "display": "Periphere Nerven und autonomes Nervensystem des Beckens"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C47.0",
+                "display": "Periphere Nerven und autonomes Nervensystem des Kopfes, des Gesichtes und des Halses"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C47.6",
+                "display": "Periphere Nerven und autonomes Nervensystem des Stammes"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C47.3",
+                "display": "Periphere Nerven und autonomes Nervensystem des Thorax"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C47.8",
+                "display": "Periphere Nerven und autonomes Nervensystem, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C48.2",
+                "display": "Peritoneum o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C14.0",
+                "display": "Pharynx o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C58.9",
+                "display": "Plazenta"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C58",
+                "display": "Plazenta"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C38.4",
+                "display": "Pleura o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C13.1",
+                "display": "Plica aryepiglottica, hypopharyngeale Seite"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C61.9",
+                "display": "Prostata"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C61",
+                "display": "Prostata"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C60.0",
+                "display": "Pr\u00e4putium"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C16.4",
+                "display": "Pylorus"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C50.6",
+                "display": "Recessus axillaris der Brust"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C13.0",
+                "display": "Regio postcricoidea"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C19.9",
+                "display": "Rektosigmoidaler \u00dcbergang"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C19",
+                "display": "Rektosigmoidaler \u00dcbergang"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C20",
+                "display": "Rektum"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C20.9",
+                "display": "Rektum o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C21.8",
+                "display": "Rektum, Anus und Analkanal, mehrere Bereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C42.3",
+                "display": "Retikuloendotheliales System o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C69.2",
+                "display": "Retina"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C06.2",
+                "display": "Retromolarregion"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C48.0",
+                "display": "Retroperitoneum"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C48",
+                "display": "Retroperitoneum und Peritoneum"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C48-C48",
+                "display": "Retroperitoneum und Peritoneum"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C48.8",
+                "display": "Retroperitoneum und Peritoneum, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C41.3",
+                "display": "Rippen, Sternum, Klavikula und zugeh\u00f6rige Gelenke"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C72.0",
+                "display": "R\u00fcckenmark"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C72",
+                "display": "R\u00fcckenmark, Hirnnerven und sonstige Teile des Zentralnervensystems"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C70.1",
+                "display": "R\u00fcckenmarkh\u00e4ute"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C63.1",
+                "display": "Samenstrang"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C73.9",
+                "display": "Schilddr\u00fcse"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C73",
+                "display": "Schilddr\u00fcse"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C73-C75",
+                "display": "Schilddr\u00fcse und sonstige endokrine Dr\u00fcsen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C00.3",
+                "display": "Schleimhaut der Oberlippe"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C00.4",
+                "display": "Schleimhaut der Unterlippe"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C11.2",
+                "display": "Seitenwand des Nasopharynx"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C10.2",
+                "display": "Seitenwand des Oropharynx"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C04.1",
+                "display": "Seitlicher Teil des Mundbodens"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C31.1",
+                "display": "Sinus ethmoidalis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C31.2",
+                "display": "Sinus frontalis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C31.0",
+                "display": "Sinus maxillaris"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C12.9",
+                "display": "Sinus piriformis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C12",
+                "display": "Sinus piriformis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C31.3",
+                "display": "Sinus sphenoidalis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C63.2",
+                "display": "Skrotum o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C75",
+                "display": "Sonstige endokrine Dr\u00fcsen und verwandte Strukturen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C63.7",
+                "display": "Sonstige n\u00e4her bezeichnete Teile der m\u00e4nnlichen Geschlechtsorgane"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C57.7",
+                "display": "Sonstige n\u00e4her bezeichnete Teile der weiblichen Geschlechtsorgane"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C25.7",
+                "display": "Sonstige n\u00e4her bezeichnete Teile des Pankreas"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C08",
+                "display": "Sonstige und nicht n\u00e4her bezeichnete gro\u00dfe Speicheldr\u00fcsen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C24",
+                "display": "Sonstige und nicht n\u00e4her bezeichnete Teile der Gallenwege"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C63",
+                "display": "Sonstige und nicht n\u00e4her bezeichnete Teile der m\u00e4nnlichen Geschlechtsorgane"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C57",
+                "display": "Sonstige und nicht n\u00e4her bezeichnete Teile der weiblichen Geschlechtsorgane"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C02",
+                "display": "Sonstige und nicht n\u00e4her bezeichnete Teile der Zunge"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C68",
+                "display": "Sonstige und nicht n\u00e4her bezeichnete Teile des Harntraktes"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C06",
+                "display": "Sonstige und nicht n\u00e4her bezeichnete Teile des Mundes"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C06.8",
+                "display": "Sonstige und nicht n\u00e4her bezeichnete Teile des Mundes, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C76.7",
+                "display": "Sonstiger mangelhaft bezeichneter Sitz"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C76",
+                "display": "Sonstiger oder mangelhaft bezeichneter Sitz"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C14",
+                "display": "Sonstiger oder mangelhaft bezeichneter Sitz an Lippe, Mundh\u00f6hle und Pharynx"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C39",
+                "display": "Sonstiger oder mangelhaft bezeichneter Sitz innerhalb der Atemwege [Respirationstrakt] und intrathorakaler Organe"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C26",
+                "display": "Sonstiger oder mangelhaft bezeichneter Sitz innerhalb der Verdauungsorgane"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C32.2",
+                "display": "Subglottis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C32.1",
+                "display": "Supraglottis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C71.2",
+                "display": "Temporallappen"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C62",
+                "display": "Testis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C62.9",
+                "display": "Testis o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C76.1",
+                "display": "Thorax o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C37.9",
+                "display": "Thymus"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C37",
+                "display": "Thymus"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C09",
+                "display": "Tonsille"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C09.9",
+                "display": "Tonsille o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C09.8",
+                "display": "Tonsille, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C33.9",
+                "display": "Trachea"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C33",
+                "display": "Trachea"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C67.0",
+                "display": "Trigonum vesicae"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C69.5",
+                "display": "Tr\u00e4nendr\u00fcse"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C80.9",
+                "display": "Unbekannte Prim\u00e4rlokalisation"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C80",
+                "display": "Unbekannte Prim\u00e4rlokalisation"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C76.5",
+                "display": "Untere Extremit\u00e4t o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C50.3",
+                "display": "Unterer innerer Quadrant der Brust"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C50.5",
+                "display": "Unterer \u00e4u\u00dferer Quadrant der Brust"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C03.1",
+                "display": "Unterkieferzahnfleisch"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C67.7",
+                "display": "Urachus"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C66.9",
+                "display": "Ureter"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C66",
+                "display": "Ureter"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C68.0",
+                "display": "Urethra"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C55.9",
+                "display": "Uterus o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C55",
+                "display": "Uterus o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C05.2",
+                "display": "Uvula"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C52",
+                "display": "Vagina"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C52.9",
+                "display": "Vagina o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C10.0",
+                "display": "Vallecula epiglottica"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C02.2",
+                "display": "Ventrale Oberfl\u00e4che der Zunge o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C71.5",
+                "display": "Ventrikel o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C15-C26",
+                "display": "Verdauungsorgane"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C26.8",
+                "display": "Verdauungssystem, mehrere Bereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C06.1",
+                "display": "Vestibulum oris"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C02.3",
+                "display": "Vordere 2/3 der Zunge"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C67.3",
+                "display": "Vordere Harnblasenwand"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C04.0",
+                "display": "Vorderer Teil des Mundbodens"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C38.1",
+                "display": "Vorderes Mediastinum"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C10.1",
+                "display": "Vorderfl\u00e4che der Epiglottis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C11.3",
+                "display": "Vorderwand des Nasopharynx"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C51",
+                "display": "Vulva"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C51.9",
+                "display": "Vulva o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C51.8",
+                "display": "Vulva, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C14.2",
+                "display": "Waldeyer-Ring"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C06.0",
+                "display": "Wangenschleimhaut"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C57.4",
+                "display": "Weibliche Adnexe"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C51-C58",
+                "display": "Weibliche Geschlechtsorgane"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C57.9",
+                "display": "Weibliche Geschlechtsorgane o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C57.8",
+                "display": "Weibliche Geschlechtsorgane, mehrere Bereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C05.1",
+                "display": "Weicher Gaumen o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C41.2",
+                "display": "Wirbels\u00e4ule"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C03",
+                "display": "Zahnfleisch"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C03.9",
+                "display": "Zahnfleisch o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C50.1",
+                "display": "Zentraler Dr\u00fcsenk\u00f6rper der Brust"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C02.9",
+                "display": "Zunge o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C02.8",
+                "display": "Zunge, mehrere Bereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C01",
+                "display": "Zungengrund"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C01.9",
+                "display": "Zungengrund o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C02.1",
+                "display": "Zungenrand"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C02.4",
+                "display": "Zungentonsille"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C18.0",
+                "display": "Z\u00f6kum"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C00.2",
+                "display": "\u00c4u\u00dfere Lippe o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C00.0",
+                "display": "\u00c4u\u00dfere Oberlippe"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C00.1",
+                "display": "\u00c4u\u00dfere Unterlippe"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C44.2",
+                "display": "\u00c4u\u00dferes Ohr"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C15",
+                "display": "\u00d6sophagus"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C15.9",
+                "display": "\u00d6sophagus o.n.A."
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C15.8",
+                "display": "\u00d6sophagus, mehrere Teilbereiche \u00fcberlappend"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C15.4",
+                "display": "\u00d6sophagus, mittleres Drittel"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C15.3",
+                "display": "\u00d6sophagus, oberes Drittel"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C15.2",
+                "display": "\u00d6sophagus, Pars abdominalis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C15.0",
+                "display": "\u00d6sophagus, Pars cervicalis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C15.1",
+                "display": "\u00d6sophagus, Pars thoracalis"
+            },
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "code": "C15.5",
+                "display": "\u00d6sophagus, unteres intrathorakales Drittel"
+            }
+        ]
+    }
+}

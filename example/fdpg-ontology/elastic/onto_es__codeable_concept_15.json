@@ -1,0 +1,8 @@
+{"index": {"_index": "codeable_concept", "_id": "262c1556-03c3-3784-ae47-5815bbc4e243"}}
+{"termcode": {"code": "female", "display": "Female", "system": "http://hl7.org/fhir/administrative-gender", "version": 2099}, "valuesets": ["http://hl7.org/fhir/ValueSet/administrative-gender"]}
+{"index": {"_index": "codeable_concept", "_id": "557438df-3fe4-3991-8293-f97260a08769"}}
+{"termcode": {"code": "male", "display": "Male", "system": "http://hl7.org/fhir/administrative-gender", "version": 2099}, "valuesets": ["http://hl7.org/fhir/ValueSet/administrative-gender"]}
+{"index": {"_index": "codeable_concept", "_id": "f8ca6739-9ed7-3f60-a5b6-b033568d1d57"}}
+{"termcode": {"code": "other", "display": "Other", "system": "http://hl7.org/fhir/administrative-gender", "version": 2099}, "valuesets": ["http://hl7.org/fhir/ValueSet/administrative-gender"]}
+{"index": {"_index": "codeable_concept", "_id": "59a6dab3-988d-30ac-99a1-dca4cb2e5a1f"}}
+{"termcode": {"code": "unknown", "display": "Unknown", "system": "http://hl7.org/fhir/administrative-gender", "version": 2099}, "valuesets": ["http://hl7.org/fhir/ValueSet/administrative-gender"]}

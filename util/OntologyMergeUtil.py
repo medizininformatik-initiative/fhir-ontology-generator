@@ -14,9 +14,16 @@ def configure_args_parser():
     arg_parser.add_argument('--merge_mappings', action='store_true')
     arg_parser.add_argument('--merge_uitrees', action='store_true')
     arg_parser.add_argument('--merge_sqldump', action='store_true')
+    arg_parser.add_argument('--merge_dse', action='store_true')
     arg_parser.add_argument(
         '-d', '--ontodirs',
         nargs='+',  # Allows multiple arguments for this option
+        required=True,  # Makes this argument required
+        help="List of directory paths to ontologies to be merged"
+    )
+
+    arg_parser.add_argument(
+        '-s', '--dseontodir',
         required=True,  # Makes this argument required
         help="List of directory paths to ontologies to be merged"
     )
@@ -120,13 +127,28 @@ if __name__ == '__main__':
         output_ui_tree_dir = f'{args.outputdir}/ui-trees'
         os.makedirs(output_ui_tree_dir, exist_ok=True)
 
+        output_crit_set_dir = f'{args.outputdir}/criteria-sets'
+        os.makedirs(output_crit_set_dir, exist_ok=True)
+
+        output_value_set_dir = f'{args.outputdir}/value-sets'
+        os.makedirs(output_value_set_dir, exist_ok=True)
+
         for ontodir in args.ontodirs:
             cur_ui_tree_dir = f'{ontodir}/ui-trees'
 
             for filename in os.listdir(cur_ui_tree_dir):
                 shutil.copy(f'{cur_ui_tree_dir}/{filename}', f'{output_ui_tree_dir}/{filename}')
 
+            cur_crit_set_dir = f'{ontodir}/criteria-sets'
+            for filename in os.listdir(cur_crit_set_dir):
+                shutil.copy(f'{cur_crit_set_dir}/{filename}', f'{output_crit_set_dir}/{filename}')
+
+            cur_value_set_dir = f'{ontodir}/value-sets'
+            for filename in os.listdir(cur_value_set_dir):
+                shutil.copy(f'{cur_value_set_dir}/{filename}', f'{output_value_set_dir}/{filename}')
+
     if args.merge_sqldump:
+
         output_sql_script_dir = f'{args.outputdir}/sql_scripts'
         sql_script_index = 0
         os.makedirs(output_sql_script_dir, exist_ok=True)
@@ -139,3 +161,23 @@ if __name__ == '__main__':
         sql_merger = SqlMerger(sql_script_dir=output_sql_script_dir)
         sql_merger.execute_merge()
         sql_merger.shutdown()
+
+    if args.merge_dse:
+
+        output_value_set_dir = f'{args.outputdir}/value-sets'
+        os.makedirs(output_value_set_dir, exist_ok=True)
+        cur_value_set_dir = f'{args.dseontodir}/value-sets'
+
+        for filename in os.listdir(cur_value_set_dir):
+            shutil.copy(f'{cur_value_set_dir}/{filename}', f'{output_value_set_dir}/{filename}')
+
+        cur_sql_file_path = path_for_file(args.dseontodir, "R__load_latest_dse_profiles.sql")
+        output_sql_script_dir = f'{args.outputdir}/sql_scripts'
+        os.makedirs(output_sql_script_dir, exist_ok=True)
+        shutil.copy(f'{cur_sql_file_path}',
+                    f'{output_sql_script_dir}/R__load_latest_dse_profiles.sql')
+
+        cur_dse_tree_path = path_for_file(args.dseontodir, "profile_tree.json")
+
+        shutil.copy(f'{cur_dse_tree_path}',
+                    f'{args.outputdir}/profile_tree.json')

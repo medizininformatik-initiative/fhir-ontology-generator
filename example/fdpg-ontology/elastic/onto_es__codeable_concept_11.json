@@ -1,0 +1,58 @@
+{"index": {"_index": "codeable_concept", "_id": "bb46d748-0efa-3362-8d01-fbeb4a6dd719"}}
+{"termcode": {"code": "50984-4", "display": "Horowitz index in Arterial blood", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "b1d12123-123b-3d83-8571-2d9614fa5cb7"}}
+{"termcode": {"code": "33438-3", "display": "Breath rate mechanical --on ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "4b4595d2-a78a-34c1-b12f-e0bc1a8d0af3"}}
+{"termcode": {"code": "19839-0", "display": "Breath rate spontaneous --on ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "30118a0a-2ab0-3338-b60c-54d00df042a8"}}
+{"termcode": {"code": "19840-8", "display": "Breath rate spontaneous and mechanical --on ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "ec847e6f-b493-3f1f-9f32-e27603fa7c5a"}}
+{"termcode": {"code": "76334-2", "display": "Inspiratory time setting Ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "d2c27d15-9908-34bf-91f1-cb1f781854ab"}}
+{"termcode": {"code": "76187-4", "display": "Expiratory hold time setting Ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "c8783b48-65f2-3841-876d-f569ea286d57"}}
+{"termcode": {"code": "75931-6", "display": "Inspiration/Expiration time Ratio", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "08542b7a-5a41-3806-8589-ebd42ec9c3b2"}}
+{"termcode": {"code": "20112-9", "display": "Tidal volume setting Ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "92fadb42-f44f-3a78-84fe-4ae671380f0c"}}
+{"termcode": {"code": "76222-9", "display": "Tidal volume Ventilator --on ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "93889dbc-ace2-3bc9-950d-9630ae4a6c8e"}}
+{"termcode": {"code": "20116-0", "display": "Tidal volume.spontaneous --on ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "0049297f-8027-30fd-bfa2-f2e067d5fd2d"}}
+{"termcode": {"code": "76009-0", "display": "Inspired minute Volume during Mechanical ventilation", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "3dd632bd-f838-39ac-8d73-8a8f9f93ba33"}}
+{"termcode": {"code": "20118-6", "display": "Tidal volume.spontaneous+mechanical --on ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "9324ebb1-ae4b-38a2-a152-cda36a0bf83f"}}
+{"termcode": {"code": "76190-8", "display": "High pressure hold time setting Ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "6a75b2d4-4b82-3154-a37e-965930e33c4a"}}
+{"termcode": {"code": "76229-4", "display": "Low pressure hold time setting Ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "9cdc17f7-85b1-33f6-ad3f-22b747410bcd"}}
+{"termcode": {"code": "76275-7", "display": "Inspiratory flow setting Ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "d876f965-90e6-3110-be85-a8e10dbbfa49"}}
+{"termcode": {"code": "60794-5", "display": "Inspiratory gas flow Respiratory system airway --on ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "b8e0a1aa-a13f-31ca-b7e4-6e0e70be018a"}}
+{"termcode": {"code": "60792-9", "display": "Expiratory gas flow Respiratory system airway --on ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "9cfa72de-080e-3fbe-9e26-779788ee9f3f"}}
+{"termcode": {"code": "19994-3", "display": "Oxygen/Total gas setting [Volume Fraction] Ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "1917c811-66c6-3e9c-8ab6-ab90ac71600a"}}
+{"termcode": {"code": "71835-3", "display": "Oxygen/Gas total [Pure volume fraction] Inhaled gas", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "c64edcf3-9f38-393b-975e-762f8399facd"}}
+{"termcode": {"code": "3147-6", "display": "Oxygen [Partial pressure] in Exhaled gas", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "7fade829-34c6-3723-90f3-687d6dce53c5"}}
+{"termcode": {"code": "76530-5", "display": "Mean pressure Respiratory system airway --on ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "5c85659c-344b-367b-902d-71f2c5699dd8"}}
+{"termcode": {"code": "76531-3", "display": "Pressure.max Respiratory system airway --on ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "bdb49b3e-610e-305e-8bbc-48f15d47c949"}}
+{"termcode": {"code": "60827-3", "display": "Dynamic lung compliance", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "f3a1d70a-3ad1-357a-82bd-2975234bb659"}}
+{"termcode": {"code": "76248-4", "display": "PEEP Respiratory system --on ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "ad3b1841-93c7-3e6e-9a83-4d47dc25b418"}}
+{"termcode": {"code": "76154-4", "display": "Airway pressure delta --on ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "cf5a62e7-64eb-3336-9be3-32ddcddea3ef"}}
+{"termcode": {"code": "20056-8", "display": "Airway pressure --at mean expiratory flow on ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "b5b6834c-a7e2-3f9a-935a-0e84046cca0f"}}
+{"termcode": {"code": "20060-0", "display": "Airway pressure --at zero inspiratory flow on ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "d6e85b84-d0b2-3825-a523-31a3432b476c"}}
+{"termcode": {"code": "19891-1", "display": "Carbon dioxide [Partial pressure] in Exhaled gas --at end expiration", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}
+{"index": {"_index": "codeable_concept", "_id": "009d78d8-6f37-3637-8835-be5722e209ef"}}
+{"termcode": {"code": "20079-0", "display": "Pressure support setting Ventilator", "system": "http://loinc.org", "version": 2099}, "valuesets": ["https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/Code-Observation-Beatmung-LOINC"]}

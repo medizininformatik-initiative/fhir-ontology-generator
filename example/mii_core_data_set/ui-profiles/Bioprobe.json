@@ -1,0 +1,39 @@
+{
+    "attributeDefinitions": [
+        {
+            "allowedUnits": [],
+            "attributeCode": {
+                "code": "festgestellteDiagnose",
+                "display": "Festgestellte Diagnose",
+                "system": "http://hl7.org/fhir/StructureDefinition",
+                "version": null
+            },
+            "max": null,
+            "min": null,
+            "optional": true,
+            "precision": 1,
+            "referenceCriteriaSet": "http://fdpg.mii.cds/CriteriaSet/Diagnose/icd-10-gm",
+            "referencedValueSet": null,
+            "type": "reference"
+        },
+        {
+            "allowedUnits": [],
+            "attributeCode": {
+                "code": "icd-o-3",
+                "display": "icd-o-3",
+                "system": "http://hl7.org/fhir/StructureDefinition",
+                "version": null
+            },
+            "max": null,
+            "min": null,
+            "optional": true,
+            "precision": 1,
+            "referenceCriteriaSet": null,
+            "referencedValueSet": "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/ValueSet/icd-o-3-topography",
+            "type": "concept"
+        }
+    ],
+    "name": "Bioprobe",
+    "timeRestrictionAllowed": true,
+    "valueDefinition": null
+}

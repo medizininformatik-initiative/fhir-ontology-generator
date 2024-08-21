@@ -1,0 +1,18 @@
+{
+    "context": {
+        "code": "Einwilligung",
+        "display": "Einwilligung",
+        "system": "fdpg.mii.cds"
+    },
+    "display": "Einwilligung",
+    "id": "46618d60-a96a-3eb9-ba6f-a2cc40cf557a",
+    "leaf": false,
+    "selectable": false,
+    "termCodes": [
+        {
+            "code": "Einwilligung",
+            "display": "Einwilligung",
+            "system": "fdpg.mii.cds"
+        }
+    ]
+}
