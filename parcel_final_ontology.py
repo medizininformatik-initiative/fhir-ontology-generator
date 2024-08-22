@@ -22,7 +22,7 @@ if __name__ == '__main__':
     os.makedirs(temp_ontology_dir, exist_ok=True)
     shutil.copytree(f'{args.ontology_dir}/ui-trees', f'{temp_ontology_dir}/backend/ui-trees')
     shutil.copy(f'{args.ontology_dir}/profile_tree.json', f'{temp_ontology_dir}/backend/profile_tree.json')
-    shutil.copy(f'{args.ontology_dir}/terminology-systems.json', f'{temp_ontology_dir}/backend/terminology-systems.json')
+    shutil.copy(f'{args.ontology_dir}/terminology_systems.json', f'{temp_ontology_dir}/backend/terminology_systems.json')
     shutil.copy(f'{args.ontology_dir}/sql_scripts/R__load_latest_dse_profiles.sql', f'{temp_ontology_dir}/backend/R__load_latest_dse_profiles.sql')
     shutil.copy(f'{args.ontology_dir}/sql_scripts/R__Load_latest_ui_profile.sql', f'{temp_ontology_dir}/backend/R__Load_latest_ui_profile.sql')
     shutil.make_archive(f'{args.ontology_dir}/backend', 'zip', f'{args.ontology_dir}/ontology/backend')
