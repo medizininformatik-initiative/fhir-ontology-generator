@@ -780,6 +780,10 @@ if __name__ == '__main__':
         db_writer.write_ui_profiles_to_db(contextualized_term_code_ui_profile_mapping, named_ui_profiles_dict)
         db_writer.write_vs_to_db(named_ui_profiles_dict.values())
 
+        result = container.exec_run(
+            'pg_dump --dbname="codex_ui" -U codex-postgres -a -O -t termcode -t context -t ui_profile -t mapping'
+            ' -t contextualized_termcode -t contextualized_termcode_to_criteria_set -t criteria_set -f /opt/db_data/R__Load_latest_ui_profile.sql')
+
     if args.generate_mapping:
         cql_generator = CQLMappingGenerator(resolver)
         cql_mappings = cql_generator.generate_mapping("resources/fdpg_differential")
@@ -821,9 +825,7 @@ if __name__ == '__main__':
         denormalize_ui_profile_to_old_format(ui_trees, term_code_to_ui_profile_name, ui_profiles[1])
         write_ui_trees_to_files(ui_trees, "ui-profiles-old")
 
-    result = container.exec_run(
-        'pg_dump --dbname="codex_ui" -U codex-postgres -a -O -t termcode -t context -t ui_profile -t mapping'
-        ' -t contextualized_termcode -t contextualized_termcode_to_criteria_set -t criteria_set -f /opt/db_data/R__Load_latest_ui_profile.sql')
+
     print("Dumped db")
     container.stop()
     container.remove()

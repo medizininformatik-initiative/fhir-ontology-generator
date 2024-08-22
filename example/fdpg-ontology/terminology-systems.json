@@ -1,0 +1,30 @@
+[
+    {
+        "url": "http://snomed.info/sct",
+        "name": "snomed"
+    },
+    {
+        "url": "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
+        "name": "icd10"
+    },
+    {
+        "url": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+        "name": "miiConsent"
+    },
+    {
+        "url": "http://loinc.org",
+        "name": "loinc"
+    },
+    {
+        "url": "http://fhir.de/CodeSystem/bfarm/atc",
+        "name": "atc"
+    },
+    {
+        "url": "http://fhir.de/CodeSystem/bfarm/ops",
+        "name": "ops"
+    },
+    {
+        "url": "fdpg.mii.cds",
+        "name": "mii-cds"
+    }
+]

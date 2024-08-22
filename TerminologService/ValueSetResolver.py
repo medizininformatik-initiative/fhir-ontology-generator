@@ -2,9 +2,7 @@ from __future__ import annotations
 
 from typing import List
 
-import requests
-
-from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY
+from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, REQUESTS_SESSION
 from TerminologService.valueSetToRoots import create_vs_tree, expand_value_set
 from model.UiDataModel import TermCode
 
@@ -86,7 +84,7 @@ def get_answer_list_vs(loinc_code: TermCode) -> str | None:
     :param loinc_code: loinc code
     :return: url of the answer list value set or None if no answer list is available
     """
-    response = requests.get(
+    response = REQUESTS_SESSION.get(
         f"{TERMINOLOGY_SERVER_ADDRESS}CodeSystem/$lookup?system=http://loinc.org&code={loinc_code.code}&property"
         f"=answer-list", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if answer_list_code := get_answer_list_code(response.json()):
@@ -227,7 +225,7 @@ def get_term_code_display_from_onto_server(system: str, code: str,
     :param onto_server: address of the terminology server
     :return: The display of the term code or "" if no display is available
     """
-    response = requests.get(f"{onto_server}CodeSystem/$lookup?system={system}&code={code}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
+    response = REQUESTS_SESSION.get(f"{onto_server}CodeSystem/$lookup?system={system}&code={code}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if response.status_code == 200:
         response_data = response.json()
         for parameter in response_data["parameter"]:
@@ -258,7 +256,7 @@ def get_value_set_definition(canonical_address: str, onto_server: str = TERMINOL
     :param onto_server: address of the terminology server
     :return: value set definition or None if no value set definition is available
     """
-    response = requests.get(f"{onto_server}ValueSet/?url={canonical_address}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
+    response = REQUESTS_SESSION.get(f"{onto_server}ValueSet/?url={canonical_address}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if response.status_code == 200:
         response_data = response.json()
         for entry in response_data.get("entry", []):
@@ -277,7 +275,7 @@ def get_value_set_definition_by_id(value_set_id: str, onto_server: str = TERMINO
     :param onto_server: address of the terminology server
     :return: value set definition or None if no value set definition is available
     """
-    response = requests.get(f"{onto_server}ValueSet/{value_set_id}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
+    response = REQUESTS_SESSION.get(f"{onto_server}ValueSet/{value_set_id}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if response.status_code == 200:
         return response.json()
     return {}

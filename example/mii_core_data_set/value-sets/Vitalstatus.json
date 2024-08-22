@@ -1,0 +1,56 @@
+{
+    "resourceType": "ValueSet",
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/ValueSet/Vitalstatus",
+    "expansion": {
+        "identifier": "urn:uuid:02e3518c-0ec6-4199-a6b0-89047bba572e",
+        "timestamp": "2024-08-22T20:09:15+00:00",
+        "total": 7,
+        "parameter": [
+            {
+                "name": "version",
+                "valueUri": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/CodeSystem/Vitalstatus|2024.0.0"
+            },
+            {
+                "name": "used-codesystem",
+                "valueUri": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/CodeSystem/Vitalstatus|2024.0.0"
+            }
+        ],
+        "contains": [
+            {
+                "system": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/CodeSystem/Vitalstatus",
+                "code": "L",
+                "display": "Patient lebt"
+            },
+            {
+                "system": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/CodeSystem/Vitalstatus",
+                "code": "T",
+                "display": "Patient verstorben"
+            },
+            {
+                "system": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/CodeSystem/Vitalstatus",
+                "code": "X",
+                "display": "unbekannt"
+            },
+            {
+                "system": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/CodeSystem/Vitalstatus",
+                "code": "N",
+                "display": "unbekannt, Betreuung/Nachsorge nicht mehr n\u00f6tig"
+            },
+            {
+                "system": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/CodeSystem/Vitalstatus",
+                "code": "B",
+                "display": "unbekannt, Patient ist anderenorts in Betreuung"
+            },
+            {
+                "system": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/CodeSystem/Vitalstatus",
+                "code": "A",
+                "display": "unbekannt, Patient nicht mehr auffindbar (lost to follow-up)"
+            },
+            {
+                "system": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/CodeSystem/Vitalstatus",
+                "code": "V",
+                "display": "unbekannt, Patient verweigert weitere Betreuung"
+            }
+        ]
+    }
+}

@@ -1,12 +1,10 @@
 import bisect
 from typing import List
-
-import requests
 import locale
 
 from sortedcontainers import SortedSet
 
-from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY
+from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, REQUESTS_SESSION
 from model.UiDataModel import TermCode, TermEntry
 
 locale.setlocale(locale.LC_ALL, 'de_DE')
@@ -21,7 +19,7 @@ def get_value_set_expansion(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDR
     """
     if '|' in url:
         url = url.replace('|', '&version=')
-    response = requests.get(f"{onto_server}ValueSet/$expand?url={url}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
+    response = REQUESTS_SESSION.get(f"{onto_server}ValueSet/$expand?url={url}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if response.status_code == 200:
         return response.json()
     else:
@@ -104,7 +102,7 @@ def create_concept_map():
         }]
     }
     headers = {"Content-type": "application/fhir+json"}
-    requests.post(TERMINOLOGY_SERVER_ADDRESS + "$closure", json=body, headers=headers,
+    REQUESTS_SESSION.post(TERMINOLOGY_SERVER_ADDRESS + "$closure", json=body, headers=headers,
                   cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
 
 
@@ -130,7 +128,7 @@ def get_closure_map(term_codes):
                                       "version": f"{term_code.version}"
                                   }})
     headers = {"Content-type": "application/fhir+json"}
-    response = requests.post(TERMINOLOGY_SERVER_ADDRESS + "$closure", json=body, headers=headers,
+    response = REQUESTS_SESSION.post(TERMINOLOGY_SERVER_ADDRESS + "$closure", json=body, headers=headers,
                              cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if response.status_code == 200:
         closure_response = response.json()
