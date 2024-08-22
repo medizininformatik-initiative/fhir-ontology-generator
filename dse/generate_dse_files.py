@@ -55,12 +55,16 @@ def generate_r_load_sql(profile_details):
         sql_file.write("DELETE FROM dse_profile;\n")
         sql_file.write("ALTER SEQUENCE public.dse_profile_id_seq RESTART WITH 1;\n")
         sql_file.write("INSERT INTO dse_profile(id, url, entry) VALUES \n")
-        index = 1
 
-        for profile_detail in profile_details:
-            value_line = f"({index},'{profile_detail['url']}','{json.dumps(profile_detail)}')\n"
+        for index, profile_detail in enumerate(profile_details):
+
+            profile_detaildb = json.dumps(profile_detail).replace("'", "''")
+            value_line = f"({index + 1},'{profile_detail['url']}','{profile_detaildb}')"
             sql_file.write(value_line)
-            index = index + 1
+            if index < len(profile_details) - 1:
+                sql_file.write(",\n")
+            else:
+                sql_file.write(";")
 
 
 if __name__ == '__main__':
