@@ -1,6 +1,10 @@
 {
   "name": "Specimen",
   "resource_type": "Specimen",
+  "module": {
+    "code": "mii-cds-bioprobe",
+    "display": "Bioprobe"
+  },
   "context": {
     "system": "fdpg.mii.cds",
     "code": "Specimen",

@@ -23,8 +23,6 @@ from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import UIProfile
 from model.UiDataModel import TermEntry, TermCode
-from model.termCodeTree import to_term_code_node
-
 WINDOWS_RESERVED_CHARACTERS = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
 
 class StandardDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
@@ -309,9 +307,6 @@ if __name__ == '__main__':
         ui_trees = tree_generator.generate_ui_trees(differential_folder)
         write_ui_trees_to_files(ui_trees, f'{onto_result_dir}/ui-trees')
 
-        mapping_tree = to_term_code_node(ui_trees)
-        write_mapping_tree_to_file(mapping_tree, f'{onto_result_dir}/mapping')
-        validate_mapping_tree("mapping_tree", f'{onto_result_dir}/mapping' )
 
     if args.generate_ui_profiles:
         log.info(f"# Generating UI Profiles...")

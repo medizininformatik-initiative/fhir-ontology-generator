@@ -4,7 +4,7 @@ import docker
 
 from model.MappingDataModel import CQLMapping
 from model.UIProfileModel import UIProfile
-from model.UiDataModel import TermCode, TermEntry
+from model.UiDataModel import TermCode
 
 
 class DataBaseWriterTest(unittest.TestCase):
@@ -42,12 +42,10 @@ class DataBaseWriterTest(unittest.TestCase):
         term_code = TermCode("http://test.com", "test", "test")
         context = TermCode("http://test.com", "context", "context")
         ui_profile = UIProfile("test")
-        term_entry = TermEntry([term_code], "Category", selectable=False, leaf=False, context=context,
-                               ui_profile=ui_profile)
         self.dbw.insert_term_codes([term_code])
         self.dbw.insert_context_codes([context])
-        self.dbw.insert_ui_profile(term_entry.context, term_entry.termCode, ui_profile)
-        self.assertTrue(UIProfile(**self.dbw.get_ui_profile(term_entry.context, term_entry.termCode)) == ui_profile)
+        self.dbw.insert_ui_profile(context, term_code, ui_profile)
+        self.assertTrue(UIProfile(**self.dbw.get_ui_profile(context, term_code)) == ui_profile)
 
     def test_insert_value_set(self):
         term_codes = [TermCode("http://test.com", "test", "test"), TermCode("http://test.com", "test2", "test2")]

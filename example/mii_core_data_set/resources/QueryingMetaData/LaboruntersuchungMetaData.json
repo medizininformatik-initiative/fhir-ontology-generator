@@ -1,6 +1,10 @@
 {
   "name": "Laboruntersuchung",
   "resource_type": "Observation",
+  "module": {
+    "code": "mii-cds-Labor",
+    "display": "Labor"
+  },
   "context": {
     "system": "fdpg.mii.cds",
     "code": "Laboruntersuchung",

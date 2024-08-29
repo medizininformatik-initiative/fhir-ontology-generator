@@ -1,6 +1,10 @@
 {
   "name": "Symptoms",
   "resource_type": "Condition",
+  "module": {
+    "code": "mii-cds-gecco",
+    "display": "GECCO"
+  },
   "context": {
     "system": "fdpg.mii.gecco",
     "code": "Condition",

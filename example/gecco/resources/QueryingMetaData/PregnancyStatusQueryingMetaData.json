@@ -1,6 +1,10 @@
 {
   "name": "PregnancyStatus",
   "resource_type": "Observation",
+  "module": {
+    "code": "mii-cds-gecco",
+    "display": "GECCO"
+  },
   "context": {
     "system": "fdpg.mii.gecco",
     "code": "ConceptObservation",

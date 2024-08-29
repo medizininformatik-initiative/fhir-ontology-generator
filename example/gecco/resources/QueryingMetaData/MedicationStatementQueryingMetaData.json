@@ -1,6 +1,10 @@
 {
   "name": "MedicationStatement",
   "resource_type": "MedicationStatement",
+  "module": {
+    "code": "mii-cds-gecco",
+    "display": "GECCO"
+  },
   "context": {
     "system": "fdpg.mii.gecco",
     "code": "MedicationStatement",

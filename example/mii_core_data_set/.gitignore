@@ -2,3 +2,7 @@
 mapping-tree
 resources/core_data_sets
 ui-trees
+ui-profiles
+value-sets
+criteria-sets
+term-code-info

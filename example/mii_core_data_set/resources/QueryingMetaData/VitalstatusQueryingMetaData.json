@@ -1,6 +1,10 @@
 {
   "name": "Vitalstatus",
   "resource_type": "Observation",
+  "module": {
+    "code": "mii-cds-person",
+    "display": "Person"
+  },
   "context": {
     "system": "fdpg.mii.cds",
     "code": "Vitalstatus",
