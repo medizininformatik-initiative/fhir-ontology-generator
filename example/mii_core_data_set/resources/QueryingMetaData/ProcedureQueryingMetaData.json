@@ -1,6 +1,10 @@
 {
   "name": "Procedure",
   "resource_type": "Procedure",
+  "module": {
+    "code": "mii-cds-prozedur",
+    "display": "Prozedur"
+  },
   "context": {
     "system": "fdpg.mii.cds",
     "code": "Procedure",

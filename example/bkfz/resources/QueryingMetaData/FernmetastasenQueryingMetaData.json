@@ -1,6 +1,10 @@
 {
   "name": "Fernmetastasen",
   "resource_type": "Observation",
+  "module": {
+    "code": "mii-cds-BZKF",
+    "display": "BZKF"
+  },
   "context": {
     "system": "bzkf.dktk.oncology",
     "code": "Fernmetastasen",

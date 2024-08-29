@@ -1,6 +1,10 @@
 {
   "name": "Immunization",
   "resource_type": "Immunization",
+  "module": {
+    "code": "mii-cds-gecco",
+    "display": "GECCO"
+  },
   "context": {
     "system": "fdpg.mii.gecco",
     "code": "Immunization",

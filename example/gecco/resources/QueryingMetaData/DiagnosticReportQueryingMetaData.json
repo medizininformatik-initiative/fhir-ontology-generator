@@ -1,6 +1,10 @@
 {
   "name": "DiagnosticReport",
   "resource_type": "DiagnosticReport",
+  "module": {
+    "code": "mii-cds-gecco",
+    "display": "GECCO"
+  },
   "context": {
     "system": "fdpg.mii.gecco",
     "code": "DiagnosticReport",

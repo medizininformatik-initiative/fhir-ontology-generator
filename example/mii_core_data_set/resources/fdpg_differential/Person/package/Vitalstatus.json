@@ -26,5 +26,12 @@
   "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Vitalstatus",
   "derivation": "constraint",
   "differential": {
+    "element": [
+        {
+          "id": "Observation.subject.reference",
+          "path": "Observation.subject.reference",
+          "min": 1
+        }
+    ]
   }
 }

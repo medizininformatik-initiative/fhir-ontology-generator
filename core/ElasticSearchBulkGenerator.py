@@ -17,7 +17,7 @@ class ElasticSearchGenerator:
     @staticmethod
     def __get_contextualized_termcode_hash(context_node: dict, termcode_node: dict, namespace_uuid_str):
 
-        context_termcode_hash_input = f"{context_node.get('system')}{context_node.get('code')}{context_node.get('version', '')}{termcode_node.get('system')}{termcode_node.get('code')}{termcode_node.get('version', '')}"
+        context_termcode_hash_input = f"{context_node.get('system')}{context_node.get('code')}{context_node.get('version', '')}{termcode_node.get('system')}{termcode_node.get('code')}"
 
         namespace_uuid = uuid.UUID(namespace_uuid_str)
         return str(uuid.uuid3(namespace_uuid, context_termcode_hash_input))

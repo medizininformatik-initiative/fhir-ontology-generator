@@ -3,16 +3,15 @@ from __future__ import annotations
 from typing import List
 
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, REQUESTS_SESSION
-from TerminologService.valueSetToRoots import create_vs_tree, expand_value_set
+from TerminologService.valueSetToRoots import create_vs_tree_map, expand_value_set
+from model.TreeMap import ContextualizedTermCodeInfo
 from model.UiDataModel import TermCode
 
 POSSIBLE_CODE_SYSTEMS = ["http://loinc.org", "http://snomed.info/sct"]
 
 
-# Some valueSets are to big to execute the closure operation on the Ontoserver. We need to filter them out.
 
-
-def get_term_entries_from_onto_server(value_set_canonical_url: str):
+def get_term_map_from_onto_server(value_set_canonical_url: str):
     """
     Get the term entries roots from the Ontoserver based on the given value set canonical url.
     :param value_set_canonical_url: The canonical url of the valueSet
@@ -20,14 +19,24 @@ def get_term_entries_from_onto_server(value_set_canonical_url: str):
     """
     value_set_canonical_url = value_set_canonical_url.replace("|", "&version=")
     print(value_set_canonical_url)
-    # In Gecco 1.04 all icd10 elements with children got removed this brings them back. Requires matching valuesSets on
-    # Ontoserver
-    # if value_set_canonical_url.endswith("icd"):
-    #     value_set_canonical_url = value_set_canonical_url + "-with-parent"
-    result = create_vs_tree(value_set_canonical_url)
-    if len(result) < 1:
+    result = create_vs_tree_map(value_set_canonical_url)
+    if len(result.entries) < 1:
         raise Exception("ERROR", value_set_canonical_url)
     return result
+
+
+def get_term_info_from_onto_server(value_set_canonical_url: str) -> List[ContextualizedTermCodeInfo]:
+    """
+    Get the term info for a given value set canonical url
+    :param value_set_canonical_url: The canonical url of the valueSet
+    :return: The term info of the value set
+    """
+    value_set_canonical_url = value_set_canonical_url.replace("|", "&version=")
+    term_codes = expand_value_set(value_set_canonical_url)
+    return [ContextualizedTermCodeInfo(term_code) for term_code in term_codes]
+
+
+
 
 
 def get_termcodes_from_onto_server(value_set_canonical_url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS) -> \

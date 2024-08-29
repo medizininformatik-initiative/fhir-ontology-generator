@@ -1,6 +1,10 @@
 {
   "name": "MedicationAdministration",
   "resource_type": "MedicationAdministration",
+  "module": {
+    "code": "mii-cds-medikation",
+    "display": "Medikation"
+  },
   "context": {
     "system": "fdpg.mii.cds",
     "code": "Medikamentenverabreichung",

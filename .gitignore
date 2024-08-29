@@ -5,3 +5,6 @@
 certs
 __pycache__/
 dependencies
+/.venv/
+/.vscode/
+/.git/

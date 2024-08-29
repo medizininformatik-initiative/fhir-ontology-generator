@@ -7,6 +7,10 @@
     "display": "Patient",
     "version": "1.0.0"
   },
+  "module": {
+    "code": "mii-cds-person",
+    "display": "Person"
+  },
   "value_defining_id": "Patient.birthDate",
   "value_type": "Age",
   "term_codes": [{

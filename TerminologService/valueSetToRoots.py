@@ -2,10 +2,11 @@ import bisect
 from typing import List
 import locale
 
+from model.TreeMap import TermEntryNode, TreeMap
 from sortedcontainers import SortedSet
 
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, REQUESTS_SESSION
-from model.UiDataModel import TermCode, TermEntry
+from model.UiDataModel import TermCode
 
 locale.setlocale(locale.LC_ALL, 'de_DE')
 
@@ -62,32 +63,36 @@ def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
     return term_codes
 
 
-def create_vs_tree(canonical_url: str):
+def create_vs_tree_map(canonical_url: str) -> TreeMap:
     """
     Creates a tree of the value set hierarchy utilizing the closure operation.
     :param canonical_url:
-    :return: Sorted term_entry roots of the value set hierarchy
+    :return: TreeMap of the value set hierarchy
     """
     create_concept_map()
     vs = expand_value_set(canonical_url)
-    vs_dict = {term_code.code: TermEntry([term_code], leaf=True, selectable=True) for term_code in vs}
+    treemap: TreeMap = TreeMap({}, None, None, None)
+    treemap.entries = {term_code.code: TermEntryNode(term_code) for term_code in vs}
     try:
         closure_map_data = get_closure_map(vs)
         if groups := closure_map_data.get("group"):
+            if len(groups) > 1:
+                raise Exception("Multiple groups in closure map. Currently not supported.")
             for group in groups:
+                treemap.system = group["source"]
+                treemap.version = group["sourceVersion"]
                 subsumption_map = group["element"]
-                subsumption_map = {item['code']: [target['code'] for target in item['target']] for item in
-                                   subsumption_map}
+                subsumption_map = {item['code']: [target['code'] for target in item['target']] for item in subsumption_map}
                 for code, parents in subsumption_map.items():
                     remove_non_direct_ancestors(parents, subsumption_map)
                 for node, parents, in subsumption_map.items():
+                    treemap.entries[node].parents += parents
                     for parent in parents:
-                        bisect.insort(vs_dict[parent].children, vs_dict[node])
-                        vs_dict[node].root = False
-                        vs_dict[parent].leaf = False
+                        treemap.entries[parent].children.append(node)
     except Exception as e:
         print(e)
-    return sorted([term_entry for term_entry in vs_dict.values() if term_entry.root])
+    return treemap
+
 
 
 def create_concept_map():

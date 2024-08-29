@@ -1,7 +1,18 @@
 {
-  "updated": "2024-08-15T14:58:41.401398+03:00",
+  "updated": "2024-08-27T12:40:34.546668+02:00",
   "dependencies": {
-    "hl7.fhir.r4.core": "4.0.1"
+    "hl7.fhir.r4.core": "4.0.1",
+    "de.medizininformatikinitiative.kerndatensatz.consent": "1.0.4",
+    "de.einwilligungsmanagement": "1.0.1",
+    "de.medizininformatikinitiative.kerndatensatz.diagnose": "2024.0.0",
+    "de.medizininformatikinitiative.kerndatensatz.meta": "1.0.3",
+    "de.basisprofil.r4": "1.4.0",
+    "de.medizininformatikinitiative.kerndatensatz.laborbefund": "1.0.6",
+    "hl7.fhir.uv.ips": "1.0.0",
+    "de.medizininformatikinitiative.kerndatensatz.medikation": "2.0.0",
+    "de.medizininformatikinitiative.kerndatensatz.person": "2024.0.0",
+    "de.medizininformatikinitiative.kerndatensatz.prozedur": "2024.0.0",
+    "de.medizininformatikinitiative.kerndatensatz.biobank": "1.0.1"
   },
   "missing": {}
 }

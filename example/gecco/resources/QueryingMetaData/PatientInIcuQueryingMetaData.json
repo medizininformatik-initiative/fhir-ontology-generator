@@ -2,6 +2,10 @@
   "name": "PatientInIcu",
   "resource_type": "Observation",
   "term_code_defining_id": "Observation.code.coding:icu",
+  "module": {
+    "code": "mii-cds-gecco",
+    "display": "GECCO"
+  },
   "context": {
     "system": "fdpg.mii.gecco",
     "code": "ConceptObservation",

@@ -7,6 +7,10 @@
     "display": "Patient",
     "version": "1.0.0"
   },
+  "module": {
+    "code": "mii-cds-person",
+    "display": "Person"
+  },
   "term_codes": [
     {
       "system": "http://snomed.info/sct",

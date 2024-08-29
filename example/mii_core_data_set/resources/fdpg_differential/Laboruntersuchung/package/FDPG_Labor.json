@@ -11,6 +11,11 @@
     "derivation": "constraint",
     "differential": {
         "element": [
+            {
+              "id": "Observation.subject.reference",
+              "path": "Observation.subject.reference",
+              "min": 1
+            }
         ]
     }
 }
