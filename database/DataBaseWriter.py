@@ -456,6 +456,6 @@ class DataBaseWriter:
         for ui_profile in profiles:
             for attribute_definition in ui_profile.attributeDefinitions:
                 if attribute_definition.type == "reference":
-                    criteria_set = attribute_definition.referenceCriteriaSet
+                    criteria_set = attribute_definition.referencedCriteriaSet
                     # TODO: Maybe better to get them upfront
                     self.add_critieria_set(criteria_set)

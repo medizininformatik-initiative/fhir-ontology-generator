@@ -46,13 +46,13 @@ class ValueDefinition:
     precision: int = 1
     min: float = None
     max: float = None
-    referenceCriteriaSet: CriteriaSet = None
+    referencedCriteriaSet: CriteriaSet = None
     optional: bool = True
 
     def to_dict(self):
         data = asdict(self)
-        if self.referenceCriteriaSet:
-            data['referenceCriteriaSet'] = self.referenceCriteriaSet.url
+        if self.referencedCriteriaSet:
+            data['referencedCriteriaSet'] = self.referencedCriteriaSet.url
         if self.referencedValueSet:
             data['referencedValueSet'] = self.referencedValueSet.url
         return data

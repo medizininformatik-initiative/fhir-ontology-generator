@@ -8,8 +8,8 @@
         "min": null,
         "optional": true,
         "precision": 1,
-        "referenceCriteriaSet": null,
-        "referencedValueSet": "http://hl7.org/fhir/ValueSet/administrative-gender|4.0.1",
+        "referencedCriteriaSet": null,
+        "referencedValueSet": "http://hl7.org/fhir/ValueSet/administrative-gender",
         "type": "concept"
     }
 }

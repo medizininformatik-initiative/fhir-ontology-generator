@@ -206,7 +206,7 @@ def write_used_criteria_sets_to_files(ui_profiles: List[UIProfile], directory: s
     for ui_profile in ui_profiles:
         if ui_profile.attributeDefinitions:
             for attribute_definition in ui_profile.attributeDefinitions:
-                if criteria_set := attribute_definition.referenceCriteriaSet:
+                if criteria_set := attribute_definition.referencedCriteriaSet:
                     criteria_sets.append(criteria_set)
 
     for criteria_set in criteria_sets:

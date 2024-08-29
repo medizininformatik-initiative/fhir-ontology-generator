@@ -33,7 +33,7 @@
         "min": null,
         "optional": true,
         "precision": 1,
-        "referenceCriteriaSet": null,
+        "referencedCriteriaSet": null,
         "referencedValueSet": null,
         "type": "quantity"
     }

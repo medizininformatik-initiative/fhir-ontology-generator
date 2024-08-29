@@ -12,7 +12,7 @@
             "min": null,
             "optional": true,
             "precision": 1,
-            "referenceCriteriaSet": "http://fdpg.mii.cds/CriteriaSet/Diagnose/icd-10-gm",
+            "referencedCriteriaSet": "http://fdpg.mii.cds/CriteriaSet/Diagnose/icd-10-gm",
             "referencedValueSet": null,
             "type": "reference"
         },
@@ -28,7 +28,7 @@
             "min": null,
             "optional": true,
             "precision": 1,
-            "referenceCriteriaSet": null,
+            "referencedCriteriaSet": null,
             "referencedValueSet": "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/ValueSet/icd-o-3-topography",
             "type": "concept"
         }

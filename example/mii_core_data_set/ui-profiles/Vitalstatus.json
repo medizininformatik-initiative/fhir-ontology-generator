@@ -8,7 +8,7 @@
         "min": null,
         "optional": true,
         "precision": 1,
-        "referenceCriteriaSet": null,
+        "referencedCriteriaSet": null,
         "referencedValueSet": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/ValueSet/Vitalstatus",
         "type": "concept"
     }

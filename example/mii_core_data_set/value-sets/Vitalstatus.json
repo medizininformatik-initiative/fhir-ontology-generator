@@ -2,8 +2,8 @@
     "resourceType": "ValueSet",
     "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/ValueSet/Vitalstatus",
     "expansion": {
-        "identifier": "urn:uuid:02e3518c-0ec6-4199-a6b0-89047bba572e",
-        "timestamp": "2024-08-22T20:09:15+00:00",
+        "identifier": "urn:uuid:ffe40224-588a-4878-8f95-f50c4fb06367",
+        "timestamp": "2024-08-29T14:17:41+00:00",
         "total": 7,
         "parameter": [
             {
