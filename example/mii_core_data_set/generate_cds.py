@@ -21,7 +21,7 @@ from core.UIProfileGenerator import UIProfileGenerator
 from core.UITreeGenerator import UITreeGenerator
 from database.DataBaseWriter import DataBaseWriter
 from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, load_querying_meta_data, \
-    generate_result_folder
+    mkdir_if_not_exists
 from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList, FixedFHIRCriteria, PathlingMapping
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.TreeMap import ContextualizedTermCodeInfoList, TreeMapList
@@ -140,7 +140,7 @@ def validate_fhir_mapping(mapping_name: str):
     :raises: jsonschema.exceptions.ValidationError if the fhir mapping is not valid
              jsonschema.exceptions.SchemaError if the fhir mapping schema is not valid
     """
-    f = open("mapping-old/fhir/" + mapping_name + ".json", 'r')
+    f = open(f"generated-ontology/mapping/fhir/{mapping_name}.json", 'r')
     validate(instance=json.load(f), schema=json.load(open("../../resources/schema/fhir-mapping-schema.json")))
 
 
@@ -151,7 +151,7 @@ def validate_mapping_tree(tree_name: str):
     :raises: jsonschema.exceptions.ValidationError if the mapping tree is not valid
              jsonschema.exceptions.SchemaError if the mapping tree schema is not valid
     """
-    f = open("mapping-tree/" + tree_name + ".json", 'r')
+    f = open("generated-ontology/mapping/" + tree_name + ".json", 'r')
     validate(instance=json.load(f), schema=json.load(open("../../resources/schema/codex-code-tree-schema.json")))
 
 
@@ -575,11 +575,33 @@ def apply_additional_profile_rules(named_profile: Tuple[str, UIProfile]):
     else:
         return named_profile[1]
 
+def generate_result_folder(onto_dir = ""):
+    """
+    Generates the mapping, csv and ui-profiles folder if they do not exist in the result folder
+    :return:
+    """
+
+    if onto_dir != "":
+        onto_dir = f"{onto_dir}/"
+        mkdir_if_not_exists(f"{onto_dir}")
+
+    mkdir_if_not_exists(f"{onto_dir}mapping")
+    mkdir_if_not_exists(f"{onto_dir}mapping/fhir")
+    mkdir_if_not_exists(f"{onto_dir}mapping/cql")
+    mkdir_if_not_exists(f"{onto_dir}ui-trees")
+    mkdir_if_not_exists(f"{onto_dir}value-sets")
+    mkdir_if_not_exists(f"{onto_dir}criteria-sets")
+    mkdir_if_not_exists(f"{onto_dir}ui-profiles")
+    mkdir_if_not_exists(f"{onto_dir}term-code-info")
 
 if __name__ == '__main__':
     client = docker.from_env()
     # Check if container with the name "test_db" already exists
     existing_containers = client.containers.list(all=True, filters={"name": "test_db"})
+
+    onto_result_dir = "generated-ontology"
+    differential_folder = "resources/differential"
+    generate_result_folder(onto_result_dir)
 
     for container in existing_containers:
         print("Stopping and removing existing container named 'test_db'...")
@@ -588,7 +610,7 @@ if __name__ == '__main__':
 
     container = client.containers.run("postgres:latest", detach=True, ports={'5432/tcp': 5430},
                                       name="test_db",
-                                      volumes={f"{os.getcwd()}": {'bind': '/opt/db_data', 'mode': 'rw'}},
+                                      volumes={f"{os.getcwd()}/{onto_result_dir}": {'bind': '/opt/db_data', 'mode': 'rw'}},
                                       environment={
                                           'POSTGRES_USER': 'codex-postgres',
                                           'POSTGRES_PASSWORD': 'codex-password',
@@ -598,8 +620,6 @@ if __name__ == '__main__':
 
     parser = configure_args_parser()
     args = parser.parse_args()
-
-    generate_result_folder()
 
     # Download the packages
     if args.download_packages:
@@ -617,7 +637,7 @@ if __name__ == '__main__':
         tree_generator = UITreeGenerator(resolver)
         ui_trees = tree_generator.generate_ui_trees("resources/fdpg_differential")
         # ui_trees = [apply_additional_tree_rules(ui_tree) for ui_tree in ui_trees]
-        write_ui_trees_to_files(ui_trees)
+        write_ui_trees_to_files(ui_trees, f'{onto_result_dir}/ui-trees')
 
         term_code_context_infos = tree_generator.generate_contextualized_term_code_info_list("resources/fdpg_differential")
         print(term_code_context_infos.__len__())
@@ -628,7 +648,7 @@ if __name__ == '__main__':
                     if term_code_context_info.entries[0].module.display == tree_map_list.module_name:
                         term_code_context_info.update_children_count(tree_map_list)
 
-        write_term_code_info_to_file(term_code_context_infos)
+        write_term_code_info_to_file(term_code_context_infos, f"{onto_result_dir}/term-code-info")
 
         # validate_mapping_tree("mapping_tree")
 
@@ -638,9 +658,9 @@ if __name__ == '__main__':
             profile_generator.generate_ui_profiles("resources/fdpg_differential")
         named_ui_profiles_dict = {name: apply_additional_profile_rules((name, profile)) for name, profile in
                                   named_ui_profiles_dict.items()}
-        write_ui_profiles_to_files(named_ui_profiles_dict.values())
-        write_used_value_sets_to_files(named_ui_profiles_dict.values())
-        write_used_criteria_sets_to_files(named_ui_profiles_dict.values())
+        write_ui_profiles_to_files(named_ui_profiles_dict.values(), f"{onto_result_dir}/ui-profiles")
+        write_used_value_sets_to_files(named_ui_profiles_dict.values(), f"{onto_result_dir}/value-sets")
+        write_used_criteria_sets_to_files(named_ui_profiles_dict.values(),f"{onto_result_dir}/criteria-sets")
         db_writer.write_ui_profiles_to_db(contextualized_term_code_ui_profile_mapping, named_ui_profiles_dict)
         db_writer.write_vs_to_db(named_ui_profiles_dict.values())
 
@@ -653,9 +673,9 @@ if __name__ == '__main__':
         cql_mappings = cql_generator.generate_mapping("resources/fdpg_differential")
         cql_term_code_mappings = cql_mappings[0]
         cql_concept_mappings = cql_mappings[1]
-        write_mappings_to_files(cql_concept_mappings.values())
+        #write_mappings_to_files(cql_concept_mappings.values())
         v1_cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
-        write_v1_mapping_to_file(v1_cql_mappings, "mapping-old")
+        write_v1_mapping_to_file(v1_cql_mappings, f"{onto_result_dir}/mapping")
 
         # pathling_generator = PathlingMappingGenerator(resolver)
         # pathling_mappings = pathling_generator.generate_mapping("resources/fdpg_differential")
@@ -675,7 +695,7 @@ if __name__ == '__main__':
         v1_fhir_search_mapping = denormalize_mapping_to_old_format(fhir_search_term_code_mappings,
                                                                    fhir_search_concept_mappings)
         v1_fhir_search_mapping.entries.append(get_combined_consent_fhir_mapping())
-        write_v1_mapping_to_file(v1_fhir_search_mapping, "mapping-old")
+        write_v1_mapping_to_file(v1_fhir_search_mapping, f"{onto_result_dir}/mapping")
         validate_fhir_mapping("mapping_fhir")
 
 
