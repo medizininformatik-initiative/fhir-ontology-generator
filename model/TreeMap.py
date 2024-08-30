@@ -21,7 +21,9 @@ class TermEntryNode:
         return hash(self.term_code)
     
     def to_ui_tree_entry(self):
-        return {"parents": self.parents,
+        return {
+                "key": self.term_code.code,
+                "parents": self.parents,
                 "children": self.children}
 
 @dataclass
@@ -37,7 +39,7 @@ class TreeMap(JsonSerializable):
 
     def to_dict(self):
         data = self.__dict__.copy()
-        data["entries"] = {key: value.to_ui_tree_entry() for key, value in self.entries.items()}
+        data["entries"] = list(value.to_ui_tree_entry() for value in self.entries.values())
         data["context"] = self.context.to_dict()
         return del_none(del_keys(data, self.DO_NOT_SERIALIZE))
     
