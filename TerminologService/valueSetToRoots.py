@@ -73,6 +73,8 @@ def create_vs_tree_map(canonical_url: str) -> TreeMap:
     vs = expand_value_set(canonical_url)
     treemap: TreeMap = TreeMap({}, None, None, None)
     treemap.entries = {term_code.code: TermEntryNode(term_code) for term_code in vs}
+    treemap.system = vs[0].system
+    treemap.version = vs[0].version
     try:
         closure_map_data = get_closure_map(vs)
         if groups := closure_map_data.get("group"):
