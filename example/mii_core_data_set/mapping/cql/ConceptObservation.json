@@ -1,5 +1,0 @@
-{
-    "name": "ConceptObservation",
-    "resourceType": "Observation",
-    "timeRestrictionFhirPath": "effective"
-}

@@ -1,5 +1,0 @@
-{
-    "name": "Procedure",
-    "resourceType": "Procedure",
-    "timeRestrictionFhirPath": "performed"
-}

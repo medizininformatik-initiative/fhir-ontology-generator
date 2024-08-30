@@ -1,5 +1,0 @@
-{
-    "name": "QuantityObservation",
-    "resourceType": "Observation",
-    "timeRestrictionFhirPath": "effective"
-}

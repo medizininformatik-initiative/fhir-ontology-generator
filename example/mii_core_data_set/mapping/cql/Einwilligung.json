@@ -1,5 +1,0 @@
-{
-    "name": "Einwilligung",
-    "resourceType": "Consent",
-    "termCodeFhirPath": "provision.provision.code"
-}

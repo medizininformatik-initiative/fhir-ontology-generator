@@ -1,5 +1,0 @@
-{
-    "name": "Laboruntersuchung",
-    "resourceType": "Observation",
-    "timeRestrictionFhirPath": "effective"
-}

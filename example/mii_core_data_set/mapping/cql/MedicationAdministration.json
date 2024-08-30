@@ -1,5 +1,0 @@
-{
-    "name": "MedicationAdministration",
-    "resourceType": "MedicationAdministration",
-    "timeRestrictionFhirPath": "effective"
-}

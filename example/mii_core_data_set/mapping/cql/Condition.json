@@ -1,5 +1,0 @@
-{
-    "name": "Condition",
-    "resourceType": "Condition",
-    "timeRestrictionFhirPath": "onset"
-}
