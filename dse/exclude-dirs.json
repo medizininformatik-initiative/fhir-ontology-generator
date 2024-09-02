@@ -6,5 +6,6 @@
   "hl7.fhir.r4.core#4.0.1",
   "hl7.fhir.uv.ips#1.0.0",
   "hl7.fhir.uv.genomics-reporting#2.0.0",
-  "hl7.terminology.r4#5.0.0"
+  "hl7.terminology.r4#5.0.0",
+  "de.einwilligungsmanagement#1.0.1"
 ]
