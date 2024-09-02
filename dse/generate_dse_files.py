@@ -13,6 +13,7 @@ def configure_args_parser():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--download_packages', action='store_true')
     arg_parser.add_argument('--generate_profile_details', action='store_true')
+    arg_parser.add_argument('--download_value_sets', action='store_true')
     return arg_parser
 
 def download_simplifier_packages(package_names):
@@ -107,7 +108,8 @@ if __name__ == '__main__':
     if args.generate_profile_details:
 
         profiles = tree_generator.profiles
-        profile_detail_generator = ProfileDetailGenerator(profiles, mapping_type_code, blacklistedValueSets)
+        fields_to_exclude = [".meta", ".id", ".subject"]
+        profile_detail_generator = ProfileDetailGenerator(profiles, mapping_type_code, blacklistedValueSets, fields_to_exclude)
         profile_details = []
 
         for profile in profiles:
@@ -121,4 +123,5 @@ if __name__ == '__main__':
 
         generate_r_load_sql(profile_details)
 
-        download_all_value_sets(profile_details)
+        if args.download_value_sets:
+            download_all_value_sets(profile_details)
