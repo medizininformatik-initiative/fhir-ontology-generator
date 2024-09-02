@@ -3,13 +3,15 @@ import re
 import os
 import json
 
+
 class ProfileDetailGenerator():
 
-    def __init__(self, profiles, mapping_type_code, blacklistedValueSets):
+    def __init__(self, profiles, mapping_type_code, blacklistedValueSets, fields_to_exclude):
 
         self.blacklistedValueSets = blacklistedValueSets
         self.profiles = profiles
         self.mapping_type_code = mapping_type_code
+        self.fields_to_exclude = fields_to_exclude
 
     def get_value_sets_for_code_filter(self, structDef):
 
@@ -52,7 +54,7 @@ class ProfileDetailGenerator():
 
         return value_sets
 
-    def get_field_in_node(self, node, name):
+    def get_field_in_node(self, node, id_end):
 
         if "children" not in node:
             node["children"] = []
@@ -62,12 +64,12 @@ class ProfileDetailGenerator():
         for index in range(0, len(children)):
 
             child = children[index]
-            if child["name"] == name:
+            if child["id"].endswith(id_end):
                 return index
 
         return -1
 
-    def insert_field_to_tree(self, tree, elements, field):
+    def insert_field_to_tree(self, tree, field):
 
         cur_node = tree
         path = re.split(r"[.:]", field["id"])
@@ -76,12 +78,10 @@ class ProfileDetailGenerator():
         if len(path) == 0:
             return
 
-        field["name"] = path[len(path) - 1]
-
         for index in range(0, len(path) - 1):
 
-            name = path[index]
-            field_child_index = self.get_field_in_node(cur_node, name)
+            id_end = path[index]
+            field_child_index = self.get_field_in_node(cur_node, id_end)
 
             if field_child_index != -1:
                 cur_node = cur_node["children"][field_child_index]
@@ -90,6 +90,30 @@ class ProfileDetailGenerator():
             cur_node["children"] = []
 
         cur_node["children"].append(field)
+
+    def filter_element(self, element):
+
+        if "mustSupport" not in element or element['mustSupport'] is False:
+            return True
+
+        if any(element['id'].endswith(field) or f"{field}." in element['id'] for field in self.fields_to_exclude):
+            return True
+
+        if "[x]" in element['id'] and not element['id'].endswith("[x]"):
+            return True
+
+        if element['id'].endswith(".extension"):
+            return True
+
+
+    def get_name_from_id(self, id):
+
+        name = id.split(".")[-1]
+        name = name.split(":")[-1]
+        name = name.replace("[x]", "")
+
+        return name
+
 
     def generate_detail_for_profile(self, profile):
 
@@ -130,14 +154,18 @@ class ProfileDetailGenerator():
 
         for element in source_elements:
 
+            if self.filter_element(element):
+                continue
+
             type = "unknown"
 
             if "type" in element:
                 type = element["type"][0]["code"]
 
-            field = {"id": element["id"], "display": element["short"], "type": type}
+            name = self.get_name_from_id(element["id"])
+            field = {"id": element["id"], "name": name, "display": element["short"], "type": type}
 
-            self.insert_field_to_tree(field_tree, elements, field)
+            self.insert_field_to_tree(field_tree, field)
 
         profile_detail["fields"] = field_tree["children"]
 
