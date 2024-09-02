@@ -1,7 +1,0 @@
-{
-    "name": "Vitalstatus",
-    "resourceType": "Observation",
-    "timeRestrictionFhirPath": "effective",
-    "valueFhirPath": "value.as(CodeableConcept)).coding",
-    "valueType": "Coding"
-}

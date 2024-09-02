@@ -95,23 +95,16 @@ if __name__ == '__main__':
 
         mapping_cql = []
         mapping_fhir = []
-        mapping_tree = {"children": [],
-                        "context": {
-                            "code": "",
-                            "display": "",
-                            "system": ""
-                        },
-                        "termCode": {
-                            "code": "",
-                            "display": "",
-                            "system": ""
-                        }}
+        mapping_tree = []
 
         for ontodir in args.ontodirs:
             mapping_cql = mapping_cql + load_ontology_file(ontodir, "mapping_cql.json")
             mapping_fhir = mapping_fhir + load_ontology_file(ontodir, "mapping_fhir.json")
-            cur_mapping_tree = load_ontology_file(ontodir, "mapping_tree.json")
-            mapping_tree["children"].extend(cur_mapping_tree["children"])
+
+            cur_ui_tree_dir = f'{ontodir}/ui-trees'
+            for filename in os.listdir(cur_ui_tree_dir):
+                cur_mapping_tree = load_ontology_file(cur_ui_tree_dir, filename)
+                mapping_tree.extend(cur_mapping_tree)
 
         cql_dir = f"{args.outputdir}/mapping/cql"
         fhir_dir = f"{args.outputdir}/mapping/fhir"
@@ -127,6 +120,9 @@ if __name__ == '__main__':
         output_ui_tree_dir = f'{args.outputdir}/ui-trees'
         os.makedirs(output_ui_tree_dir, exist_ok=True)
 
+        output_ui_termcode_info_dir = f'{args.outputdir}/term-code-info'
+        os.makedirs(output_ui_termcode_info_dir, exist_ok=True)
+
         output_crit_set_dir = f'{args.outputdir}/criteria-sets'
         os.makedirs(output_crit_set_dir, exist_ok=True)
 
@@ -134,10 +130,14 @@ if __name__ == '__main__':
         os.makedirs(output_value_set_dir, exist_ok=True)
 
         for ontodir in args.ontodirs:
-            cur_ui_tree_dir = f'{ontodir}/ui-trees'
 
+            cur_ui_tree_dir = f'{ontodir}/ui-trees'
             for filename in os.listdir(cur_ui_tree_dir):
                 shutil.copy(f'{cur_ui_tree_dir}/{filename}', f'{output_ui_tree_dir}/{filename}')
+
+            cur_ui_termcode_info_dir = f'{ontodir}/term-code-info'
+            for filename in os.listdir(cur_ui_termcode_info_dir):
+                shutil.copy(f'{cur_ui_termcode_info_dir}/{filename}', f'{output_ui_termcode_info_dir}/{filename}')
 
             cur_crit_set_dir = f'{ontodir}/criteria-sets'
             for filename in os.listdir(cur_crit_set_dir):

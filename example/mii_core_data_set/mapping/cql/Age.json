@@ -1,6 +1,0 @@
-{
-    "name": "Age",
-    "resourceType": "Patient",
-    "valueFhirPath": "birthDate",
-    "valueType": "date"
-}

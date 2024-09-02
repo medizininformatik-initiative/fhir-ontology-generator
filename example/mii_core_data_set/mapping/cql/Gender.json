@@ -1,6 +1,0 @@
-{
-    "name": "Gender",
-    "resourceType": "Patient",
-    "valueFhirPath": "gender",
-    "valueType": "code"
-}
