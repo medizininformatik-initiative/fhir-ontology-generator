@@ -5,11 +5,12 @@ import json
 
 class ProfileTreeGenerator():
 
-    def __init__(self, packagesDir: str, exclude_dirs):
+    def __init__(self, packagesDir: str, exclude_dirs, module_order):
 
         self.profiles = {}
         self.packagesDir = packagesDir
         self.exclude_dirs = exclude_dirs
+        self.module_order = module_order
 
     def build_profile_path(self, path, profile, profiles):
 
@@ -95,6 +96,10 @@ class ProfileTreeGenerator():
 
             for file in (file for file in files if file.endswith(".json")):
                 file_path = os.path.join(root, file)
+
+                if "/examples/" in file_path:
+                    continue
+
                 try:
 
                     with open(file_path, "r") as f:
@@ -123,10 +128,19 @@ class ProfileTreeGenerator():
                                 "url": content["url"],
                             }
 
+                            print(f"Adding profile to tree: {file_path}")
+
                 except UnicodeDecodeError:
                     print(f"File {file_path} is not a text file or cannot be read as text.")
-                except Exception as e:
-                    print(f"Could not read file {file_path} due to {e}")
+                except Exception:
+                    pass
+
+    def custom_sort(self, item, order):
+        name = item["display"]
+        if name in order:
+            return (0, order.index(name))
+        else:
+            return (1, name)
 
     def generate_profiles_tree(self):
 
@@ -148,4 +162,8 @@ class ProfileTreeGenerator():
 
             self.insert_path_to_tree(tree, path)
 
-        return tree
+        sorted_tree = tree
+
+        sorted_tree['children'] = sorted(tree['children'], key= lambda item: self.custom_sort(item, self.module_order))
+
+        return sorted_tree

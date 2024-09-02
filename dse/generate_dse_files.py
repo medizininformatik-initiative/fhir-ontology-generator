@@ -12,6 +12,7 @@ def configure_args_parser():
 
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--download_packages', action='store_true')
+    arg_parser.add_argument('--generate_profile_details', action='store_true')
     return arg_parser
 
 def download_simplifier_packages(package_names):
@@ -83,7 +84,9 @@ if __name__ == '__main__':
 
     packages_dir = f"{os.getcwd()}/dse-packages/dependencies"
 
-    tree_generator = ProfileTreeGenerator(packages_dir, exclude_dirs)
+    module_order = ["Diagnose", "Prozedur", "Person", "Labor", "Medikation", "Fall", "Biobank", "Consent"]
+
+    tree_generator = ProfileTreeGenerator(packages_dir, exclude_dirs, module_order)
     tree_generator.get_profiles()
     profile_tree = tree_generator.generate_profiles_tree()
 
@@ -101,19 +104,21 @@ if __name__ == '__main__':
 
     blacklistedValueSets = ['http://hl7.org/fhir/ValueSet/observation-codes']
 
-    profiles = tree_generator.profiles
-    profile_detail_generator = ProfileDetailGenerator(profiles, mapping_type_code, blacklistedValueSets)
-    profile_details = []
+    if args.generate_profile_details:
 
-    for profile in profiles:
+        profiles = tree_generator.profiles
+        profile_detail_generator = ProfileDetailGenerator(profiles, mapping_type_code, blacklistedValueSets)
+        profile_details = []
 
-        profile_detail = profile_detail_generator.generate_detail_for_profile(profiles[profile])
-        if profile_detail:
-            profile_details.append(profile_detail)
+        for profile in profiles:
 
-    with open("generated/profile_details_all.json", "w+") as p_details_f:
-        json.dump(profile_details, p_details_f)
+            profile_detail = profile_detail_generator.generate_detail_for_profile(profiles[profile])
+            if profile_detail:
+                profile_details.append(profile_detail)
 
-    generate_r_load_sql(profile_details)
+        with open("generated/profile_details_all.json", "w+") as p_details_f:
+            json.dump(profile_details, p_details_f)
 
-    download_all_value_sets(profile_details)
+        generate_r_load_sql(profile_details)
+
+        download_all_value_sets(profile_details)
