@@ -2,7 +2,7 @@
   "name": "BloodPressure",
   "resource_type": "Observation",
   "context": {
-    "system": "fdpg.mii.gecco",
+    "system": "fdpg.mii.test",
     "code": "BloodPressure",
     "display": "Blood Pressure"
   },

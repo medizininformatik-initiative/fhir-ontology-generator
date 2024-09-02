@@ -156,7 +156,7 @@
           "Observation"
         ],
         "type": "number",
-        "expression": "Observation.value",
+        "expression": "Observation.value as integer",
         "comparator": [
           "eq",
           "ne",

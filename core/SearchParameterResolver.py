@@ -14,6 +14,29 @@ class SearchParameterResolver(ABC):
     def __init__(self):
         self.search_parameters: List[dict] = self._load_all_search_parameters()
 
+    def find_composite_search_parameter(self, search_parameters: OrderedDict[str, dict]) -> dict:
+        """
+        Finds the composite search parameter for the given search parameters.
+        :param search_parameters: search parameters
+        :return: the composite search parameter
+        :raises ValueError: if the composite search parameter could not be found
+        """
+        if len(search_parameters) != 2:
+            raise ValueError("Only two search parameters are allowed for composite search.")
+        search_parameter_url_1, search_parameter_url_2 = [param.get("url") for param in search_parameters.values()]
+        path_1, path_2 = search_parameters.keys()
+        joined_path = f"{path_1}.where({path_2})"
+        for composite_search_parameter in [search_parameter for search_parameter in self.search_parameters if
+                                           search_parameter.get("type") == "composite"]:
+            components = composite_search_parameter.get("component")
+            if components[0].get("definition") == search_parameter_url_1 and components[1].get(
+                    "definition") == search_parameter_url_2:
+                return orderedDict({joined_path: composite_search_parameter})
+            if components[0].get("definition") == search_parameter_url_2 and components[1].get(
+                    "definition") == search_parameter_url_1:
+                return orderedDict({joined_path: composite_search_parameter})
+        raise ValueError("Composite search parameter not found.")
+
     def find_search_parameter(self, fhir_path_expressions: List[str]) -> OrderedDict[str, dict]:
         """
         Finds the search parameter for a fhir path expression. Only the shortest expression is considered
@@ -30,7 +53,6 @@ class SearchParameterResolver(ABC):
         fhir_path_expressions = [expression for expression in fhir_path_expressions if
                                  not expression.startswith("Extension")]
         fhir_path_expressions = [re.sub(r'^\((.*)\)$', r'\1', expression) for expression in fhir_path_expressions]
-        print(fhir_path_expressions)
         fhir_path_expressions_to_search_parameter: OrderedDict[str, Tuple[dict, int]] = orderedDict(
             [(expression, (None, math.inf)) for expression in fhir_path_expressions]
         )
