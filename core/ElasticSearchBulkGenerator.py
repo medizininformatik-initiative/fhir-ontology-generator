@@ -94,7 +94,7 @@ class ElasticSearchGenerator:
                'parents': [],
                'children': [],
                'related_terms': [],
-               'kdsModule': term_code_info['module']['display']
+               'kds_module': term_code_info['module']['display']
                }
 
                 for parent_code in entry['parents']:
