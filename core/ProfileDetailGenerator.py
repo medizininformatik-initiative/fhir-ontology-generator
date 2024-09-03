@@ -31,7 +31,7 @@ class ProfileDetailGenerator():
             if "binding" in elem:
                 value_sets.append(elem["binding"]["valueSet"])
 
-            elif "patternCoding" in elem or "fixed" in elem:
+            elif len(value_sets) == 0 and "patternCoding" in elem or "fixed" in elem:
                 return None
 
         if len(value_sets) > 0:
