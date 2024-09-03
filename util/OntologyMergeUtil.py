@@ -74,10 +74,74 @@ def load_ontology_file(ontodir, filename):
     with open(file_path, "r") as file:
         return json.load(file)
 
-
 def write_json_to_file(filepath, object):
     with open(filepath, "w+") as file:
         json.dump(object, file)
+
+
+
+def add_system_urls_to_systems_json(merged_ontology_dir, system_urls):
+
+    new_terminology_systems = {}
+
+    with open (f'{merged_ontology_dir}/terminology_systems.json', "r+") as systems_file:
+        terminology_systems = json.load(systems_file)
+
+        for terminology_system in terminology_systems:
+            new_terminology_systems[terminology_system['url']] = terminology_system['name']
+
+
+        for system_url in list(system_urls):
+            if system_url not in new_terminology_systems:
+
+                name = system_url.split("/")[-1]
+                new_terminology_systems[system_url] = name
+
+
+        terminology_systems = []
+        for key, value in new_terminology_systems.items():
+            terminology_systems.append({
+                "url": key,
+                "name": value
+            })
+
+        systems_file.truncate(0)
+        systems_file.seek(0)
+
+        json.dump(terminology_systems, systems_file)
+
+
+def collect_all_terminology_systems(merged_ontology_dir):
+
+    system_urls = set()
+
+    cur_ui_termcode_info_dir = f'{merged_ontology_dir}/term-code-info'
+    for filename in os.listdir(cur_ui_termcode_info_dir):
+        with open(f'{cur_ui_termcode_info_dir}/{filename}', "r") as termcode_info_file:
+            termcode_infos = json.load(termcode_info_file)
+
+            for termcode_info in termcode_infos:
+                system_url = termcode_info["term_code"]["system"]
+                system_urls.add(system_url)
+
+    cur_ui_value_set_dir = f'{merged_ontology_dir}/value-sets'
+    for filename in os.listdir(cur_ui_value_set_dir):
+
+        if not filename.endswith(".json"):
+            continue
+
+        with open(f'{cur_ui_value_set_dir}/{filename}', "r") as value_set_file:
+
+            value_set = json.load(value_set_file)
+
+            for termcode in value_set["expansion"]["contains"]:
+                system_url = termcode["system"]
+                system_urls.add(system_url)
+
+    return system_urls
+
+
+
 
 
 if __name__ == '__main__':
@@ -181,3 +245,10 @@ if __name__ == '__main__':
 
         shutil.copy(f'{cur_dse_tree_path}',
                     f'{args.outputdir}/profile_tree.json')
+
+
+    system_urls = collect_all_terminology_systems(args.outputdir)
+
+    add_system_urls_to_systems_json(args.outputdir, system_urls)
+
+
