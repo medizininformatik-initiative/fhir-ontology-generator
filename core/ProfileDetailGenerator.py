@@ -114,6 +114,33 @@ class ProfileDetailGenerator():
 
         return name
 
+    def translate_detail_for_profile(self, profile, profiles_translated):
+
+        translated_profile = {}
+
+        for cur_profile in profiles_translated:
+            if profile['url'] == cur_profile['url']:
+                translated_profile = cur_profile
+
+        profile['display'] = translated_profile['display']['translation']['de']
+
+        for index in range(0, len(profile['fields'])):
+
+            translated_field = translated_profile['fields'][index]
+            name_de_translation = translated_field['name_translation']['de']
+            display_de_translation = translated_field['display_translation']['de']
+
+            if name_de_translation != "":
+
+                profile['fields'][index]['name'] = name_de_translation
+
+            if display_de_translation != "":
+                profile['fields'][index]['display'] = display_de_translation
+
+        return profile
+
+
+
 
     def generate_detail_for_profile(self, profile):
 
@@ -163,7 +190,10 @@ class ProfileDetailGenerator():
                 type = element["type"][0]["code"]
 
             name = self.get_name_from_id(element["id"])
-            field = {"id": element["id"], "name": name, "display": element["short"], "type": type}
+            field = {"id": element["id"],
+                     "name": name,
+                     "display": element["short"],
+                     "type": type}
 
             self.insert_field_to_tree(field_tree, field)
 

@@ -12,17 +12,25 @@ class ProfileTreeGenerator():
         self.exclude_dirs = exclude_dirs
         self.module_order = module_order
 
-    def build_profile_path(self, path, profile, profiles):
+    def build_profile_path(self, path, profile, profiles, translated_profiles):
 
         profile_struct = profile["structureDefinition"]
         parent_profile_url = profile_struct["baseDefinition"]
+
+        translated_profile = translated_profiles[profile["url"]]
+        translation_de = translated_profile['display']['translation']['de']
+
+        if translation_de != "":
+            display = translation_de
+        else:
+            display = profile_struct["title"]
 
         path.insert(
             0,
             {
                 "id": str(uuid.uuid4()),
                 "name": profile["name"],
-                "display": profile_struct["title"],
+                "display": display,
                 "module": profile["module"],
                 "url": profile["url"],
             },
@@ -30,7 +38,7 @@ class ProfileTreeGenerator():
 
         if parent_profile_url in profiles:
             parent_profile = profiles[parent_profile_url]
-            self.build_profile_path(path, parent_profile, profiles)
+            self.build_profile_path(path, parent_profile, profiles, translated_profiles)
 
         return path
 
@@ -142,17 +150,26 @@ class ProfileTreeGenerator():
         else:
             return (1, name)
 
-    def generate_profiles_tree(self):
+    def generate_profiles_tree(self, translated_profiles):
 
         tree = {"name": "Root", "module": "no-module", "url": "no-url", "children": [], "selectable": False}
 
         for profile in self.profiles.values():
 
-            path = self.build_profile_path([], profile, self.profiles)
+            translated_profile = translated_profiles[profile["module"]]
+            translation_de = translated_profile['display']['translation']['de']
+
+            if translation_de != "":
+                print(translation_de)
+                display = translation_de
+            else:
+                display = self.module_name_to_display(profile["module"])
+
+            path = self.build_profile_path([], profile, self.profiles, translated_profiles)
             path.insert(0, {
                 "id": str(uuid.uuid4()),
                 "name": profile["module"],
-                "display": self.module_name_to_display(profile["module"]),
+                "display": display,
                 "url": profile["module"],
                 "module": profile["module"],
                 "selectable": False,
