@@ -2,6 +2,10 @@
   "name": "SOFA",
   "term_code_defining_id": "Observation.code.coding:sofaScore",
   "resource_type": "Observation",
+  "module": {
+    "code": "mii-cds-gecco",
+    "display": "GECCO"
+  },
   "context": {
     "system": "fdpg.mii.gecco",
     "code": "ConceptObservation",

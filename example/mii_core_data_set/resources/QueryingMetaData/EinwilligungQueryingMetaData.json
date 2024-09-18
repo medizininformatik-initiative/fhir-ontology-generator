@@ -1,6 +1,10 @@
 {
   "name": "Einwilligung",
   "resource_type": "Consent",
+  "module": {
+    "code": "mii-cds-einwilligung",
+    "display": "Einwilligung"
+  },
   "context": {
     "system": "fdpg.mii.cds",
     "code": "Einwilligung",

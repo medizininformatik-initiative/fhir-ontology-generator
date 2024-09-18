@@ -1,6 +1,10 @@
 {
   "name": "SnomedProcedure",
   "resource_type": "Procedure",
+  "module": {
+    "code": "mii-cds-gecco",
+    "display": "GECCO"
+  },
   "context": {
     "system": "fdpg.mii.gecco",
     "code": "Procedure",

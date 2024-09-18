@@ -23,8 +23,6 @@ from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import UIProfile
 from model.UiDataModel import TermEntry, TermCode
-from model.termCodeTree import to_term_code_node
-
 WINDOWS_RESERVED_CHARACTERS = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
 
 class StandardDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
@@ -129,7 +127,7 @@ def denormalize_mapping_to_old_format(term_code_to_mapping_name, mapping_name_to
             mapping = copy.copy(mapping_name_to_mapping[mapping_name])
             mapping.key = context_and_term_code[1]
             mapping.context = context_and_term_code[0]
-            result.entries.add(mapping)
+            result.entries.append(mapping)
         except KeyError:
             print("No mapping found for term code " + context_and_term_code[1].code)
     return result
@@ -287,10 +285,12 @@ if __name__ == '__main__':
     differential_folder = "resources/differential"
     generate_result_folder(onto_result_dir)
 
+    with open("resources/required_packages.json", "r") as f:
+        required_packages = json.load(f)
+
     if args.download_packages:
         log.info(f"# Downloading Packages...")
-        with open("resources/required_packages.json", "r") as f:
-            required_packages = json.load(f)
+
 
         download_simplifier_packages(required_packages)
 
@@ -307,9 +307,6 @@ if __name__ == '__main__':
         ui_trees = tree_generator.generate_ui_trees(differential_folder)
         write_ui_trees_to_files(ui_trees, f'{onto_result_dir}/ui-trees')
 
-        mapping_tree = to_term_code_node(ui_trees)
-        write_mapping_tree_to_file(mapping_tree, f'{onto_result_dir}/mapping')
-        validate_mapping_tree("mapping_tree", f'{onto_result_dir}/mapping' )
 
     if args.generate_ui_profiles:
         log.info(f"# Generating UI Profiles...")

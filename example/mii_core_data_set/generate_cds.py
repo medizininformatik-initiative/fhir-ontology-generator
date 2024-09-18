@@ -21,12 +21,12 @@ from core.UIProfileGenerator import UIProfileGenerator
 from core.UITreeGenerator import UITreeGenerator
 from database.DataBaseWriter import DataBaseWriter
 from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, load_querying_meta_data, \
-    generate_result_folder
+    mkdir_if_not_exists
 from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList, FixedFHIRCriteria, PathlingMapping
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
+from model.TreeMap import ContextualizedTermCodeInfoList, TreeMapList
 from model.UIProfileModel import UIProfile
-from model.UiDataModel import TermEntry, TermCode
-from model.termCodeTree import to_term_code_node
+from model.UiDataModel import TermCode
 
 core_data_sets = [MII_CONSENT, MII_DIAGNOSE, MII_LAB, MII_MEDICATION, MII_PERSON, MII_PROCEDURE, MII_SPECIMEN]
 WINDOWS_RESERVED_CHARACTERS = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
@@ -102,133 +102,9 @@ class MIICoreDataSetSearchParameterResolver(SearchParameterResolver):
         return params
 
 
-def get_code_blue_lab_codes(context):
-    root = TermEntry([TermCode("fdpg.mii.cds", "Andere", "Andere")], context=context, leaf=False, selectable=False)
-
-    # Potassium
-    potassium = TermEntry([TermCode("http://loinc.org", "75940-7", "Potassium [Mass/volume] in Blood")],
-                          context=context, leaf=True, selectable=True)
-    # Systolic blood pressure
-    systolic_bp = TermEntry([TermCode("http://loinc.org", "8480-6", "Systolic blood pressure")], context=context,
-                            leaf=True, selectable=True)
-    # Diastolic blood pressure
-    diastolic_bp = TermEntry([TermCode("http://loinc.org", "8462-4", "Diastolic blood pressure")], context=context,
-                             leaf=True, selectable=True)
-    # Mean blood pressure
-    mean_bp = TermEntry([TermCode("http://loinc.org", "8478-0", "Mean blood pressure")], context=context, leaf=True,
-                        selectable=True)
-    # Heart rate
-    heart_rate = TermEntry([TermCode("http://loinc.org", "8867-4", "Heart rate")], context=context, leaf=True,
-                           selectable=True)
-    # Body temperature
-    body_temp = TermEntry([TermCode("http://loinc.org", "8310-5", "Body temperature")], context=context, leaf=True,
-                          selectable=True)
-    root.children = sorted([potassium, systolic_bp, diastolic_bp, mean_bp, heart_rate, body_temp])
-
-    return root
 
 
-def generate_top_300_loinc_tree():
-    top_loinc_tree = etree.parse("resources/additional_resources/Top300Loinc.xml")
-    lab_context = TermCode("fdpg.mii.cds", "Laboruntersuchung", "Laboruntersuchung")
-    terminology_entry = TermEntry([TermCode("fdpg.mii.cds", "Laboruntersuchung", "Laboruntersuchung")],
-                                  context=lab_context)
-    terminology_entry.children = sorted(get_terminology_entry_from_top_300_loinc("11ccdc84-a237-49a5-860a-b0f65068c023",
-                                                                                 top_loinc_tree).children)
-    lab_context = TermCode("fdpg.mii.cds", "Laboruntersuchung", "Laboruntersuchung", "1.0.0")
-    terminology_entry.children.append(get_code_blue_lab_codes(lab_context))
-
-    terminology_entry.leaf = False
-    terminology_entry.selectable = False
-    return terminology_entry
-
-
-def get_terminology_entry_from_top_300_loinc(element_id, element_tree):
-    """
-    Generates the top 300 loinc tree for the given element id and tree
-    :param element_id: the id of the root element of the sub tree initially the id of the root element of the whole tree
-    :param element_tree: the element subtree
-    :return: Terminology tree
-    """
-    # TODO: Better namespace handling
-    terminology_entry = None
-    for element in element_tree.xpath("/xmlns:export/xmlns:scopedIdentifier",
-                                      namespaces={'xmlns': "http://schema.samply.de/mdr/common"}):
-        if element.get("uuid") == element_id:
-            display = get_top_300_display(element)
-            if subs := element.xpath("xmlns:sub", namespaces={'xmlns': "http://schema.samply.de/mdr/common"}):
-                term_code = TermCode("fdpg.mii.cds", display, display)
-                terminology_entry = TermEntry([term_code],
-                                              context=TermCode("fdpg.mii.cds", "Laboruntersuchung", "Laboruntersuchung",
-                                                               "1.0.0"))
-                for sub in subs:
-                    terminology_entry.children.append(get_terminology_entry_from_top_300_loinc(sub.text, element_tree))
-                    terminology_entry.leaf = False
-                    terminology_entry.selectable = False
-                terminology_entry.children = sorted(terminology_entry.children)
-                return terminology_entry
-            term_code = get_term_code(element, display)
-            terminology_entry = TermEntry([term_code],
-                                          context=TermCode("fdpg.mii.cds", "Laboruntersuchung", "Laboruntersuchung",
-                                                           "1.0.0"))
-    return terminology_entry
-
-
-# We already extracted the display from the element, so we don't need to do it again
-def get_term_code(element, display):
-    """
-    Extracts the term code from the element
-    :param element: node in the XML tree
-    :param display: display of the term code
-    :return: TermCode
-    """
-    coding_system = ""
-    code = ""
-    for slot in element.xpath("xmlns:slots/xmlns:slot",
-                              namespaces={'xmlns': "http://schema.samply.de/mdr/common"}):
-        next_is_coding_system = False
-        next_is_code = False
-        for child in slot:
-            if (child.tag == "{http://schema.samply.de/mdr/common}key") and (
-                    child.text == "fhir-coding-system"):
-                next_is_coding_system = True
-            if (child.tag == "{http://schema.samply.de/mdr/common}value") and next_is_coding_system:
-                coding_system = child.text
-                next_is_coding_system = False
-            if (child.tag == "{http://schema.samply.de/mdr/common}key") and (child.text == "terminology-code"):
-                next_is_code = True
-            if (child.tag == "{http://schema.samply.de/mdr/common}value") and next_is_code:
-                code = child.text
-                next_is_code = False
-    return TermCode(coding_system, code, display)
-
-
-def get_top_300_display(element):
-    """
-    Extracts the display from the element if a german display is available it is used otherwise the english display is
-    :param element: the element
-    :return: the display
-    """
-    display = None
-    for definition in element.xpath("xmlns:definitions/xmlns:definition",
-                                    namespaces={'xmlns': "http://schema.samply.de/mdr/common"}):
-        if definition.get("lang") == "de":
-            for designation in (
-                    definition.xpath("xmlns:designation",
-                                     namespaces={'xmlns': "http://schema.samply.de/mdr/common"})):
-                return designation.text
-        if definition.get("lang") == "en":
-            for designation in (
-                    definition.xpath("xmlns:designation",
-                                     namespaces={'xmlns': "http://schema.samply.de/mdr/common"})):
-                display = designation.text
-    if display:
-        return display
-    else:
-        raise Exception("No display found for element " + element.get("uuid"))
-
-
-def generate_term_code_mapping(_entries: List[TermEntry]):
+def generate_term_code_mapping(_entries: List):
     """
     Generates the term code mapping for the given entries and saves it in the mapping folder
     :param _entries: TermEntries to generate the mapping for
@@ -236,7 +112,7 @@ def generate_term_code_mapping(_entries: List[TermEntry]):
     pass
 
 
-def generate_term_code_tree(_entries: List[TermEntry]):
+def generate_term_code_tree(_entries: List):
     """
     Generates the term code tree for the given entries and saves it in the mapping folder
     :param _entries:
@@ -264,7 +140,7 @@ def validate_fhir_mapping(mapping_name: str):
     :raises: jsonschema.exceptions.ValidationError if the fhir mapping is not valid
              jsonschema.exceptions.SchemaError if the fhir mapping schema is not valid
     """
-    f = open("mapping-old/fhir/" + mapping_name + ".json", 'r')
+    f = open(f"generated-ontology/mapping/fhir/{mapping_name}.json", 'r')
     validate(instance=json.load(f), schema=json.load(open("../../resources/schema/fhir-mapping-schema.json")))
 
 
@@ -275,18 +151,66 @@ def validate_mapping_tree(tree_name: str):
     :raises: jsonschema.exceptions.ValidationError if the mapping tree is not valid
              jsonschema.exceptions.SchemaError if the mapping tree schema is not valid
     """
-    f = open("mapping-tree/" + tree_name + ".json", 'r')
+    f = open("generated-ontology/mapping/" + tree_name + ".json", 'r')
     validate(instance=json.load(f), schema=json.load(open("../../resources/schema/codex-code-tree-schema.json")))
 
 
-def write_ui_trees_to_files(trees: List[TermEntry], directory: str = "ui-trees"):
+def write_ui_trees_to_files(trees: List[TreeMapList], directory: str = "ui-trees"):
     """
     Writes the ui trees to the ui-profiles folder
     :param trees: ui trees to write
     :param directory: directory to write the ui trees to
     """
     for tree in trees:
-        write_object_as_json(tree, f"{directory}/{tree.display}.json")
+        write_object_as_json(tree, f"{directory}/{tree.module_name}_tree.json")
+
+
+def write_term_code_info_to_file(term_code_info: List[ContextualizedTermCodeInfoList], directory: str = "term-code-info"):
+    """
+    Writes the term code info to the given file
+    :param term_code_info: term code info to write
+    :param file_name: file name to write the term code info to
+    """
+    for info in term_code_info:
+        if info.entries:
+            module_name = info.entries[0].module.display
+            write_object_as_json(info, f"{directory}/{module_name}_term_code_info.json")
+
+
+def write_used_value_sets_to_files(ui_profiles: List[UIProfile], directory: str = "value-sets"):
+    """
+    Writes the value sets used in the ui profiles to the value-sets folder
+    :param ui_profiles: ui profiles to extract the value sets from
+    :param directory: directory to write the value sets to
+    """
+    value_sets = list()
+    for ui_profile in ui_profiles:
+        if ui_profile.valueDefinition:
+            if value_set := ui_profile.valueDefinition.referencedValueSet:
+                value_sets.append(value_set)
+        if ui_profile.attributeDefinitions:
+            for attribute_definition in ui_profile.attributeDefinitions:
+                if value_set := attribute_definition.referencedValueSet:
+                    value_sets.append(value_set)
+    for value_set in value_sets:
+        write_object_as_json(value_set, f"{directory}/{remove_reserved_characters(value_set.url.split('/')[-1])}.json")
+
+
+def write_used_criteria_sets_to_files(ui_profiles: List[UIProfile], directory: str = "criteria-sets"):
+    """
+    Writes the criteria sets used in the ui profiles to the criteria-sets folder
+    :param ui_profiles: ui profiles to extract the criteria sets from
+    :param directory: directory to write the criteria sets to
+    """
+    criteria_sets = list()
+    for ui_profile in ui_profiles:
+        if ui_profile.attributeDefinitions:
+            for attribute_definition in ui_profile.attributeDefinitions:
+                if criteria_set := attribute_definition.referencedCriteriaSet:
+                    criteria_sets.append(criteria_set)
+
+    for criteria_set in criteria_sets:
+        write_object_as_json(criteria_set, f"{directory}/{remove_reserved_characters(criteria_set.url.split('/')[-1])}.json")
 
 
 # Todo: this should be an abstract method that has to be implemented for each use-case
@@ -304,27 +228,6 @@ def write_cds_ui_profile(module_category_entry):
     else:
         f.write(module_category_entry.to_json())
     f.close()
-
-
-def denormalize_ui_profile_to_old_format(ui_tree: List[TermEntry], term_code_to_profile_name: Dict[TermCode, str],
-                                         ui_profile_name_to_profile: Dict[str, UIProfile]):
-    """
-    Denormalizes the ui tree and ui profiles to the old format
-
-    :param ui_tree: entries to denormalize
-    :param term_code_to_profile_name: mapping from term codes to profile names
-    :param ui_profile_name_to_profile: ui profiles to use
-    :return: denormalized entries
-    """
-    for entry in ui_tree:
-        if entry.selectable:
-            try:
-                ui_profile = ui_profile_name_to_profile[term_code_to_profile_name[entry.termCode]]
-                entry.to_v1_entry(ui_profile)
-            except KeyError:
-                print("No profile found for term code " + entry.termCode.code)
-        for child in entry.children:
-            denormalize_ui_profile_to_old_format([child], term_code_to_profile_name, ui_profile_name_to_profile)
 
 
 def denormalize_mapping_to_old_format(term_code_to_mapping_name, mapping_name_to_mapping):
@@ -425,29 +328,29 @@ def write_v1_mapping_to_file(mapping, mapping_folder="mapping-old"):
     f.close()
 
 
-def reformat_diagnosis_tree(ui_tree: TermEntry):
+def reformat_diagnosis_tree(ui_tree):
     for child in ui_tree.children:
         child.selectable = False
     return ui_tree
 
 
-def reformate_medicaiton_tree(ui_tree: TermEntry):
+def reformate_medicaiton_tree(ui_tree):
     for child in ui_tree.children:
         child.selectable = False
     return ui_tree
 
 
-def reformat_lab_tree(_ui_tree):
-    return generate_top_300_loinc_tree()
+def reformat_lab_tree(ui_tree):
+    return ui_tree()
 
 
-def reformate_consent_tree(ui_tree: TermEntry):
+def reformate_consent_tree(ui_tree):
     for child in ui_tree.children:
         child.selectable = False
     return ui_tree
 
 
-def reformate_procedure_tree(ui_tree: TermEntry):
+def reformate_procedure_tree(ui_tree):
     for child in ui_tree.children:
         child.selectable = False
     return ui_tree
@@ -469,19 +372,7 @@ def update_patient_age_ui_profile(ui_profile: UIProfile) -> UIProfile:
     return ui_profile
 
 
-def set_selectable_false_if_too_many_descendents(node: TermEntry) -> int:
-    if not node:
-        return 0
-    total_descendants = 0
-    for child in node.children:
-        total_descendants += set_selectable_false_if_too_many_descendents(child)
-    if total_descendants > 400:
-        node.selectable = False
-    return total_descendants + 1
-
-
 def apply_additional_tree_rules(ui_tree):
-    set_selectable_false_if_too_many_descendents(ui_tree)
     term_code_reformat_map = {
         TermCode("fdpg.mii.cds", "Laboruntersuchung", "Laboruntersuchung"): reformat_lab_tree,
         TermCode("fdpg.mii.cds", "Diagnose", "Diagnose"): reformat_diagnosis_tree,
@@ -684,11 +575,33 @@ def apply_additional_profile_rules(named_profile: Tuple[str, UIProfile]):
     else:
         return named_profile[1]
 
+def generate_result_folder(onto_dir = ""):
+    """
+    Generates the mapping, csv and ui-profiles folder if they do not exist in the result folder
+    :return:
+    """
+
+    if onto_dir != "":
+        onto_dir = f"{onto_dir}/"
+        mkdir_if_not_exists(f"{onto_dir}")
+
+    mkdir_if_not_exists(f"{onto_dir}mapping")
+    mkdir_if_not_exists(f"{onto_dir}mapping/fhir")
+    mkdir_if_not_exists(f"{onto_dir}mapping/cql")
+    mkdir_if_not_exists(f"{onto_dir}ui-trees")
+    mkdir_if_not_exists(f"{onto_dir}value-sets")
+    mkdir_if_not_exists(f"{onto_dir}criteria-sets")
+    mkdir_if_not_exists(f"{onto_dir}ui-profiles")
+    mkdir_if_not_exists(f"{onto_dir}term-code-info")
 
 if __name__ == '__main__':
     client = docker.from_env()
     # Check if container with the name "test_db" already exists
     existing_containers = client.containers.list(all=True, filters={"name": "test_db"})
+
+    onto_result_dir = "generated-ontology"
+    differential_folder = "resources/differential"
+    generate_result_folder(onto_result_dir)
 
     for container in existing_containers:
         print("Stopping and removing existing container named 'test_db'...")
@@ -697,7 +610,7 @@ if __name__ == '__main__':
 
     container = client.containers.run("postgres:latest", detach=True, ports={'5432/tcp': 5430},
                                       name="test_db",
-                                      volumes={f"{os.getcwd()}": {'bind': '/opt/db_data', 'mode': 'rw'}},
+                                      volumes={f"{os.getcwd()}/{onto_result_dir}": {'bind': '/opt/db_data', 'mode': 'rw'}},
                                       environment={
                                           'POSTGRES_USER': 'codex-postgres',
                                           'POSTGRES_PASSWORD': 'codex-password',
@@ -707,8 +620,6 @@ if __name__ == '__main__':
 
     parser = configure_args_parser()
     args = parser.parse_args()
-
-    generate_result_folder()
 
     # Download the packages
     if args.download_packages:
@@ -725,12 +636,21 @@ if __name__ == '__main__':
     if args.generate_ui_trees:
         tree_generator = UITreeGenerator(resolver)
         ui_trees = tree_generator.generate_ui_trees("resources/fdpg_differential")
-        ui_trees = [apply_additional_tree_rules(ui_tree) for ui_tree in ui_trees]
-        write_ui_trees_to_files(ui_trees)
+        # ui_trees = [apply_additional_tree_rules(ui_tree) for ui_tree in ui_trees]
+        write_ui_trees_to_files(ui_trees, f'{onto_result_dir}/ui-trees')
 
-        mappping_tree = to_term_code_node(ui_trees)
-        write_mapping_tree_to_file(mappping_tree)
-        validate_mapping_tree("mapping_tree")
+        term_code_context_infos = tree_generator.generate_contextualized_term_code_info_list("resources/fdpg_differential")
+        print(term_code_context_infos.__len__())
+
+        for term_code_context_info in term_code_context_infos:
+            for tree_map_list in ui_trees:
+                if term_code_context_info.entries:
+                    if term_code_context_info.entries[0].module.display == tree_map_list.module_name:
+                        term_code_context_info.update_children_count(tree_map_list)
+
+        write_term_code_info_to_file(term_code_context_infos, f"{onto_result_dir}/term-code-info")
+
+        # validate_mapping_tree("mapping_tree")
 
     if args.generate_ui_profiles:
         profile_generator = UIProfileGenerator(resolver)
@@ -738,25 +658,32 @@ if __name__ == '__main__':
             profile_generator.generate_ui_profiles("resources/fdpg_differential")
         named_ui_profiles_dict = {name: apply_additional_profile_rules((name, profile)) for name, profile in
                                   named_ui_profiles_dict.items()}
+        write_ui_profiles_to_files(named_ui_profiles_dict.values(), f"{onto_result_dir}/ui-profiles")
+        write_used_value_sets_to_files(named_ui_profiles_dict.values(), f"{onto_result_dir}/value-sets")
+        write_used_criteria_sets_to_files(named_ui_profiles_dict.values(),f"{onto_result_dir}/criteria-sets")
         db_writer.write_ui_profiles_to_db(contextualized_term_code_ui_profile_mapping, named_ui_profiles_dict)
         db_writer.write_vs_to_db(named_ui_profiles_dict.values())
+
+        result = container.exec_run(
+            'pg_dump --dbname="codex_ui" -U codex-postgres -a -O -t termcode -t context -t ui_profile -t mapping'
+            ' -t contextualized_termcode -t contextualized_termcode_to_criteria_set -t criteria_set -f /opt/db_data/R__Load_latest_ui_profile.sql')
 
     if args.generate_mapping:
         cql_generator = CQLMappingGenerator(resolver)
         cql_mappings = cql_generator.generate_mapping("resources/fdpg_differential")
         cql_term_code_mappings = cql_mappings[0]
         cql_concept_mappings = cql_mappings[1]
-        write_mappings_to_files(cql_concept_mappings.values())
+        #write_mappings_to_files(cql_concept_mappings.values())
         v1_cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
-        write_v1_mapping_to_file(v1_cql_mappings, "mapping-old")
+        write_v1_mapping_to_file(v1_cql_mappings, f"{onto_result_dir}/mapping")
 
-        pathling_generator = PathlingMappingGenerator(resolver)
-        pathling_mappings = pathling_generator.generate_mapping("resources/fdpg_differential")
-        pathling_term_code_mappings = pathling_mappings[0]
-        pathling_concept_mappings = pathling_mappings[1]
-        write_mappings_to_files(pathling_concept_mappings.values())
-        v1_pathling_mappings = denormalize_mapping_to_old_format(pathling_term_code_mappings, pathling_concept_mappings)
-        write_v1_mapping_to_file(v1_pathling_mappings, "mapping-old")
+        # pathling_generator = PathlingMappingGenerator(resolver)
+        # pathling_mappings = pathling_generator.generate_mapping("resources/fdpg_differential")
+        # pathling_term_code_mappings = pathling_mappings[0]
+        # pathling_concept_mappings = pathling_mappings[1]
+        # write_mappings_to_files(pathling_concept_mappings.values())
+        # v1_pathling_mappings = denormalize_mapping_to_old_format(pathling_term_code_mappings, pathling_concept_mappings)
+        # write_v1_mapping_to_file(v1_pathling_mappings, "mapping-old")
 
         search_param_resolver = MIICoreDataSetSearchParameterResolver()
         fhir_search_generator = FHIRSearchMappingGenerator(resolver, search_param_resolver)
@@ -768,23 +695,10 @@ if __name__ == '__main__':
         v1_fhir_search_mapping = denormalize_mapping_to_old_format(fhir_search_term_code_mappings,
                                                                    fhir_search_concept_mappings)
         v1_fhir_search_mapping.entries.append(get_combined_consent_fhir_mapping())
-        write_v1_mapping_to_file(v1_fhir_search_mapping, "mapping-old")
+        write_v1_mapping_to_file(v1_fhir_search_mapping, f"{onto_result_dir}/mapping")
         validate_fhir_mapping("mapping_fhir")
 
-    if args.generate_old_format:
-        tree_generator = UITreeGenerator(resolver)
-        ui_trees = tree_generator.generate_ui_trees("resources/fdpg_differential")
-        ui_trees = [apply_additional_tree_rules(ui_tree) for ui_tree in ui_trees]
-        profile_generator = UIProfileGenerator(resolver)
-        ui_profiles = profile_generator.generate_ui_profiles("resources/fdpg_differential")
-        term_code_to_ui_profile_name = {context_tc[1]: profile_name for context_tc, profile_name in
-                                        ui_profiles[0].items()}
-        denormalize_ui_profile_to_old_format(ui_trees, term_code_to_ui_profile_name, ui_profiles[1])
-        write_ui_trees_to_files(ui_trees, "ui-profiles-old")
 
-    result = container.exec_run(
-        'pg_dump --dbname="codex_ui" -U codex-postgres -a -O -t termcode -t context -t ui_profile -t mapping'
-        ' -t contextualized_termcode -t contextualized_termcode_to_criteria_set -t criteria_set -f /opt/db_data/R__Load_latest_ui_profile.sql')
     print("Dumped db")
     container.stop()
     container.remove()

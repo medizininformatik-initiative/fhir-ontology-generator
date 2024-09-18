@@ -1,0 +1,12 @@
+[
+  "de.medizininformatikinitiative.kerndatensatz.laborbefund 1.0.6",
+  "de.medizininformatikinitiative.kerndatensatz.medikation 2.0.0",
+  "de.medizininformatikinitiative.kerndatensatz.diagnose 2024.0.0",
+  "de.medizininformatikinitiative.kerndatensatz.prozedur 2024.0.0",
+  "de.medizininformatikinitiative.kerndatensatz.person 2024.0.0",
+  "de.medizininformatikinitiative.kerndatensatz.biobank 1.0.8",
+  "de.medizininformatikinitiative.kerndatensatz.molgen 1.0.0",
+  "de.medizininformatikinitiative.kerndatensatz.consent 1.0.7",
+  "de.medizininformatikinitiative.kerndatensatz.fall 2024.0.1",
+  "de.medizininformatikinitiative.kerndatensatz.icu 2024.0.0-alpha2"
+]

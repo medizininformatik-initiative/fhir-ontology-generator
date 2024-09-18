@@ -112,7 +112,7 @@ def generate_snapshots(package_dir: str, prerequisite_packages: List[str] = None
     for folder in [f.path for f in os.scandir(package_dir) if f.is_dir()]:
         if folder.endswith("dependencies"):
             continue
-        os.chdir(f"{folder}\\package")
+        os.chdir(f"{folder}/package")
         # generates snapshots for all differential in the package if they do not exist
         for file in [f for f in os.listdir('.') if
                      os.path.isfile(f) and is_structure_definition(f) and "-snapshot" not in f
@@ -263,3 +263,5 @@ def generate_result_folder():
     mkdir_if_not_exists("mapping-old")
     mkdir_if_not_exists("mapping-old/fhir")
     mkdir_if_not_exists("mapping-old/cql")
+    mkdir_if_not_exists("value-sets")
+    mkdir_if_not_exists("criteria-sets")

@@ -1,9 +1,8 @@
 import uuid
 
-import requests as requests
 from lxml import etree
 
-from TerminologService.TermServerConstants import SERVER_CERTIFICATE, PRIVATE_KEY
+from TerminologService.TermServerConstants import SERVER_CERTIFICATE, PRIVATE_KEY, REQUESTS_SESSION
 
 
 class ProfileInformation:
@@ -107,7 +106,7 @@ def get_answer_list_code(response):
 
 
 def get_answer_list(code):
-    response = requests.get(
+    response = REQUESTS_SESSION.get(
         f"https://ontoserver.imi.uni-luebeck.de/fhir/CodeSystem/$lookup?system=http://loinc.org&code={code[1]}&property=answer-list",
         cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if answer_list_code := get_answer_list_code(response.json()):

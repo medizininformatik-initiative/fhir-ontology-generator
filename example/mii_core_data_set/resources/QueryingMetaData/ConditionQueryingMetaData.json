@@ -1,6 +1,10 @@
 {
   "name": "Condition",
   "resource_type": "Condition",
+  "module": {
+    "code": "mii-cds-diagnose",
+    "display": "Diagnose"
+  },
   "context": {
     "system": "fdpg.mii.cds",
     "code": "Diagnose",

@@ -1,0 +1,1166 @@
+{
+    "children": [
+        {
+            "children": [
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "BIOMAT Analysedaten zusammenfuehren Dritte",
+                    "id": "acd56523-38b6-4fa8-caaa-70f3c146d47e",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.23",
+                            "display": "BIOMAT Analysedaten zusammenfuehren Dritte",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "BIOMAT Eigentum \u00fcbertragen",
+                    "id": "dfcbacfb-3dad-20af-318d-fb5c296a7077",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.21",
+                            "display": "BIOMAT Eigentum \u00fcbertragen",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "BIOMAT erheben",
+                    "id": "91824436-b730-5d6f-1936-5c9d3f315558",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.19",
+                            "display": "BIOMAT erheben",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "BIOMAT lagern verarbeiten",
+                    "id": "8dfd8316-0ba1-6dc3-c5b8-36eeef4937b6",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.20",
+                            "display": "BIOMAT lagern verarbeiten",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "BIOMAT wissenschaftlich nutzen EU DSGVO NIVEAU",
+                    "id": "e209cae4-aabc-8e82-4729-f2e0016628c0",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.22",
+                            "display": "BIOMAT wissenschaftlich nutzen EU DSGVO NIVEAU",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                }
+            ],
+            "context": {
+                "code": "Einwilligung",
+                "display": "Einwilligung",
+                "system": "fdpg.mii.cds",
+                "version": "1.0.0"
+            },
+            "display": "Biomaterial erheben, lagern, nutzen",
+            "id": "be7bcd82-0eca-015f-b9fb-f59ecd41e45b",
+            "leaf": false,
+            "selectable": false,
+            "termCodes": [
+                {
+                    "code": "2.16.840.1.113883.3.1937.777.24.5.3.18",
+                    "display": "Biomaterial erheben, lagern, nutzen",
+                    "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                    "version": "1.0.2"
+                }
+            ]
+        },
+        {
+            "children": [
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "BIOMAT retrospektiv Analysedaten zusammenfuehren Dritte",
+                    "id": "94df8a6f-a2a0-5fe3-90cf-a73c1b133f9d",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.53",
+                            "display": "BIOMAT retrospektiv Analysedaten zusammenfuehren Dritte",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "BIOMAT retrospektiv lagern verarbeiten",
+                    "id": "06e70aaa-9631-70e6-0584-8ddee2ed15b6",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.51",
+                            "display": "BIOMAT retrospektiv lagern verarbeiten",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "BIOMAT retrospektiv wissenschaftlich nutzen EU DSGVO NIVEAU",
+                    "id": "2a71c7c1-2ca6-2736-ee80-2b43880baa29",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.52",
+                            "display": "BIOMAT retrospektiv wissenschaftlich nutzen EU DSGVO NIVEAU",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                }
+            ],
+            "context": {
+                "code": "Einwilligung",
+                "display": "Einwilligung",
+                "system": "fdpg.mii.cds",
+                "version": "1.0.0"
+            },
+            "display": "Biomaterial retrospektiv speichern, nutzen",
+            "id": "390be11e-c2a0-3f2b-5c5a-ce1e43abb4d1",
+            "leaf": false,
+            "selectable": false,
+            "termCodes": [
+                {
+                    "code": "2.16.840.1.113883.3.1937.777.24.5.3.50",
+                    "display": "Biomaterial retrospektiv speichern, nutzen",
+                    "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                    "version": "1.0.2"
+                }
+            ]
+        },
+        {
+            "children": [
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "BIOMAT bereitstellen ohne EU DSGVO NIVEAU",
+                    "id": "1e6ea954-2e00-aad7-e9e7-37f2ae599026",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.55",
+                            "display": "BIOMAT bereitstellen ohne EU DSGVO NIVEAU",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                }
+            ],
+            "context": {
+                "code": "Einwilligung",
+                "display": "Einwilligung",
+                "system": "fdpg.mii.cds",
+                "version": "1.0.0"
+            },
+            "display": "Biomaterial Weitergabe non EU DSGVO NIVEAU",
+            "id": "43dcf222-74b6-eba7-7c82-cf643fa7d2a9",
+            "leaf": false,
+            "selectable": false,
+            "termCodes": [
+                {
+                    "code": "2.16.840.1.113883.3.1937.777.24.5.3.54",
+                    "display": "Biomaterial Weitergabe non EU DSGVO NIVEAU",
+                    "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                    "version": "1.0.2"
+                }
+            ]
+        },
+        {
+            "children": [
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "BIOMAT Zusatzmengen entnehmen",
+                    "id": "dda344d0-9219-55fd-e851-b2004ac74668",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.25",
+                            "display": "BIOMAT Zusatzmengen entnehmen",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                }
+            ],
+            "context": {
+                "code": "Einwilligung",
+                "display": "Einwilligung",
+                "system": "fdpg.mii.cds",
+                "version": "1.0.0"
+            },
+            "display": "Biomaterial Zusatzentnahme",
+            "id": "5c31611d-f8c6-1ec8-4034-12386e61440c",
+            "leaf": false,
+            "selectable": false,
+            "termCodes": [
+                {
+                    "code": "2.16.840.1.113883.3.1937.777.24.5.3.24",
+                    "display": "Biomaterial Zusatzentnahme",
+                    "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                    "version": "1.0.2"
+                }
+            ]
+        },
+        {
+            "children": [
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "KKDAT 5J prospektiv speichern verarbeiten",
+                    "id": "2c247d04-68fb-1d1c-6235-a244166aa00c",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.16",
+                            "display": "KKDAT 5J prospektiv speichern verarbeiten",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "KKDAT 5J prospektiv uebertragen",
+                    "id": "3b6799d2-a721-d08b-29b8-fb0f08507ca2",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.15",
+                            "display": "KKDAT 5J prospektiv uebertragen",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "KKDAT 5J prospektiv uebertragen KVNR",
+                    "id": "db1e8f09-13f0-7baf-232f-1415a2d9c0de",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.39",
+                            "display": "KKDAT 5J prospektiv uebertragen KVNR",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "KKDAT 5J prospektiv wissenschaftlich nutzen",
+                    "id": "9f11ea88-2757-03ff-8f3f-c67b5b6be018",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.17",
+                            "display": "KKDAT 5J prospektiv wissenschaftlich nutzen",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                }
+            ],
+            "context": {
+                "code": "Einwilligung",
+                "display": "Einwilligung",
+                "system": "fdpg.mii.cds",
+                "version": "1.0.0"
+            },
+            "display": "KKDAT prospektiv uebertragen speichern nutzen",
+            "id": "be0f5c9a-4725-f57f-d8a8-e35a920dcee1",
+            "leaf": false,
+            "selectable": false,
+            "termCodes": [
+                {
+                    "code": "2.16.840.1.113883.3.1937.777.24.5.3.14",
+                    "display": "KKDAT prospektiv uebertragen speichern nutzen",
+                    "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                    "version": "1.0.2"
+                }
+            ]
+        },
+        {
+            "children": [
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "KKDAT 5J retrospektiv speichern verarbeiten",
+                    "id": "5d77fbc7-3a98-9814-e20b-c22e3ff9b03b",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.12",
+                            "display": "KKDAT 5J retrospektiv speichern verarbeiten",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "KKDAT 5J retrospektiv uebertragen",
+                    "id": "94c4e5ad-038b-1ecd-3fd2-c8d1d652e2b6",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.11",
+                            "display": "KKDAT 5J retrospektiv uebertragen",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "KKDAT 5J retrospektiv uebertragen KVNR",
+                    "id": "23f50e29-a03d-805e-6af5-eb8be37962ef",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.38",
+                            "display": "KKDAT 5J retrospektiv uebertragen KVNR",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "KKDAT 5J retrospektiv wissenschaftlich nutzen",
+                    "id": "7109bcb3-30fa-51f6-f23f-27ce9c8b387c",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.13",
+                            "display": "KKDAT 5J retrospektiv wissenschaftlich nutzen",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                }
+            ],
+            "context": {
+                "code": "Einwilligung",
+                "display": "Einwilligung",
+                "system": "fdpg.mii.cds",
+                "version": "1.0.0"
+            },
+            "display": "Krankenkassendaten retrospektiv uebertragen, speichern, nutzen",
+            "id": "cc12426d-6f81-fe7b-0e7b-268dd64df238",
+            "leaf": false,
+            "selectable": false,
+            "termCodes": [
+                {
+                    "code": "2.16.840.1.113883.3.1937.777.24.5.3.10",
+                    "display": "Krankenkassendaten retrospektiv uebertragen, speichern, nutzen",
+                    "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                    "version": "1.0.2"
+                }
+            ]
+        },
+        {
+            "children": [
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "IDAT bereitstellen EU DSGVO NIVEAU",
+                    "id": "b750bf12-9ecf-0ee7-ce6c-553bd69fe3cb",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.5",
+                            "display": "IDAT bereitstellen EU DSGVO NIVEAU",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "IDAT erheben",
+                    "id": "edd8ce6c-957c-1b76-4a4c-c8f61a0608f2",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.2",
+                            "display": "IDAT erheben",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "IDAT speichern, verarbeiten",
+                    "id": "0a4ffdfd-544c-6aeb-214e-f6100ad6aa84",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.3",
+                            "display": "IDAT speichern, verarbeiten",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "IDAT zusammenfuehren Dritte",
+                    "id": "ff88d40e-7d39-a6cd-f0a0-256fb073b268",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.4",
+                            "display": "IDAT zusammenfuehren Dritte",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "MDAT erheben",
+                    "id": "3ebee33b-c603-621f-f869-3199017f7ff6",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.6",
+                            "display": "MDAT erheben",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "MDAT speichern, verarbeiten",
+                    "id": "4fb6d9cf-7683-4b83-2fb1-31c176812516",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.7",
+                            "display": "MDAT speichern, verarbeiten",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "MDAT wissenschaftlich nutzen EU DSGVO NIVEAU",
+                    "id": "1a511e39-ba15-b876-b0ba-f0c928341277",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.8",
+                            "display": "MDAT wissenschaftlich nutzen EU DSGVO NIVEAU",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "MDAT zusammenfuehren Dritte",
+                    "id": "f2eec997-5554-2333-d7eb-7d1e17163fba",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.9",
+                            "display": "MDAT zusammenfuehren Dritte",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "Rekontaktierung Ergebnisse erheblicher Bedeutung",
+                    "id": "6c37ff48-2075-8d0e-389a-127507618772",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.37",
+                            "display": "Rekontaktierung Ergebnisse erheblicher Bedeutung",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                }
+            ],
+            "context": {
+                "code": "Einwilligung",
+                "display": "Einwilligung",
+                "system": "fdpg.mii.cds",
+                "version": "1.0.0"
+            },
+            "display": "Patientendaten erheben, speichern, nutzen",
+            "id": "d60eb262-a6ca-64e6-8b0c-ea01fa586d96",
+            "leaf": false,
+            "selectable": false,
+            "termCodes": [
+                {
+                    "code": "2.16.840.1.113883.3.1937.777.24.5.3.1",
+                    "display": "Patientendaten erheben, speichern, nutzen",
+                    "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                    "version": "1.0.2"
+                }
+            ]
+        },
+        {
+            "children": [
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "MDAT retrospektiv speichern verarbeiten",
+                    "id": "4d402ef1-93fb-b8d0-693f-d22d453a07ba",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.45",
+                            "display": "MDAT retrospektiv speichern verarbeiten",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "MDAT retrospektiv wissenschaftlich nutzen EU DSGVO NIVEAU",
+                    "id": "fd22517e-bef4-9911-1a6c-e86ea3f7de90",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.46",
+                            "display": "MDAT retrospektiv wissenschaftlich nutzen EU DSGVO NIVEAU",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "MDAT retrospektiv zusammenfuehren Dritte",
+                    "id": "7a9bd479-ad81-6ccc-039b-31537ad4d7e4",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.47",
+                            "display": "MDAT retrospektiv zusammenfuehren Dritte",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                }
+            ],
+            "context": {
+                "code": "Einwilligung",
+                "display": "Einwilligung",
+                "system": "fdpg.mii.cds",
+                "version": "1.0.0"
+            },
+            "display": "Patientendaten retrospektiv verarbeiten, nutzen",
+            "id": "91c0a13d-9457-a63c-deb0-b5b79e1d51a4",
+            "leaf": false,
+            "selectable": false,
+            "termCodes": [
+                {
+                    "code": "2.16.840.1.113883.3.1937.777.24.5.3.44",
+                    "display": "Patientendaten retrospektiv verarbeiten, nutzen",
+                    "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                    "version": "1.0.2"
+                }
+            ]
+        },
+        {
+            "children": [
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "MDAT bereitstellen non EU DSGVO NIVEAU",
+                    "id": "6234cb39-1cda-b86a-45e1-51dfb94abc6d",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.49",
+                            "display": "MDAT bereitstellen non EU DSGVO NIVEAU",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                }
+            ],
+            "context": {
+                "code": "Einwilligung",
+                "display": "Einwilligung",
+                "system": "fdpg.mii.cds",
+                "version": "1.0.0"
+            },
+            "display": "Patientendaten Weitergabe non DSGVO NIVEAU",
+            "id": "3dba1a32-65cd-0775-a7f7-a5c8441fff2d",
+            "leaf": false,
+            "selectable": false,
+            "termCodes": [
+                {
+                    "code": "2.16.840.1.113883.3.1937.777.24.5.3.48",
+                    "display": "Patientendaten Weitergabe non DSGVO NIVEAU",
+                    "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                    "version": "1.0.2"
+                }
+            ]
+        },
+        {
+            "children": [
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "Rekontaktierung Verkn\u00fcpfung Datenbanken",
+                    "id": "dbb6ad18-7659-b6b7-1918-9155e277f82b",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.27",
+                            "display": "Rekontaktierung Verkn\u00fcpfung Datenbanken",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "Rekontaktierung weitere Erhebung",
+                    "id": "0571a036-6ad6-e265-ade2-363f4fe6234a",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.28",
+                            "display": "Rekontaktierung weitere Erhebung",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "Rekontaktierung weitere Studien",
+                    "id": "c3c39027-b9a0-9eea-53f8-65c83330181c",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.29",
+                            "display": "Rekontaktierung weitere Studien",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                }
+            ],
+            "context": {
+                "code": "Einwilligung",
+                "display": "Einwilligung",
+                "system": "fdpg.mii.cds",
+                "version": "1.0.0"
+            },
+            "display": "Rekontaktierung Erg\u00e4nzungen",
+            "id": "a91ed5aa-4c2c-fa8d-a299-eaea322d8296",
+            "leaf": false,
+            "selectable": false,
+            "termCodes": [
+                {
+                    "code": "2.16.840.1.113883.3.1937.777.24.5.3.26",
+                    "display": "Rekontaktierung Erg\u00e4nzungen",
+                    "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                    "version": "1.0.2"
+                }
+            ]
+        },
+        {
+            "children": [
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "Rekontaktierung Zusatzbefund",
+                    "id": "630312ea-5727-53a0-8b6b-a103efb8a416",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.31",
+                            "display": "Rekontaktierung Zusatzbefund",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                }
+            ],
+            "context": {
+                "code": "Einwilligung",
+                "display": "Einwilligung",
+                "system": "fdpg.mii.cds",
+                "version": "1.0.0"
+            },
+            "display": "Rekontaktierung Zusatzbefund",
+            "id": "5fb1d398-9f53-fa46-fd62-2e72e65ebdda",
+            "leaf": false,
+            "selectable": false,
+            "termCodes": [
+                {
+                    "code": "2.16.840.1.113883.3.1937.777.24.5.3.30",
+                    "display": "Rekontaktierung Zusatzbefund",
+                    "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                    "version": "1.0.2"
+                }
+            ]
+        },
+        {
+            "children": [
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "MDAT GECCO83 bereitstellen NUM/CODEX",
+                    "id": "8a96fc5e-b5d9-6df7-d6d4-ec5b141a1db8",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.33",
+                            "display": "MDAT GECCO83 bereitstellen NUM/CODEX",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "MDAT GECCO83 erheben",
+                    "id": "9aa6b821-226a-9ffd-918f-cdb1f538dffd",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.43",
+                            "display": "MDAT GECCO83 erheben",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "MDAT GECCO83 komplettieren einmalig",
+                    "id": "7125a064-8a1a-0f97-8cc2-293b5ac5ad5c",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.40",
+                            "display": "MDAT GECCO83 komplettieren einmalig",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "MDAT GECCO83 speichern verarbeiten NUM/CODEX",
+                    "id": "2a20ca55-dd01-ecf3-fd76-6e83e13694b3",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.34",
+                            "display": "MDAT GECCO83 speichern verarbeiten NUM/CODEX",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "MDAT GECCO83 wissenschaftlich nutzen COVID 19 Forschung EU DSGVO konform",
+                    "id": "6c5129cd-7d2e-2fd3-08ad-0417d19449b9",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.41",
+                            "display": "MDAT GECCO83 wissenschaftlich nutzen COVID 19 Forschung EU DSGVO konform",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "MDAT GECCO83 wissenschaftlich nutzen NUM/CODEX EU DSGVO NIVEAU",
+                    "id": "5828432d-8e80-a295-70c1-88675db058c4",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.56",
+                            "display": "MDAT GECCO83 wissenschaftlich nutzen NUM/CODEX EU DSGVO NIVEAU",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                },
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "MDAT GECCO83 wissenschaftlich nutzen Pandemie Forschung EU DSGVO konform",
+                    "id": "3884cf54-907c-8190-4466-04d1b44744ba",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.42",
+                            "display": "MDAT GECCO83 wissenschaftlich nutzen Pandemie Forschung EU DSGVO konform",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                }
+            ],
+            "context": {
+                "code": "Einwilligung",
+                "display": "Einwilligung",
+                "system": "fdpg.mii.cds",
+                "version": "1.0.0"
+            },
+            "display": "Z1 GECCO83 Nutzung NUM/CODEX",
+            "id": "e4eb08cd-50b3-6f33-78c3-27ca75d3e443",
+            "leaf": false,
+            "selectable": false,
+            "termCodes": [
+                {
+                    "code": "2.16.840.1.113883.3.1937.777.24.5.3.32",
+                    "display": "Z1 GECCO83 Nutzung NUM/CODEX",
+                    "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                    "version": "1.0.2"
+                }
+            ]
+        },
+        {
+            "children": [
+                {
+                    "context": {
+                        "code": "Einwilligung",
+                        "display": "Einwilligung",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "display": "MDAT GECCO83 bereitstellen NUM/CODEX ohne EU DSGVO NIVEAU",
+                    "id": "5b64d9da-d75c-c0b5-7154-33c8748dacc0",
+                    "leaf": true,
+                    "selectable": true,
+                    "termCodes": [
+                        {
+                            "code": "2.16.840.1.113883.3.1937.777.24.5.3.36",
+                            "display": "MDAT GECCO83 bereitstellen NUM/CODEX ohne EU DSGVO NIVEAU",
+                            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                            "version": "1.0.2"
+                        }
+                    ]
+                }
+            ],
+            "context": {
+                "code": "Einwilligung",
+                "display": "Einwilligung",
+                "system": "fdpg.mii.cds",
+                "version": "1.0.0"
+            },
+            "display": "Z1 GECCO83 Weitergabe NUM/CODEX non EU DSGVO NIVEAU",
+            "id": "8e0c2d47-cabb-525b-5315-b81c4df3206f",
+            "leaf": false,
+            "selectable": false,
+            "termCodes": [
+                {
+                    "code": "2.16.840.1.113883.3.1937.777.24.5.3.35",
+                    "display": "Z1 GECCO83 Weitergabe NUM/CODEX non EU DSGVO NIVEAU",
+                    "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                    "version": "1.0.2"
+                }
+            ]
+        }
+    ],
+    "context": {
+        "code": "Einwilligung",
+        "display": "Einwilligung",
+        "system": "fdpg.mii.cds"
+    },
+    "display": "Einwilligung",
+    "id": "0f1a263e-2aa1-dae6-b369-184ade99a06f",
+    "leaf": false,
+    "selectable": false,
+    "termCodes": [
+        {
+            "code": "Einwilligung",
+            "display": "Einwilligung",
+            "system": "fdpg.mii.cds"
+        }
+    ]
+}

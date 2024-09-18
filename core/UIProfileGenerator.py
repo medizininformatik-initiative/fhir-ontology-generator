@@ -127,7 +127,7 @@ class UIProfileGenerator:
             value_type = "concept"
         value_definition = ValueDefinition(value_type)
         if value_type == "concept":
-            value_definition.selectableConcepts = self.parser.get_selectable_concepts(value_defining_element,
+            value_definition.referencedValueSet = self.parser.get_selectable_concepts(value_defining_element,
                                                                                       profile_snapshot.get("name"))
         elif value_type == "quantity":
             # "Observation.valueQuantity" -> "Observation.valueQuantity.code"
@@ -191,7 +191,7 @@ class UIProfileGenerator:
         attribute_code = generate_attribute_key(attribute_defining_element_id)
         attribute_definition = AttributeDefinition(attribute_code, attribute_type)
         if attribute_type == "concept":
-            attribute_definition.selectableConcepts = self.parser.get_selectable_concepts(
+            attribute_definition.referencedValueSet = self.parser.get_selectable_concepts(
                 attribute_defining_elements[-1],
                 profile_snapshot.get("name"))
         elif attribute_type == "quantity":
@@ -234,9 +234,8 @@ class UIProfileGenerator:
                                                                       profile_snapshot.get("name"))
             return attribute_definition
         elif attribute_type == "CodeableConcept":
-            print("element: ", element)
-            attribute_definition.selectableConcepts = self.parser.get_selectable_concepts(
-                element,
+            attribute_definition.referencedValueSet = self.parser.get_selectable_concepts(
+                attribute_defining_elements[-1],
                 profile_snapshot.get("name"))
             return attribute_definition
         else:
@@ -293,7 +292,7 @@ class UIProfileGenerator:
             self.data_set_dir)
         attribute_code = generate_attribute_key(attribute_defining_element_id)
         attribute_definition = AttributeDefinition(attribute_code, "reference")
-        attribute_definition.referenceCriteriaSet = self.get_reference_criteria_set(
+        attribute_definition.referencedCriteriaSet = self.get_reference_criteria_set(
             attribute_defining_elements_with_source_snapshots)
         return attribute_definition
 

@@ -7,7 +7,7 @@ import psycopg2
 
 from TerminologService.ValueSetResolver import get_termcodes_from_onto_server
 from model.UIProfileModel import UIProfile, CriteriaSet
-from model.UiDataModel import TermCode, TermEntry
+from model.UiDataModel import TermCode 
 
 NAMESPACE_UUID = uuid.UUID('00000000-0000-0000-0000-000000000000')
 
@@ -187,7 +187,7 @@ class DataBaseWriter:
         """
         return str(uuid.uuid3(NAMESPACE_UUID,
                               f"{context.system}{context.code}{context.version if context.version else ''}"
-                              f"{term_code.system}{term_code.code}{term_code.version if term_code.version else ''}"))
+                              f"{term_code.system}{term_code.code}"))
 
     def insert_term_codes(self, term_codes: List[TermCode]):
         """
@@ -456,6 +456,6 @@ class DataBaseWriter:
         for ui_profile in profiles:
             for attribute_definition in ui_profile.attributeDefinitions:
                 if attribute_definition.type == "reference":
-                    criteria_set = attribute_definition.referenceCriteriaSet
+                    criteria_set = attribute_definition.referencedCriteriaSet
                     # TODO: Maybe better to get them upfront
                     self.add_critieria_set(criteria_set)
