@@ -160,18 +160,22 @@ class ElasticSearchGenerator:
         current_file_subindex = 1
         current_file_size = 0
 
-        current_file_name = f"{write_dir}/{filename_prefix}{current_file_subindex}{extension}"
+        count = 0
+
+        current_file_name = f"{write_dir}/{filename_prefix}_{current_file_subindex}{extension}"
         print(f"writing to file {current_file_name}")
         with open(current_file_name, 'w+', encoding='utf-8') as current_file:
 
             for insert in es_availability_inserts:
+
+                count = count + 1
                 current_line = f"{json.dumps(insert)}\n"
                 current_file.write(current_line)
                 current_file_size += len(current_line)
 
-                if current_file_size > max_filesize_mb * 1024 * 1024:
+                if current_file_size > max_filesize_mb * 1024 * 1024 and count % 2 == 0:
                     current_file_subindex += 1
-                    current_file_name = f"{write_dir}/{filename_prefix}{current_file_subindex}{extension}"
+                    current_file_name = f"{write_dir}/{filename_prefix}_{current_file_subindex}{extension}"
                     current_file_size = 0
                     current_file.close()
                     current_file = open(current_file_name, 'w')
@@ -286,11 +290,10 @@ class ElasticSearchGenerator:
                                         if hash in avail_hash_tree:
                                             avail_hash_tree[hash]["availability"] = avail_hash_tree[hash]["availability"] + measure_score
 
-        return hash_set
 
     @staticmethod
     def convert_measure_score_to_ranges(measure_score):
-        buckets = [0, 10, 100, 1000, 10000, 100000, 1000000]
+        buckets = [0, 10, 100, 1000, 10000, 50000, 100000, 150000, 200000, 1000000]
         return max(b for b in buckets if measure_score >= b)
 
     @staticmethod
@@ -312,7 +315,7 @@ class ElasticSearchGenerator:
                                      namespace_uuid_str='00000000-0000-0000-0000-000000000000',
                                      index_name='ontology',
                                      filename_prefix='onto_es_',
-                                     max_filesize_mb=20):
+                                     max_filesize_mb=10):
         extension = '.json'
         folder = f'{ontology_dir}/ui-trees'
         current_file_index = 0
@@ -332,7 +335,7 @@ class ElasticSearchGenerator:
                 stratum_to_context = json.load(f)
 
             avail_hash_tree = ElasticSearchGenerator.get_hashed_tree(ontology_dir)
-            hash_set = ElasticSearchGenerator.update_availability_on_hash_tree(avail_hash_tree, availability_input_dir, stratum_to_context, namespace_uuid_str)
+            ElasticSearchGenerator.update_availability_on_hash_tree(avail_hash_tree, availability_input_dir, stratum_to_context, namespace_uuid_str)
 
             for key, value in avail_hash_tree.items():
 
@@ -346,14 +349,7 @@ class ElasticSearchGenerator:
             ElasticSearchGenerator.__write_es_to_file(es_availability_inserts, max_filesize_mb,
                                "es_availability_update", extension, availability_input_dir)
 
-            #with open(f"{availability_input_dir}/es_availability_update.json", "w+") as es_avail_file:
-            #
-             #   for insert in es_availability_inserts:
-              #      es_avail_file.write(json.dumps(insert) + '\n')
-
-            print("Done")
             return
-
 
         for filename in os.listdir(folder):
 
@@ -389,12 +385,10 @@ class ElasticSearchGenerator:
 
             if filename.endswith(extension):
 
-
                 with open(f'{folder}/{filename}', 'r') as f:
                     value_set = json.load(f)
 
                 ElasticSearchGenerator.__convert_value_set(value_set, termcode_to_valueset, namespace_uuid_str)
-
 
         json_flat = list(termcode_to_valueset.values())
 
@@ -402,6 +396,3 @@ class ElasticSearchGenerator:
                                                          max_filesize_mb, filename_prefix,
                                                          extension,
                                                          ontology_dir)
-
-
-
