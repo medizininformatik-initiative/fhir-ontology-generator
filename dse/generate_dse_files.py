@@ -89,7 +89,16 @@ if __name__ == '__main__':
 
     tree_generator = ProfileTreeGenerator(packages_dir, exclude_dirs, module_order)
     tree_generator.get_profiles()
-    profile_tree = tree_generator.generate_profiles_tree()
+
+
+
+    profile_tree_translations = {}
+    with open("profile_tree_translations.json", "r") as f:
+        translations_list = json.load(f)
+        for translated_profile in translations_list:
+            profile_tree_translations[translated_profile["url"]] = translated_profile
+
+    profile_tree = tree_generator.generate_profiles_tree(profile_tree_translations)
 
     with open("generated/profile_tree.json", "w") as f:
         json.dump(profile_tree, f)
@@ -112,9 +121,14 @@ if __name__ == '__main__':
         profile_detail_generator = ProfileDetailGenerator(profiles, mapping_type_code, blacklistedValueSets, fields_to_exclude)
         profile_details = []
 
+        with open("profile_details_all_translations.json", "r") as f:
+            translated_profiles = json.load(f)
+
         for profile in profiles:
 
             profile_detail = profile_detail_generator.generate_detail_for_profile(profiles[profile])
+            profile_detail = profile_detail_generator.translate_detail_for_profile(profile_detail, translated_profiles)
+
             if profile_detail:
                 profile_details.append(profile_detail)
 

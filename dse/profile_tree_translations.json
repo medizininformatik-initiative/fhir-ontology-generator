@@ -1,0 +1,1402 @@
+[
+  {
+    "url": "no-url",
+    "display": {
+      "orig_display": "",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "modul-diagnose",
+    "display": {
+      "orig_display": "Diagnose",
+      "translation": {
+        "de": "Diagnosen",
+        "en": "Diagnose"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose",
+    "display": {
+      "orig_display": "MII PR Diagnose Condition",
+      "translation": {
+        "de": "Diagnose",
+        "en": "Condition"
+      }
+    }
+  },
+  {
+    "url": "modul-prozedur",
+    "display": {
+      "orig_display": "Prozedur",
+      "translation": {
+        "de": "Prozeduren",
+        "en": "Procedure"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/StructureDefinition/Procedure",
+    "display": {
+      "orig_display": "MII PR Prozedur Procedure",
+      "translation": {
+        "de": "Prozedur",
+        "en": "Procedure"
+      }
+    }
+  },
+  {
+    "url": "modul-person",
+    "display": {
+      "orig_display": "Person",
+      "translation": {
+        "de": "Person",
+        "en": "Person"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Vitalstatus",
+    "display": {
+      "orig_display": "MII PR Person Vitalstatus",
+      "translation": {
+        "de": "Vitalstatus",
+        "en": "Vital Status"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/PatientPseudonymisiert",
+    "display": {
+      "orig_display": "MII PR Person Patient (Pseudonymisiert)",
+      "translation": {
+        "de": "Patient (Pseudonymisiert)",
+        "en": "Patient (Pseudonymized)"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/ResearchSubject",
+    "display": {
+      "orig_display": "MII PR Person Proband",
+      "translation": {
+        "de": "Proband",
+        "en": "Test Subject"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Patient",
+    "display": {
+      "orig_display": "MII PR Person Patient",
+      "translation": {
+        "de": "Patient",
+        "en": "Patient"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Todesursache",
+    "display": {
+      "orig_display": "MII PR Person Todesursache",
+      "translation": {
+        "de": "Todesursache",
+        "en": "Cause of Death"
+      }
+    }
+  },
+  {
+    "url": "modul-labor",
+    "display": {
+      "orig_display": "Labor",
+      "translation": {
+        "de": "Labor",
+        "en": "Laboratory"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab",
+    "display": {
+      "orig_display": "Profile - Observation - Laboruntersuchung",
+      "translation": {
+        "de": "Laboruntersuchung (Laborwert)",
+        "en": "Laboratory Value"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ServiceRequestLab",
+    "display": {
+      "orig_display": "Profile - ServiceRequest - Laboranforderung",
+      "translation": {
+        "de": "Laboranforderung",
+        "en": "Laboratory Request"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/DiagnosticReportLab",
+    "display": {
+      "orig_display": "Profile - DiagnosticReport - Laborbefund",
+      "translation": {
+        "de": "Laborbefund",
+        "en": "Laboratory Findings"
+      }
+    }
+  },
+  {
+    "url": "modul-medikation",
+    "display": {
+      "orig_display": "Medikation",
+      "translation": {
+        "de": "Medikation",
+        "en": "Medication"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/MedicationStatement",
+    "display": {
+      "orig_display": "MII PR Medikation MedicationStatement",
+      "translation": {
+        "de": "Medikationsverordnung",
+        "en": "Medication Satement"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/medikationsliste",
+    "display": {
+      "orig_display": "MII PR Medikation Medikationsliste",
+      "translation": {
+        "de": "Medikationsliste",
+        "en": "Medication List"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/MedicationRequest",
+    "display": {
+      "orig_display": "MII PR Medikation MedicationRequest",
+      "translation": {
+        "de": "Medikationsauftrag",
+        "en": "Medication Request"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/Medication",
+    "display": {
+      "orig_display": "MII PR Medikation Medication",
+      "translation": {
+        "de": "Medikation",
+        "en": "Medication"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/MedicationAdministration",
+    "display": {
+      "orig_display": "MII PR Medikation MedicationAdministration",
+      "translation": {
+        "de": "Medikamentenverabreichungen",
+        "en": "Medication Administration"
+      }
+    }
+  },
+  {
+    "url": "modul-fall",
+    "display": {
+      "orig_display": "Fall",
+      "translation": {
+        "de": "Fall",
+        "en": "Case"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung",
+    "display": {
+      "orig_display": "MII PR Fall Kontakt mit einer Gesundheitseinrichtung",
+      "translation": {
+        "de": "Fall Kontakt mit einer Gesundheitseinrichtung",
+        "en": "Case Contact with a Healthcare Facility"
+      }
+    }
+  },
+  {
+    "url": "modul-biobank",
+    "display": {
+      "orig_display": "Biobank",
+      "translation": {
+        "de": "Biobank",
+        "en": "Biobank"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Substance",
+    "display": {
+      "orig_display": "Profile - Substance - Additiv",
+      "translation": {
+        "de": "Additiv",
+        "en": "Additive"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Organization",
+    "display": {
+      "orig_display": "Profile - Organization - Sammlung/Biobank",
+      "translation": {
+        "de": "Sammlung/Biobank",
+        "en": "Collection/Biobank"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/SpecimenCore",
+    "display": {
+      "orig_display": "Profile - Specimen - Bioprobe - Core",
+      "translation": {
+        "de": "Bioprobe Kern",
+        "en": "Specimen Core"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
+    "display": {
+      "orig_display": "Profile - Specimen - Bioprobe",
+      "translation": {
+        "de": "Bioprobe",
+        "en": "Specimen"
+      }
+    }
+  },
+  {
+    "url": "modul-consent",
+    "display": {
+      "orig_display": "Consent",
+      "translation": {
+        "de": "Einwilligung",
+        "en": "Consent"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/modul-consent/StructureDefinition/mii-pr-consent-provenance",
+    "display": {
+      "orig_display": "Profile - MI-I - Consent - Provenance",
+      "translation": {
+        "de": "Einwilligungsursprung",
+        "en": "Consent Provenance"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/modul-consent/StructureDefinition/mii-pr-consent-einwilligung",
+    "display": {
+      "orig_display": "Profile - MI-I - Consent - Einwilligung",
+      "translation": {
+        "de": "Einwilligung",
+        "en": "Consent"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/modul-consent/StructureDefinition/mii-pr-consent-documentreference",
+    "display": {
+      "orig_display": "Profile - MI-I - Consent - DocumentReference",
+      "translation": {
+        "de": "Einwilligungsdokumentenreferenz",
+        "en": "Consent Document Reference"
+      }
+    }
+  },
+  {
+    "url": "modul-icu",
+    "display": {
+      "orig_display": "Icu",
+      "translation": {
+        "de": "ICU",
+        "en": "ICU"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/devicemetric-eingestellte-gemessene-parameter-beatmung",
+    "display": {
+      "orig_display": "SD MII ICU DeviceMetric Eingestellte Gemessene Parameter Beatmung",
+      "translation": {
+        "de": "Device Metric Eingestellte Gemessene Parameter Beatmung",
+        "en": "Device Metric Set Measured Parameters Ventilation"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/monitoring-und-vitaldaten",
+    "display": {
+      "orig_display": "SD MII ICU Monitoring und Vitaldaten",
+      "translation": {
+        "de": "Monitoring und Vitaldaten",
+        "en": "Monitoring and Vital Data"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/linksventrikulaeres-herzzeitvolumen-durch-indikatorverduennung",
+    "display": {
+      "orig_display": "SD MII ICU Linksventrikulaeres Herzzeitvolumen Durch Indikatorverduennung",
+      "translation": {
+        "de": "Linksventrikulaeres Herzzeitvolumen durch Indikatorverduennung",
+        "en": "Left Ventricular Cardiac Output by Indicator Dilution"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/sauerstoffsaettigung-im-blut-preduktal-durch-pulsoxymetrie",
+    "display": {
+      "orig_display": "SD MII ICU Sauerstoffsaettigung Im Blut Preduktal Durch Pulsoxymetrie",
+      "translation": {
+        "de": "Sauerstoffsaettigung im Blut Preduktal durch Pulsoxymetrie",
+        "en": "Oxygen Saturation in Blood Preductal by Pulse Oximetry"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-generisch",
+    "display": {
+      "orig_display": "SD MII ICU Koerpertemperatur Generisch",
+      "translation": {
+        "de": "Körpertemperatur Generisch",
+        "en": "Generic Body Temperature"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-brust",
+    "display": {
+      "orig_display": "SD MII ICU Koerpertemperatur Brust",
+      "translation": {
+        "de": "Körpertemperatur Brust",
+        "en": "Chest Body Temperature"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-nasal",
+    "display": {
+      "orig_display": "SD MII ICU Koerpertemperatur nasal",
+      "translation": {
+        "de": "Körpertemperatur Nasal",
+        "en": "Nasal Body Temperature"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-rektal",
+    "display": {
+      "orig_display": "SD MII ICU Koerpertemperatur rektal",
+      "translation": {
+        "de": "Körpertemperatur Rektal",
+        "en": "Rectal Body Temperature"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-vaginal",
+    "display": {
+      "orig_display": "SD MII ICU Koerpertemperatur vaginal",
+      "translation": {
+        "de": "Körpertemperatur Vaginal",
+        "en": "Vaginal Body Temperature"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-lendenwirbelsaeule",
+    "display": {
+      "orig_display": "SD MII ICU Koerpertemperatur Lendenwirbelsaeule",
+      "translation": {
+        "de": "Körpertemperatur Lendenwirbelsaeule",
+        "en": "Body Temperature of Lumbar Spine"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-trommelfell",
+    "display": {
+      "orig_display": "SD MII ICU Koerpertemperatur Trommelfell",
+      "translation": {
+        "de": "Körpertemperatur Trommelfell",
+        "en": "Body Temperature of Eardrum"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-unter-der-zunge",
+    "display": {
+      "orig_display": "SD MII ICU Koerpertemperatur unter der Zunge",
+      "translation": {
+        "de": "Körpertemperatur unter der Zunge",
+        "en": "Body Temperature under the Tongue"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-leiste",
+    "display": {
+      "orig_display": "SD MII ICU Koerpertemperatur Leiste",
+      "translation": {
+        "de": "Körpertemperatur Leiste",
+        "en": "Body Temperature of Groin"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-nasen-rachen-raum",
+    "display": {
+      "orig_display": "SD MII ICU Koerpertemperatur Nasen-Rachen-Raum",
+      "translation": {
+        "de": "Körpertemperatur Nasen-Rachen-Raum",
+        "en": "Nasopharyngeal Body Temperature"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-speiseroehre",
+    "display": {
+      "orig_display": "SD MII ICU Koerpertemperatur Speiseroehre",
+      "translation": {
+        "de": "Körpertemperatur Speiseroehre",
+        "en": "Body Temperature of Food Pipe"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-stirn",
+    "display": {
+      "orig_display": "SD MII ICU Koerpertemperatur Stirn",
+      "translation": {
+        "de": "Körpertemperatur Stirn",
+        "en": "Forehead Body Temperature"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-achsel",
+    "display": {
+      "orig_display": "SD MII ICU Koerpertemperatur Achsel",
+      "translation": {
+        "de": "Körpertemperatur Achsel",
+        "en": "Underarm Body Temperature"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-halswirbelsaeule",
+    "display": {
+      "orig_display": "SD MII ICU Koerpertemperatur Halswirbelsaeule",
+      "translation": {
+        "de": "Körpertemperatur Halswirbelsaeule",
+        "en": "Body Temperature of the Cervical Spine"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-kern",
+    "display": {
+      "orig_display": "SD MII ICU Koerpertemperatur Kern",
+      "translation": {
+        "de": "Körpertemperatur Kern",
+        "en": "Core Body Temperature"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-atemwege",
+    "display": {
+      "orig_display": "SD MII ICU Koerpertemperatur Atemwege",
+      "translation": {
+        "de": "Körpertemperatur Atemwege",
+        "en": "Body Temperature Airways"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-blut",
+    "display": {
+      "orig_display": "SD MII ICU Koerpertemperatur Blut",
+      "translation": {
+        "de": "Körpertemperatur Blut",
+        "en": "Blood Body Temperature"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-brustwirbelsaeule",
+    "display": {
+      "orig_display": "SD MII ICU Koerpertemperatur Brustwirbelsaeule",
+      "translation": {
+        "de": "Körpertemperatur Brustwirbelsäule",
+        "en": "Body Temperature of Thoracic Spine"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpertemperatur-harnblase",
+    "display": {
+      "orig_display": "SD MII ICU Koerpertemperatur Harnblase",
+      "translation": {
+        "de": "Körpertemperatur Harnblase",
+        "en": "Urinary Bladder Body Temperature"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/linksventrikulaeres-schlagvolumenindex",
+    "display": {
+      "orig_display": "SD MII ICU Linksventrikulaeres Schlagvolumenindex",
+      "translation": {
+        "de": "Linksventrikuläres Schlagvolumenindex",
+        "en": "Left Ventricular Stroke Volume Index"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/linksventrikulaerer-herzindex",
+    "display": {
+      "orig_display": "SD MII ICU Linksventrikulaerer Herzindex",
+      "translation": {
+        "de": "Linksventrikulärer Herzindex",
+        "en": "Left Ventricular Cardiac Index"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/pulmonalarterieller-wedge-druck",
+    "display": {
+      "orig_display": "SD MII ICU Pulmonalarterieller Wedge Druck",
+      "translation": {
+        "de": "Pulmonalarterieller Wedge Druck (PAWP)",
+        "en": "Pulmonary Artery Wedge Pressure (PAWP)"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/sauerstoffsaettigung-im-arteriellen-blut-durch-pulsoxymetrie",
+    "display": {
+      "orig_display": "SD MII ICU Sauerstoffsaettigung Im Arteriellen Blut Durch Pulsoxymetrie",
+      "translation": {
+        "de": "Sauerstoffsättigung im Arteriellen Blut durch Pulsoxymetrie",
+        "en": "Oxygen Saturation in Arterial Blood by Pulse Oximetry"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/sauerstoffsaettigung-im-blut-postduktal-durch-pulsoxymetrie",
+    "display": {
+      "orig_display": "SD MII ICU Sauerstoffsaettigung Im Blut Postduktal Durch Pulsoxymetrie",
+      "translation": {
+        "de": "Sauerstoffsättigung im Blut Postduktal durch Pulsoxymetrie ",
+        "en": "Oxygen Saturation in Blood Postductal by Pulse Oximetry"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/linksventrikulaerer-herzindex-durch-indikatorverduennung",
+    "display": {
+      "orig_display": "SD MII ICU Linksventrikulaerer Herzindex durch Indikatorverduennung",
+      "translation": {
+        "de": "Linksventrikulärer Herzindex durch Indikatorverdünnung",
+        "en": "Left Ventricular Cardiac Index by Indicator Dilution"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/linksventrikulaerer-schlagvolumenindex-durch-indikatorverduennung",
+    "display": {
+      "orig_display": "SD MII ICU Linksventrikulaerer Schlagvolumenindex Durch Indikatorverduennung",
+      "translation": {
+        "de": "Linksventrikulärer Schlagvolumenindex durch Indikatorverdünnung",
+        "en": "Left Ventricular Stroke Volume Index by Indicator Dilution"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/herzfrequenz",
+    "display": {
+      "orig_display": "SD MII ICU Herzfrequenz",
+      "translation": {
+        "de": "Herzfrequenz",
+        "en": "Heart Rate"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/systemischer-vaskulaerer-widerstandsindex",
+    "display": {
+      "orig_display": "SD MII ICU Systemischer Vaskulaerer Widerstandsindex",
+      "translation": {
+        "de": "Systemischer Vaskulärer Widerstandsindex",
+        "en": "Systemic Vascular Resistance Index"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/puls",
+    "display": {
+      "orig_display": "SD MII ICU Puls",
+      "translation": {
+        "de": "Puls",
+        "en": "Pulse"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/linksventrikulaeres-schlagvolumen-durch-indikatorverduennung",
+    "display": {
+      "orig_display": "SD MII ICU Linksventrikulaeres Schlagvolumen Durch Indikatorverduennung",
+      "translation": {
+        "de": "Linksventrikuläres Schlagvolumen durch Indikatorverdünnung",
+        "en": "Left Ventricular Stroke Volume due to Indicator Dilution"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/herzzeitvolumen",
+    "display": {
+      "orig_display": "SD MII ICU Herzzeitvolumen",
+      "translation": {
+        "de": "Herzzeitvolumen",
+        "en": "Cardiac Output"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/intrakranieller-druck-icp",
+    "display": {
+      "orig_display": "SD MII ICU Intrakranieller Druck ICP",
+      "translation": {
+        "de": "Intrakranieller Druck (ICP)",
+        "en": "Intracranial Pressure (ICP)"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpergewicht-percentil-altersabhaengig",
+    "display": {
+      "orig_display": "SD MII ICU Koerpergewicht Percentil Altersabhaengig",
+      "translation": {
+        "de": "Körpergewicht Percentil Altersabhängig",
+        "en": "Body Weight Percentile Age-Dependent"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/zentralvenoeser-blutdruck",
+    "display": {
+      "orig_display": "SD MII ICU Zentralvenoeser Blutdruck",
+      "translation": {
+        "de": "Zentralvenöser Blutdruck",
+        "en": "Central Venous Blood Pressure"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/ideales-koerpergewicht",
+    "display": {
+      "orig_display": "SD MII ICU Ideales Koerpergewicht",
+      "translation": {
+        "de": "Ideales Körpergewicht",
+        "en": "Ideal Body Weight"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpergroesse-percentil",
+    "display": {
+      "orig_display": "SD MII ICU Koerpergroesse Percentil",
+      "translation": {
+        "de": "Körpergröße Perzentil",
+        "en": "Body Size Percentile"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/pulmonalvaskulaerer-widerstandsindex",
+    "display": {
+      "orig_display": "SD MII ICU Pulmonalvaskulaerer Widerstandsindex",
+      "translation": {
+        "de": "Pulmonalvaskulärer Widerstandsindex",
+        "en": "Pulmonary Vascular Resistance Index"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/linksventrikulaeres-schlagvolumen",
+    "display": {
+      "orig_display": "SD MII ICU Linksventrikulaeres Schlagvolumen",
+      "translation": {
+        "de": "Linksventrikuläres Schlagvolumen",
+        "en": "Left Ventricular Stroke Volume"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/sonstige-pulsatile-druecke-generisch",
+    "display": {
+      "orig_display": "SD MII ICU Sonstige pulsatile Druecke Generisch",
+      "translation": {
+        "de": "Sonstige Pulsatile Drücke Generisch",
+        "en": "Other Pulsatile Pressures Generic"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/linksventrikulaerer-druck",
+    "display": {
+      "orig_display": "SD MII ICU Linksventrikulaerer Druck",
+      "translation": {
+        "de": "Linksventrikulärer Druck",
+        "en": "Left Ventricular Pressure"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/linksatrialer-druck",
+    "display": {
+      "orig_display": "SD MII ICU Linksatrialer Druck",
+      "translation": {
+        "de": "Linksatrialer Druck",
+        "en": "Left Atrial Pressure"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/rechtsatrialer-druck",
+    "display": {
+      "orig_display": "SD MII ICU Rechtsatrialer Druck",
+      "translation": {
+        "de": " Rechtsatrialer Druck",
+        "en": " Right Atrial Pressure"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/rechtsventrikulaerer-druck",
+    "display": {
+      "orig_display": "SD MII ICU Rechtsventrikulaerer Druck",
+      "translation": {
+        "de": "Rechtsventrikulärer Druck ",
+        "en": "Right Ventricular Pressure"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/pulmonalarterieller-blutdruck",
+    "display": {
+      "orig_display": "SD MII ICU Pulmonalarterieller Blutdruck",
+      "translation": {
+        "de": "Pulmonalarterieller Blutdruck",
+        "en": "Pulmonary Arterial Blood Pressure"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/parameter-von-beatmung",
+    "display": {
+      "orig_display": "SD MII ICU Parameter von Beatmung",
+      "translation": {
+        "de": "Parameter Von Beatmung",
+        "en": "Ventilation Parameters"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/maximaler-beatmungsdruck",
+    "display": {
+      "orig_display": "SD MII ICU Maximaler Beatmungsdruck",
+      "translation": {
+        "de": "Maximaler Beatmungsdruck",
+        "en": "Maximum Ventilation Pressure"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/beatmungszeit-hohem-druck",
+    "display": {
+      "orig_display": "SD MII ICU Beatmungszeit Hohem Druck",
+      "translation": {
+        "de": "Beatmungszeit Hohem Druck",
+        "en": "High Pressure Ventilation Time"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/atemzugvolumen-einstellung",
+    "display": {
+      "orig_display": "SD MII ICU Atemzugvolumen Einstellung",
+      "translation": {
+        "de": "Atemzugvolumen Einstellung",
+        "en": "Tidal Volume Setting"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/einstellung-einatmungszeit-beatmung",
+    "display": {
+      "orig_display": "SD MII ICU Einstellung Einatmungszeit Beatmung",
+      "translation": {
+        "de": "Einstellung Einatmungszeit Beatmung",
+        "en": "Ventilation Inhalation Time Setting"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/inspiratorischer-gasfluss",
+    "display": {
+      "orig_display": "SD MII ICU Inspiratorischer Gasfluss",
+      "translation": {
+        "de": "Inspiratorischer Gasfluss",
+        "en": "Inspiratory Gas Flow"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/spontane-atemfrequenz-beatmet",
+    "display": {
+      "orig_display": "SD MII ICU Spontane Atemfrequenz Beatmet",
+      "translation": {
+        "de": "Spontane Atemfrequenz Beatmet",
+        "en": "Spontaneous Respiratory Rate Ventilated"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/mittlerer-beatmungsdruck",
+    "display": {
+      "orig_display": "SD MII ICU Mittlerer Beatmungsdruck",
+      "translation": {
+        "de": "Mittlerer Beatmungsdruck",
+        "en": "Mean Ventilation Pressure"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/atemwegsdruck-bei-mittlerem-expiratorischem-gasfluss",
+    "display": {
+      "orig_display": "SD MII ICU Atemwegsdruck Bei Mittlerem Expiratorischem Gasfluss",
+      "translation": {
+        "de": "Atemwegsdruck bei Mittlerem Expiratorischem Gasfluss",
+        "en": "Airway Pressure at Mid-Expiratory Gas Flow"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/zeitverhaeltnis-ein-ausatmung",
+    "display": {
+      "orig_display": "SD MII ICU Zeitverhaeltnis Ein Ausatmung",
+      "translation": {
+        "de": "Zeitverhaeltnis Ein-Ausatmung",
+        "en": "Time Ratio Inhalation-Exhalation"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/spontanes-atemzugvolumen",
+    "display": {
+      "orig_display": "SD MII ICU Spontanes Atemzugvolumen",
+      "translation": {
+        "de": "Spontanes Atemzugvolumen",
+        "en": "Spontaneous Tidal Volume"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/beatmungszeit-niedrigem-druck",
+    "display": {
+      "orig_display": "SD MII ICU Beatmungszeit Niedrigem Druck",
+      "translation": {
+        "de": "Beatmungszeit bei Niedrigem Druck",
+        "en": "Ventilation Time under Low Pressure"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/atemzugvolumen-waehrend-beatmung",
+    "display": {
+      "orig_display": "SD MII ICU Atemzugvolumen Waehrend Beatmung",
+      "translation": {
+        "de": "Atemzugvolumen Waehrend Beatmung",
+        "en": "Tidal Volume during Ventilation"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/eingestellter-inspiratorischer-gasfluss",
+    "display": {
+      "orig_display": "SD MII ICU Eingestellter Inspiratorischer Gasfluss",
+      "translation": {
+        "de": "Eingestellter Inspiratorischer Gasfluss",
+        "en": "Set Inspiratory Gas Flow"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/druckdifferenz-beatmung",
+    "display": {
+      "orig_display": "SD MII ICU Druckdifferenz Beatmung",
+      "translation": {
+        "de": "Druckdifferenz Beatmung",
+        "en": "Ventilation Pressure Difference"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/endexpiratorischer-kohlendioxidpartialdruck",
+    "display": {
+      "orig_display": "SD MII ICU Endexpiratorischer Kohlendioxidpartialdruck",
+      "translation": {
+        "de": "Endexpiratorischer Kohlendioxidpartialdruck",
+        "en": "End-expiratory Carbon Dioxide Partial Pressure"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/inspiratorische-sauerstofffraktion-gemessen",
+    "display": {
+      "orig_display": "SD MII ICU Inspiratorische Sauerstofffraktion Gemessen",
+      "translation": {
+        "de": "Inspiratorische Sauerstofffraktion Gemessen",
+        "en": "Inspiratory Oxygen Fraction Measured"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/beatmungsvolumen-pro-minute-maschineller-beatmung",
+    "display": {
+      "orig_display": "SD MII ICU Beatmungsvolumen Pro Minute Maschineller Beatmung",
+      "translation": {
+        "de": "Beatmungsvolumen Pro Minute Maschineller Beatmung",
+        "en": "Ventilation Volume per Minute of Mechanical Ventilation"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/spontane-mechanische-atemfrequenz-beatmet",
+    "display": {
+      "orig_display": "SD MII ICU Spontane Mechanische Atemfrequenz Beatmet",
+      "translation": {
+        "de": "Spontane Mechanische Atemfrequenz Beatmet",
+        "en": "Spontaneous Mechanical Respiratory Rate Beatmet"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/inspiratorische-sauerstofffraktion-eingestellt",
+    "display": {
+      "orig_display": "SD MII ICU Inspiratorische Sauerstofffraktion Eingestellt",
+      "translation": {
+        "de": "Inspiratorische Sauerstofffraktion Eingestell",
+        "en": "Inspiratory Oxygen Fraction Adjusted"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/horowitz-in-arteriellem-blut",
+    "display": {
+      "orig_display": "SD MII ICU Horowitz In Arteriellem Blut",
+      "translation": {
+        "de": "Horowitz in Arteriellem Blut",
+        "en": "Horowitz in Arterial Blood"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/exspiratorischer-gasfluss",
+    "display": {
+      "orig_display": "SD MII ICU Exspiratorischer Gasfluss",
+      "translation": {
+        "de": "Exspiratorischer Gasfluss",
+        "en": "Expiratory Gas Flow"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/mechanische-atemfrequenz-beatmet",
+    "display": {
+      "orig_display": "SD MII ICU Mechanische Atemfrequenz Beatmet",
+      "translation": {
+        "de": "Mechanische Atemfrequenz Beatmet",
+        "en": "Mechanical Respiratory Rate Beatmet"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/exspiratorischer-sauerstoffpartialdruck",
+    "display": {
+      "orig_display": "SD MII ICU Exspiratorischer Sauerstoffpartialdruck",
+      "translation": {
+        "de": "Exspiratorischer Sauerstoffpartialdruck",
+        "en": "Expiratory Oxygen Partial Pressure"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/einstellung-ausatmungszeit-beatmung",
+    "display": {
+      "orig_display": "SD MII ICU Einstellung Ausatmungszeit Beatmung",
+      "translation": {
+        "de": "Einstellung Ausatmungszeit Beatmung",
+        "en": "Exhalation Time Ventilation Setting"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/atemwegsdruck-bei-null-expiratorischem-gasfluss",
+    "display": {
+      "orig_display": "SD MII ICU Atemwegsdruck Bei Null Expiratorischem Gasfluss",
+      "translation": {
+        "de": "Atemwegsdruck bei Null Expiratorischem Gasfluss",
+        "en": "Airway Pressure at Zero Expiratory Gas Flow"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/positiv-endexpiratorischer-druck",
+    "display": {
+      "orig_display": "SD MII ICU Positiv Endexpiratorischer Druck",
+      "translation": {
+        "de": "Positiv Endexpiratorischer Druck",
+        "en": "Positive End-Expiratory Pressure"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/spontanes-mechanisches-atemzugvolumen-waehrend-beatmung",
+    "display": {
+      "orig_display": "SD MII ICU Spontanes Mechanisches Atemzugvolumen Waehrend Beatmung",
+      "translation": {
+        "de": "Spontanes Mechanisches Atemzugvolumen Waehrend Beatmung",
+        "en": "Spontaneous Mechanical Tidal Volume during Ventilation"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/unterstuetzungsdruck-beatmung",
+    "display": {
+      "orig_display": "SD MII ICU Unterstuezungsdruck Beatmung",
+      "translation": {
+        "de": "Unterstuezungsdruck Beatmung",
+        "en": "Ventilation Support Pressure"
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/parameter-von-extrakorporalen-verfahren",
+    "display": {
+      "orig_display": "SD MII ICU Parameter von Extrakorporalen Verfahren",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/venoeser-druck",
+    "display": {
+      "orig_display": "SD MII ICU Venoeser Druck",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/substituatvolumen",
+    "display": {
+      "orig_display": "SD MII ICU Substituatvolumen",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/sauerstoffgasfluss",
+    "display": {
+      "orig_display": "SD MII ICU Sauerstoffgasfluss",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/dauer-extrakorporaler-gasaustausch",
+    "display": {
+      "orig_display": "SD MII ICU Dauer Extrakorporaler Gasaustausch",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/blutfluss-extrakorporaler-gasaustausch",
+    "display": {
+      "orig_display": "SD MII ICU Blutfluss Extrakorporaler Gasaustausch",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/haemodialyse-blutfluss",
+    "display": {
+      "orig_display": "SD MII ICU Haemodialyse Blutfluss",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/blutfluss-cardiovasculaeres-geraet",
+    "display": {
+      "orig_display": "SD MII ICU Blutfluss Cardiovasculaeres Geraet",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/ionisiertes-kalzium-nierenersatzverfahren",
+    "display": {
+      "orig_display": "SD MII ICU Ionisiertes Kalzium Nierenersatzverfahren",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/dauer-haemodialysesitzung",
+    "display": {
+      "orig_display": "SD MII ICU Dauer Haemodialysesitzung",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/arterieller-druck",
+    "display": {
+      "orig_display": "SD MII ICU Arterieller Druck",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/blutflussindex-extrakorporaler-gasaustausch",
+    "display": {
+      "orig_display": "SD MII ICU Blutflussindex Extrakorporaler Gasaustausch",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/substituatfluss",
+    "display": {
+      "orig_display": "SD MII ICU Substituatfluss",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/icu-device",
+    "display": {
+      "orig_display": "SD MII ICU ICU Device",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/devicemetric-eingestellte-gemessene-parameter-extrakorporale-verfahren",
+    "display": {
+      "orig_display": "SD MII ICU DeviceMetric Eingestellte Gemessene Parameter Extrakorporale Verfahren",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "modul-molgen",
+    "display": {
+      "orig_display": "Molgen",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/genotyp",
+    "display": {
+      "orig_display": "MII PR MolGen Genotyp",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/medikationsempfehlung",
+    "display": {
+      "orig_display": "MII PR MolGen Medikationsempfehlung",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/empfohlene-folgemassnahme",
+    "display": {
+      "orig_display": "MII PR MolGen Empfohlene Folgema\u00dfnahme",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/familienanamnese",
+    "display": {
+      "orig_display": "MII PR MolGen Familienanamnese",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/ergebnis-zusammenfassung",
+    "display": {
+      "orig_display": "MII PR MolGen Ergebnis Zusammenfassung",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/molekulargenetischer-befundbericht",
+    "display": {
+      "orig_display": "MII PR MolGen Molekulargenetischer Befundbericht",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/diagnostische-implikation",
+    "display": {
+      "orig_display": "MII PR MolGen Diagnostische Implikation",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/anforderung-genetischer-test",
+    "display": {
+      "orig_display": "MII PR MolGen Anforderung genetischer Test",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/mikrosatelliteninstabilitaet",
+    "display": {
+      "orig_display": "MII PR MolGen Mikrosatelliteninstabilit\u00e4t",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/mutationslast",
+    "display": {
+      "orig_display": "MII PR MolGen Mutationslast",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/variante",
+    "display": {
+      "orig_display": "MII PR MolGen Variante",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/therapeutische-implikation",
+    "display": {
+      "orig_display": "MII PR MolGen Therapeutische Implikation",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/untersuchte-region",
+    "display": {
+      "orig_display": "MII PR MolGen Untersuchte Region",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/polygener-risiko-score",
+    "display": {
+      "orig_display": "MII PR MolGen Polygener Risiko Score",
+      "translation": {
+        "de": "",
+        "en": ""
+      }
+    }
+  }
+]
