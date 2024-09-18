@@ -1,12 +1,8 @@
 {
   "name": "BloodPressure",
   "resource_type": "Observation",
-  "module": {
-    "code": "mii-cds-gecco",
-    "display": "GECCO"
-  },
   "context": {
-    "system": "fdpg.mii.gecco",
+    "system": "fdpg.mii.test",
     "code": "BloodPressure",
     "display": "Blood Pressure"
   },

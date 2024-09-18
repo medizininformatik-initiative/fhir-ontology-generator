@@ -117,9 +117,10 @@ class UIProfileGenerator:
                                                                  self.data_set_dir, self.module_dir)
         value_type = querying_meta_data.value_type if querying_meta_data.value_type else \
             FHIR_TYPES_TO_VALUE_TYPES.get(extract_value_type(value_defining_element, profile_snapshot.get('name'))) \
-            if extract_value_type(value_defining_element,
-                                  profile_snapshot.get('name')) in FHIR_TYPES_TO_VALUE_TYPES else extract_value_type(
-            value_defining_element, profile_snapshot.get('name'))
+                if extract_value_type(value_defining_element,
+                                      profile_snapshot.get(
+                                          'name')) in FHIR_TYPES_TO_VALUE_TYPES else extract_value_type(
+                value_defining_element, profile_snapshot.get('name'))
         # The only way the value_type equals "code" is if the query_meta_data sets it to "code". This might be necessary
         # for the mapping but the UI profile only supports "concept" so we have to convert it here.
         if value_type == "code":
@@ -214,12 +215,15 @@ class UIProfileGenerator:
         attribute_defining_elements = self.parser.get_element_defining_elements(attribute_defining_element_id,
                                                                                 profile_snapshot, self.module_dir,
                                                                                 self.data_set_dir)
-        element = self.parser.get_element_from_snapshot(profile_snapshot, attribute_defining_element_id)
-        attribute_code = self.generate_composite_attribute_code(profile_snapshot, attribute_defining_element_id)
+        if len(attribute_defining_elements) != 2:
+            raise ValueError("composite attributes need to reference 2 elements")
+        element = attribute_defining_elements[0]
+        predicate = attribute_defining_elements[-1]
+        attribute_code = self.generate_composite_attribute_code(profile_snapshot, predicate)
         attribute_definition = AttributeDefinition(attribute_code, "composite")
         attribute_type = self.parser.get_element_type(element)
         if attribute_type == "Quantity":
-            unit_defining_path = attribute_defining_elements[-1].get("path") + ".code"
+            unit_defining_path = attribute_defining_elements[0].get("path") + ".code"
             unit_defining_elements = self.parser.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
             if len(unit_defining_elements) > 1:
                 unit_defining_elements = list(filter(lambda x: self.get_slice_name(x) == self.get_slice_name(element),
@@ -248,18 +252,15 @@ class UIProfileGenerator:
         else:
             return ""
 
-    def generate_composite_attribute_code(self, profile_snapshot, attribute_defining_element_id) -> TermCode:
-        element = self.parser.get_element_from_snapshot(profile_snapshot, attribute_defining_element_id)
-        element_path = element.get("path")
-        if "component" in element_path:
-            element_path = element_path.split(".component")[0] + ".component.code.coding"
-            code_elements = self.parser.get_element_from_snapshot_by_path(profile_snapshot, element_path)
-            for code_element in code_elements:
-                if code_element.get("min") == 1 and "patternCoding" in code_element:
-                    return self.parser.pattern_coding_to_term_code(code_element)
+    def generate_composite_attribute_code(self, profile_snapshot, element) -> TermCode:
+        composite_attribute_code = self.parser.get_fixed_term_codes(element, profile_snapshot,
+                                                                    self.module_dir, self.data_set_dir)
+        if composite_attribute_code:
+            return composite_attribute_code[0]
+
         else:
             raise InvalidValueTypeException(
-                "Unable to generate composite attribute code for element: " + element_path +
+                "Unable to generate composite attribute code for element: " + element.id +
                 "in profile: " + profile_snapshot.get("name"))
 
     def get_referenced_profile_data(self, profile_snapshot, reference_defining_element_id) -> dict:

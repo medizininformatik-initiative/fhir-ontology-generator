@@ -100,7 +100,6 @@ def get_extension_definition(module_dir: str, extension_profile_url: str) -> dic
     files = [file for file in os.scandir(f"{module_dir}/package/extension") if file.is_file()
              and file.name.endswith("snapshot.json")]
     for file in files:
-        print(file.path)
         with open(file.path, "r", encoding="utf8") as f:
             profile = json.load(f)
             if profile.get("url") == extension_profile_url:
@@ -110,15 +109,22 @@ def get_extension_definition(module_dir: str, extension_profile_url: str) -> dic
             f"Could not find extension definition for extension profile url: {extension_profile_url}")
 
 
-def parse(chained_fhir_element_id):
+def parse(chained_fhir_element_id) -> List[str] | str:
     """
     Parses a chained fhir element id with the given Grammar:
     chained_fhir_element_id ::= "(" chained_fhir_element_id ")" ( "." fhir_element_id )* | fhir_element_id
     :param chained_fhir_element_id: the chained fhir element id
     :return: the parsed fhir element id
     """
+    if '.where' in chained_fhir_element_id:
+        main_part, condition_and_rest = chained_fhir_element_id.split('.where', 1)
+        condition_part, rest_part = condition_and_rest.split(')', 1)
+        condition_part = condition_part.strip('(')
+        rest_part = rest_part.strip(':')
+        return [parse(f"{main_part.strip()}:{rest_part.strip()}"), parse(condition_part.strip())]
     tokens = tokenize(chained_fhir_element_id)
-    return parse_tokens(tokens)
+    result = parse_tokens(tokens)
+    return result
 
 
 def parse_tokens(tokens: List[str]) -> List[str] | str:
@@ -127,22 +133,30 @@ def parse_tokens(tokens: List[str]) -> List[str] | str:
     :param tokens: the syntax tokens
     :return: the parsed syntax node represented as a list of child nodes or a string
     """
-    if len(tokens) == 0:
+    if not tokens:
         raise ValueError("Empty string")
+
     token = tokens.pop(0)
-    if token == "(":
+
+    if token == ".where":
+        return parse_tokens(tokens)
+    elif token == "(":
         sub_tree = []
-        while tokens[0] != ")":
+        while tokens and tokens[0] != ")":
             sub_tree.append(parse_tokens(tokens))
-        tokens.pop(0)
-        if len(tokens) == 1:
-            return [sub_tree, tokens.pop(0)]
-        else:
-            return sub_tree
+        if not tokens:
+            raise ValueError("Missing closing parenthesis")
+        tokens.pop(0)  # Remove the closing parenthesis
+        if tokens and tokens[0] != ")":
+            sub_tree.append(parse_tokens(tokens))
+        return sub_tree
     elif token == ")":
         raise ValueError("Unexpected )")
     else:
-        return token
+        if tokens and tokens[0] != ")":
+            return [token, parse_tokens(tokens)]
+        else:
+            return token
 
 
 def tokenize(chained_fhir_element_id):
@@ -152,7 +166,7 @@ def tokenize(chained_fhir_element_id):
     :param chained_fhir_element_id: the chained fhir element id
     :return: the tokenized fhir element id
     """
-    return chained_fhir_element_id.replace("(", " ( ").replace(")", " ) ").split()
+    return chained_fhir_element_id.replace("(", " ( ").replace(")", " ) ").replace('.where', ' .where ').split()
 
 
 def get_element_defining_elements(chained_element_id, profile_snapshot: dict, start_module_dir: str,
@@ -172,36 +186,35 @@ def get_element_defining_elements_with_source_snapshots(chained_element_id, prof
     return process_element_id(parsed_list, profile_snapshot, start_module_dir, data_set_dir)
 
 
-def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, data_set_dir: str) \
-        -> List[ProcessedElementResult] | None:
-    element_id = element_ids.pop(0)
-    if element_id.startswith("."):
-        raise ValueError("Element id must start with a resource type")
-    element = get_element_from_snapshot(profile_snapshot, element_id)
-    result = [ProcessedElementResult(element=element, profile_snapshot=profile_snapshot, module_dir=module_dir)]
-    for element in element.get("type"):
-        if element.get("code") == "Extension":
-            profile_urls = element.get("profile")
-            if len(profile_urls) > 1:
-                raise Exception("Extension with multiple types not supported")
-            print(profile_urls)
-            extension = get_extension_definition(module_dir, profile_urls[0])
-            element_ids[0] = f"Extension" + element_ids[0]
-            result.extend(process_element_id(element_ids, extension, module_dir, data_set_dir))
-            return result
-        elif element.get("code") == "Reference":
-            target_profiles = element.get("targetProfile")
-            # if len(target_profiles) > 1:
-            #     raise Exception("Reference with multiple types not supported")
-            target_resource_type = element.get("targetProfile")[0]
-            print(target_resource_type, data_set_dir)
-            referenced_profile, module_dir = get_profiles_with_base_definition(data_set_dir, target_resource_type)
-            element_ids[0] = f"{referenced_profile.get('type') + element_ids[0]}"
-            result.extend(process_element_id(element_ids, referenced_profile, module_dir, data_set_dir))
-            return result
-        elif element.get("code") == "Coding":
-            return result
-    return result
+def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, data_set_dir: str) -> List[
+                                                                                                       ProcessedElementResult] | None:
+    results = []
+
+    while element_ids:
+        element_id = element_ids.pop(0)
+        if element_id.startswith("."):
+            raise ValueError("Element id must start with a resource type")
+        element = get_element_from_snapshot(profile_snapshot, element_id)
+        result = [ProcessedElementResult(element=element, profile_snapshot=profile_snapshot, module_dir=module_dir)]
+
+        for elem in element.get("type"):
+            if elem.get("code") == "Extension":
+                profile_urls = elem.get("profile")
+                if len(profile_urls) > 1:
+                    raise Exception("Extension with multiple types not supported")
+                extension = get_extension_definition(module_dir, profile_urls[0])
+                element_ids.insert(0, f"Extension" + element_ids.pop(0))
+                result.extend(process_element_id(element_ids, extension, module_dir, data_set_dir))
+            elif elem.get("code") == "Reference":
+                target_profiles = elem.get("targetProfile")
+                # if len(target_profiles) > 1:
+                #     raise Exception("Reference with multiple types not supported")
+                target_resource_type = elem.get("targetProfile")[0]
+                referenced_profile, module_dir = get_profiles_with_base_definition(data_set_dir, target_resource_type)
+                element_ids.insert(0, f"{referenced_profile.get('type') + element_ids.pop(0)}")
+                result.extend(process_element_id(element_ids, referenced_profile, module_dir, data_set_dir))
+        results.extend(result)
+    return results
 
 
 def resolve_defining_id(profile_snapshot: dict, defining_id: str, data_set_dir: str, module_dir: str) \
@@ -250,7 +263,6 @@ def extract_reference_type(value_defining_element: dict, data_set_dir: str, prof
     if not value_defining_element.get("targetProfile"):
         print(f"Could not find target profile for {profile_name}")
     target_resource_type = value_defining_element.get("targetProfile")[0]
-    print(target_resource_type, data_set_dir)
     referenced_profile, module_dir = get_profiles_with_base_definition(data_set_dir, target_resource_type)
     return referenced_profile.get("type")
 
@@ -324,6 +336,21 @@ def pattern_coding_to_term_code(element):
     if display.isupper():
         display = display.title()
     term_code = TermCode(system, code, display, version)
+    return term_code
+
+
+def fixed_coding_to_term_code(element):
+    """
+    Converts a fixedCoding to a term code
+    :param element: element node from the snapshot with a patternCoding
+    :return: term code
+    """
+    code = element["fixedCoding"]["code"]
+    system = element["fixedCoding"]["system"]
+    display = get_term_code_display_from_onto_server(system, code)
+    if display.isupper():
+        display = display.title()
+    term_code = TermCode(system, code, display)
     return term_code
 
 
@@ -423,7 +450,6 @@ def get_parent_element_type(element_id, profile_snapshot):
 
 
 def get_extension_url(element):
-    print(element.get("type"))
     extension_profiles = element.get('type')[0].get('profile')
     if len(extension_profiles) > 1:
         raise Exception("More than one extension found")
@@ -547,6 +573,10 @@ def get_fixed_term_codes(element: dict, snapshot: dict, module_dir, data_set_dir
         return [fixed_codeable_concept_to_term_code(element)]
     elif "patternCodeableConcept" in element:
         return [pattern_codeable_concept_to_term_code(element)]
+    elif "fixedCoding" in element:
+        return [fixed_coding_to_term_code(element)]
+    elif "patternCoding" in element:
+        return [pattern_coding_to_term_code(element)]
     else:
         if tc := try_get_term_code_from_sub_elements(snapshot, element.get("id"), module_dir, data_set_dir):
             return [tc]

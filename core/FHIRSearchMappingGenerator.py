@@ -75,7 +75,15 @@ class FHIRSearchMappingGenerator(object):
         """
         fhir_path_expressions = self.translate_element_id_to_fhir_path_expressions(element_id, profile_snapshot)
         search_parameters = self.fhir_search_mapping_resolver.find_search_parameter(fhir_path_expressions)
+        if attribute_type == "composite":
+            return self._resolve_composite_search_parameter(search_parameters)
         return search_parameters
+
+    def _resolve_composite_search_parameter(self, search_parameter: OrderedDict[str, dict]):
+        if len(search_parameter) != 2:
+            raise InvalidElementTypeException("Composite search parameter must have 2 elements")
+        search_parameter = self.fhir_search_mapping_resolver.find_composite_search_parameter(search_parameter)
+        return search_parameter
 
     def chain_search_parameters(self, search_parameters: OrderedDict[str, dict]) -> str:
         self.validate_chainable(search_parameters.values())
@@ -151,32 +159,40 @@ class FHIRSearchMappingGenerator(object):
         else:
             return self.chain_search_parameters(search_params)
 
-    @staticmethod
-    def get_updated_attribute_type(attribute_type, attribute_search_params):
-        """
-        Update the attribute type based on the search parameters.
-
-        Args:
-            attribute_type (str): The original attribute type.
-            attribute_search_params (dict): Resolved search parameters.
-        """
-        if list(attribute_search_params.values())[-1].get("type") == "composite":
-            if attribute_type == "quantity" or attribute_type == "concept":
-                attribute_type = "composite-" + attribute_type
-            else:
-                raise ValueError("Attribute type {} is not supported for composite search parameter".format(
-                    attribute_type))
-        return attribute_type
-
     def set_attribute_search_param(self, attribute, fhir_mapping, predefined_type, profile_snapshot):
         attribute_key = generate_attribute_key(attribute)
         attribute_type = predefined_type if predefined_type else self.get_attribute_type(profile_snapshot,
                                                                                          attribute)
         attribute_search_params = self.resolve_fhir_search_parameter(attribute, profile_snapshot,
                                                                      attribute_type)
-        attribute_type = self.get_updated_attribute_type(attribute_type, attribute_search_params)
+        composite_code = None
+        if attribute_type == "composite":
+            attribute_type = self.get_composite_attribute_type(attribute, profile_snapshot)
+            composite_code = self.get_composite_code(attribute, profile_snapshot)
+            attribute_key = composite_code
         fhir_mapping.add_attribute(attribute_type, attribute_key,
-                                   self._handle_search_parameter(attribute_type, attribute_search_params))
+                                   self._handle_search_parameter(attribute_type, attribute_search_params),
+                                   composite_code)
+
+    def get_composite_code(self, attribute, profile_snapshot):
+        attribute_parsed = self.parser.get_element_defining_elements(attribute, profile_snapshot, self.module_dir,
+                                                                     self.data_set_dir)
+        if len(attribute_parsed) != 2:
+            raise ValueError("Composite search parameters must have exactly two elements")
+        where_clause_element = attribute_parsed[-1]
+        return self.parser.get_fixed_term_codes(where_clause_element, profile_snapshot, self.data_set_dir,
+                                                self.module_dir)[0]
+
+    def get_composite_attribute_type(self, attribute, profile_snapshot):
+        search_param_components = self.resolve_fhir_search_parameter(attribute, profile_snapshot, "")
+        first_search_param = next(iter(search_param_components.values()))
+        if first_search_param.get("type") == "quantity":
+            attribute_type = "composite-quantity"
+        elif first_search_param.get("type") == "token":
+            attribute_type = "composite-concept"
+        else:
+            raise ValueError("Composite search parameters must have a quantity or token as the first element")
+        return attribute_type
 
     def set_value_search_param(self, fhir_mapping, profile_snapshot, querying_meta_data):
         value_type = querying_meta_data.value_type if querying_meta_data.value_type else \

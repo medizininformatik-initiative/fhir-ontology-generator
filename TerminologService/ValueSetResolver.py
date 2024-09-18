@@ -48,6 +48,7 @@ def get_termcodes_from_onto_server(value_set_canonical_url: str, onto_server: st
     :return: returns the sorted list of term codes of the value set prioritized by the coding system:
     icd10 > snomed
     """
+    print(value_set_canonical_url)
     return list(expand_value_set(value_set_canonical_url, onto_server))
 
 

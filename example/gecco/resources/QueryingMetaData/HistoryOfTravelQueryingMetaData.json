@@ -12,7 +12,7 @@
   },
   "term_code_defining_id": "Observation.code.coding:loinc",
   "attribute_defining_id_type_map": {
-    "Observation.component:Country.value[x]": "composed"
+    "Observation.component.where(Observation.component:Country.code):Country.value[x]": "composite"
   },
   "value_defining_id": "Observation.value[x]"
 }

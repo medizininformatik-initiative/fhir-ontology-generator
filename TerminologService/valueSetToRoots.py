@@ -93,8 +93,8 @@ def create_vs_tree_map(canonical_url: str) -> TreeMap:
                         treemap.entries[parent].children.append(node)
     except Exception as e:
         print(e)
+        
     return treemap
-
 
 
 def create_concept_map():

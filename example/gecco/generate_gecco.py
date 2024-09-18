@@ -11,6 +11,7 @@ from FHIRProfileConfiguration import *
 from core.CQLMappingGenerator import CQLMappingGenerator
 from core.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
+from core.SearchParameterResolver import SearchParameterResolver
 from core.UIProfileGenerator import UIProfileGenerator
 from core.UITreeGenerator import UITreeGenerator
 from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, generate_result_folder, \
@@ -19,6 +20,7 @@ from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import UIProfile
 from model.UiDataModel import TermEntry, TermCode, CategoryEntry
+from model.termCodeTree import to_term_code_node
 
 core_data_sets = [GECCO, MII_LAB]
 WINDOWS_RESERVED_CHARACTERS = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
@@ -49,8 +51,11 @@ class GeccoDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
         key = fhir_profile_snapshot.get("name")
         mapping = self._get_query_meta_data_mapping()
         for value in mapping[key]:
-            with open(f"resources/QueryingMetaData/{value}QueryingMetaData.json", "r") as file:
-                result.append(ResourceQueryingMetaData.from_json(file))
+            try:
+                with open(f"resources/QueryingMetaData/{value}QueryingMetaData.json", "r") as file:
+                    result.append(ResourceQueryingMetaData.from_json(file))
+            except FileNotFoundError:
+                continue
         return result
 
     @staticmethod
@@ -202,7 +207,8 @@ def get_categories(element):
 
 def create_category_terminology_entry(category_entry):
     term_code = [TermCode("mii.abide", category_entry.display, category_entry.display)]
-    result = TermEntry(term_code, "Category", leaf=False, selectable=False)
+    default_gecco_context = TermCode("mii.aide", "GECCO", "GECCO")
+    result = TermEntry(term_code, "Category", leaf=False, selectable=False, context=default_gecco_context)
     result.path = category_entry.path
     return result
 
@@ -231,7 +237,8 @@ def add_terminology_entry_to_category(element, categories, terminology_type):
     for category_entry in categories:
         # same path -> sub element of that category
         if category_entry.path in element["base"]["path"]:
-            terminology_entry = TermEntry(get_term_codes(element), terminology_type)
+            default_gecco_context = TermCode("mii.abide", "GECCO", "GECCO")
+            terminology_entry = TermEntry(get_term_codes(element), terminology_type, context=default_gecco_context)
             # We use the english display to resolve after we switch to german.
             terminology_entry.display = element["short"]
             if terminology_entry.display in IGNORE_LIST:
@@ -265,7 +272,7 @@ def resolve_terminology_entry_profile(terminology_entry, element=None):
         if name in filename and "snapshot" in filename:
             with open("resources/differential/gecco/package" + "/" + filename, encoding="UTF-8") as profile_file:
                 profile_data = json.load(profile_file)
-                sub_trees = tree_generator.generate_ui_subtree(profile_data)
+                sub_trees = tree_generator.generate_ui_subtree(profile_data, "gecco")
                 if len(sub_trees) > 1:
                     terminology_entry.children += sub_trees
                     terminology_entry.leaf = False
@@ -305,6 +312,18 @@ def generate_gecco_tree():
     return create_terminology_definition_for(get_gecco_categories())
 
 
+class GeccoSearchParameterResolver(SearchParameterResolver):
+    def _load_module_search_parameters(self) -> List[Dict]:
+        params = []
+        for file in os.listdir("resources/search_parameter"):
+            if file.endswith(".json"):
+                with open(os.path.join("resources/search_parameter", file), "r", encoding="utf-8") as f:
+                    json_params = json.load(f)
+                    params += [entry.get("resource", {}) for entry in json_params["entry"]]
+        print(f"Loaded {len(params)} search parameters")
+        return params
+
+
 def denormalize_ui_profile_to_old_format(ui_tree: List[TermEntry], term_code_to_profile_name: Dict[TermCode, str],
                                          ui_profile_name_to_profile: Dict[str, UIProfile]):
     """
@@ -342,7 +361,8 @@ def denormalize_mapping_to_old_format(term_code_to_mapping_name, mapping_name_to
         try:
             mapping = copy.copy(mapping_name_to_mapping[mapping_name])
             mapping.key = context_and_term_code[1]
-            result.entries.add(mapping)
+            mapping.context = context_and_term_code[0]
+            result.entries.append(mapping)
         except KeyError:
             print("No mapping found for term code " + context_and_term_code[1].code)
     return result
@@ -357,6 +377,11 @@ def write_v1_mapping_to_file(mapping, mapping_folder="mapping-old"):
         raise ValueError("Mapping type not supported" + str(type(mapping)))
     with open(mapping_file, 'w', encoding="utf-8") as f:
         f.write(mapping.to_json())
+    f.close()
+
+def write_mapping_tree_to_file(tree, mapping_tree_folder="mapping-tree"):
+    with open(mapping_tree_folder + "/mapping_tree.json", 'w', encoding="utf-8") as f:
+        f.write(tree.to_json())
     f.close()
 
 
@@ -384,6 +409,9 @@ if __name__ == '__main__':
         move_back_other(trees)
         write_ui_trees_to_files(trees, "ui-trees")
 
+        mappping_tree = to_term_code_node(trees)
+        write_mapping_tree_to_file(mappping_tree)
+
     if args.generate_ui_profiles:
         profile_generator = UIProfileGenerator(resolver)
         ui_profiles = profile_generator.generate_ui_profiles("resources/differential")[1].values()
@@ -398,7 +426,8 @@ if __name__ == '__main__':
         v1_cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
         write_v1_mapping_to_file(v1_cql_mappings, "mapping-old")
 
-        fhir_search_generator = FHIRSearchMappingGenerator(resolver)
+        gecco_search_paramter_resolver = GeccoSearchParameterResolver()
+        fhir_search_generator = FHIRSearchMappingGenerator(resolver, gecco_search_paramter_resolver)
         fhir_search_mappings = fhir_search_generator.generate_mapping("resources/differential")
         fhir_search_term_code_mappings = fhir_search_mappings[0]
         fhir_search_concept_mappings = fhir_search_mappings[1]
