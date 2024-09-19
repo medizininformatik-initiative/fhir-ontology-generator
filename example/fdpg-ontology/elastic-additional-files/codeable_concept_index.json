@@ -10,12 +10,29 @@
             "letter",
             "digit"
           ]
+        },
+        "edge_ngram_tokenizer_include_punctuation": {
+          "type": "edge_ngram",
+          "min_gram": 1,
+          "max_gram": 20,
+          "token_chars": [
+            "letter",
+            "digit",
+            "punctuation"
+          ]
         }
       },
       "analyzer": {
         "edge_ngram_analyzer": {
           "type": "custom",
           "tokenizer": "edge_ngram_tokenizer",
+          "filter": [
+            "lowercase"
+          ]
+        },
+        "edge_ngram_analyzer_include_punctuation": {
+          "type": "custom",
+          "tokenizer": "edge_ngram_tokenizer_include_punctuation",
           "filter": [
             "lowercase"
           ]
@@ -36,7 +53,7 @@
         "properties": {
           "code": {
             "type": "text",
-            "analyzer": "edge_ngram_analyzer",
+            "analyzer": "edge_ngram_analyzer_include_punctuation",
             "search_analyzer": "lowercase_analyzer"
           },
           "display": {
