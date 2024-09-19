@@ -9,4 +9,4 @@ dependencies
 /.vscode/
 /.git/
 availability/*.json
-!availability-input/stratum-to-context.json
+!availability/stratum-to-context.json

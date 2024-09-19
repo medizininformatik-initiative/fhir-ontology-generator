@@ -1,0 +1,86 @@
+{
+  "condition-icd10-code": {
+    "system": "fdpg.mii.cds",
+    "code": "Diagnose",
+    "display": "Diagnose",
+    "version": "1.0.0"
+  },
+  "condition-sct-code": {
+    "system": "fdpg.mii.cds",
+    "code": "Diagnose",
+    "display": "Diagnose",
+    "version": "1.0.0"
+  },
+  "condition-alhpaid-code": {
+    "system": "fdpg.mii.cds",
+    "code": "Diagnose",
+    "display": "Diagnose",
+    "version": "1.0.0"
+  },
+  "condition-orphanet-code": {
+    "system": "fdpg.mii.cds",
+    "code": "Diagnose",
+    "display": "Diagnose",
+    "version": "1.0.0"
+  },
+  "condition-icdo3-code": {
+    "system": "fdpg.mii.cds",
+    "code": "Diagnose",
+    "display": "Diagnose",
+    "version": "1.0.0"
+  },
+  "observation-lab-loinc-code": {
+    "system": "fdpg.mii.cds",
+    "code": "Laboruntersuchung",
+    "display": "Laboruntersuchung",
+    "version": "1.0.0"
+  },
+  "patient-gender": {
+    "system": "fdpg.mii.cds",
+    "code": "Patient",
+    "display": "Patient",
+    "version": "1.0.0"
+  },
+  "medicationadministration-medication-code-pzn": {
+    "system": "fdpg.mii.cds",
+    "code": "Medikamentenverabreichung",
+    "display": "Verabreichung von Medikamenten",
+    "version": "1.0.0"
+  },
+  "medicationadministration-medication-code-atc": {
+    "system": "fdpg.mii.cds",
+    "code": "Medikamentenverabreichung",
+    "display": "Verabreichung von Medikamenten",
+    "version": "1.0.0"
+  },
+  "procedure-ops-code": {
+    "system": "fdpg.mii.cds",
+    "code": "Procedure",
+    "display": "Prozedur",
+    "version": "1.0.0"
+  },
+  "procedure-sct-code": {
+    "system": "fdpg.mii.cds",
+    "code": "Procedure",
+    "display": "Prozedur",
+    "version": "1.0.0"
+  },
+  "specimen-type-sct-code": {
+    "system": "fdpg.mii.cds",
+    "code": "Specimen",
+    "display": "Bioprobe",
+    "version": "1.0.0"
+  },
+  "consent-patientendaten-erheben,-speichern,-nutzen": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-mdat-erheben": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  }
+}
