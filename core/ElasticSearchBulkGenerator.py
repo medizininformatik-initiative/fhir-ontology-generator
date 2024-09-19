@@ -6,10 +6,6 @@ from zipfile import ZipFile
 
 
 class ElasticSearchGenerator:
-    """
-    This class takes a zip file containing json files from an ontology. It iterates through those files and generates
-    "json" files that can then be used in the bulk upload of elastic search. Those files will be added to the zipfile.
-    """
 
     def __init__(self):
         pass
@@ -158,6 +154,34 @@ class ElasticSearchGenerator:
                     current_file = open(current_file_name, 'w')
 
     @staticmethod
+    def __write_es_to_file(es_availability_inserts, max_filesize_mb,
+                                  filename_prefix, extension,
+                                  write_dir):
+        current_file_subindex = 1
+        current_file_size = 0
+
+        count = 0
+
+        current_file_name = f"{write_dir}/{filename_prefix}_{current_file_subindex}{extension}"
+        print(f"writing to file {current_file_name}")
+        with open(current_file_name, 'w+', encoding='utf-8') as current_file:
+
+            for insert in es_availability_inserts:
+
+                count = count + 1
+                current_line = f"{json.dumps(insert)}\n"
+                current_file.write(current_line)
+                current_file_size += len(current_line)
+
+                if current_file_size > max_filesize_mb * 1024 * 1024 and count % 2 == 0:
+                    current_file_subindex += 1
+                    current_file_name = f"{write_dir}/{filename_prefix}_{current_file_subindex}{extension}"
+                    current_file_size = 0
+                    current_file.close()
+                    current_file = open(current_file_name, 'w')
+                    print(f"writing to file {current_file_name}")
+
+    @staticmethod
     def __zip_elastic_files(output_file, work_dir, filename_prefix, extension, include_additional_files):
         with ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as elastic_zip:
             # Add the new files to the zipfile
@@ -194,14 +218,104 @@ class ElasticSearchGenerator:
 
         return term_code_info_map
 
+    @staticmethod
+    def get_hashed_tree(ontology_dir):
+
+        directory = f'{ontology_dir}/elastic'
+        es_onto_tree = {}
+
+        for filename in os.listdir(directory):
+            if 'ontology' in filename:
+                filepath = os.path.join(directory, filename)
+
+                with open(filepath, 'r') as file:
+                    for line in file:
+                        line = line.strip()
+
+                        if line:
+                            obj = json.loads(line)
+
+                            if "index" in obj:
+                                cur_hash = obj["index"]["_id"]
+                            else:
+                                es_onto_tree[cur_hash] = {
+                                    "availability": 0,
+                                    "children": obj["children"]
+                                }
+
+        return es_onto_tree
+
+    @staticmethod
+    def update_availability_on_hash_tree(avail_hash_tree, availability_input_dir, stratum_to_context, namespace_uuid_str):
+
+        hash_set = set()
+
+        for filename in os.listdir(availability_input_dir):
+            if 'measure-report' in filename:
+                filepath = os.path.join(availability_input_dir, filename)
+
+                with open(filepath, "r") as f:
+                    report = json.load(f)
+
+                    for group in report["group"]:
+
+                        for stratifier in group["stratifier"]:
+                            if "stratum" in stratifier:
+
+                                strat_code = stratifier["code"][0]["coding"][0]["code"]
+
+                                if strat_code not in stratum_to_context:
+                                    continue
+
+                                context = stratum_to_context[strat_code]
+
+                                for stratum in stratifier["stratum"]:
+                                    measure_score = stratum["measureScore"]["value"]
+
+                                    if "system" not in stratum["value"]["coding"][0]:
+                                        continue
+
+                                    strat_system = stratum["value"]["coding"][0]["system"]
+                                    strat_code = stratum["value"]["coding"][0]["code"]
+
+                                    termcode = {
+                                        "system": strat_system,
+                                        "code": strat_code
+                                    }
+
+                                    if context:
+                                        hash = ElasticSearchGenerator.__get_contextualized_termcode_hash(context, termcode, namespace_uuid_str)
+
+                                        hash_set.add(hash)
+                                        if hash in avail_hash_tree:
+                                            avail_hash_tree[hash]["availability"] = avail_hash_tree[hash]["availability"] + measure_score
+
+
+    @staticmethod
+    def convert_measure_score_to_ranges(measure_score):
+        buckets = [0, 10, 100, 1000, 10000, 50000, 100000, 150000, 200000, 1000000]
+        return max(b for b in buckets if measure_score >= b)
+
+    @staticmethod
+    def get_avail_sum_for_all_children(parent_id, tree):
+
+        count = tree[parent_id]["availability"]
+
+        for child in tree[parent_id]["children"]:
+            count = count + ElasticSearchGenerator.get_avail_sum_for_all_children(child["contextualized_termcode_hash"], tree)
+
+        return count
+
 
     @staticmethod
     def generate_elasticsearch_files(ontology_dir,
+                                     generate_availability,
+                                     availability_input_dir,
                                      work_dir='.',
                                      namespace_uuid_str='00000000-0000-0000-0000-000000000000',
                                      index_name='ontology',
                                      filename_prefix='onto_es_',
-                                     max_filesize_mb=20):
+                                     max_filesize_mb=10):
         extension = '.json'
         folder = f'{ontology_dir}/ui-trees'
         current_file_index = 0
@@ -212,6 +326,30 @@ class ElasticSearchGenerator:
         context_termcode_hash_to_crit_set = {}
         crit_set_dir = f'{ontology_dir}/criteria-sets'
         ElasticSearchGenerator.__build_crit_set_map(context_termcode_hash_to_crit_set, crit_set_dir, namespace_uuid_str)
+
+        if generate_availability:
+            print('Generating availability')
+            es_availability_inserts = []
+
+            with open(f"{availability_input_dir}/stratum-to-context.json") as f:
+                stratum_to_context = json.load(f)
+
+            avail_hash_tree = ElasticSearchGenerator.get_hashed_tree(ontology_dir)
+            ElasticSearchGenerator.update_availability_on_hash_tree(avail_hash_tree, availability_input_dir, stratum_to_context, namespace_uuid_str)
+
+            for key, value in avail_hash_tree.items():
+
+                sum_all_children = ElasticSearchGenerator.get_avail_sum_for_all_children(key, avail_hash_tree)
+
+                insert_hash = {"update": {"_id": key}}
+                insert_availability = {"doc": {"availability": ElasticSearchGenerator.convert_measure_score_to_ranges(sum_all_children)}}
+                es_availability_inserts.append(insert_hash)
+                es_availability_inserts.append(insert_availability)
+
+            ElasticSearchGenerator.__write_es_to_file(es_availability_inserts, max_filesize_mb,
+                               "es_availability_update", extension, availability_input_dir)
+
+            return
 
         for filename in os.listdir(folder):
 
@@ -247,12 +385,10 @@ class ElasticSearchGenerator:
 
             if filename.endswith(extension):
 
-
                 with open(f'{folder}/{filename}', 'r') as f:
                     value_set = json.load(f)
 
                 ElasticSearchGenerator.__convert_value_set(value_set, termcode_to_valueset, namespace_uuid_str)
-
 
         json_flat = list(termcode_to_valueset.values())
 
@@ -260,5 +396,3 @@ class ElasticSearchGenerator:
                                                          max_filesize_mb, filename_prefix,
                                                          extension,
                                                          ontology_dir)
-
-        # ElasticSearchGenerator.__zip_elastic_files(output_file, work_dir, filename_prefix, extension, include_additional_files)

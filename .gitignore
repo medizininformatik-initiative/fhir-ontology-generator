@@ -8,3 +8,5 @@ dependencies
 /.venv/
 /.vscode/
 /.git/
+availability/*.json
+!availability-input/stratum-to-context.json
