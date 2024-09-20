@@ -1,8 +1,4 @@
-import uuid
 import re
-import os
-import json
-
 
 class ProfileDetailGenerator():
 
@@ -12,6 +8,7 @@ class ProfileDetailGenerator():
         self.profiles = profiles
         self.mapping_type_code = mapping_type_code
         self.fields_to_exclude = fields_to_exclude
+        self.simple_data_types = ["instant", "time", "date", "dateTime", "decimal", "boolean", "integer", "string", "uri", "base64Binary", "code", "id", "oid", "unsignedInt", "positiveInt", "markdown", "url", "canonical", "uuid"]
 
     def get_value_sets_for_code_filter(self, structDef):
 
@@ -78,6 +75,9 @@ class ProfileDetailGenerator():
         if len(path) == 0:
             return
 
+        if field['type'] in self.simple_data_types and len(path) > 1:
+            return
+
         for index in range(0, len(path) - 1):
 
             id_end = path[index]
@@ -105,7 +105,6 @@ class ProfileDetailGenerator():
         if element['id'].endswith(".extension"):
             return True
 
-
     def get_name_from_id(self, id):
 
         name = id.split(".")[-1]
@@ -113,6 +112,18 @@ class ProfileDetailGenerator():
         name = name.replace("[x]", "")
 
         return name
+
+    def find_field_in_profile_fields(self,field_id, fields):
+
+        for field in fields:
+
+            if 'children' in field:
+                self.find_field_in_profile_fields(field_id, field['children'])
+
+            if field['id'] == field_id:
+                return field
+
+        return None
 
     def translate_detail_for_profile(self, profile, profiles_translated):
 
@@ -124,23 +135,30 @@ class ProfileDetailGenerator():
 
         profile['display'] = translated_profile['display']['translation']['de']
 
-        for index in range(0, len(profile['fields'])):
+        for field in profile['fields']:
 
-            translated_field = translated_profile['fields'][index]
+            translated_field = self.find_field_in_profile_fields(field['id'], translated_profile['fields'])
+            if translated_field is None:
+                continue
+
             name_de_translation = translated_field['name_translation']['de']
             display_de_translation = translated_field['display_translation']['de']
 
             if name_de_translation != "":
-
-                profile['fields'][index]['name'] = name_de_translation
+                field['name'] = name_de_translation
 
             if display_de_translation != "":
-                profile['fields'][index]['display'] = display_de_translation
+                field['display'] = display_de_translation
 
         return profile
 
+    def get_element_by_content_ref(self, content_ref, elements):
 
+        for element in elements:
+            if element['id'] == content_ref:
+                return element
 
+        return None
 
     def generate_detail_for_profile(self, profile):
 
@@ -171,29 +189,37 @@ class ProfileDetailGenerator():
                 "valueSetUrls": self.get_value_sets_for_code_filter(profile['structureDefinition']),
             })
 
-        elements = {}
         field_tree = {"children": []}
-
         source_elements = profile["structureDefinition"]["snapshot"]["element"]
 
         for element in source_elements:
-            elements[element["id"]] = element
 
-        for element in source_elements:
+            field_id = element["id"]
 
             if self.filter_element(element):
                 continue
 
-            type = "unknown"
+            if 'contentReference' in element:
+                content_reference_split = element['contentReference'].split("#")
+                if len(content_reference_split) > 1:
+                    content_reference = content_reference_split[1]
+                else:
+                    content_reference = content_reference_split[0]
+
+                element = self.get_element_by_content_ref(content_reference, source_elements)
 
             if "type" in element:
-                type = element["type"][0]["code"]
+                field_type = element["type"][0]["code"]
+            else:
+                print(f"Element without type: {element}")
+                continue
 
             name = self.get_name_from_id(element["id"])
-            field = {"id": element["id"],
+            field = {"id": field_id,
                      "name": name,
                      "display": element["short"],
-                     "type": type}
+                     "type": field_type
+                     }
 
             self.insert_field_to_tree(field_tree, field)
 

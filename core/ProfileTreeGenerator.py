@@ -160,7 +160,6 @@ class ProfileTreeGenerator():
             translation_de = translated_profile['display']['translation']['de']
 
             if translation_de != "":
-                print(translation_de)
                 display = translation_de
             else:
                 display = self.module_name_to_display(profile["module"])
