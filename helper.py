@@ -72,7 +72,7 @@ def mkdir_if_not_exists(directory: str):
     """
     if not path.isdir(f"./{directory}"):
         try:
-            os.mkdir(directory)
+            os.makedirs(directory)
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise

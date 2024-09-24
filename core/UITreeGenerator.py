@@ -26,7 +26,7 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
         self.data_set_dir = ""
         self.parser = parser
 
-    def generate_ui_trees(self, differential_dir: str) -> List[TreeMapList]:
+    def generate_ui_trees(self, differential_dir: str, module_name) -> List[TreeMapList]:
         """
         Generates the ui trees for all FHIR profiles in the differential directory
         :param differential_dir: path to the directory which contains the FHIR profiles
@@ -36,10 +36,9 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
         result: List[TreeMapList] = []
         for module_dir in [folder for folder in os.scandir(differential_dir) if folder.is_dir()]:
             self.module_dir = module_dir.path
-            files = [file.path for file in os.scandir(f"{module_dir.path}/package") if file.is_file()
+            files = [file.path for file in os.scandir(f"{module_dir.path}") if file.is_file()
                      and file.name.endswith("snapshot.json") and is_structure_definition(file.path)]
-            print(files)
-            result.append(self.generate_module_ui_tree(module_dir.name, files))
+            result.append(self.generate_module_ui_tree(module_name, files))
         return result
 
     def get_query_meta_data(self, fhir_profile_snapshot: dict, module_name: str) -> List[ResourceQueryingMetaData]:
@@ -139,7 +138,7 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
 
 
 
-    def generate_contextualized_term_code_info_list(self, differential_dir: str) -> List[ContextualizedTermCodeInfoList]:
+    def generate_contextualized_term_code_info_list(self, differential_dir: str, module_name: str) -> List[ContextualizedTermCodeInfoList]:
         """
         Generates ContextualizedTermCodeInfoList for all FHIR profiles in the differential directory
         :param differential_dir: path to the directory which contains the FHIR profiles
@@ -147,12 +146,9 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
         """
         self.data_set_dir = differential_dir
         result: List[ContextualizedTermCodeInfoList] = []
-        for module_dir in [folder for folder in os.scandir(differential_dir) if folder.is_dir()]:
-            self.module_dir = module_dir.path
-            files = [file.path for file in os.scandir(f"{module_dir.path}/package") if file.is_file()
-                     and file.name.endswith("snapshot.json") and is_structure_definition(file.path)]
-            
-            result.append(self.generate_module_contextualized_term_code_info(module_dir.name, files))
+        files = [file.path for file in os.scandir(f"{differential_dir}/package") if file.is_file()
+                    and file.name.endswith("snapshot.json") and is_structure_definition(file.path)]
+        result.append(self.generate_module_contextualized_term_code_info(module_name, files))
         return result
 
     def generate_module_contextualized_term_code_info(self, module_name, files: List[str]) -> ContextualizedTermCodeInfoList:
@@ -210,7 +206,6 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
         return contextualized_term_code_infos
 
     def get_term_info_by_id(self, fhir_profile_snapshot, term_code_defining_id) -> List[ContextualizedTermCodeInfo]:
-        print("getting term info by id ", term_code_defining_id)
         term_code_defining_element = self.parser.resolve_defining_id(fhir_profile_snapshot, term_code_defining_id,
                                                                      self.data_set_dir, self.module_dir)
         if not term_code_defining_element:
@@ -226,7 +221,6 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
                 return [ContextualizedTermCodeInfo(term_code)]
         if "binding" in term_code_defining_element:
             value_set = term_code_defining_element.get("binding").get("valueSet")
-            print(info.term_code for info in get_term_info_from_onto_server(value_set))
             return get_term_info_from_onto_server(value_set)
         else:
             term_code = self.parser.try_get_term_code_from_sub_elements(fhir_profile_snapshot,

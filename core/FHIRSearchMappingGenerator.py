@@ -40,7 +40,7 @@ class FHIRSearchMappingGenerator(object):
         self.module_dir: str = ""
         self.fhir_search_mapping_resolver = fhir_search_mapping_resolver
 
-    def generate_mapping(self, fhir_dataset_dir: str) \
+    def generate_mapping(self, fhir_dataset_dir: str, module_name) \
             -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, FhirMapping]]:
         """
         Generates the FHIR search mappings for the given FHIR dataset directory
@@ -52,13 +52,13 @@ class FHIRSearchMappingGenerator(object):
         full_fhir_search_mapping_name_fhir_search_mapping: Dict[str, FhirMapping] = {}
         for module_dir in [folder for folder in os.scandir(fhir_dataset_dir) if folder.is_dir()]:
             self.module_dir: str = module_dir.path
-            files = [file.path for file in os.scandir(f"{fhir_dataset_dir}/{module_dir.name}/package") if file.is_file()
+            files = [file.path for file in os.scandir(f"{fhir_dataset_dir}/{module_dir.name}") if file.is_file()
                      and file.name.endswith("snapshot.json")]
             for file in files:
                 with open(file, "r", encoding="utf8") as f:
                     snapshot = json.load(f)
                     context_tc_to_mapping_name, fhir_search_mapping_name_to_mapping = \
-                        self.generate_normalized_term_code_fhir_search_mapping(snapshot, module_dir.name)
+                        self.generate_normalized_term_code_fhir_search_mapping(snapshot, module_name)
                     full_context_term_code_fhir_search_mapping_name_mapping.update(context_tc_to_mapping_name)
                     full_fhir_search_mapping_name_fhir_search_mapping.update(fhir_search_mapping_name_to_mapping)
         return (full_context_term_code_fhir_search_mapping_name_mapping,
