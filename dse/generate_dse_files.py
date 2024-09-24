@@ -90,8 +90,6 @@ if __name__ == '__main__':
     tree_generator = ProfileTreeGenerator(packages_dir, exclude_dirs, module_order)
     tree_generator.get_profiles()
 
-
-
     profile_tree_translations = {}
     with open("profile_tree_translations.json", "r") as f:
         translations_list = json.load(f)
@@ -117,7 +115,7 @@ if __name__ == '__main__':
     if args.generate_profile_details:
 
         profiles = tree_generator.profiles
-        fields_to_exclude = [".meta", ".id", ".subject"]
+        fields_to_exclude = [".meta", ".id", ".subject", ".extension"]
         profile_detail_generator = ProfileDetailGenerator(profiles, mapping_type_code, blacklistedValueSets, fields_to_exclude)
         profile_details = []
 
