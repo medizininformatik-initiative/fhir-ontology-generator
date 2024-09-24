@@ -75,13 +75,18 @@ class StandardSearchParameterResolver(SearchParameterResolver):
         """
         params = []
         search_param_dir = os.path.join("CDS_Module", self.module_name, "search_parameter")
+        search_param_dir_path = Path(search_param_dir)
+
+        if not search_param_dir_path.exists() or not search_param_dir_path.is_dir():
+            return params
+
         for filename in os.listdir(search_param_dir):
             if filename.endswith(".json"):
                 file_path = os.path.join(search_param_dir, filename)
                 with open(file_path, "r", encoding="utf-8") as f:
                     params.append(json.load(f))
-        return params
 
+        return params
 
 def validate_fhir_mapping(mapping_name: str):
     """
@@ -112,14 +117,14 @@ def validate_mapping_tree(tree_name: str, mapping_tree_folder="mapping-tree"):
     validate(instance=tree_data, schema=schema)
 
 
-def write_ui_trees_to_files(trees: List, directory: str = "ui-trees"):
+def write_ui_trees_to_files(trees: List, module_name: str, directory: str = "ui-trees", ):
     """
     Writes UI trees to JSON files in the specified directory.
     :param trees: List of UI tree objects.
     :param directory: Directory to write the UI tree files to.
     """
     for i, tree in enumerate(trees):
-        file_name = f"ui_tree_{i}.json"
+        file_name = f"{module_name}_ui_tree_{i}.json"
         sanitized_name = remove_reserved_characters(file_name)
         file_path = os.path.join(directory, sanitized_name)
         write_object_as_json(tree, file_path)
@@ -355,7 +360,7 @@ def generate_ui_trees(
     logger.info("Generating UI trees...")
     tree_generator = UITreeGenerator(resolver)
     ui_trees = tree_generator.generate_ui_trees(differential_folder, module_name)
-    write_ui_trees_to_files(ui_trees, os.path.join(onto_result_dir, 'ui-trees'))
+    write_ui_trees_to_files(ui_trees, module_name, os.path.join(onto_result_dir, 'ui-trees'))
 
     # Generate term code context info list
     term_code_context_infos = tree_generator.generate_contextualized_term_code_info_list(differential_folder, module_name)
@@ -525,7 +530,8 @@ def main():
             logger.error(f"An error occurred: {e}", exc_info=True)
         finally:
             # Dump the database to the module's directory
-            dump_database(container, module_directory_str, logger)
+            if args.generate_ui_profiles:
+                dump_database(container, module_directory_str, logger)
 
             # Stop and remove the container
             container.stop()

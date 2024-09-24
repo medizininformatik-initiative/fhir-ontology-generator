@@ -1,0 +1,16 @@
+{
+  "name": "project",
+  "version": "0.1.0",
+  "description": "Put a description here",
+  "fhirVersions": [
+    "4.0.1"
+  ],
+  "dependencies": {
+    "hl7.fhir.r4.core": "latest",
+    "de.medizininformatikinitiative.kerndatensatz.medikation": "2.0.0",
+    "de.medizininformatikinitiative.kerndatensatz.person": "2024.0.0",
+    "de.medizininformatikinitiative.kerndatensatz.consent": "1.0.4",
+    "de.medizininformatikinitiative.kerndatensatz.laborbefund": "1.0.6",
+    "de.medizininformatikinitiative.kerndatensatz.diagnose": "2024.0.0"
+  }
+}
