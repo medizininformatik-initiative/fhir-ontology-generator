@@ -4,7 +4,8 @@
   "context": {
     "system": "bzkf.dktk.oncology",
     "code": "PatientAge",
-    "display": "Patient Age"
+    "display": "Patient Age",
+    "version": "1.0.0"
   },"module": {
     "code": "mii-cds-oncology",
     "display": "Onkologie"

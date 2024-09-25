@@ -4,7 +4,8 @@
   "context": {
     "system": "dktk.oncology",
     "code": "Systemtherapie",
-    "display": "Systemtherapie"
+    "display": "Systemtherapie",
+    "version": "1.0.0"
   },"module": {
     "code": "mii-cds-oncology",
     "display": "Onkologie"

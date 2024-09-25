@@ -4,7 +4,8 @@
     "context": {
         "system": "dktk.oncology",
         "code": "Operation",
-        "display": "Operation"
+        "display": "Operation",
+        "version": "1.0.0"
     },"module": {
     "code": "mii-cds-oncology",
     "display": "Onkologie"

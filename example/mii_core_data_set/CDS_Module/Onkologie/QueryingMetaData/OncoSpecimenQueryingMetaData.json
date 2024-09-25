@@ -4,7 +4,8 @@
   "context": {
     "system": "bzkf.dktk.oncology",
     "code": "OncoSpecimen",
-    "display": "OncoSpecimen"
+    "display": "OncoSpecimen",
+    "version": "1.0.0"
   },"module": {
     "code": "mii-cds-oncology",
     "display": "Onkologie"
