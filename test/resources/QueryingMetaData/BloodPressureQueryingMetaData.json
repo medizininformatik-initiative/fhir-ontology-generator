@@ -6,6 +6,10 @@
     "code": "BloodPressure",
     "display": "Blood Pressure"
   },
+  "module": {
+    "code": "mii-cds-Labor",
+    "display": "Labor"
+  },
   "term_code_defining_id": "Observation.code.coding:loinc",
   "attribute_defining_id_type_map": {
     "Observation.component.where(Observation.component:systolicBloodPressure.code):systolicBloodPressure.value[x]": "composite",
