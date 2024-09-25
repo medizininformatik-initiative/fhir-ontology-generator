@@ -1,0 +1,17 @@
+{
+  "name": "TNMp",
+  "resource_type": "Observation",
+  "context": {
+    "system": "bzkf.dktk.oncology",
+    "code": "TNMp",
+    "display": "TNMp"
+  },"module": {
+    "code": "mii-cds-oncology",
+    "display": "Onkologie"
+  },
+  "term_code_defining_id": "Observation.code.coding",
+  "attribute_defining_id_type_map": {
+    "Observation.value[x]": ""
+  },
+  "time_restriction_defining_id": "Observation.effective[x]"
+}

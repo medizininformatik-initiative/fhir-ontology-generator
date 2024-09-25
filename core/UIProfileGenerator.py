@@ -50,6 +50,7 @@ class UIProfileGenerator:
             files = [file.path for file in os.scandir(f"{fhir_dataset_dir}/{module_dir.name}") if file.is_file()
                      and file.name.endswith("snapshot.json")]
             for file in files:
+                print(f"Generating ui profile for snapshot: {file}")
                 with open(file, "r", encoding="utf8") as f:
                     snapshot = json.load(f)
                     context_tc_mapping, profile_name_profile_mapping = \

@@ -1,0 +1,100 @@
+{
+    "resourceType": "StructureDefinition",
+    "url": "http://dktk.dkfz.de/fhir/StructureDefinition/onco-core-Specimen-OncoSpecimen",
+    "version": "1.4.0",
+    "name": "OncoSpecimen",
+    "status": "active",
+    "fhirVersion": "4.0.0",
+    "kind": "resource",
+    "abstract": false,
+    "type": "Specimen",
+    "baseDefinition": "https://fhir.bbmri.de/StructureDefinition/Specimen",
+    "derivation": "constraint",
+    "differential": {
+        "element":  [
+            {
+                "id": "Specimen.identifier",
+                "path": "Specimen.identifier",
+                "slicing": {
+                    "discriminator":  [
+                        {
+                            "type": "value",
+                            "path": "system"
+                        }
+                    ],
+                    "rules": "open"
+                },
+                "mustSupport": true
+            },
+            {
+                "id": "Specimen.identifier:projectid",
+                "path": "Specimen.identifier",
+                "sliceName": "projectid",
+                "mustSupport": true
+            },
+            {
+                "id": "Specimen.identifier:projectid.system",
+                "path": "Specimen.identifier.system",
+                "min": 1,
+                "mustSupport": true,
+                "binding": {
+                    "strength": "extensible",
+                    "valueSet": "http://dktk.dkfz.de/fhir/onco/core/ValueSet/Projects"
+                }
+            },
+            {
+                "id": "Specimen.status",
+                "path": "Specimen.status",
+                "definition": "Die Verfügbarkeit der Probe",
+                "mustSupport": true
+            },
+            {
+                "id": "Specimen.subject",
+                "path": "Specimen.subject",
+                "type":  [
+                    {
+                        "code": "Reference",
+                        "targetProfile":  [
+                            "https://fhir.bbmri.de/StructureDefinition/Patient",
+                            "http://dktk.dkfz.de/fhir/StructureDefinition/onco-core-Patient-Pseudonym",
+                            "http://dktk.dkfz.de/fhir/StructureDefinition/onco-core-Patient-Patient"
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": "Specimen.parent",
+                "path": "Specimen.parent",
+                "short": "Mutterprobe, aus der diese Probe/Aliquot stammt",
+                "definition": "Verweis auf die übergeordnete Mutterprobe. Der Verweis wird verwendet, wenn die aktuelle Probe z.B. ein Aliquot einer Mutterprobe ist.",
+                "mustSupport": true
+            },
+            {
+                "id": "Specimen.container",
+                "path": "Specimen.container",
+                "mustSupport": true
+            },
+            {
+                "id": "Specimen.container.specimenQuantity",
+                "path": "Specimen.container.specimenQuantity",
+                "mustSupport": true
+            },
+            {
+                "id": "Specimen.container.specimenQuantity.value",
+                "path": "Specimen.container.specimenQuantity.value",
+                "mustSupport": true
+            },
+            {
+                "id": "Specimen.container.specimenQuantity.unit",
+                "path": "Specimen.container.specimenQuantity.unit",
+                "mustSupport": true
+            },
+            {
+                "id": "Specimen.container.specimenQuantity.system",
+                "path": "Specimen.container.specimenQuantity.system",
+                "fixedString": "http://unitsofmeasure.org",
+                "mustSupport": true
+            }
+        ]
+    }
+}

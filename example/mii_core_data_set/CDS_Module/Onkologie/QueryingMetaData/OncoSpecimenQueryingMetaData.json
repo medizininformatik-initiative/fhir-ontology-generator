@@ -1,0 +1,14 @@
+{
+  "name": "OncoSpecimen",
+  "resource_type": "Specimen",
+  "context": {
+    "system": "bzkf.dktk.oncology",
+    "code": "OncoSpecimen",
+    "display": "OncoSpecimen"
+  },"module": {
+    "code": "mii-cds-oncology",
+    "display": "Onkologie"
+  },
+  "term_code_defining_id": "Specimen.type",
+  "time_restriction_defining_id": "Specimen.collection.collected[x]"
+}

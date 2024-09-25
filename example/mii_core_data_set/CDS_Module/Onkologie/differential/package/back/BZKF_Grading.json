@@ -1,0 +1,13 @@
+{
+  "resourceType": "StructureDefinition",
+  "url": "https://www.medizininformatik-initiative.de/fhir/fdpg/StructureDefinition/onco-core-Observation-Grading",
+  "version": "0.9.0",
+  "name": "Grading",
+  "status": "active",
+  "description": "Gibt den Differenzierungsgrad des Tumors an",
+  "fhirVersion": "4.0.0",
+  "kind": "resource",
+  "abstract": false,
+  "type": "Observation",
+  "baseDefinition": "http://dktk.dkfz.de/fhir/StructureDefinition/onco-core-Observation-Grading"
+}

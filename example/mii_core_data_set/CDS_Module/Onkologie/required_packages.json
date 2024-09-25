@@ -1,0 +1,8 @@
+[
+  "de.dktk.oncology 1.3.0",
+  "de.basisprofil.r4 1.3.2",
+  "de.basisprofil.r4 1.4.0",
+  "hl7.fhir.r4.core 4.0.1",
+  "hl7.fhir.uv.ips 1.0.0",
+  "de.bbmri.fhir 1.1.0"
+]

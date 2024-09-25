@@ -1,0 +1,16 @@
+{
+  "resourceType": "SearchParameter",
+  "id": "SearchParamOPIntention",
+  "url": "https://diz.uk-erlangen.de/SearchParameter/op-intention",
+  "name": "op-intention",
+  "status": "active",
+  "experimental": false,
+  "description": "Suchparameter für die Extension Intention am Profil Operation",
+  "code": "op-intention",
+  "base": [
+    "Procedure"
+  ],
+  "type": "token",
+  "expression": "Procedure.extension.where(url='http://dktk.dkfz.de/fhir/StructureDefinition/onco-core-Extension-OPIntention').value"
+}
+  
