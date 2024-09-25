@@ -1,0 +1,22 @@
+{
+  "resourceType": "SearchParameter",
+  "id": "SearchParamCondSpecimen",
+  "url": "https://diz.uk-erlangen.de/SearchParameter/specimen",
+  "name": "specimen",
+  "status": "active",
+  "experimental": false,
+  "description": "Suchparameter für die Extension Specimen am Profil Primärdiagnose",
+  "code": "specimen",
+  "base": [
+    "Condition"
+  ],
+  "type": "reference",
+  "expression": "Condition.extension.where(url='http://dktk.dkfz.de/fhir/StructureDefinition/onco-core-Extension-Specimen').value as Reference",
+  "target": [
+    "Specimen"
+  ],
+  "chain": [
+    "*"
+  ]
+}
+  

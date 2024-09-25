@@ -1,0 +1,15 @@
+{
+  "resourceType": "SearchParameter",
+  "id": "SearchParamBodysite",
+  "url": "https://diz.uk-erlangen.de/SearchParameter/bodysite",
+  "name": "bodysite",
+  "status": "active",
+  "experimental": false,
+  "description": "Suchparameter für die bodysite in einer Observation",
+  "code": "bodysite",
+  "base": [
+    "Observation"
+  ],
+  "type": "token",
+  "expression": "bodySite"
+}
