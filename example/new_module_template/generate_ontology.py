@@ -74,9 +74,8 @@ def write_ui_trees_to_files(trees: List[TermEntry], directory: str = "ui-trees")
     :param trees: ui trees to write
     :param directory: directory to write the ui trees to
     """
-    for tree in trees:
-        print(tree.display)
-        write_object_as_json(tree, f"{directory}/{tree.display}.json")
+    for i, tree in enumerate(trees):
+        write_object_as_json(tree, f"{directory}/ui_tree{i}.json")
 
 
 # Todo: this should be an abstract method that has to be implemented for each use-case

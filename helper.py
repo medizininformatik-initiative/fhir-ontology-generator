@@ -72,7 +72,7 @@ def mkdir_if_not_exists(directory: str):
     """
     if not path.isdir(f"./{directory}"):
         try:
-            os.mkdir(directory)
+            os.makedirs(directory)
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
@@ -112,7 +112,7 @@ def generate_snapshots(package_dir: str, prerequisite_packages: List[str] = None
     for folder in [f.path for f in os.scandir(package_dir) if f.is_dir()]:
         if folder.endswith("dependencies"):
             continue
-        os.chdir(f"{folder}/package")
+        os.chdir(f"{folder}")
         # generates snapshots for all differential in the package if they do not exist
         for file in [f for f in os.listdir('.') if
                      os.path.isfile(f) and is_structure_definition(f) and "-snapshot" not in f

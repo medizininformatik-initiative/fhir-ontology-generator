@@ -3,6 +3,7 @@ import json
 import uuid
 import zipfile
 from zipfile import ZipFile
+import re
 
 
 class ElasticSearchGenerator:
@@ -204,7 +205,8 @@ class ElasticSearchGenerator:
         term_code_info_map = {}
 
         folder = f'{ontology_dir}/term-code-info'
-        filename_prefix = tree_file_name.replace("_tree.json", "")
+        pattern = r'_ui_tree_\d+.json'
+        filename_prefix = re.sub(pattern, '', tree_file_name)
 
         with open(f"{folder}/{filename_prefix}_term_code_info.json", 'r') as f:
             print(f"{folder}/{filename_prefix}_term_code_info.json")

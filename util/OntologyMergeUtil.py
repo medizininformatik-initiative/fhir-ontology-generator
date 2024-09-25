@@ -218,9 +218,13 @@ if __name__ == '__main__':
         os.makedirs(output_sql_script_dir, exist_ok=True)
 
         for ontodir in args.ontodirs:
+            print(ontodir)
             cur_sql_file_path = path_for_file(ontodir, "R__Load_latest_ui_profile.sql")
+            print(cur_sql_file_path)
             shutil.copy(f'{cur_sql_file_path}',
                         f'{output_sql_script_dir}/R__Load_latest_ui_profile_{str(sql_script_index)}.sql')
+
+            sql_script_index += 1
 
         sql_merger = SqlMerger(sql_script_dir=output_sql_script_dir)
         sql_merger.execute_merge()
