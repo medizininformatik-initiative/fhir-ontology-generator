@@ -315,7 +315,7 @@ class UIProfileGenerator:
         :param module_dir: module directory of the profile
         :return: referenced context
         """
-        module_name = module_dir.replace("package", "").split("/")[-1]
+        module_name = module_dir.replace("package", "").split(os.sep)[-1]
         return self.querying_meta_data_resolver.get_query_meta_data(profile_snapshot,
                                                                     module_name)[0].context
 

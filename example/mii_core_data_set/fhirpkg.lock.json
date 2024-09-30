@@ -1,5 +1,5 @@
 {
-  "updated": "2024-09-24T21:09:22.823235+02:00",
+  "updated": "2024-09-25T14:04:59.8995011+02:00",
   "dependencies": {
     "hl7.fhir.r4.core": "4.0.1",
     "de.medizininformatikinitiative.kerndatensatz.medikation": "2.0.0",
@@ -11,7 +11,8 @@
     "de.einwilligungsmanagement": "1.0.1",
     "de.medizininformatikinitiative.kerndatensatz.laborbefund": "1.0.6",
     "de.medizininformatikinitiative.kerndatensatz.diagnose": "2024.0.0",
-    "de.medizininformatikinitiative.kerndatensatz.fall": "2024.0.1"
+    "de.medizininformatikinitiative.kerndatensatz.fall": "2024.0.1",
+    "de.medizininformatikinitiative.kerndatensatz.biobank": "1.0.1"
   },
   "missing": {}
 }
