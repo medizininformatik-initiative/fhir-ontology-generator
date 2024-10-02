@@ -43,6 +43,7 @@ def convert_bool_analysis_to_code(distributed_analysis, eu_gdpr, insurance_data,
 
 
 def generate_fixed_fhir_criteria(provisions_code, provisions_display) -> list[FixedFHIRCriteria]:
+
     return [FixedFHIRCriteria("coding", "mii-provision-provision-code",
             [{"code": code, "display": display, "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3"}])
             for code, display in zip(provisions_code, provisions_display)]
@@ -60,8 +61,7 @@ def process_csv(csv_file: str):
     consents_cql = []
 
     context = TermCode("fdpg.mii.cds", "Einwilligung", "Einwilligung", "1.0.0")
-
-    consent_mapping_tree = TreeMap({}, context, "fdpg.consent.combined" , "1.0.0")
+    consent_mapping_tree = TreeMap({}, context, "fdpg.consent.combined", "1.0.0")
 
     with open(csv_file, mode='r', newline='', encoding='utf-8') as file:
         reader = csv.DictReader(file, delimiter=";")
@@ -77,7 +77,13 @@ def process_csv(csv_file: str):
             term_code = TermCode(system="fdpg.consent.combined", code=consent_code, display=row['analysis'])
 
             fhir_mapping.key = term_code
+            fhir_mapping.context = context
+            fhir_mapping.fhirResourceType = "Consent"
+            fhir_mapping.timeRestrictionParameter = "date"
             cql_mapping.key = term_code
+            cql_mapping.context = context
+            cql_mapping.timeRestrictionFhirPath = "Consent.datetime"
+            cql_mapping.fhirResourceType = "Consent"
 
             provisions_code = [code.strip() for code in row['provisions-code'].split('|')]
             provisions_display = [display.strip() for display in row['provisions-display'].split('|')]
