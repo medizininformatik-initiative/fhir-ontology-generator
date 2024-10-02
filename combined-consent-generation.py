@@ -102,7 +102,7 @@ def process_csv(csv_file: str):
 
 def save_json(filename: str, data):
     with open(filename, "w+") as f:
-        json.dump(data, f, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)
+        json.dump(data, f, default=lambda o: del_none(o.__dict__))
 
 
 def append_to_json(filename: str, input_filename: str, data):
