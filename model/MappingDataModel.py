@@ -117,6 +117,7 @@ class CQLMapping:
     :param name: name of the mapping acting as primary key
     """
     name: str
+    resourceType: str | None = None
     termCodeFhirPath: Optional[str] = None
     valueFhirPath: Optional[str] = None
     valueType = None
@@ -124,6 +125,7 @@ class CQLMapping:
     attributeFhirPaths: List[CQLAttributeSearchParameter] = field(default_factory=list)
     # only required for version 1 support
     key: Optional[str] = None
+
 
     def add_attribute(self, attribute_search_parameter: CQLAttributeSearchParameter):
         self.attributeFhirPaths.append(attribute_search_parameter)

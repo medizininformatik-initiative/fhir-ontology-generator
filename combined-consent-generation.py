@@ -83,7 +83,7 @@ def process_csv(csv_file: str):
             cql_mapping.key = term_code
             cql_mapping.context = context
             cql_mapping.timeRestrictionFhirPath = "Consent.datetime"
-            cql_mapping.fhirResourceType = "Consent"
+            cql_mapping.resourceType = "Consent"
 
             provisions_code = [code.strip() for code in row['provisions-code'].split('|')]
             provisions_display = [display.strip() for display in row['provisions-display'].split('|')]
