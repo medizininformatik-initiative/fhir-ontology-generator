@@ -152,17 +152,19 @@ class ProfileDetailGenerator():
             # TODO - check why this happens and if this is a problem
             return None
 
+        struct_def = profile["structureDefinition"]
+
         profile_detail = {
             "url": profile["url"],
-            "display": {"original": profile.get("title", ""),
+            "display": {"original": struct_def.get("title", ""),
                         "translations": [
                             {
                                 "language": "de-DE",
-                                "value": self.get_value_for_lang_code(profile.get("_title", {}), "de-DE")
+                                "value": self.get_value_for_lang_code(struct_def.get("_title", {}), "de-DE")
                             },
                             {
                                 "language": "en-US",
-                                "value": self.get_value_for_lang_code(profile.get("_title", {}), "en-US")
+                                "value": self.get_value_for_lang_code(struct_def.get("_title", {}), "en-US")
                             }
                         ]
                         },
