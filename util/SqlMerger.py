@@ -172,7 +172,8 @@ class SqlMerger:
         cur = self.conn.cursor()
         query_for_schemas = """
         SELECT schema_name
-        FROM information_schema.schemata;
+        FROM information_schema.schemata
+        ORDER BY schema_name ASC;
         """
 
         cur.execute(query_for_schemas)
