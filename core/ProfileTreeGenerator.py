@@ -5,32 +5,37 @@ import json
 
 class ProfileTreeGenerator():
 
-    def __init__(self, packagesDir: str, exclude_dirs, module_order):
+    def __init__(self, packagesDir: str, exclude_dirs, module_order, module_translation):
 
         self.profiles = {}
         self.packagesDir = packagesDir
         self.exclude_dirs = exclude_dirs
         self.module_order = module_order
+        self.module_translation = module_translation
 
-    def build_profile_path(self, path, profile, profiles, translated_profiles):
+    def build_profile_path(self, path, profile, profiles):
 
         profile_struct = profile["structureDefinition"]
         parent_profile_url = profile_struct["baseDefinition"]
-
-        translated_profile = translated_profiles[profile["url"]]
-        translation_de = translated_profile['display']['translation']['de']
-
-        if translation_de != "":
-            display = translation_de
-        else:
-            display = profile_struct["title"]
 
         path.insert(
             0,
             {
                 "id": str(uuid.uuid4()),
                 "name": profile["name"],
-                "display": display,
+                "display": {
+                    "original": profile_struct.get("title", ""),
+                    "translations": [
+                                  {
+                                      "language": "de-DE",
+                                      "value": self.get_value_for_lang_code(profile_struct.get('_title', {}), "de-DE")
+                                  },
+                                  {
+                                      "language": "en-US",
+                                      "value": self.get_value_for_lang_code(profile_struct.get('_title', {}), "en-US")
+                                  }
+                              ]
+                },
                 "module": profile["module"],
                 "url": profile["url"],
             },
@@ -38,7 +43,7 @@ class ProfileTreeGenerator():
 
         if parent_profile_url in profiles:
             parent_profile = profiles[parent_profile_url]
-            self.build_profile_path(path, parent_profile, profiles, translated_profiles)
+            self.build_profile_path(path, parent_profile, profiles)
 
         return path
 
@@ -144,33 +149,44 @@ class ProfileTreeGenerator():
                     pass
 
     def custom_sort(self, item, order):
-        name = item["display"]
+        name = item["module"]
         if name in order:
             return (0, order.index(name))
         else:
             return (1, name)
 
-    def generate_profiles_tree(self, translated_profiles):
+    def get_value_for_lang_code(self, data, langCode):
+        for ext in data.get('extension', []):
+            if any(e.get('url') == 'lang' and e.get('valueCode') == langCode for e in ext.get('extension', [])):
+                return next(e['valueString'] for e in ext['extension'] if e.get('url') == 'content')
+        return ""
+
+    def generate_profiles_tree(self):
 
         tree = {"name": "Root", "module": "no-module", "url": "no-url", "children": [], "selectable": False}
 
         for profile in self.profiles.values():
 
-            translated_profile = translated_profiles[profile["module"]]
-            translation_de = translated_profile['display']['translation']['de']
-
-            if translation_de != "":
-                display = translation_de
-            else:
-                display = self.module_name_to_display(profile["module"])
-
-            path = self.build_profile_path([], profile, self.profiles, translated_profiles)
+            path = self.build_profile_path([], profile, self.profiles)
+            module = profile["module"]
             path.insert(0, {
                 "id": str(uuid.uuid4()),
-                "name": profile["module"],
-                "display": display,
-                "url": profile["module"],
-                "module": profile["module"],
+                "name": module,
+                "display": {
+                    "original": self.module_translation["de-DE"].get(module, module),
+                    "translations": [
+                                  {
+                                      "language": "de-DE",
+                                      "value": self.module_translation["de-DE"].get(module, module)
+                                  },
+                                  {
+                                      "language": "en-US",
+                                      "value": self.module_translation["en-US"].get(module, module)
+                                  }
+                              ]
+                },
+                "url": module,
+                "module": module,
                 "selectable": False,
                 "leaf": False
             }
