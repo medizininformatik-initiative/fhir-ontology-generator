@@ -18,8 +18,16 @@
           "token_chars": [
             "letter",
             "digit",
-            "punctuation"
+            "punctuation",
+            "custom"
+          ],
+          "custom_token_chars": [
+            "+-_"
           ]
+        },
+        "whitespace_tokenizer": {
+          "type": "simple_pattern_split",
+          "pattern": " "
         }
       },
       "analyzer": {
@@ -39,7 +47,7 @@
         },
         "lowercase_analyzer": {
           "type": "custom",
-          "tokenizer": "standard",
+          "tokenizer": "whitespace_tokenizer",
           "filter": [
             "lowercase"
           ]
