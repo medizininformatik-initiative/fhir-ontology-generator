@@ -12,5 +12,5 @@
     "version": "1.0.0"
   },
   "term_code_defining_id": "Condition.code.coding:icd10-gm",
-  "time_restriction_defining_id": "Condition.onset[x]"
+  "time_restriction_defining_id": "Condition.recordedDate"
 }

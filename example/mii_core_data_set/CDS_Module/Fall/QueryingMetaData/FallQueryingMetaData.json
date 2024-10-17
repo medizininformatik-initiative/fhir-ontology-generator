@@ -11,9 +11,16 @@
     "display": "Fall",
     "version": "1.0.0"
   },
-  "term_code_defining_id": "Encounter.class",
+  "term_codes": [
+    {
+      "system": "http://snomed.info/sct",
+      "code": "263495000",
+      "display": "Geschlecht"
+    }
+  ],
   "time_restriction_defining_id": "Encounter.period",
   "attribute_defining_id_type_map": {
+    "Encounter.class":  "",
     "Encounter.serviceType.coding:Fachabteilungsschluessel": "",
     "Encounter.serviceType.coding:ErweiterterFachabteilungsschluessel": "",
     "Encounter.type:Kontaktebene": "",

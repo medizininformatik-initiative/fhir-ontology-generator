@@ -31,5 +31,6 @@
     "Fachabteilungsschluessel": "Fachabteilungsschluessel",
     "ErweiterterFachabteilungsschluessel": "ErweiterterFachabteilungsschluessel",
     "Kontaktebene": "Kontaktebene",
-    "KontaktArt": "KontaktArt"
+    "KontaktArt": "KontaktArt",
+    "class": "class"
 }
