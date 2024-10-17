@@ -6,6 +6,7 @@ from model.MappingDataModel import FhirMapping, FixedFHIRCriteria
 from model.MappingDataModel import CQLMapping, FixedCQLCriteria
 from model.TreeMap import TreeMap, TermEntryNode
 import argparse
+import os
 
 def configure_args_parser():
     arg_parser = argparse.ArgumentParser(description='Generate the consent for the MII-FDPG')
@@ -132,7 +133,7 @@ if __name__ == "__main__":
     merged_ontology_dir = args.mergedontodir
     consent_input_dir = args.consentinputdir
 
-    consents_fhir, consents_cql, consent_mapping_tree, lookup_table = process_csv(f"{consent_input_dir}/csv-consent.csv")
+    consents_fhir, consents_cql, consent_mapping_tree, lookup_table = process_csv(os.path.join(consent_input_dir, "csv-consent.csv"))
     save_json(f"{consent_input_dir}/consent-mappings_fhir.json", consents_fhir)
     save_json(f"{consent_input_dir}/consent-mappings_cql.json", consents_cql)
     save_json(f"{consent_input_dir}/consent-mappings-tree.json", consent_mapping_tree.to_dict())
