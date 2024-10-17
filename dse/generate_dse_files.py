@@ -8,6 +8,32 @@ from core.ProfileDetailGenerator import ProfileDetailGenerator
 from core.ProfileTreeGenerator import ProfileTreeGenerator
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY
 
+
+module_translation = {
+    "de-DE": {
+        "modul-diagnose": "Diagnose",
+        "modul-prozedur": "Prozedur",
+        "modul-person": "Person",
+        "modul-labor": "Labor",
+        "modul-medikation": "Medikation",
+        "modul-fall": "Fall",
+        "modul-biobank": "Biobank",
+        "modul-consent": "Einwilligung"
+    },
+    "en-US": {
+        "modul-diagnose": "Diagnosis",
+        "modul-prozedur": "Procedure",
+        "modul-person": "Person",
+        "modul-labor": "Laboratory",
+        "modul-medikation": "Medication",
+        "modul-fall": "Case",
+        "modul-biobank": "Biobank",
+        "modul-consent": "Consent"
+    }
+}
+
+module_order = ["modul-diagnose", "modul-prozedur", "modul-person", "modul-labor", "modul-medikation", "modul-fall", "modul-biobank", "modul-consent"]
+
 def configure_args_parser():
 
     arg_parser = argparse.ArgumentParser()
@@ -85,18 +111,10 @@ if __name__ == '__main__':
 
     packages_dir = f"{os.getcwd()}/dse-packages/dependencies"
 
-    module_order = ["Diagnose", "Prozedur", "Person", "Labor", "Medikation", "Fall", "Biobank", "Consent"]
-
-    tree_generator = ProfileTreeGenerator(packages_dir, exclude_dirs, module_order)
+    tree_generator = ProfileTreeGenerator(packages_dir, exclude_dirs, module_order, module_translation)
     tree_generator.get_profiles()
 
-    profile_tree_translations = {}
-    with open("profile_tree_translations.json", "r") as f:
-        translations_list = json.load(f)
-        for translated_profile in translations_list:
-            profile_tree_translations[translated_profile["url"]] = translated_profile
-
-    profile_tree = tree_generator.generate_profiles_tree(profile_tree_translations)
+    profile_tree = tree_generator.generate_profiles_tree()
 
     with open("generated/profile_tree.json", "w") as f:
         json.dump(profile_tree, f)
@@ -107,6 +125,7 @@ if __name__ == '__main__':
                          "Consent": "provision.provision.code",
                          "Procedure": "code",
                          "MedicationAdministration": "medication.code",
+                         "MedicationStatement": "medication.code",
                          "Specimen": "type"
                          }
 
@@ -125,7 +144,7 @@ if __name__ == '__main__':
         for profile in profiles:
 
             profile_detail = profile_detail_generator.generate_detail_for_profile(profiles[profile])
-            profile_detail = profile_detail_generator.translate_detail_for_profile(profile_detail, translated_profiles)
+            #profile_detail = profile_detail_generator.translate_detail_for_profile(profile_detail)
 
             if profile_detail:
                 profile_details.append(profile_detail)
