@@ -12,7 +12,13 @@
   },
   "term_code_defining_id": "Observation.code.coding",
   "attribute_defining_id_type_map": {
-    "Observation.value[x]": ""
+    "Observation.value[x]": "",
+    "Observation.component.where(Observation.component:TNM-T.code.coding):TNM-T.value[x]": "composite",
+    "Observation.component.where(Observation.component:TNM-N.code.coding):TNM-N.value[x]": "composite",
+    "Observation.component.where(Observation.component:TNM-M.code.coding):TNM-M.value[x]": "composite",
+    "Observation.component.where(Observation.component:TNM-y-Symbol.code.coding):TNM-y-Symbol.value[x]": "composite",
+    "Observation.component.where(Observation.component:TNM-r-Symbol.code.coding):TNM-r-Symbol.value[x]": "composite",
+    "Observation.component.where(Observation.component:TNM-m-Symbol.code.coding):TNM-m-Symbol.value[x]": "composite"
   },
   "time_restriction_defining_id": "Observation.effective[x]"
 }

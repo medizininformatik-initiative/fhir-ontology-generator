@@ -1,0 +1,121 @@
+{
+    "resourceType": "StructureDefinition",
+    "url": "http://dktk.dkfz.de/fhir/StructureDefinition/onco-core-Patient-Patient",
+    "version": "0.9.0",
+    "name": "Patient",
+    "status": "active",
+    "description": "Ermittlung der Patientenstammdaten",
+    "fhirVersion": "4.0.0",
+    "kind": "resource",
+    "abstract": false,
+    "type": "Patient",
+    "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Patient",
+    "derivation": "constraint",
+    "differential": {
+        "element":  [
+            {
+                "id": "Patient.identifier",
+                "path": "Patient.identifier",
+                "mustSupport": true
+            },
+            {
+                "id": "Patient.name",
+                "path": "Patient.name",
+                "mustSupport": true
+            },
+            {
+                "id": "Patient.gender",
+                "path": "Patient.gender",
+                "short": "Geschlecht",
+                "definition": "Das Geschlecht des Patienten",
+                "mustSupport": true,
+                "mapping":  [
+                    {
+                        "identity": "ADT-GEKID",
+                        "map": "Patienten_Stammdaten:Patienten_Geschlecht",
+                        "comment": "Patienten_Stammdaten:Patienten_Geschlecht"
+                    },
+                    {
+                        "identity": "ISO-11179",
+                        "map": "urn:dktk:dataelement:1:3",
+                        "comment": "urn:dktk:dataelement:1:3"
+                    }
+                ]
+            },
+            {
+                "id": "Patient.birthDate",
+                "path": "Patient.birthDate",
+                "short": "Geburtsdatum",
+                "definition": "Das Geburtsdatum des Patienten",
+                "mustSupport": true,
+                "mapping":  [
+                    {
+                        "identity": "ADT-GEKID",
+                        "map": "Patienten_Stammdaten:Patienten_Geburtsdatum",
+                        "comment": "Patienten_Stammdaten:Patienten_Geburtsdatum"
+                    },
+                    {
+                        "identity": "ISO-11179",
+                        "map": "urn:dktk:dataelement:26:4",
+                        "comment": "urn:dktk:dataelement:26:4"
+                    }
+                ]
+            },
+            {
+                "id": "Patient.deceased[x]",
+                "path": "Patient.deceased[x]",
+                "mustSupport": true
+            },
+            {
+                "id": "Patient.deceased[x]:deceasedDateTime",
+                "path": "Patient.deceased[x]",
+                "sliceName": "deceasedDateTime",
+                "type":  [
+                    {
+                        "code": "dateTime"
+                    }
+                ]
+            },
+            {
+                "id": "Patient.deceased[x]:deceasedBoolean",
+                "path": "Patient.deceased[x]",
+                "sliceName": "deceasedBoolean",
+                "type":  [
+                    {
+                        "code": "boolean"
+                    }
+                ]
+            },
+            {
+                "id": "Patient.maritalStatus",
+                "path": "Patient.maritalStatus",
+                "max": "0"
+            },
+            {
+                "id": "Patient.multipleBirth[x]",
+                "path": "Patient.multipleBirth[x]",
+                "max": "0"
+            },
+            {
+                "id": "Patient.photo",
+                "path": "Patient.photo",
+                "max": "0"
+            },
+            {
+                "id": "Patient.communication",
+                "path": "Patient.communication",
+                "max": "0"
+            },
+            {
+                "id": "Patient.generalPractitioner",
+                "path": "Patient.generalPractitioner",
+                "max": "0"
+            },
+            {
+                "id": "Patient.link",
+                "path": "Patient.link",
+                "max": "0"
+            }
+        ]
+    }
+}
