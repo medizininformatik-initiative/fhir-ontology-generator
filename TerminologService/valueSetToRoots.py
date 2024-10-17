@@ -1,4 +1,7 @@
 import bisect
+import json
+import logging
+import os.path
 from typing import List
 import locale
 
@@ -7,8 +10,11 @@ from sortedcontainers import SortedSet
 
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, REQUESTS_SESSION
 from model.UiDataModel import TermCode
+from util.LoggingUtil import init_logger
 
 locale.setlocale(locale.LC_ALL, 'de_DE')
+
+logger = init_logger("valueSetToRoots", logging.DEBUG)
 
 
 def get_value_set_expansion(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
@@ -97,15 +103,16 @@ def create_vs_tree_map(canonical_url: str) -> TreeMap:
     return treemap
 
 
-def create_concept_map():
+def create_concept_map(name: str = "closure-test"):
     """
     Creates an empty concept map for closure operation on the ontology server.
+    :param name: identifier of the concept map for closure invocation
     """
     body = {
         "resourceType": "Parameters",
         "parameter": [{
             "name": "name",
-            "valueString": "closure-test"
+            "valueString": name
         }]
     }
     headers = {"Content-type": "application/fhir+json"}
@@ -113,27 +120,30 @@ def create_concept_map():
                   cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
 
 
-def get_closure_map(term_codes):
+def get_closure_map(term_codes, closure_name: str = "closure-test"):
     """
     Returns the closure map of a set of term codes.
     :param term_codes: set of term codes with potential hierarchical relations among them
+    :param closure_name: identifier of the closure table to invoke closure operation on
     :return: closure map of the term codes
     """
     body = {"resourceType": "Parameters",
-            "parameter": [{"name": "name", "valueString": "closure-test"}]}
+            "parameter": [{"name": "name", "valueString": closure_name}]}
     for term_code in term_codes:
         # FIXME: Workaround for gecco. ValueSets with multiple versions are not supported in closure.
         #  Maybe split by version? Or change Profile to reference ValueSet with single version?
         if term_code.system == "http://fhir.de/CodeSystem/bfarm/atc" and term_code.version != "2022":
             continue
 
+        value_coding = {
+            "system": f"{term_code.system}",
+            "code": f"{term_code.code}",
+            "display": f"{term_code.display}"
+        }
+        if term_code.version:
+            value_coding['version'] = term_code.version
         body["parameter"].append({"name": "concept",
-                                  "valueCoding": {
-                                      "system": f"{term_code.system}",
-                                      "code": f"{term_code.code}",
-                                      "display": f"{term_code.display}",
-                                      "version": f"{term_code.version}"
-                                  }})
+                                  "valueCoding": value_coding})
     headers = {"Content-type": "application/fhir+json"}
     response = REQUESTS_SESSION.post(TERMINOLOGY_SERVER_ADDRESS + "$closure", json=body, headers=headers,
                              cert=(SERVER_CERTIFICATE, PRIVATE_KEY))

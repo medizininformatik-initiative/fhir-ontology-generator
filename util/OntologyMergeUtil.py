@@ -250,6 +250,11 @@ if __name__ == '__main__':
         shutil.copy(f'{cur_dse_tree_path}',
                     f'{args.outputdir}/profile_tree.json')
 
+        cur_dse_mapping_tree_path = path_for_file(args.dseontodir, "dse_mapping_tree.json")
+
+        shutil.copy(f'{cur_dse_mapping_tree_path}',
+                    f'{args.outputdir}/mapping/dse_mapping_tree.json')
+
 
     system_urls = collect_all_terminology_systems(args.outputdir)
 

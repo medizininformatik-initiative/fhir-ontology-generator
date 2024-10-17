@@ -10,3 +10,6 @@ dependencies
 /.git/
 availability/*.json
 !availability/stratum-to-context.json
+
+/.commit
+.commit
