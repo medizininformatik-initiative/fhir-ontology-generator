@@ -257,13 +257,9 @@ if __name__ == '__main__':
         profile_detail_generator = ProfileDetailGenerator(profiles, mapping_type_code, blacklistedValueSets, fields_to_exclude)
         profile_details = []
 
-        with open("profile_details_all_translations.json", "r") as f:
-            translated_profiles = json.load(f)
-
         for profile in profiles:
 
             profile_detail = profile_detail_generator.generate_detail_for_profile(profiles[profile])
-            #profile_detail = profile_detail_generator.translate_detail_for_profile(profile_detail)
 
             if profile_detail:
                 profile_details.append(profile_detail)

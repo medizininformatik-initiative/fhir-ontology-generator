@@ -141,6 +141,13 @@ class ProfileDetailGenerator():
         return ""
 
 
+    def resource_type_to_date_param(self, resource_type):
+
+        if resource_type == 'Condition':
+            return "recorded-date"
+
+        return "date"
+
     def generate_detail_for_profile(self, profile):
 
         print(f"Generating profile detail for: {profile['url']}")
@@ -153,6 +160,9 @@ class ProfileDetailGenerator():
             return None
 
         struct_def = profile["structureDefinition"]
+
+
+        date_param = self.resource_type_to_date_param(struct_def['type'])
 
         profile_detail = {
             "url": profile["url"],
@@ -169,7 +179,7 @@ class ProfileDetailGenerator():
                         ]
                         },
             "filters": [
-                {"type": "date", "name": "date", "ui_type": "timeRestriction"},
+                {"type": "date", "name": date_param , "ui_type": "timeRestriction"}
             ],
         }
 
