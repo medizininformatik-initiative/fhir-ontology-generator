@@ -30,8 +30,9 @@ To summarize, the following steps have to be followed:
 1. Generate Cohort Definition ontologies [link to documentation](##generate-cohort-definition-ontologies)  //TODO - move from this file to own file after Restructuring
 2. Generate Data Selection ontology [link](dse/README.md)
 3. Merge all Cohort Definition and Data Selection ontologies [link](Merger-README.md)
-4. Generate the Elastic Search Input files from the merged ontology [link](Elastic-README.md)
-5. Parcel the ontology files [link to documentation](##generate-cohort)
+4. Generate the combined consent using `combined-consent-generation.py` 
+5. Generate the Elastic Search Input files from the merged ontology [link](Elastic-README.md)
+6. Parcel the ontology files [link to documentation](##generate-cohort)
 
 This will create three files: backend.zip, elastic.zip and mapping.zip, which all work together to allow for the execution
 of cohort and data selection queries.
