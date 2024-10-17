@@ -11,9 +11,37 @@ from core.ProfileDetailGenerator import ProfileDetailGenerator
 from core.ProfileTreeGenerator import ProfileTreeGenerator
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY
 from TerminologService.valueSetToRoots import get_closure_map, remove_non_direct_ancestors, create_concept_map
-from model.TreeMap import TreeMap
+from model.TreeMap import TreeMap, TermEntryNode
 from model.UiDataModel import TermCode
 
+from util.LoggingUtil import init_logger, log_to_stdout
+
+logger = init_logger("dse", logging.DEBUG)
+
+module_translation = {
+    "de-DE": {
+        "modul-diagnose": "Diagnose",
+        "modul-prozedur": "Prozedur",
+        "modul-person": "Person",
+        "modul-labor": "Labor",
+        "modul-medikation": "Medikation",
+        "modul-fall": "Fall",
+        "modul-biobank": "Biobank",
+        "modul-consent": "Einwilligung"
+    },
+    "en-US": {
+        "modul-diagnose": "Diagnosis",
+        "modul-prozedur": "Procedure",
+        "modul-person": "Person",
+        "modul-labor": "Laboratory",
+        "modul-medikation": "Medication",
+        "modul-fall": "Case",
+        "modul-biobank": "Biobank",
+        "modul-consent": "Consent"
+    }
+}
+
+module_order = ["modul-diagnose", "modul-prozedur", "modul-person", "modul-labor", "modul-medikation", "modul-fall", "modul-biobank", "modul-consent"]
 
 def configure_args_parser():
 
@@ -22,6 +50,12 @@ def configure_args_parser():
     arg_parser.add_argument('--generate_profile_details', action='store_true')
     arg_parser.add_argument('--download_value_sets', action='store_true')
     arg_parser.add_argument('--generate_mapping_trees', action='store_true')
+    arg_parser.add_argument(
+        "--loglevel",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        default="INFO",
+        help="Set the log level",
+    )
     return arg_parser
 
 def download_simplifier_packages(package_names):
@@ -35,7 +69,7 @@ def download_simplifier_packages(package_names):
     os.chdir(prev_dir)
 
 def download_and_save_value_set(value_set_url, session):
-    value_set_folder = 'generated/value-sets'
+    value_set_folder = os.path.join('generated', 'value-sets')
 
     onto_server_value_set_url = f'{TERMINOLOGY_SERVER_ADDRESS}ValueSet/$expand?url={value_set_url}'
 
@@ -63,7 +97,7 @@ def download_all_value_sets(profile_details):
         download_and_save_value_set(value_set_url, session)
 
 def generate_r_load_sql(profile_details):
-    with open("generated/R__load_latest_dse_profiles.sql", "w+") as sql_file:
+    with open(os.path.join("generated", "R__load_latest_dse_profiles.sql"), "w+") as sql_file:
         sql_file.write("DELETE FROM dse_profile;\n")
         sql_file.write("ALTER SEQUENCE public.dse_profile_id_seq RESTART WITH 1;\n")
         sql_file.write("INSERT INTO dse_profile(id, url, entry) VALUES \n")
@@ -111,29 +145,29 @@ def extract_concepts_from_value_set(vs: dict, target: dict, mode: Literal['compo
 
 
 def generate_cs_tree_map(system: str, version: str | None, concepts: set) -> TreeMap:
-    # Initialize closure table
+    logger.debug("Initializing closure table")
     create_concept_map(name="dse-closure")
-    # To reuse existing code we have to flatten the dict
-    term_codes = map(lambda t: TermCode(system, t[0], t[1], version), concepts)
+    term_codes = list(map(lambda t: TermCode(system, t[0], t[1], version), concepts))
     treemap: TreeMap = TreeMap({}, None, system, version)
+    treemap.entries = {term_code.code: TermEntryNode(term_code) for term_code in term_codes}
+    logger.debug("Building closure table")
     try:
-        print("test")
         closure_map = get_closure_map(term_codes, closure_name="dse-closure")
-        print("test")
         if groups := closure_map.get("group"):
             if len(groups) > 1:
                 raise Exception("Multiple groups in closure map. Currently not supported.")
+            logger.debug("Building tree map")
             for group in groups:
                 subsumption_map = group["element"]
                 subsumption_map = {item['code']: [target['code'] for target in item['target']] for item in subsumption_map}
-                for code, parents in subsumption_map.items():
+                for _, parents in subsumption_map.items():
                     remove_non_direct_ancestors(parents, subsumption_map)
                 for node, parents, in subsumption_map.items():
                     treemap.entries[node].parents += parents
                     for parent in parents:
                         treemap.entries[parent].children.append(node)
     except Exception as e:
-        logging.error(e, exc_info=e)
+        logger.error(e, exc_info=e)
 
     return treemap
 
@@ -141,18 +175,19 @@ def generate_cs_tree_map(system: str, version: str | None, concepts: set) -> Tre
 def generate_dse_mapping_trees(vs_dir_path: Union[str, os.PathLike]) -> list[dict]:
     # Check presence of downloaded value sets
     if not os.path.isdir(vs_dir_path):
-        logging.error("Directory with downloaded value sets does not exist")
+        logger.error("Directory with downloaded value sets does not exist")
         raise Exception(f"Directory with downloaded value sets does not exist [path='{os.path.abspath(vs_dir_path)}']")
     elif len(os.listdir(vs_dir_path)) == 0:
-        logging.warning("Downloaded value set dir is empty. Empty mapping tree file will be generated")
+        logger.warning("Downloaded value set dir is empty. Empty mapping tree file will be generated")
 
     # Read value sets and aggregate concepts by code systems
+    logger.info("Aggregating code system concepts from value sets")
     code_systems = dict()
     for file_name in os.listdir(vs_dir_path):
         if not file_name.endswith(".json"):
-            logging.debug(f"Directory entry '{file_name}' is not a JSON file. Skipping")
+            logger.warning(f"Directory entry '{file_name}' is not a JSON file. Skipping")
         else:
-            logging.info(f"Processing value set file '{file_name}'")
+            logger.info(f"Processing value set file '{file_name}'")
             with open(os.path.join(vs_dir_path, file_name), mode="r", encoding="utf-8") as file:
                 # We assume JSON format
                 vs_json = json.load(file)
@@ -161,16 +196,14 @@ def generate_dse_mapping_trees(vs_dir_path: Union[str, os.PathLike]) -> list[dic
                 elif 'expansion' in vs_json:
                     extract_concepts_from_value_set(vs_json, code_systems, 'expansion')
                 else:
-                    logging.warning("Value set neither implicitly nor explicitly lists content. Skipping")
+                    logger.warning("Value set does not lists content explicitly. Skipping")
 
     # Generate mapping tree for each code system
+    logger.info("Generating mapping tree")
     tree_maps = []
     for system, version_map in code_systems.items():
         for version, concept_set in version_map.items():
-            print(system)
-            logging.info(f"Generating mapping tree [system='{system}',version='{version}']")
-            # To reuse existing code we have to flatten the dict
-            logging.info(f"Generating tree map [system='{system}',version='{version}']")
+            logger.info(f"Generating tree map [system='{system}',version='{version}']")
             tree_maps.append(generate_cs_tree_map(system, version, concept_set))
 
     return [tree_map.to_dict() for tree_map in tree_maps]
@@ -181,6 +214,11 @@ if __name__ == '__main__':
     parser = configure_args_parser()
     args = parser.parse_args()
 
+    # Configure logging to stdout
+    log_level = getattr(logging, args.loglevel)
+    log_to_stdout("dse", level=log_level)
+    log_to_stdout("valueSetToRoots", level=log_level)
+
     if args.download_packages:
         with open("required-packages.json", "r") as f:
             required_packages = json.load(f)
@@ -190,22 +228,14 @@ if __name__ == '__main__':
     with open("exclude-dirs.json", "r") as f:
         exclude_dirs = json.load(f)
 
-    packages_dir = f"{os.getcwd()}/dse-packages/dependencies"
+    packages_dir = os.path.join(os.getcwd(), "dse-packages", "dependencies")
 
-    module_order = ["Diagnose", "Prozedur", "Person", "Labor", "Medikation", "Fall", "Biobank", "Consent"]
-
-    tree_generator = ProfileTreeGenerator(packages_dir, exclude_dirs, module_order)
+    tree_generator = ProfileTreeGenerator(packages_dir, exclude_dirs, module_order, module_translation)
     tree_generator.get_profiles()
 
-    profile_tree_translations = {}
-    with open("profile_tree_translations.json", "r") as f:
-        translations_list = json.load(f)
-        for translated_profile in translations_list:
-            profile_tree_translations[translated_profile["url"]] = translated_profile
+    profile_tree = tree_generator.generate_profiles_tree()
 
-    profile_tree = tree_generator.generate_profiles_tree(profile_tree_translations)
-
-    with open("generated/profile_tree.json", "w") as f:
+    with open(os.path.join("generated", "profile_tree.json"), "w") as f:
         json.dump(profile_tree, f)
 
 
@@ -214,6 +244,7 @@ if __name__ == '__main__':
                          "Consent": "provision.provision.code",
                          "Procedure": "code",
                          "MedicationAdministration": "medication.code",
+                         "MedicationStatement": "medication.code",
                          "Specimen": "type"
                          }
 
@@ -232,12 +263,12 @@ if __name__ == '__main__':
         for profile in profiles:
 
             profile_detail = profile_detail_generator.generate_detail_for_profile(profiles[profile])
-            # profile_detail = profile_detail_generator.translate_detail_for_profile(profile_detail, translated_profiles)
+            #profile_detail = profile_detail_generator.translate_detail_for_profile(profile_detail)
 
             if profile_detail:
                 profile_details.append(profile_detail)
 
-        with open("generated/profile_details_all.json", "w+") as p_details_f:
+        with open(os.path.join("generated", "profile_details_all.json"), "w+") as p_details_f:
             json.dump(profile_details, p_details_f)
 
         generate_r_load_sql(profile_details)

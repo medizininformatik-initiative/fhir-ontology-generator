@@ -40,7 +40,8 @@ class TreeMap(JsonSerializable):
     def to_dict(self):
         data = self.__dict__.copy()
         data["entries"] = list(value.to_ui_tree_entry() for value in self.entries.values())
-        data["context"] = self.context.to_dict()
+        if self.context:
+            data["context"] = self.context.to_dict()
         return del_none(del_keys(data, self.DO_NOT_SERIALIZE))
     
 @dataclass

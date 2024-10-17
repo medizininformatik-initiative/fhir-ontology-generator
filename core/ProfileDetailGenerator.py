@@ -125,32 +125,6 @@ class ProfileDetailGenerator():
 
         return None
 
-    def translate_detail_for_profile(self, profile, profiles_translated):
-
-        translated_profile = {}
-
-        for cur_profile in profiles_translated:
-            if profile['url'] == cur_profile['url']:
-                translated_profile = cur_profile
-
-        profile['display'] = translated_profile['display']['translation']['de']
-
-        for field in profile['fields']:
-
-            translated_field = self.find_field_in_profile_fields(field['id'], translated_profile['fields'])
-            if translated_field is None:
-                continue
-
-            name_de_translation = translated_field['name_translation']['de']
-            display_de_translation = translated_field['display_translation']['de']
-
-            if name_de_translation != "":
-                field['name'] = name_de_translation
-
-            if display_de_translation != "":
-                field['display'] = display_de_translation
-
-        return profile
 
     def get_element_by_content_ref(self, content_ref, elements):
 
@@ -159,6 +133,13 @@ class ProfileDetailGenerator():
                 return element
 
         return None
+
+    def get_value_for_lang_code(self, data, langCode):
+        for ext in data.get('extension', []):
+            if any(e.get('url') == 'lang' and e.get('valueCode') == langCode for e in ext.get('extension', [])):
+                return next(e['valueString'] for e in ext['extension'] if e.get('url') == 'content')
+        return ""
+
 
     def generate_detail_for_profile(self, profile):
 
@@ -171,9 +152,22 @@ class ProfileDetailGenerator():
             # TODO - check why this happens and if this is a problem
             return None
 
+        struct_def = profile["structureDefinition"]
+
         profile_detail = {
             "url": profile["url"],
-            "display": profile["name"],
+            "display": {"original": struct_def.get("title", ""),
+                        "translations": [
+                            {
+                                "language": "de-DE",
+                                "value": self.get_value_for_lang_code(struct_def.get("_title", {}), "de-DE")
+                            },
+                            {
+                                "language": "en-US",
+                                "value": self.get_value_for_lang_code(struct_def.get("_title", {}), "en-US")
+                            }
+                        ]
+                        },
             "filters": [
                 {"type": "date", "name": "date", "ui_type": "timeRestriction"},
             ],
@@ -215,9 +209,32 @@ class ProfileDetailGenerator():
                 continue
 
             name = self.get_name_from_id(element["id"])
+
             field = {"id": field_id,
-                     "name": name,
-                     "display": element["short"],
+                     "display": {"original": name,
+                              "translations": [
+                                  {
+                                      "language": "de-DE",
+                                      "value": self.get_value_for_lang_code(element.get('_short', {}), "de-DE")
+                                  },
+                                  {
+                                      "language": "en-US",
+                                      "value": self.get_value_for_lang_code(element.get('_short', {}), "en-US")
+                                  }
+                              ],
+                              },
+                     "description": {"original": element.get("definition", ""),
+                                     "translations": [
+                                         {
+                                             "language": "de-DE",
+                                             "value": self.get_value_for_lang_code(element.get('_definition', {}), "de-DE")
+                                         },
+                                         {
+                                             "language": "en-US",
+                                             "value": self.get_value_for_lang_code(element.get('_definition', {}), "en-US")
+                                         }
+                                     ],
+                                     },
                      "type": field_type
                      }
 
