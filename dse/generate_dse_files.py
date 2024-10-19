@@ -41,10 +41,11 @@ module_translation = {
     }
 }
 
-module_order = ["modul-diagnose", "modul-prozedur", "modul-person", "modul-labor", "modul-medikation", "modul-fall", "modul-biobank", "modul-consent"]
+module_order = ["modul-diagnose", "modul-prozedur", "modul-person", "modul-labor", "modul-medikation", "modul-fall",
+                "modul-biobank", "modul-consent"]
+
 
 def configure_args_parser():
-
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--download_packages', action='store_true')
     arg_parser.add_argument('--generate_profile_details', action='store_true')
@@ -58,8 +59,8 @@ def configure_args_parser():
     )
     return arg_parser
 
-def download_simplifier_packages(package_names):
 
+def download_simplifier_packages(package_names):
     prev_dir = os.getcwd()
     os.chdir("dse-packages")
 
@@ -67,6 +68,7 @@ def download_simplifier_packages(package_names):
         os.system(f"fhir install {package} --here")
 
     os.chdir(prev_dir)
+
 
 def download_and_save_value_set(value_set_url, session):
     value_set_folder = os.path.join('generated', 'value-sets')
@@ -77,13 +79,15 @@ def download_and_save_value_set(value_set_url, session):
 
     if response.status_code == 200:
         value_set_data = response.json()
-        value_set_name = value_set_data.get('name', urlparse(value_set_data.get('url')).path.split('/ValueSet/', 1)[-1].replace('/', ''))
+        value_set_name = value_set_data.get('name',
+                                            urlparse(value_set_data.get('url')).path.split('/ValueSet/', 1)[-1].replace(
+                                                '/', ''))
 
         with open(f"{value_set_folder}/{value_set_name}.json", "w+") as value_set_file:
             json.dump(value_set_data, value_set_file)
 
-def download_all_value_sets(profile_details):
 
+def download_all_value_sets(profile_details):
     session = requests.Session()
 
     value_set_urls = set()
@@ -95,6 +99,7 @@ def download_all_value_sets(profile_details):
 
     for value_set_url in list(value_set_urls):
         download_and_save_value_set(value_set_url, session)
+
 
 def generate_r_load_sql(profile_details):
     with open(os.path.join("generated", "R__load_latest_dse_profiles.sql"), "w+") as sql_file:
@@ -159,7 +164,8 @@ def generate_cs_tree_map(system: str, version: str | None, concepts: set) -> Tre
             logger.debug("Building tree map")
             for group in groups:
                 subsumption_map = group["element"]
-                subsumption_map = {item['code']: [target['code'] for target in item['target']] for item in subsumption_map}
+                subsumption_map = {item['code']: [target['code'] for target in item['target']] for item in
+                                   subsumption_map}
                 for _, parents in subsumption_map.items():
                     remove_non_direct_ancestors(parents, subsumption_map)
                 for node, parents, in subsumption_map.items():
@@ -238,15 +244,8 @@ if __name__ == '__main__':
     with open(os.path.join("generated", "profile_tree.json"), "w") as f:
         json.dump(profile_tree, f)
 
-
-    mapping_type_code = {"Observation": "code",
-                         "Condition": "code",
-                         "Consent": "provision.provision.code",
-                         "Procedure": "code",
-                         "MedicationAdministration": "medication.code",
-                         "MedicationStatement": "medication.code",
-                         "Specimen": "type"
-                         }
+    with open("mapping-type-code.json", "r") as f:
+        mapping_type_code = json.load(f)
 
     blacklistedValueSets = ['http://hl7.org/fhir/ValueSet/observation-codes']
 
@@ -254,7 +253,8 @@ if __name__ == '__main__':
 
         profiles = tree_generator.profiles
         fields_to_exclude = [".meta", ".id", ".subject", ".extension"]
-        profile_detail_generator = ProfileDetailGenerator(profiles, mapping_type_code, blacklistedValueSets, fields_to_exclude)
+        profile_detail_generator = ProfileDetailGenerator(profiles, mapping_type_code, blacklistedValueSets,
+                                                          fields_to_exclude)
         profile_details = []
 
         for profile in profiles:
