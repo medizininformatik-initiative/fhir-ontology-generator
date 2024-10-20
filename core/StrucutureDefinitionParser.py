@@ -7,8 +7,9 @@ from collections import namedtuple
 from typing import List, Tuple
 
 from TerminologService.ValueSetResolver import get_termcodes_from_onto_server, get_term_code_display_from_onto_server
+from TerminologService.valueSetToRoots import get_value_set_expansion
 from helper import flatten
-from model.UIProfileModel import VALUE_TYPE_OPTIONS
+from model.UIProfileModel import VALUE_TYPE_OPTIONS, ValueSet
 from model.UiDataModel import TermCode
 
 UCUM_SYSTEM = "http://unitsofmeasure.org"
@@ -75,8 +76,10 @@ def get_profiles_with_base_definition(fhir_dataset_dir: str, base_definition: st
     :return: generator of profiles that have the given base definition
     """
     for module_dir in [folder for folder in os.scandir(fhir_dataset_dir) if folder.is_dir()]:
-        files = [file for file in os.scandir(f"{module_dir.path}/package") if file.is_file()
+        print(f"Searching in {module_dir.path}")
+        files = [file for file in os.scandir(f"{module_dir.path}/differential/package") if file.is_file()
                  and file.name.endswith("snapshot.json")]
+        print(f"Found {len(files)} files")
         for file in files:
             with open(file.path, "r", encoding="utf8") as f:
                 profile = json.load(f)
@@ -96,7 +99,7 @@ def get_extension_definition(module_dir: str, extension_profile_url: str) -> dic
     :param extension_profile_url:  extension profile url
     :return: extension definition
     """
-    files = [file for file in os.scandir(f"{module_dir}/package/extension") if file.is_file()
+    files = [file for file in os.scandir(f"{module_dir}/extension") if file.is_file()
              and file.name.endswith("snapshot.json")]
     for file in files:
         with open(file.path, "r", encoding="utf8") as f:
@@ -209,7 +212,8 @@ def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, dat
                 # if len(target_profiles) > 1:
                 #     raise Exception("Reference with multiple types not supported")
                 target_resource_type = elem.get("targetProfile")[0]
-                referenced_profile, module_dir = get_profiles_with_base_definition(data_set_dir, target_resource_type)
+                # FIXME This should not be hardcoded to CDS_Module
+                referenced_profile, module_dir = get_profiles_with_base_definition("CDS_Module", target_resource_type)
                 element_ids.insert(0, f"{referenced_profile.get('type') + element_ids.pop(0)}")
                 result.extend(process_element_id(element_ids, referenced_profile, module_dir, data_set_dir))
         results.extend(result)
@@ -262,7 +266,8 @@ def extract_reference_type(value_defining_element: dict, data_set_dir: str, prof
     if not value_defining_element.get("targetProfile"):
         print(f"Could not find target profile for {profile_name}")
     target_resource_type = value_defining_element.get("targetProfile")[0]
-    referenced_profile, module_dir = get_profiles_with_base_definition(data_set_dir, target_resource_type)
+    # FIXME This should not be hardcoded to CDS_Module
+    referenced_profile, module_dir = get_profiles_with_base_definition("CDS_Module", target_resource_type)
     return referenced_profile.get("type")
 
 
@@ -276,7 +281,9 @@ def get_selectable_concepts(concept_defining_element, profile_name: str = "") ->
     """
     if binding := concept_defining_element.get("binding"):
         if value_set_url := binding.get("valueSet"):
-            return get_termcodes_from_onto_server(value_set_url)
+            if '|' in value_set_url:
+                value_set_url = value_set_url.split('|')[0]
+            return ValueSet(value_set_url, get_value_set_expansion(value_set_url))
         else:
             raise InvalidValueTypeException(f"No value set defined in element: {str(binding)}"
                                             f" in profile: {profile_name}")
@@ -328,10 +335,11 @@ def pattern_coding_to_term_code(element):
     code = element["patternCoding"]["code"]
     system = element["patternCoding"]["system"]
     display = get_term_code_display_from_onto_server(system, code)
+    version = element["patternCoding"].get("version")
 
     if display.isupper():
         display = display.title()
-    term_code = TermCode(system, code, display)
+    term_code = TermCode(system, code, display, version)
     return term_code
 
 
@@ -359,9 +367,10 @@ def pattern_codeable_concept_to_term_code(element):
     code = element["patternCodeableConcept"]["coding"][0]["code"]
     system = element["patternCodeableConcept"]["coding"][0]["system"]
     display = get_term_code_display_from_onto_server(system, code)
+    version = element["patternCodeableConcept"]["coding"][0].get("version")
     if display.isupper():
         display = display.title()
-    term_code = TermCode(system, code, display)
+    term_code = TermCode(system, code, display, version)
     return term_code
 
 
@@ -374,9 +383,10 @@ def fixed_codeable_concept_to_term_code(element):
     code = element["fixedCodeableConcept"]["coding"][0]["code"]
     system = element["fixedCodeableConcept"]["coding"][0]["system"]
     display = get_term_code_display_from_onto_server(system, code)
+    version = element["fixedCodeableConcept"]["coding"][0].get("version")
     if display.isupper():
         display = display.title()
-    term_code = TermCode(system, code, display)
+    term_code = TermCode(system, code, display, version)
     return term_code
 
 
@@ -567,9 +577,9 @@ def get_fixed_term_codes(element: dict, snapshot: dict, module_dir, data_set_dir
         return [fixed_codeable_concept_to_term_code(element)]
     elif "patternCodeableConcept" in element:
         return [pattern_codeable_concept_to_term_code(element)]
-    elif "fixedCoding" in element:
+    elif "fixedCoding" in element and "code" in element["fixedCoding"]:
         return [fixed_coding_to_term_code(element)]
-    elif "patternCoding" in element:
+    elif "patternCoding" in element and "code" in element["patternCoding"]:
         return [pattern_coding_to_term_code(element)]
     else:
         if tc := try_get_term_code_from_sub_elements(snapshot, element.get("id"), module_dir, data_set_dir):

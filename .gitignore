@@ -5,3 +5,11 @@
 certs
 __pycache__/
 dependencies
+/.venv/
+/.vscode/
+/.git/
+availability/*.json
+!availability/stratum-to-context.json
+
+/.commit
+.commit

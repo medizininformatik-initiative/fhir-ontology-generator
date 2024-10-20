@@ -1,0 +1,29 @@
+{
+  "name": "Fall",
+  "resource_type": "Encounter",
+  "module": {
+    "code": "mii-cds-Fall",
+    "display": "Fall"
+  },
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "Fall",
+    "display": "Fall",
+    "version": "1.0.0"
+  },
+  "term_codes": [
+    {
+      "system": "fdpg.mii.cds",
+      "code": "encounter",
+      "display": "Fall"
+    }
+  ],
+  "time_restriction_defining_id": "Encounter.period",
+  "attribute_defining_id_type_map": {
+    "Encounter.class":  "",
+    "Encounter.serviceType.coding:Fachabteilungsschluessel": "",
+    "Encounter.serviceType.coding:ErweiterterFachabteilungsschluessel": "",
+    "Encounter.type:Kontaktebene": "",
+    "Encounter.type:KontaktArt": ""
+  }
+}

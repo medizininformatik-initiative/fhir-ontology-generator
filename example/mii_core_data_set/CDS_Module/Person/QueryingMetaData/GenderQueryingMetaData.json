@@ -1,0 +1,23 @@
+{
+  "name": "Gender",
+  "resource_type": "Patient",
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "Patient",
+    "display": "Patient",
+    "version": "1.0.0"
+  },
+  "module": {
+    "code": "mii-cds-person",
+    "display": "Person"
+  },
+  "term_codes": [
+    {
+      "system": "http://snomed.info/sct",
+      "code": "263495000",
+      "display": "Geschlecht"
+    }
+  ],
+  "value_defining_id": "Patient.gender",
+  "value_type": "code"
+}

@@ -1,6 +1,10 @@
 {
   "name": "Age",
   "resource_type": "Patient",
+  "module": {
+    "code": "mii-cds-gecco",
+    "display": "GECCO"
+  },
   "context": {
     "system": "fdpg.mii.gecco",
     "code": "age",

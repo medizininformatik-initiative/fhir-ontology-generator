@@ -70,6 +70,15 @@ class CategoryEntry:
         return json.dumps(self, default=lambda o: del_none(
             del_keys(o.__dict__, self.DO_NOT_SERIALIZE)),
                           sort_keys=True, indent=4)
+    
+@dataclass
+class Module:
+    code: str
+    display: str
+
+    def to_dict(self):
+        return {"code": self.code,
+                "display": self.display}
 
 
 @dataclass
@@ -101,8 +110,10 @@ class TermCode:
         return NotImplemented
 
     def __repr__(self):
-        version_part = f" {self.version}" if self.version else ""
-        return f"{self.system} {self.code} {self.display}{version_part}"
+        return self.system + " " + self.code + " " + self.version if self.version else ""
+    
+    def to_dict(self):
+        return {"system": self.system, "code": self.code, "display": self.display, "version": self.version}
 
 
 class ValueDefinition:
@@ -123,7 +134,7 @@ class ValueDefinition:
                  allowed_units: List[TermCode] | None = None, precision: int | None = None,
                  min_val: float | None = None, max_val: float | None = None):
         self.type = value_type
-        self.selectableConcepts = selectable_concepts if selectable_concepts else []
+        self.referencedValueSet = selectable_concepts if selectable_concepts else []
         self.allowedUnits = allowed_units if allowed_units else []
         self.precision = precision if precision else 1
         self.min: float = min_val
@@ -227,14 +238,3 @@ class TermEntry(object):
         for key, value in ui_profile.__dict__.items():
             setattr(self, key, value)
 
-
-def prune_terminology_tree(tree_node, max_depth):
-    if max_depth != 0:  # and not tree_node.fhirMapperType == "Procedure":
-        for child in tree_node.children:
-            if re.match("[A-Z][0-9][0-9]-[A-Z][0-9][0-9]$", child.termCode.code):
-                prune_terminology_tree(child, max_depth)
-            else:
-                prune_terminology_tree(child, max_depth - 1)
-    else:
-        tree_node.children = []
-        tree_node.leaf = True

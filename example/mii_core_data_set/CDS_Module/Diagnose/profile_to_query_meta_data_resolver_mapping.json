@@ -1,0 +1,7 @@
+{
+  "Diagnose": [
+    "AlphaIdCondition",
+    "Condition",
+    "SnomedCondition"
+  ]
+}

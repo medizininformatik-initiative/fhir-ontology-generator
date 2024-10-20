@@ -1,6 +1,10 @@
 {
   "name": "HistoryOfTravel",
   "resource_type": "Observation",
+  "module": {
+    "code": "mii-cds-gecco",
+    "display": "GECCO"
+  },
   "context": {
     "system": "fdpg.mii.gecco",
     "code": "HistoryOfTravel",

@@ -1,6 +1,10 @@
 {
   "name": "Bioprobe",
   "resource_type": "Specimen",
+  "module": {
+    "code": "mii-cds-BZKF",
+    "display": "BZKF"
+  },
   "context": {
     "system": "bzkf.dktk.oncology",
     "code": "Bioprobe",

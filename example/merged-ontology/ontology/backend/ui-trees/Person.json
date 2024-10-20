@@ -1,0 +1,58 @@
+{
+    "children": [
+        {
+            "context": {
+                "code": "Patient",
+                "display": "Patient",
+                "system": "fdpg.mii.cds",
+                "version": "1.0.0"
+            },
+            "display": "Gegenw\u00e4rtiges chronologisches Alter",
+            "id": "ef6554c5-c599-da01-f0ce-4ca3fb04381b",
+            "leaf": true,
+            "selectable": true,
+            "termCodes": [
+                {
+                    "code": "424144002",
+                    "display": "Gegenw\u00e4rtiges chronologisches Alter",
+                    "system": "http://snomed.info/sct"
+                }
+            ]
+        },
+        {
+            "context": {
+                "code": "Patient",
+                "display": "Patient",
+                "system": "fdpg.mii.cds",
+                "version": "1.0.0"
+            },
+            "display": "Geschlecht",
+            "id": "128f9f83-c4ca-6531-6ba2-95051c4d3c29",
+            "leaf": true,
+            "selectable": true,
+            "termCodes": [
+                {
+                    "code": "263495000",
+                    "display": "Geschlecht",
+                    "system": "http://snomed.info/sct"
+                }
+            ]
+        }
+    ],
+    "context": {
+        "code": "Person",
+        "display": "Person",
+        "system": "fdpg.mii.cds"
+    },
+    "display": "Person",
+    "id": "4021a41e-5800-3f66-b48f-03bb9654a25c",
+    "leaf": false,
+    "selectable": false,
+    "termCodes": [
+        {
+            "code": "Person",
+            "display": "Person",
+            "system": "fdpg.mii.cds"
+        }
+    ]
+}

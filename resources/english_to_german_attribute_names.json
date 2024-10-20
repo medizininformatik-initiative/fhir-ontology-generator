@@ -27,5 +27,10 @@
     "genetischeVariante": "Genetische Variante",
     "tnmc": "TNMc",
     "tnmp": "TNMp",
-    "": ""
+    "": "",
+    "Fachabteilungsschluessel": "Fachabteilungsschluessel",
+    "ErweiterterFachabteilungsschluessel": "ErweiterterFachabteilungsschluessel",
+    "Kontaktebene": "Kontaktebene",
+    "KontaktArt": "KontaktArt",
+    "class": "class"
 }

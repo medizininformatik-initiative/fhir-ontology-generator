@@ -50,7 +50,7 @@ class CQLMappingGenerator(object):
         """
         pass
 
-    def generate_mapping(self, fhir_dataset_dir: str) \
+    def generate_mapping(self, fhir_dataset_dir: str, module_name) \
             -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, CQLMapping]]:
         """
         Generates the FHIR search mappings for the given FHIR dataset directory
@@ -62,13 +62,13 @@ class CQLMappingGenerator(object):
         full_cql_mapping_name_cql_mapping: Dict[str, CQLMapping] | dict = {}
         for module_dir in [folder for folder in os.scandir(fhir_dataset_dir) if folder.is_dir()]:
             self.module_dir: str = module_dir.path
-            files = [file.path for file in os.scandir(f"{fhir_dataset_dir}/{module_dir.name}/package") if file.is_file()
+            files = [file.path for file in os.scandir(f"{fhir_dataset_dir}/{module_dir.name}") if file.is_file()
                      and file.name.endswith("snapshot.json")]
             for file in files:
                 with open(file, "r", encoding="utf8") as f:
                     snapshot = json.load(f)
                     context_tc_to_mapping_name, cql_mapping_name_to_mapping = \
-                        self.generate_normalized_term_code_cql_mapping(snapshot, module_dir.name)
+                        self.generate_normalized_term_code_cql_mapping(snapshot, module_name)
                     full_context_term_code_cql_mapping_name_mapping.update(context_tc_to_mapping_name)
                     full_cql_mapping_name_cql_mapping.update(cql_mapping_name_to_mapping)
         return (full_context_term_code_cql_mapping_name_mapping,

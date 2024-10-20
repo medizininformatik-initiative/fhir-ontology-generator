@@ -1,0 +1,16 @@
+{
+  "name": "Procedure",
+  "resource_type": "Procedure",
+  "module": {
+    "code": "mii-cds-prozedur",
+    "display": "Prozedur"
+  },
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "Procedure",
+    "display": "Prozedur",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "Procedure.code.coding:ops",
+  "time_restriction_defining_id": "Procedure.performed[x]"
+}

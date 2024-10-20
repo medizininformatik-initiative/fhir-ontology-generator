@@ -33,13 +33,13 @@ class UIProfileGenerator:
         self.data_set_dir: str = ""
         self.parser = parser
 
-    def generate_ui_profiles(self, fhir_dataset_dir: str) -> \
+    def generate_ui_profiles(self, fhir_dataset_dir: str, module_name) -> \
             Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, UIProfile]]:
         """
         Generates the ui trees for all FHIR profiles in the differential directory
         :param fhir_dataset_dir: root directory of the FHIR dataset containing the modules and their packages containing
         the FHIR Profiles and their snapshots of interest
-        {FHIR_DATASET_DIR}/{MODULE_NAME}/package/
+        {FHIR_DATASET_DIR}/{MODULE_NAME}/
         :return: ui profiles for all FHIR profiles in the differential directory
         """
         self.data_set_dir = fhir_dataset_dir
@@ -47,13 +47,13 @@ class UIProfileGenerator:
         full_ui_profile_name_ui_profile_mapping = {}
         for module_dir in [folder for folder in os.scandir(fhir_dataset_dir) if folder.is_dir()]:
             self.module_dir: str = module_dir.path
-            files = [file.path for file in os.scandir(f"{fhir_dataset_dir}/{module_dir.name}/package") if file.is_file()
+            files = [file.path for file in os.scandir(f"{fhir_dataset_dir}/{module_dir.name}") if file.is_file()
                      and file.name.endswith("snapshot.json")]
             for file in files:
                 with open(file, "r", encoding="utf8") as f:
                     snapshot = json.load(f)
                     context_tc_mapping, profile_name_profile_mapping = \
-                        self.generate_normalized_term_code_ui_profile_mapping(snapshot, module_dir.name)
+                        self.generate_normalized_term_code_ui_profile_mapping(snapshot, module_name)
                     full_context_term_code_ui_profile_name_mapping = {**full_context_term_code_ui_profile_name_mapping,
                                                                       **context_tc_mapping}
                     full_ui_profile_name_ui_profile_mapping = {**full_ui_profile_name_ui_profile_mapping,
@@ -127,7 +127,7 @@ class UIProfileGenerator:
             value_type = "concept"
         value_definition = ValueDefinition(value_type)
         if value_type == "concept":
-            value_definition.selectableConcepts = self.parser.get_selectable_concepts(value_defining_element,
+            value_definition.referencedValueSet = self.parser.get_selectable_concepts(value_defining_element,
                                                                                       profile_snapshot.get("name"))
         elif value_type == "quantity":
             # "Observation.valueQuantity" -> "Observation.valueQuantity.code"
@@ -149,7 +149,6 @@ class UIProfileGenerator:
         elif value_type == "calculated":
             pass
         elif value_type == "reference":
-            print(value_definition)
             raise InvalidValueTypeException("Reference type need to be resolved using the Resolve().elementid syntax")
         else:
             raise InvalidValueTypeException(
@@ -191,7 +190,7 @@ class UIProfileGenerator:
         attribute_code = generate_attribute_key(attribute_defining_element_id)
         attribute_definition = AttributeDefinition(attribute_code, attribute_type)
         if attribute_type == "concept":
-            attribute_definition.selectableConcepts = self.parser.get_selectable_concepts(
+            attribute_definition.referencedValueSet = self.parser.get_selectable_concepts(
                 attribute_defining_elements[-1],
                 profile_snapshot.get("name"))
         elif attribute_type == "quantity":
@@ -234,9 +233,8 @@ class UIProfileGenerator:
                                                                       profile_snapshot.get("name"))
             return attribute_definition
         elif attribute_type == "CodeableConcept":
-            print("element: ", element)
-            attribute_definition.selectableConcepts = self.parser.get_selectable_concepts(
-                element,
+            attribute_definition.referencedValueSet = self.parser.get_selectable_concepts(
+                attribute_defining_elements[-1],
                 profile_snapshot.get("name"))
             return attribute_definition
         else:
@@ -293,7 +291,7 @@ class UIProfileGenerator:
             self.data_set_dir)
         attribute_code = generate_attribute_key(attribute_defining_element_id)
         attribute_definition = AttributeDefinition(attribute_code, "reference")
-        attribute_definition.referenceCriteriaSet = self.get_reference_criteria_set(
+        attribute_definition.referencedCriteriaSet = self.get_reference_criteria_set(
             attribute_defining_elements_with_source_snapshots)
         return attribute_definition
 
@@ -317,8 +315,9 @@ class UIProfileGenerator:
         :param module_dir: module directory of the profile
         :return: referenced context
         """
+        module_name = module_dir.replace("package", "").split("/")[-1]
         return self.querying_meta_data_resolver.get_query_meta_data(profile_snapshot,
-                                                                    module_dir)[0].context
+                                                                    module_name)[0].context
 
     def get_reference_criteria_set_from_valueSet(self, value_set_canonical_url: str, context: TermCode) -> CriteriaSet:
         """

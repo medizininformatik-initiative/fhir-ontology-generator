@@ -40,7 +40,7 @@ class GeccoDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
     def __init__(self):
         super().__init__()
 
-    def get_query_meta_data(self, fhir_profile_snapshot: dict, _context: TermCode) -> List[ResourceQueryingMetaData]:
+    def get_query_meta_data(self, fhir_profile_snapshot: dict, module_name, _context: TermCode) -> List[ResourceQueryingMetaData]:
         """
         Implementation as simple look up table.
         :param fhir_profile_snapshot:

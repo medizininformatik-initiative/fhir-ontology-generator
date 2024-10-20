@@ -2,19 +2,16 @@ from __future__ import annotations
 
 from typing import List
 
-import requests
-
-from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY
-from TerminologService.valueSetToRoots import create_vs_tree, expand_value_set
+from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, REQUESTS_SESSION
+from TerminologService.valueSetToRoots import create_vs_tree_map, expand_value_set
+from model.TreeMap import ContextualizedTermCodeInfo
 from model.UiDataModel import TermCode
 
 POSSIBLE_CODE_SYSTEMS = ["http://loinc.org", "http://snomed.info/sct"]
 
 
-# Some valueSets are to big to execute the closure operation on the Ontoserver. We need to filter them out.
 
-
-def get_term_entries_from_onto_server(value_set_canonical_url: str):
+def get_term_map_from_onto_server(value_set_canonical_url: str):
     """
     Get the term entries roots from the Ontoserver based on the given value set canonical url.
     :param value_set_canonical_url: The canonical url of the valueSet
@@ -22,14 +19,24 @@ def get_term_entries_from_onto_server(value_set_canonical_url: str):
     """
     value_set_canonical_url = value_set_canonical_url.replace("|", "&version=")
     print(value_set_canonical_url)
-    # In Gecco 1.04 all icd10 elements with children got removed this brings them back. Requires matching valuesSets on
-    # Ontoserver
-    # if value_set_canonical_url.endswith("icd"):
-    #     value_set_canonical_url = value_set_canonical_url + "-with-parent"
-    result = create_vs_tree(value_set_canonical_url)
-    if len(result) < 1:
+    result = create_vs_tree_map(value_set_canonical_url)
+    if len(result.entries) < 1:
         raise Exception("ERROR", value_set_canonical_url)
     return result
+
+
+def get_term_info_from_onto_server(value_set_canonical_url: str) -> List[ContextualizedTermCodeInfo]:
+    """
+    Get the term info for a given value set canonical url
+    :param value_set_canonical_url: The canonical url of the valueSet
+    :return: The term info of the value set
+    """
+    value_set_canonical_url = value_set_canonical_url.replace("|", "&version=")
+    term_codes = expand_value_set(value_set_canonical_url)
+    return [ContextualizedTermCodeInfo(term_code) for term_code in term_codes]
+
+
+
 
 
 def get_termcodes_from_onto_server(value_set_canonical_url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS) -> \
@@ -87,7 +94,7 @@ def get_answer_list_vs(loinc_code: TermCode) -> str | None:
     :param loinc_code: loinc code
     :return: url of the answer list value set or None if no answer list is available
     """
-    response = requests.get(
+    response = REQUESTS_SESSION.get(
         f"{TERMINOLOGY_SERVER_ADDRESS}CodeSystem/$lookup?system=http://loinc.org&code={loinc_code.code}&property"
         f"=answer-list", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if answer_list_code := get_answer_list_code(response.json()):
@@ -228,7 +235,7 @@ def get_term_code_display_from_onto_server(system: str, code: str,
     :param onto_server: address of the terminology server
     :return: The display of the term code or "" if no display is available
     """
-    response = requests.get(f"{onto_server}CodeSystem/$lookup?system={system}&code={code}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
+    response = REQUESTS_SESSION.get(f"{onto_server}CodeSystem/$lookup?system={system}&code={code}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if response.status_code == 200:
         response_data = response.json()
         for parameter in response_data["parameter"]:
@@ -259,7 +266,7 @@ def get_value_set_definition(canonical_address: str, onto_server: str = TERMINOL
     :param onto_server: address of the terminology server
     :return: value set definition or None if no value set definition is available
     """
-    response = requests.get(f"{onto_server}ValueSet/?url={canonical_address}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
+    response = REQUESTS_SESSION.get(f"{onto_server}ValueSet/?url={canonical_address}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if response.status_code == 200:
         response_data = response.json()
         for entry in response_data.get("entry", []):
@@ -278,7 +285,7 @@ def get_value_set_definition_by_id(value_set_id: str, onto_server: str = TERMINO
     :param onto_server: address of the terminology server
     :return: value set definition or None if no value set definition is available
     """
-    response = requests.get(f"{onto_server}ValueSet/{value_set_id}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
+    response = REQUESTS_SESSION.get(f"{onto_server}ValueSet/{value_set_id}", cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
     if response.status_code == 200:
         return response.json()
     return {}
