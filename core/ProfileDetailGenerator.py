@@ -118,7 +118,7 @@ class ProfileDetailGenerator():
         if element['id'].endswith(".extension"):
             return True
 
-    def check_for_attributes(self, element, attributes_to_check):
+    def check_at_least_one_in_elem_and_true(self, element, attributes_to_check):
 
         path = element["id"].split(".")
 
@@ -245,8 +245,8 @@ class ProfileDetailGenerator():
                 print(f"Element without type: {element}")
                 continue
 
-            is_recommended_field = self.check_for_attributes(element, ["min"])
-            is_required_field = self.check_for_attributes(element, ["isModifier"])
+            is_recommended_field = self.check_at_least_one_in_elem_and_true(element, ["min"])
+            is_required_field = self.check_at_least_one_in_elem_and_true(element, ["isModifier"])
 
             name = self.get_name_from_id(element["id"])
 
