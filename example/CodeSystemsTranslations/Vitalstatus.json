@@ -1,0 +1,116 @@
+{
+  "resourceType": "CodeSystem",
+  "title": "Vitalstatus FDPG Translation",
+  "url": "https://fdpg.de/fhir/CodeSystem/Vitalstatus/translations",
+  "status": "draft",
+  "id": "fdpg-supplement-codesystem-Vitalstatus",
+  "supplements": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/CodeSystem/Vitalstatus|2024.0.0",
+  "version": "1.0.0",
+  "content": "supplement",
+  "contact": [
+    {
+      "name": "FDPG",
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://forschen-fuer-gesundheit.de"
+        }
+      ]
+    }
+  ],
+  "concept": [
+    {
+      "code": "L",
+      "designation": [
+        {
+          "value": "Patient lebt",
+          "language": "de"
+        },
+        {
+          "value": "Patient lives",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "code": "T",
+      "designation": [
+        {
+          "value": "Patient verstorben",
+          "language": "de"
+        },
+        {
+          "value": "Patient deceased",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "code": "X",
+      "designation": [
+        {
+          "value": "unbekannt",
+          "language": "de"
+        },
+        {
+          "value": "unknown",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "code": "N",
+      "designation": [
+        {
+          "value": "unbekannt, Betreuung/Nachsorge nicht mehr nötig",
+          "language": "de"
+        },
+        {
+          "value": "unknown, care/aftercare no longer necessary",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "code": "B",
+      "designation": [
+        {
+          "value": "unbekannt, Patient ist anderenorts in Betreuung",
+          "language": "de"
+        },
+        {
+          "value": "unknown, patient is under care elsewhere",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "code": "A",
+      "designation": [
+        {
+          "value": "unbekannt, Patient nicht mehr auffindbar (lost to follow-up)",
+          "language": "de"
+        },
+        {
+          "value": "unknown, patient can no longer be found (lost to follow-up)",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "code": "V",
+      "designation": [
+        {
+          "value": "unbekannt, Patient verweigert weitere Betreuung",
+          "language": "de"
+        },
+        {
+          "value": "unknown, patient refuses further care",
+          "language": "en"
+        }
+      ]
+    }
+  ],
+  "count": 7,
+  "name": "Vitalstatus_supplement FDPG Translation"
+}
