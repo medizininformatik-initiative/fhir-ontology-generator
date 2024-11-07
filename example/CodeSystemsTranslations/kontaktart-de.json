@@ -1,0 +1,181 @@
+{
+  "resourceType": "CodeSystem",
+  "title": "kontaktart-de FDPG Translation",
+  "url": "https://fdpg.de/fhir/CodeSystem/kontaktart-de/translations",
+  "status": "draft",
+  "id": "fdpg-supplement-codesystem-kontaktart-de",
+  "supplements": "http://fhir.de/CodeSystem/kontaktart-de|1.4.0",
+  "version": "1.0.0",
+  "content": "supplement",
+  "contact": [
+    {
+      "name": "FDPG",
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://forschen-fuer-gesundheit.de"
+        }
+      ]
+    }
+  ],
+  "concept": [
+    {
+      "code": "begleitperson",
+      "designation": [
+        {
+          "value": "Begleitperson",
+          "language": "de"
+        },
+        {
+          "value": "Accompanying person",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "code": "nachtklinik",
+      "designation": [
+        {
+          "value": "Behandlung in einer Nachtklinik",
+          "language": "de"
+        },
+        {
+          "value": "Treatment in a night clinic",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "code": "intensivstationaer",
+      "designation": [
+        {
+          "value": "Intensivstationär",
+          "language": "de"
+        },
+        {
+          "value": "ICU inpatient",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "code": "konsil",
+      "designation": [
+        {
+          "value": "Konsil",
+          "language": "de"
+        },
+        {
+          "value": "Consil",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "code": "nachstationaer",
+      "designation": [
+        {
+          "value": "Nachstationär",
+          "language": "de"
+        },
+        {
+          "value": "Post-inpatient",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "code": "normalstationaer",
+      "designation": [
+        {
+          "value": "Normalstationär",
+          "language": "de"
+        },
+        {
+          "value": "Normal inpatient",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "code": "operation",
+      "designation": [
+        {
+          "value": "Operation",
+          "language": "de"
+        },
+        {
+          "value": "Operation",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "code": "stationsaequivalent",
+      "designation": [
+        {
+          "value": "Stationsäquivalent",
+          "language": "de"
+        },
+        {
+          "value": "Ward equivalent",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "code": "tagesklinik",
+      "designation": [
+        {
+          "value": "Tagesklinische Behandlung",
+          "language": "de"
+        },
+        {
+          "value": "Day hospital treatment",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "code": "teilstationaer",
+      "designation": [
+        {
+          "value": "Teilstationäre Behandlung",
+          "language": "de"
+        },
+        {
+          "value": "Partial inpatient treatment",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "code": "ub",
+      "designation": [
+        {
+          "value": "Untersuchung und Behandlung",
+          "language": "de"
+        },
+        {
+          "value": "Examination and treatment",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "code": "vorstationaer",
+      "designation": [
+        {
+          "value": "Vorstationär",
+          "language": "de"
+        },
+        {
+          "value": "Pre-inpatient",
+          "language": "en"
+        }
+      ]
+    }
+  ],
+  "count": 12,
+  "name": "kontaktart-de_supplement FDPG Translation"
+}
