@@ -253,7 +253,7 @@ if __name__ == '__main__':
     if args.generate_profile_details:
 
         profiles = tree_generator.profiles
-        fields_to_exclude = [".meta", ".id", ".subject", ".extension"]
+        fields_to_exclude = [".meta", ".id", ".subject", ".modifierExtension", ".extension"]
         profile_detail_generator = ProfileDetailGenerator(profiles, mapping_type_code, blacklistedValueSets, fields_to_exclude)
         profile_details = []
 

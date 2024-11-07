@@ -100,13 +100,16 @@ class ProfileDetailGenerator():
 
     def filter_element(self, element):
 
-        attributes_to_check = ["mustSupport", "isModifier", "min"]
+        attributes_true_level_one = ["mustSupport", "isModifier", "min"]
 
         if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
-            for attr in attributes_to_check):
+            for attr in attributes_true_level_one):
             return True
 
-        if "Resource" in element["base"]["path"].split(".")[0]:
+        attributes_true_level_two = ["mustSupport", "isModifier"]
+
+        if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
+            for attr in attributes_true_level_two) and len(element["id"].split(".")) > 2:
             return True
 
         if any(element['id'].endswith(field) or f"{field}." in element['id'] for field in self.fields_to_exclude):
@@ -115,7 +118,7 @@ class ProfileDetailGenerator():
         if "[x]" in element['id'] and not element['id'].endswith("[x]"):
             return True
 
-        if element['id'].endswith(".extension"):
+        if element["base"]["path"].split(".")[0] in {"Resource", "DomainResource"} and not "mustSupport" in element:
             return True
 
     def check_at_least_one_in_elem_and_true(self, element, attributes_to_check):
