@@ -5,6 +5,9 @@ import docker
 import time
 import psycopg2
 
+from core.docker.Images import POSTGRES_IMAGE
+
+
 def insert_content(base_file, content_to_insert, insert_after='SET row_security = off;'):
     with open(content_to_insert, 'r') as inserted_content_file:
         inserted_content = inserted_content_file.read()
@@ -69,7 +72,7 @@ class SqlMerger:
         client = docker.from_env()
         print(f"Starting PostgreSQL Docker container and binding to port {self.db_port}")
         self.db_container = client.containers.run(
-            "postgres:latest",
+            POSTGRES_IMAGE,
             name=self.container_name,
             environment={
                 "POSTGRES_DB": self.db_name,
