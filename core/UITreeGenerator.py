@@ -1,13 +1,14 @@
 import json
 import os
-from typing import List
+from typing import List, Mapping
 
 from core import StrucutureDefinitionParser as FhirParser
 from TerminologService.ValueSetResolver import get_term_map_from_onto_server, get_term_info_from_onto_server
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
-from helper import is_structure_definition
+from helper import is_structure_definition, traverse_tree
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.TreeMap import ContextualizedTermCodeInfo, ContextualizedTermCodeInfoList, TermEntryNode, TreeMapList, TreeMap
+from model.UiDataModel import TermCode
 
 
 class UITreeGenerator(ResourceQueryingMetaDataResolver):
@@ -65,25 +66,32 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
     def translate(self, fhir_profile_snapshot: dict, applicable_querying_meta_data: List[ResourceQueryingMetaData]) \
             -> List[TreeMap]:
         """
-        Translates the given FHIR profile snapshot into a ui tree
+        Translates the given FHIR profile snapshot into a UI tree
         :param fhir_profile_snapshot: FHIR profile snapshot json representation
-        :param applicable_querying_meta_data: applicable querying meta data
+        :param applicable_querying_meta_data: applicable querying metadata
         :return: root of the ui tree
         """
-        result: List[TreeMap] = []
+        result_map: dict[(TermCode, str), TreeMap] = dict()
         for applicable_querying_meta_data in applicable_querying_meta_data:
             # TODO: add context information to the ui tree
+            tree_maps: List[TreeMap] = list()
             if applicable_querying_meta_data.term_code_defining_id:
-                print("getting treemap by id")
                 tree_maps = self.get_term_entries_by_id(fhir_profile_snapshot, applicable_querying_meta_data.
                                                        term_code_defining_id)
-                for tree_map in tree_maps:
-                    tree_map.context = applicable_querying_meta_data.context
-                result += tree_maps
             elif applicable_querying_meta_data.term_codes:
-                result += [
-                    TreeMap({term_code.code: TermEntryNode(term_code)}, context=applicable_querying_meta_data.context, system=term_code.system, version=term_code.version) for term_code in applicable_querying_meta_data.term_codes]
-        return result
+                tree_maps = [TreeMap({term_code.code: TermEntryNode(term_code)},
+                                     context=applicable_querying_meta_data.context, system=term_code.system,
+                                     version=term_code.version)
+                             for term_code in applicable_querying_meta_data.term_codes]
+            for tree_map in tree_maps:
+                context: TermCode = applicable_querying_meta_data.context
+                tree_map.context = context
+                if (context, tree_map.system) not in result_map:
+                    result_map[(context, tree_map.system)] = tree_map
+                else:
+                    # Add entries of tree map to existing tree map with same context and system URL
+                    result_map[(context, tree_map.system)].entries.update(tree_map.entries)
+        return list(result_map.values())
 
     def generate_module_ui_tree(self, module_name, files: List[str]) -> TreeMapList:
         """
