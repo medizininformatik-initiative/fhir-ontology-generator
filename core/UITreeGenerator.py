@@ -1,11 +1,10 @@
 import json
 import os
-from typing import List, Mapping
-
+from typing import List
 from core import StrucutureDefinitionParser as FhirParser
 from TerminologService.ValueSetResolver import get_term_map_from_onto_server, get_term_info_from_onto_server
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
-from helper import is_structure_definition, traverse_tree
+from helper import is_structure_definition
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.TreeMap import ContextualizedTermCodeInfo, ContextualizedTermCodeInfoList, TermEntryNode, TreeMapList, TreeMap
 from model.UiDataModel import TermCode
@@ -73,7 +72,6 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
         """
         result_map: dict[(TermCode, str), TreeMap] = dict()
         for applicable_querying_meta_data in applicable_querying_meta_data:
-            # TODO: add context information to the ui tree
             tree_maps: List[TreeMap] = list()
             if applicable_querying_meta_data.term_code_defining_id:
                 tree_maps = self.get_term_entries_by_id(fhir_profile_snapshot, applicable_querying_meta_data.
