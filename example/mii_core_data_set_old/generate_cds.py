@@ -19,6 +19,7 @@ from core.SearchParameterResolver import SearchParameterResolver
 from core.StrucutureDefinitionParser import get_element_from_snapshot
 from core.UIProfileGenerator import UIProfileGenerator
 from core.UITreeGenerator import UITreeGenerator
+from core.docker.Images import POSTGRES_IMAGE
 from database.DataBaseWriter import DataBaseWriter
 from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, load_querying_meta_data, \
     mkdir_if_not_exists
@@ -608,7 +609,7 @@ if __name__ == '__main__':
         container.stop()
         container.remove()
 
-    container = client.containers.run("postgres:latest", detach=True, ports={'5432/tcp': 5430},
+    container = client.containers.run(POSTGRES_IMAGE, detach=True, ports={'5432/tcp': 5430},
                                       name="test_db",
                                       volumes={f"{os.getcwd()}/{onto_result_dir}": {'bind': '/opt/db_data', 'mode': 'rw'}},
                                       environment={

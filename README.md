@@ -138,11 +138,13 @@ The program goes through all snapshots and for each
 
 **Environment variables:**
 
-| Var | Description | Example |
-|--------|-------------|---------|
-|ONTOLOGY_SERVER_ADDRESS | Address of the Ontology server fhir api (with "/") | my_onto_server.com/fhir/
-|SERVER_CERTIFICATE | Path to the certificate of the Ontology server fhir api| C:\Users\Certs\certificate.pem
-|PRIVATE_KEY | Path to the private key for the Ontology server | C:\Users\Certs\private_key.pem
+| Var                     | Description                                                                                                           | Example                        | Default |
+|-------------------------|-----------------------------------------------------------------------------------------------------------------------|--------------------------------|---------|
+| ONTOLOGY_SERVER_ADDRESS | Address of the Ontology server fhir api (with "/")                                                                    | my_onto_server.com/fhir/       |         |
+| SERVER_CERTIFICATE      | Path to the certificate of the Ontology server fhir api                                                               | C:\Users\Certs\certificate.pem |         | 
+| PRIVATE_KEY             | Path to the private key for the Ontology server                                                                       | C:\Users\Certs\private_key.pem |         |
+| POSTGRES_VERSION        | Optional version of PostgreSQL (version part of Docker image tag, i.e. `postgres:<version>`) the generator should use | 16                             | lastest |
+| POSTGRES_BASE_IMAGE     | Optional base image of on which the PostgreSQL image is build (`postgres:<version>[-<base-img>]`)                     | alpine | NONE |                                                  
 
 **Script Options:**
 

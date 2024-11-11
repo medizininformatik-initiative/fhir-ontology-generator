@@ -3,20 +3,105 @@ import re
 import os
 import json
 
+
 class ProfileTreeGenerator():
 
-    def __init__(self, packagesDir: str, exclude_dirs, module_order, module_translation):
+    def __init__(self, packagesDir: str, exclude_dirs, module_order, module_translation, fields_to_exclude):
 
         self.profiles = {}
         self.packagesDir = packagesDir
         self.exclude_dirs = exclude_dirs
         self.module_order = module_order
         self.module_translation = module_translation
+        self.fields_to_exclude = fields_to_exclude
+        self.simple_data_types = ["instant", "time", "date", "dateTime", "decimal", "boolean", "integer", "string",
+                                  "uri", "base64Binary", "code", "id", "oid", "unsignedInt", "positiveInt", "markdown",
+                                  "url", "canonical", "uuid"]
+
+    def get_name_from_id(self, id):
+
+        name = id.split(".")[-1]
+        name = name.split(":")[-1]
+        name = name.replace("[x]", "")
+
+        return name
+
+    def get_value_for_lang_code(self, data, langCode):
+        for ext in data.get('extension', []):
+            if any(e.get('url') == 'lang' and e.get('valueCode') == langCode for e in ext.get('extension', [])):
+                return next(e['valueString'] for e in ext['extension'] if e.get('url') == 'content')
+        return ""
+
+    def filter_element(self, element):
+
+        attributes_true_level_one = ["mustSupport", "isModifier", "min"]
+        path = re.split(r"[.:]", element["id"])
+        path = path[1:]
+
+        if "type" in element and element["type"][0]["code"] in self.simple_data_types and len(path) > 1:
+            return True
+
+        if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
+               for attr in attributes_true_level_one):
+            return True
+
+        attributes_true_level_two = ["mustSupport", "isModifier"]
+
+        if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
+               for attr in attributes_true_level_two) and len(element["id"].split(".")) > 2:
+            return True
+
+        if any(element['id'].endswith(field) or f"{field}." in element['id'] for field in self.fields_to_exclude):
+            return True
+
+        if "[x]" in element['id'] and not element['id'].endswith("[x]"):
+            return True
+
+        if element["base"]["path"].split(".")[0] in {"Resource", "DomainResource"} and not "mustSupport" in element:
+            return True
+
+    def get_field_names_for_profile(self, struct_def):
+
+        names_original = []
+        names_en = []
+        names_de = []
+
+        for element in struct_def["snapshot"]["element"]:
+
+            if self.filter_element(element):
+                continue
+
+            elem_name_de = self.get_value_for_lang_code(element.get('_short', {}), "de-DE")
+            elem_name_en = self.get_value_for_lang_code(element.get('_short', {}), "en-US")
+
+            names_original.append(self.get_name_from_id(element["id"]))
+
+            if elem_name_de == "":
+                continue
+
+            names_de.append(elem_name_de)
+            names_en.append(elem_name_en)
+
+        return {
+            "original": names_original,
+            "translations": [
+                {
+                    "language": "de-DE",
+                    "value": names_de
+                },
+                {
+                    "language": "en-US",
+                    "value": names_en
+                }
+            ]
+        }
 
     def build_profile_path(self, path, profile, profiles):
 
         profile_struct = profile["structureDefinition"]
         parent_profile_url = profile_struct["baseDefinition"]
+
+        profile_field_names = self.get_field_names_for_profile(profile_struct)
 
         path.insert(
             0,
@@ -26,16 +111,17 @@ class ProfileTreeGenerator():
                 "display": {
                     "original": profile_struct.get("title", ""),
                     "translations": [
-                                  {
-                                      "language": "de-DE",
-                                      "value": self.get_value_for_lang_code(profile_struct.get('_title', {}), "de-DE")
-                                  },
-                                  {
-                                      "language": "en-US",
-                                      "value": self.get_value_for_lang_code(profile_struct.get('_title', {}), "en-US")
-                                  }
-                              ]
+                        {
+                            "language": "de-DE",
+                            "value": self.get_value_for_lang_code(profile_struct.get('_title', {}), "de-DE")
+                        },
+                        {
+                            "language": "en-US",
+                            "value": self.get_value_for_lang_code(profile_struct.get('_title', {}), "en-US")
+                        }
+                    ]
                 },
+                "fields": profile_field_names,
                 "module": profile["module"],
                 "url": profile["url"],
             },
@@ -166,7 +252,6 @@ class ProfileTreeGenerator():
         tree = {"name": "Root", "module": "no-module", "url": "no-url", "children": [], "selectable": False}
 
         for profile in self.profiles.values():
-
             path = self.build_profile_path([], profile, self.profiles)
             module = profile["module"]
             path.insert(0, {
@@ -175,20 +260,33 @@ class ProfileTreeGenerator():
                 "display": {
                     "original": self.module_translation["de-DE"].get(module, module),
                     "translations": [
-                                  {
-                                      "language": "de-DE",
-                                      "value": self.module_translation["de-DE"].get(module, module)
-                                  },
-                                  {
-                                      "language": "en-US",
-                                      "value": self.module_translation["en-US"].get(module, module)
-                                  }
-                              ]
+                        {
+                            "language": "de-DE",
+                            "value": self.module_translation["de-DE"].get(module, module)
+                        },
+                        {
+                            "language": "en-US",
+                            "value": self.module_translation["en-US"].get(module, module)
+                        }
+                    ]
                 },
                 "url": module,
                 "module": module,
                 "selectable": False,
-                "leaf": False
+                "leaf": False,
+                "fields": {
+                    "original": [],
+                    "translations": [
+                        {
+                            "language": "de-DE",
+                            "value": []
+                        },
+                        {
+                            "language": "en-US",
+                            "value": []
+                        }
+                    ]
+                }
             }
                         )
 
@@ -196,6 +294,6 @@ class ProfileTreeGenerator():
 
         sorted_tree = tree
 
-        sorted_tree['children'] = sorted(tree['children'], key= lambda item: self.custom_sort(item, self.module_order))
+        sorted_tree['children'] = sorted(tree['children'], key=lambda item: self.custom_sort(item, self.module_order))
 
         return sorted_tree

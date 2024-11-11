@@ -24,6 +24,7 @@ from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import UIProfile
 from model.UiDataModel import TermCode
+from core.docker.Images import POSTGRES_IMAGE
 
 WINDOWS_RESERVED_CHARACTERS = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
 
@@ -310,7 +311,7 @@ def manage_docker_container(logger: logging.Logger, module_directory: str, conta
         container.remove()
 
     container = client.containers.run(
-        "postgres:latest",
+        POSTGRES_IMAGE,
         detach=True,
         ports={'5432/tcp': 5430},
         name=container_name,

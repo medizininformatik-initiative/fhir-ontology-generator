@@ -229,15 +229,15 @@ if __name__ == '__main__':
         exclude_dirs = json.load(f)
 
     packages_dir = os.path.join(os.getcwd(), "dse-packages", "dependencies")
+    fields_to_exclude = [".meta", ".id", ".subject", ".modifierExtension", ".extension"]
 
-    tree_generator = ProfileTreeGenerator(packages_dir, exclude_dirs, module_order, module_translation)
+    tree_generator = ProfileTreeGenerator(packages_dir, exclude_dirs, module_order, module_translation, fields_to_exclude)
     tree_generator.get_profiles()
 
     profile_tree = tree_generator.generate_profiles_tree()
 
     with open(os.path.join("generated", "profile_tree.json"), "w") as f:
-        json.dump(profile_tree, f)
-
+        json.dump(profile_tree, f, ensure_ascii=False)
 
     mapping_type_code = {"Observation": "code",
                          "Condition": "code",
@@ -253,7 +253,6 @@ if __name__ == '__main__':
     if args.generate_profile_details:
 
         profiles = tree_generator.profiles
-        fields_to_exclude = [".meta", ".id", ".subject", ".extension"]
         profile_detail_generator = ProfileDetailGenerator(profiles, mapping_type_code, blacklistedValueSets, fields_to_exclude)
         profile_details = []
 
