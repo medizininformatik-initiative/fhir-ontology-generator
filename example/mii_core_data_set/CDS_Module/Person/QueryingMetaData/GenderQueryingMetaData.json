@@ -19,5 +19,6 @@
     }
   ],
   "value_defining_id": "Patient.gender",
-  "value_type": "code"
+  "value_type": "code",
+  "value_optional": true
 }
