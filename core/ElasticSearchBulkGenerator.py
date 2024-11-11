@@ -5,6 +5,8 @@ import zipfile
 from zipfile import ZipFile
 import re
 
+from core.TerminologyDesignationResolver import TerminologyDesignationResolver
+
 
 class ElasticSearchGenerator:
 
@@ -38,7 +40,8 @@ class ElasticSearchGenerator:
                 crit_set_url = crit_set['url']
 
                 for crit in crit_set['contextualized_term_codes']:
-                    cont_term_hash = ElasticSearchGenerator.__get_contextualized_termcode_hash(crit[0], crit[1], namespace_uuid_str=namespace_uuid_str)
+                    cont_term_hash = ElasticSearchGenerator.__get_contextualized_termcode_hash(crit[0], crit[1],
+                                                                                               namespace_uuid_str=namespace_uuid_str)
 
                     if cont_term_hash not in context_termcode_hash_to_crit_set:
                         context_termcode_hash_to_crit_set[cont_term_hash] = [crit_set_url]
@@ -51,57 +54,62 @@ class ElasticSearchGenerator:
         term_code_hash = ElasticSearchGenerator.__get_termcode_hash(
             {"code": code, "system": system}, namespace_uuid_str=namespace_uuid_str)
 
-
         parent_term_code_info = term_code_info_map[term_code_hash]
         parent_context = parent_term_code_info['context']
         parent_term_code = parent_term_code_info['term_code']
 
         return {'name': parent_term_code_info['term_code']['display'],
-                      'contextualized_termcode_hash': ElasticSearchGenerator.__get_contextualized_termcode_hash(
-                          parent_context, parent_term_code,
-                          namespace_uuid_str=namespace_uuid_str)}
-
+                'contextualized_termcode_hash': ElasticSearchGenerator.__get_contextualized_termcode_hash(
+                    parent_context, parent_term_code,
+                    namespace_uuid_str=namespace_uuid_str)}
 
     @staticmethod
-    def __iterate_tree(ui_tree_list, term_code_info_map, target_elastic_crit_list, context_termcode_hash_to_crit_set, namespace_uuid_str):
+    def __iterate_tree(ui_tree_list, term_code_info_map, target_elastic_crit_list, context_termcode_hash_to_crit_set,
+                       namespace_uuid_str,terminology_resolver):
         # For now, we agreed upon just using the first termcode if there are more than one
 
         children_cut_off = 400
 
-        for  ui_tree in ui_tree_list:
+        for ui_tree in ui_tree_list:
 
             for entry in ui_tree['entries']:
 
-                term_code_hash = ElasticSearchGenerator.__get_termcode_hash({"code": entry['key'], "system": ui_tree['system']},namespace_uuid_str)
+                term_code_hash = ElasticSearchGenerator.__get_termcode_hash(
+                    {"code": entry['key'], "system": ui_tree['system']}, namespace_uuid_str)
                 term_code_info = term_code_info_map[term_code_hash]
 
                 term_code = term_code_info['term_code']
-                selectable = True if term_code_info['children_count']  < children_cut_off else False
+                selectable = True if term_code_info['children_count'] < children_cut_off else False
                 obj = {
-               'hash': ElasticSearchGenerator.__get_contextualized_termcode_hash(term_code_info['context'], term_code, namespace_uuid_str),
-               'name': term_code['display'],
-               'availability': 0,
-               'terminology': term_code['system'],
-               'termcode': term_code['code'],
-               'selectable': selectable,
-               'context': term_code_info['context'],
-               'termcodes': [term_code_info['term_code']],
-               'criteria_sets': [],
-               'translations': [],
-               'parents': [],
-               'children': [],
-               'related_terms': [],
-               'kds_module': term_code_info['module']['display']
-               }
+                    'hash': ElasticSearchGenerator.__get_contextualized_termcode_hash(term_code_info['context'],
+                                                                                      term_code, namespace_uuid_str),
+                    'name': term_code['display'],
+                    'availability': 0,
+                    'terminology': term_code['system'],
+                    'termcode': term_code['code'],
+                    'selectable': selectable,
+                    'context': term_code_info['context'],
+                    'termcodes': [term_code_info['term_code']],
+                    'criteria_sets': [],
+                    'display': terminology_resolver.resolve_term(term_code),
+                    'parents': [],
+                    'children': [],
+                    'related_terms': [],
+                    'kds_module': term_code_info['module']['display']
+                }
 
                 for parent_code in entry['parents']:
-                    obj['parents'].append(ElasticSearchGenerator.__get_relation_crit_object(parent_code,ui_tree['system'],term_code_info_map,namespace_uuid_str))
+                    obj['parents'].append(
+                        ElasticSearchGenerator.__get_relation_crit_object(parent_code, ui_tree['system'],
+                                                                          term_code_info_map, namespace_uuid_str))
 
                 for child_code in entry['children']:
-                    obj['children'].append(ElasticSearchGenerator.__get_relation_crit_object(child_code,ui_tree['system'],term_code_info_map,namespace_uuid_str))
+                    obj['children'].append(
+                        ElasticSearchGenerator.__get_relation_crit_object(child_code, ui_tree['system'],
+                                                                          term_code_info_map, namespace_uuid_str))
 
                 # TODO - Siblings - needs to be considered as it is possible to have siblings from other ui_tree
-                #for sibling_code in term_code_info['siblings']:
+                # for sibling_code in term_code_info['siblings']:
                 #    obj['children'].append(ElasticSearchGenerator.__get_relation_crit_object(child_code,ui_tree['system'],term_code_info_map, namespace_uuid_str=namespace_uuid_str))
 
                 if obj['hash'] in context_termcode_hash_to_crit_set:
@@ -110,7 +118,9 @@ class ElasticSearchGenerator:
                 target_elastic_crit_list.append(obj)
 
     @staticmethod
-    def __convert_value_set(value_set, termcode_to_valueset, namespace_uuid_str):
+    def __convert_value_set(value_set, termcode_to_valueset, namespace_uuid_str,terminology_resolver):
+
+
 
         for termcode in value_set['expansion']['contains']:
 
@@ -119,12 +129,17 @@ class ElasticSearchGenerator:
             termcode_hash = str(uuid.uuid3(namespace_uuid, termcode_hash_input))
 
             if termcode_hash not in termcode_to_valueset:
-                termcode_to_valueset[termcode_hash] = {"hash": termcode_hash, "termcode": {"code": termcode['code'],
-                                                                                           "display": termcode[
-                                                                                               'display'],
-                                                                                           "system": termcode['system'],
-                                                                                           "version": 2099},
-                                                       "value_sets": [value_set['url']]}
+                termcode_to_valueset[termcode_hash] = {
+                    "hash": termcode_hash,
+                    "termcode":
+                        {
+                            "code": termcode['code'],
+                            "display": terminology_resolver.resolve_term(termcode),
+                            "system": termcode['system'],
+                            "version": 2099
+                        },
+                    "value_sets": [value_set['url']]
+                }
 
             else:
                 termcode_to_valueset[termcode_hash]["value_sets"].append(value_set['url'])
@@ -156,8 +171,8 @@ class ElasticSearchGenerator:
 
     @staticmethod
     def __write_es_to_file(es_availability_inserts, max_filesize_mb,
-                                  filename_prefix, extension,
-                                  write_dir):
+                           filename_prefix, extension,
+                           write_dir):
         current_file_subindex = 1
         current_file_size = 0
 
@@ -215,7 +230,8 @@ class ElasticSearchGenerator:
 
             print(f"loaded termcode info map from file {filename_prefix}")
             for term_code_info in term_code_info_list:
-                term_code_hash = ElasticSearchGenerator.__get_termcode_hash(term_code_info['term_code'],namespace_uuid_str )
+                term_code_hash = ElasticSearchGenerator.__get_termcode_hash(term_code_info['term_code'],
+                                                                            namespace_uuid_str)
                 term_code_info_map[term_code_hash] = term_code_info
 
         return term_code_info_map
@@ -248,7 +264,8 @@ class ElasticSearchGenerator:
         return es_onto_tree
 
     @staticmethod
-    def update_availability_on_hash_tree(avail_hash_tree, availability_input_dir, stratum_to_context, namespace_uuid_str):
+    def update_availability_on_hash_tree(avail_hash_tree, availability_input_dir, stratum_to_context,
+                                         namespace_uuid_str):
 
         hash_set = set()
 
@@ -286,12 +303,14 @@ class ElasticSearchGenerator:
                                     }
 
                                     if context:
-                                        hash = ElasticSearchGenerator.__get_contextualized_termcode_hash(context, termcode, namespace_uuid_str)
+                                        hash = ElasticSearchGenerator.__get_contextualized_termcode_hash(context,
+                                                                                                         termcode,
+                                                                                                         namespace_uuid_str)
 
                                         hash_set.add(hash)
                                         if hash in avail_hash_tree:
-                                            avail_hash_tree[hash]["availability"] = avail_hash_tree[hash]["availability"] + measure_score
-
+                                            avail_hash_tree[hash]["availability"] = avail_hash_tree[hash][
+                                                                                        "availability"] + measure_score
 
     @staticmethod
     def convert_measure_score_to_ranges(measure_score):
@@ -304,10 +323,10 @@ class ElasticSearchGenerator:
         count = tree[parent_id]["availability"]
 
         for child in tree[parent_id]["children"]:
-            count = count + ElasticSearchGenerator.get_avail_sum_for_all_children(child["contextualized_termcode_hash"], tree)
+            count = count + ElasticSearchGenerator.get_avail_sum_for_all_children(child["contextualized_termcode_hash"],
+                                                                                  tree)
 
         return count
-
 
     @staticmethod
     def generate_elasticsearch_files(ontology_dir,
@@ -329,6 +348,9 @@ class ElasticSearchGenerator:
         crit_set_dir = f'{ontology_dir}/criteria-sets'
         ElasticSearchGenerator.__build_crit_set_map(context_termcode_hash_to_crit_set, crit_set_dir, namespace_uuid_str)
 
+        terminology_resolver = TerminologyDesignationResolver()
+        terminology_resolver.load_designations("example/code_systems_translations")
+
         if generate_availability:
             print('Generating availability')
             es_availability_inserts = []
@@ -337,19 +359,20 @@ class ElasticSearchGenerator:
                 stratum_to_context = json.load(f)
 
             avail_hash_tree = ElasticSearchGenerator.get_hashed_tree(ontology_dir)
-            ElasticSearchGenerator.update_availability_on_hash_tree(avail_hash_tree, availability_input_dir, stratum_to_context, namespace_uuid_str)
+            ElasticSearchGenerator.update_availability_on_hash_tree(avail_hash_tree, availability_input_dir,
+                                                                    stratum_to_context, namespace_uuid_str)
 
             for key, value in avail_hash_tree.items():
-
                 sum_all_children = ElasticSearchGenerator.get_avail_sum_for_all_children(key, avail_hash_tree)
 
                 insert_hash = {"update": {"_id": key}}
-                insert_availability = {"doc": {"availability": ElasticSearchGenerator.convert_measure_score_to_ranges(sum_all_children)}}
+                insert_availability = {
+                    "doc": {"availability": ElasticSearchGenerator.convert_measure_score_to_ranges(sum_all_children)}}
                 es_availability_inserts.append(insert_hash)
                 es_availability_inserts.append(insert_availability)
 
             ElasticSearchGenerator.__write_es_to_file(es_availability_inserts, max_filesize_mb,
-                               "es_availability_update", extension, availability_input_dir)
+                                                      "es_availability_update", extension, availability_input_dir)
 
             return
 
@@ -362,11 +385,12 @@ class ElasticSearchGenerator:
                     print(f"{folder}/{filename}")
                     json_tree = json.load(f)
 
-
-                term_code_info_map = ElasticSearchGenerator.load_termcode_info(ontology_dir, filename, namespace_uuid_str)
+                term_code_info_map = ElasticSearchGenerator.load_termcode_info(ontology_dir, filename,
+                                                                               namespace_uuid_str)
                 json_flat = []
 
-                ElasticSearchGenerator.__iterate_tree(json_tree, term_code_info_map, json_flat,context_termcode_hash_to_crit_set,namespace_uuid_str)
+                ElasticSearchGenerator.__iterate_tree(json_tree, term_code_info_map, json_flat,
+                                                      context_termcode_hash_to_crit_set, namespace_uuid_str,terminology_resolver)
 
                 ElasticSearchGenerator.__write_es_import_to_file(current_file_index, current_file_name, json_flat,
                                                                  index_name,
@@ -386,11 +410,10 @@ class ElasticSearchGenerator:
         for filename in os.listdir(folder):
 
             if filename.endswith(extension):
-
                 with open(f'{folder}/{filename}', 'r') as f:
                     value_set = json.load(f)
 
-                ElasticSearchGenerator.__convert_value_set(value_set, termcode_to_valueset, namespace_uuid_str)
+                ElasticSearchGenerator.__convert_value_set(value_set, termcode_to_valueset, namespace_uuid_str,terminology_resolver)
 
         json_flat = list(termcode_to_valueset.values())
 

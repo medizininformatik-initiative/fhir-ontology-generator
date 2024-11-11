@@ -6,10 +6,10 @@ import time
 import psycopg2
 
 def insert_content(base_file, content_to_insert, insert_after='SET row_security = off;'):
-    with open(content_to_insert, 'r') as inserted_content_file:
+    with open(content_to_insert, 'r',encoding="UTF-8") as inserted_content_file:
         inserted_content = inserted_content_file.read()
 
-    with open(base_file, 'r') as target_file:
+    with open(base_file, 'r',encoding="UTF-8") as target_file:
         base_content = target_file.readlines()
 
     if insert_after is not None:
@@ -24,7 +24,7 @@ def insert_content(base_file, content_to_insert, insert_after='SET row_security 
 
     base_content.insert(insert_index, inserted_content + "\n")
 
-    with open(base_file, 'w') as target_file:
+    with open(base_file, 'w',encoding="UTF-8") as target_file:
         target_file.writelines(base_content)
 
     print(f"Content of {content_to_insert} has been inserted into {base_file}.")
@@ -107,12 +107,12 @@ class SqlMerger:
 
     def populate_db(self):
         # init empty public schema (ddl only)
-        with open(f"{self.sql_init_script_dir}/init.sql", 'r') as template, open(
-                f"{self.sql_script_dir}/public_init.sql", 'w') as target:
+        with open(f"{self.sql_init_script_dir}/init.sql", 'r',encoding="UTF-8") as template, open(
+                f"{self.sql_script_dir}/public_init.sql", 'w',encoding="UTF-8") as target:
             target.write(template.read())
 
-        with open(f"{self.sql_init_script_dir}/create_functions.sql", 'r') as template, open(
-                f"{self.sql_script_dir}/public_create_functions.sql", 'w') as target:
+        with open(f"{self.sql_init_script_dir}/create_functions.sql", 'r',encoding="UTF-8") as template, open(
+                f"{self.sql_script_dir}/public_create_functions.sql", 'w',encoding="UTF-8") as target:
             target.write(template.read())
 
         cmd = f"sh -c 'psql -U {self.db_user} -d {self.db_name} < {self.sql_mapped_dir}/public_init.sql'"
@@ -132,8 +132,8 @@ class SqlMerger:
                     db_index = self.pattern.search(filename).group(1)
                     schema_name = f"import_{db_index}"
                     # initialize the db
-                    with open(f"{self.sql_init_script_dir}/init.sql", 'r') as template, open(
-                            f"{self.sql_script_dir}/init_{db_index}.sql", 'w') as target:
+                    with open(f"{self.sql_init_script_dir}/init.sql", 'r',encoding="UTF-8") as template, open(
+                            f"{self.sql_script_dir}/init_{db_index}.sql", 'w',encoding="UTF-8") as target:
                         target.write(f"CREATE schema {schema_name};\n")
                         target.write(f"SET search_path TO {schema_name};\n\n")
                         target.write(template.read())
@@ -145,8 +145,8 @@ class SqlMerger:
                     os.remove(f"{self.sql_script_dir}/init_{db_index}.sql")
 
                     # import the data
-                    with open(f"{self.sql_script_dir}/{filename}", 'r') as template, open(
-                            f"{self.sql_script_dir}/modified_{filename}", 'w') as target:
+                    with open(f"{self.sql_script_dir}/{filename}", 'r', encoding="UTF-8") as template, open(
+                            f"{self.sql_script_dir}/modified_{filename}", 'w',encoding="UTF-8") as target:
                         target.write(template.read().replace('public.', f'{schema_name}.'))
                     cmd = f"sh -c 'psql -U {self.db_user} -d {self.db_name} < {self.sql_mapped_dir}/modified_{filename}'"
                     time.sleep(5)
@@ -156,8 +156,8 @@ class SqlMerger:
                     os.remove(f"{self.sql_script_dir}/modified_{filename}")
 
                     # remove fk constraints
-                    with open(f"{self.sql_init_script_dir}/remove_fk_constraints.sql", 'r') as template, open(
-                            f"{self.sql_script_dir}/modified_remove_fk_constraints.sql", 'w') as target:
+                    with open(f"{self.sql_init_script_dir}/remove_fk_constraints.sql", 'r',encoding="UTF-8") as template, open(
+                            f"{self.sql_script_dir}/modified_remove_fk_constraints.sql", 'w',encoding="UTF-8") as target:
                         target.write(f"SET search_path TO {schema_name};\n\n")
                         target.write(template.read())
                     cmd = f"sh -c 'psql -U {self.db_user} -d {self.db_name} < {self.sql_mapped_dir}/modified_remove_fk_constraints.sql'"
