@@ -273,7 +273,20 @@ class ProfileTreeGenerator():
                 "url": module,
                 "module": module,
                 "selectable": False,
-                "leaf": False
+                "leaf": False,
+                "fields": {
+                    "original": "",
+                    "translations": [
+                        {
+                            "language": "de-DE",
+                            "value": ""
+                        },
+                        {
+                            "language": "en-US",
+                            "value": ""
+                        }
+                    ]
+                }
             }
                         )
 
