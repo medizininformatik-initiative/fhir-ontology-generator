@@ -163,14 +163,16 @@ class UIProfileGenerator:
         :return:
         """
         attribute_definitions = []
-        for attribute_defining_id, attribute_type in querying_meta_data.attribute_defining_id_type_map.items():
+        for attribute_defining_id, attribute_attributes in querying_meta_data.attribute_defining_id_type_map.items():
+            attribute_type = attribute_attributes.get("type", "")
+            is_attribute_optional = attribute_attributes.get("optional", True)
             attribute_definition = self.get_attribute_definition(profile_snapshot, attribute_defining_id,
-                                                                 attribute_type)
+                                                                 attribute_type, is_attribute_optional)
             attribute_definitions.append(attribute_definition)
         return attribute_definitions
 
     def get_attribute_definition(self, profile_snapshot: dict, attribute_defining_element_id: str,
-                                 attribute_type: str) -> AttributeDefinition:
+                                 attribute_type: str, optional: bool = True) -> AttributeDefinition:
         """
         Returns an attribute definition for the given attribute defining element
         :param profile_snapshot: FHIR profile snapshot
@@ -188,7 +190,7 @@ class UIProfileGenerator:
                                   profile_snapshot.get('name')) in FHIR_TYPES_TO_VALUE_TYPES else extract_value_type(
             attribute_defining_elements[-1], profile_snapshot.get('name'))
         attribute_code = generate_attribute_key(attribute_defining_element_id)
-        attribute_definition = AttributeDefinition(attribute_code, attribute_type)
+        attribute_definition = AttributeDefinition(attribute_code, attribute_type, optional)
         if attribute_type == "concept":
             attribute_definition.referencedValueSet = self.parser.get_selectable_concepts(
                 attribute_defining_elements[-1],

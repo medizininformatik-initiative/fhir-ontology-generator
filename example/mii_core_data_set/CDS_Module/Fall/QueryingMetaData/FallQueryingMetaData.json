@@ -20,10 +20,25 @@
   ],
   "time_restriction_defining_id": "Encounter.period",
   "attribute_defining_id_type_map": {
-    "Encounter.class":  "",
-    "Encounter.serviceType.coding:Fachabteilungsschluessel": "",
-    "Encounter.serviceType.coding:ErweiterterFachabteilungsschluessel": "",
-    "Encounter.type:Kontaktebene": "",
-    "Encounter.type:KontaktArt": ""
+    "Encounter.class":  {
+      "type": "",
+      "optional": true
+    },
+    "Encounter.serviceType.coding:Fachabteilungsschluessel": {
+      "type": "",
+      "optional": true
+    },
+    "Encounter.serviceType.coding:ErweiterterFachabteilungsschluessel": {
+      "type": "",
+      "optional": true
+    },
+    "Encounter.type:Kontaktebene": {
+      "type": "",
+      "optional": true
+    },
+    "Encounter.type:KontaktArt": {
+      "type": "",
+      "optional": true
+    }
   }
 }

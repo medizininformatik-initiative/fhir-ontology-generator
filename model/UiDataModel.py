@@ -3,7 +3,6 @@ from __future__ import annotations
 import copy
 import json
 import random as rd
-import re
 import uuid
 from dataclasses import dataclass
 from typing import List
@@ -118,9 +117,9 @@ class TermCode:
 
 class ValueDefinition:
     """
-    A ValueDefinition defines the value. Contrary to the AttributeDefinition, the ValueDefinition referes to the value
-    defined by the term code of the concept. I.e. the Loinc Code 3137-7 (Body height) defines the value. While the
-    Snomed Code 119361006 (Plasma specimen) does not define the value, but the specimen. To express the extraction
+    A ValueDefinition defines the value. Contrary to the AttributeDefinition, the ValueDefinition refers to the value
+    defined by the term code of the concept. I.e. the LOINC Code 3137-7 (Body height) defines the value. While the
+    SNOMED CT Code 119361006 (Plasma specimen) does not define the value, but the specimen. To express the extraction
     location an AttributeDefinition for the body site is used.
     :param value_type: defines the type of the value
     :param selectable_concepts: defines the selectable concepts for the value if the type is "concept"
@@ -146,10 +145,10 @@ class AttributeDefinition(ValueDefinition):
     An AttributeDefinition defines an attribute.
     """
 
-    def __init__(self, attribute_code, value_type):
+    def __init__(self, attribute_code, value_type, optional: bool = True):
         super().__init__(value_type)
         self.attributeCode = attribute_code
-        self.optional = True
+        self.optional = optional
 
 
 class Unit:

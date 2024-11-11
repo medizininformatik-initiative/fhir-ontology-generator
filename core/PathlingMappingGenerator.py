@@ -109,7 +109,8 @@ class PathlingMappingGenerator(object):
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
             pathling_mapping.timeRestrictionFhirPath = self.translate_element_id_to_fhir_path_expressions(
                 time_defining_id, profile_snapshot)
-        for attr_defining_id, attr_type in querying_meta_data.attribute_defining_id_type_map.items():
+        for attr_defining_id, attr_attributes in querying_meta_data.attribute_defining_id_type_map.items():
+            attr_type = attr_attributes.get("type", "")
             attribute_key = generate_attribute_key(attr_defining_id)
             attribute_type = attr_type if attr_type else self.get_attribute_type(profile_snapshot,
                                                                                  attr_defining_id)
