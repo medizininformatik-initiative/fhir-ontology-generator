@@ -13,7 +13,7 @@
   },
   "value_defining_id": "Patient.birthDate",
   "value_type": "Age",
-  "value_optional": true,
+  "value_optional": false,
   "term_codes": [{
     "system": "http://snomed.info/sct",
     "code": "424144002",
