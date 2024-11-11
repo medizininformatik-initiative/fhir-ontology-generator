@@ -137,7 +137,8 @@ class CQLMappingGenerator(object):
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
             cql_mapping.timeRestrictionFhirPath = self.translate_element_id_to_fhir_path_expressions_time_restriction(
                 time_defining_id, profile_snapshot)
-        for attr_defining_id, attr_type in querying_meta_data.attribute_defining_id_type_map.items():
+        for attr_defining_id, attr_attributes in querying_meta_data.attribute_defining_id_type_map.items():
+            attr_type = attr_attributes.get("type", "")
             self.set_attribute_search_param(attr_defining_id, cql_mapping, attr_type, profile_snapshot)
 
         return cql_mapping
