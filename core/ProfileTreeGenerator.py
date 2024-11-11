@@ -83,15 +83,15 @@ class ProfileTreeGenerator():
             names_en.append(elem_name_en)
 
         return {
-            "original": ", ".join(names_original),
+            "original": names_original,
             "translations": [
                 {
                     "language": "de-DE",
-                    "value": ", ".join(names_de)
+                    "value": names_de
                 },
                 {
                     "language": "en-US",
-                    "value": ", ".join(names_en)
+                    "value": names_en
                 }
             ]
         }
@@ -275,15 +275,15 @@ class ProfileTreeGenerator():
                 "selectable": False,
                 "leaf": False,
                 "fields": {
-                    "original": "",
+                    "original": [],
                     "translations": [
                         {
                             "language": "de-DE",
-                            "value": ""
+                            "value": []
                         },
                         {
                             "language": "en-US",
-                            "value": ""
+                            "value": []
                         }
                     ]
                 }
