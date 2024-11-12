@@ -336,7 +336,8 @@ class ElasticSearchGenerator:
                                      namespace_uuid_str='00000000-0000-0000-0000-000000000000',
                                      index_name='ontology',
                                      filename_prefix='onto_es_',
-                                     max_filesize_mb=10):
+                                     max_filesize_mb=10,
+                                     code_system_translations_folder="example/code_systems_translations"):
         extension = '.json'
         folder = f'{ontology_dir}/ui-trees'
         current_file_index = 0
@@ -349,7 +350,7 @@ class ElasticSearchGenerator:
         ElasticSearchGenerator.__build_crit_set_map(context_termcode_hash_to_crit_set, crit_set_dir, namespace_uuid_str)
 
         terminology_resolver = TerminologyDesignationResolver()
-        terminology_resolver.load_designations("example/code_systems_translations")
+        terminology_resolver.load_designations(code_system_translations_folder)
 
         if generate_availability:
             print('Generating availability')
