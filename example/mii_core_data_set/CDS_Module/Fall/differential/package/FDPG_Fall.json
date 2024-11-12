@@ -9,5 +9,13 @@
     "type": "Encounter",
     "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung",
     "derivation": "constraint",
-    "differential": {}
+    "differential": {
+        "element":[
+            {
+                "id": "Encounter.id",
+                "path": "Encounter.id",
+                "min": 1
+            }
+        ]
+    }
 }
