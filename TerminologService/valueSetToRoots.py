@@ -12,7 +12,7 @@ from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SE
 from model.UiDataModel import TermCode
 from util.LoggingUtil import init_logger
 
-locale.setlocale(locale.LC_ALL, 'de_DE')
+locale.setlocale(locale.LC_ALL, 'de_DE.UTF-8')
 
 logger = init_logger("valueSetToRoots", logging.DEBUG)
 
@@ -99,7 +99,7 @@ def create_vs_tree_map(canonical_url: str) -> TreeMap:
                         treemap.entries[parent].children.append(node)
     except Exception as e:
         print(e)
-        
+
     return treemap
 
 
