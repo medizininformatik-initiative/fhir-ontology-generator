@@ -10,6 +10,7 @@ dependencies
 /.git/
 availability/*.json
 !availability/stratum-to-context.json
+/example/code_systems_translations/*.json
 
 /.commit
 .commit
