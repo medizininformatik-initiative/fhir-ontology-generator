@@ -56,11 +56,10 @@ class TerminologyDesignationResolver:
                     codesystem = json.load(json_file)
                     url = codesystem.get('supplements').split("|")[0]
 
-                    # optimize/reformat input
                     codesystem['concept'] = self.optimize_code_system_concepts(codesystem)
 
                     if self.code_systems.get(url):
-                        for new_concept_code, new_concept_designations in codesystem.get('concept').items(): #cycle through all concepts
+                        for new_concept_code, new_concept_designations in codesystem.get('concept').items():
                             existing_concept = self.code_systems[url]['concept'][new_concept_code]
 
                             if existing_concept:
