@@ -1,33 +1,34 @@
-{"Observation": {
-        "search_param": "code",
-        "fhir_path": "Observation.code.coding"
-    },
-        "Condition": {
-            "search_param": "code",
-            "fhir_path": "Condition.code.coding"
-        },
-        "Consent": {
-            "search_param": "mii-provision-provision-code",
-            "fhir_path": "Consent.provision-provision.code"
-        },
-        "Procedure": {
-            "search_param": "code",
-            "fhir_path": "Procedure.code"
-        },
-        "MedicationAdministration": {
-            "search_param": "medication.code",
-            "fhir_path": "(MedicationAdministration.medication[x]:medicationReference).code"
-        },
-        "MedicationStatement": {
-            "search_param": "medication.code",
-            "fhir_path": "(MedicationStatement.medication[x]:medicationReference).code"
-        },
-        "MedicationRequest": {
-            "search_param": "medication.code",
-            "fhir_path": "(MedicationRequest.medication[x]:medicationReference).code"
-        },
-        "Specimen": {
-            "search_param": "type",
-            "fhir_path": "Specimen.type"
-        }
-    }
+{
+  "Observation": {
+    "search_param": "code",
+    "fhir_path": "Observation.code"
+  },
+  "Condition": {
+    "search_param": "code",
+    "fhir_path": "Condition.code.coding"
+  },
+  "Consent": {
+    "search_param": "mii-provision-provision-code",
+    "fhir_path": "Consent.provision-provision.code"
+  },
+  "Procedure": {
+    "search_param": "code",
+    "fhir_path": "Procedure.code.coding"
+  },
+  "MedicationAdministration": {
+    "search_param": "medication.code",
+    "fhir_path": "(MedicationAdministration.medication[x]:medicationReference).code.coding"
+  },
+  "MedicationStatement": {
+    "search_param": "medication.code",
+    "fhir_path": "(MedicationStatement.medication[x]:medicationReference).code.coding"
+  },
+  "MedicationRequest": {
+    "search_param": "medication.code",
+    "fhir_path": "(MedicationRequest.medication[x]:medicationReference).code.coding"
+  },
+  "Specimen": {
+    "search_param": "type",
+    "fhir_path": "Specimen.type.coding"
+  }
+}

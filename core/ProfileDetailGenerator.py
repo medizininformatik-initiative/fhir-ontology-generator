@@ -55,13 +55,12 @@ class ProfileDetailGenerator():
             type = struct_def['type']
             return self.get_value_sets_for_code_filter(struct_def, f"{type}.{fhir_path.split(').')[-1]}")
 
-        pattern = rf"{fhir_path}\.coding:[^.]*$"
+        pattern = rf"{fhir_path}[^.]*$"
 
         for elem in (elem for elem in elements if re.search(pattern, elem['id'])):
 
             if "binding" in elem:
                 value_sets.append(elem["binding"]["valueSet"])
-
             elif len(value_sets) == 0 and "patternCoding" in elem or "fixed" in elem:
                 return None
 
