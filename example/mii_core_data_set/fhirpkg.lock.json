@@ -1,5 +1,5 @@
 {
-  "updated": "2024-11-13T08:00:02.977861+01:00",
+  "updated": "2024-11-13T10:21:30.706679+01:00",
   "dependencies": {
     "hl7.fhir.r4.core": "4.0.1",
     "de.medizininformatikinitiative.kerndatensatz.person": "2025.0.0-alpha1",
@@ -11,7 +11,8 @@
     "de.medizininformatikinitiative.kerndatensatz.consent": "1.0.4",
     "de.einwilligungsmanagement": "1.0.1",
     "de.medizininformatikinitiative.kerndatensatz.diagnose": "2025.0.0-alpha1",
-    "de.medizininformatikinitiative.kerndatensatz.biobank": "1.0.1"
+    "de.medizininformatikinitiative.kerndatensatz.biobank": "1.0.1",
+    "de.medizininformatikinitiative.kerndatensatz.fall": "2025.0.0-alpha1"
   },
   "missing": {}
 }
