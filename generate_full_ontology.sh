@@ -3,23 +3,25 @@
 export ONTOLOGY_SERVER_ADDRESS=${ONTOLOGY_SERVER_ADDRESS:-http://my-onto-server-address}
 export PRIVATE_KEY=${PRIVATE_KEY:-path-to-key-file}
 export SERVER_CERTIFICATE=${SERVER_CERTIFICATE:-path-to-cert-file}
+export POSTGRES_VERSION=${POSTGRES_VERSION:-16}
 
 BASE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 || exit 1 ; pwd -P )"
 
 export PYTHONPATH="$BASE_DIR"
 
 steps_to_run=()
+delete_folders=false
+
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --step) steps_to_run+=("$2"); shift ;;
-        --all) steps_to_run=(1 2 3 4 5 6) ;;  # Add all steps if --all is specified
+        --all) steps_to_run=(1 2 3 4 5 6); delete_folders=true ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
     shift
 done
 
-# Function to check if a step is in the steps_to_run array
 should_run_step() {
     local step=$1
     for i in "${steps_to_run[@]}"; do
@@ -29,6 +31,15 @@ should_run_step() {
     done
     return 1
 }
+
+if $delete_folders; then
+    OUT_FOLDER_DIR="$BASE_DIR/example/fdpg-ontology"
+    folders=("$OUT_FOLDER_DIR/criteria-sets" "$OUT_FOLDER_DIR/elastic" "$OUT_FOLDER_DIR/mapping" "$OUT_FOLDER_DIR/sql_scripts" "$OUT_FOLDER_DIR/term-code-info" "$OUT_FOLDER_DIR/ui-trees" "$OUT_FOLDER_DIR/value-sets")
+    for folder in "${folders[@]}"; do
+        [ -d "$folder" ] && rm -r "$folder" && echo "Deleted $folder" || echo "$folder does not exist"
+    done
+fi
+
 
 # Step 1: Generating cohort selection ontology
 if should_run_step 1; then

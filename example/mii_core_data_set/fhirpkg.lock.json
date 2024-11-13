@@ -1,5 +1,5 @@
 {
-  "updated": "2024-10-20T21:04:54.719753+02:00",
+  "updated": "2024-11-13T08:00:02.977861+01:00",
   "dependencies": {
     "hl7.fhir.r4.core": "4.0.1",
     "de.medizininformatikinitiative.kerndatensatz.person": "2025.0.0-alpha1",

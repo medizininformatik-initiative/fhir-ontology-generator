@@ -133,6 +133,9 @@ def collect_all_terminology_systems(merged_ontology_dir):
 
             value_set = json.load(value_set_file)
 
+            if "contains" not in value_set["expansion"]:
+                continue
+
             for termcode in value_set["expansion"]["contains"]:
                 system_url = termcode["system"]
                 system_urls.add(system_url)

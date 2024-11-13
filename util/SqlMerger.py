@@ -40,7 +40,7 @@ class SqlMerger:
                  db_name='merge_db',
                  db_user='dbuser',
                  db_password='dbpassword',
-                 db_port=5432,
+                 db_port=5430,
                  sql_init_script_dir='../resources/sql-scripts',
                  sql_script_dir='source',
                  sql_mapped_dir='/tmp/sql',

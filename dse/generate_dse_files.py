@@ -136,6 +136,10 @@ def extract_concepts_from_value_set(vs: dict, target: dict, mode: Literal['compo
                 for concept in cs_entry.get('concept', []):
                     concept_set.add((concept['code'], concept.get('display', None)))
         case 'expansion':
+
+            if "contains" not in vs['expansion']:
+                return
+
             for concept in vs['expansion']['contains']:
                 system = concept.get('system', None)
                 version = concept.get('version', None)

@@ -112,6 +112,9 @@ class ElasticSearchGenerator:
     @staticmethod
     def __convert_value_set(value_set, termcode_to_valueset, namespace_uuid_str):
 
+        if "contains" not in value_set['expansion']:
+            return
+
         for termcode in value_set['expansion']['contains']:
 
             termcode_hash_input = f"{termcode['code']}{termcode['system']}"

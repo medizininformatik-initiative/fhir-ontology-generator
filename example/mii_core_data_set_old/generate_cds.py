@@ -609,6 +609,8 @@ if __name__ == '__main__':
         container.stop()
         container.remove()
 
+    print(f"psql image = {POSTGRES_IMAGE}")
+
     container = client.containers.run(POSTGRES_IMAGE, detach=True, ports={'5432/tcp': 5430},
                                       name="test_db",
                                       volumes={f"{os.getcwd()}/{onto_result_dir}": {'bind': '/opt/db_data', 'mode': 'rw'}},
