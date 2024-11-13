@@ -12,14 +12,14 @@ from helper import flatten
 from model.UIProfileModel import VALUE_TYPE_OPTIONS, ValueSet
 from model.UiDataModel import TermCode
 
+from importlib import resources
+from resources import fhir, cql
+
 UCUM_SYSTEM = "http://unitsofmeasure.org"
-FHIR_TYPES_TO_VALUE_TYPES = {
-    "code": "concept",
-    "Quantity": "quantity",
-    "Reference": "reference",
-    "CodeableConcept": "concept",
-    "Coding": "concept"
-}
+FHIR_TYPES_TO_VALUE_TYPES = json.load(fp=(resources.files(fhir) / 'fhir-types-to-value-types.json')
+                                      .open('r', encoding='utf-8'))
+CQL_TYPES_TO_VALUE_TYPES = json.load(fp=(resources.files(cql) / 'cql-types-to-value-types.json')
+                                      .open('r', encoding='utf-8'))
 
 
 class InvalidValueTypeException(Exception):

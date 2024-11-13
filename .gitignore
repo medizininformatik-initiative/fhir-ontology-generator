@@ -13,3 +13,6 @@ availability/*.json
 
 /.commit
 .commit
+
+# FSH
+/fsh/*
