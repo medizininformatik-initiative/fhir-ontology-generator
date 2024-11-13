@@ -60,7 +60,7 @@ class TerminologyDesignationResolver:
 
                     if self.code_systems.get(url):
                         for new_concept_code, new_concept_designations in codesystem.get('concept').items():
-                            existing_concept = self.code_systems[url]['concept'][new_concept_code]
+                            existing_concept = self.code_systems[url]['concept'].get(new_concept_code)
 
                             if existing_concept:
                                 if 'de' not in existing_concept and 'de' in new_concept_designations:
@@ -97,5 +97,5 @@ class TerminologyDesignationResolver:
                 if 'de' in concept:
                     display['de-DE'] = concept.get('de')
         else:
-            logger.info("Did not find codesystem:{term_code['system']}")
+            logger.info("Did not find codesystem: "+term_code['system'])
         return display
