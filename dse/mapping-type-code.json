@@ -22,6 +22,10 @@
             "search_param": "medication.code",
             "fhir_path": "(MedicationStatement.medication[x]:medicationReference).code"
         },
+        "MedicationRequest": {
+            "search_param": "medication.code",
+            "fhir_path": "(MedicationRequest.medication[x]:medicationReference).code"
+        },
         "Specimen": {
             "search_param": "type",
             "fhir_path": "Specimen.type"
