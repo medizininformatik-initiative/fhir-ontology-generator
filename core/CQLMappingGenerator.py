@@ -8,7 +8,8 @@ from lxml import etree
 
 from core import StrucutureDefinitionParser as FHIRParser
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
-from core.StrucutureDefinitionParser import resolve_defining_id, extract_value_type, extract_reference_type
+from core.StrucutureDefinitionParser import resolve_defining_id, extract_value_type, extract_reference_type, \
+    CQL_TYPES_TO_VALUE_TYPES
 from helper import generate_attribute_key
 from model.MappingDataModel import CQLMapping, CQLAttributeSearchParameter
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
@@ -345,10 +346,7 @@ class CQLMappingGenerator(object):
 
         attribute_type = extract_value_type(attribute_element, profile_snapshot.get('name'))
 
-        if attribute_type == "CodeableConcept":
-            attribute_type = "Coding"
-
-        return attribute_type
+        return CQL_TYPES_TO_VALUE_TYPES.get(attribute_type)
 
     def get_reference_type(self, profile_snapshot: dict, attr_defining_id):
         """

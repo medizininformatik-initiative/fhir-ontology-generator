@@ -1,0 +1,7 @@
+{
+    "code": "concept",
+    "Quantity": "quantity",
+    "Reference": "reference",
+    "CodeableConcept": "concept",
+    "Coding": "concept"
+}
