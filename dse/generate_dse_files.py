@@ -45,6 +45,9 @@ module_order = ["modul-diagnose", "modul-prozedur", "modul-person", "modul-labor
                 "modul-biobank", "modul-consent"]
 
 
+reference_resolve_base_url = "https://www.medizininformatik-initiative.de"
+
+
 def configure_args_parser():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--download_packages', action='store_true')
@@ -254,7 +257,7 @@ if __name__ == '__main__':
         profiles = tree_generator.profiles
         fields_to_exclude = [".meta", ".id", ".subject", ".extension"]
         profile_detail_generator = ProfileDetailGenerator(profiles, mapping_type_code, blacklistedValueSets,
-                                                          fields_to_exclude)
+                                                          fields_to_exclude, reference_resolve_base_url)
         profile_details = []
 
         for profile in profiles:

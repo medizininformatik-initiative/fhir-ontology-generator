@@ -3,7 +3,7 @@ import re
 
 class ProfileDetailGenerator():
 
-    def __init__(self, profiles, mapping_type_code, blacklistedValueSets, fields_to_exclude):
+    def __init__(self, profiles, mapping_type_code, blacklistedValueSets, fields_to_exclude, reference_base_url):
 
         self.blacklistedValueSets = blacklistedValueSets
         self.profiles = profiles
@@ -12,6 +12,7 @@ class ProfileDetailGenerator():
         self.simple_data_types = ["instant", "time", "date", "dateTime", "decimal", "boolean", "integer", "string",
                                   "uri", "base64Binary", "code", "id", "oid", "unsignedInt", "positiveInt", "markdown",
                                   "url", "canonical", "uuid"]
+        self.reference_base_url = reference_base_url
 
     def find_and_load_scruct_def_from_path(self, struct_def, path):
 
@@ -22,14 +23,20 @@ class ProfileDetailGenerator():
             elem_type = elem['type']
 
             for type_elem in (elem for elem in elem_type if re.search("Reference", elem['code'])):
-                struct_def_ref = type_elem['targetProfile'][0]
 
-                if struct_def_ref not in self.profiles:
+                target_profile_url = next((url for url in type_elem['targetProfile'] if url.startswith(self.reference_base_url)),
+                    None)
+
+                if not target_profile_url:
+                    continue
+
+                if target_profile_url not in self.profiles:
                     for profile in self.profiles:
-                        if struct_def_ref.split("/")[-1] == profile.split("/")[-1]:
+                        if target_profile_url.split("/")[-1] == profile.split("/")[-1]:
                             return self.profiles[profile]['structureDefinition']
 
-                return self.profiles[struct_def_ref]['structureDefinition']
+
+                return self.profiles[target_profile_url]['structureDefinition']
 
         return None
 
@@ -41,8 +48,11 @@ class ProfileDetailGenerator():
 
         if part_match:
             struct_def = self.find_and_load_scruct_def_from_path(struct_def, part_match.group(1))
-            type = struct_def['type']
 
+            if not struct_def:
+                return None
+
+            type = struct_def['type']
             return self.get_value_sets_for_code_filter(struct_def, f"{type}.{fhir_path.split(').')[-1]}")
 
         pattern = rf"{fhir_path}\.coding:[^.]*$"
