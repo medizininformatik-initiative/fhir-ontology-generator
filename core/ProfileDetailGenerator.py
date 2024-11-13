@@ -1,27 +1,61 @@
 import re
 
+
 class ProfileDetailGenerator():
 
-    def __init__(self, profiles, mapping_type_code, blacklistedValueSets, fields_to_exclude):
+    def __init__(self, profiles, mapping_type_code, blacklistedValueSets, fields_to_exclude, reference_base_url):
 
         self.blacklistedValueSets = blacklistedValueSets
         self.profiles = profiles
         self.mapping_type_code = mapping_type_code
         self.fields_to_exclude = fields_to_exclude
-        self.simple_data_types = ["instant", "time", "date", "dateTime", "decimal", "boolean", "integer", "string", "uri", "base64Binary", "code", "id", "oid", "unsignedInt", "positiveInt", "markdown", "url", "canonical", "uuid"]
+        self.simple_data_types = ["instant", "time", "date", "dateTime", "decimal", "boolean", "integer", "string",
+                                  "uri", "base64Binary", "code", "id", "oid", "unsignedInt", "positiveInt", "markdown",
+                                  "url", "canonical", "uuid"]
+        self.reference_base_url = reference_base_url
 
-    def get_value_sets_for_code_filter(self, structDef):
+    def find_and_load_scruct_def_from_path(self, struct_def, path):
+
+        elements = struct_def['snapshot']["element"]
+
+        for elem in (elem for elem in elements if elem['id'] == path):
+
+            elem_type = elem['type']
+
+            for type_elem in (elem for elem in elem_type if re.search("Reference", elem['code'])):
+
+                target_profile_url = next((url for url in type_elem['targetProfile'] if url.startswith(self.reference_base_url)),
+                    None)
+
+                if not target_profile_url:
+                    continue
+
+                if target_profile_url not in self.profiles:
+                    for profile in self.profiles:
+                        if target_profile_url.split("/")[-1] == profile.split("/")[-1]:
+                            return self.profiles[profile]['structureDefinition']
+
+
+                return self.profiles[target_profile_url]['structureDefinition']
+
+        return None
+
+    def get_value_sets_for_code_filter(self, struct_def, fhir_path):
 
         value_sets = []
-        elements = structDef['snapshot']["element"]
-        type = structDef["type"]
+        elements = struct_def['snapshot']["element"]
+        part_match = re.search(r'\((.*?)\)', fhir_path)
 
-        if type not in self.mapping_type_code:
-            return None
+        if part_match:
+            struct_def = self.find_and_load_scruct_def_from_path(struct_def, part_match.group(1))
 
-        code_path = self.mapping_type_code[type]
+            if not struct_def:
+                return None
 
-        pattern = rf"{type}\.{code_path}\.coding:[^.]*$"
+            type = struct_def['type']
+            return self.get_value_sets_for_code_filter(struct_def, f"{type}.{fhir_path.split(').')[-1]}")
+
+        pattern = rf"{fhir_path}\.coding:[^.]*$"
 
         for elem in (elem for elem in elements if re.search(pattern, elem['id'])):
 
@@ -34,7 +68,7 @@ class ProfileDetailGenerator():
         if len(value_sets) > 0:
             return value_sets
 
-        pattern = rf"{type}\.{code_path}($|\.coding$)"
+        pattern = rf"{fhir_path}($|\.coding$)"
 
         for elem in (elem for elem in elements if re.search(pattern, elem['id'])):
 
@@ -143,7 +177,7 @@ class ProfileDetailGenerator():
 
         return name
 
-    def find_field_in_profile_fields(self,field_id, fields):
+    def find_field_in_profile_fields(self, field_id, fields):
 
         for field in fields:
 
@@ -154,7 +188,6 @@ class ProfileDetailGenerator():
                 return field
 
         return None
-
 
     def get_element_by_content_ref(self, content_ref, elements):
 
@@ -170,7 +203,6 @@ class ProfileDetailGenerator():
                 return next(e['valueString'] for e in ext['extension'] if e.get('url') == 'content')
         return ""
 
-
     def resource_type_to_date_param(self, resource_type):
 
         if resource_type == 'Condition':
@@ -182,15 +214,12 @@ class ProfileDetailGenerator():
 
         print(f"Generating profile detail for: {profile['url']}")
 
-        code_filter = self.mapping_type_code.get(profile['structureDefinition']['type'], None)
-
         if not "snapshot" in profile["structureDefinition"]:
             print(f'profile with url {profile["url"]} has no snapshot - ignoring')
             # TODO - check why this happens and if this is a problem
             return None
 
         struct_def = profile["structureDefinition"]
-
 
         date_param = self.resource_type_to_date_param(struct_def['type'])
 
@@ -209,18 +238,25 @@ class ProfileDetailGenerator():
                         ]
                         },
             "filters": [
-                {"type": "date", "name": date_param , "ui_type": "timeRestriction"}
+                {"type": "date", "name": date_param, "ui_type": "timeRestriction"}
             ],
         }
 
-        value_set_urls = self.get_value_sets_for_code_filter(profile['structureDefinition'])
+        profile_type = profile['structureDefinition']['type']
+        code_search_param = (result := self.mapping_type_code.get(profile_type, None)) and result.get("search_param",
+                                                                                                      None)
+        fhir_path = (result := self.mapping_type_code.get(profile_type, None)) and result.get("fhir_path", None)
+        value_set_urls = None
+
+        if fhir_path is not None:
+            value_set_urls = self.get_value_sets_for_code_filter(profile['structureDefinition'], fhir_path)
 
         if value_set_urls:
             profile_detail['filters'].append({
                 "type": "token",
-                "name": code_filter,
+                "name": code_search_param,
                 "ui_type": "code",
-                "valueSetUrls": self.get_value_sets_for_code_filter(profile['structureDefinition']),
+                "valueSetUrls": value_set_urls,
             })
 
         field_tree = {"children": []}
@@ -255,26 +291,28 @@ class ProfileDetailGenerator():
 
             field = {"id": field_id,
                      "display": {"original": name,
-                              "translations": [
-                                  {
-                                      "language": "de-DE",
-                                      "value": self.get_value_for_lang_code(element.get('_short', {}), "de-DE")
-                                  },
-                                  {
-                                      "language": "en-US",
-                                      "value": self.get_value_for_lang_code(element.get('_short', {}), "en-US")
-                                  }
-                              ],
-                              },
+                                 "translations": [
+                                     {
+                                         "language": "de-DE",
+                                         "value": self.get_value_for_lang_code(element.get('_short', {}), "de-DE")
+                                     },
+                                     {
+                                         "language": "en-US",
+                                         "value": self.get_value_for_lang_code(element.get('_short', {}), "en-US")
+                                     }
+                                 ],
+                                 },
                      "description": {"original": element.get("definition", ""),
                                      "translations": [
                                          {
                                              "language": "de-DE",
-                                             "value": self.get_value_for_lang_code(element.get('_definition', {}), "de-DE")
+                                             "value": self.get_value_for_lang_code(element.get('_definition', {}),
+                                                                                   "de-DE")
                                          },
                                          {
                                              "language": "en-US",
-                                             "value": self.get_value_for_lang_code(element.get('_definition', {}), "en-US")
+                                             "value": self.get_value_for_lang_code(element.get('_definition', {}),
+                                                                                   "en-US")
                                          }
                                      ],
                                      },
