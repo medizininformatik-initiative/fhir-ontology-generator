@@ -342,7 +342,13 @@ class CQLMappingGenerator(object):
         if " as ValueSet" in attribute_id:
             attribute_id = attribute_id.replace(" as ValueSet", "")
         attribute_element = resolve_defining_id(profile_snapshot, attribute_id, self.data_set_dir, self.module_dir)
-        return extract_value_type(attribute_element, profile_snapshot.get('name'))
+
+        attribute_type = extract_value_type(attribute_element, profile_snapshot.get('name'))
+
+        if attribute_type == "CodeableConcept":
+            attribute_type = "Coding"
+
+        return attribute_type
 
     def get_reference_type(self, profile_snapshot: dict, attr_defining_id):
         """
