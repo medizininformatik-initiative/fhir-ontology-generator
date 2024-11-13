@@ -1,4 +1,6 @@
 import unittest
+
+from core.docker.Images import POSTGRES_IMAGE
 from database.DataBaseWriter import DataBaseWriter
 import docker
 
@@ -16,7 +18,7 @@ class DataBaseWriterTest(unittest.TestCase):
     def setUp(cls):
         # start up docker container with database
         cls.client = docker.from_env()
-        cls.container = cls.client.containers.run("postgres:latest", detach=True, ports={'5432/tcp': 5432},
+        cls.container = cls.client.containers.run(POSTGRES_IMAGE, detach=True, ports={'5432/tcp': 5432},
                                                   name="test_db",
                                                   environment={
                                                       'POSTGRES_USER': 'codex-postgres',

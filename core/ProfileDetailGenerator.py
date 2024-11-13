@@ -105,6 +105,7 @@ class ProfileDetailGenerator():
         cur_node = tree
         path = re.split(r"[.:]", field["id"])
         path = path[1:]
+        parent_recommended = False
 
         if len(path) == 0:
             return
@@ -120,6 +121,12 @@ class ProfileDetailGenerator():
             if field_child_index != -1:
                 cur_node = cur_node["children"][field_child_index]
 
+            if parent_recommended == False and "recommended" in cur_node:
+                parent_recommended = cur_node['recommended']
+
+            if parent_recommended:
+                field['recommended'] = False
+
         if "children" not in cur_node:
             cur_node["children"] = []
 
@@ -127,7 +134,16 @@ class ProfileDetailGenerator():
 
     def filter_element(self, element):
 
-        if "mustSupport" not in element or element['mustSupport'] is False:
+        attributes_true_level_one = ["mustSupport", "isModifier", "min"]
+
+        if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
+            for attr in attributes_true_level_one):
+            return True
+
+        attributes_true_level_two = ["mustSupport", "isModifier"]
+
+        if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
+            for attr in attributes_true_level_two) and len(element["id"].split(".")) > 2:
             return True
 
         if any(element['id'].endswith(field) or f"{field}." in element['id'] for field in self.fields_to_exclude):
@@ -136,8 +152,22 @@ class ProfileDetailGenerator():
         if "[x]" in element['id'] and not element['id'].endswith("[x]"):
             return True
 
-        if element['id'].endswith(".extension"):
+        if element["base"]["path"].split(".")[0] in {"Resource", "DomainResource"} and not "mustSupport" in element:
             return True
+
+    def check_at_least_one_in_elem_and_true(self, element, attributes_to_check):
+
+        path = element["id"].split(".")
+
+        if len(path) > 2:
+            return False
+
+        if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
+            for attr in attributes_to_check):
+            return False
+
+        return True
+
 
     def get_name_from_id(self, id):
 
@@ -254,6 +284,9 @@ class ProfileDetailGenerator():
                 print(f"Element without type: {element}")
                 continue
 
+            is_recommended_field = self.check_at_least_one_in_elem_and_true(element, ["min"])
+            is_required_field = self.check_at_least_one_in_elem_and_true(element, ["isModifier"])
+
             name = self.get_name_from_id(element["id"])
 
             field = {"id": field_id,
@@ -283,7 +316,9 @@ class ProfileDetailGenerator():
                                          }
                                      ],
                                      },
-                     "type": field_type
+                     "type": field_type,
+                     "recommended": is_recommended_field,
+                     "required": is_required_field
                      }
 
             self.insert_field_to_tree(field_tree, field)

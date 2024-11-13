@@ -13,20 +13,20 @@ def configure_args_parser():
 
     arg_parser.add_argument('--merge_mappings', action='store_true')
     arg_parser.add_argument(
-         '--consentinputdir',  # Allows multiple arguments for this option
-        required=True,  # Makes this argument required
+         '--consentinputdir',
+        required=True,
         help="List of directory paths to ontologies to be merged"
     )
     arg_parser.add_argument(
          '--mergedontodir',
-        required=True,  # Makes this argument required
+        required=True,
         help="output directory for merged ontology"
     )
     arg_parser.add_argument(
         '--log-level',
         type=str,
-        default='DEBUG',  # Default log level if not provided
-        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],  # Valid log levels
+        default='DEBUG',
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
         help="Set the logging level"
     )
 
