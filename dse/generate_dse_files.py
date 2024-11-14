@@ -54,6 +54,7 @@ def configure_args_parser():
     arg_parser.add_argument('--generate_profile_details', action='store_true')
     arg_parser.add_argument('--download_value_sets', action='store_true')
     arg_parser.add_argument('--generate_mapping_trees', action='store_true')
+    arg_parser.add_argument('--copy_snapshots', action='store_true')
     arg_parser.add_argument(
         "--loglevel",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
@@ -226,8 +227,6 @@ if __name__ == '__main__':
 
     parser = configure_args_parser()
     args = parser.parse_args()
-
-    # Configure logging to stdout
     log_level = getattr(logging, args.loglevel)
     log_to_stdout("dse", level=log_level)
     log_to_stdout("valueSetToRoots", level=log_level)
@@ -242,11 +241,15 @@ if __name__ == '__main__':
         exclude_dirs = json.load(f)
 
     packages_dir = os.path.join(os.getcwd(), "dse-packages", "dependencies")
+    snapshots_dir = os.path.join(os.getcwd(), "dse-packages", "snapshots")
     fields_to_exclude = [".meta", ".id", ".subject", ".modifierExtension", ".extension"]
 
-    tree_generator = ProfileTreeGenerator(packages_dir, exclude_dirs, module_order, module_translation, fields_to_exclude)
-    tree_generator.get_profiles()
+    tree_generator = ProfileTreeGenerator(packages_dir, snapshots_dir, exclude_dirs, module_order, module_translation, fields_to_exclude)
 
+    if args.copy_snapshots:
+        tree_generator.copy_profile_snapshots()
+
+    tree_generator.get_profiles()
     profile_tree = tree_generator.generate_profiles_tree()
 
     with open(os.path.join("generated", "profile_tree.json"), "w") as f:

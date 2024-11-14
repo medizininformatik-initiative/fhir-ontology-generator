@@ -2,14 +2,15 @@ import uuid
 import re
 import os
 import json
-
+import shutil
 
 class ProfileTreeGenerator():
 
-    def __init__(self, packagesDir: str, exclude_dirs, module_order, module_translation, fields_to_exclude):
+    def __init__(self, packages_dir: str, snapshots_dir: str, exclude_dirs, module_order, module_translation, fields_to_exclude):
 
         self.profiles = {}
-        self.packagesDir = packagesDir
+        self.packages_dir = packages_dir
+        self.snapshots_dir = snapshots_dir
         self.exclude_dirs = exclude_dirs
         self.module_order = module_order
         self.module_translation = module_translation
@@ -186,11 +187,12 @@ class ProfileTreeGenerator():
             return match.group("module")
         return None
 
-    def get_profiles(self):
 
-        exclude_dirs = set(os.path.abspath(os.path.join(self.packagesDir, d)) for d in self.exclude_dirs)
+    def copy_profile_snapshots(self):
 
-        for root, dirs, files in os.walk(self.packagesDir):
+        exclude_dirs = set(os.path.abspath(os.path.join(self.packages_dir, d)) for d in self.exclude_dirs)
+
+        for root, dirs, files in os.walk(self.packages_dir):
             dirs[:] = [d for d in dirs if os.path.abspath(os.path.join(root, d)) not in exclude_dirs]
 
             for file in (file for file in files if file.endswith(".json")):
@@ -198,6 +200,39 @@ class ProfileTreeGenerator():
 
                 if "/examples/" in file_path:
                     continue
+
+                try:
+
+                    with open(file_path, "r") as f:
+                        content = json.load(f)
+
+                        if (
+                                "resourceType" in content
+                                and content["resourceType"] == "StructureDefinition"
+                                and content["baseDefinition"]
+                                not in ["http://hl7.org/fhir/StructureDefinition/Extension"]
+                                and content["status"] == "active"
+                                and content["kind"] == "resource"
+                        ):
+
+                            destination = f"{self.snapshots_dir}/{os.path.basename(file_path)}"
+                            print(f"Copying snapshot file for further processing: {file_path} -> {destination}")
+                            shutil.copy(file_path, destination)
+
+                except UnicodeDecodeError:
+                    print(f"File {file_path} is not a text file or cannot be read as text.")
+                except Exception:
+                    pass
+
+
+
+    def get_profiles(self):
+
+        for root, dirs, files in os.walk(self.snapshots_dir):
+            dirs[:] = [d for d in dirs if os.path.abspath(os.path.join(root, d))]
+
+            for file in (file for file in files if file.endswith(".json")):
+                file_path = os.path.join(root, file)
 
                 try:
 
