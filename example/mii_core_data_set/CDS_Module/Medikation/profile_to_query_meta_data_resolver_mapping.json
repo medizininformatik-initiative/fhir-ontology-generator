@@ -1,5 +1,11 @@
 {
   "Medikamentenverabreichung": [
     "MedicationAdministration"
+  ],
+  "Medikamentenverordnung": [
+    "MedicationStatement"
+  ],
+  "Medikamentenanordnung": [
+    "MedicationRequest"
   ]
 }

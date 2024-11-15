@@ -1,0 +1,16 @@
+{
+  "name": "MedicationRequest",
+  "resource_type": "MedicationRequest",
+  "module": {
+    "code": "mii-cds-medikation",
+    "display": "Medikation"
+  },
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "Medikamentenanordnung",
+    "display": "Anordnung von Medikamenten",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "(MedicationRequest.medication[x]:medicationReference).code.coding:atcClassDe",
+  "time_restriction_defining_id": "MedicationRequest.authoredOn"
+}

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export ONTOLOGY_SERVER_ADDRESS=${ONTOLOGY_SERVER_ADDRESS:-http://my-onto-server-address}
+export ONTOLOGY_SERVER_ADDRESS=${ONTOLOGY_SERVER_ADDRESS:-http://my-onto-server-address/fhir/}
 export PRIVATE_KEY=${PRIVATE_KEY:-path-to-key-file}
 export SERVER_CERTIFICATE=${SERVER_CERTIFICATE:-path-to-cert-file}
 export POSTGRES_VERSION=${POSTGRES_VERSION:-16}
