@@ -24,6 +24,7 @@ from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import UIProfile
 from model.UiDataModel import TermCode
+from core.docker.Images import POSTGRES_IMAGE
 
 WINDOWS_RESERVED_CHARACTERS = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
 
@@ -258,15 +259,14 @@ def generate_result_folder(base_dir: str = ""):
     """
     paths = [
         "mapping",
-        "mapping-tree",
-        "value-sets",
-
-        "term-code-info",
         "mapping/fhir",
         "mapping/cql",
+        "mapping-tree",
+        "term-code-info",
         "ui-trees",
         "ui-profiles",
         "ui-profiles-old",
+        "value-sets",
     ]
     for path in paths:
         dir_path = os.path.join(base_dir, path)
@@ -310,7 +310,7 @@ def manage_docker_container(logger: logging.Logger, module_directory: str, conta
         container.remove()
 
     container = client.containers.run(
-        "postgres:latest",
+        POSTGRES_IMAGE,
         detach=True,
         ports={'5432/tcp': 5430},
         name=container_name,
@@ -489,25 +489,28 @@ def main():
     modules = args.modules if args.modules else [module for module in os.listdir("CDS_Module")]
 
     for module in modules:
-        module_directory = Path("CDS_Module") / module / onto_result_dir
-        module_directory = module_directory.resolve()
-        module_directory_str = str(module_directory)
-
-        container_name = f"test_db_{module}"
-
-        container = manage_docker_container(logger, module_directory_str, container_name=container_name)
-        db_writer = DataBaseWriter(5430)
 
 
-        try: 
+
+        try:
             logger.info(f"Generating ontology for module: {module}")
-            generate_result_folder(os.path.join("CDS_Module", module, onto_result_dir))
+
+            module_directory = Path("CDS_Module") / module / onto_result_dir
+            module_directory = module_directory.resolve()
+            module_directory_str = str(module_directory)
+
+            generate_result_folder(module_directory_str)
+
+            container_name = f"test_db_{module}"
+            container = manage_docker_container(logger, module_directory_str, container_name=container_name)
+
+            db_writer = DataBaseWriter(5430)
 
             with open(os.path.join("CDS_Module", module, "required_packages.json"), "r") as f:
                 requried_packages = json.load(f)
                 if args.generate_snapshot:
                     generate_snapshots(os.path.join("CDS_Module", module, differential_folder), requried_packages, logger)
-            
+
             resolver = StandardDataSetQueryingMetaDataResolver()
             if args.generate_ui_trees:
                 generate_ui_trees(resolver, os.path.join("CDS_Module", module, "differential"), os.path.join("CDS_Module", module, onto_result_dir), module, logger)

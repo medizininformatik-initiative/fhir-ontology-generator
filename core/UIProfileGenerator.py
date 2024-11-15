@@ -126,6 +126,7 @@ class UIProfileGenerator:
         if value_type == "code":
             value_type = "concept"
         value_definition = ValueDefinition(value_type)
+        value_definition.optional = querying_meta_data.value_optional
         if value_type == "concept":
             value_definition.referencedValueSet = self.parser.get_selectable_concepts(value_defining_element,
                                                                                       profile_snapshot.get("name"))
@@ -163,14 +164,16 @@ class UIProfileGenerator:
         :return:
         """
         attribute_definitions = []
-        for attribute_defining_id, attribute_type in querying_meta_data.attribute_defining_id_type_map.items():
+        for attribute_defining_id, attribute_attributes in querying_meta_data.attribute_defining_id_type_map.items():
+            attribute_type = attribute_attributes.get("type", "")
+            is_attribute_optional = attribute_attributes.get("optional", True)
             attribute_definition = self.get_attribute_definition(profile_snapshot, attribute_defining_id,
-                                                                 attribute_type)
+                                                                 attribute_type, is_attribute_optional)
             attribute_definitions.append(attribute_definition)
         return attribute_definitions
 
     def get_attribute_definition(self, profile_snapshot: dict, attribute_defining_element_id: str,
-                                 attribute_type: str) -> AttributeDefinition:
+                                 attribute_type: str, optional: bool = True) -> AttributeDefinition:
         """
         Returns an attribute definition for the given attribute defining element
         :param profile_snapshot: FHIR profile snapshot
@@ -188,7 +191,7 @@ class UIProfileGenerator:
                                   profile_snapshot.get('name')) in FHIR_TYPES_TO_VALUE_TYPES else extract_value_type(
             attribute_defining_elements[-1], profile_snapshot.get('name'))
         attribute_code = generate_attribute_key(attribute_defining_element_id)
-        attribute_definition = AttributeDefinition(attribute_code, attribute_type)
+        attribute_definition = AttributeDefinition(attribute_code, attribute_type, optional)
         if attribute_type == "concept":
             attribute_definition.referencedValueSet = self.parser.get_selectable_concepts(
                 attribute_defining_elements[-1],
@@ -222,7 +225,7 @@ class UIProfileGenerator:
         attribute_definition = AttributeDefinition(attribute_code, "composite")
         attribute_type = self.parser.get_element_type(element)
         if attribute_type == "Quantity":
-            unit_defining_path = attribute_defining_elements[0].get("path") + ".code"
+            unit_defining_path = element.get("path") + ".code"
             unit_defining_elements = self.parser.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
             if len(unit_defining_elements) > 1:
                 unit_defining_elements = list(filter(lambda x: self.get_slice_name(x) == self.get_slice_name(element),
@@ -233,9 +236,20 @@ class UIProfileGenerator:
                                                                       profile_snapshot.get("name"))
             return attribute_definition
         elif attribute_type == "CodeableConcept":
-            attribute_definition.referencedValueSet = self.parser.get_selectable_concepts(
-                attribute_defining_elements[-1],
-                profile_snapshot.get("name"))
+            if binding := predicate.get("binding"):
+                concepts = self.parser.get_selectable_concepts(
+                     predicate,
+                     profile_snapshot.get("name"))
+                attribute_definition.referencedValueSet = concepts
+            elif binding := element.get("binding"):
+                concepts = self.parser.get_selectable_concepts(
+                     element,
+                     profile_snapshot.get("name"))
+                attribute_definition.referencedValueSet = concepts
+            else:
+                concepts = self.parser.get_fixed_term_codes(predicate, profile_snapshot, self.module_dir, self.data_set_dir)
+                attribute_definition.referencedCriteriaSet = self.get_reference_criteria_set_from_fixed_term_codes(
+                    concepts, self.get_referenced_context(profile_snapshot, self.module_dir))
             return attribute_definition
         else:
             raise InvalidValueTypeException("Invalid value type: " + attribute_type + " for composite attribute " +
@@ -259,7 +273,7 @@ class UIProfileGenerator:
 
         else:
             raise InvalidValueTypeException(
-                "Unable to generate composite attribute code for element: " + element.id +
+                "Unable to generate composite attribute code for element: " + element.get("id") +
                 "in profile: " + profile_snapshot.get("name"))
 
     def get_referenced_profile_data(self, profile_snapshot, reference_defining_element_id) -> dict:
@@ -315,7 +329,7 @@ class UIProfileGenerator:
         :param module_dir: module directory of the profile
         :return: referenced context
         """
-        module_name = module_dir.replace("package", "").split("/")[-1]
+        module_name = module_dir.replace("package", "").split("/")[1]
         return self.querying_meta_data_resolver.get_query_meta_data(profile_snapshot,
                                                                     module_name)[0].context
 

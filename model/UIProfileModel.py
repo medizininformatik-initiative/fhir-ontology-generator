@@ -64,8 +64,8 @@ class AttributeDefinition(ValueDefinition):
 
     # TODO: This is not best practice. See python dataclass non-default argument follows default argument
     # However would require a lot of refactoring
-    def __init__(self, attribute_code, value_type):
-        super().__init__(value_type)
+    def __init__(self, attribute_code, value_type, optional: bool = True):
+        super().__init__(value_type, optional=optional)
         self.attributeCode = attribute_code
 
 

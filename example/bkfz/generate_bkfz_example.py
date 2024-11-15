@@ -17,6 +17,7 @@ from core.SearchParameterResolver import SearchParameterResolver
 from core.StrucutureDefinitionParser import get_element_from_snapshot
 from core.UIProfileGenerator import UIProfileGenerator
 from core.UITreeGenerator import UITreeGenerator
+from core.docker.Images import POSTGRES_IMAGE
 from database.DataBaseWriter import DataBaseWriter
 from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, load_querying_meta_data, \
     generate_result_folder
@@ -253,7 +254,7 @@ if __name__ == '__main__':
         print("Stopping and removing existing container named 'test_db'...")
         container.stop()
         container.remove()
-    container = client.containers.run("postgres:latest", detach=True, ports={'5432/tcp': 5430},
+    container = client.containers.run(POSTGRES_IMAGE, detach=True, ports={'5432/tcp': 5430},
                                       name="test_db",
                                       volumes={f"{os.getcwd()}": {'bind': '/opt/db_data', 'mode': 'rw'}},
                                       environment={

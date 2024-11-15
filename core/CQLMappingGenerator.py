@@ -8,7 +8,8 @@ from lxml import etree
 
 from core import StrucutureDefinitionParser as FHIRParser
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
-from core.StrucutureDefinitionParser import resolve_defining_id, extract_value_type, extract_reference_type
+from core.StrucutureDefinitionParser import resolve_defining_id, extract_value_type, extract_reference_type, \
+    CQL_TYPES_TO_VALUE_TYPES
 from helper import generate_attribute_key
 from model.MappingDataModel import CQLMapping, CQLAttributeSearchParameter
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
@@ -137,7 +138,8 @@ class CQLMappingGenerator(object):
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
             cql_mapping.timeRestrictionFhirPath = self.translate_element_id_to_fhir_path_expressions_time_restriction(
                 time_defining_id, profile_snapshot)
-        for attr_defining_id, attr_type in querying_meta_data.attribute_defining_id_type_map.items():
+        for attr_defining_id, attr_attributes in querying_meta_data.attribute_defining_id_type_map.items():
+            attr_type = attr_attributes.get("type", "")
             self.set_attribute_search_param(attr_defining_id, cql_mapping, attr_type, profile_snapshot)
 
         return cql_mapping
@@ -341,7 +343,10 @@ class CQLMappingGenerator(object):
         if " as ValueSet" in attribute_id:
             attribute_id = attribute_id.replace(" as ValueSet", "")
         attribute_element = resolve_defining_id(profile_snapshot, attribute_id, self.data_set_dir, self.module_dir)
-        return extract_value_type(attribute_element, profile_snapshot.get('name'))
+
+        attribute_type = extract_value_type(attribute_element, profile_snapshot.get('name'))
+
+        return CQL_TYPES_TO_VALUE_TYPES.get(attribute_type)
 
     def get_reference_type(self, profile_snapshot: dict, attr_defining_id):
         """

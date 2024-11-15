@@ -5,6 +5,9 @@ import docker
 import time
 import psycopg2
 
+from core.docker.Images import POSTGRES_IMAGE
+
+
 def insert_content(base_file, content_to_insert, insert_after='SET row_security = off;'):
     with open(content_to_insert, 'r') as inserted_content_file:
         inserted_content = inserted_content_file.read()
@@ -37,7 +40,7 @@ class SqlMerger:
                  db_name='merge_db',
                  db_user='dbuser',
                  db_password='dbpassword',
-                 db_port=5432,
+                 db_port=5430,
                  sql_init_script_dir='../resources/sql-scripts',
                  sql_script_dir='source',
                  sql_mapped_dir='/tmp/sql',
@@ -69,7 +72,7 @@ class SqlMerger:
         client = docker.from_env()
         print(f"Starting PostgreSQL Docker container and binding to port {self.db_port}")
         self.db_container = client.containers.run(
-            "postgres:latest",
+            POSTGRES_IMAGE,
             name=self.container_name,
             environment={
                 "POSTGRES_DB": self.db_name,
@@ -249,7 +252,7 @@ class SqlMerger:
     def dump_merged_schema(self):
         cmd = f"pg_dump -U {self.db_user} -d {self.db_name} -a -O -t termcode -t context -t ui_profile -t mapping -t contextualized_termcode -t contextualized_termcode_to_criteria_set -t criteria_set -f {self.sql_mapped_dir}/R__Load_latest_ui_profile.sql"
         self.db_container.exec_run(cmd=cmd)
-        self.db_container.exec_run(cmd=f'chown 1000:1000 {self.sql_mapped_dir}/R__Load_latest_ui_profile.sql')
+        self.db_container.exec_run(cmd=f'chown {os.geteuid()}:{os.getegid()} {self.sql_mapped_dir}/R__Load_latest_ui_profile.sql')
         insert_content(f'{self.sql_script_dir}/R__Load_latest_ui_profile.sql', f'{self.sql_init_script_dir}/delete_statements.sql', )
 
     def create_functions(self):

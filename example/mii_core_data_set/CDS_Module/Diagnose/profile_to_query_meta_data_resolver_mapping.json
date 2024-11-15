@@ -2,6 +2,7 @@
   "Diagnose": [
     "AlphaIdCondition",
     "Condition",
-    "SnomedCondition"
+    "SnomedCondition",
+    "OrphanetCondition"
   ]
 }

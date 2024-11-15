@@ -88,8 +88,6 @@ def generate_snapshots(package_dir: str, prerequisite_packages: List[str] = None
     :raises NotADirectoryError: if the package directory is not a directory
     """
 
-    print(prerequisite_packages)
-
     def install_prerequisites():
         os.system("fhir install hl7.fhir.r4.core")
         for package in prerequisite_packages:
