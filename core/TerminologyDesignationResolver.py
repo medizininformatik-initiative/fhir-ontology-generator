@@ -12,6 +12,23 @@ logger = init_logger("TerminologyDesignationResolver", logging.DEBUG)
 log_to_stdout("TerminologyDesignationResolver", logging.DEBUG)
 
 
+def extract_designation(parameters: dict, language: str) -> str | None:
+    """
+    Helper function for extracting language code specific designation display value from `Parameters` resource
+    :param parameters: `Parameters` resource to extract display value from
+    :param language: Language code identifying display value to extract
+    :return: Either `str` display value or `None` if no designation for language codes exists
+    """
+    for designation in filter(lambda p: p.get("name") == "designation", parameters.get("parameters", [])):
+        part = designation.get("part")
+        if part:
+            designation_language = list(filter(lambda p: p.get("name") == "language", part))[0].get("valueCode")
+            designation_use = list(filter(lambda p: p.get("name") == "use", part))[0].get("valueCoding").get("code")
+            if designation_language == language and designation_use == "display":
+                return list(filter(lambda p: p.get("name") == "value", part))[0].get("valueString")
+    return None
+
+
 class TerminologyDesignationResolver:
     def __init__(self, base_translations_conf: str = None, server_address: str = TERMINOLOGY_SERVER_ADDRESS):
         self.code_systems = {}
@@ -70,9 +87,9 @@ class TerminologyDesignationResolver:
             logger.warning(f"Failed to load base translation config @ {base_translation_conf}", exc_info=exc,
                            stack_info=True)
 
-    def __bulk_lookup(self, bundle: dict) -> dict:
+    def __batch_lookup(self, bundle: dict) -> dict:
         """
-        Performs `CodeSystem-lookup` operation in bulk against a terminology server and returns the
+        Performs `CodeSystem-lookup` operation in batch against a terminology server and returns the
         response if successful
         :param bundle: Bundle resource containing individual entries for lookup requests
         :return: Response Bundle resource if successful
@@ -90,17 +107,13 @@ class TerminologyDesignationResolver:
         else:
             return response.json()
 
-    def __extract_designation(self, parameters: dict, language: str) -> str | None:
-        for designation in filter(lambda p: p.get("name") == "designation", parameters.get("parameters", [])):
-            part = designation.get("part")
-            if part:
-                designation_language = list(filter(lambda p: p.get("name") == "language", part))[0].get("valueCode")
-                designation_use = list(filter(lambda p: p.get("name") == "use", part))[0].get("valueCoding").get("code")
-                if designation_language == language and designation_use == "display":
-                    return list(filter(lambda p: p.get("name") == "value", part))[0].get("valueString")
-        return None
-
     def __save_bundle_content(self, bundle: dict, system_url: str, languages: List[str]):
+        """
+        Saves content of batch `CodeSystem/$lookup` bundle to internal designation mapping
+        :param bundle: Response bundle of batch `CodeSystem/$lookup` request
+        :param system_url: URL of code system to which the codes belong
+        :param languages: Language codes to extract from the responses
+        """
         if system_url not in self.code_systems:
             self.code_systems[system_url] = {
                 "resourceType": "CodeSystem",
@@ -122,7 +135,7 @@ class TerminologyDesignationResolver:
                         for language in languages:
                             code = list(filter(lambda p: p.get("name") == "code", resource.get("parameter", [])))[0]\
                                 .get("valueCode")
-                            designation = self.__extract_designation(resource, language)
+                            designation = extract_designation(resource, language)
                             if designation:
                                 if code in code_system_concepts:
                                     code_system_concepts[code] = {}
@@ -135,6 +148,10 @@ class TerminologyDesignationResolver:
                         logger.warning(f"Unexpected resource type '{resource['type']}'. Skipping")
 
     def __load_base_designations_for_ui_tree(self, ui_tree: dict):
+        """
+        Load authoritative designations for concepts in a UI tree using terminology server
+        :param ui_tree: UI tree code system entry
+        """
         logger.debug("Loading base designations for UI tree")
         request_part = {
             "method": "POST",
@@ -171,13 +188,16 @@ class TerminologyDesignationResolver:
                         "request": request_part
                     }
                 )
-            # Perform bulk lookup request
-            lookup_bundle = self.__bulk_lookup(bundle)
+            # Perform batch lookup request
+            lookup_bundle = self.__batch_lookup(bundle)
             self.__save_bundle_content(lookup_bundle, system, languages=["de", "en"])
 
-
     def __load_base_designations_for_value_set(self, value_set: dict):
-        logger.debug("Loading base designations for value set")
+        """
+        Load authoritative designations for concepts in an expanded `ValueSet` resource using terminology server
+        :param value_set: Expanded `ValueSet` resource
+        """
+        logger.debug(f"Loading base designations for value set [url={value_set.get('url')}]")
         request_part = {
             "method": "POST",
             "url": "CodeSystem/$lookup"
@@ -186,16 +206,57 @@ class TerminologyDesignationResolver:
         expansion_content = value_set.get("expansion", {}).get("contains", [])
         # Since concepts contained within a ValueSet resource can cover multiple code systems we group them by their
         # code system url
+        for system, concepts in groupby(expansion_content, lambda c: c.get("system")):
+            parameters_template = self.base_translation_mapping.get(system)
+            if parameters_template is None:
+                logger.debug(f"No parameters template defined for system [url={system}]. Skipping")
+                continue
+            logger.debug(f"Processing system concepts [url={system}]")
+            bundle = create_bundle(BundleType.batch)
+            for concept in concepts:
+                parameters = copy.deepcopy(parameters_template)
+                parameters.get("parameters").append(
+                    {
+                        "name": "code",
+                        "valueCode": concept["code"]
+                    }
+                )
+                bundle["entry"].append(
+                    {
+                        "resource": parameters,
+                        "request": request_part
+                    }
+                )
+            # Perform batch lookup request
+            lookup_bundle = self.__batch_lookup(bundle)
+            self.__save_bundle_content(lookup_bundle, system, languages=["de", "en"])
 
-    def load_base_designations(self, ui_trees: List[dict], value_sets: List[dict]):
+    def load_base_designations(self, ui_tree_dir: str = None, value_set_dir: str = None):
+        """
+        Loads authoritative designations for UI trees and expanded `ValueSet` resources using a terminology server.
+        Since they are retrieved from the FHIR resources stored by the terminology server, their values are regarded as
+        official values and thus override any existing code designation mappings already stored by the object
+        :param ui_tree_dir: Path to directory containing UI tree JSON files
+        :param value_set_dir: Path to directory containing expanded `ValueSet` resource FHIR JSON files
+        """
         logger.debug("Loading base translations")
+        if ui_tree_dir is None:
+            ui_trees = []
+        else:
+            ui_trees = [json.load(open(os.path.join(ui_tree_dir, file_name), mode='r', encoding='UTF-8'))
+                        for file_name in os.listdir(ui_tree_dir) if file_name.endswith('.json')]
+        if value_set_dir:
+            value_sets = []
+        else:
+            value_sets = [json.load(open(os.path.join(value_set_dir, file_name), mode='r', encoding='UTF-8'))
+                          for file_name in os.listdir(value_set_dir) if file_name.endswith('.json')]
         if not self.base_translation_mapping:
-            logger.warning("No mapping seems to exist and thus no designations can be loaded")
+            logger.warning("No mapping seems to exist and thus no designations can be loaded. Aborting")
         else:
             for ui_tree in ui_trees:
                 self.__load_base_designations_for_ui_tree(ui_tree)
             for value_set in value_sets:
-                self.load_base_designations_for_value_set(value_set)
+                self.__load_base_designations_for_value_set(value_set)
 
 
     def load_designations(self, folder_path: str = os.path.join("..", "example", "code_systems_translations")):
@@ -233,7 +294,7 @@ class TerminologyDesignationResolver:
         providing the ability of multilingual search.
         Supported languages: 'en-US', 'de-DE'
 
-        :param term_code: term_code object used throughout ElasticSearchBulkGenerator.py
+        :param term_code: term_code object used throughout ElasticSearchbatchGenerator.py
         :return:
             A dictionary in the following format:
             {
