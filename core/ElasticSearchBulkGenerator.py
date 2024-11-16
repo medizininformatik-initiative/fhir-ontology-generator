@@ -339,17 +339,20 @@ class ElasticSearchGenerator:
                                      max_filesize_mb=10,
                                      code_system_translations_folder="example/code_systems_translations"):
         extension = '.json'
-        folder = f'{ontology_dir}/ui-trees'
+        ui_tree_dir = os.path.join(ontology_dir, 'ui-trees')
         current_file_index = 0
 
-        elastic_dir = f'{ontology_dir}/elastic'
+        elastic_dir = os.path.join(ontology_dir, 'elastic')
         os.makedirs(elastic_dir, exist_ok=True)
+
+        value_set_dir = os.path.join(ontology_dir, 'value-sets')
 
         context_termcode_hash_to_crit_set = {}
         crit_set_dir = f'{ontology_dir}/criteria-sets'
         ElasticSearchGenerator.__build_crit_set_map(context_termcode_hash_to_crit_set, crit_set_dir, namespace_uuid_str)
 
         terminology_resolver = TerminologyDesignationResolver()
+        terminology_resolver.load_base_designations(ui_tree_dir, value_set_dir)
         terminology_resolver.load_designations(code_system_translations_folder)
 
         if generate_availability:
@@ -377,13 +380,13 @@ class ElasticSearchGenerator:
 
             return
 
-        for filename in os.listdir(folder):
+        for filename in os.listdir(ui_tree_dir):
 
             if filename.endswith(extension):
                 current_file_name = f"{ontology_dir}/elastic/{filename_prefix}_{index_name}_{current_file_index}{extension}"
 
-                with open(f"{folder}/{filename}", 'r') as f:
-                    print(f"{folder}/{filename}")
+                with open(f"{ui_tree_dir}/{filename}", 'r') as f:
+                    print(f"{ui_tree_dir}/{filename}")
                     json_tree = json.load(f)
 
                 term_code_info_map = ElasticSearchGenerator.load_termcode_info(ontology_dir, filename,
@@ -401,17 +404,17 @@ class ElasticSearchGenerator:
                 current_file_index = current_file_index + 1
 
         # Generate import from value-set files
-        folder = f'{ontology_dir}/value-sets'
+        ui_tree_dir = f'{ontology_dir}/value-sets'
         index_name = 'codeable_concept'
 
         termcode_to_valueset = {}
 
         current_file_name = f"{ontology_dir}/elastic/{filename_prefix}_{index_name}_{current_file_index}{extension}"
 
-        for filename in os.listdir(folder):
+        for filename in os.listdir(ui_tree_dir):
 
             if filename.endswith(extension):
-                with open(f'{folder}/{filename}', 'r') as f:
+                with open(f'{ui_tree_dir}/{filename}', 'r') as f:
                     value_set = json.load(f)
 
                 ElasticSearchGenerator.__convert_value_set(value_set, termcode_to_valueset, namespace_uuid_str,terminology_resolver)
