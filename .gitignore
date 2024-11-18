@@ -14,5 +14,7 @@ availability/*.json
 /.commit
 .commit
 
+/example/code_systems_translations/*.json
+
 # FSH
 /fsh/*
