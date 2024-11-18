@@ -1,6 +1,8 @@
 import json
 import os
 from typing import List
+
+from TerminologService.valueSetToRoots import logger
 from core import StrucutureDefinitionParser as FhirParser
 from TerminologService.ValueSetResolver import get_term_map_from_onto_server, get_term_info_from_onto_server
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
@@ -59,7 +61,7 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
         """
         applicable_querying_meta_data = self.get_query_meta_data(fhir_profile_snapshot, module_name)
         if not applicable_querying_meta_data:
-            print(f"No querying meta data found for {fhir_profile_snapshot['name']}")
+            logger.warning(f"No querying meta data found for {fhir_profile_snapshot['name']}")
         return self.translate(fhir_profile_snapshot, applicable_querying_meta_data)
 
     def translate(self, fhir_profile_snapshot: dict, applicable_querying_meta_data: List[ResourceQueryingMetaData]) \
@@ -72,11 +74,14 @@ class UITreeGenerator(ResourceQueryingMetaDataResolver):
         """
         result_map: dict[(TermCode, str), TreeMap] = dict()
         for applicable_querying_meta_data in applicable_querying_meta_data:
+            print(f"Translate: QueryingMetadata '{applicable_querying_meta_data.name}'")
             tree_maps: List[TreeMap] = list()
             if applicable_querying_meta_data.term_code_defining_id:
+                print("Case term_code_defining_id")
                 tree_maps = self.get_term_entries_by_id(fhir_profile_snapshot, applicable_querying_meta_data.
                                                        term_code_defining_id)
             elif applicable_querying_meta_data.term_codes:
+                print("Case term_code")
                 tree_maps = [TreeMap({term_code.code: TermEntryNode(term_code)},
                                      context=applicable_querying_meta_data.context, system=term_code.system,
                                      version=term_code.version)
