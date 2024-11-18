@@ -7,13 +7,14 @@ import locale
 
 from model.TreeMap import TermEntryNode, TreeMap
 from sortedcontainers import SortedSet
+from typing import Set
+from itertools import groupby
 
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, REQUESTS_SESSION
 from model.UiDataModel import TermCode
 from util.LoggingUtil import init_logger
 
 locale.setlocale(locale.LC_ALL, 'de_DE.UTF-8')
-
 logger = init_logger("valueSetToRoots", logging.DEBUG)
 
 
@@ -75,6 +76,7 @@ def create_vs_tree_map(canonical_url: str) -> TreeMap:
     :param canonical_url:
     :return: TreeMap of the value set hierarchy
     """
+    logger.debug(f"Generating tree map for value set with URL '{canonical_url}'")
     create_concept_map()
     vs = expand_value_set(canonical_url)
     treemap: TreeMap = TreeMap({}, None, None, None)
@@ -98,7 +100,7 @@ def create_vs_tree_map(canonical_url: str) -> TreeMap:
                     for parent in parents:
                         treemap.entries[parent].children.append(node)
     except Exception as e:
-        print(e)
+        logger.error(e, exc_info=e, stack_info=True)
 
     return treemap
 
@@ -120,21 +122,26 @@ def create_concept_map(name: str = "closure-test"):
                   cert=(SERVER_CERTIFICATE, PRIVATE_KEY))
 
 
-def get_closure_map(term_codes, closure_name: str = "closure-test"):
+def get_closure_map(term_codes: Set[TermCode], closure_name: str = "closure-test"):
     """
     Returns the closure map of a set of term codes.
     :param term_codes: set of term codes with potential hierarchical relations among them
     :param closure_name: identifier of the closure table to invoke closure operation on
     :return: closure map of the term codes
     """
+    # FIXME: Workaround for gecco. ValueSets with multiple versions are not supported in closure.
+    #  Maybe split by version? Or change Profile to reference ValueSet with single version?
+    # Check if concepts from multiple versions of the same code system are present and fail if so since value sets with
+    # multiple versions are not supported for now
+    for system, versions in map(lambda entry: (entry[0], set(map(lambda t: t.version, entry[1]))),
+                                groupby(term_codes, lambda t: t.system)):
+        if len(versions) > 1:
+            raise Exception(f"Concepts from multiple code system versions are currently not supported [url={system},"
+                            f"versions={versions}]")
+
     body = {"resourceType": "Parameters",
             "parameter": [{"name": "name", "valueString": closure_name}]}
     for term_code in term_codes:
-        # FIXME: Workaround for gecco. ValueSets with multiple versions are not supported in closure.
-        #  Maybe split by version? Or change Profile to reference ValueSet with single version?
-        if term_code.system == "http://fhir.de/CodeSystem/bfarm/atc" and term_code.version != "2022":
-            continue
-
         value_coding = {
             "system": f"{term_code.system}",
             "code": f"{term_code.code}",
