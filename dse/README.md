@@ -11,7 +11,7 @@ in case of a profile an element id.
 
 For a data selection a researcher is then able to define their own HRI (specific combination of attributes of an HRI) to extract.
 
-Additionally the ontology defines how the researcher can filter the respective HRI. This is done based on the fields and in the current 
+Additionally, the ontology defines how the researcher can filter the respective HRI. This is done based on the fields and in the current 
 implementation corresponds to FHIR Search parameters.
 
 the data selection ontology is always composed of two elements:

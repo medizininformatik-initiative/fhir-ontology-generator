@@ -4,7 +4,7 @@ import logging
 import os
 from itertools import groupby
 from util.LoggingUtil import init_logger, log_to_stdout
-from typing import List
+from typing import List, TypeVar
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, REQUESTS_SESSION
 from util.FhirUtil import create_bundle, BundleType
 
@@ -19,7 +19,7 @@ def extract_designation(parameters: dict, language: str) -> str | None:
     :param language: Language code identifying display value to extract
     :return: Either `str` display value or `None` if no designation for language codes exists
     """
-    for designation in filter(lambda p: p.get("name") == "designation", parameters.get("parameters", [])):
+    for designation in filter(lambda p: p.get("name") == "designation", parameters.get("parameter", [])):
         part = designation.get("part")
         if part:
             designation_language = list(filter(lambda p: p.get("name") == "language", part))[0].get("valueCode")
@@ -29,13 +29,36 @@ def extract_designation(parameters: dict, language: str) -> str | None:
     return None
 
 
+T = TypeVar("T")
+
+
+def chunks(coll: List[T], chunk_size: int = 10) -> List[List[T]]:
+    for i in range(0, len(coll), chunk_size):
+        yield coll[i:i + chunk_size]
+
+
+def split_bundle(bundle: dict, chunk_size: int = 10) -> List[dict]:
+    if not bundle.get("entry", []):
+        return [bundle]
+    else:
+        bundles = []
+        for chunk in chunks(bundle.get("entry"), chunk_size):
+            # Perform shallow copy as the `entry` element will be replaced with its chunk
+            bundle_chunk = copy.copy(bundle)
+            bundle_chunk["entry"] = chunk
+            bundles.append(bundle_chunk)
+        return bundles
+
+
 class TerminologyDesignationResolver:
-    def __init__(self, base_translations_conf: str = None, server_address: str = TERMINOLOGY_SERVER_ADDRESS):
+    def __init__(self, base_translations_conf: str = None, server_address: str = TERMINOLOGY_SERVER_ADDRESS,
+                 max_bundle_size: int = 10_000):
         self.code_systems = {}
         self.server_address = server_address
         self.base_translation_mapping = {}
         if base_translations_conf is not None:
             self.__load_base_translations(base_translations_conf)
+        self.max_bundle_size = max_bundle_size
 
     def __optimize_code_system_concepts(self, code_system_content):
         """
@@ -90,22 +113,26 @@ class TerminologyDesignationResolver:
     def __batch_lookup(self, bundle: dict) -> dict:
         """
         Performs `CodeSystem-lookup` operation in batch against a terminology server and returns the
-        response if successful
+        response if successful. The passed `Bundle` resource will be split into smaller chunks according to the
+        `max_bundle_size` field fo the class instance
         :param bundle: Bundle resource containing individual entries for lookup requests
         :return: Response Bundle resource if successful
         """
         media_type = "application/fhir+json"
-        response = REQUESTS_SESSION.post(
-            url = self.server_address.rstrip('/'),
-            json=bundle,
-            headers={"Content-Type": media_type, "Accept": media_type},
-            cert=(SERVER_CERTIFICATE, PRIVATE_KEY)
-        )
-        if response.status_code != 200:
-            raise Exception(f"Unexpected status code [actual={response.status_code}, expected=200]. "
-                            f"Content: {response.text}")
-        else:
-            return response.json()
+        response_bundle = { "resourceType": "Bundle", "type": BundleType.BATCH_RESPONSE.value, "entry": [] }
+        for bundle_chunk in split_bundle(bundle, self.max_bundle_size):
+            response = REQUESTS_SESSION.post(
+                url = self.server_address.rstrip('/'),
+                json=bundle_chunk,
+                headers={"Content-Type": media_type, "Accept": media_type},
+                cert=(SERVER_CERTIFICATE, PRIVATE_KEY)
+            )
+            if response.status_code != 200:
+                raise Exception(f"Unexpected status code [actual={response.status_code}, expected=200]. "
+                                f"Content: {response.text}")
+            else:
+                response_bundle["entry"].extend(response.json().get("entry", []))
+        return response_bundle
 
     def __save_bundle_content(self, bundle: dict, system_url: str, languages: List[str]):
         """
@@ -130,14 +157,14 @@ class TerminologyDesignationResolver:
                     msg += f" [status_code={response['status_code']}]. Details:\n{response['outcome']}"
                 logger.warning(msg)
             else:
-                match resource["type"]:
+                match resource["resourceType"]:
                     case "Parameters":
                         for language in languages:
                             code = list(filter(lambda p: p.get("name") == "code", resource.get("parameter", [])))[0]\
                                 .get("valueCode")
                             designation = extract_designation(resource, language)
                             if designation:
-                                if code in code_system_concepts:
+                                if code not in code_system_concepts:
                                     code_system_concepts[code] = {}
                                 designations = code_system_concepts[code]
                                 if language not in designations:
@@ -170,18 +197,22 @@ class TerminologyDesignationResolver:
                 continue
             logger.debug(f"Processing system tree [url={system}, "
                          f"version={version}]")
-            bundle = create_bundle(BundleType.batch)
+            bundle = create_bundle(BundleType.BATCH)
             for entry in system_tree.get("entries", []):
                 if "key" not in entry:
                     logger.warning("No key in system tree. Skipping")
                     continue
                 parameters = copy.deepcopy(parameters_template)
-                parameters.get("parameters").append(
+                parameters.get("parameter").extend([
                     {
                         "name": "code",
                         "valueCode": entry["key"]
+                    },
+                    {
+                        "name": "system",
+                        "valueUri": system
                     }
-                )
+                ])
                 bundle["entry"].append(
                     {
                         "resource": parameters,
@@ -212,15 +243,19 @@ class TerminologyDesignationResolver:
                 logger.debug(f"No parameters template defined for system [url={system}]. Skipping")
                 continue
             logger.debug(f"Processing system concepts [url={system}]")
-            bundle = create_bundle(BundleType.batch)
+            bundle = create_bundle(BundleType.BATCH)
             for concept in concepts:
                 parameters = copy.deepcopy(parameters_template)
-                parameters.get("parameters").append(
+                parameters.get("parameter").extend([
                     {
                         "name": "code",
                         "valueCode": concept["code"]
+                    },
+                    {
+                        "name": "system",
+                        "valueUri": system
                     }
-                )
+                ])
                 bundle["entry"].append(
                     {
                         "resource": parameters,
@@ -267,11 +302,12 @@ class TerminologyDesignationResolver:
         codesystem_files = os.listdir(folder_path)
         for codesystem_file in sorted(codesystem_files):
             if codesystem_file.endswith(".json"):
+                logger.debug(f"Processing CodeSystem supplement file {codesystem_file}")
                 with open(f"{folder_path}/{codesystem_file}", encoding="UTF-8") as json_file:
                     codesystem = json.load(json_file)
                     url = codesystem.get('supplements').split("|")[0]
 
-                    codesystem['concept'] = self.optimize_code_system_concepts(codesystem)
+                    codesystem['concept'] = self.__optimize_code_system_concepts(codesystem)
 
                     if self.code_systems.get(url):
                         for new_concept_code, new_concept_designations in codesystem.get('concept').items():
