@@ -24,7 +24,8 @@ class ProfileDetailGenerator():
 
             for type_elem in (elem for elem in elem_type if re.search("Reference", elem['code'])):
 
-                target_profile_url = next((url for url in type_elem['targetProfile'] if url.startswith(self.reference_base_url)),
+                target_profile_url = next(
+                    (url for url in type_elem['targetProfile'] if url.startswith(self.reference_base_url)),
                     None)
 
                 if not target_profile_url:
@@ -34,7 +35,6 @@ class ProfileDetailGenerator():
                     for profile in self.profiles:
                         if target_profile_url.split("/")[-1] == profile.split("/")[-1]:
                             return self.profiles[profile]['structureDefinition']
-
 
                 return self.profiles[target_profile_url]['structureDefinition']
 
@@ -136,13 +136,13 @@ class ProfileDetailGenerator():
         attributes_true_level_one = ["mustSupport", "isModifier", "min"]
 
         if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
-            for attr in attributes_true_level_one):
+               for attr in attributes_true_level_one):
             return True
 
         attributes_true_level_two = ["mustSupport", "isModifier"]
 
         if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
-            for attr in attributes_true_level_two) and len(element["id"].split(".")) > 2:
+               for attr in attributes_true_level_two) and len(element["id"].split(".")) > 2:
             return True
 
         if any(element['id'].endswith(field) or f"{field}." in element['id'] for field in self.fields_to_exclude):
@@ -162,11 +162,10 @@ class ProfileDetailGenerator():
             return False
 
         if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
-            for attr in attributes_to_check):
+               for attr in attributes_to_check):
             return False
 
         return True
-
 
     def get_name_from_id(self, id):
 
@@ -208,6 +207,42 @@ class ProfileDetailGenerator():
             return "recorded-date"
 
         return "date"
+
+    def find_mii_references_by_type(self, fhir_type):
+
+        matching_mii_references = []
+
+        for profile in self.profiles.values():
+
+            profile_fhir_type = profile["structureDefinition"]["type"]
+            if profile_fhir_type == fhir_type:
+                matching_mii_references.append(profile["url"])
+
+        return matching_mii_references
+
+    def get_referenced_mii_profiles(self, element, field_type):
+
+        mii_references = []
+
+        if field_type == 'Reference':
+
+            target_profiles = None
+
+            for type in element['type']:
+                if "targetProfile" in type:
+                    target_profiles = type['targetProfile']
+
+            for profile in target_profiles:
+                if profile.startswith('https://www.medizininformatik-initiative.de'):
+                    mii_references.append(profile)
+
+            if len(mii_references) == 0:
+
+                for profile in target_profiles:
+                    fhir_type = profile.rstrip('/').split('/')[-1]
+                    mii_references.extend(self.find_mii_references_by_type(fhir_type))
+
+        return mii_references
 
     def generate_detail_for_profile(self, profile):
 
@@ -277,8 +312,16 @@ class ProfileDetailGenerator():
 
                 element = self.get_element_by_content_ref(content_reference, source_elements)
 
+            field_type = None
+
             if "type" in element:
-                field_type = element["type"][0]["code"]
+                for type in element["type"]:
+
+                    field_type = type["code"]
+
+                    if type["code"] == "Reference":
+                        break
+
             else:
                 print(f"Element without type: {element}")
                 continue
@@ -315,6 +358,7 @@ class ProfileDetailGenerator():
                                          }
                                      ],
                                      },
+                     "referencedProfiles": self.get_referenced_mii_profiles(element, field_type),
                      "type": field_type,
                      "recommended": is_recommended_field,
                      "required": is_required_field
