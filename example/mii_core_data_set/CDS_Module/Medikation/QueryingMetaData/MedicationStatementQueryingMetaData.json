@@ -1,0 +1,16 @@
+{
+  "name": "MedicationStatement",
+  "resource_type": "MedicationStatement",
+  "module": {
+    "code": "mii-cds-medikation",
+    "display": "Medikation"
+  },
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "Medikamentenverordnung",
+    "display": "Verordnung von Medikamenten",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "(MedicationStatement.medication[x]:medicationReference).code.coding:atcClassDe",
+  "time_restriction_defining_id": "MedicationStatement.effective[x]"
+}
