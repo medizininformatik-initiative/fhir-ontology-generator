@@ -4,6 +4,7 @@ import uuid
 import zipfile
 from zipfile import ZipFile
 import re
+from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS
 
 from core.TerminologyDesignationResolver import TerminologyDesignationResolver
 
@@ -34,7 +35,7 @@ class ElasticSearchGenerator:
 
         for filename in os.listdir(crit_set_dir):
 
-            with open(f'{crit_set_dir}/{filename}', "r") as file:
+            with open(os.path.join(crit_set_dir, filename), 'r', encoding='UTF-8') as file:
                 crit_set = json.load(file)
 
                 crit_set_url = crit_set['url']
@@ -151,7 +152,7 @@ class ElasticSearchGenerator:
         current_file_subindex = 1
         current_file_size = 0
 
-        with open(current_file_name, 'a', encoding='utf-8') as current_file:
+        with (open(current_file_name, 'a', encoding='UTF-8') as current_file):
             for obj in json_flat:
                 obj_hash = obj['hash']
                 del obj['hash']
@@ -164,10 +165,12 @@ class ElasticSearchGenerator:
 
                 if current_file_size > max_filesize_mb * 1024 * 1024:
                     current_file_subindex += 1
-                    current_file_name = f"{ontology_dir}/elastic/{filename_prefix}_{index_name}_{current_file_index}_{current_file_subindex}{extension}"
+                    current_file_name = os.path.join(ontology_dir, "elastic",
+                                                     f"{filename_prefix}_{index_name}_{current_file_index}_"
+                                                     f"{current_file_subindex}{extension}")
                     current_file_size = 0
                     current_file.close()
-                    current_file = open(current_file_name, 'w')
+                    current_file = open(current_file_name, 'w', encoding='UTF-8')
 
     @staticmethod
     def __write_es_to_file(es_availability_inserts, max_filesize_mb,
@@ -178,9 +181,9 @@ class ElasticSearchGenerator:
 
         count = 0
 
-        current_file_name = f"{write_dir}/{filename_prefix}_{current_file_subindex}{extension}"
+        current_file_name = os.path.join(write_dir, f"{filename_prefix}_{current_file_subindex}{extension}")
         print(f"writing to file {current_file_name}")
-        with open(current_file_name, 'w+', encoding='utf-8') as current_file:
+        with open(current_file_name, 'w+', encoding='UTF-8') as current_file:
 
             for insert in es_availability_inserts:
 
@@ -191,10 +194,10 @@ class ElasticSearchGenerator:
 
                 if current_file_size > max_filesize_mb * 1024 * 1024 and count % 2 == 0:
                     current_file_subindex += 1
-                    current_file_name = f"{write_dir}/{filename_prefix}_{current_file_subindex}{extension}"
+                    current_file_name = os.path.join(write_dir, f"{filename_prefix}_{current_file_subindex}{extension}")
                     current_file_size = 0
                     current_file.close()
-                    current_file = open(current_file_name, 'w')
+                    current_file = open(current_file_name, 'w', encoding='UTF-8')
                     print(f"writing to file {current_file_name}")
 
     @staticmethod
@@ -219,12 +222,11 @@ class ElasticSearchGenerator:
 
         term_code_info_map = {}
 
-        folder = f'{ontology_dir}/term-code-info'
+        folder = os.path.join(ontology_dir, "term-code-info")
         pattern = r'_ui_tree_\d+.json'
         filename_prefix = re.sub(pattern, '', tree_file_name)
 
-        with open(f"{folder}/{filename_prefix}_term_code_info.json", 'r') as f:
-            print(f"{folder}/{filename_prefix}_term_code_info.json")
+        with open(os.path.join(folder, f"{filename_prefix}_term_code_info.json"), 'r', encoding="UTF-8") as f:
 
             term_code_info_list = json.load(f)
 
@@ -239,7 +241,7 @@ class ElasticSearchGenerator:
     @staticmethod
     def get_hashed_tree(ontology_dir):
 
-        directory = f'{ontology_dir}/elastic'
+        directory = os.path.join(ontology_dir, "elastic")
         es_onto_tree = {}
 
         for filename in os.listdir(directory):
@@ -337,7 +339,8 @@ class ElasticSearchGenerator:
                                      index_name='ontology',
                                      filename_prefix='onto_es_',
                                      max_filesize_mb=10,
-                                     code_system_translations_folder="example/code_systems_translations"):
+                                     code_system_translations_folder="example/code_systems_translations",
+                                     base_translation_conf=None):
         extension = '.json'
         ui_tree_dir = os.path.join(ontology_dir, 'ui-trees')
         current_file_index = 0
@@ -348,10 +351,10 @@ class ElasticSearchGenerator:
         value_set_dir = os.path.join(ontology_dir, 'value-sets')
 
         context_termcode_hash_to_crit_set = {}
-        crit_set_dir = f'{ontology_dir}/criteria-sets'
+        crit_set_dir = os.path.join(ontology_dir, "criteria-sets")
         ElasticSearchGenerator.__build_crit_set_map(context_termcode_hash_to_crit_set, crit_set_dir, namespace_uuid_str)
 
-        terminology_resolver = TerminologyDesignationResolver()
+        terminology_resolver = TerminologyDesignationResolver(base_translation_conf, TERMINOLOGY_SERVER_ADDRESS)
         terminology_resolver.load_base_designations(ui_tree_dir, value_set_dir)
         terminology_resolver.load_designations(code_system_translations_folder)
 
@@ -359,7 +362,7 @@ class ElasticSearchGenerator:
             print('Generating availability')
             es_availability_inserts = []
 
-            with open(f"{availability_input_dir}/stratum-to-context.json") as f:
+            with open(os.path.join(availability_input_dir, "stratum-to-context.json")) as f:
                 stratum_to_context = json.load(f)
 
             avail_hash_tree = ElasticSearchGenerator.get_hashed_tree(ontology_dir)
@@ -383,10 +386,10 @@ class ElasticSearchGenerator:
         for filename in os.listdir(ui_tree_dir):
 
             if filename.endswith(extension):
-                current_file_name = f"{ontology_dir}/elastic/{filename_prefix}_{index_name}_{current_file_index}{extension}"
+                current_file_name = os.path.join(ontology_dir, "elastic",
+                                                 f"{filename_prefix}_{index_name}_{current_file_index}{extension}")
 
-                with open(f"{ui_tree_dir}/{filename}", 'r') as f:
-                    print(f"{ui_tree_dir}/{filename}")
+                with open(os.path.join(ui_tree_dir, filename), 'r', encoding='UTF-8') as f:
                     json_tree = json.load(f)
 
                 term_code_info_map = ElasticSearchGenerator.load_termcode_info(ontology_dir, filename,
@@ -403,18 +406,19 @@ class ElasticSearchGenerator:
 
                 current_file_index = current_file_index + 1
 
-        # Generate import from value-set files
-        ui_tree_dir = f'{ontology_dir}/value-sets'
+        # Generate import from value-set files"
+        ui_tree_dir = os.path.join(ontology_dir, "value-sets")
         index_name = 'codeable_concept'
 
         termcode_to_valueset = {}
 
-        current_file_name = f"{ontology_dir}/elastic/{filename_prefix}_{index_name}_{current_file_index}{extension}"
+        current_file_name = os.path.join(ontology_dir, "elastic",
+                                         f"{filename_prefix}_{index_name}_{current_file_index}{extension}")
 
         for filename in os.listdir(ui_tree_dir):
 
             if filename.endswith(extension):
-                with open(f'{ui_tree_dir}/{filename}', 'r') as f:
+                with open(os.path.join(ui_tree_dir, filename), 'r', encoding='UTF-8') as f:
                     value_set = json.load(f)
 
                 ElasticSearchGenerator.__convert_value_set(value_set, termcode_to_valueset, namespace_uuid_str,terminology_resolver)
