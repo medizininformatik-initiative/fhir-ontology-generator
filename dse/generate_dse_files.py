@@ -16,7 +16,14 @@ from model.UiDataModel import TermCode
 
 from util.LoggingUtil import init_logger, log_to_stdout
 
-logger = init_logger("dse", logging.DEBUG)
+def setup_logging(log_level):
+    logging.basicConfig(
+        level=log_level,
+        format="%(asctime)s - %(name)s - %(levelname)s: %(message)s",
+        handlers=[
+            logging.StreamHandler()
+        ]
+    )
 
 module_translation = {
     "de-DE": {
@@ -55,6 +62,11 @@ def configure_args_parser():
     arg_parser.add_argument('--download_value_sets', action='store_true')
     arg_parser.add_argument('--generate_mapping_trees', action='store_true')
     arg_parser.add_argument('--copy_snapshots', action='store_true')
+    arg_parser.add_argument(
+        '--profiles',
+        nargs='+',
+        help="List of profiles to process - if none process all"
+    )
     arg_parser.add_argument(
         "--loglevel",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
@@ -225,11 +237,12 @@ def generate_dse_mapping_trees(vs_dir_path: Union[str, os.PathLike]) -> list[dic
 
 if __name__ == '__main__':
 
+
     parser = configure_args_parser()
     args = parser.parse_args()
     log_level = getattr(logging, args.loglevel)
-    log_to_stdout("dse", level=log_level)
-    log_to_stdout("valueSetToRoots", level=log_level)
+    setup_logging(log_level)
+    logger = logging.getLogger(__name__)
 
     if args.download_packages:
         with open("required-packages.json", "r") as f:
@@ -237,14 +250,19 @@ if __name__ == '__main__':
 
         download_simplifier_packages(required_packages)
 
-    with open("exclude-dirs.json", "r") as f:
-        exclude_dirs = json.load(f)
+    with open("excluded-dirs.json", "r") as f:
+        excluded_dirs = json.load(f)
+
+    with open("excluded-profiles.json", "r") as f:
+        excluded_profiles = json.load(f)
 
     packages_dir = os.path.join(os.getcwd(), "dse-packages", "dependencies")
     snapshots_dir = os.path.join(os.getcwd(), "dse-packages", "snapshots")
-    fields_to_exclude = [".meta", ".id", ".subject", ".modifierExtension", ".extension"]
+    fields_to_exclude = [".meta", ".id", ".subject", ".modifierExtension", ".extension", ".name", "address"]
+    field_trees_to_exclude = [".name", ".location"]
 
-    tree_generator = ProfileTreeGenerator(packages_dir, snapshots_dir, exclude_dirs, module_order, module_translation, fields_to_exclude)
+
+    tree_generator = ProfileTreeGenerator(packages_dir, snapshots_dir, excluded_dirs, excluded_profiles, module_order, module_translation, fields_to_exclude, field_trees_to_exclude, args.profiles)
 
     if args.copy_snapshots:
         tree_generator.copy_profile_snapshots()
@@ -264,7 +282,7 @@ if __name__ == '__main__':
 
         profiles = tree_generator.profiles
         profile_detail_generator = ProfileDetailGenerator(profiles, mapping_type_code, blacklistedValueSets,
-                                                          fields_to_exclude, reference_resolve_base_url)
+                                                          fields_to_exclude, field_trees_to_exclude, reference_resolve_base_url)
 
         profile_details = []
 

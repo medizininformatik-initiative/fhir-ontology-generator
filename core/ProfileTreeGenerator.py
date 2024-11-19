@@ -3,18 +3,23 @@ import re
 import os
 import json
 import shutil
+import logging
 
 class ProfileTreeGenerator():
 
-    def __init__(self, packages_dir: str, snapshots_dir: str, exclude_dirs, module_order, module_translation, fields_to_exclude):
+    def __init__(self, packages_dir: str, snapshots_dir: str, exclude_dirs, excluded_profiles, module_order, module_translation, fields_to_exclude, field_trees_to_exclude, profiles_to_process):
 
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.profiles = {}
         self.packages_dir = packages_dir
         self.snapshots_dir = snapshots_dir
         self.exclude_dirs = exclude_dirs
+        self.excluded_profiles = excluded_profiles
         self.module_order = module_order
         self.module_translation = module_translation
         self.fields_to_exclude = fields_to_exclude
+        self.field_trees_to_exclude = field_trees_to_exclude
+        self.profiles_to_process = profiles_to_process
         self.simple_data_types = ["instant", "time", "date", "dateTime", "decimal", "boolean", "integer", "string",
                                   "uri", "base64Binary", "code", "id", "oid", "unsignedInt", "positiveInt", "markdown",
                                   "url", "canonical", "uuid"]
@@ -53,6 +58,9 @@ class ProfileTreeGenerator():
             return True
 
         if any(element['id'].endswith(field) or f"{field}." in element['id'] for field in self.fields_to_exclude):
+            return True
+
+        if any(f"{field}" in element['id'] for field in self.field_trees_to_exclude):
             return True
 
         if "[x]" in element['id'] and not element['id'].endswith("[x]"):
@@ -213,14 +221,15 @@ class ProfileTreeGenerator():
                                 not in ["http://hl7.org/fhir/StructureDefinition/Extension"]
                                 and content["status"] == "active"
                                 and content["kind"] == "resource"
+                                and content["url"] not in self.excluded_profiles
                         ):
 
                             destination = f"{self.snapshots_dir}/{os.path.basename(file_path)}"
-                            print(f"Copying snapshot file for further processing: {file_path} -> {destination}")
+                            self.logger.info(f"Copying snapshot file for further processing: {file_path} -> {destination}")
                             shutil.copy(file_path, destination)
 
                 except UnicodeDecodeError:
-                    print(f"File {file_path} is not a text file or cannot be read as text.")
+                    self.logger.debug(f"File {file_path} is not a text file or cannot be read as text.")
                 except Exception:
                     pass
 
@@ -239,6 +248,9 @@ class ProfileTreeGenerator():
                     with open(file_path, "r") as f:
 
                         content = json.load(f)
+
+                        if self.profiles_to_process and content["url"] not in self.profiles_to_process:
+                            continue
 
                         if (
                                 "resourceType" in content
@@ -262,10 +274,10 @@ class ProfileTreeGenerator():
                                 "url": content["url"],
                             }
 
-                            print(f"Adding profile to tree: {file_path}")
+                            self.logger.info(f"Adding profile to tree: {file_path}")
 
                 except UnicodeDecodeError:
-                    print(f"File {file_path} is not a text file or cannot be read as text.")
+                    self.logger.info(f"File {file_path} is not a text file or cannot be read as text -> ignoring")
                 except Exception:
                     pass
 
