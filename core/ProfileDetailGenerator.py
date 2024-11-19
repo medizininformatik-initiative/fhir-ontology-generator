@@ -1,14 +1,17 @@
+import logging
 import re
 
 
 class ProfileDetailGenerator():
 
-    def __init__(self, profiles, mapping_type_code, blacklistedValueSets, fields_to_exclude, reference_base_url):
+    def __init__(self, profiles, mapping_type_code, blacklistedValueSets, fields_to_exclude, field_trees_to_exclude, reference_base_url):
 
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.blacklistedValueSets = blacklistedValueSets
         self.profiles = profiles
         self.mapping_type_code = mapping_type_code
         self.fields_to_exclude = fields_to_exclude
+        self.field_trees_to_exclude = field_trees_to_exclude
         self.simple_data_types = ["instant", "time", "date", "dateTime", "decimal", "boolean", "integer", "string",
                                   "uri", "base64Binary", "code", "id", "oid", "unsignedInt", "positiveInt", "markdown",
                                   "url", "canonical", "uuid"]
@@ -137,21 +140,30 @@ class ProfileDetailGenerator():
 
         if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
                for attr in attributes_true_level_one):
+            self.logger.debug(f"Excluding: {element['id']} as not mustSupport, modifier or min > 0")
             return True
 
         attributes_true_level_two = ["mustSupport", "isModifier"]
 
         if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
                for attr in attributes_true_level_two) and len(element["id"].split(".")) > 2:
+            self.logger.debug(f"Excluding: {element['id']} as not mustSupport or modifier on level > 2")
             return True
 
-        if any(element['id'].endswith(field) or f"{field}." in element['id'] for field in self.fields_to_exclude):
+        if any(element['id'].endswith(field) or f"{field}." in element['id']for field in self.fields_to_exclude):
+            self.logger.debug(f"Excluding: {element['id']} as excluded field")
+            return True
+
+        if any(f"{field}" in element['id'] for field in self.field_trees_to_exclude):
+            self.logger.debug(f"Excluding: {element['id']} as part of field tree")
             return True
 
         if "[x]" in element['id'] and not element['id'].endswith("[x]"):
+            self.logger.debug(f"Excluding: {element['id']} as sub-elements relevant")
             return True
 
         if element["base"]["path"].split(".")[0] in {"Resource", "DomainResource"} and not "mustSupport" in element:
+            self.logger.debug(f"Excluding: {element['id']} as base is Resource or DomainResource and not must Support")
             return True
 
     def check_at_least_one_in_elem_and_true(self, element, attributes_to_check):
@@ -246,11 +258,10 @@ class ProfileDetailGenerator():
 
     def generate_detail_for_profile(self, profile):
 
-        print(f"Generating profile detail for: {profile['url']}")
+        self.logger.info(f"Generating profile detail for: {profile['url']}")
 
         if not "snapshot" in profile["structureDefinition"]:
-            print(f'profile with url {profile["url"]} has no snapshot - ignoring')
-            # TODO - check why this happens and if this is a problem
+            self.logger.warning(f'profile with url {profile["url"]} has no snapshot - ignoring')
             return None
 
         struct_def = profile["structureDefinition"]
@@ -323,7 +334,7 @@ class ProfileDetailGenerator():
                         break
 
             else:
-                print(f"Element without type: {element}")
+                self.logger.warning(f"Element without type: {element} - discarding")
                 continue
 
             is_recommended_field = self.check_at_least_one_in_elem_and_true(element, ["min"])
@@ -363,6 +374,11 @@ class ProfileDetailGenerator():
                      "recommended": is_recommended_field,
                      "required": is_required_field
                      }
+
+            if field_type == "Reference" and len(self.get_referenced_mii_profiles(element, field_type)) == 0:
+                self.logger.warning(f"Discarding field: {element['id']} - No mii profiles that match referenced profiles, parent profile is {profile['url']}")
+                continue
+
 
             self.insert_field_to_tree(field_tree, field)
 
