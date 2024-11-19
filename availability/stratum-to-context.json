@@ -53,6 +53,30 @@
     "display": "Verabreichung von Medikamenten",
     "version": "1.0.0"
   },
+  "medication-statement-medication-code-atc": {
+    "system": "fdpg.mii.cds",
+    "code": "Medikamentenverordnung",
+    "display": "Verordnung von Medikamenten",
+    "version": "1.0.0"
+  },
+  "medication-statement-medication-code-pzn": {
+    "system": "fdpg.mii.cds",
+    "code": "Medikamentenverordnung",
+    "display": "Verordnung von Medikamenten",
+    "version": "1.0.0"
+  },
+  "medication-request-medication-code-atc": {
+    "system": "fdpg.mii.cds",
+    "code": "Medikamentenandordnung",
+    "display": "Anordnung von Medikamenten",
+    "version": "1.0.0"
+  },
+  "medication-request-medication-code-pzn": {
+    "system": "fdpg.mii.cds",
+    "code": "Medikamentenandordnung",
+    "display": "Anordnung von Medikamenten",
+    "version": "1.0.0"
+  },
   "procedure-ops-code": {
     "system": "fdpg.mii.cds",
     "code": "Procedure",
@@ -80,6 +104,18 @@
   "consent-mdat-erheben": {
     "system": "fdpg.mii.cds",
     "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "condition-death-reason-icd10-code": {
+    "system": "fdpg.mii.cds",
+    "code": "Todesursache",
+    "display": "Todesursache",
+    "version": "1.0.0"
+  },
+  "observation-vitalstatus-loinc-code": {
+    "system": "fdpg.mii.cds",
+    "code": "Vitalstatus",
     "display": "Einwilligung",
     "version": "1.0.0"
   }
