@@ -263,8 +263,7 @@ if __name__ == '__main__':
     packages_dir = os.path.join(os.getcwd(), "dse-packages", "dependencies")
     snapshots_dir = os.path.join(os.getcwd(), "dse-packages", "snapshots")
     fields_to_exclude = [".meta", ".id", ".subject", ".modifierExtension", ".extension", ".name", "address"]
-    field_trees_to_exclude = [".name", ".location"]
-
+    field_trees_to_exclude = ["Patient.name", "Patient.location", "Patient.identifier", "Patient.address", "Patient.link"]
 
     tree_generator = ProfileTreeGenerator(packages_dir, snapshots_dir, excluded_dirs, excluded_profiles, module_order, module_translation, fields_to_exclude, field_trees_to_exclude, args.profiles)
 

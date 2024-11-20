@@ -6,6 +6,6 @@
     "4.0.1"
   ],
   "dependencies": {
-    "de.medizininformatikinitiative.kerndatensatz.prozedur": "2025.0.0-alpha2"
+    "de.medizininformatikinitiative.kerndatensatz.person": "2025.0.0-alpha4"
   }
 }
