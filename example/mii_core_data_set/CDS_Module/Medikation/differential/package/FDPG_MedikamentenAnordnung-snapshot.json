@@ -1,7 +1,7 @@
 {
   "resourceType": "StructureDefinition",
   "id": "b22ca09b-7512-4082-a433-0ad2bca8f0b7",
-  "url": "https://www.medizininformatik-initiative.de/fhir/fdpg/StructureDefinition/Medikamentenanordnung",
+  "url": "https://www.medizininformatik-initiative.de/fhir/fdpg/StructureDefinition/Medikamentenverordnung",
   "name": "Medikamentenanordnung",
   "status": "active",
   "fhirVersion": "4.0.1",
@@ -954,6 +954,7 @@
           }
         ],
         "path": "MedicationRequest.identifier",
+        "short": "Identifikator",
         "_short": {
           "extension": [
             {
@@ -984,6 +985,7 @@
             }
           ]
         },
+        "definition": "Ein Identifikator für die Medikationsverordnung",
         "_definition": {
           "extension": [
             {
@@ -1083,6 +1085,7 @@
       {
         "id": "MedicationRequest.status",
         "path": "MedicationRequest.status",
+        "short": "Status",
         "_short": {
           "extension": [
             {
@@ -1113,6 +1116,7 @@
             }
           ]
         },
+        "definition": "aktiv | pausiert | abgebrochen | abgeschlossen | Eingabe fehlerhaft | abgebrochen | Entwurf | unbekannt",
         "_definition": {
           "extension": [
             {
@@ -1289,6 +1293,7 @@
       {
         "id": "MedicationRequest.intent",
         "path": "MedicationRequest.intent",
+        "short": "Intention",
         "_short": {
           "extension": [
             {
@@ -1319,6 +1324,7 @@
             }
           ]
         },
+        "definition": "Vorschlag | Plan | Auftrag | Original-Auftrag | ergänzender Auftrag | Erfüllungsauftrag | Vorgangsauftrag | Option",
         "_definition": {
           "extension": [
             {
@@ -1663,6 +1669,7 @@
           ],
           "rules": "open"
         },
+        "short": "Medikation",
         "_short": {
           "extension": [
             {
@@ -1693,6 +1700,7 @@
             }
           ]
         },
+        "definition": "Das Medikament, das verordnet wurde. Code oder Referenz auf Medication-Objekt.",
         "_definition": {
           "extension": [
             {
@@ -1813,7 +1821,7 @@
           {
             "code": "Reference",
             "targetProfile": [
-              "http://hl7.org/fhir/StructureDefinition/Medication"
+              "https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/Medication"
             ]
           }
         ],
@@ -2147,8 +2155,68 @@
         ],
         "path": "MedicationRequest.medication[x].coding",
         "sliceName": "Pharmazentralnummer",
-        "short": "Code defined by a terminology system",
-        "definition": "A reference to a code defined by a terminology system.",
+        "short": "PZN Code",
+        "_short": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "de-DE"
+                },
+                {
+                  "url": "content",
+                  "valueString": "PZN Code"
+                }
+              ]
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "en-US"
+                },
+                {
+                  "url": "content",
+                  "valueString": "PZN code"
+                }
+              ]
+            }
+          ]
+        },
+        "definition": "Ein Verweis auf einen von der Pharmazentralnummer (PZN) definierten Code",
+        "_definition": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "de-DE"
+                },
+                {
+                  "url": "content",
+                  "valueString": "Ein Verweis auf einen von der Pharmazentralnummer definierten Code"
+                }
+              ]
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "en-US"
+                },
+                {
+                  "url": "content",
+                  "valueString": "A reference to a code defined by Pharmazentralnummer"
+                }
+              ]
+            }
+          ]
+        },
         "comment": "Codes may be defined very casually in enumerations, or code lists, up to very formal definitions such as SNOMED CT - see the HL7 v3 Core Principles for more information.  Ordering of codings is undefined and SHALL NOT be used to infer meaning. Generally, at most only one of the coding values will be labeled as UserSelected = true.",
         "requirements": "Allows for alternative encodings within a code system, and translations to other code systems.",
         "min": 0,
@@ -2181,6 +2249,10 @@
         ],
         "mustSupport": true,
         "isSummary": true,
+        "binding": {
+          "strength": "required",
+          "valueSet": "http://fhir.de/ValueSet/ifa/pzn"
+        },
         "mapping": [
           {
             "identity": "rim",
@@ -2601,7 +2673,67 @@
         "path": "MedicationRequest.medication[x].coding",
         "sliceName": "atcClassDe",
         "short": "ATC Klassifikation deutsche Version",
+        "_short": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "de-DE"
+                },
+                {
+                  "url": "content",
+                  "valueString": "PZN Code"
+                }
+              ]
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "en-US"
+                },
+                {
+                  "url": "content",
+                  "valueString": "PZN code"
+                }
+              ]
+            }
+          ]
+        },
         "definition": "ATC-Codes für Fertigarzneimittel bspw. von Kombiprodukten",
+        "_definition": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "de-DE"
+                },
+                {
+                  "url": "content",
+                  "valueString": "Ein Verweis auf einen von der Pharmazentralnummer definierten Code"
+                }
+              ]
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "en-US"
+                },
+                {
+                  "url": "content",
+                  "valueString": "A reference to a code defined by Pharmazentralnummer"
+                }
+              ]
+            }
+          ]
+        },
         "comment": "Codes may be defined very casually in enumerations, or code lists, up to very formal definitions such as SNOMED CT - see the HL7 v3 Core Principles for more information.  Ordering of codings is undefined and SHALL NOT be used to infer meaning. Generally, at most only one of the coding values will be labeled as UserSelected = true.",
         "requirements": "Allows for alternative encodings within a code system, and translations to other code systems.",
         "min": 0,
@@ -3058,7 +3190,67 @@
         "path": "MedicationRequest.medication[x].coding",
         "sliceName": "atcClassEn",
         "short": "Anatomical Therapeutic Chemical Classification System",
+        "_short": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "de-DE"
+                },
+                {
+                  "url": "content",
+                  "valueString": "PZN Code"
+                }
+              ]
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "en-US"
+                },
+                {
+                  "url": "content",
+                  "valueString": "PZN code"
+                }
+              ]
+            }
+          ]
+        },
         "definition": "ATC Classification International WHO Version",
+        "_definition": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "de-DE"
+                },
+                {
+                  "url": "content",
+                  "valueString": "Ein Verweis auf einen von der Pharmazentralnummer definierten Code"
+                }
+              ]
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "en-US"
+                },
+                {
+                  "url": "content",
+                  "valueString": "A reference to a code defined by Pharmazentralnummer"
+                }
+              ]
+            }
+          ]
+        },
         "comment": "Codes may be defined very casually in enumerations, or code lists, up to very formal definitions such as SNOMED CT - see the HL7 v3 Core Principles for more information.  Ordering of codings is undefined and SHALL NOT be used to infer meaning. Generally, at most only one of the coding values will be labeled as UserSelected = true.",
         "requirements": "Allows for alternative encodings within a code system, and translations to other code systems.",
         "min": 0,
@@ -3646,325 +3838,6 @@
         ]
       },
       {
-        "id": "MedicationRequest.subject.id",
-        "path": "MedicationRequest.subject.id",
-        "representation": [
-          "xmlAttr"
-        ],
-        "short": "Unique id for inter-element referencing",
-        "definition": "Unique id for the element within a resource (for internal references). This may be any string value that does not contain spaces.",
-        "min": 0,
-        "max": "1",
-        "base": {
-          "path": "Element.id",
-          "min": 0,
-          "max": "1"
-        },
-        "type": [
-          {
-            "extension": [
-              {
-                "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type",
-                "valueUrl": "string"
-              }
-            ],
-            "code": "http://hl7.org/fhirpath/System.String"
-          }
-        ],
-        "mapping": [
-          {
-            "identity": "rim",
-            "map": "n/a"
-          }
-        ]
-      },
-      {
-        "id": "MedicationRequest.subject.extension",
-        "extension": [
-          {
-            "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-standards-status",
-            "valueCode": "normative"
-          },
-          {
-            "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-normative-version",
-            "valueCode": "4.0.0"
-          }
-        ],
-        "path": "MedicationRequest.subject.extension",
-        "slicing": {
-          "discriminator": [
-            {
-              "type": "value",
-              "path": "url"
-            }
-          ],
-          "description": "Extensions are always sliced by (at least) url",
-          "rules": "open"
-        },
-        "short": "Additional content defined by implementations",
-        "definition": "May be used to represent additional information that is not part of the basic definition of the element. To make the use of extensions safe and manageable, there is a strict set of governance  applied to the definition and use of extensions. Though any implementer can define an extension, there is a set of requirements that SHALL be met as part of the definition of the extension.",
-        "comment": "There can be no stigma associated with the use of extensions by any application, project, or standard - regardless of the institution or jurisdiction that uses or defines the extensions.  The use of extensions is what allows the FHIR specification to retain a core level of simplicity for everyone.",
-        "alias": [
-          "extensions",
-          "user content"
-        ],
-        "min": 0,
-        "max": "*",
-        "base": {
-          "path": "Element.extension",
-          "min": 0,
-          "max": "*"
-        },
-        "type": [
-          {
-            "code": "Extension"
-          }
-        ],
-        "condition": [
-          "ele-1"
-        ],
-        "constraint": [
-          {
-            "key": "ele-1",
-            "severity": "error",
-            "human": "All FHIR elements must have a @value or children",
-            "expression": "hasValue() or (children().count() > id.count())",
-            "xpath": "@value|f:*|h:div",
-            "source": "http://hl7.org/fhir/StructureDefinition/Element"
-          },
-          {
-            "key": "ext-1",
-            "severity": "error",
-            "human": "Must have either extensions or value[x], not both",
-            "expression": "extension.exists() != value.exists()",
-            "xpath": "exists(f:extension)!=exists(f:*[starts-with(local-name(.), 'value')])",
-            "source": "http://hl7.org/fhir/StructureDefinition/DomainResource"
-          }
-        ],
-        "mapping": [
-          {
-            "identity": "rim",
-            "map": "n/a"
-          },
-          {
-            "identity": "rim",
-            "map": "N/A"
-          }
-        ]
-      },
-      {
-        "id": "MedicationRequest.subject.reference",
-        "path": "MedicationRequest.subject.reference",
-        "short": "Literal reference, Relative, internal or absolute URL",
-        "definition": "A reference to a location at which the other resource is found. The reference may be a relative reference, in which case it is relative to the service base URL, or an absolute URL that resolves to the location where the resource is found. The reference may be version specific or not. If the reference is not to a FHIR RESTful server, then it should be assumed to be version specific. Internal fragment references (start with '#') refer to contained resources.",
-        "comment": "Using absolute URLs provides a stable scalable approach suitable for a cloud/web context, while using relative/logical references provides a flexible approach suitable for use when trading across closed eco-system boundaries.   Absolute URLs do not need to point to a FHIR RESTful server, though this is the preferred approach. If the URL conforms to the structure \"/[type]/[id]\" then it should be assumed that the reference is to a FHIR RESTful server.",
-        "min": 1,
-        "max": "1",
-        "base": {
-          "path": "Reference.reference",
-          "min": 0,
-          "max": "1"
-        },
-        "type": [
-          {
-            "code": "string"
-          }
-        ],
-        "condition": [
-          "ele-1",
-          "ref-1"
-        ],
-        "constraint": [
-          {
-            "key": "ele-1",
-            "severity": "error",
-            "human": "All FHIR elements must have a @value or children",
-            "expression": "hasValue() or (children().count() > id.count())",
-            "xpath": "@value|f:*|h:div",
-            "source": "http://hl7.org/fhir/StructureDefinition/Element"
-          }
-        ],
-        "isSummary": true,
-        "mapping": [
-          {
-            "identity": "rim",
-            "map": "n/a"
-          },
-          {
-            "identity": "rim",
-            "map": "N/A"
-          }
-        ]
-      },
-      {
-        "id": "MedicationRequest.subject.type",
-        "path": "MedicationRequest.subject.type",
-        "short": "Type the reference refers to (e.g. \"Patient\")",
-        "definition": "The expected type of the target of the reference. If both Reference.type and Reference.reference are populated and Reference.reference is a FHIR URL, both SHALL be consistent.\n\nThe type is the Canonical URL of Resource Definition that is the type this reference refers to. References are URLs that are relative to http://hl7.org/fhir/StructureDefinition/ e.g. \"Patient\" is a reference to http://hl7.org/fhir/StructureDefinition/Patient. Absolute URLs are only allowed for logical models (and can only be used in references in logical models, not resources).",
-        "comment": "This element is used to indicate the type of  the target of the reference. This may be used which ever of the other elements are populated (or not). In some cases, the type of the target may be determined by inspection of the reference (e.g. a RESTful URL) or by resolving the target of the reference; if both the type and a reference is provided, the reference SHALL resolve to a resource of the same type as that specified.",
-        "min": 0,
-        "max": "1",
-        "base": {
-          "path": "Reference.type",
-          "min": 0,
-          "max": "1"
-        },
-        "type": [
-          {
-            "code": "uri"
-          }
-        ],
-        "condition": [
-          "ele-1"
-        ],
-        "constraint": [
-          {
-            "key": "ele-1",
-            "severity": "error",
-            "human": "All FHIR elements must have a @value or children",
-            "expression": "hasValue() or (children().count() > id.count())",
-            "xpath": "@value|f:*|h:div",
-            "source": "http://hl7.org/fhir/StructureDefinition/Element"
-          }
-        ],
-        "isSummary": true,
-        "binding": {
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/elementdefinition-bindingName",
-              "valueString": "FHIRResourceTypeExt"
-            }
-          ],
-          "strength": "extensible",
-          "description": "Aa resource (or, for logical models, the URI of the logical model).",
-          "valueSet": "http://hl7.org/fhir/ValueSet/resource-types"
-        },
-        "mapping": [
-          {
-            "identity": "rim",
-            "map": "n/a"
-          },
-          {
-            "identity": "rim",
-            "map": "N/A"
-          }
-        ]
-      },
-      {
-        "id": "MedicationRequest.subject.identifier",
-        "extension": [
-          {
-            "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-standards-status",
-            "valueCode": "normative"
-          },
-          {
-            "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-normative-version",
-            "valueCode": "4.0.0"
-          }
-        ],
-        "path": "MedicationRequest.subject.identifier",
-        "short": "Logical reference, when literal reference is not known",
-        "definition": "An identifier for the target resource. This is used when there is no way to reference the other resource directly, either because the entity it represents is not available through a FHIR server, or because there is no way for the author of the resource to convert a known identifier to an actual location. There is no requirement that a Reference.identifier point to something that is actually exposed as a FHIR instance, but it SHALL point to a business concept that would be expected to be exposed as a FHIR instance, and that instance would need to be of a FHIR resource type allowed by the reference.",
-        "comment": "When an identifier is provided in place of a reference, any system processing the reference will only be able to resolve the identifier to a reference if it understands the business context in which the identifier is used. Sometimes this is global (e.g. a national identifier) but often it is not. For this reason, none of the useful mechanisms described for working with references (e.g. chaining, includes) are possible, nor should servers be expected to be able resolve the reference. Servers may accept an identifier based reference untouched, resolve it, and/or reject it - see CapabilityStatement.rest.resource.referencePolicy. \n\nWhen both an identifier and a literal reference are provided, the literal reference is preferred. Applications processing the resource are allowed - but not required - to check that the identifier matches the literal reference\n\nApplications converting a logical reference to a literal reference may choose to leave the logical reference present, or remove it.\n\nReference is intended to point to a structure that can potentially be expressed as a FHIR resource, though there is no need for it to exist as an actual FHIR resource instance - except in as much as an application wishes to actual find the target of the reference. The content referred to be the identifier must meet the logical constraints implied by any limitations on what resource types are permitted for the reference.  For example, it would not be legitimate to send the identifier for a drug prescription if the type were Reference(Observation|DiagnosticReport).  One of the use-cases for Reference.identifier is the situation where no FHIR representation exists (where the type is Reference (Any).",
-        "min": 0,
-        "max": "1",
-        "base": {
-          "path": "Reference.identifier",
-          "min": 0,
-          "max": "1"
-        },
-        "type": [
-          {
-            "code": "Identifier"
-          }
-        ],
-        "condition": [
-          "ele-1"
-        ],
-        "constraint": [
-          {
-            "key": "ele-1",
-            "severity": "error",
-            "human": "All FHIR elements must have a @value or children",
-            "expression": "hasValue() or (children().count() > id.count())",
-            "xpath": "@value|f:*|h:div",
-            "source": "http://hl7.org/fhir/StructureDefinition/Element"
-          }
-        ],
-        "isSummary": true,
-        "mapping": [
-          {
-            "identity": "rim",
-            "map": "n/a"
-          },
-          {
-            "identity": "v2",
-            "map": "CX / EI (occasionally, more often EI maps to a resource id or a URL)"
-          },
-          {
-            "identity": "rim",
-            "map": "II - The Identifier class is a little looser than the v3 type II because it allows URIs as well as registered OIDs or GUIDs.  Also maps to Role[classCode=IDENT]"
-          },
-          {
-            "identity": "servd",
-            "map": "Identifier"
-          },
-          {
-            "identity": "rim",
-            "map": ".identifier"
-          }
-        ]
-      },
-      {
-        "id": "MedicationRequest.subject.display",
-        "extension": [
-          {
-            "url": "http://hl7.org/fhir/StructureDefinition/elementdefinition-translatable",
-            "valueBoolean": true
-          }
-        ],
-        "path": "MedicationRequest.subject.display",
-        "short": "Text alternative for the resource",
-        "definition": "Plain text narrative that identifies the resource in addition to the resource reference.",
-        "comment": "This is generally not the same as the Resource.text of the referenced resource.  The purpose is to identify what's being referenced, not to fully describe it.",
-        "min": 0,
-        "max": "1",
-        "base": {
-          "path": "Reference.display",
-          "min": 0,
-          "max": "1"
-        },
-        "type": [
-          {
-            "code": "string"
-          }
-        ],
-        "condition": [
-          "ele-1"
-        ],
-        "constraint": [
-          {
-            "key": "ele-1",
-            "severity": "error",
-            "human": "All FHIR elements must have a @value or children",
-            "expression": "hasValue() or (children().count() > id.count())",
-            "xpath": "@value|f:*|h:div",
-            "source": "http://hl7.org/fhir/StructureDefinition/Element"
-          }
-        ],
-        "isSummary": true,
-        "mapping": [
-          {
-            "identity": "rim",
-            "map": "n/a"
-          },
-          {
-            "identity": "rim",
-            "map": "N/A"
-          }
-        ]
-      },
-      {
         "id": "MedicationRequest.encounter",
         "extension": [
           {
@@ -3977,6 +3850,7 @@
           }
         ],
         "path": "MedicationRequest.encounter",
+        "short": "Fall oder Kontakt",
         "_short": {
           "extension": [
             {
@@ -4007,6 +3881,7 @@
             }
           ]
         },
+        "definition": "Fall oder Kontakt, bei dem die Medikation verordnet wurde.",
         "_definition": {
           "extension": [
             {
@@ -4184,6 +4059,7 @@
       {
         "id": "MedicationRequest.authoredOn",
         "path": "MedicationRequest.authoredOn",
+        "short": "Datum der Verordnung",
         "_short": {
           "extension": [
             {
@@ -4214,6 +4090,7 @@
             }
           ]
         },
+        "definition": "Das Datum und vielleicht die Uhrzeit, an dem die Verordnung ursprünglich verfasst wurde.",
         "_definition": {
           "extension": [
             {
@@ -4311,6 +4188,7 @@
           }
         ],
         "path": "MedicationRequest.requester",
+        "short": "Anforderer",
         "_short": {
           "extension": [
             {
@@ -4341,6 +4219,7 @@
             }
           ]
         },
+        "definition": "Die Person, Organisation oder das Gerät, die die Verordnung initiiert hat und für deren Aktivierung verantwortlich ist.",
         "_definition": {
           "extension": [
             {
@@ -4612,6 +4491,7 @@
           }
         ],
         "path": "MedicationRequest.recorder",
+        "short": "Auftragserfasser",
         "_short": {
           "extension": [
             {
@@ -4642,6 +4522,7 @@
             }
           ]
         },
+        "definition": "Die Person, die den Auftrag im Namen einer anderen Person eingegeben hat, zum Beispiel im Fall eines mündlichen oder telefonischen Auftrags.",
         "_definition": {
           "extension": [
             {
@@ -4710,7 +4591,6 @@
             "source": "http://hl7.org/fhir/StructureDefinition/MedicationRequest"
           }
         ],
-        "mustSupport": true,
         "mapping": [
           {
             "identity": "rim",
@@ -4743,6 +4623,7 @@
           }
         ],
         "path": "MedicationRequest.reasonCode",
+        "short": "Grund Code",
         "_short": {
           "extension": [
             {
@@ -4773,6 +4654,7 @@
             }
           ]
         },
+        "definition": "Grund für die Medikationsverordnung als Code.",
         "_definition": {
           "extension": [
             {
@@ -4893,6 +4775,7 @@
           }
         ],
         "path": "MedicationRequest.reasonReference",
+        "short": "Grund Referenz",
         "_short": {
           "extension": [
             {
@@ -4923,6 +4806,7 @@
             }
           ]
         },
+        "definition": "Grund für die Medikationsverordnung als Referenz auf Condition- oder Observation-Objekt.",
         "_definition": {
           "extension": [
             {
@@ -5122,6 +5006,7 @@
           }
         ],
         "path": "MedicationRequest.basedOn",
+        "short": "Basiert auf",
         "_short": {
           "extension": [
             {
@@ -5152,6 +5037,7 @@
             }
           ]
         },
+        "definition": "Ein Plan oder eine Anforderung, die ganz oder teilweise durch diese Medikationsverordnung erfüllt wird.",
         "_definition": {
           "extension": [
             {
@@ -5472,6 +5358,7 @@
           }
         ],
         "path": "MedicationRequest.note",
+        "short": "Hinweis",
         "_short": {
           "extension": [
             {
@@ -5502,6 +5389,7 @@
             }
           ]
         },
+        "definition": "Zusätzliche Informationen zur Medikationsverordnung als Freitext.",
         "_definition": {
           "extension": [
             {
@@ -5599,6 +5487,7 @@
           }
         ],
         "path": "MedicationRequest.dosageInstruction",
+        "short": "Dosierungsanweisung",
         "_short": {
           "extension": [
             {
@@ -5629,6 +5518,7 @@
             }
           ]
         },
+        "definition": "Gibt an, wie das Medikament vom Patienten zu verwenden ist.",
         "_definition": {
           "extension": [
             {
@@ -9357,8 +9247,68 @@
           }
         ],
         "path": "MedicationRequest.dosageInstruction.site",
-        "short": "Body site to administer to",
-        "definition": "Body site to administer to.",
+        "short": "Verabreichungsort",
+        "_short": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "de-DE"
+                },
+                {
+                  "url": "content",
+                  "valueString": "Verabreichungsort"
+                }
+              ]
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "en-US"
+                },
+                {
+                  "url": "content",
+                  "valueString": "Site of administration"
+                }
+              ]
+            }
+          ]
+        },
+        "definition": "Der Ort, an dem das Medikament verabreicht werden soll.",
+        "_definition": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "de-DE"
+                },
+                {
+                  "url": "content",
+                  "valueString": "Der Ort, an dem das Medikament verabreicht werden soll."
+                }
+              ]
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "en-US"
+                },
+                {
+                  "url": "content",
+                  "valueString": "Anatomic site where the medication is to be administered."
+                }
+              ]
+            }
+          ]
+        },
         "comment": "If the use case requires attributes from the BodySite resource (e.g. to identify and track separately) then use the standard extension [bodySite](extension-bodysite.html).  May be a summary code, or a reference to a very precise definition of the location, or both.",
         "requirements": "A coded specification of the anatomic site where the medication first enters the body.",
         "min": 0,
@@ -9631,8 +9581,68 @@
         ],
         "path": "MedicationRequest.dosageInstruction.site.coding",
         "sliceName": "SNOMED",
-        "short": "Code defined by a terminology system",
-        "definition": "A reference to a code defined by a terminology system.",
+        "short": "SNOMED CT Code",
+        "_short": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "de-DE"
+                },
+                {
+                  "url": "content",
+                  "valueString": "SNOMED CT Code"
+                }
+              ]
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "en-US"
+                },
+                {
+                  "url": "content",
+                  "valueString": "SNOMED CT code"
+                }
+              ]
+            }
+          ]
+        },
+        "definition": "Ein Verweis auf einen von SNOMED CT definierten Code",
+        "_definition": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "de-DE"
+                },
+                {
+                  "url": "content",
+                  "valueString": "Ein Verweis auf einen von SNOMED CT definierten Code"
+                }
+              ]
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "en-US"
+                },
+                {
+                  "url": "content",
+                  "valueString": "A reference to a code defined by SNOMED CT"
+                }
+              ]
+            }
+          ]
+        },
         "comment": "Codes may be defined very casually in enumerations, or code lists, up to very formal definitions such as SNOMED CT - see the HL7 v3 Core Principles for more information.  Ordering of codings is undefined and SHALL NOT be used to infer meaning. Generally, at most only one of the coding values will be labeled as UserSelected = true.",
         "requirements": "Allows for alternative encodings within a code system, and translations to other code systems.",
         "min": 0,
@@ -10146,8 +10156,68 @@
           }
         ],
         "path": "MedicationRequest.dosageInstruction.route",
-        "short": "How drug should enter body",
-        "definition": "How drug should enter body.",
+        "short": "Verabreichungsweg",
+        "_short": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "de-DE"
+                },
+                {
+                  "url": "content",
+                  "valueString": "Verabreichungsweg"
+                }
+              ]
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "en-US"
+                },
+                {
+                  "url": "content",
+                  "valueString": "Route of administration"
+                }
+              ]
+            }
+          ]
+        },
+        "definition": "Der Weg, auf dem das Medikament verabreicht werden soll.",
+        "_definition": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "de-DE"
+                },
+                {
+                  "url": "content",
+                  "valueString": "Der Weg, auf dem das Medikament verabreicht werden soll."
+                }
+              ]
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "en-US"
+                },
+                {
+                  "url": "content",
+                  "valueString": "How drug should enter body"
+                }
+              ]
+            }
+          ]
+        },
         "comment": "Not all terminology uses fit this general pattern. In some cases, models should not use CodeableConcept and use Coding directly and provide their own structure for managing text, codings, translations and the relationship between elements and pre- and post-coordination.",
         "requirements": "A code specifying the route or physiological path of administration of a therapeutic agent into or onto a patient's body.",
         "min": 0,
@@ -10420,8 +10490,68 @@
         ],
         "path": "MedicationRequest.dosageInstruction.route.coding",
         "sliceName": "EDQM",
-        "short": "Code defined by a terminology system",
-        "definition": "A reference to a code defined by a terminology system.",
+        "short": "EDQM Code",
+        "_short": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "de-DE"
+                },
+                {
+                  "url": "content",
+                  "valueString": "EDQM Code"
+                }
+              ]
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "en-US"
+                },
+                {
+                  "url": "content",
+                  "valueString": "EDQM code"
+                }
+              ]
+            }
+          ]
+        },
+        "definition": "Ein Verweis auf einen durch EDQM Standard Terms definierten Code",
+        "_definition": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "de-DE"
+                },
+                {
+                  "url": "content",
+                  "valueString": "Ein Verweis auf einen durch EDQM Standard Terms definierten Code"
+                }
+              ]
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "en-US"
+                },
+                {
+                  "url": "content",
+                  "valueString": "A reference to a code defined by EDQM Standard Terms"
+                }
+              ]
+            }
+          ]
+        },
         "comment": "Codes may be defined very casually in enumerations, or code lists, up to very formal definitions such as SNOMED CT - see the HL7 v3 Core Principles for more information.  Ordering of codings is undefined and SHALL NOT be used to infer meaning. Generally, at most only one of the coding values will be labeled as UserSelected = true.",
         "requirements": "Allows for alternative encodings within a code system, and translations to other code systems.",
         "min": 0,
@@ -10878,8 +11008,68 @@
         ],
         "path": "MedicationRequest.dosageInstruction.route.coding",
         "sliceName": "SNOMED",
-        "short": "Code defined by a terminology system",
-        "definition": "A reference to a code defined by a terminology system.",
+        "short": "SNOMED CT Code",
+        "_short": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "de-DE"
+                },
+                {
+                  "url": "content",
+                  "valueString": "SNOMED CT Code"
+                }
+              ]
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "en-US"
+                },
+                {
+                  "url": "content",
+                  "valueString": "SNOMED CT code"
+                }
+              ]
+            }
+          ]
+        },
+        "definition": "Ein Verweis auf einen von SNOMED CT definierten Code",
+        "_definition": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "de-DE"
+                },
+                {
+                  "url": "content",
+                  "valueString": "Ein Verweis auf einen von SNOMED CT definierten Code"
+                }
+              ]
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/translation",
+              "extension": [
+                {
+                  "url": "lang",
+                  "valueCode": "en-US"
+                },
+                {
+                  "url": "content",
+                  "valueString": "A reference to a code defined by SNOMED CT"
+                }
+              ]
+            }
+          ]
+        },
         "comment": "Codes may be defined very casually in enumerations, or code lists, up to very formal definitions such as SNOMED CT - see the HL7 v3 Core Principles for more information.  Ordering of codings is undefined and SHALL NOT be used to infer meaning. Generally, at most only one of the coding values will be labeled as UserSelected = true.",
         "requirements": "Allows for alternative encodings within a code system, and translations to other code systems.",
         "min": 0,
@@ -18307,6 +18497,7 @@
           }
         ],
         "path": "MedicationRequest.substitution",
+        "short": "Substitution",
         "_short": {
           "extension": [
             {
@@ -18318,7 +18509,7 @@
                 },
                 {
                   "url": "content",
-                  "valueString": "Dosierungsanweisung"
+                  "valueString": "Substitution"
                 }
               ]
             },
@@ -18331,12 +18522,13 @@
                 },
                 {
                   "url": "content",
-                  "valueString": "Dosage instruction"
+                  "valueString": "Substitution"
                 }
               ]
             }
           ]
         },
+        "definition": "Etwaige Einschränkungen bei der Substitution von Medikamenten",
         "_definition": {
           "extension": [
             {
@@ -18881,6 +19073,7 @@
           }
         ],
         "path": "MedicationRequest.priorPrescription",
+        "short": "Vorherige Verschreibung",
         "_short": {
           "extension": [
             {
@@ -18911,6 +19104,7 @@
             }
           ]
         },
+        "definition": "Eine Verschreibung, die ersetzt wird",
         "_definition": {
           "extension": [
             {
@@ -19015,6 +19209,7 @@
           }
         ],
         "path": "MedicationRequest.detectedIssue",
+        "short": "Erkannte Probleme",
         "_short": {
           "extension": [
             {
@@ -19045,6 +19240,7 @@
             }
           ]
         },
+        "definition": "Ein tatsächliches oder potenzielles klinisches Problem mit oder zwischen einer oder mehreren aktiven oder vorgeschlagenen klinischen Maßnahmen für einen Patienten; z.B. Arzneimittelwechselwirkung, Doppeltherapie, Dosierungsalarm etc.",
         "_definition": {
           "extension": [
             {
@@ -19117,7 +19313,6 @@
             "source": "http://hl7.org/fhir/StructureDefinition/MedicationRequest"
           }
         ],
-        "mustSupport": true,
         "mapping": [
           {
             "identity": "rim",
@@ -19205,78 +19400,24 @@
         ]
       },
       {
-        "id": "MedicationRequest.medication[x]",
-        "extension": [
-          {
-            "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-standards-status",
-            "valueCode": "normative"
-          },
-          {
-            "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-normative-version",
-            "valueCode": "4.0.0"
-          }
-        ],
-        "path": "MedicationRequest.medication[x]",
-        "short": "A reference from one resource to another",
-        "definition": "A reference from one resource to another.",
-        "comment": "References SHALL be a reference to an actual FHIR resource, and SHALL be resolveable (allowing for access control, temporary unavailability, etc.). Resolution can be either by retrieval from the URL, or, where applicable by resource type, by treating an absolute reference as a canonical URL and looking it up in a local registry/repository.",
-        "min": 0,
-        "max": "*",
+        "id": "MedicationRequest.MedicationAdministration",
+        "path": "MedicationRequest.MedicationAdministration",
         "base": {
-          "path": "MedicationRequest.medication[x]"
-        },
-        "type": [
-          {
-            "code": "Reference"
-          }
-        ],
-        "condition": [
-          "ele-1"
-        ],
-        "constraint": [
-          {
-            "key": "ele-1",
-            "severity": "error",
-            "human": "All FHIR elements must have a @value or children",
-            "expression": "hasValue() or (children().count() > id.count())",
-            "xpath": "@value|f:*|h:div",
-            "source": "http://hl7.org/fhir/StructureDefinition/Element"
-          },
-          {
-            "key": "ref-1",
-            "severity": "error",
-            "human": "SHALL have a contained resource if a local reference is provided",
-            "expression": "reference.startsWith('#').not() or (reference.substring(1).trace('url') in %rootResource.contained.id.trace('ids'))",
-            "xpath": "not(starts-with(f:reference/@value, '#')) or exists(ancestor::*[self::f:entry or self::f:parameter]/f:resource/f:*/f:contained/f:*[f:id/@value=substring-after(current()/f:reference/@value, '#')]|/*/f:contained/f:*[f:id/@value=substring-after(current()/f:reference/@value, '#')])",
-            "source": "http://hl7.org/fhir/StructureDefinition/MedicationRequest"
-          }
-        ],
-        "binding": {
-          "strength": "example"
-        },
-        "mapping": [
-          {
-            "identity": "rim",
-            "map": "n/a"
-          },
-          {
-            "identity": "rim",
-            "map": "The target of a resource reference is a RIM entry point (Act, Role, or Entity)"
-          }
-        ]
+          "path": "MedicationAdministration"
+        }
       }
     ]
   },
   "differential": {
     "element": [
       {
-        "id": "MedicationRequest.subject.reference",
-        "path": "MedicationRequest.subject.reference",
+        "id": "MedicationAdministration.subject.reference",
+        "path": "MedicationAdministration.subject.reference",
         "min": 1
       },
       {
-        "id": "MedicationRequest.medication[x]",
-        "path": "MedicationRequest.medication[x]",
+        "id": "MedicationAdministration.medication[x]",
+        "path": "MedicationAdministration.medication[x]",
         "type": [
           {
             "code": "Reference"
