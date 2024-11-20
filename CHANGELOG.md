@@ -13,6 +13,51 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 ### Security
 
+## [3.0.0] - 2024-11-20
+
+| Modul          | Version                                                                    | Changelog                                       |
+|----------------|----------------------------------------------------------------------------|-------------------------------------------------|
+| MII_DIAGNOSE   | "de.medizininformatikinitiative.kerndatensatz.diagnose 2025.0.0-alpha2"    | Added orphanet, alpha-id, sct                   |
+| MII_LAB        | "de.medizininformatikinitiative.kerndatensatz.laborbefund 2025.0.0-alpha1" | Extended to all lab loinc codes                 |
+| MII_MEDICATION | "de.medizininformatikinitiative.kerndatensatz.medikation 2025.0.0-alpha5"  | Added MedicationStatement and MedicationRequest |
+| MII_PERSON     | "de.medizininformatikinitiative.kerndatensatz.person 2025.0.0-alpha4"      | Added vital status                              |
+| MII_PROCEDURE  | "de.medizininformatikinitiative.kerndatensatz.prozedur 2025.0.0-alpha2"    | Added sct                                       |
+| MII_FALL       | "de.medizininformatikinitiative.kerndatensatz.fall 2025.0.0-alpha4"        | Added - new module                              |
+| MII_SPECIMEN   | "de.medizininformatikinitiative.kerndatensatz.biobank 2025.0.0"            | Extend to full specimen type value set          |
+| MII_CONSENT    | "de.medizininformatikinitiative.kerndatensatz.consent 1.0.7"               | Added combined consent                          |
+
+### Added
+
+- Add required and recommended to profile details, include mustSupport,… by @juliangruendner in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/107
+- Make psql version configurable @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/111
+- Merge same ui tree subtrees into one @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/114
+- Add field names of profile to profile tree @juliangruendner in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/116
+- Make optional values attributes configurable @paulolaup https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/118
+- Resolve reference to create code filter by @juliangruendner in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/99
+- Change attribute type CodeableConcept to Coding by @juliangruendner in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/123
+- Added automatic CI build by @EmteZogaf in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/123
+- Add fields for each profile comma separated to dse profile tree
+- Generation for Dataselection Ontology
+- Merging of multiple ontologies
+- Generation of combined Consent
+- Generation of Elastic Search ontology files
+- Parceling of ontology files
+- Add script for merging and loading availability files from fhir data evaluator
+- Added Referenced profiles to dse fields
+
+### Changed
+
+- Refactored cohort selection ontology generation to on script with configs and own ontologies per FHIR (CDS) module
+- ui-trees and mapping-trees are now changed to a implicit tree structure by reference to parents and children, instead of duplicating subtrees.
+- Change date field to recorded date for diagnosis
+
+### Fixed
+
+- Fix composite generation by @BoehmDo in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/97
+- Use a requests session for repeated calls to speed up terminology server access
+- Ensure atc hierarchy is added
+
+
 
 ## [3.0.0-alpha.1] - 2024-11-15
 
