@@ -4,11 +4,14 @@ from typing import List
 
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, REQUESTS_SESSION
 from TerminologService.valueSetToRoots import create_vs_tree_map, expand_value_set
+# from dse.generate_dse_files import logger
 from model.TreeMap import ContextualizedTermCodeInfo
 from model.UiDataModel import TermCode
+from util.LoggingUtil import init_logger
+from logging import DEBUG
 
 POSSIBLE_CODE_SYSTEMS = ["http://loinc.org", "http://snomed.info/sct"]
-
+logger = init_logger("ValueSetResolver", DEBUG)
 
 
 def get_term_map_from_onto_server(value_set_canonical_url: str):
@@ -18,7 +21,7 @@ def get_term_map_from_onto_server(value_set_canonical_url: str):
     :return: Sorted term_entry roots of the value set hierarchy
     """
     value_set_canonical_url = value_set_canonical_url.replace("|", "&version=")
-    print(value_set_canonical_url)
+
     result = create_vs_tree_map(value_set_canonical_url)
     if len(result.entries) < 1:
         raise Exception("ERROR", value_set_canonical_url)
@@ -48,7 +51,7 @@ def get_termcodes_from_onto_server(value_set_canonical_url: str, onto_server: st
     :return: returns the sorted list of term codes of the value set prioritized by the coding system:
     icd10 > snomed
     """
-    print(value_set_canonical_url)
+    logger.debug(value_set_canonical_url)
     return list(expand_value_set(value_set_canonical_url, onto_server))
 
 
@@ -273,7 +276,7 @@ def get_value_set_definition(canonical_address: str, onto_server: str = TERMINOL
             if resource := entry.get("resource"):
                 if "id" in resource:
                     return get_value_set_definition_by_id(resource["id"], onto_server)
-    print(canonical_address)
+    logger.debug(canonical_address)
     return {}
 
 

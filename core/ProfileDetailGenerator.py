@@ -1,14 +1,17 @@
+import logging
 import re
 
 
 class ProfileDetailGenerator():
 
-    def __init__(self, profiles, mapping_type_code, blacklistedValueSets, fields_to_exclude, reference_base_url):
+    def __init__(self, profiles, mapping_type_code, blacklistedValueSets, fields_to_exclude, field_trees_to_exclude, reference_base_url):
 
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.blacklistedValueSets = blacklistedValueSets
         self.profiles = profiles
         self.mapping_type_code = mapping_type_code
         self.fields_to_exclude = fields_to_exclude
+        self.field_trees_to_exclude = field_trees_to_exclude
         self.simple_data_types = ["instant", "time", "date", "dateTime", "decimal", "boolean", "integer", "string",
                                   "uri", "base64Binary", "code", "id", "oid", "unsignedInt", "positiveInt", "markdown",
                                   "url", "canonical", "uuid"]
@@ -24,7 +27,8 @@ class ProfileDetailGenerator():
 
             for type_elem in (elem for elem in elem_type if re.search("Reference", elem['code'])):
 
-                target_profile_url = next((url for url in type_elem['targetProfile'] if url.startswith(self.reference_base_url)),
+                target_profile_url = next(
+                    (url for url in type_elem['targetProfile'] if url.startswith(self.reference_base_url)),
                     None)
 
                 if not target_profile_url:
@@ -34,7 +38,6 @@ class ProfileDetailGenerator():
                     for profile in self.profiles:
                         if target_profile_url.split("/")[-1] == profile.split("/")[-1]:
                             return self.profiles[profile]['structureDefinition']
-
 
                 return self.profiles[target_profile_url]['structureDefinition']
 
@@ -136,22 +139,31 @@ class ProfileDetailGenerator():
         attributes_true_level_one = ["mustSupport", "isModifier", "min"]
 
         if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
-            for attr in attributes_true_level_one):
+               for attr in attributes_true_level_one):
+            self.logger.debug(f"Excluding: {element['id']} as not mustSupport, modifier or min > 0")
             return True
 
         attributes_true_level_two = ["mustSupport", "isModifier"]
 
         if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
-            for attr in attributes_true_level_two) and len(element["id"].split(".")) > 2:
+               for attr in attributes_true_level_two) and len(element["id"].split(".")) > 2:
+            self.logger.debug(f"Excluding: {element['id']} as not mustSupport or modifier on level > 2")
             return True
 
-        if any(element['id'].endswith(field) or f"{field}." in element['id'] for field in self.fields_to_exclude):
+        if any(element['id'].endswith(field) or f"{field}." in element['id']for field in self.fields_to_exclude):
+            self.logger.debug(f"Excluding: {element['id']} as excluded field")
+            return True
+
+        if any(f"{field}" in element['id'] for field in self.field_trees_to_exclude):
+            self.logger.debug(f"Excluding: {element['id']} as part of field tree")
             return True
 
         if "[x]" in element['id'] and not element['id'].endswith("[x]"):
+            self.logger.debug(f"Excluding: {element['id']} as sub-elements relevant")
             return True
 
         if element["base"]["path"].split(".")[0] in {"Resource", "DomainResource"} and not "mustSupport" in element:
+            self.logger.debug(f"Excluding: {element['id']} as base is Resource or DomainResource and not must Support")
             return True
 
     def check_at_least_one_in_elem_and_true(self, element, attributes_to_check):
@@ -162,11 +174,10 @@ class ProfileDetailGenerator():
             return False
 
         if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
-            for attr in attributes_to_check):
+               for attr in attributes_to_check):
             return False
 
         return True
-
 
     def get_name_from_id(self, id):
 
@@ -209,13 +220,48 @@ class ProfileDetailGenerator():
 
         return "date"
 
+    def find_mii_references_by_type(self, fhir_type):
+
+        matching_mii_references = []
+
+        for profile in self.profiles.values():
+
+            profile_fhir_type = profile["structureDefinition"]["type"]
+            if profile_fhir_type == fhir_type:
+                matching_mii_references.append(profile["url"])
+
+        return matching_mii_references
+
+    def get_referenced_mii_profiles(self, element, field_type):
+
+        mii_references = []
+
+        if field_type == 'Reference':
+
+            target_profiles = None
+
+            for type in element['type']:
+                if "targetProfile" in type:
+                    target_profiles = type['targetProfile']
+
+            for profile in target_profiles:
+                if profile.startswith('https://www.medizininformatik-initiative.de'):
+                    mii_references.append(profile)
+
+            if len(mii_references) == 0:
+
+                for profile in target_profiles:
+                    fhir_type = profile.rstrip('/').split('/')[-1]
+                    mii_references.extend(self.find_mii_references_by_type(fhir_type))
+
+        return mii_references
+
     def generate_detail_for_profile(self, profile):
 
-        print(f"Generating profile detail for: {profile['url']}")
+        self.logger.info(f"Generating profile detail for: {profile['url']}")
 
         if not "snapshot" in profile["structureDefinition"]:
-            print(f'profile with url {profile["url"]} has no snapshot - ignoring')
-            # TODO - check why this happens and if this is a problem
+            self.logger.warning(f'profile with url {profile["url"]} has no snapshot - ignoring')
             return None
 
         struct_def = profile["structureDefinition"]
@@ -277,10 +323,18 @@ class ProfileDetailGenerator():
 
                 element = self.get_element_by_content_ref(content_reference, source_elements)
 
+            field_type = None
+
             if "type" in element:
-                field_type = element["type"][0]["code"]
+                for type in element["type"]:
+
+                    field_type = type["code"]
+
+                    if type["code"] == "Reference":
+                        break
+
             else:
-                print(f"Element without type: {element}")
+                self.logger.warning(f"Element without type: {element} - discarding")
                 continue
 
             is_recommended_field = self.check_at_least_one_in_elem_and_true(element, ["min"])
@@ -315,10 +369,16 @@ class ProfileDetailGenerator():
                                          }
                                      ],
                                      },
+                     "referencedProfiles": self.get_referenced_mii_profiles(element, field_type),
                      "type": field_type,
                      "recommended": is_recommended_field,
                      "required": is_required_field
                      }
+
+            if field_type == "Reference" and len(self.get_referenced_mii_profiles(element, field_type)) == 0:
+                self.logger.warning(f"Discarding field: {element['id']} - No mii profiles that match referenced profiles, parent profile is {profile['url']}")
+                continue
+
 
             self.insert_field_to_tree(field_tree, field)
 
