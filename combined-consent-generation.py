@@ -85,6 +85,11 @@ def process_csv(csv_file: str):
             cql_mapping.context = context
             cql_mapping.timeRestrictionFhirPath = "Consent.datetime"
             cql_mapping.resourceType = "Consent"
+            cql_mapping.primaryCode= {
+                            "code": "54133-1",
+                            "display": "Consent Document",
+                            "system": "http://loinc.org"
+                        }
 
             provisions_code = [code.strip() for code in row['provisions-code'].split('|')]
             provisions_display = [display.strip() for display in row['provisions-display'].split('|')]
