@@ -81,6 +81,10 @@ def download_simplifier_packages(package_names):
     os.chdir("dse-packages")
 
     for package in package_names:
+
+        if os.path.exists("package.json"):
+            os.remove("package.json")
+
         os.system(f"fhir install {package} --here")
 
     os.chdir(prev_dir)
