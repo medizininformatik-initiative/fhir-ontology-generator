@@ -43,21 +43,21 @@ fi
 
 # Step 1: Generating cohort selection ontology
 if should_run_step 1; then
-    printf "#################\nStep 1: Generating cohort selection ontology\n#################\n"
+    printf "\n#################\nStep 1: Generating cohort selection ontology\n#################\n"
     cd "$BASE_DIR/example/mii_core_data_set" || exit 1
     python3 generate_ontology.py --generate_ui_trees --generate_ui_profiles --generate_mapping
 fi
 
 # Step 2: Generating DSE ontology
 if should_run_step 2; then
-    printf "#################\nStep 2: Generating DSE ontology\n#################\n"
+    printf "\n#################\nStep 2: Generating DSE ontology\n#################\n"
     cd "$BASE_DIR/dse" || exit 1
     python3 generate_dse_files.py --generate_profile_details --download_value_sets --generate_mapping_trees
 fi
 
 # Step 3: Merging Ontologies into fdpg-ontology
 if should_run_step 3; then
-    printf "#################\nStep 3: Merging Ontologies into fdpg-ontology\n#################\n"
+    printf "\n#################\nStep 3: Merging Ontologies into fdpg-ontology\n#################\n"
     cd "$BASE_DIR/util" || exit 1
     python3 OntologyMergeUtil.py --merge_mappings --merge_uitrees --merge_sqldump --merge_dse \
      --dseontodir "$BASE_DIR/dse/generated" \
@@ -74,7 +74,7 @@ fi
 
 # Step 4: Generating and merging in combined consent
 if should_run_step 4; then
-    printf "#################\nStep 4: Generating and merging in combined consent\n#################\n"
+    printf "\n#################\nStep 4: Generating and merging in combined consent\n#################\n"
     cd "$BASE_DIR" || exit 1
     python3 combined-consent-generation.py --merge_mappings \
      --consentinputdir "$BASE_DIR/example/mii-consent-generation" \
@@ -83,7 +83,7 @@ fi
 
 # Step 5: Generating Elastic Search files
 if should_run_step 5; then
-    printf "#################\nStep 5: Generating Elastic Search files\n#################\n"
+    printf "\n#################\nStep 5: Generating Elastic Search files\n#################\n"
     cd "$BASE_DIR" || exit 1
     python3 generate_elasticsearch_files.py \
      --ontology_dir "$BASE_DIR/example/fdpg-ontology"
@@ -91,7 +91,7 @@ fi
 
 # Step 6: Parcel ontology files
 if should_run_step 6; then
-    printf "#################\nStep 6: Parcel ontology files\n#################\n"
+    printf "\n#################\nStep 6: Parcel ontology files\n#################\n"
     cd "$BASE_DIR" || exit 1
     python3 parcel_final_ontology.py \
     --ontology_dir "$BASE_DIR/example/fdpg-ontology"
