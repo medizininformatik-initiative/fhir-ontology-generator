@@ -86,8 +86,8 @@ def process_csv(csv_file: str):
             cql_mapping.timeRestrictionFhirPath = "Consent.datetime"
             cql_mapping.resourceType = "Consent"
             cql_mapping.primaryCode= {
-                            "code": "54133-1",
-                            "display": "Consent Document",
+                            "code": "57016-8",
+                            "display": "Privacy policy acknowledgment Document",
                             "system": "http://loinc.org"
                         }
 
