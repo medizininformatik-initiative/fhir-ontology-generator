@@ -490,8 +490,6 @@ def main():
 
     for module in modules:
 
-
-
         try:
             logger.info(f"Generating ontology for module: {module}")
 

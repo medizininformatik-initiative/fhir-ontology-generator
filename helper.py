@@ -89,8 +89,17 @@ def generate_snapshots(package_dir: str, prerequisite_packages: List[str] = None
     """
 
     def install_prerequisites():
+
+        if os.path.exists("package.json"):
+            os.remove("package.json")
+
         os.system("fhir install hl7.fhir.r4.core")
+
         for package in prerequisite_packages:
+
+            if os.path.exists("package.json"):
+                os.remove("package.json")
+
             os.system(f"fhir install {package} --here")
 
     def generate_snapshot():
