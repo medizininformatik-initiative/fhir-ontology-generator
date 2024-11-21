@@ -11,19 +11,9 @@
     "display": "Fall",
     "version": "1.0.0"
   },
-  "term_codes": [
-    {
-      "system": "fdpg.mii.cds",
-      "code": "encounter",
-      "display": "Fall"
-    }
-  ],
   "time_restriction_defining_id": "Encounter.period",
+  "term_code_defining_id": "Encounter.class",
   "attribute_defining_id_type_map": {
-    "Encounter.class":  {
-      "type": "",
-      "optional": true
-    },
     "Encounter.serviceType.coding:Fachabteilungsschluessel": {
       "type": "",
       "optional": true
