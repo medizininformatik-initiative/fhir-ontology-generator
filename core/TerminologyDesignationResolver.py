@@ -2,11 +2,12 @@ import json
 import copy
 import logging
 import os
-from idlelib.iomenu import encoding
 from itertools import groupby
+
 from util.LoggingUtil import init_logger, log_to_stdout
 from typing import List, TypeVar
-from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, REQUESTS_SESSION
+from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, \
+    REQUESTS_SESSION
 from util.FhirUtil import create_bundle, BundleType
 
 logger = init_logger("TerminologyDesignationResolver", logging.DEBUG)
@@ -120,10 +121,10 @@ class TerminologyDesignationResolver:
         :return: Response Bundle resource if successful
         """
         media_type = "application/fhir+json"
-        response_bundle = { "resourceType": "Bundle", "type": BundleType.BATCH_RESPONSE.value, "entry": [] }
+        response_bundle = {"resourceType": "Bundle", "type": BundleType.BATCH_RESPONSE.value, "entry": []}
         for bundle_chunk in split_bundle(bundle, self.max_bundle_size):
             response = REQUESTS_SESSION.post(
-                url = self.server_address.rstrip('/'),
+                url=self.server_address.rstrip('/'),
                 json=bundle_chunk,
                 headers={"Content-Type": media_type, "Accept": media_type},
                 cert=(SERVER_CERTIFICATE, PRIVATE_KEY)
@@ -161,7 +162,7 @@ class TerminologyDesignationResolver:
                 match resource["resourceType"]:
                     case "Parameters":
                         for language in languages:
-                            code = list(filter(lambda p: p.get("name") == "code", resource.get("parameter", [])))[0]\
+                            code = list(filter(lambda p: p.get("name") == "code", resource.get("parameter", [])))[0] \
                                 .get("valueCode")
                             designation = extract_designation(resource, language)
                             if designation:
@@ -294,21 +295,69 @@ class TerminologyDesignationResolver:
             for value_set in value_sets:
                 self.__load_base_designations_for_value_set(value_set)
 
-
-    def load_designations(self, folder_path: str = os.path.join("..", "example", "code_systems_translations"), update_translation_supplements = False):
+    def load_designations(self, folder_path: str = os.path.join("..", "example", "code_systems_translations"),
+                          update_translation_supplements=False):
         """
         Loads the code_system files from specified folder into memory
         :param folder_path: folder containing translated code_systems
+        :param update_translation_supplements: specifies if supplements should be downloaded or updated from TERMINOLOGY_SERVER_ADDRESS
         """
         if update_translation_supplements:
-            logger.info("Downloading from the supplement registry ")
-            ## download from termserver
+            logger.info("Downloading and Updating from the supplement registry ")
+            response_supp_registry = REQUESTS_SESSION.get(
+                url=self.server_address + "CodeSystem/fdpg-plus-translation-supplement-registry",
+                cert=(SERVER_CERTIFICATE, PRIVATE_KEY)
+            )
+            if response_supp_registry.status_code != 200:
+                logger.info("Something went wrong. Status code:" + response_supp_registry.status_code +" Expected 200")
+                logger.info("Content:"+response_supp_registry.content)
+
+            supplement_registry = response_supp_registry.json()
+            for code_system_concept in supplement_registry.get('concept'):
+                for prop in code_system_concept.get('property'):
+                    if prop.get('code') == "supplement-canonical":
+
+                        code_system_url = prop.get('valueString').split('|')[0]
+                        code_system_version = prop.get('valueString').split('|')[-1]
+                        response_particular_cs = REQUESTS_SESSION.get(
+                            url=self.server_address + f"CodeSystem?url={code_system_url}&version={code_system_version}",
+                            cert=(SERVER_CERTIFICATE, PRIVATE_KEY)
+                        )
+
+                        if response_particular_cs.status_code != 200:
+                            logger.info("code_system not found. Status Code: "+response_particular_cs.status_code+
+                                        " Skipping: "+code_system_url+"|"+code_system_version)
+                            continue
+
+                        supplement_code_system_bundle = response_particular_cs.json()
+                        if not supplement_code_system_bundle.get('entry'):
+                            logger.info("No entry was found in this bundle. Skipping " + code_system_url+"|"+code_system_version)
+                            continue
+
+                        supplement_code_system_full_url = supplement_code_system_bundle.get('entry')[0].get('fullUrl')
+                        logger.info( "Downloading: "+ supplement_code_system_full_url)
+                        response_cs_content = REQUESTS_SESSION.get(
+                            url=supplement_code_system_full_url,
+                            cert=(SERVER_CERTIFICATE, PRIVATE_KEY)
+                        )
+
+                        if response_cs_content.status_code != 200:
+                            logger.info("Something went wrong. Status code:" + response_cs_content.status_code + " Expected 200")
+                            logger.info("Content:" + response_cs_content.content)
+                            continue
+
+
+                        actual_code_system = response_cs_content.json()
+                        actual_code_system_name = actual_code_system.get('name')
+                        file_path_save_code_system=os.path.join(folder_path,actual_code_system_name+".json")
+                        with open(file_path_save_code_system, mode='w', encoding='UTF-8') as f:
+                            f.write(json.dumps(actual_code_system, indent=4))
 
         codesystem_files = os.listdir(folder_path)
         for codesystem_file in sorted(codesystem_files):
             if codesystem_file.endswith(".json"):
                 logger.debug(f"Processing CodeSystem supplement file {codesystem_file}")
-                with open(f"{folder_path}/{codesystem_file}", encoding="UTF-8") as json_file:
+                with open(os.path.join(folder_path,codesystem_file), encoding="UTF-8") as json_file:
                     codesystem = json.load(json_file)
                     url = codesystem.get('supplements').split("|")[0]
 
@@ -327,7 +376,6 @@ class TerminologyDesignationResolver:
                                 self.code_systems[url]['concept'][new_concept_code] = new_concept_designations
                     else:
                         self.code_systems[url] = codesystem
-
 
     def resolve_term(self, term_code):
         """
@@ -357,5 +405,5 @@ class TerminologyDesignationResolver:
                     if concept.get('de') is None:
                         logger.warning("Did not find German version of code: " + term_code['code'])
         else:
-            logger.warning("Did not find codesystem: "+term_code['system']+" Requested Code: "+term_code['code'])
+            logger.warning("Did not find codesystem: " + term_code['system'] + " Requested Code: " + term_code['code'])
         return display
