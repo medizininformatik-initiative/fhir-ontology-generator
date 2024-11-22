@@ -340,7 +340,8 @@ class ElasticSearchGenerator:
                                      filename_prefix='onto_es_',
                                      max_filesize_mb=10,
                                      code_system_translations_folder="example/code_systems_translations",
-                                     base_translation_conf=None):
+                                     base_translation_conf=None,
+                                     update_translation_supplements=False):
         extension = '.json'
         ui_tree_dir = os.path.join(ontology_dir, 'ui-trees')
         current_file_index = 0
@@ -356,7 +357,7 @@ class ElasticSearchGenerator:
 
         terminology_resolver = TerminologyDesignationResolver(base_translation_conf, TERMINOLOGY_SERVER_ADDRESS)
         terminology_resolver.load_base_designations(ui_tree_dir, value_set_dir)
-        terminology_resolver.load_designations(code_system_translations_folder)
+        terminology_resolver.load_designations(code_system_translations_folder,update_translation_supplements)
 
         if generate_availability:
             print('Generating availability')

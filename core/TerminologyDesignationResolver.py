@@ -2,6 +2,7 @@ import json
 import copy
 import logging
 import os
+from idlelib.iomenu import encoding
 from itertools import groupby
 from util.LoggingUtil import init_logger, log_to_stdout
 from typing import List, TypeVar
@@ -294,11 +295,15 @@ class TerminologyDesignationResolver:
                 self.__load_base_designations_for_value_set(value_set)
 
 
-    def load_designations(self, folder_path: str = os.path.join("..", "example", "code_systems_translations")):
+    def load_designations(self, folder_path: str = os.path.join("..", "example", "code_systems_translations"), update_translation_supplements = False):
         """
         Loads the code_system files from specified folder into memory
         :param folder_path: folder containing translated code_systems
         """
+        if update_translation_supplements:
+            logger.info("Downloading from the supplement registry ")
+            ## download from termserver
+
         codesystem_files = os.listdir(folder_path)
         for codesystem_file in sorted(codesystem_files):
             if codesystem_file.endswith(".json"):
@@ -345,8 +350,12 @@ class TerminologyDesignationResolver:
             if concept:
                 if 'en' in concept:
                     display['en-US'] = concept.get('en')
+                    if concept.get('en') is None:
+                        logger.warning("Did not find Englisch version of code: " + term_code['code'])
                 if 'de' in concept:
                     display['de-DE'] = concept.get('de')
+                    if concept.get('de') is None:
+                        logger.warning("Did not find German version of code: " + term_code['code'])
         else:
-            logger.info("Did not find codesystem: "+term_code['system'])
+            logger.warning("Did not find codesystem: "+term_code['system']+" Requested Code: "+term_code['code'])
         return display
