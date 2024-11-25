@@ -95,10 +95,23 @@
       "kds_module": {
         "type": "keyword"
       },
-      "name": {
-        "type": "text",
-        "analyzer": "edge_ngram_analyzer",
-        "search_analyzer": "lowercase_analyzer"
+      "display": {
+        "properties": {
+          "original": {
+            "type": "text",
+            "index": false
+          },
+          "de-DE": {
+            "type": "text",
+            "analyzer": "edge_ngram_analyzer_include_punctuation",
+            "search_analyzer": "lowercase_analyzer"
+          },
+          "en-US": {
+            "type": "text",
+            "analyzer": "edge_ngram_analyzer_include_punctuation",
+            "search_analyzer": "lowercase_analyzer"
+          }
+        }
       },
       "parents": {
         "properties": {
@@ -154,18 +167,6 @@
       },
       "terminology": {
         "type": "keyword"
-      },
-      "translations": {
-        "properties": {
-          "lang": {
-            "type": "text",
-            "index": false
-          },
-          "value": {
-            "type": "text",
-            "index": false
-          }
-        }
       }
     }
   }
