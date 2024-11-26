@@ -18,3 +18,5 @@ availability/*.json
 
 # FSH
 /fsh/*
+
+local-onto-gen.sh
