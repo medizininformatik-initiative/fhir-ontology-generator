@@ -51,7 +51,7 @@ def generate_fixed_fhir_criteria(provisions_code, provisions_display) -> list[Fi
 
 
 def generate_fixed_cql_criteria(provisions_code, provisions_display) -> list[FixedCQLCriteria]:
-    return [FixedCQLCriteria("Coding", "provision.provision.code",
+    return [FixedCQLCriteria("Coding", "provision.provision.code.coding",
             [{"code": code, "display": display, "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3"}])
             for code, display in zip(provisions_code, provisions_display)]
 
