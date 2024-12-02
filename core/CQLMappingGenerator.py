@@ -20,7 +20,7 @@ from model.UiDataModel import TermCode
 class CQLMappingGenerator(object):
     def __init__(self, querying_meta_data_resolver: ResourceQueryingMetaDataResolver, parser=FHIRParser):
         """
-        :param querying_meta_data_resolver: resolves the for the query relevant meta data for a given FHIR profile
+        :param querying_meta_data_resolver: resolves the for the query relevant metadata for a given FHIR profile
         snapshot
         """
         self.querying_meta_data_resolver = querying_meta_data_resolver
