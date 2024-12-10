@@ -135,11 +135,12 @@ class ElasticSearchGenerator:
                     "termcode":
                         {
                             "code": termcode['code'],
-                            "display": terminology_resolver.resolve_term(termcode),
+                            "display": termcode['display'],
                             "system": termcode['system'],
                             "version": 2099
                         },
-                    "value_sets": [value_set['url']]
+                    "value_sets": [value_set['url']],
+                    "display": terminology_resolver.resolve_term(termcode),
                 }
 
             else:

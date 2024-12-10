@@ -2,6 +2,7 @@ import json
 import copy
 import logging
 import os
+import re
 from itertools import groupby
 
 from util.LoggingUtil import init_logger, log_to_stdout
@@ -14,19 +15,22 @@ logger = init_logger("TerminologyDesignationResolver", logging.DEBUG)
 log_to_stdout("TerminologyDesignationResolver", logging.DEBUG)
 
 
-def extract_designation(parameters: dict, language: str) -> str | None:
+def extract_designation(parameters: dict, language: str, fuzzy = True) -> str | None:
     """
     Helper function for extracting language code specific designation display value from `Parameters` resource
     :param parameters: `Parameters` resource to extract display value from
     :param language: Language code identifying display value to extract
+    :param fuzzy:
     :return: Either `str` display value or `None` if no designation for language codes exists
     """
     for designation in filter(lambda p: p.get("name") == "designation", parameters.get("parameter", [])):
         part = designation.get("part")
         if part:
             designation_language = list(filter(lambda p: p.get("name") == "language", part))[0].get("valueCode")
+            if len(list(filter(lambda p: p.get("name") == "use", part))) == 0: continue
             designation_use = list(filter(lambda p: p.get("name") == "use", part))[0].get("valueCoding").get("code")
-            if designation_language == language and designation_use == "display":
+            matches = re.match(rf'^{language}(-\S+)?$', designation_language) if fuzzy else (language == designation_language)
+            if matches and (designation_use == "display" or designation_use == "preferredForLanguage"):
                 return list(filter(lambda p: p.get("name") == "value", part))[0].get("valueString")
     return None
 
@@ -388,20 +392,20 @@ class TerminologyDesignationResolver:
             A dictionary in the following format:
             {
                 "original": "<original>",
-                "en-US": "<language-display>",
-                "de-DE": "<language-display>"
+                "en": "<language-display>",
+                "de": "<language-display>"
             }
         """
-        display = {'original': term_code['display'], 'en-US': "", 'de-DE': ""}
+        display = {'original': term_code['display'], 'en': "", 'de': ""}
         if self.code_systems.get(term_code['system']):
             concept = self.code_systems.get(term_code['system']).get('concept').get(term_code['code'])
             if concept:
                 if 'en' in concept:
-                    display['en-US'] = concept.get('en')
+                    display['en'] = concept.get('en')
                     if concept.get('en') is None:
                         logger.warning("Did not find Englisch version of code: " + term_code['code'])
                 if 'de' in concept:
-                    display['de-DE'] = concept.get('de')
+                    display['de'] = concept.get('de')
                     if concept.get('de') is None:
                         logger.warning("Did not find German version of code: " + term_code['code'])
         else:

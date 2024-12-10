@@ -9,7 +9,11 @@
         },
         {
           "name": "displayLanguage",
-          "valueCode": "de"
+          "valueCode": "de-DE"
+        },
+        {
+            "name": "version",
+            "valueString": "http://snomed.info/sct/11000274103"
         }
       ]
     },
@@ -22,7 +26,7 @@
         },
         {
           "name": "displayLanguage",
-          "valueCode": "de"
+          "valueCode": "de-DE"
         }
       ]
     }
