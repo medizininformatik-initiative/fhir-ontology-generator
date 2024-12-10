@@ -201,8 +201,7 @@ class TerminologyDesignationResolver:
             if parameters_template is None:
                 logger.debug(f"No parameters template defined for system [url={system}]. Skipping")
                 continue
-            logger.debug(f"Processing system tree [url={system}, "
-                         f"version={version}]")
+            logger.debug(f"Processing system tree [url={system}, "f"version={version}]")
             bundle = create_bundle(BundleType.BATCH)
             for entry in system_tree.get("entries", []):
                 if "key" not in entry:
@@ -307,22 +306,27 @@ class TerminologyDesignationResolver:
         :param update_translation_supplements: specifies if supplements should be downloaded or updated from TERMINOLOGY_SERVER_ADDRESS
         """
         if update_translation_supplements:
-            logger.info("Downloading and Updating from the supplement registry ")
+            logger.info("Downloading and Updating from the supplement registry")
             response_supp_registry = REQUESTS_SESSION.get(
                 url=self.server_address + "CodeSystem/fdpg-plus-translation-supplement-registry",
                 cert=(SERVER_CERTIFICATE, PRIVATE_KEY)
             )
             if response_supp_registry.status_code != 200:
-                logger.info("Something went wrong. Status code:" + response_supp_registry.status_code +" Expected 200")
-                logger.info("Content:"+response_supp_registry.content)
+                logger.info("Something went wrong. Status code: " + response_supp_registry.status_code +" Expected 200")
+                logger.info("Content: "+response_supp_registry.content)
 
             supplement_registry = response_supp_registry.json()
             for code_system_concept in supplement_registry.get('concept'):
                 for prop in code_system_concept.get('property'):
                     if prop.get('code') == "supplement-canonical":
 
-                        code_system_url = prop.get('valueString').split('|')[0]
-                        code_system_version = prop.get('valueString').split('|')[-1]
+                        code_system_url_split = prop.get('valueString').split('|')
+                        code_system_url = code_system_url_split[0]
+                        code_system_version = ""
+
+                        if len(code_system_url_split) == 2:
+                            code_system_version = prop.get('valueString').split('|')[-1]
+
                         response_particular_cs = REQUESTS_SESSION.get(
                             url=self.server_address + f"CodeSystem?url={code_system_url}&version={code_system_version}",
                             cert=(SERVER_CERTIFICATE, PRIVATE_KEY)
@@ -346,8 +350,8 @@ class TerminologyDesignationResolver:
                         )
 
                         if response_cs_content.status_code != 200:
-                            logger.info("Something went wrong. Status code:" + response_cs_content.status_code + " Expected 200")
-                            logger.info("Content:" + response_cs_content.content)
+                            logger.info("Something went wrong. Status code:" + response_cs_content.status_code + ". Expected 200")
+                            logger.info("Content: " + response_cs_content.content)
                             continue
 
 

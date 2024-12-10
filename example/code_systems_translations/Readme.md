@@ -1,1 +1,1 @@
-folder to store code-system translations
+Example directory holding code system translations.
