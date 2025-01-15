@@ -8,7 +8,7 @@ from os import path
 from typing import List, Set, Protocol, Dict
 
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
-from model.UiDataModel import TermCode
+from model.UiDataModel import TermCode, TranslationElementDisplay
 
 
 def traverse_tree(result: List[TermCode], node: dict):
@@ -221,12 +221,30 @@ def load_english_to_german_attribute_names() -> Dict[str, str]:
     return attribute_names
 
 
-def generate_attribute_key(element_id: str) -> TermCode:
+def extract_translations_from_snapshot_element(element: dict) -> dict:
+    """
+    extracts the translations from _short of element
+    :param element: the element to extract
+    :return: {"de-DE":"germanTranslation","en-US":"englishTranslation"}
+    """
+    translation = {}
+    if element.get("_short").get("extension"):
+        for lang_container in element.get("_short").get("extension"):
+            language = next(filter(lambda x: x.get("url") == "lang", lang_container.get("extension"))).get("valueCode")
+            language_value = next(filter(lambda x: x.get("url") == "content", lang_container.get("extension"))).get("valueString")
+            translation[language] = language_value
+
+    return translation
+
+
+def generate_attribute_key(element_id: str, snapshot_element=None) -> TermCode:
     """
     Generates the attribute key for the given element id
     :param element_id: element id
+    :param snapshot_element: dict that contains the content of the element
     :return: attribute key
     """
+
     if '(' and ')' in element_id:
         element_id = element_id[element_id.rfind('(') + 1:element_id.find(')')]
     if ':' in element_id:
@@ -235,6 +253,14 @@ def generate_attribute_key(element_id: str) -> TermCode:
     else:
         key = element_id.split('.')[-1]
     display = get_german_display(key)
+    if snapshot_element is not None:
+        if snapshot_element.get("_short"):
+            display = TranslationElementDisplay(display,[])
+            for lang_code,lang_content in extract_translations_from_snapshot_element(snapshot_element).items():
+                display.add_as_language(lang_code, lang_content)
+        else:
+            print("-----------------------------------------> no _short was foud, therefore no translations were found")
+
     if not key:
         raise ValueError(f"Could not find key for {element_id}")
     return TermCode("http://hl7.org/fhir/StructureDefinition", key, display)
