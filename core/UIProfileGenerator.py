@@ -190,7 +190,12 @@ class UIProfileGenerator:
             if extract_value_type(attribute_defining_elements[-1],
                                   profile_snapshot.get('name')) in FHIR_TYPES_TO_VALUE_TYPES else extract_value_type(
             attribute_defining_elements[-1], profile_snapshot.get('name'))
-        attribute_code = generate_attribute_key(attribute_defining_element_id)
+
+
+        print(attribute_defining_elements)
+        attribute_code = generate_attribute_key(attribute_defining_element_id,attribute_defining_elements[-1])
+
+
         attribute_definition = AttributeDefinition(attribute_code, attribute_type, optional)
         if attribute_type == "concept":
             attribute_definition.referencedValueSet = self.parser.get_selectable_concepts(
@@ -329,7 +334,7 @@ class UIProfileGenerator:
         :param module_dir: module directory of the profile
         :return: referenced context
         """
-        module_name = module_dir.replace("package", "").split("/")[1]
+        module_name = module_dir.replace("package", "").split(os.sep)[1]
         return self.querying_meta_data_resolver.get_query_meta_data(profile_snapshot,
                                                                     module_name)[0].context
 

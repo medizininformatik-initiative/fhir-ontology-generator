@@ -69,7 +69,8 @@ class CategoryEntry:
         return json.dumps(self, default=lambda o: del_none(
             del_keys(o.__dict__, self.DO_NOT_SERIALIZE)),
                           sort_keys=True, indent=4)
-    
+
+
 @dataclass
 class Module:
     code: str
@@ -78,6 +79,42 @@ class Module:
     def to_dict(self):
         return {"code": self.code,
                 "display": self.display}
+
+
+@dataclass
+class TranslationElementDisplay:
+    """
+    A TranslationElementDisplay represents the translations for a TermCode following this structure:
+    [
+        {
+            "language": lang,
+            "value": self.translations[lang]
+        },
+        {
+            "language": lang,
+            "value": self.translations[lang]
+        }
+    ]
+    """
+    original: str
+    translations: List[dict]
+
+    def add_as_language(self,lang_code,lang_content):
+        self.translations.append(
+            {
+                "language": lang_code,
+                "value": lang_content
+            }
+        )
+
+    def to_dict(self):
+        return {
+            "original": self.original,
+            "translations": self.translations,
+        }
+
+    def __str__(self):
+        return self.original
 
 
 @dataclass
@@ -92,7 +129,7 @@ class TermCode:
 
     system: str
     code: str
-    display: str
+    display: str | TranslationElementDisplay
     version: str = None
 
     def __eq__(self, other):
@@ -105,14 +142,20 @@ class TermCode:
 
     def __lt__(self, other):
         if isinstance(other, TermCode):
-            return self.display.casefold() < other.display.casefold()
+            this_display = self.display.original if isinstance(self.display, TranslationElementDisplay) else self.display
+            other_display = other.display.original if isinstance(other.display, TranslationElementDisplay) else other.display
+
+            return this_display.casefold() < other_display.casefold()
         return NotImplemented
 
     def __repr__(self):
         return self.system + " " + self.code + " " + self.version if self.version else ""
-    
+
     def to_dict(self):
-        return {"system": self.system, "code": self.code, "display": self.display, "version": self.version}
+        if isinstance(self.display,str):
+            return {"system": self.system, "code": self.code, "display": self.display, "version": self.version}
+        if isinstance(self.display, TranslationElementDisplay):
+            return {"system": self.system, "code": self.code, "display": self.display.to_dict(), "version": self.version}
 
 
 class ValueDefinition:
@@ -236,4 +279,3 @@ class TermEntry(object):
     def to_v1_entry(self, ui_profile):
         for key, value in ui_profile.__dict__.items():
             setattr(self, key, value)
-
