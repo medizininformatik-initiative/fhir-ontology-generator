@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from typing import Dict, Tuple, List
 
@@ -28,6 +29,7 @@ class UIProfileGenerator:
         :param parser: parser for the FHIR profile
         snapshot
         """
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.querying_meta_data_resolver = querying_meta_data_resolver
         self.module_dir: str = ""
         self.data_set_dir: str = ""
@@ -190,6 +192,11 @@ class UIProfileGenerator:
             if extract_value_type(attribute_defining_elements[-1],
                                   profile_snapshot.get('name')) in FHIR_TYPES_TO_VALUE_TYPES else extract_value_type(
             attribute_defining_elements[-1], profile_snapshot.get('name'))
+
+        # TODO: attribute_defining_elements is a list of element but we only ever expect one in this instance (at least that is what the logic can handle)
+
+        if len(attribute_defining_elements)>1:
+            self.logger.warning("more than one attribute definition element, only one supported, using last one instead")
 
         attribute_code = generate_attribute_key(attribute_defining_element_id,attribute_defining_elements[-1])
 
