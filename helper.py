@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import errno
 import json
+import logging
 import os
 import re
 from os import path
@@ -9,7 +10,9 @@ from typing import List, Set, Protocol, Dict
 
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UiDataModel import TermCode, TranslationElementDisplay
+from util.LoggingUtil import init_logger
 
+logger = init_logger("helper", logging.DEBUG)
 
 def traverse_tree(result: List[TermCode], node: dict):
     """
@@ -228,11 +231,15 @@ def extract_translations_from_snapshot_element(element: dict) -> dict:
     :return: {"de-DE":"germanTranslation","en-US":"englishTranslation"}
     """
     translation = {}
-    if element.get("_short").get("extension"):
+    try:
         for lang_container in element.get("_short").get("extension"):
+            if lang_container.get("url") != "http://hl7.org/fhir/StructureDefinition/translation":
+                continue
             language = next(filter(lambda x: x.get("url") == "lang", lang_container.get("extension"))).get("valueCode")
             language_value = next(filter(lambda x: x.get("url") == "content", lang_container.get("extension"))).get("valueString")
             translation[language] = language_value
+    except:
+        logger.info(f"Something went wrong when trying to extract translations from element. {element.get('id')} ")
 
     return translation
 
@@ -252,14 +259,21 @@ def generate_attribute_key(element_id: str, snapshot_element=None) -> TermCode:
         key = element_id.split('.')[0]
     else:
         key = element_id.split('.')[-1]
+
     display = get_german_display(key)
     if snapshot_element is not None:
         if snapshot_element.get("_short"):
-            display = TranslationElementDisplay(display,[])
+            translations = []
             for lang_code,lang_content in extract_translations_from_snapshot_element(snapshot_element).items():
-                display.add_as_language(lang_code, lang_content)
+                translations.append(
+                    {
+                        "language": lang_code,
+                        "value": lang_content
+                    }
+                )
+            display = TranslationElementDisplay(display,translations)
         else:
-            print("-----------------------------------------> no _short was foud, therefore no translations were found")
+            logger.info(f"no translation were found for {display}, using predefined display")
 
     if not key:
         raise ValueError(f"Could not find key for {element_id}")

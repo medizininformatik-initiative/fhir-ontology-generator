@@ -191,10 +191,7 @@ class UIProfileGenerator:
                                   profile_snapshot.get('name')) in FHIR_TYPES_TO_VALUE_TYPES else extract_value_type(
             attribute_defining_elements[-1], profile_snapshot.get('name'))
 
-
-        print(attribute_defining_elements)
         attribute_code = generate_attribute_key(attribute_defining_element_id,attribute_defining_elements[-1])
-
 
         attribute_definition = AttributeDefinition(attribute_code, attribute_type, optional)
         if attribute_type == "concept":

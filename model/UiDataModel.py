@@ -97,24 +97,13 @@ class TranslationElementDisplay:
     ]
     """
     original: str
-    translations: List[dict]
-
-    def add_as_language(self,lang_code,lang_content):
-        self.translations.append(
-            {
-                "language": lang_code,
-                "value": lang_content
-            }
-        )
+    translations: List[dict[str,str]]
 
     def to_dict(self):
         return {
             "original": self.original,
             "translations": self.translations,
         }
-
-    def __str__(self):
-        return self.original
 
 
 @dataclass
