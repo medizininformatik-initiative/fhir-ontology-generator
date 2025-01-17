@@ -238,6 +238,9 @@ def extract_translations_from_snapshot_element(element: dict) -> dict:
             language = next(filter(lambda x: x.get("url") == "lang", lang_container.get("extension"))).get("valueCode")
             language_value = next(filter(lambda x: x.get("url") == "content", lang_container.get("extension"))).get("valueString")
             translation[language] = language_value
+
+        if len(translation)==0:
+            logger.info(f"No translations found for {element}, please contact CDS-Team")
     except:
         logger.info(f"Something went wrong when trying to extract translations from element. {element.get('id')} ")
 
@@ -260,10 +263,11 @@ def generate_attribute_key(element_id: str, snapshot_element=None) -> TermCode:
     else:
         key = element_id.split('.')[-1]
 
-    display = get_german_display(key)
+
+    display = snapshot_element.get('sliceName')
+    translations = []
     if snapshot_element is not None:
         if snapshot_element.get("_short"):
-            translations = []
             for lang_code,lang_content in extract_translations_from_snapshot_element(snapshot_element).items():
                 translations.append(
                     {
@@ -271,14 +275,20 @@ def generate_attribute_key(element_id: str, snapshot_element=None) -> TermCode:
                         "value": lang_content
                     }
                 )
-            display = TranslationElementDisplay(display,translations)
         else:
-            logger.info(f"no translation were found for {display}, using predefined display")
+            logger.info(f"no translations were found for {display}, using empty")
+
+        if snapshot_element.get("short"):
+            display = snapshot_element.get('short')
+        elif snapshot_element.get("sliceName"):
+            display = snapshot_element.get('sliceName')
+            logger.info(f"fall back original = sliceName {display}")
+
+    display = TranslationElementDisplay(display,translations)
 
     if not key:
         raise ValueError(f"Could not find key for {element_id}")
     return TermCode("http://hl7.org/fhir/StructureDefinition", key, display)
-
 
 def get_german_display(key: str) -> str:
     """
