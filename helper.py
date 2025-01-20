@@ -11,6 +11,7 @@ from typing import List, Set, Protocol, Dict
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UiDataModel import TermCode, TranslationElementDisplay
 from util.LoggingUtil import init_logger
+from core.exceptions.MissingTranslationException import MissingTranslationException
 
 logger = init_logger("helper", logging.DEBUG)
 
@@ -168,7 +169,7 @@ def is_structure_definition(file: str) -> bool:
         try:
             json_data = json.load(json_file)
         except json.decoder.JSONDecodeError:
-            print(f"Could not decode {file}")
+            logger.warning(f"Could not decode {file}")
             return False
         if json_data.get("resourceType") == "StructureDefinition":
             return True
@@ -226,12 +227,19 @@ def load_english_to_german_attribute_names() -> Dict[str, str]:
 
 def extract_translations_from_snapshot_element(element: dict) -> dict:
     """
-    extracts the translations from _short of element
-    :param element: the element to extract
+    Extracts the translations from _short elements of a ElementDefinition entry of a StructureDefinition resource. Only
+    Extension entries within this element with `url` set to `http://hl7.org/fhir/StructureDefinition/translation` are
+    processed
+    :param element: the element to extract (display) translations for
     :return: {"de-DE":"germanTranslation","en-US":"englishTranslation"}
     """
     translation = {}
     try:
+        if element is None or len(element.keys()) == 0:
+            raise MissingTranslationException(f"No translations can be extracted since an empty element was passed")
+        if "_short" not in element:
+            raise MissingTranslationException(f"No translations can be extracted for element '{element.get('id')}' "
+                                              f"since no '_short' element is present")
         for lang_container in element.get("_short").get("extension"):
             if lang_container.get("url") != "http://hl7.org/fhir/StructureDefinition/translation":
                 continue
@@ -239,17 +247,35 @@ def extract_translations_from_snapshot_element(element: dict) -> dict:
             language_value = next(filter(lambda x: x.get("url") == "content", lang_container.get("extension"))).get("valueString")
             translation[language] = language_value
 
-        if len(translation)==0:
-            logger.info(f"No translations found for {element}, please contact CDS-Team")
-    except:
-        logger.info(f"Something went wrong when trying to extract translations from element. {element.get('id')} ")
+        if len(translation) == 0:
+            raise MissingTranslationException(f"No translation can be extracted for element '{element.get('id')}' "
+                                              f"since no language extension are present")
+        if len(translation) < 2:
+            logger.warning(f"Only partial translation possible for element '{element.get('id')}' due to translations "
+                           f"being available in only one language")
+    except MissingTranslationException as exc:
+        logger.warning(exc)
+    except Exception as exc:
+        logger.warning(f"Something went wrong when trying to extract translations from element '{element.get('id')}'. "
+                       f"Reason: {exc}")
 
     return translation
 
 
 def generate_attribute_key(element_id: str, snapshot_element=None) -> TermCode:
     """
-    Generates the attribute key for the given element id
+    Generates the attribute key for the given element id (`ElementDefinition.id`). If the identified `ElementDefinition`
+    instance in the provided snapshot features translations for the elements short description, they will be provided as
+    translations of the display value (refer to function :func:`extract_translations_from_snapshot_element` for
+    details). The `original` display value is determined as follows:
+
+    If a snapshot element with the provided if exists:
+
+    - Use the `short` element value of the snapshot element if it exists
+    - Otherwise use the `sliceName` element value of the snapshot element if it exists
+
+    Else use the attribute key code
+
     :param element_id: element id
     :param snapshot_element: dict that contains the content of the element
     :return: attribute key
@@ -257,16 +283,26 @@ def generate_attribute_key(element_id: str, snapshot_element=None) -> TermCode:
 
     if '(' and ')' in element_id:
         element_id = element_id[element_id.rfind('(') + 1:element_id.find(')')]
+
     if ':' in element_id:
         element_id = element_id.split(':')[-1]
         key = element_id.split('.')[0]
     else:
         key = element_id.split('.')[-1]
 
+    if not key:
+        raise ValueError(f"Could not find key for {element_id}")
 
-    display = snapshot_element.get('sliceName')
     translations = []
+    original = key
     if snapshot_element is not None:
+        if snapshot_element.get("short"):
+            original = snapshot_element.get('short')
+        elif snapshot_element.get("sliceName"):
+            logger.info(f"Falling back to value of 'sliceName' element for original display value of element "
+                        f"'{element_id}'. A short description via 'short' element should be added")
+            original = snapshot_element.get('sliceName')
+
         if snapshot_element.get("_short"):
             for lang_code,lang_content in extract_translations_from_snapshot_element(snapshot_element).items():
                 translations.append(
@@ -276,18 +312,13 @@ def generate_attribute_key(element_id: str, snapshot_element=None) -> TermCode:
                     }
                 )
         else:
-            logger.info(f"no translations were found for {display}, using empty")
+            logger.warning(f"No translations were found for display value '{original}' of element '{element_id}'")
+    else:
+        logger.warning(f"Defaulting to value based on element ID of element '{element_id}'. Since not matching element "
+                       f"could be identified in the snapshot")
 
-        if snapshot_element.get("short"):
-            display = snapshot_element.get('short')
-        elif snapshot_element.get("sliceName"):
-            display = snapshot_element.get('sliceName')
-            logger.info(f"fall back original = sliceName {display}")
+    display = TranslationElementDisplay(original, translations)
 
-    display = TranslationElementDisplay(display,translations)
-
-    if not key:
-        raise ValueError(f"Could not find key for {element_id}")
     return TermCode("http://hl7.org/fhir/StructureDefinition", key, display)
 
 def get_german_display(key: str) -> str:
