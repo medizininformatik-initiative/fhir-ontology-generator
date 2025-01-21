@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from typing import Dict, Tuple, List
 
@@ -28,6 +29,7 @@ class UIProfileGenerator:
         :param parser: parser for the FHIR profile
         snapshot
         """
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.querying_meta_data_resolver = querying_meta_data_resolver
         self.module_dir: str = ""
         self.data_set_dir: str = ""
@@ -185,19 +187,28 @@ class UIProfileGenerator:
         attribute_defining_elements = self.parser.get_element_defining_elements(attribute_defining_element_id,
                                                                                 profile_snapshot, self.module_dir,
                                                                                 self.data_set_dir)
+        attribute_defining_element = attribute_defining_elements[-1]
+
         attribute_type = attribute_type if attribute_type else FHIR_TYPES_TO_VALUE_TYPES.get(extract_value_type(
-            attribute_defining_elements[-1], profile_snapshot.get('name'))) \
-            if extract_value_type(attribute_defining_elements[-1],
+            attribute_defining_element, profile_snapshot.get('name'))) \
+            if extract_value_type(attribute_defining_element,
                                   profile_snapshot.get('name')) in FHIR_TYPES_TO_VALUE_TYPES else extract_value_type(
-            attribute_defining_elements[-1], profile_snapshot.get('name'))
-        attribute_code = generate_attribute_key(attribute_defining_element_id)
+            attribute_defining_element, profile_snapshot.get('name'))
+
+        # TODO: attribute_defining_elements is a list of element but we only ever expect one in this instance (at least that is what the logic can handle)
+
+        if len(attribute_defining_elements)>1:
+            self.logger.warning("more than one attribute definition element, only one supported, using last one instead")
+
+        attribute_code = generate_attribute_key(attribute_defining_element_id, attribute_defining_element)
+
         attribute_definition = AttributeDefinition(attribute_code, attribute_type, optional)
         if attribute_type == "concept":
             attribute_definition.referencedValueSet = self.parser.get_selectable_concepts(
-                attribute_defining_elements[-1],
+                attribute_defining_element,
                 profile_snapshot.get("name"))
         elif attribute_type == "quantity":
-            unit_defining_path = attribute_defining_elements[-1].get("path") + ".code"
+            unit_defining_path = attribute_defining_element.get("path") + ".code"
             unit_defining_elements = self.parser.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
             if len(unit_defining_elements) > 1:
                 raise Exception(f"More than one element found for path {unit_defining_path}")
@@ -303,7 +314,12 @@ class UIProfileGenerator:
             attribute_defining_element_id,
             profile_snapshot, self.module_dir,
             self.data_set_dir)
-        attribute_code = generate_attribute_key(attribute_defining_element_id)
+        # TODO: Check if this suffices in all instances
+        # Choose first matching ElementDefinition element as subsequent matching elements might already originate from
+        # the referenced profile and thus their descriptions miss the context of the attribute (e.g. just 'code of a
+        # diagnosis' and not 'code of a diagnosis established using a biopsy sample')
+        attribute_code = generate_attribute_key(attribute_defining_element_id,
+                                                attribute_defining_elements_with_source_snapshots[0].element)
         attribute_definition = AttributeDefinition(attribute_code, "reference")
         attribute_definition.referencedCriteriaSet = self.get_reference_criteria_set(
             attribute_defining_elements_with_source_snapshots)
@@ -329,7 +345,7 @@ class UIProfileGenerator:
         :param module_dir: module directory of the profile
         :return: referenced context
         """
-        module_name = module_dir.replace("package", "").split("/")[1]
+        module_name = module_dir.replace("package", "").split(os.sep)[1]
         return self.querying_meta_data_resolver.get_query_meta_data(profile_snapshot,
                                                                     module_name)[0].context
 

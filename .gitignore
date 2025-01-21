@@ -21,3 +21,4 @@ availability/*.json
 /fsh/*
 
 local-onto-gen.sh
+/.run

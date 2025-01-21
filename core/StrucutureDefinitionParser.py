@@ -8,7 +8,7 @@ from typing import List, Tuple
 
 from TerminologService.ValueSetResolver import get_termcodes_from_onto_server, get_term_code_display_from_onto_server
 from TerminologService.valueSetToRoots import get_value_set_expansion
-from helper import flatten
+from helper import flatten, extract_translations_from_snapshot_element
 from model.UIProfileModel import VALUE_TYPE_OPTIONS, ValueSet
 from model.UiDataModel import TermCode
 
@@ -178,7 +178,9 @@ def get_element_defining_elements(chained_element_id, profile_snapshot: dict, st
                                                                 data_set_dir)]
 
 
-ProcessedElementResult = namedtuple("ProcessedElementResult", ["element", "profile_snapshot", "module_dir"])
+ProcessedElementResult = namedtuple("ProcessedElementResult", ["element", "profile_snapshot", "module_dir", "last_short_desc"])
+
+ShortDesc = namedtuple("ShortDesc", ["origin", "desc"])
 
 
 def get_element_defining_elements_with_source_snapshots(chained_element_id, profile_snapshot: dict,
@@ -188,8 +190,8 @@ def get_element_defining_elements_with_source_snapshots(chained_element_id, prof
     return process_element_id(parsed_list, profile_snapshot, start_module_dir, data_set_dir)
 
 
-def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, data_set_dir: str) -> List[
-                                                                                                       ProcessedElementResult] | None:
+def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, data_set_dir: str,
+                       last_desc: ShortDesc = None) -> List[ProcessedElementResult] | None:
     results = []
 
     while element_ids:
@@ -197,7 +199,10 @@ def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, dat
         if element_id.startswith("."):
             raise ValueError("Element id must start with a resource type")
         element = get_element_from_snapshot(profile_snapshot, element_id)
-        result = [ProcessedElementResult(element=element, profile_snapshot=profile_snapshot, module_dir=module_dir)]
+        short_desc = (element_id, extract_translations_from_snapshot_element(element)) \
+            if last_desc is None else None
+        result = [ProcessedElementResult(element=element, profile_snapshot=profile_snapshot, module_dir=module_dir,
+                                         last_short_desc=short_desc)]
 
         for elem in element.get("type"):
             if elem.get("code") == "Extension":
