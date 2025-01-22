@@ -5,14 +5,15 @@ import logging
 import os
 from typing import Dict, Tuple, List
 
+import helper
 from TerminologService.ValueSetResolver import get_termcodes_from_onto_server
 from core import ResourceQueryingMetaDataResolver
 from core import StrucutureDefinitionParser as FHIRParser
 from core.StrucutureDefinitionParser import InvalidValueTypeException, UCUM_SYSTEM, get_binding_value_set_url, \
     ProcessedElementResult, get_fixed_term_codes, FHIR_TYPES_TO_VALUE_TYPES, extract_value_type
-from helper import generate_attribute_key
+from helper import generate_attribute_key, logger
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
-from model.UIProfileModel import ValueDefinition, UIProfile, AttributeDefinition, CriteriaSet
+from model.UIProfileModel import ValueDefinition, UIProfile, AttributeDefinition, CriteriaSet, VALUE_TYPE_OPTIONS
 from model.UiDataModel import TermCode
 
 AGE_UNIT_VALUE_SET = "http://hl7.org/fhir/ValueSet/age-units"
@@ -99,6 +100,7 @@ class UIProfileGenerator:
         :param profile_snapshot: FHIR profile snapshot
         :return: UI profile for the given FHIR profile snapshot
         """
+        logger.info(f"Processing querying metadata '{querying_meta_data.name}'")
         ui_profile = UIProfile(profile_snapshot["name"])
         ui_profile.timeRestrictionAllowed = self.is_time_restriction_allowed(querying_meta_data)
         if querying_meta_data.value_defining_id:
@@ -156,6 +158,10 @@ class UIProfileGenerator:
         else:
             raise InvalidValueTypeException(
                 f"Invalid value type: {value_type} in profile {profile_snapshot.get('name')}")
+
+        display = helper.generate_attribute_key(querying_meta_data.value_defining_id, value_defining_element).display
+        value_definition.display = display
+
         return value_definition
 
     def get_attribute_definitions(self, profile_snapshot, querying_meta_data) -> List[AttributeDefinition]:

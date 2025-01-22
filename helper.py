@@ -314,7 +314,7 @@ def generate_attribute_key(element_id: str, snapshot_element=None) -> TermCode:
         else:
             logger.warning(f"No translations were found for display value '{original}' of element '{element_id}'")
     else:
-        logger.warning(f"Defaulting to value based on element ID of element '{element_id}'. Since not matching element "
+        logger.warning(f"Defaulting to value based on element ID '{element_id}' since no matching element "
                        f"could be identified in the snapshot")
 
     display = TranslationElementDisplay(original, translations)

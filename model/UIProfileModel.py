@@ -3,7 +3,7 @@ import json
 from dataclasses import dataclass, field, asdict
 from typing import Literal, List, Tuple, ClassVar, Dict
 
-from model.UiDataModel import TermCode
+from model.UiDataModel import TermCode, TranslationElementDisplay
 from model.helper import del_none
 
 UI_PROFILES = set()
@@ -48,6 +48,7 @@ class ValueDefinition:
     max: float = None
     referencedCriteriaSet: CriteriaSet = None
     optional: bool = True
+    display: TranslationElementDisplay = None
 
     def to_dict(self):
         data = asdict(self)
