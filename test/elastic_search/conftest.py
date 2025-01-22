@@ -1,12 +1,11 @@
 import pytest
-
 import json
 import os
 import zipfile
 
 import requests
 
-from util.FhirUtil import create_bundle, BundleType
+from enum import Enum
 
 
 @pytest.fixture(scope="session")
@@ -82,6 +81,25 @@ def get_and_upload_test_data_to_fhir(fhir_url, repo_url="https://github.com/medi
     :param fhir_url: url of fhir which to upload the test data to
     :param repo_url: url of repository which to download the testdata from
     """
+
+    # only here because importing doesn't work as expected
+    class BundleType(Enum):
+        DOCUMENT = "document"
+        MESSAGE = "message"
+        TRANSACTION = "transaction"
+        TRANSACTION_RESPONSE = "transaction-response"
+        BATCH = "batch"
+        BATCH_RESPONSE = "batch-response"
+        HISTORY = "history"
+        SEARCHSET = "searchset"
+        COLLECTION = "collection"
+    def create_bundle(bundle_type: BundleType):
+        return {
+            "resourceType": "Bundle",
+            "type": bundle_type.value,
+            "entry": []
+        }
+
     response = requests.get(repo_url, timeout=5)
     zip_path = "kds-testdata-2024.0.1.zip"
     with open(zip_path, 'wb') as file:
