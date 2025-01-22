@@ -1,0 +1,56 @@
+name: Generate ontology
+
+on: [push]
+
+
+
+
+
+
+jobs:
+  generate_ontology:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Set locale
+      run: |
+        sudo apt-get update
+        sudo apt-get install locales -y
+        sudo locale-gen de_DE.UTF-8
+        export LANG=de_DE.UTF-8
+        export LANGUAGE=de_DE.UTF-8
+        export LC_ALL=de_DE.UTF-8
+        echo "LANG=de_DE.UTF-8" | sudo tee -a /etc/environment
+        echo "LC_ALL=de_DE.UTF-8" | sudo tee -a /etc/environment
+        locale -a
+        locale
+
+    - name: Setup python 3 environment
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+        cache: 'pip'
+
+    - name: Install required python modules
+      run: pip3 install -r requirements.txt
+
+    - name: Save secret to file
+      id: certificates
+      run: |
+        echo "$PRIVATE_KEY" > private-key.pem
+        echo "$SERVER_CERTIFICATE" > certificate.pem
+        echo privateKey=$(readlink -f private-key.pem) >> "$GITHUB_OUTPUT"
+        echo certificate=$(readlink -f certificate.pem) >> "$GITHUB_OUTPUT"
+      env:
+        SERVER_CERTIFICATE: ${{ secrets.FDPGPLUS_ONTO_SERVER_CERT }}
+        PRIVATE_KEY: ${{ secrets.FDPGPLUS_ONTO_SERVER_KEY }}
+
+    - name: Run ontology generation
+      env:
+        ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
+        SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
+        PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
+      run: ./generate_full_ontology.sh --all
+      
