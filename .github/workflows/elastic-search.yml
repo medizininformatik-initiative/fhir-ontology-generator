@@ -16,7 +16,7 @@ jobs:
           python-version: '3.13'
           cache: 'pip'
 
-      - name: Install required python module
+      - name: Install required python modules
         run: pip3 install -r requirements.txt
 
       - name: Install testing pytest
