@@ -1,0 +1,25 @@
+name: Integration Test Base Setup
+
+on:
+  push:
+
+jobs:
+  test_elastic_search:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup python 3 environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install testing pytest
+        run: pip3 install pytest pytest-docker pytest-cov
+
+      - name: Run tests
+        run: |
+          cd test/elastic_search
+          pytest -v --cov
