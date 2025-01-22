@@ -15,7 +15,6 @@ def test_elastic_search_connection(elastic_ip):
     assert response.status_code == 200
     assert response.json().get("timed_out") is False
 
-
 def test_fhir_connection(fhir_ip):
     health_endpoint = fhir_ip + "/fhir/metadata"
     response = requests.get(health_endpoint, timeout=5)
