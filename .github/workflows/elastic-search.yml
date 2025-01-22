@@ -22,9 +22,6 @@ jobs:
     - name: Install testing pytest
       run: pip3 install pytest pytest-docker pytest-cov
 
-    - name: Set PYTHONPATH
-      run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
-
     - name: Run tests
       run: |
         cd test/elastic_search
