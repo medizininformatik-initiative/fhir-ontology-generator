@@ -26,7 +26,9 @@ jobs:
       run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
 
     - name: Run tests
-      run: pytest test/elastic_search -v --cov
+      run: |
+        cd test/elastic_search
+        pytest -v --cov
 
     - name: Upload Docker logs
       uses: actions/upload-artifact@v3
