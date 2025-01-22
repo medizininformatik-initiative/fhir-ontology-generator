@@ -27,7 +27,7 @@ services:
       DATABASE_PASSWORD: "dataportalpw"
       DATABASE_DBNAME: "dataportal"
       # ---- auth
-      KEYCLOAK_ENABLED: "true"
+      KEYCLOAK_ENABLED: "false"
       KEYCLOAK_BASE_URL: http://keycloak:8080
       KEYCLOAK_CLIENT_ID: "dataportal-gui"
       KEYCLOAK_ALLOWED_ROLE: "DataportalUser"
@@ -124,7 +124,7 @@ services:
     environment:
       ES_HOST: dataportal-elastic
       ONTO_GIT_TAG: v3.0.2-alpha
-      MODE: mount
+      MODE: download # change this to mount when using own generated ontology
       LOCAL_PATH: /tmp/mounted_onto.zip
     volumes:
       - type: bind

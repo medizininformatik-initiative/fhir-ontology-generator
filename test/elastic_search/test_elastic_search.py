@@ -21,10 +21,6 @@ def test_fhir_connection(fhir_ip):
     response = requests.get(health_endpoint, timeout=5)
     assert response.status_code == 200
 
-
-
-
-
 def test_save_docker_logs():
     """
     Test to save logs of all running Docker containers to a logs folder.

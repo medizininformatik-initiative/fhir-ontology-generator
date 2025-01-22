@@ -19,19 +19,6 @@ jobs:
     - name: Install required python modules
       run: pip3 install -r requirements.txt
 
-    - name: Generate Ontology
-      uses: ./.github/workflows/generate_ontology.yml
-      id: generate_ontology # Add an id to refer to this step later
-
-    - name: Access Generated ZIP Files
-      run: |
-        echo "Elastic.zip path: ${{ steps.generate_ontology.outputs.elastic_zip }}"
-        echo "Mapping.zip path: ${{ steps.generate_ontology.outputs.mapping_zip }}"
-        echo "Backend.zip path: ${{ steps.generate_ontology.outputs.backend_zip }}"
-        ls -l ${{ steps.generate_ontology.outputs.elastic_zip }}
-        ls -l ${{ steps.generate_ontology.outputs.mapping_zip }}
-        ls -l ${{ steps.generate_ontology.outputs.backend_zip }}
-
     - name: Install testing pytest
       run: pip3 install pytest pytest-docker pytest-cov
 
