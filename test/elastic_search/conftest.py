@@ -11,7 +11,7 @@ from util.FhirUtil import create_bundle, BundleType
 
 @pytest.fixture(scope="session")
 def docker_compose_file():
-    return "test/elastic_search/docker-compose.yml"
+    return "docker-compose.yml"
 
 def is_responsive(url) -> bool:
     try:
