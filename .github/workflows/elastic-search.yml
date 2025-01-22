@@ -22,8 +22,11 @@ jobs:
     - name: Install testing pytest
       run: pip3 install pytest pytest-docker pytest-cov
 
+    - name: Set PYTHONPATH
+      run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
+
     - name: Run tests
-      run: pytest -v --cov
+      run: pytest test/elastic_search -v --cov
 
     - name: Upload Docker logs
       uses: actions/upload-artifact@v3
