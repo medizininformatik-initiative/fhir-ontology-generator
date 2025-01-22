@@ -16,6 +16,9 @@ jobs:
           python-version: '3.13'
           cache: 'pip'
 
+      - name: Install required python modules
+        run: pip3 install -r requirements.txt
+
       - name: Install testing pytest
         run: pip3 install pytest pytest-docker pytest-cov
 
