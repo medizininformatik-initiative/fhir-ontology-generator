@@ -12,6 +12,14 @@ on:
       backend_zip:
         description: "Path to the generated backend.zip file"
         value: ${{ steps.save_zips.outputs.backend_zip }}
+    secrets:
+      FDPGPLUS_ONTO_SERVER_CERT:
+        required: true
+      FDPGPLUS_ONTO_SERVER_KEY:
+        required: true
+      FDPGPLUS_ONTO_SERVER_URL:
+        required: true
+
 
 jobs:
   generate_ontology:
