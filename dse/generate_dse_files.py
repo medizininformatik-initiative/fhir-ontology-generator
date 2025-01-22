@@ -1,4 +1,5 @@
 import argparse
+import collections
 import logging
 import os
 import json
@@ -187,9 +188,19 @@ def generate_cs_tree_map(system: str, version: str | None, concepts: set) -> Tre
                 raise Exception("Multiple groups in closure map. Currently not supported.")
             logger.debug("Building tree map")
             for group in groups:
-                subsumption_map = group["element"]
-                subsumption_map = {item['code']: [target['code'] for target in item['target']] for item in
-                                   subsumption_map}
+                mapping = group["element"]
+                subsumption_map = collections.defaultdict(list) # Dict of lists
+                for item in mapping:
+                    for target in item['target']:
+                        if 'code' in target:
+                            subsumption_map[item['code']].append(target['code'])
+                        else:
+                            logger.warning(f"Coding [system={group.get('source')}, code={item.get('code')}] "
+                                           f"has no target coding for system '{group.get('target')}' and will not be "
+                                           f"added [equivalence={target.get('equivalence')}, "
+                                           f"comment='{target.get('comment')}']")
+                # subsumption_map = {item['code']: [target['code'] for target in item['target']] for item in
+                #                   subsumption_map if 'code' in item}
                 for _, parents in subsumption_map.items():
                     remove_non_direct_ancestors(parents, subsumption_map)
                 for node, parents, in subsumption_map.items():
