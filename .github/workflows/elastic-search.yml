@@ -20,8 +20,8 @@ jobs:
       run: pip3 install -r requirements.txt
 
     - name: Generate Ontology
+      uses: ./.github/workflows/generate_ontology.yml
       id: generate_ontology # Add an id to refer to this step later
-      uses: ./.github/workflows/generate_ontology
 
     - name: Access Generated ZIP Files
       run: |
