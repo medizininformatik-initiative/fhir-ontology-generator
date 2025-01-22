@@ -1,5 +1,9 @@
 name: Generate ontology
 
+on:
+  workflow_call:
+
+
 jobs:
   generate_ontology:
     runs-on: ubuntu-latest
