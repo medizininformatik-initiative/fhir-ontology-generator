@@ -27,7 +27,7 @@ def backend_ip(docker_services):
 
     logging.info(f"Waiting for service '{dataportal_backend_name}' to become responsive at {url_health_test}...")
     docker_services.wait_until_responsive(
-        timeout=90.0,
+        timeout=180.0,
         pause=0.1,
         check=lambda: is_responsive(url_health_test)
     )
