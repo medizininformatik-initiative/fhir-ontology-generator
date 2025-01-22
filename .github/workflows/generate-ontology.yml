@@ -1,12 +1,5 @@
 name: Generate ontology
 
-on: [push]
-
-
-
-
-
-
 jobs:
   generate_ontology:
     runs-on: ubuntu-latest

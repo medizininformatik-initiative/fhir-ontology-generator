@@ -20,7 +20,7 @@ jobs:
       run: pip3 install -r requirements.txt
 
     - name: Generate Ontology
-      uses: generate-ontology
+      uses: generate_ontology
 
     - name: Install testing pytest
       run: pip3 install pytest pytest-docker pytest-cov
