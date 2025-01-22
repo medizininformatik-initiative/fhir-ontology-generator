@@ -6,7 +6,7 @@ import zipfile
 
 import requests
 
-from ...util.FhirUtil import create_bundle, BundleType
+from util.FhirUtil import create_bundle, BundleType
 
 
 @pytest.fixture(scope="session")
