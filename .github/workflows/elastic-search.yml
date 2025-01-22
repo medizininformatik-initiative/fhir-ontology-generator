@@ -26,3 +26,9 @@ jobs:
       run: |
         cd test/elastic_search
         pytest -v --cov
+
+    - name: Upload Docker logs
+      uses: actions/upload-artifact@v3
+      with:
+        name: docker_logs
+        path: test/elastic_search/docker_logs
