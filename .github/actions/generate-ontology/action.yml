@@ -1,0 +1,50 @@
+name: Generate Ontology
+
+description: 'Generates ontology files'
+
+inputs:
+  steps_to_run:
+    required: false
+    description: 'Optional non-empty list of steps of the ontology generation to run. If not supplied all steps 
+                  will be run. The steps to run should be supplied as a JSON array of greater than zero integers 
+                  matching the indices of the steps to run.
+                  
+                  Examples: "[1, 3, 5, 6]"; "[2]"; "[4, 3, 2]"'
+
+runs:
+  using: "composite"
+  env:
+    GENERATOR_STEPS: "--all"
+  steps:
+    - name: Parsing generator steps to run
+      if: ${{ inputs.steps_to_run != '' }}
+      run: |
+        echo "--step ${{ join(fromJSON(inputs.steps_to_run), ' --step ') }}" >> $GENERATOR_STEPS
+        echo "Using generator scripts with arguments $GENERATOR_STEPS"
+
+    - name: Setup python 3 environment
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+        cache: 'pip'
+
+    - name: Install required python modules
+      run: pip3 install -r requirements.txt
+
+    - name: Save secret to file
+      id: certificates
+      run: |
+        echo "$PRIVATE_KEY" > private-key.pem
+        echo "$SERVER_CERTIFICATE" > certificate.pem
+        echo privateKey=$(readlink -f private-key.pem) >> "$GITHUB_OUTPUT"
+        echo certificate=$(readlink -f certificate.pem) >> "$GITHUB_OUTPUT"
+      env:
+        SERVER_CERTIFICATE: ${{ secrets.FDPGPLUS_ONTO_SERVER_CERT }}
+        PRIVATE_KEY: ${{ secrets.FDPGPLUS_ONTO_SERVER_KEY }}
+
+    - name: Run ontology generation
+      env:
+        ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
+        SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
+        PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
+      run: ./generate_full_ontology.sh ${{ GENERATOR_STEPS }}
