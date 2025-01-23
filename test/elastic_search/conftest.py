@@ -1,8 +1,11 @@
-import logging
 import os
 import zipfile
-import requests
+
 import pytest
+import requests
+import logging
+
+from helper_functions import get_and_upload_test_data_to_fhir
 
 @pytest.fixture(scope="session")
 def docker_compose_file():
@@ -62,6 +65,7 @@ def get_and_upload_test_data(fhir_url,repo_url="https://github.com/medizininform
             logging.info(f"Uploaded {file_name} with status code:  {response.status_code}")
     return True
 
+
 @pytest.fixture(scope="session")
 def fhir_ip(docker_services):
     fhir_name = "blaze"
@@ -78,7 +82,6 @@ def fhir_ip(docker_services):
 
     # upload testdata for fhir server for testing
     get_and_upload_test_data(url)
-
     return url
 
 @pytest.fixture(scope="session")

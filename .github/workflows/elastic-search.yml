@@ -7,22 +7,28 @@ jobs:
   test_elastic_search:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+    - name: Checkout repo
+      uses: actions/checkout@v4
 
-      - name: Setup python 3 environment
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-          cache: 'pip'
+    - name: Setup python 3 environment
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+        cache: 'pip'
 
-      - name: Install required python module
-        run: pip3 install -r requirements.txt
+    - name: Install required python modules
+      run: pip3 install -r requirements.txt
 
-      - name: Install testing pytest
-        run: pip3 install pytest pytest-docker pytest-cov
+    - name: Install testing pytest
+      run: pip3 install pytest pytest-docker pytest-cov
 
-      - name: Run tests
-        run: |
-          cd test/elastic_search
-          pytest -v --cov
+    - name: Run tests
+      run: |
+        cd test/elastic_search
+        pytest -v --cov
+
+    - name: Upload Docker logs
+      uses: actions/upload-artifact@v3
+      with:
+        name: docker_logs
+        path: test/elastic_search/docker_logs
