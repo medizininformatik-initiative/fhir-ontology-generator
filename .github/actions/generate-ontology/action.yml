@@ -28,7 +28,7 @@ runs:
         python-version: '3.13'
         cache: 'pip'
 
-    - name: Install required python modules
+    - name: Install required python module
       run: pip3 install -r requirements.txt
 
     - name: Save secret to file

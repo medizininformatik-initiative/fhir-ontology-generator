@@ -242,7 +242,7 @@ def configure_args_parser() -> argparse.ArgumentParser:
     parser.add_argument('--generate_ui_trees', action='store_true', help='Generate UI trees')
     parser.add_argument('--generate_ui_profiles', action='store_true', help='Generate UI profiles')
     parser.add_argument('--generate_mapping', action='store_true', help='Generate mappings')
-    parser.add_argument('--modules', nargs='+', help='Modules to generate the ontology for')
+    parser.add_argument('--module', nargs='+', help='Modules to generate the ontology for')
     parser.add_argument(
         "--loglevel",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
