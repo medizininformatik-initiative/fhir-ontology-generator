@@ -1,7 +1,7 @@
 {
   "resourceType": "StructureDefinition",
   "id": "sd-mii-person-patient",
-  "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Patient",
+  "url": "https://medizininformatik-initative.de/fhir/fdpg/StructureDefinition/Patient",
   "version": "2.0.0-ballot2",
   "name": "Patient",
   "title": "SD MII Person Patient",
@@ -11,7 +11,7 @@
   "kind": "resource",
   "abstract": false,
   "type": "Patient",
-  "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Patient",
+  "baseDefinition": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Patient",
   "derivation": "constraint",
   "differential": {
     "element": [
@@ -182,14 +182,6 @@
       {
         "id": "Patient.identifier:pid.assigner",
         "path": "Patient.identifier.assigner",
-        "type": [
-          {
-            "code": "Reference",
-            "profile": [
-              "https://www.medizininformatik-initiative.de/fhir/core/StructureDefinition/MII-Reference"
-            ]
-          }
-        ],
         "mustSupport": true
       },
       {
@@ -860,14 +852,6 @@
       {
         "id": "Patient.link.other",
         "path": "Patient.link.other",
-        "type": [
-          {
-            "code": "Reference",
-            "profile": [
-              "https://www.medizininformatik-initiative.de/fhir/core/StructureDefinition/MII-Reference"
-            ]
-          }
-        ],
         "mustSupport": true
       },
       {
