@@ -39,7 +39,7 @@ class UIProfileGenerator:
             Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, UIProfile]]:
         """
         Generates the ui trees for all FHIR profiles in the differential directory
-        :param fhir_dataset_dir: root directory of the FHIR dataset containing the modules and their packages containing
+        :param fhir_dataset_dir: root directory of the FHIR dataset containing the module and their packages containing
         the FHIR Profiles and their snapshots of interest
         {FHIR_DATASET_DIR}/{MODULE_NAME}/
         :return: ui profiles for all FHIR profiles in the differential directory
