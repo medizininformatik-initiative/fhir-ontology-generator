@@ -11,7 +11,7 @@ services:
       QUERYRESULT_PUBLIC_KEY: "MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEA1lWOfXzE/mUEPitNLxsDMtjERJGVhS8gP1WmuHPvjPxUOQyod4EbJcbJlkBqLqpaIs8Buy3gcbJvIPERdG1N1BSZ8NOKOtRubioKf30JwnLdZAae3vJAzRC3h42OPM3fohZCXMxbrju+KM0ZUIrLEXKEDMHQWfevCQCxeixvXVYpfXlkJIBGaWz4cDgEOiiwhU87AMzGZwjAIHvr4oTF/uHg6+C3Mdx0m8WLtygTiEixJegMb/txR+4gNVYrzpm5BwDUU7Qxy3nTUDYZLlTGeP9MBFWW+W87IHzgP+OFr3ZKMEkAPU0R1lqXFZCYcgZHGA5He2W701isnqkKIQT8ePOH43ZOXo3S34Pqw5oQ4Q2kPubp1wgZWw0VtEiZDtlwqUJ+r3CigU7NAFM5JnC/skiIBKetbWoNm1JPEfGOTrgjHD2uo82jSO8tV45LNH1EaR2+5UWSFZyDvTayLZsxsVlRFXJKgQJDI344R6lhGbLXbhqCuPzeQaHr1XGCKAtdAgMBAAE="
       # ----- app
       QUERY_VALIDATION_ENABLED: "true"
-      CQL_TRANSLATE_ENABLED: "false"
+      CQL_TRANSLATE_ENABLED: "true"
       FHIR_TRANSLATE_ENABLED: "false"
       API_BASE_URL: "http://localhost:8091/api/"
       ALLOWED_ORIGINS: "https://localhost"
@@ -40,7 +40,7 @@ services:
       BROKER_CLIENT_MOCK_ENABLED: "false"
       #---- Direct broker
       BROKER_CLIENT_DIRECT_ENABLED: "true"
-      BROKER_CLIENT_DIRECT_USE_CQL: "false"
+      BROKER_CLIENT_DIRECT_USE_CQL: "true"
       BROKER_CLIENT_OBFUSCATE_RESULT_COUNT: "false"
       FLARE_WEBSERVICE_BASE_URL: "http://flare:8080"
       CQL_SERVER_BASE_URL: "http://blaze:8080/fhir"
@@ -85,10 +85,11 @@ services:
       #- ./secrets:/opt/dataportal-security
       #- ./certs:/opt/dataportal-backend/certs
     healthcheck:
-      test: curl http://localhost:8091
+      test: [ "CMD-SHELL", "curl --silent --fail http://localhost:8090/actuator/health || exit 1" ]
       interval: 10s
       timeout: 10s
       retries: 10
+
   dataportal-postgres:
     image: 'postgres:16-alpine'
     container_name: dataportal-postgres
@@ -124,13 +125,13 @@ services:
     environment:
       ES_HOST: dataportal-elastic
       ONTO_GIT_TAG: v3.0.2-alpha
-      MODE: download # change this to mount when using own generated ontology
+      MODE: mount # change this to mount when using own generated ontology
       LOCAL_PATH: /tmp/mounted_onto.zip
-#    volumes:
-#      - type: bind
-#        source: ../../example/fdpg-ontology/elastic.zip
-#        target: /tmp/mounted_onto.zip
-#        read_only: true
+    volumes:
+      - type: bind
+        source: "./tmp/elastic.zip"
+        target: "/tmp/mounted_onto.zip"
+        read_only: true
 
   blaze:
     image: "samply/blaze:0.30"
@@ -143,49 +144,49 @@ services:
     volumes:
       - "blaze-data:/app/data"
 
-  flare:
-    image: ghcr.io/medizininformatik-initiative/flare:2.3.0
-    ports:
-      - "8092:8080"
-    environment:
-      FLARE_FHIR_SERVER: "http://blaze:8080/fhir"
-      JAVA_TOOL_OPTIONS: "-Xmx1g"
-      LOG_LEVEL: "debug"
-    restart: unless-stopped
+#  flare:
+#    image: ghcr.io/medizininformatik-initiative/flare:2.3.0
+#    ports:
+#      - "8092:8080"
+#    environment:
+#      FLARE_FHIR_SERVER: "http://blaze:8080/fhir"
+#      JAVA_TOOL_OPTIONS: "-Xmx1g"
+#      LOG_LEVEL: "debug"
+#    restart: unless-stopped
 
-  auth-db:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: "keycloakdb"
-      POSTGRES_USER: "keycloakdbuser"
-      POSTGRES_PASSWORD: "keycloakdbpw"
-    volumes:
-      - "dataportal-auth-db:/var/lib/postgresql/data"
+#  auth-db:
+#    image: postgres:16-alpine
+#    restart: unless-stopped
+#    environment:
+#      POSTGRES_DB: "keycloakdb"
+#      POSTGRES_USER: "keycloakdbuser"
+#      POSTGRES_PASSWORD: "keycloakdbpw"
+#    volumes:
+#      - "dataportal-auth-db:/var/lib/postgresql/data"
 
-  auth:
-    image: keycloak/keycloak:21.1
-    command: ["start", "--import-realm"]
-    restart: unless-stopped
-    environment:
-      KC_DB: "postgres"
-      KC_DB_URL: "jdbc:postgresql://auth-db:5432/${FEASIBILITY_KC_DB:-keycloakdb}"
-      KC_DB_USERNAME: "keycloakdbuser"
-      KC_DB_PASSWORD: "keycloakdbpw"
-      KEYCLOAK_ADMIN: "keycloakadmin"
-      KEYCLOAK_ADMIN_PASSWORD: "keycloak"
-      KC_HTTP_RELATIVE_PATH: "/auth"
-      KC_HOSTNAME_URL: "http://auth:8080/auth"
-      KC_HOSTNAME_ADMIN_URL: "http://auth:8080/auth/keycloakadmin"
-      KC_LOG_LEVEL: "info"
-      KC_PROXY: "edge"
-    ports:
-      - "8083:8080"
-    volumes:
-      - ./keycloak-init/dataportal-realm.json:/opt/keycloak/data/import/realm.json:ro
-    depends_on:
-      - auth-db
+#  auth:
+#    image: keycloak/keycloak:21.1
+#    command: ["start", "--import-realm"]
+#    restart: unless-stopped
+#    environment:
+#      KC_DB: "postgres"
+#      KC_DB_URL: "jdbc:postgresql://auth-db:5432/${FEASIBILITY_KC_DB:-keycloakdb}"
+#      KC_DB_USERNAME: "keycloakdbuser"
+#      KC_DB_PASSWORD: "keycloakdbpw"
+#      KEYCLOAK_ADMIN: "keycloakadmin"
+#      KEYCLOAK_ADMIN_PASSWORD: "keycloak"
+#      KC_HTTP_RELATIVE_PATH: "/auth"
+#      KC_HOSTNAME_URL: "http://auth:8080/auth"
+#      KC_HOSTNAME_ADMIN_URL: "http://auth:8080/auth/keycloakadmin"
+#      KC_LOG_LEVEL: "info"
+#      KC_PROXY: "edge"
+#    ports:
+#      - "8083:8080"
+#    volumes:
+#      - ./keycloak-init/dataportal-realm.json:/opt/keycloak/data/import/realm.json:ro
+#    depends_on:
+#      - auth-db
 
 volumes:
-  dataportal-auth-db:
+#  dataportal-auth-db:
   blaze-data:

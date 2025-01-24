@@ -1,12 +1,14 @@
-
 import json
 import os
 import zipfile
+import logging
 
 import requests
 
 from enum import Enum
 
+
+logger = logging.getLogger(__name__)
 
 
 def get_and_upload_test_data_to_fhir(fhir_url, repo_url="https://github.com/medizininformatik-initiative/mii-testdata/releases/download/v1.0.1/kds-testdata-2024.0.1.zip"):
@@ -41,7 +43,7 @@ def get_and_upload_test_data_to_fhir(fhir_url, repo_url="https://github.com/medi
     os.makedirs("testdata", exist_ok=True)
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
         zip_ref.extractall("testdata")
-    print("Downloaded testdata successfully")
+    logger.info("Downloaded testdata successfully")
 
     # will be replaced so it uses middleware in backend
     resource_dir = os.path.join("testdata","kds-testdata-2024.0.1","resources")
@@ -70,5 +72,5 @@ def get_and_upload_test_data_to_fhir(fhir_url, repo_url="https://github.com/medi
                 headers={"Content-Type": "application/fhir+json"},
                 data=data.encode("utf-8"),
                 timeout=10)
-            print(f"Uploaded {file_name} with status code:  {response.status_code}")
+            logger.info(f"Uploaded {file_name} with status code:  {response.status_code}")
     return True

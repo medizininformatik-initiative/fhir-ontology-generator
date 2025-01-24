@@ -1,9 +1,16 @@
-from typing import Mapping, Optional, TypedDict, Self
+from __future__ import annotations
+
+from typing import Mapping, Optional, TypedDict
 
 from requests import Session, Response
+from requests.auth import AuthBase
 
 from core.exceptions.http.ClientError import ClientError
 from core.exceptions.http.ServerError import ServerError
+
+
+def _format_query_params(query_params: Mapping[str, any]) -> Mapping[str, any]:
+    return {k.replace('_', '-'): v for k, v in query_params.items()}
 
 
 def _insert_path_params(url: str, **path_params: str) -> str:
@@ -140,7 +147,7 @@ class CodeableConceptSearchResult(TypedDict):
 
 class ProfileTreeNode(TypedDict):
     id: str
-    children: list[Self]
+    children: list[ProfileTreeNode]
     name: str
     display: DisplayEntry
 
@@ -152,7 +159,7 @@ class ProfileDataField(TypedDict):
     type: str
     recommended: bool
     required: bool
-    children: list[Self]
+    children: list[ProfileDataField]
 
 
 class ProfileDataFilter(TypedDict):
@@ -176,7 +183,7 @@ class FeasibilityBackendClient:
     __base_url: str
     __timeout: float
 
-    def __init__(self, base_url: str, auth: Optional[tuple[str, str]] = None, timeout: float = 60):
+    def __init__(self, base_url: str, auth: type[AuthBase] = None, timeout: float = 60):
         self.__session = Session()
         self.__session.auth = auth
         self.__base_url = base_url
@@ -185,18 +192,19 @@ class FeasibilityBackendClient:
     def __del__(self):
         self.__session.close()
 
-    def get(self, url, headers: Mapping[str, str] = None, path_params: Mapping[str, str] = Response,
+    def get(self, url, headers: Mapping[str, str] = None, path_params: Mapping[str, str] = None,
             **query_params) -> Response:
         request_url = _insert_path_params(url, **path_params) if path_params is not None else url
-        response = self.__session.get(request_url, params=query_params, headers=headers, timeout=self.__timeout)
+        response = self.__session.get(request_url, params=_format_query_params(query_params), headers=headers,
+                                      timeout=self.__timeout)
         if response.ok: return response
         else: _raise_appropriate_exception(response)
 
     def post(self, url, body: str, headers: Mapping[str, str] = None, path_params: Mapping[str, str] = None,
             **query_params) -> Response:
         request_url = _insert_path_params(url, **path_params) if path_params is not None else url
-        response = self.__session.post(request_url, data=body, params=query_params, headers=headers,
-                                       timeout=self.__timeout)
+        response = self.__session.post(request_url, data=body, params=_format_query_params(query_params),
+                                       headers=headers, timeout=self.__timeout)
         if response.ok: return response
         else: _raise_appropriate_exception(response)
 
@@ -244,7 +252,7 @@ class FeasibilityBackendClient:
                                    terminologies: Optional[list[str]] = None, kds_modules: Optional[list[str]] = None,
                                    criteria_sets: Optional[list[str]] = None, availability: bool = False,
                                    page_size: int = 20, page: int = 0) -> ElasticSearchResult:
-        return self.get(_merge_urls(self.__base_url, "/terminology/entry/search"), search_term=search_term,
+        return self.get(_merge_urls(self.__base_url, "/terminology/entry/search"), searchterm=search_term,
                         contexts=contexts, terminologies=terminologies, kds_modules=kds_modules,
                         criteria_sets=criteria_sets, availability=availability, page_size=page_size, page=page).json()
 
@@ -260,9 +268,9 @@ class FeasibilityBackendClient:
         return self.get(_merge_urls(self.__base_url, "/terminology/criteria-profile-data"),
                         path_params={'ids': ','.join(criteria_ids)}).json()
 
-    def search_codeable_concepts(self, search_term: str, value_sets: list[str], page_size: int = 20,
+    def search_codeable_concepts(self, search_term: str, value_sets: list[str] = None, page_size: int = 20,
                                  page: int = 0) -> CodeableConceptSearchResult:
-        return self.get(_merge_urls(self.__base_url, "/codeable-concept/entry/search"), search_term=search_term,
+        return self.get(_merge_urls(self.__base_url, "/codeable-concept/entry/search"), searchterm=search_term,
                         value_sets=value_sets, page_size=page_size, page=page).json()
 
     def get_codeable_concept(self, concept_id: str) -> CodeableConceptSearchResultItem:

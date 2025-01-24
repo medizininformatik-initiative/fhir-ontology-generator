@@ -3,14 +3,14 @@ import unittest
 
 from core.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
 from core.UIProfileGenerator import UIProfileGenerator
-from example.mii_core_data_set.generate_cds import MIICoreDataSetQueryingMetaDataResolver
+from example.mii_core_data_set.generate_ontology import StandardDataSetQueryingMetaDataResolver
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UiDataModel import TermCode, AttributeDefinition
 
 
 class UIProfileGeneratorTestCases(unittest.TestCase):
     def test_translate_element_id_to_fhir_search_parameter(self):
-        resolver = MIICoreDataSetQueryingMetaDataResolver()
+        resolver = StandardDataSetQueryingMetaDataResolver()
         mapper = FHIRSearchMappingGenerator(resolver)
         mapper.data_set_dir = '../../example/mii_core_data_set/resources/fdpg_differential'
         mapper.module_dir = '../../example/mii_core_data_set/resources/fdpg_differential/Bioprobe'
@@ -24,7 +24,7 @@ class UIProfileGeneratorTestCases(unittest.TestCase):
                               "Extension.value as Reference", "Condition.code.coding"], fhir_path)
 
     def test_generate_ui_profile(self):
-        resolver = MIICoreDataSetQueryingMetaDataResolver()
+        resolver = StandardDataSetQueryingMetaDataResolver()
         with open('../../example/mii_core_data_set/resources/fdpg_differential/Bioprobe/package/'
                   'FDPG_Bioprobe-snapshot.json', 'r') as f:
             profile_snapshot = json.load(f)
