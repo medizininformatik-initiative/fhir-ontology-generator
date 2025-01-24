@@ -5,13 +5,12 @@ import logging
 import os
 from typing import Dict, Tuple, List
 
-import helper
 from TerminologService.ValueSetResolver import get_termcodes_from_onto_server
 from core import ResourceQueryingMetaDataResolver
 from core import StrucutureDefinitionParser as FHIRParser
 from core.StrucutureDefinitionParser import InvalidValueTypeException, UCUM_SYSTEM, get_binding_value_set_url, \
     ProcessedElementResult, get_fixed_term_codes, FHIR_TYPES_TO_VALUE_TYPES, extract_value_type
-from helper import generate_attribute_key, logger
+from helper import logger, process_element_definition
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import ValueDefinition, UIProfile, AttributeDefinition, CriteriaSet, VALUE_TYPE_OPTIONS
 from model.UiDataModel import TermCode
@@ -159,7 +158,7 @@ class UIProfileGenerator:
             raise InvalidValueTypeException(
                 f"Invalid value type: {value_type} in profile {profile_snapshot.get('name')}")
 
-        display = helper.generate_attribute_key(querying_meta_data.value_defining_id, value_defining_element).display
+        display = process_element_definition(value_defining_element)[1]
         value_definition.display = display
 
         return value_definition
@@ -206,9 +205,10 @@ class UIProfileGenerator:
         if len(attribute_defining_elements)>1:
             self.logger.warning("more than one attribute definition element, only one supported, using last one instead")
 
-        attribute_code = generate_attribute_key(attribute_defining_element_id, attribute_defining_element)
+        attribute_code, attribute_display = process_element_definition(attribute_defining_element)
 
         attribute_definition = AttributeDefinition(attribute_code, attribute_type, optional)
+        attribute_definition.display = attribute_display
         if attribute_type == "concept":
             attribute_definition.referencedValueSet = self.parser.get_selectable_concepts(
                 attribute_defining_element,
@@ -324,9 +324,10 @@ class UIProfileGenerator:
         # Choose first matching ElementDefinition element as subsequent matching elements might already originate from
         # the referenced profile and thus their descriptions miss the context of the attribute (e.g. just 'code of a
         # diagnosis' and not 'code of a diagnosis established using a biopsy sample')
-        attribute_code = generate_attribute_key(attribute_defining_element_id,
+        attribute_code, attribute_display = process_element_definition(
                                                 attribute_defining_elements_with_source_snapshots[0].element)
         attribute_definition = AttributeDefinition(attribute_code, "reference")
+        attribute_definition.display = attribute_display
         attribute_definition.referencedCriteriaSet = self.get_reference_criteria_set(
             attribute_defining_elements_with_source_snapshots)
         return attribute_definition

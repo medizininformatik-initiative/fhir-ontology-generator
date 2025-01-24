@@ -5,8 +5,11 @@ import json
 import logging
 import os
 import re
+from email.policy import default
 from os import path
 from typing import List, Set, Protocol, Dict
+
+from typing_extensions import deprecated
 
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UiDataModel import TermCode, TranslationElementDisplay
@@ -225,62 +228,13 @@ def load_english_to_german_attribute_names() -> Dict[str, str]:
     return attribute_names
 
 
-def extract_translations_from_snapshot_element(element: dict) -> dict:
+def get_attribute_key(element_id: str) -> str:
     """
-    Extracts the translations from _short elements of a ElementDefinition entry of a StructureDefinition resource. Only
-    Extension entries within this element with `url` set to `http://hl7.org/fhir/StructureDefinition/translation` are
-    processed
-    :param element: the element to extract (display) translations for
-    :return: {"de-DE":"germanTranslation","en-US":"englishTranslation"}
-    """
-    translation = {}
-    try:
-        if element is None or len(element.keys()) == 0:
-            raise MissingTranslationException(f"No translations can be extracted since an empty element was passed")
-        if "_short" not in element:
-            raise MissingTranslationException(f"No translations can be extracted for element '{element.get('id')}' "
-                                              f"since no '_short' element is present")
-        for lang_container in element.get("_short").get("extension"):
-            if lang_container.get("url") != "http://hl7.org/fhir/StructureDefinition/translation":
-                continue
-            language = next(filter(lambda x: x.get("url") == "lang", lang_container.get("extension"))).get("valueCode")
-            language_value = next(filter(lambda x: x.get("url") == "content", lang_container.get("extension"))).get("valueString")
-            translation[language] = language_value
+    Generates the attribute key from the given element id (`ElementDefinition.id`)
 
-        if len(translation) == 0:
-            raise MissingTranslationException(f"No translation can be extracted for element '{element.get('id')}' "
-                                              f"since no language extension are present")
-        if len(translation) < 2:
-            logger.warning(f"Only partial translation possible for element '{element.get('id')}' due to translations "
-                           f"being available in only one language")
-    except MissingTranslationException as exc:
-        logger.warning(exc)
-    except Exception as exc:
-        logger.warning(f"Something went wrong when trying to extract translations from element '{element.get('id')}'. "
-                       f"Reason: {exc}")
-
-    return translation
-
-
-def generate_attribute_key(element_id: str, snapshot_element=None) -> TermCode:
-    """
-    Generates the attribute key for the given element id (`ElementDefinition.id`). If the identified `ElementDefinition`
-    instance in the provided snapshot features translations for the elements short description, they will be provided as
-    translations of the display value (refer to function :func:`extract_translations_from_snapshot_element` for
-    details). The `original` display value is determined as follows:
-
-    If a snapshot element with the provided if exists:
-
-    - Use the `short` element value of the snapshot element if it exists
-    - Otherwise use the `sliceName` element value of the snapshot element if it exists
-
-    Else use the attribute key code
-
-    :param element_id: element id
-    :param snapshot_element: dict that contains the content of the element
+    :param element_id: element id the key will be based on
     :return: attribute key
     """
-
     if '(' and ')' in element_id:
         element_id = element_id[element_id.rfind('(') + 1:element_id.find(')')]
 
@@ -293,33 +247,88 @@ def generate_attribute_key(element_id: str, snapshot_element=None) -> TermCode:
     if not key:
         raise ValueError(f"Could not find key for {element_id}")
 
+    return key
+
+
+def get_display_from_element_definition(snapshot_element: dict,
+                                        default: str = None) -> TranslationElementDisplay:
+    """
+    Extracts the display and translations from the descriptive elements within the ElementDefinition instance. If the
+    identified `ElementDefinition` instance in the provided snapshot features translations for the elements short
+    description, they will be provided as translations of the display value. The `original` display value is determined
+    as follows:
+
+    If a snapshot element with the provided if exists:
+
+    - Use the `short` element value of the snapshot element if it exists
+    - Otherwise use the `sliceName` element value of the snapshot element if it exists
+
+    Else use the attribute key code
+
+    :param snapshot_element: the element to extract (display) translations from
+    :param default: value used as display if there is no other valid source in the element definition
+    :return: TranslationElementDisplay instance holding the display value and all language variants
+    """
     translations = []
-    original = key
-    if snapshot_element is not None:
+    display = default
+    try:
+        if snapshot_element is None or len(snapshot_element.keys()) == 0:
+            raise MissingTranslationException(f"No translations can be extracted since an empty element was passed")
         if snapshot_element.get("short"):
-            original = snapshot_element.get('short')
+            display = snapshot_element.get('short')
         elif snapshot_element.get("sliceName"):
-            logger.info(f"Falling back to value of 'sliceName' element for original display value of element "
-                        f"'{element_id}'. A short description via 'short' element should be added")
-            original = snapshot_element.get('sliceName')
+            logger.info(f"Falling back to value of 'sliceName' for original display value of element. A short "
+                         f"description via 'short' element should be added")
+            display = snapshot_element.get('sliceName')
+        if "_short" not in snapshot_element:
+            raise MissingTranslationException(f"No translations can be extracted for element '{snapshot_element.get('id')}' "
+                                              f"since no '_short' element is present")
+        for lang_container in snapshot_element.get("_short").get("extension"):
+            if lang_container.get("url") != "http://hl7.org/fhir/StructureDefinition/translation":
+                continue
+            language = next(filter(lambda x: x.get("url") == "lang", lang_container.get("extension"))).get("valueCode")
+            language_value = next(filter(lambda x: x.get("url") == "content", lang_container.get("extension"))).get("valueString")
+            translations.append({'language': language, 'value': language_value})
 
-        if snapshot_element.get("_short"):
-            for lang_code,lang_content in extract_translations_from_snapshot_element(snapshot_element).items():
-                translations.append(
-                    {
-                        "language": lang_code,
-                        "value": lang_content
-                    }
-                )
-        else:
-            logger.warning(f"No translations were found for display value '{original}' of element '{element_id}'")
+        if len(translations) == 0:
+            raise MissingTranslationException(f"No translation can be extracted for element '{snapshot_element.get('id')}' "
+                                              f"since no language extension are present")
+        if len(translations) < 2:
+            logger.warning(f"Only partial translation possible for element '{snapshot_element.get('id')}' due to translations "
+                           f"being available in only one language")
+    except MissingTranslationException as exc:
+        logger.warning(exc)
+    except Exception as exc:
+        logger.warning(f"Something went wrong when trying to extract translations from element '{snapshot_element.get('id')}'. "
+                       f"Reason: {exc}")
+
+    return TranslationElementDisplay(original=display, translations=translations)
+
+
+def process_element_definition(snapshot_element: dict, default: str = None) -> (TermCode, TranslationElementDisplay):
+    """
+    Uses the provided ElementDefinition instance to determine the attribute code as well as associated display values
+    (primary value and - if present - language variants)
+
+    :param snapshot_element: ElementDefinition instance to process
+    :param default: value to use as fallback if there is no 'id' in the ElementDefinition
+    :return: the attribute code and suitable display values
+    """
+    if 'id' not in snapshot_element:
+        key = default
     else:
-        logger.warning(f"Defaulting to value based on element ID '{element_id}' since no matching element "
-                       f"could be identified in the snapshot")
+        key = get_attribute_key(snapshot_element.get('id'))
 
-    display = TranslationElementDisplay(original, translations)
+    display = get_display_from_element_definition(snapshot_element, default=key)
 
-    return TermCode("http://hl7.org/fhir/StructureDefinition", key, display)
+    return TermCode("http://hl7.org/fhir/StructureDefinition", key, display.original), display
+
+
+@deprecated("Switch over to process_element_definition to obtain better display values")
+def generate_attribute_key(element_id: str) -> TermCode:
+    key = get_attribute_key(element_id)
+    return TermCode("http://hl7.org/fhir/StructureDefinition", key, key)
+
 
 def get_german_display(key: str) -> str:
     """

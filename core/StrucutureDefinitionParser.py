@@ -8,7 +8,7 @@ from typing import List, Tuple
 
 from TerminologService.ValueSetResolver import get_termcodes_from_onto_server, get_term_code_display_from_onto_server
 from TerminologService.valueSetToRoots import get_value_set_expansion
-from helper import flatten, extract_translations_from_snapshot_element
+from helper import flatten, get_display_from_element_definition
 from model.UIProfileModel import VALUE_TYPE_OPTIONS, ValueSet
 from model.UiDataModel import TermCode
 
@@ -199,7 +199,7 @@ def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, dat
         if element_id.startswith("."):
             raise ValueError("Element id must start with a resource type")
         element = get_element_from_snapshot(profile_snapshot, element_id)
-        short_desc = (element_id, extract_translations_from_snapshot_element(element)) \
+        short_desc = (element_id, get_display_from_element_definition(element)) \
             if last_desc is None else None
         result = [ProcessedElementResult(element=element, profile_snapshot=profile_snapshot, module_dir=module_dir,
                                          last_short_desc=short_desc)]
