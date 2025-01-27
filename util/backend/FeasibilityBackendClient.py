@@ -15,7 +15,7 @@ def _format_query_params(query_params: Mapping[str, any]) -> Mapping[str, any]:
 
 def _insert_path_params(url: str, **path_params: str) -> str:
     split = url.split("?", 1)
-    return split[0].format(path_params) + split[1] if len(split) > 1 else ""
+    return split[0].format(path_params) + (split[1] if len(split) > 1 else "")
 
 
 def _merge_urls(url_a: str, url_b: str) -> str:
