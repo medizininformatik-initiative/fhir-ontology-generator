@@ -15,13 +15,17 @@ from util.backend.FeasibilityBackendClient import FeasibilityBackendClient
 
 logger = logging.getLogger(__name__)
 
-project_path = os.path.join("example", "mii_core_data_set")
 generated_profile_tree_path = os.path.join("example", "fdpg-ontology", "profile_tree.json")
+project_path = os.path.join("example", "mii_core_data_set")
+
+
+def __test_dir() -> str:
+    return os.path.dirname(os.path.realpath(__file__))
 
 
 @pytest.fixture(scope="session")
 def test_dir() -> str:
-    return os.path.dirname(os.path.realpath(__file__))
+    return __test_dir()
 
 
 @pytest.fixture(scope="session")
@@ -94,20 +98,6 @@ def backend_client() -> FeasibilityBackendClient:
 
 
 @pytest.fixture(scope="session")
-def querying_metadata_files() -> list[ResourceQueryingMetaData]:
-    modules_dir_path = os.path.join(project_path, "CDS_Module")
-    metadata_list = []
-    for module_dir in os.listdir(modules_dir_path): # ../CDS_Modules/*
-        if os.path.isdir(module_dir):
-            metadata_dir_path = os.path.join(modules_dir_path, module_dir, "QueryingMetaData")
-            for file in metadata_dir_path: # ../CDS_Modules/*/QueryingMetaData/*.json
-                if file.endswith(".json"):
-                    with open(os.path.join(modules_dir_path, file), "r", encoding="utf8") as f:
-                        metadata_list.append(json.load(f))
-    return metadata_list
-
-
-@pytest.fixture(scope="session")
 def profile_tree() -> Mapping[str, any]:
     try:
         with open(file=generated_profile_tree_path, mode='r', encoding='utf8') as file:
@@ -117,7 +107,60 @@ def profile_tree() -> Mapping[str, any]:
                      exc_info=exc)
 
 
-def pytest_prepare_module_tests(metafunc: Metafunc, querying_metadata_files: list[ResourceQueryingMetaData]):
-    log_str = ', '.join(map(lambda x: str(x.module) + "-" + str(x.name), querying_metadata_files))
-    logger.info(f"Detected {len(querying_metadata_files)} Querying Metadata files [{log_str}]")
-    metafunc.parametrize("querying_metadata", querying_metadata_files)
+def __querying_metadata_schema(test_dir: str) -> Mapping[str, any]:
+    with open(file=os.path.join(test_dir, "querying_metadata.schema.json"), mode="r", encoding="utf8") as file:
+        return json.load(file)
+
+
+@pytest.fixture(scope="session")
+def querying_metadata_schema(test_dir: str) -> Mapping[str, any]:
+    return __querying_metadata_schema(test_dir)
+
+
+@pytest.fixture(scope="session")
+def snapshot_list() -> list[Mapping[str, any]]:
+    modules_dir_path = os.path.join(project_path, "CDS_Module")
+    snapshot_list = []
+    for module_dir in os.listdir(modules_dir_path):  # ../CDS_Modules/*
+        if os.path.isdir(module_dir):
+            metadata_dir_path = os.path.join(modules_dir_path, module_dir, "differential", "package")
+            for file in metadata_dir_path:  # ../CDS_Modules/*/differential/package/*snapshot.json
+                if file.endswith("snapshot.json"):
+                    with open(os.path.join(modules_dir_path, file), "r", encoding="utf8") as f:
+                        snapshot_list.append(json.load(f))
+    return snapshot_list
+
+
+def __querying_metadata_list() -> list[ResourceQueryingMetaData]:
+    modules_dir_path = os.path.join(project_path, "CDS_Module")
+    metadata_list = []
+    for module_dir in os.listdir(modules_dir_path): # ../CDS_Modules/*
+        metadata_dir_path = os.path.join(modules_dir_path, module_dir, "QueryingMetaData")
+        for file in os.listdir(metadata_dir_path): # ../CDS_Modules/*/QueryingMetaData/*.json
+            if file.endswith(".json"):
+                with open(os.path.join(metadata_dir_path, file), "r", encoding="utf8") as f:
+                    metadata_list.append(ResourceQueryingMetaData.from_json(f))
+    return metadata_list
+
+
+def querying_metadata_list() -> list[ResourceQueryingMetaData]:
+    return __querying_metadata_list()
+
+
+def querying_metadata_id_fn(val):
+    """
+    Generates test IDs for QueryingMetadata test parameters based on their module and name
+    """
+    if isinstance(val, ResourceQueryingMetaData):
+        return f"{val.module.code}::{val.name}"
+
+
+def pytest_generate_tests(metafunc: Metafunc):
+    """
+    Generates tests dynamically based on the collected querying metadata files within the project directory
+    """
+    arg_names = ["querying_metadata", "querying_metadata_schema"]
+    qm_list = __querying_metadata_list()
+    schema = __querying_metadata_schema(__test_dir())
+    metafunc.parametrize(arg_names, [(instance, schema) for instance in qm_list],
+                             ids=[querying_metadata_id_fn(it) for it in qm_list], scope="session")

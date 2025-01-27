@@ -1,4 +1,7 @@
 [tool.pytest.ini_options]
+pythonpath = [
+    ".", "test", "src"
+]
 env = [
     "CLIENT_ID=dataportal-webapp",
     "CLIENT_SECRET=piczMMlNFoQuKTjRT4o4FJibPUFuI2bk",
