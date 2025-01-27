@@ -218,13 +218,16 @@ class FeasibilityBackendClient:
             _raise_appropriate_exception(response)
 
     def query(self, query: str) -> str:
-        location = self.post(_merge_urls(self.__base_url, "/query"), body=query).headers.get('Location')
+        headers = {'Content-Type': "application/json"}
+        location = (self.post(_merge_urls(self.__base_url, "/query"), headers=headers, body=query)
+                    .headers.get('Location'))
         if location is None: raise Exception("No Location header in response")
         else: return location
 
     def validate_query(self, query: str) -> tuple[bool, Optional[dict]]:
         try:
-            response = self.post(_merge_urls(self.__base_url, "/query/validate"), body=query)
+            headers = {'Content-Type': "application/json"}
+            response = self.post(_merge_urls(self.__base_url, "/query/validate"), headers=headers, body=query)
             return True, response.json()
         except ClientError as e:
             if e.status_code == 400: return False, None # Invalid SQ

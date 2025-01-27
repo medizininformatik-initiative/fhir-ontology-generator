@@ -1,54 +1,15 @@
 import os
-import subprocess
 import zipfile
 
 import pytest
 import requests
 import logging
 
+import util.test.docker
+import util.requests
+
 
 logger = logging.getLogger(__name__)
-
-
-def save_docker_logs():
-    """
-    Test to save logs of all running Docker containers to a logs folder.
-    This should be the last test in the file to ensure all other tests are complete.
-    """
-    # Directory of the (this) test file
-    test_dir_path = os.path.dirname(os.path.realpath(__file__))
-    output_folder = os.path.join(test_dir_path, "docker_logs")
-    os.makedirs(output_folder, exist_ok=True)
-
-    try:
-        # Get the list of running container IDs
-        result = subprocess.run(
-            ["docker", "ps", "-q"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            check=True
-        )
-        container_ids = result.stdout.strip().split("\n")
-
-        if not container_ids or container_ids == ['']:
-            logger.info("No running containers found.")
-            return
-
-        # Save logs for each container
-        for container_id in container_ids:
-            log_file = os.path.join(output_folder, f"{container_id}_logs.txt")
-            with open(log_file, "w") as f:
-                subprocess.run(
-                    ["docker", "logs", container_id],
-                    stdout=f,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    check=True
-                )
-            logger.info(f"Logs saved for container {container_id} in {log_file}")
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Error while fetching logs: {e.stderr}")
 
 
 @pytest.fixture(scope="session")
@@ -59,22 +20,11 @@ def test_dir() -> str:
 @pytest.fixture(scope="session")
 def docker_compose_file(test_dir: str) -> str:
     yield os.path.join(test_dir, "docker-compose.yml")
-    save_docker_logs()
-
-
-def is_responsive(url) -> bool:
-    try:
-        response = requests.get(url, timeout=5)
-        if response.status_code == 200:
-            return True
-        logger.info(f"Got Status-Code: {response.status_code} from url: {url}")
-    except requests.RequestException:
-        pass
-    return False
+    util.test.docker.save_docker_logs()
 
 
 @pytest.fixture(scope="session")
-def backend_ip(docker_services):
+def backend_ip(docker_services) -> str:
     dataportal_backend_name = "dataportal-backend"
     port = docker_services.port_for(dataportal_backend_name, 8090)
     url = f"http://127.0.0.1:{port}"
@@ -84,7 +34,7 @@ def backend_ip(docker_services):
     docker_services.wait_until_responsive(
         timeout=180.0,
         pause=0.1,
-        check=lambda: is_responsive(url_health_test)
+        check=lambda: util.requests.is_responsive(url_health_test)
     )
     return url
 
@@ -123,7 +73,7 @@ def get_and_upload_test_data(fhir_url, test_dir_path: str,
 
 
 @pytest.fixture(scope="session")
-def fhir_ip(docker_services, test_dir):
+def fhir_ip(docker_services, test_dir: str) -> str:
     fhir_name = "blaze"
     port = docker_services.port_for(fhir_name, 8080)
     url = f"http://127.0.0.1:{port}"
@@ -133,7 +83,7 @@ def fhir_ip(docker_services, test_dir):
     docker_services.wait_until_responsive(
         timeout=90.0,
         pause=0.1,
-        check=lambda: is_responsive(url_health_test)
+        check=lambda: util.requests.is_responsive(url_health_test)
     )
 
     # upload testdata for fhir server for testing
@@ -142,7 +92,7 @@ def fhir_ip(docker_services, test_dir):
 
 
 @pytest.fixture(scope="session")
-def elastic_ip(docker_services):
+def elastic_ip(docker_services) -> str:
     elastic_name="dataportal-elastic"
     port = docker_services.port_for(elastic_name, 9200)
     url = f"http://127.0.0.1:{port}"
@@ -151,6 +101,6 @@ def elastic_ip(docker_services):
     docker_services.wait_until_responsive(
         timeout=90.0,
         pause=0.1,
-        check=lambda: is_responsive(url)
+        check=lambda: util.requests.is_responsive(url)
     )
     return url

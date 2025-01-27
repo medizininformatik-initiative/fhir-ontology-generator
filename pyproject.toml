@@ -1,0 +1,8 @@
+[tool.pytest.ini_options]
+env = [
+    "CLIENT_ID=dataportal-webapp",
+    "CLIENT_SECRET=piczMMlNFoQuKTjRT4o4FJibPUFuI2bk",
+    "USERNAME=test",
+    "PASSWORD=supersecretpassword",
+    "TOKEN_ACCESS_URL=http://localhost:8080/realms/dataportal/protocol/openid-connect/token"
+]
