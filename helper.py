@@ -5,7 +5,6 @@ import json
 import logging
 import os
 import re
-from email.policy import default
 from os import path
 from typing import List, Set, Protocol, Dict
 
@@ -269,6 +268,7 @@ def get_display_from_element_definition(snapshot_element: dict,
     :param default: value used as display if there is no other valid source in the element definition
     :return: TranslationElementDisplay instance holding the display value and all language variants
     """
+    expected_languages=['en-US','de-DE']
     translations = []
     display = default
     try:
@@ -291,9 +291,17 @@ def get_display_from_element_definition(snapshot_element: dict,
             translations.append({'language': language, 'value': language_value})
 
         if len(translations) == 0:
+            for language in expected_languages:
+                if any(translation['langauge'] == language for translation in translations):
+                    translations.append({'language': language, 'value': ""})
+
             raise MissingTranslationException(f"No translation can be extracted for element '{snapshot_element.get('id')}' "
                                               f"since no language extension are present")
         if len(translations) < 2:
+            for language in expected_languages:
+                if any(translation['langauge'] == language for translation in translations):
+                    translations.append({'language': language, 'value':""})
+
             logger.warning(f"Only partial translation possible for element '{snapshot_element.get('id')}' due to translations "
                            f"being available in only one language")
     except MissingTranslationException as exc:
