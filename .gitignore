@@ -22,3 +22,8 @@ availability/*.json
 
 local-onto-gen.sh
 /.run
+
+**/tmp
+**/temp
+**/testdata
+**/docker_logs
