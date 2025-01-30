@@ -26,6 +26,13 @@ class QuerySlots(TypedDict):
     used: int
     total: int
 
+class QueryListEntry(TypedDict):
+    id: int
+    label: str
+    comment: str
+    createdAt: str
+    totalNumberOfPatients: int
+    isValid: bool
 
 class SearchFilter(TypedDict):
     name: str
@@ -106,7 +113,7 @@ class CriteriaProfileData(TypedDict):
     display: DisplayEntry
     context: TermCode
     termCodes: list[TermCode]
-    uiProfile: UIProfile
+    uiprofile: UIProfile
 
 
 class CodeableConceptSearchResultItem(TypedDict):
@@ -184,6 +191,9 @@ class FeasibilityBackendClient(BaseClient):
     def delete_saved_query(self, query_id: str) -> QuerySlots:
         return self.delete(merge_urls(self._get_base_url(), "query/{query_id}/saved"),
                            path_params={'query_id': query_id}).json()
+
+    def get_current_querys(self)-> list[QueryListEntry]:
+        return self.get(merge_urls(self.__base_url, "query")).json()
 
     # NOTE: It is likely that a username has to be supplied via the Authorization header for this request to work
     def get_saved_query_slots(self) -> QuerySlots:
