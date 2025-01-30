@@ -75,8 +75,7 @@ def elastic_ip(docker_services) -> str:
 @pytest.fixture(scope="session")
 def fhir_testdata(fhir_ip,test_dir, download=True):
     if download:
-        pass
-        #download_and_unzip_kds_test_data(target_folder=test_dir)
+        download_and_unzip_kds_test_data(target_folder=test_dir)
     return os.path.join(test_dir, "testdata")
 
 @pytest.fixture(scope="session")
