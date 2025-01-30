@@ -2,7 +2,7 @@ import argparse
 from email.policy import default
 
 from core.ElasticSearchBulkGenerator import ElasticSearchGenerator
-from core.StrucutureDefinitionParser import parse
+from core.StructureDefinitionParser import parse
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

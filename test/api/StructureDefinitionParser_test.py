@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from core.StrucutureDefinitionParser import get_element_defining_elements
+from core.StructureDefinitionParser import get_element_defining_elements
 
 
 class StructureDefinitionParserTestCase(unittest.TestCase):

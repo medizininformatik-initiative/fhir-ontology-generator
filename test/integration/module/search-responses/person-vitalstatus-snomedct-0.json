@@ -1,0 +1,27 @@
+{
+    "totalHits": 1,
+    "results": [
+        {
+            "id": "ba402553-079e-3030-a6fd-9ef3bae9561f",
+            "display": {
+                "original": "Patient Disposition",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": ""
+                    },
+                    {
+                        "language": "en-US",
+                        "value": "Patient Disposition"
+                    }
+                ]
+            },
+            "availability": 0,
+            "context": "Vitalstatus",
+            "terminology": "http://loinc.org",
+            "termcode": "67162-8",
+            "kdsModule": "Person",
+            "selectable": true
+        }
+    ]
+}

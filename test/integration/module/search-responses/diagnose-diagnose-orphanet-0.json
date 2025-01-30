@@ -1,0 +1,27 @@
+{
+    "totalHits": 1,
+    "results": [
+        {
+            "id": "2f4e17f9-82c4-3add-8835-616b65ef856b",
+            "display": {
+                "original": "22q11.2-Duplikationssyndrom",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": ""
+                    },
+                    {
+                        "language": "en-US",
+                        "value": ""
+                    }
+                ]
+            },
+            "availability": 0,
+            "context": "Diagnose",
+            "terminology": "http://www.orpha.net",
+            "termcode": "1727",
+            "kdsModule": "Diagnose",
+            "selectable": true
+        }
+    ]
+}

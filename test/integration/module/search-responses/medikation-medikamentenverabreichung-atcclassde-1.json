@@ -1,0 +1,27 @@
+{
+    "totalHits": 1,
+    "results": [
+        {
+            "id": "4b9986d1-8d8b-39e6-918b-fa846e41bc94",
+            "display": {
+                "original": "(111In)Indiumpentetreotid",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": ""
+                    },
+                    {
+                        "language": "en-US",
+                        "value": ""
+                    }
+                ]
+            },
+            "availability": 0,
+            "context": "Medikamentenverabreichung",
+            "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+            "termcode": "V09IB01",
+            "kdsModule": "Medikation",
+            "selectable": true
+        }
+    ]
+}

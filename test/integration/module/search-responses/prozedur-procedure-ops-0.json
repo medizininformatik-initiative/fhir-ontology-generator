@@ -1,0 +1,27 @@
+{
+    "totalHits": 1,
+    "results": [
+        {
+            "id": "0d72216b-46b4-31a0-806d-267d9baf56db",
+            "display": {
+                "original": "Implantation eines Herzschrittmachers, Defibrillators und Ereignis-Rekorders: Schrittmacher, Zweikammersystem, mit zwei Schrittmachersonden: Ohne antitachykarde Stimulation",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": ""
+                    },
+                    {
+                        "language": "en-US",
+                        "value": ""
+                    }
+                ]
+            },
+            "availability": 0,
+            "context": "Procedure",
+            "terminology": "http://fhir.de/CodeSystem/bfarm/ops",
+            "termcode": "5-377.30",
+            "kdsModule": "Prozedur",
+            "selectable": true
+        }
+    ]
+}

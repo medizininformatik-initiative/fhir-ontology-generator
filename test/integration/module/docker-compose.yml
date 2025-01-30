@@ -166,7 +166,7 @@ services:
 
   auth:
     image: keycloak/keycloak:21.1
-    command: ["start", "--import-realm"]
+    command: ["start-dev", "--import-realm"]
     restart: unless-stopped
     environment:
       KC_DB: "postgres"

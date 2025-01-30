@@ -432,7 +432,7 @@
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "DataportalUser", "DataportalPowerUser", "default-roles-dataportal" ],
+    "realmRoles" : [ "DataportalAdmin", "DataportalUser", "DataportalPowerUser", "default-roles-dataportal" ],
     "notBefore" : 0,
     "groups" : [ ]
   } ],

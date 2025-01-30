@@ -1,0 +1,27 @@
+{
+    "totalHits": 1,
+    "results": [
+        {
+            "id": "c4c47cd1-1707-3e93-bc98-0f28430aa06e",
+            "display": {
+                "original": "Gegenwärtiges chronologisches Alter",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": "Aktuelles chronologisches Alter"
+                    },
+                    {
+                        "language": "en-US",
+                        "value": "Current chronological age"
+                    }
+                ]
+            },
+            "availability": 0,
+            "context": "Patient",
+            "terminology": "http://snomed.info/sct",
+            "termcode": "424144002",
+            "kdsModule": "Person",
+            "selectable": true
+        }
+    ]
+}
