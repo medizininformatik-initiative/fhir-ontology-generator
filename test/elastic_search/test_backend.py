@@ -1,5 +1,7 @@
 import json
 import os.path
+import time
+
 from jsonpath_ng import parse
 import pytest
 
@@ -69,12 +71,6 @@ test_data=[
 @pytest.mark.parametrize("data_resource_file, query_resource_path", test_data)
 def test_module(data_resource_file, query_resource_path, backend_auth, fhir_testdata, fhir_ip):
 
-    print(data_resource_file)
-    print(query_resource_path)
-    print(backend_auth)
-    print(fhir_ip)
-    print(fhir_testdata)
-
     # create list with all referenced files - recursively?
     resource_folder = os.path.join("testdata", "kds-testdata-2024.0.1", "resources")
     fhir_resources = get_patient_files(data_resource_file, test_data_folder=resource_folder)
@@ -88,7 +84,6 @@ def test_module(data_resource_file, query_resource_path, backend_auth, fhir_test
     with open(os.path.join("test_querys",query_resource_path),"r",encoding="utf-8") as f:
         query = json.dumps(json.load(f))
 
-
     print(backend_auth.validate_query(query))
     location = backend_auth.query(query)
     query_id = location.split("/")[-1]
@@ -96,6 +91,8 @@ def test_module(data_resource_file, query_resource_path, backend_auth, fhir_test
     print(f"Uploaded query with id {query_id}")
     print(f"All querys: {backend_auth.get_current_querys()}")
 
+    print("Waiting 5 seconds for query to be processed...")
+    time.sleep(5)
 
     query_result = backend_auth.get_query_summary_result(query_id)
     print(query_result)
