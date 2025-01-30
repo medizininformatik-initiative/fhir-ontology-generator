@@ -54,6 +54,7 @@ def fhir_ip(docker_services, test_dir: str) -> str:
 
     # upload testdata for fhir server for testing
     #get_and_upload_test_data(url, test_dir)
+
     return url
 
 @pytest.fixture(scope="session")

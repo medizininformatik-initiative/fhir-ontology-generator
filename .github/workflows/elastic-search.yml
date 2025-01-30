@@ -32,3 +32,4 @@ jobs:
       with:
         name: docker_logs
         path: test/elastic_search/docker_logs
+
