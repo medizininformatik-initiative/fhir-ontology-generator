@@ -1,27 +1,27 @@
+import json
 import os
-import zipfile
-
 import pytest
-import requests
 import logging
 
 import util.test.docker
 import util.requests
+from model import ResourceQueryingMetaData
+from util.auth.authentication import OAuthClientCredentials
+from util.backend.FeasibilityBackendClient import FeasibilityBackendClient
+from util.test.fhir import download_and_unzip_kds_test_data
 
 
 logger = logging.getLogger(__name__)
-
+project_path = os.path.join("example", "mii_core_data_set")
 
 @pytest.fixture(scope="session")
 def test_dir() -> str:
     return os.path.dirname(os.path.realpath(__file__))
 
-
 @pytest.fixture(scope="session")
 def docker_compose_file(test_dir: str) -> str:
     yield os.path.join(test_dir, "docker-compose.yml")
     util.test.docker.save_docker_logs()
-
 
 @pytest.fixture(scope="session")
 def backend_ip(docker_services) -> str:
@@ -38,40 +38,6 @@ def backend_ip(docker_services) -> str:
     )
     return url
 
-
-def get_and_upload_test_data(fhir_url, test_dir_path: str,
-                             repo_url="https://github.com/medizininformatik-initiative/mii-testdata/releases/download/v1.0.1/kds-testdata-2024.0.1.zip"):
-    """
-    Helper function which downloads the testdata from the specified repository, unpacks it and uploads it to the specified fhir_url server
-    :param fhir_url: url of fhir which to upload the test data to
-
-    :param repo_url: url of repository which to download the testdata from
-    """
-    response = requests.get(repo_url, timeout=5)
-    zip_path = os.path.join("kds-testdata-2024.0.1.zip")
-    with open(zip_path, 'wb') as file:
-        file.write(response.content)
-    test_data_dir_path = os.path.join(test_dir_path, "testdata")
-    os.makedirs(test_data_dir_path, exist_ok=True)
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        zip_ref.extractall(test_data_dir_path)
-    logger.info("Downloaded testdata successfully")
-
-    # will be replaced so it uses middleware in backend
-    resource_dir = os.path.join(test_data_dir_path,"kds-testdata-2024.0.1","resources")
-    for file_name in os.listdir(resource_dir):
-        if file_name.endswith(".json"):
-            with open(os.path.join(resource_dir, file_name), "r", encoding="utf-8") as f:
-                data = f.read()
-            response = requests.post(
-                f"{fhir_url}",
-                headers={"Content-Type": "application/fhir+json"},
-                data=data.encode("utf-8"),
-                timeout=10)
-            logger.info(f"Uploaded {file_name} with status code:  {response.status_code}")
-    return True
-
-
 @pytest.fixture(scope="session")
 def fhir_ip(docker_services, test_dir: str) -> str:
     fhir_name = "blaze"
@@ -87,9 +53,8 @@ def fhir_ip(docker_services, test_dir: str) -> str:
     )
 
     # upload testdata for fhir server for testing
-    get_and_upload_test_data(url, test_dir)
+    #get_and_upload_test_data(url, test_dir)
     return url
-
 
 @pytest.fixture(scope="session")
 def elastic_ip(docker_services) -> str:
@@ -104,3 +69,33 @@ def elastic_ip(docker_services) -> str:
         check=lambda: util.requests.is_responsive(url)
     )
     return url
+
+@pytest.fixture(scope="session")
+def fhir_testdata(fhir_ip,test_dir, download=True):
+    if download:
+        pass
+        #download_and_unzip_kds_test_data(target_folder=test_dir)
+    return os.path.join(test_dir, "testdata")
+
+@pytest.fixture(scope="session")
+def querying_metadata_files() -> list[ResourceQueryingMetaData]:
+    modules_dir_path = os.path.join(project_path, "CDS_Module")
+    metadata_list = []
+    for module_dir in os.listdir(modules_dir_path): # ../CDS_Modules/*
+        if os.path.isdir(module_dir):
+            metadata_dir_path = os.path.join(modules_dir_path, module_dir, "QueryingMetaData")
+            for file in metadata_dir_path: # ../CDS_Modules/*/QueryingMetaData/*.json
+                if file.endswith(".json"):
+                    with open(os.path.join(modules_dir_path, file), "r", encoding="utf8") as f:
+                        metadata_list.append(json.load(f))
+    return metadata_list
+
+@pytest.fixture(scope="session")
+def backend_auth(backend_ip):
+    auth = OAuthClientCredentials(
+        client_credentials=("dataportal-webapp", "piczMMlNFoQuKTjRT4o4FJibPUFuI2bk"),
+        token_access_url="http://localhost:8083/auth/realms/dataportal/protocol/openid-connect/token",
+        user_credentials=("test", "supersecretpassword")
+    )
+    return FeasibilityBackendClient("http://localhost:8091/api/v4", auth)
+

@@ -15,7 +15,7 @@ def _format_query_params(query_params: Mapping[str, any]) -> Mapping[str, any]:
 
 def _insert_path_params(url: str, **path_params: str) -> str:
     split = url.split("?", 1)
-    return split[0].format(path_params) + (split[1] if len(split) > 1 else "")
+    return split[0].format(**path_params) + (split[1] if len(split) > 1 else "")
 
 
 def _merge_urls(url_a: str, url_b: str) -> str:
@@ -52,6 +52,13 @@ class QuerySlots(TypedDict):
     used: int
     total: int
 
+class QueryListEntry(TypedDict):
+    id: int
+    label: str
+    comment: str
+    createdAt: str
+    totalNumberOfPatients: int
+    isValid: bool
 
 class SearchFilter(TypedDict):
     name: str
@@ -240,6 +247,9 @@ class FeasibilityBackendClient:
     def delete_saved_query(self, query_id: str) -> QuerySlots:
         return self.delete(_merge_urls(self.__base_url, "query/{query_id}/saved"),
                            path_params={'query_id': query_id}).json()
+
+    def get_current_querys(self)-> list[QueryListEntry]:
+        return self.get(_merge_urls(self.__base_url, "query")).json()
 
     # NOTE: It is likely that a username has to be supplied via the Authorization header for this request to work
     def get_saved_query_slots(self) -> QuerySlots:

@@ -1,0 +1,56 @@
+{
+  "version": "http://to_be_decided.com/draft-1/schema#",
+  "display": "Ausgewählte Merkmale",
+  "inclusionCriteria": [
+    [
+      {
+        "termCodes": [
+          {
+            "code": "122555007",
+            "display": "Venous blood specimen",
+            "system": "http://snomed.info/sct",
+            "version": "http://snomed.info/sct/900000000000207008/version/20240701"
+          }
+        ],
+        "attributeFilters": [
+          {
+            "type": "reference",
+            "criteria": [
+              {
+                "termCodes": [
+                  {
+                    "code": "B05.3",
+                    "display": "Masern, kompliziert durch Otitis media",
+                    "system": "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
+                    "version": "2024"
+                  }
+                ],
+                "context": {
+                  "code": "Diagnose",
+                  "display": "Diagnose",
+                  "system": "fdpg.mii.cds",
+                  "version": "1.0.0"
+                }
+              }
+            ],
+            "attributeCode": {
+              "code": "festgestellteDiagnose",
+              "display": "Festgestellte Diagnose",
+              "system": "http://hl7.org/fhir/StructureDefinition"
+            }
+          }
+        ],
+        "context": {
+          "code": "Specimen",
+          "display": "Bioprobe",
+          "system": "fdpg.mii.cds",
+          "version": "1.0.0"
+        },
+        "timeRestriction": {
+          "afterDate": "2023-11-15",
+          "beforeDate": "2025-01-29"
+        }
+      }
+    ]
+  ]
+}

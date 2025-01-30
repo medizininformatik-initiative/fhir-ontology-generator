@@ -65,8 +65,8 @@ services:
       PRIVACY_QUOTA_READ_DETAILED_OBFUSCATED_POLLINGINTERVALSECONDS: 10
       PRIVACY_QUOTA_READ_DETAILED_OBFUSCATED_AMOUNT: 3
       PRIVACY_QUOTA_READ_DETAILED_OBFUSCATED_INTERVALSECONDS: 7200
-      PRIVACY_THRESHOLD_RESULTS: 20
-      PRIVACY_THRESHOLD_SITES: 3
+      PRIVACY_THRESHOLD_RESULTS: 0
+      PRIVACY_THRESHOLD_SITES: 0
       # ---- Elastic Search
       ELASTIC_SEARCH_ENABLED: true
       ELASTIC_SEARCH_HOST: dataportal-elastic:9200
@@ -154,39 +154,39 @@ services:
 #      LOG_LEVEL: "debug"
 #    restart: unless-stopped
 
-#  auth-db:
-#    image: postgres:16-alpine
-#    restart: unless-stopped
-#    environment:
-#      POSTGRES_DB: "keycloakdb"
-#      POSTGRES_USER: "keycloakdbuser"
-#      POSTGRES_PASSWORD: "keycloakdbpw"
-#    volumes:
-#      - "dataportal-auth-db:/var/lib/postgresql/data"
+  auth-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "keycloakdb"
+      POSTGRES_USER: "keycloakdbuser"
+      POSTGRES_PASSWORD: "keycloakdbpw"
+    volumes:
+      - "dataportal-auth-db:/var/lib/postgresql/data"
 
-#  auth:
-#    image: keycloak/keycloak:21.1
-#    command: ["start", "--import-realm"]
-#    restart: unless-stopped
-#    environment:
-#      KC_DB: "postgres"
-#      KC_DB_URL: "jdbc:postgresql://auth-db:5432/${FEASIBILITY_KC_DB:-keycloakdb}"
-#      KC_DB_USERNAME: "keycloakdbuser"
-#      KC_DB_PASSWORD: "keycloakdbpw"
-#      KEYCLOAK_ADMIN: "keycloakadmin"
-#      KEYCLOAK_ADMIN_PASSWORD: "keycloak"
-#      KC_HTTP_RELATIVE_PATH: "/auth"
-#      KC_HOSTNAME_URL: "http://auth:8080/auth"
-#      KC_HOSTNAME_ADMIN_URL: "http://auth:8080/auth/keycloakadmin"
-#      KC_LOG_LEVEL: "info"
-#      KC_PROXY: "edge"
-#    ports:
-#      - "8083:8080"
-#    volumes:
-#      - ./keycloak-init/dataportal-realm.json:/opt/keycloak/data/import/realm.json:ro
-#    depends_on:
-#      - auth-db
+  auth:
+    image: keycloak/keycloak:21.1
+    command: ["start-dev", "--import-realm"]
+    restart: unless-stopped
+    environment:
+      KC_DB: "postgres"
+      KC_DB_URL: "jdbc:postgresql://auth-db:5432/${FEASIBILITY_KC_DB:-keycloakdb}"
+      KC_DB_USERNAME: "keycloakdbuser"
+      KC_DB_PASSWORD: "keycloakdbpw"
+      KEYCLOAK_ADMIN: "keycloakadmin"
+      KEYCLOAK_ADMIN_PASSWORD: "keycloak"
+      KC_HTTP_RELATIVE_PATH: "/auth"
+      KC_HOSTNAME_URL: "http://auth:8080/auth"
+      KC_HOSTNAME_ADMIN_URL: "http://auth:8080/auth/keycloakadmin"
+      KC_LOG_LEVEL: "info"
+      KC_PROXY: "edge"
+    ports:
+      - "8083:8080"
+    volumes:
+      - ./keycloak-init/dataportal-realm.json:/opt/keycloak/data/import/realm.json:ro
+    depends_on:
+      - auth-db
 
 volumes:
-#  dataportal-auth-db:
+  dataportal-auth-db:
   blaze-data:
