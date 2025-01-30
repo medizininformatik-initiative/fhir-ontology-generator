@@ -86,7 +86,8 @@ if should_run_step 5; then
     printf "\n#################\nStep 5: Generating Elastic Search files\n#################\n"
     cd "$BASE_DIR" || exit 1
     python3 generate_elasticsearch_files.py \
-     --ontology_dir "$BASE_DIR/example/fdpg-ontology"
+     --ontology_dir "$BASE_DIR/example/fdpg-ontology" \
+     --update_translation_supplements
 fi
 
 # Step 6: Parcel ontology files
