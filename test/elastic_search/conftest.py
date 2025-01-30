@@ -21,8 +21,7 @@ def test_dir() -> str:
 @pytest.fixture(scope="session")
 def docker_compose_file(test_dir: str) -> str:
     print(test_dir)
-    yield os.path.join(test_dir, "docker-compose.yml")
-    util.test.docker.save_docker_logs()
+    return os.path.join(test_dir, "docker-compose.yml")
 
 @pytest.fixture(scope="session")
 def backend_ip(docker_services) -> str:
