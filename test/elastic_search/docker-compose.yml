@@ -127,11 +127,11 @@ services:
       ONTO_GIT_TAG: v3.0.2-alpha.2
       MODE: download # change this to mount when using own generated ontology
       LOCAL_PATH: /tmp/mounted_onto.zip
-    volumes:
-      - type: bind
-        source: "./tmp/elastic.zip"
-        target: "/tmp/mounted_onto.zip"
-        read_only: true
+#    volumes:
+#      - type: bind
+#        source: "./tmp/elastic.zip"
+#        target: "/tmp/mounted_onto.zip"
+#        read_only: true
 
 
   blaze:
