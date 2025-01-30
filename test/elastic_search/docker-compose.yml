@@ -124,8 +124,8 @@ services:
     image: ghcr.io/medizininformatik-initiative/dataportal-es-init:1.2
     environment:
       ES_HOST: dataportal-elastic
-      ONTO_GIT_TAG: v3.0.2-alpha
-      MODE: mount # change this to mount when using own generated ontology
+      ONTO_GIT_TAG: v3.0.2-alpha.2
+      MODE: download # change this to mount when using own generated ontology
       LOCAL_PATH: /tmp/mounted_onto.zip
     volumes:
       - type: bind
