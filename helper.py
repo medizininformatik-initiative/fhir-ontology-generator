@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+import copy
 import errno
 import json
 import logging
 import os
 import re
-from email.policy import default
 from os import path
 from typing import List, Set, Protocol, Dict
 
@@ -17,6 +17,8 @@ from util.LoggingUtil import init_logger
 from core.exceptions.MissingTranslationException import MissingTranslationException
 
 logger = init_logger("helper", logging.DEBUG)
+
+translation_map_default = {'de-DE': {'language': "de-DE", 'value': ""}, 'en-US': {'language': "en-US", 'value': ""}}
 
 def traverse_tree(result: List[TermCode], node: dict):
     """
@@ -269,7 +271,7 @@ def get_display_from_element_definition(snapshot_element: dict,
     :param default: value used as display if there is no other valid source in the element definition
     :return: TranslationElementDisplay instance holding the display value and all language variants
     """
-    translations = []
+    translations_map = copy.deepcopy(translation_map_default)
     display = default
     try:
         if snapshot_element is None or len(snapshot_element.keys()) == 0:
@@ -280,29 +282,25 @@ def get_display_from_element_definition(snapshot_element: dict,
             logger.info(f"Falling back to value of 'sliceName' for original display value of element. A short "
                          f"description via 'short' element should be added")
             display = snapshot_element.get('sliceName')
-        if "_short" not in snapshot_element:
-            raise MissingTranslationException(f"No translations can be extracted for element '{snapshot_element.get('id')}' "
-                                              f"since no '_short' element is present")
-        for lang_container in snapshot_element.get("_short").get("extension"):
+
+        for lang_container in snapshot_element.get("_short", {}).get("extension", []):
             if lang_container.get("url") != "http://hl7.org/fhir/StructureDefinition/translation":
                 continue
             language = next(filter(lambda x: x.get("url") == "lang", lang_container.get("extension"))).get("valueCode")
             language_value = next(filter(lambda x: x.get("url") == "content", lang_container.get("extension"))).get("valueString")
-            translations.append({'language': language, 'value': language_value})
+            translations_map[language] = {'language': language, 'value': language_value}
 
-        if len(translations) == 0:
-            raise MissingTranslationException(f"No translation can be extracted for element '{snapshot_element.get('id')}' "
-                                              f"since no language extension are present")
-        if len(translations) < 2:
-            logger.warning(f"Only partial translation possible for element '{snapshot_element.get('id')}' due to translations "
-                           f"being available in only one language")
+        if translations_map == translation_map_default:
+            logger.warning(f"No translation could be identified for element '{snapshot_element.get('id')}' since no "
+                           f"language extensions are present => Defaulting")
+
     except MissingTranslationException as exc:
         logger.warning(exc)
     except Exception as exc:
         logger.warning(f"Something went wrong when trying to extract translations from element '{snapshot_element.get('id')}'. "
-                       f"Reason: {exc}")
+                       f"Reason: {exc}", exc_info=exc)
 
-    return TranslationElementDisplay(original=display, translations=translations)
+    return TranslationElementDisplay(original=display, translations=list(translations_map.values()))
 
 
 def process_element_definition(snapshot_element: dict, default: str = None) -> (TermCode, TranslationElementDisplay):
