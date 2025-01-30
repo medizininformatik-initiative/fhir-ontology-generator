@@ -14,7 +14,7 @@ from core.CQLMappingGenerator import CQLMappingGenerator
 from core.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from core.SearchParameterResolver import SearchParameterResolver
-from core.StrucutureDefinitionParser import get_element_from_snapshot
+from core.StructureDefinitionParser import get_element_from_snapshot
 from core.UIProfileGenerator import UIProfileGenerator
 from core.UITreeGenerator import UITreeGenerator
 from core.docker.Images import POSTGRES_IMAGE

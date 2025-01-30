@@ -28,7 +28,7 @@ class ResourceQueryingMetaData:
     """
     def __init__(self, name: str, resource_type: str, context: TermCode | dict, module: Module | dict, term_code_defining_id: str = None,
                  term_codes: List[TermCode] | List[dict] = None, value_defining_id: str = None, value_type: str = None,
-                 value_optional: bool = True, attribute_defining_id_type_map: Dict[str, str] | Dict[str, Dict] = None,
+                 value_optional: bool = True, attribute_defining_id_type_map: Dict[str, any] | Dict[str, Dict] = None,
                  time_restriction_defining_id: str = None):
         self.name = name
         self.value_type = value_type

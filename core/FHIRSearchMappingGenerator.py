@@ -4,9 +4,9 @@ import os
 from typing import Dict, Tuple, List, OrderedDict
 
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
-from core import StrucutureDefinitionParser as FHIRParser
+from core import StructureDefinitionParser as FHIRParser
 from core.SearchParameterResolver import SearchParameterResolver
-from core.StrucutureDefinitionParser import extract_value_type, resolve_defining_id, FHIR_TYPES_TO_VALUE_TYPES
+from core.StructureDefinitionParser import extract_value_type, resolve_defining_id, FHIR_TYPES_TO_VALUE_TYPES
 from helper import generate_attribute_key
 from model.MappingDataModel import FhirMapping
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData

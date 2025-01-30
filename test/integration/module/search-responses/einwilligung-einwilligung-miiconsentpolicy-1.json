@@ -1,0 +1,27 @@
+{
+    "totalHits": 1,
+    "results": [
+        {
+            "id": "1a98a04c-1fa9-3b90-95f6-b10e17312da9",
+            "display": {
+                "original": "KKDAT 5J prospektiv uebertragen",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": ""
+                    },
+                    {
+                        "language": "en-US",
+                        "value": ""
+                    }
+                ]
+            },
+            "availability": 0,
+            "context": "Einwilligung",
+            "terminology": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+            "termcode": "2.16.840.1.113883.3.1937.777.24.5.3.15",
+            "kdsModule": "Einwilligung",
+            "selectable": true
+        }
+    ]
+}

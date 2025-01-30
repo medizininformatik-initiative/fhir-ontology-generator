@@ -3,7 +3,7 @@ import os
 from typing import List
 
 from TerminologService.valueSetToRoots import logger
-from core import StrucutureDefinitionParser as FhirParser
+from core import StructureDefinitionParser as FhirParser
 from TerminologService.ValueSetResolver import get_term_map_from_onto_server, get_term_info_from_onto_server
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from helper import is_structure_definition

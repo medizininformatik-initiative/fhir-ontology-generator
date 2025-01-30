@@ -7,5 +7,6 @@ env = [
     "CLIENT_SECRET=piczMMlNFoQuKTjRT4o4FJibPUFuI2bk",
     "USERNAME=test",
     "PASSWORD=supersecretpassword",
-    "TOKEN_ACCESS_URL=http://localhost:8080/realms/dataportal/protocol/openid-connect/token"
+    "TOKEN_ACCESS_URL=http://localhost:8083/auth/realms/dataportal/protocol/openid-connect/token",
+    "TERMINOLOGY_SERVER_ADDRESS=https://ontoserver-ballot.mii-termserv.de/fhir"
 ]

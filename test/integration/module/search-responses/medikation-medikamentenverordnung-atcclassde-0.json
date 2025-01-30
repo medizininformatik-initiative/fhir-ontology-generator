@@ -1,0 +1,27 @@
+{
+    "totalHits": 1,
+    "results": [
+        {
+            "id": "7a5400b8-0c6b-3bb4-ae8c-80ec9b3ac0eb",
+            "display": {
+                "original": "(123I)Natriumiodid",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": ""
+                    },
+                    {
+                        "language": "en-US",
+                        "value": ""
+                    }
+                ]
+            },
+            "availability": 0,
+            "context": "Medikamentenverordnung",
+            "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+            "termcode": "V09FX02",
+            "kdsModule": "Medikation",
+            "selectable": true
+        }
+    ]
+}
