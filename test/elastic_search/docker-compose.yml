@@ -165,6 +165,7 @@ services:
     volumes:
       - "dataportal-auth-db:/var/lib/postgresql/data"
 
+
   auth:
     image: keycloak/keycloak:21.1
     command: ["start-dev", "--import-realm"]

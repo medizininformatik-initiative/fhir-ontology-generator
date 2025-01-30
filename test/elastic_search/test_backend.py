@@ -96,6 +96,7 @@ def test_module(data_resource_file, query_resource_path, backend_auth, fhir_test
     print(f"Uploaded query with id {query_id}")
     print(f"All querys: {backend_auth.get_current_querys()}")
 
+
     query_result = backend_auth.get_query_summary_result(query_id)
     print(query_result)
     assert int(query_result.get("totalNumberOfPatients")) >= 1
