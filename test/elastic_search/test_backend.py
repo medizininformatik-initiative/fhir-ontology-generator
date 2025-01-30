@@ -4,7 +4,7 @@ from jsonpath_ng import parse
 import pytest
 
 from util.test.fhir import delete_from_fhir_server, load_list_of_resources_onto_fhir_server
-
+from util.test.docker import save_docker_logs
 
 def resolve_ref(ref: str, ensemble=None)->list[str]:
     """
@@ -111,3 +111,5 @@ def test_module(data_resource_file, query_resource_path, backend_auth, fhir_test
         delete_from_fhir_server(fhir_api=fhir_ip+"/fhir",resource_type=resource_type, resource_id=resource_id)
 
 
+def test_upload_docker():
+    save_docker_logs()
