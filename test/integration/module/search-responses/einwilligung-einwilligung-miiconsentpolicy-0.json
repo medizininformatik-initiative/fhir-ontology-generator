@@ -19,7 +19,7 @@
             "availability": 0,
             "context": "Einwilligung",
             "terminology": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
-            "termcode": "2.16.840.1.113883.3.1937.777.24.5.3.23",
+            "termcode": "JA",
             "kdsModule": "Einwilligung",
             "selectable": true
         }

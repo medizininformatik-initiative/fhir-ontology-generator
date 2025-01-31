@@ -22,13 +22,12 @@ jobs:
     - name: Install testing pytest
       run: pip3 install pytest pytest-docker pytest-cov
 
-    - name: Run tests
-      run: |
-        cd test/elastic_search
-        pytest -v --cov
+    - name: Run integration tests
+      run: pytest test/integration -v --cov
 
     - name: Upload Docker logs
       uses: actions/upload-artifact@v4
       with:
         name: docker_logs
-        path: test/elastic_search/docker_logs
+        path: test/integration/docker_logs
+
