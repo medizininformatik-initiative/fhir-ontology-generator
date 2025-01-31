@@ -41,7 +41,7 @@ class SqlMerger:
                  db_user='dbuser',
                  db_password='dbpassword',
                  db_port=5430,
-                 sql_init_script_dir='../resources/sql-scripts',
+                 sql_init_script_dir='../../resources/sql-scripts',
                  sql_script_dir='source',
                  sql_mapped_dir='/tmp/sql',
                  repeatable_scripts_prefix='R__Load_latest_ui_profile_'
