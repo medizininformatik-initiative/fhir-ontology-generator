@@ -15,14 +15,17 @@ runs:
   using: "composite"
   steps:
     - name: Set default
+      shell: bash
       run: echo "GENERATOR_STEPS=--all" >> $GITHUB_ENV
     - name: Parsing generator steps to run
+      shell: bash
       if: ${{ inputs.steps_to_run != '' }}
       run: |
         echo "GENERATOR_STEPS=--step ${{ join(fromJSON(inputs.steps_to_run), ' --step ') }}" >> $GITHUB_ENV
         echo "Using generator scripts with arguments $GENERATOR_STEPS"
 
     - name: Save secret to file
+      shell: bash
       id: certificates
       run: |
         echo "$PRIVATE_KEY" > private-key.pem
@@ -34,6 +37,7 @@ runs:
         PRIVATE_KEY: ${{ secrets.FDPGPLUS_ONTO_SERVER_KEY }}
 
     - name: Run ontology generation
+      shell: bash
       env:
         ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
         SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
