@@ -29,7 +29,7 @@ def download_and_unzip_kds_test_data(target_folder="testdata",download_url="http
     print("Downloaded testdata successfully")
     return True
 
-def load_bundle_onto_fhir_server(fhir_api: str, bundle: dict)->bool:
+def load_bundle_onto_fhir_server(fhir_api: str, bundle: dict):
     """
     Loads given bundle onto the FHIR server.
     :param fhir_api: The FHIR API endpoint. example= http://localhost:8083/fhir
@@ -41,13 +41,12 @@ def load_bundle_onto_fhir_server(fhir_api: str, bundle: dict)->bool:
             headers={"Content-Type": "application/fhir+json"},
             data=json.dumps(bundle).encode("utf-8"),
             timeout=10)
-        logger.info(f"Uploaded {fhir_api} with status code:  {response.status_code}")
         if response.status_code == 200:
-            return True
-        logger.info(f"Request failed with status code: {response.status_code} because {response.reason}")
+            return response
+        print(f"Request failed with status code: {response.status_code} because {response.reason}")
         return False
     except Exception as e:
-        logger.info(e)
+        print(e)
     return False
 
 def load_list_of_resources_onto_fhir_server(fhir_api:str, files:list[str], testdata_folder:str):
