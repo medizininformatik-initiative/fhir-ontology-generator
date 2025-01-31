@@ -17,12 +17,6 @@ jobs:
     - name: Set locale
       uses: ./.github/actions/set-locale
 
-    - name: Setup python 3 environment
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.13'
-        cache: 'pip'
-
     - name: Generate Ontology
       uses: ./.github/actions/generate-ontology
 
