@@ -5,45 +5,62 @@ import time
 from jsonpath_ng import parse
 import pytest
 
-from util.test.fhir import delete_from_fhir_server, load_list_of_resources_onto_fhir_server
+from util.test.fhir import delete_from_fhir_server, load_list_of_resources_onto_fhir_server, \
+    delete_list_of_resources_from_fhir_server
 from util.test.docker import save_docker_logs
 
-def resolve_ref(ref: str, ensemble=None)->list[str]:
+def resolve_ref(ref: str, ensemble=None, resolved=None, resolving=None) -> list[str]:
     """
-    Creates a list of all dependencies of a test data file, resolving references recursively.
+    Resolves dependencies recursively in the correct order (dependencies first).
     :param ref: reference to be resolved
-    :param first: indicator whether the ensemble should be initialized
-    :param ensemble: dct that contains all files {file_name: file_content}
-    :param test_data_folder: folder where test data files are located
-    :return: list of dependencies(file_names.json) of initial given reference
-    # TODO: fix test_data_folder default value shouldn't contain "kds-testdata-2024.0.1"
+    :param ensemble: dictionary containing all files {file_name: file_content}
+    :param resolved: list of already resolved dependencies (maintains correct order)
+    :param resolving: set to track files being resolved to prevent circular references
+    :return: ordered list of dependencies (dependencies first)
     """
-    refs_to_upload = set()
+    if resolved is None:
+        resolved = []
+    if resolving is None:
+        resolving = set()
+
+    if ref in resolving:  # Prevent circular dependencies
+        return []
+
+    resolving.add(ref)
     jsonpath_expr = parse('$..reference')
 
-    refs_still_to_resolve = {
+    refs_still_to_resolve = [
         reference.replace("/", "-", 1) + ".json"
         for match in jsonpath_expr.find(ensemble.get(ref, {}))
         for reference in [match.value]
-    }
-
-    refs_to_upload.update(refs_still_to_resolve)
+        if reference.replace("/", "-", 1) + ".json" in ensemble
+    ]
 
     for reference in refs_still_to_resolve:
-        if reference in ensemble and reference not in refs_to_upload:
-            refs_to_upload.update(resolve_ref(reference, ensemble))
+        if reference not in resolved:
+            resolve_ref(reference, ensemble, resolved, resolving)
 
-    return list(refs_to_upload)
+    if ref not in resolved:
+        resolved.append(ref)
 
-def get_patient_files(patient_file:str, test_data_folder)->list[str]:
+    resolving.remove(ref)
+    return resolved
 
-    with open(os.path.join(test_data_folder,patient_file), "r", encoding="utf-8") as f:
+def get_patient_files(patient_file: str, test_data_folder: str) -> list[str]:
+    """
+    Collects all FHIR resource files related to a given patient file in correct order.
+    :param patient_file: The filename of the patient JSON file
+    :param test_data_folder: The directory containing the test data JSON files
+    :return: Ordered list of file names (dependencies first)
+    """
+    with open(os.path.join(test_data_folder, patient_file), "r", encoding="utf-8") as f:
         patient = json.load(f)
 
     patient_id = patient.get("id")
     if not patient_id:
         raise ValueError("Patient file does not contain an 'id' field.")
 
+    # Load all JSON files into memory
     ensemble = {
         file: json.load(open(os.path.join(test_data_folder, file), "r", encoding="utf-8"))
         for file in os.listdir(test_data_folder) if file.endswith(".json")
@@ -53,20 +70,18 @@ def get_patient_files(patient_file:str, test_data_folder)->list[str]:
     patient_referenced_files = [
         file for file, content in ensemble.items()
         if content.get("subject", {}).get("reference") == f"Patient/{patient_id}"
-           or content.get("patient", {}).get("reference") == f"Patient/{patient_id}"
+        or content.get("patient", {}).get("reference") == f"Patient/{patient_id}"
     ]
 
-    fhir_resources = set(patient_referenced_files)
+    ordered_fhir_resources = []
     for patient_ref_file in patient_referenced_files:
-        fhir_resources.update(resolve_ref(patient_ref_file, ensemble))
+        resolve_ref(patient_ref_file, ensemble, ordered_fhir_resources)
 
-    return list(fhir_resources)
+    return ordered_fhir_resources
 
 
-test_data=[
-    ("Patient-mii-exa-test-data-patient-1.json", "BioprobeQueryPatient3.json"),
-    ("Patient-mii-exa-test-data-patient-1.json", "BioprobeQueryPatient1.json")
-]
+with open("ModuleTestDataConfig.json", "r", encoding="utf-8") as f:
+    test_data = json.load(f)
 
 @pytest.mark.parametrize("data_resource_file, query_resource_path", test_data)
 def test_module(data_resource_file, query_resource_path, backend_auth, fhir_testdata, fhir_ip):
@@ -74,39 +89,22 @@ def test_module(data_resource_file, query_resource_path, backend_auth, fhir_test
     # create list with all referenced files - recursively?
     resource_folder = os.path.join("testdata", "kds-testdata-2024.0.1", "resources")
     fhir_resources = get_patient_files(data_resource_file, test_data_folder=resource_folder)
-    print(fhir_resources)
 
     # load fhir resource onto fhir server for patient
-    load_list_of_resources_onto_fhir_server(fhir_api=fhir_ip + "/fhir", files=fhir_resources, testdata_folder=resource_folder)
-    print("Uploaded fhir data")
+    if load_list_of_resources_onto_fhir_server(fhir_api=fhir_ip + "/fhir", files=fhir_resources, testdata_folder=resource_folder):
+        print("Uploaded fhir data")
 
-    # send ccdl to backend, check if patient is found
+    # send ccdl to backend
     with open(os.path.join("test_querys",query_resource_path),"r",encoding="utf-8") as f:
         query = json.dumps(json.load(f))
+    query_id = backend_auth.query(query).split("/")[-1]
 
-    print(backend_auth.validate_query(query))
-    location = backend_auth.query(query)
-    query_id = location.split("/")[-1]
-
-    print(f"Uploaded query with id {query_id}")
-    print(f"All querys: {backend_auth.get_current_querys()}")
-
-    print("Waiting 5 seconds for query to be processed...")
-    time.sleep(5)
-
+    # get query result, check
     query_result = backend_auth.get_query_summary_result(query_id)
-    print(query_result)
     assert int(query_result.get("totalNumberOfPatients")) >= 1
 
-    # delete stored query on backend
-
-
-    # delete uploaded files from fhir server
-    for resource in fhir_resources:
-        resource_id = resource.split("/")[-1].split(".")[0]
-        resource_type = resource.split("/")[0]
-        delete_from_fhir_server(fhir_api=fhir_ip+"/fhir",resource_type=resource_type, resource_id=resource_id)
-
+    if delete_list_of_resources_from_fhir_server(fhir_api=fhir_ip+"/fhir",fhir_resources=list(reversed(fhir_resources))):
+        print("Deleted fhir data")
 
 def test_upload_docker():
     save_docker_logs()

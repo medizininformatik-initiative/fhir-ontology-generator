@@ -1,6 +1,7 @@
 import os
 import subprocess
 import logging
+from datetime import datetime
 
 
 logger = logging.getLogger(__name__)
@@ -31,9 +32,12 @@ def save_docker_logs():
             logger.info("No running containers found.")
             return
 
+        now = datetime.now()
+        current_time = now.strftime('%H_%M_%S')
+
         # Save logs for each container
         for container_id in container_ids:
-            log_file = os.path.join(output_folder, f"{container_id}_logs.txt")
+            log_file = os.path.join(output_folder, f"{container_id}_{current_time}_logs.txt")
             with open(log_file, "w") as f:
                 subprocess.run(
                     ["docker", "logs", container_id],
@@ -42,6 +46,6 @@ def save_docker_logs():
                     text=True,
                     check=True
                 )
-            logger.info(f"Logs saved for container {container_id} in {log_file}")
+            print(f"Logs saved for container {container_id} in {log_file}")
     except subprocess.CalledProcessError as e:
-        logger.error(f"Error while fetching logs: {e.stderr}")
+        print(f"Error while fetching logs: {e.stderr}")
