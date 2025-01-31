@@ -28,7 +28,8 @@ jobs:
         pytest -v --cov
 
     - name: Upload Docker logs
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: docker_logs
         path: test/elastic_search/docker_logs
+
