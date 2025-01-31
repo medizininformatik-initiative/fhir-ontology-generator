@@ -22,8 +22,23 @@ jobs:
     - name: Install required python modules
       run: pip3 install -r requirements.txt
 
-    - name: Generate Ontology
-      uses: ./.github/actions/generate-ontology
+    - name: Save secret to file
+      id: certificates
+      run: |
+        echo "$PRIVATE_KEY" > private-key.pem
+        echo "$SERVER_CERTIFICATE" > certificate.pem
+        echo privateKey=$(readlink -f private-key.pem) >> "$GITHUB_OUTPUT"
+        echo certificate=$(readlink -f certificate.pem) >> "$GITHUB_OUTPUT"
+      env:
+        SERVER_CERTIFICATE: ${{ secrets.FDPGPLUS_ONTO_SERVER_CERT }}
+        PRIVATE_KEY: ${{ secrets.FDPGPLUS_ONTO_SERVER_KEY }}
+
+    - name: Run ontology generation
+      env:
+        ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
+        SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
+        PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
+      run: ./generate_full_ontology.sh --all
 
     - name: Install testing pytest
       run: pip3 install pytest pytest-docker pytest-cov
@@ -36,4 +51,3 @@ jobs:
       with:
         name: docker_logs
         path: test/integration/docker_logs
-
