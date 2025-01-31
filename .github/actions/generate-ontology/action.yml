@@ -22,15 +22,6 @@ runs:
         echo "--step ${{ join(fromJSON(inputs.steps_to_run), ' --step ') }}" >> $GENERATOR_STEPS
         echo "Using generator scripts with arguments $GENERATOR_STEPS"
 
-    - name: Setup python 3 environment
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.13'
-        cache: 'pip'
-
-    - name: Install required python module
-      run: pip3 install -r requirements.txt
-
     - name: Save secret to file
       id: certificates
       run: |
