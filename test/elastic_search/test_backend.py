@@ -5,7 +5,8 @@ import time
 from jsonpath_ng import parse
 import pytest
 
-from util.test.fhir import delete_from_fhir_server, load_list_of_resources_onto_fhir_server
+from util.test.fhir import delete_from_fhir_server, load_list_of_resources_onto_fhir_server, \
+    delete_list_of_resources_from_fhir_server
 from util.test.docker import save_docker_logs
 
 def resolve_ref(ref: str, ensemble=None, resolved=None, resolving=None) -> list[str]:
@@ -79,10 +80,8 @@ def get_patient_files(patient_file: str, test_data_folder: str) -> list[str]:
     return ordered_fhir_resources
 
 
-test_data=[
-    ("Patient-mii-exa-test-data-patient-1.json", "BioprobeQueryPatient3.json"),
-    ("Patient-mii-exa-test-data-patient-1.json", "BioprobeQueryPatient1.json")
-]
+with open("ModuleTestDataConfig.json", "r", encoding="utf-8") as f:
+    test_data = json.load(f)
 
 @pytest.mark.parametrize("data_resource_file, query_resource_path", test_data)
 def test_module(data_resource_file, query_resource_path, backend_auth, fhir_testdata, fhir_ip):
@@ -90,42 +89,22 @@ def test_module(data_resource_file, query_resource_path, backend_auth, fhir_test
     # create list with all referenced files - recursively?
     resource_folder = os.path.join("testdata", "kds-testdata-2024.0.1", "resources")
     fhir_resources = get_patient_files(data_resource_file, test_data_folder=resource_folder)
-    print(fhir_resources)
-
-    print(os.listdir(resource_folder))
 
     # load fhir resource onto fhir server for patient
-    response_fhir = load_list_of_resources_onto_fhir_server(fhir_api=fhir_ip + "/fhir", files=fhir_resources, testdata_folder=resource_folder)
-    # print(response_fhir.text)
-    # print(response_fhir.json())
-    print("Uploaded fhir data")
+    if load_list_of_resources_onto_fhir_server(fhir_api=fhir_ip + "/fhir", files=fhir_resources, testdata_folder=resource_folder):
+        print("Uploaded fhir data")
 
-    # send ccdl to backend, check if patient is found
+    # send ccdl to backend
     with open(os.path.join("test_querys",query_resource_path),"r",encoding="utf-8") as f:
         query = json.dumps(json.load(f))
+    query_id = backend_auth.query(query).split("/")[-1]
 
-
-    print(backend_auth.validate_query(query))
-    location = backend_auth.query(query)
-    query_id = location.split("/")[-1]
-
-    print(f"Uploaded query with id {query_id}")
-    print(f"All querys: {backend_auth.get_current_querys()}")
-
-
+    # get query result, check
     query_result = backend_auth.get_query_summary_result(query_id)
-    print(query_result)
     assert int(query_result.get("totalNumberOfPatients")) >= 1
 
-    # delete stored query on backend
-
-
-    # delete uploaded files from fhir server
-    for resource in fhir_resources:
-        resource_id = resource.split("/")[-1].split(".")[0]
-        resource_type = resource.split("/")[0]
-        delete_from_fhir_server(fhir_api=fhir_ip+"/fhir",resource_type=resource_type, resource_id=resource_id)
-
+    if delete_list_of_resources_from_fhir_server(fhir_api=fhir_ip+"/fhir",fhir_resources=list(reversed(fhir_resources))):
+        print("Deleted fhir data")
 
 def test_upload_docker():
     save_docker_logs()

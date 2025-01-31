@@ -1,0 +1,45 @@
+{
+  "version": "http://to_be_decided.com/draft-1/schema#",
+  "display": "Ausgewählte Merkmale",
+  "inclusionCriteria": [
+    [
+      {
+        "attributeFilters": [
+          {
+            "selectedConcepts": [
+              {
+                "code": "C69.9",
+                "display": "Auge o.n.A.",
+                "system": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+                "version": "2099"
+              }
+            ],
+            "type": "concept",
+            "attributeCode": {
+              "code": "icd-o-3",
+              "display": "icd-o-3",
+              "system": "http://hl7.org/fhir/StructureDefinition"
+            }
+          }
+        ],
+        "termCodes": [
+          {
+            "code": "119297000",
+            "display": "Blood specimen",
+            "system": "http://snomed.info/sct",
+            "version": "http://snomed.info/sct/900000000000207008/version/20240701"
+          }
+        ],
+        "context": {
+          "code": "Specimen",
+          "display": "Bioprobe",
+          "system": "fdpg.mii.cds",
+          "version": "1.0.0"
+        },
+        "timeRestriction": {
+          "beforeDate": "2025-01-27"
+        }
+      }
+    ]
+  ]
+}
