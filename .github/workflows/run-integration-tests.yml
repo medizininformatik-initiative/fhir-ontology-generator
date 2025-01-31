@@ -58,6 +58,7 @@ jobs:
 
     - name: Upload Docker logs
       uses: actions/upload-artifact@v4
+      continue-on-error: true
       with:
         name: docker_logs
         path: test/integration/docker_logs
