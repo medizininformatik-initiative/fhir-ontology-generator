@@ -1,13 +1,7 @@
-import json
 import os
 import subprocess
 import logging
-import zipfile
 from datetime import datetime
-
-import requests
-
-from util.FhirUtil import create_bundle, BundleType
 
 
 logger = logging.getLogger(__name__)
