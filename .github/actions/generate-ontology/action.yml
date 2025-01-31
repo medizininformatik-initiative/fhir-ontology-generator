@@ -13,13 +13,13 @@ inputs:
 
 runs:
   using: "composite"
-  env:
-    GENERATOR_STEPS: "--all"
   steps:
+    - name: Set default
+      run: echo "GENERATOR_STEPS=--all" >> $GITHUB_ENV
     - name: Parsing generator steps to run
       if: ${{ inputs.steps_to_run != '' }}
       run: |
-        echo "--step ${{ join(fromJSON(inputs.steps_to_run), ' --step ') }}" >> $GENERATOR_STEPS
+        echo "GENERATOR_STEPS=--step ${{ join(fromJSON(inputs.steps_to_run), ' --step ') }}" >> $GITHUB_ENV
         echo "Using generator scripts with arguments $GENERATOR_STEPS"
 
     - name: Save secret to file
