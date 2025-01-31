@@ -3,7 +3,7 @@ from typing import Optional
 from datetime import datetime
 from requests import Session
 from requests.auth import AuthBase
-from util.LoggingUtil import init_logger
+from util.logging.LoggingUtil import init_logger
 
 logger = init_logger(__name__,3)
 

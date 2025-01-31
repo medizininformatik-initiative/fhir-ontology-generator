@@ -5,7 +5,7 @@ import os
 import shutil
 import sys
 
-from SqlMerger import SqlMerger
+from util.sql.SqlMerger import SqlMerger
 
 
 def configure_args_parser():

@@ -10,7 +10,7 @@ from typing import List, Set, Protocol, Dict
 
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UiDataModel import TermCode, TranslationElementDisplay
-from util.LoggingUtil import init_logger
+from util.logging.LoggingUtil import init_logger
 from core.exceptions.MissingTranslationException import MissingTranslationException
 
 logger = init_logger("helper", logging.DEBUG)

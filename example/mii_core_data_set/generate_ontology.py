@@ -486,7 +486,7 @@ def main():
     onto_result_dir = "generated-ontology"
     differential_folder = "differential"
 
-    modules = args.modules if args.modules else [module for module in os.listdir("CDS_Module")]
+    modules = args.module if args.module else [module for module in os.listdir("CDS_Module")]
 
     for module in modules:
 

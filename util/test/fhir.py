@@ -4,9 +4,8 @@ import logging
 import zipfile
 
 import requests
-from requests import Response
 
-from util.FhirUtil import create_bundle, BundleType
+from util.fhir.FhirUtil import create_bundle, BundleType
 
 logger = logging.getLogger(__name__)
 

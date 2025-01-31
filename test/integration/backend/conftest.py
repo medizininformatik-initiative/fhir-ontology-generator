@@ -1,25 +1,20 @@
 import json
 import os
-import random
 import shutil
-import time
 from collections import defaultdict
-from os import PathLike
+from os import PathLike, mkdir
 from typing import Mapping, Union
 
-from _pytest.config import Parser
 from _pytest.python import Metafunc
 
-import util.requests
+import util.http.requests
 import util.test.docker
 import logging
 import pytest
 
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
-from model.UiDataModel import TermCode
 from util.http.auth.authentication import OAuthClientCredentials
 from util.http.backend.FeasibilityBackendClient import FeasibilityBackendClient
-from util.http.terminology.FhirTerminologyClient import FhirTerminologyClient
 from util.test.fhir import download_and_unzip_kds_test_data
 
 logger = logging.getLogger(__name__)
@@ -48,11 +43,46 @@ def project_root_dir(request) -> str:
 
 @pytest.fixture(scope="session")
 def docker_compose_file(pytestconfig) -> str:
-    # Copy elastic files over such that they can be mounted
     tmp_path = os.path.join(__test_dir(), "tmp")
-    os.makedirs(tmp_path, exist_ok=True)
+    if os.path.exists(tmp_path):
+        shutil.rmtree(tmp_path)
+    ontology_dir_path = os.path.join(tmp_path, "ontology")
+    os.makedirs(ontology_dir_path, exist_ok=True)
+
+    # Copy and unpack ontology archives
+    backend_path = os.path.join(tmp_path, "backend.zip")
+    shutil.copyfile(os.path.join(pytestconfig.rootpath, "example", "fdpg-ontology", "backend.zip"), backend_path)
+    shutil.unpack_archive(backend_path, ontology_dir_path)
+
+    migration_path = os.path.join(ontology_dir_path, "migration")
+    os.makedirs(migration_path, exist_ok=True)
+    for file_name in os.listdir(ontology_dir_path):
+        if file_name.endswith(".sql"):
+            shutil.move(os.path.join(ontology_dir_path, file_name), migration_path)
+
+    dse_dir_path = os.path.join(ontology_dir_path, "dse")
+    os.makedirs(dse_dir_path)
+    shutil.move(os.path.join(ontology_dir_path, "profile_tree.json"), dse_dir_path)
+
+    mapping_path = os.path.join(tmp_path, "mapping.zip")
+    shutil.copyfile(os.path.join(pytestconfig.rootpath, "example", "fdpg-ontology", "mapping.zip"), mapping_path)
+    shutil.unpack_archive(mapping_path, ontology_dir_path)
+
+    unpacked_dir_path = os.path.join(ontology_dir_path, "mapping")
+    shutil.move(os.path.join(unpacked_dir_path, "cql", "mapping_cql.json"),
+                os.path.join(ontology_dir_path, "mapping_cql.json"))
+    shutil.move(os.path.join(unpacked_dir_path, "fhir", "mapping_fhir.json"),
+                os.path.join(ontology_dir_path, "mapping_fhir.json"))
+    shutil.move(os.path.join(unpacked_dir_path, "dse_mapping_tree.json"),
+                os.path.join(ontology_dir_path, "dse_mapping_tree.json"))
+    shutil.move(os.path.join(unpacked_dir_path, "mapping_tree.json"),
+                os.path.join(ontology_dir_path, "mapping_tree.json"))
+    shutil.rmtree(unpacked_dir_path)
+
+    # Copy elastic archive
     shutil.copyfile(os.path.join(pytestconfig.rootpath, "example", "fdpg-ontology", "elastic.zip"),
                     os.path.join(tmp_path, "elastic.zip"))
+
     yield os.path.join(__test_dir(), "docker-compose.yml")
     util.test.docker.save_docker_logs()
 
@@ -73,9 +103,8 @@ def backend_ip(docker_services) -> str:
     docker_services.wait_until_responsive(
         timeout=180.0,
         pause=5,
-        check=lambda: util.requests.is_responsive(url_health_test)
+        check=lambda: util.http.requests.is_responsive(url_health_test)
     )
-    #time.sleep(10)
     return url
 
 
@@ -88,9 +117,9 @@ def fhir_ip(docker_services, test_dir: str) -> str:
 
     logger.info(f"Waiting for service '{fhir_name}' to become responsive at {url_health_test}...")
     docker_services.wait_until_responsive(
-        timeout=90.0,
+        timeout=180.0,
         pause=5,
-        check=lambda: util.requests.is_responsive(url_health_test)
+        check=lambda: util.http.requests.is_responsive(url_health_test)
     )
 
     # upload testdata for fhir server for testing
@@ -106,9 +135,9 @@ def elastic_ip(docker_services) -> str:
 
     logger.info(f"Waiting for service '{elastic_name}' to be responsive at {url}...")
     docker_services.wait_until_responsive(
-        timeout=90.0,
+        timeout=180.0,
         pause=5,
-        check=lambda: util.requests.is_responsive(url)
+        check=lambda: util.http.requests.is_responsive(url)
     )
     return url
 

@@ -58,7 +58,7 @@ fi
 # Step 3: Merging Ontologies into fdpg-ontology
 if should_run_step 3; then
     printf "\n#################\nStep 3: Merging Ontologies into fdpg-ontology\n#################\n"
-    cd "$BASE_DIR/util" || exit 1
+    cd "$BASE_DIR/util/ontology" || exit 1
     python3 OntologyMergeUtil.py --merge_mappings --merge_uitrees --merge_sqldump --merge_dse \
      --dseontodir "$BASE_DIR/dse/generated" \
      --outputdir "$BASE_DIR/example/fdpg-ontology" \
