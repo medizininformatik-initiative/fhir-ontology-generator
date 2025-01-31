@@ -5,36 +5,9 @@ from typing import Mapping, Optional, TypedDict
 from requests import Session, Response
 from requests.auth import AuthBase
 
-from core.exceptions.http.ClientError import ClientError
-from core.exceptions.http.ServerError import ServerError
-
-
-def _format_query_params(query_params: Mapping[str, any]) -> Mapping[str, any]:
-    return {k.replace('_', '-'): v for k, v in query_params.items()}
-
-
-def _insert_path_params(url: str, **path_params: str) -> str:
-    split = url.split("?", 1)
-    return split[0].format(path_params) + (split[1] if len(split) > 1 else "")
-
-
-def _merge_urls(url_a: str, url_b: str) -> str:
-    if len(url_a) == 0 and len(url_b) == 0:
-        return ""
-    match (url_a.endswith("/") + url_b.startswith("/")):
-        case 0:
-            return url_a + "/" + url_b
-        case 1:
-            return url_a + url_b
-        case 2:
-            return url_a + url_b.lstrip("/")
-
-
-def _raise_appropriate_exception(response: Response) -> None:
-    if 400 <= response.status_code < 500:
-        raise ClientError(response.status_code, response.reason)
-    elif 500 <= response.status_code < 600:
-        raise ServerError(response.status_code, response.reason)
+from util.http.exceptions.ClientError import ClientError
+from util.http.exceptions.functions import raise_appropriate_exception
+from util.http.url import insert_path_params, format_query_params, merge_urls
 
 
 class SiteResult(TypedDict):
@@ -194,32 +167,32 @@ class FeasibilityBackendClient:
 
     def get(self, url, headers: Mapping[str, str] = None, path_params: Mapping[str, str] = None,
             **query_params) -> Response:
-        request_url = _insert_path_params(url, **path_params) if path_params is not None else url
-        response = self.__session.get(request_url, params=_format_query_params(query_params), headers=headers,
+        request_url = insert_path_params(url, **path_params) if path_params is not None else url
+        response = self.__session.get(request_url, params=format_query_params(query_params), headers=headers,
                                       timeout=self.__timeout)
         if response.ok: return response
-        else: _raise_appropriate_exception(response)
+        else: raise_appropriate_exception(response)
 
     def post(self, url, body: str, headers: Mapping[str, str] = None, path_params: Mapping[str, str] = None,
             **query_params) -> Response:
-        request_url = _insert_path_params(url, **path_params) if path_params is not None else url
-        response = self.__session.post(request_url, data=body, params=_format_query_params(query_params),
+        request_url = insert_path_params(url, **path_params) if path_params is not None else url
+        response = self.__session.post(request_url, data=body, params=format_query_params(query_params),
                                        headers=headers, timeout=self.__timeout)
         if response.ok: return response
-        else: _raise_appropriate_exception(response)
+        else: raise_appropriate_exception(response)
 
     def delete(self, url, headers: Mapping[str, str] = None, path_params: Mapping[str, str] = Response,
                **query_params) -> Response:
-        request_url = _insert_path_params(url, **path_params) if path_params is not None else url
+        request_url = insert_path_params(url, **path_params) if path_params is not None else url
         response = self.__session.delete(request_url, params=query_params, headers=headers, timeout=self.__timeout)
         if response.ok:
             return response
         else:
-            _raise_appropriate_exception(response)
+            raise_appropriate_exception(response)
 
     def query(self, query: str) -> str:
         headers = {'Content-Type': "application/json"}
-        location = (self.post(_merge_urls(self.__base_url, "/query"), headers=headers, body=query)
+        location = (self.post(merge_urls(self.__base_url, "/query"), headers=headers, body=query)
                     .headers.get('Location'))
         if location is None: raise Exception("No Location header in response")
         else: return location
@@ -227,62 +200,62 @@ class FeasibilityBackendClient:
     def validate_query(self, query: str) -> tuple[bool, Optional[dict]]:
         try:
             headers = {'Content-Type': "application/json"}
-            response = self.post(_merge_urls(self.__base_url, "/query/validate"), headers=headers, body=query)
+            response = self.post(merge_urls(self.__base_url, "/query/validate"), headers=headers, body=query)
             return True, response.json()
         except ClientError as e:
             if e.status_code == 400: return False, None # Invalid SQ
             else: raise
 
     def get_query_summary_result(self, query_id: str) -> QueryStatus:
-        return self.get(_merge_urls(self.__base_url, "query/{query_id}/summary-result"),
+        return self.get(merge_urls(self.__base_url, "query/{query_id}/summary-result"),
                         path_params={'query_id': query_id}).json()
 
     def delete_saved_query(self, query_id: str) -> QuerySlots:
-        return self.delete(_merge_urls(self.__base_url, "query/{query_id}/saved"),
+        return self.delete(merge_urls(self.__base_url, "query/{query_id}/saved"),
                            path_params={'query_id': query_id}).json()
 
     # NOTE: It is likely that a username has to be supplied via the Authorization header for this request to work
     def get_saved_query_slots(self) -> QuerySlots:
-        return self.get(_merge_urls(self.__base_url, "query/saved-query-slots")).json()
+        return self.get(merge_urls(self.__base_url, "query/saved-query-slots")).json()
 
     def get_terminology_search_filter(self) -> list[SearchFilter]:
-        return self.get(_merge_urls(self.__base_url, "terminology/search/filter")).json()
+        return self.get(merge_urls(self.__base_url, "terminology/search/filter")).json()
 
     def get_terminology_systems(self) -> list[TerminologySystem]:
-        return self.get(_merge_urls(self.__base_url, "terminology/systems")).json()
+        return self.get(merge_urls(self.__base_url, "terminology/systems")).json()
 
     def search_terminology_entries(self, search_term: str, contexts: Optional[list[str]] = None,
                                    terminologies: Optional[list[str]] = None, kds_modules: Optional[list[str]] = None,
                                    criteria_sets: Optional[list[str]] = None, availability: bool = False,
                                    page_size: int = 20, page: int = 0) -> ElasticSearchResult:
-        return self.get(_merge_urls(self.__base_url, "/terminology/entry/search"), searchterm=search_term,
+        return self.get(merge_urls(self.__base_url, "/terminology/entry/search"), searchterm=search_term,
                         contexts=contexts, terminologies=terminologies, kds_modules=kds_modules,
                         criteria_sets=criteria_sets, availability=availability, page_size=page_size, page=page).json()
 
     def get_criterion_relations(self, criterion_id: str) -> RelationEntry:
-        return self.get(_merge_urls(self.__base_url, "/terminology/entry/{id}/relations"),
+        return self.get(merge_urls(self.__base_url, "/terminology/entry/{id}/relations"),
                         path_params={'id': criterion_id}).json()
 
     def get_criterion(self, criterion_id: str) -> ElasticSearchResult:
-        return self.get(_merge_urls(self.__base_url, "/terminology/entry/{id}"),
+        return self.get(merge_urls(self.__base_url, "/terminology/entry/{id}"),
                         path_params={'id': criterion_id}).json()
 
     def get_criteria_profile_data(self, criteria_ids: list[str]) -> CriteriaProfileData:
-        return self.get(_merge_urls(self.__base_url, "/terminology/criteria-profile-data"),
+        return self.get(merge_urls(self.__base_url, "/terminology/criteria-profile-data"),
                         path_params={'ids': ','.join(criteria_ids)}).json()
 
     def search_codeable_concepts(self, search_term: str, value_sets: list[str] = None, page_size: int = 20,
                                  page: int = 0) -> CodeableConceptSearchResult:
-        return self.get(_merge_urls(self.__base_url, "/codeable-concept/entry/search"), searchterm=search_term,
+        return self.get(merge_urls(self.__base_url, "/codeable-concept/entry/search"), searchterm=search_term,
                         value_sets=value_sets, page_size=page_size, page=page).json()
 
     def get_codeable_concept(self, concept_id: str) -> CodeableConceptSearchResultItem:
-        return self.get(_merge_urls(self.__base_url, "/codeable-concept/entry/{id}"),
+        return self.get(merge_urls(self.__base_url, "/codeable-concept/entry/{id}"),
                         path_params={'id': concept_id}).json()
 
     def get_dse_profile_tree(self) -> ProfileTreeNode:
-        return self.get(_merge_urls(self.__base_url, "/dse/profile-tree")).json()
+        return self.get(merge_urls(self.__base_url, "/dse/profile-tree")).json()
 
     def get_dse_profile_data(self, profile_ids: list[str]) -> ProfileData:
-        return self.get(_merge_urls(self.__base_url, "/dse/profile-data"),
+        return self.get(merge_urls(self.__base_url, "/dse/profile-data"),
                         profile_ids=','.join(profile_ids)).json()

@@ -1,7 +1,7 @@
 services:
   dataportal-backend:
     container_name: dataportal-backend
-    image: ghcr.io/medizininformatik-initiative/feasibility-backend:6.0.4
+    image: ghcr.io/medizininformatik-initiative/feasibility-backend:6.1.0-alpha.1
     ports:
       - "8091:8090"
     depends_on:
@@ -16,6 +16,7 @@ services:
       API_BASE_URL: "http://localhost:8091/api/"
       ALLOWED_ORIGINS: "https://localhost"
       QUERYRESULT_EXPIRY_MINUTES: 5
+      MAX_SAVED_QUERIES_PER_USER: 300
       ONTOLOGY_ORDER: "Diagnose, Prozedur, Person, Laboruntersuchung, Medikamentenverabreichung, Bioprobe, Einwilligung"
       # ---- ontology
       ONTOLOGY_FILES_FOLDER_UI: /opt/dataportal-backend/ontology
@@ -57,16 +58,16 @@ services:
       DSF_WEBSOCKET_URL: "wss://dsf-zars-fhir-proxy:443/fhir/ws"
       DSF_ORGANIZATION_ID: "Test_ZARS"
       # ---- privacy
-      PRIVACY_QUOTA_SOFT_CREATE_AMOUNT: 3
+      PRIVACY_QUOTA_SOFT_CREATE_AMOUNT: 10000
       PRIVACY_QUOTA_SOFT_CREATE_INTERVALMINUTES: 1
-      PRIVACY_QUOTA_HARD_CREATE_AMOUNT: 50
+      PRIVACY_QUOTA_HARD_CREATE_AMOUNT: 10000
       PRIVACY_QUOTA_HARD_CREATE_INTERVALMINUTES: 10080
-      PRIVACY_QUOTA_READ_SUMMARY_POLLINGINTERVALSECONDS: 10
+      PRIVACY_QUOTA_READ_SUMMARY_POLLINGINTERVALSECONDS: 1
       PRIVACY_QUOTA_READ_DETAILED_OBFUSCATED_POLLINGINTERVALSECONDS: 10
       PRIVACY_QUOTA_READ_DETAILED_OBFUSCATED_AMOUNT: 3
       PRIVACY_QUOTA_READ_DETAILED_OBFUSCATED_INTERVALSECONDS: 7200
-      PRIVACY_THRESHOLD_RESULTS: 20
-      PRIVACY_THRESHOLD_SITES: 3
+      PRIVACY_THRESHOLD_RESULTS: 0
+      PRIVACY_THRESHOLD_SITES: 0
       # ---- Elastic Search
       ELASTIC_SEARCH_ENABLED: true
       ELASTIC_SEARCH_HOST: dataportal-elastic:9200

@@ -6,8 +6,8 @@ import logging
 import util.test.docker
 import util.requests
 from model import ResourceQueryingMetaData
-from util.auth.authentication import OAuthClientCredentials
-from util.backend.FeasibilityBackendClient import FeasibilityBackendClient
+from util.http.auth.authentication import OAuthClientCredentials
+from util.http.backend.FeasibilityBackendClient import FeasibilityBackendClient
 from util.test.fhir import download_and_unzip_kds_test_data
 
 

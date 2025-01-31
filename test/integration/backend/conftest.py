@@ -1,8 +1,11 @@
 import json
 import os
 import random
+import shutil
+import time
 from collections import defaultdict
-from typing import Mapping
+from os import PathLike
+from typing import Mapping, Union
 
 from _pytest.config import Parser
 from _pytest.python import Metafunc
@@ -17,11 +20,12 @@ from model.UiDataModel import TermCode
 from util.http.auth.authentication import OAuthClientCredentials
 from util.http.backend.FeasibilityBackendClient import FeasibilityBackendClient
 from util.http.terminology.FhirTerminologyClient import FhirTerminologyClient
+from util.test.fhir import download_and_unzip_kds_test_data
 
 logger = logging.getLogger(__name__)
 
-generated_profile_tree_path = os.path.join("example", "fdpg-ontology", "profile_tree.json")
-project_path = os.path.join("example", "mii_core_data_set")
+#generated_profile_tree_path = os.path.join("example", "fdpg-ontology", "profile_tree.json")
+#project_path = os.path.join("example", "mii_core_data_set")
 
 
 def __test_dir() -> str:
@@ -33,10 +37,29 @@ def test_dir() -> str:
     return __test_dir()
 
 
+def __project_root_dir(request) -> str:
+    return request.config.rootpath
+
+
 @pytest.fixture(scope="session")
-def docker_compose_file(test_dir: str) -> str:
-    yield os.path.join(test_dir, "docker-compose.yml")
+def project_root_dir(request) -> str:
+    return __project_root_dir(request)
+
+
+@pytest.fixture(scope="session")
+def docker_compose_file(pytestconfig) -> str:
+    # Copy elastic files over such that they can be mounted
+    tmp_path = os.path.join(__test_dir(), "tmp")
+    os.makedirs(tmp_path, exist_ok=True)
+    shutil.copyfile(os.path.join(pytestconfig.rootpath, "example", "fdpg-ontology", "elastic.zip"),
+                    os.path.join(tmp_path, "elastic.zip"))
+    yield os.path.join(__test_dir(), "docker-compose.yml")
     util.test.docker.save_docker_logs()
+
+
+@pytest.fixture(scope="session")
+def docker_setup(pytestconfig) -> Union[list[str], str]:
+    return ["up --build -d --wait"]
 
 
 @pytest.fixture(scope="session")
@@ -49,9 +72,10 @@ def backend_ip(docker_services) -> str:
     logger.info(f"Waiting for service '{dataportal_backend_name}' to become responsive at {url_health_test}...")
     docker_services.wait_until_responsive(
         timeout=180.0,
-        pause=0.1,
+        pause=5,
         check=lambda: util.requests.is_responsive(url_health_test)
     )
+    #time.sleep(10)
     return url
 
 
@@ -65,7 +89,7 @@ def fhir_ip(docker_services, test_dir: str) -> str:
     logger.info(f"Waiting for service '{fhir_name}' to become responsive at {url_health_test}...")
     docker_services.wait_until_responsive(
         timeout=90.0,
-        pause=0.1,
+        pause=5,
         check=lambda: util.requests.is_responsive(url_health_test)
     )
 
@@ -83,7 +107,7 @@ def elastic_ip(docker_services) -> str:
     logger.info(f"Waiting for service '{elastic_name}' to be responsive at {url}...")
     docker_services.wait_until_responsive(
         timeout=90.0,
-        pause=0.1,
+        pause=5,
         check=lambda: util.requests.is_responsive(url)
     )
     return url
@@ -106,48 +130,25 @@ def backend_client() -> FeasibilityBackendClient:
     return __backend_client()
 
 
-def __term_server_(pytestconfig) -> tuple[str, str]:
-    return (pytestconfig.option.term_server_certificate,
-            pytestconfig.option.term_server_private_key)
-
-
 @pytest.fixture(scope="session")
-def term_server_cert(pytestconfig) -> tuple[str, str]:
-    return __term_server_(pytestconfig)
+def fhir_testdata(fhir_ip, test_dir, download=True):
+    if download:
+        download_and_unzip_kds_test_data(target_folder=test_dir)
+    return os.path.join(test_dir, "testdata")
 
 
-def __terminology_client(term_server_cert: tuple[str, str]) -> FhirTerminologyClient:
-    base_url = os.environ['TERMINOLOGY_SERVER_ADDRESS']
-    return FhirTerminologyClient(base_url=base_url, cert=term_server_cert)
-
-
-@pytest.fixture(scope="session")
-def terminology_client(term_server_cert: tuple[str, str]) -> FhirTerminologyClient:
-    return __terminology_client(term_server_cert)
-
-
-@pytest.fixture(scope="session")
-def profile_tree() -> Mapping[str, any]:
-    try:
-        with open(file=generated_profile_tree_path, mode='r', encoding='utf8') as file:
-            return json.load(file)
-    except Exception as exc:
-        logger.error(f"Failed to load generated profile tree file @{generated_profile_tree_path}. Reason: {exc}",
-                     exc_info=exc)
-
-
-def __querying_metadata_schema(test_dir: str) -> Mapping[str, any]:
+def __querying_metadata_schema(test_dir: Union[str, PathLike]) -> Mapping[str, any]:
     with open(file=os.path.join(test_dir, "querying_metadata.schema.json"), mode="r", encoding="utf8") as file:
         return json.load(file)
 
 
 @pytest.fixture(scope="session")
-def querying_metadata_schema(test_dir: str) -> Mapping[str, any]:
+def querying_metadata_schema(test_dir: Union[str, PathLike]) -> Mapping[str, any]:
     return __querying_metadata_schema(test_dir)
 
 
-def __querying_metadata_list() -> list[ResourceQueryingMetaData]:
-    modules_dir_path = os.path.join(project_path, "CDS_Module")
+def __querying_metadata_list(project_root_dir: Union[str, PathLike]) -> list[ResourceQueryingMetaData]:
+    modules_dir_path = os.path.join(project_root_dir, "example", "mii_core_data_set", "CDS_Module")
     metadata_list = []
     for module_dir in os.listdir(modules_dir_path): # ../CDS_Modules/*
         metadata_dir_path = os.path.join(modules_dir_path, module_dir, "QueryingMetaData")
@@ -158,13 +159,13 @@ def __querying_metadata_list() -> list[ResourceQueryingMetaData]:
     return metadata_list
 
 
-def querying_metadata_list() -> list[ResourceQueryingMetaData]:
-    return __querying_metadata_list()
+def querying_metadata_list(project_root_dir: Union[str, PathLike]) -> list[ResourceQueryingMetaData]:
+    return __querying_metadata_list(project_root_dir)
 
 
 def querying_metadata_id_fn(val):
     """
-    Generates test IDs for QueryingMetadata test parameters based on their module and name
+    Generates test IDs for QueryingMetadata test parameters based on their backend and name
     """
     if isinstance(val, ResourceQueryingMetaData):
         return f"{val.module.code}::{val.name}"
@@ -190,7 +191,14 @@ def pytest_generate_tests(metafunc: Metafunc):
     """
     Generates tests dynamically based on the collected querying metadata files within the project directory
     """
-    qm_list = __querying_metadata_list()
+    qm_list = __querying_metadata_list(metafunc.config.rootpath)
+
+
+    if "test_ccdl_query" == metafunc.definition.name:
+        with open(os.path.join(__test_dir(), "ModuleTestDataConfig.json"), "r", encoding="utf-8") as f:
+            test_data = json.load(f)
+        metafunc.parametrize(argnames=("data_resource_file", "query_resource_path"),
+                             argvalues=test_data)
 
     if "test_criterion_definition_validity" == metafunc.definition.name:
         schema = __querying_metadata_schema(__test_dir())
@@ -249,7 +257,7 @@ def pytest_addoption(parser: Parser):
 
 
 def load_snapshots_for_querying_metadata(querying_metadata: ResourceQueryingMetaData) -> list[Mapping[str, any]]:
-    module_snapshot_dir_path = os.path.join(project_path, "CDS_Module", querying_metadata.module.display, "differential",
+    module_snapshot_dir_path = os.path.join(project_path, "CDS_Module", querying_metadata.backend.display, "differential",
                                             "package")
     if not os.path.isdir(module_snapshot_dir_path):
         raise NotADirectoryError(f"Missing directory @{module_snapshot_dir_path}")
@@ -316,6 +324,6 @@ def get_term_code_set_for_querying_metadata(querying_metadata: ResourceQueryingM
         return random.choices(list(term_codes), k=max_size)
     else:
         raise KeyError("Expected one of {'term_codes', 'term_code_defining_id'} to be present in querying metadata "
-                       f"profile '{querying_metadata.module.code}#{querying_metadata.name}'. This should have been "
+                       f"profile '{querying_metadata.backend.code}#{querying_metadata.name}'. This should have been "
                        f"caught by schema validation")
 '''

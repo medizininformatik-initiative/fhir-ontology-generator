@@ -30,5 +30,6 @@ local-onto-gen.sh
 **/tmp
 **/temp
 /test/**/testdata
+**/.coverage
 # Directories holding docker logs recorded during (intergration) testing
 **/docker_logs/
