@@ -84,7 +84,8 @@ def get_patient_files(patient_file: str, test_data_folder: str) -> list[str]:
 
 
 #@pytest.mark.parametrize("data_resource_file, query_resource_path", test_data)
-def test_ccdl_query(data_resource_file, query_resource_path, backend_client, fhir_ip, backend_ip, test_dir):
+def test_ccdl_query(data_resource_file, query_resource_path, backend_client, fhir_ip, backend_ip, test_dir,
+                    fhir_testdata):
 
     # create list with all referenced files - recursively?
     resource_folder = os.path.join(test_dir, "testdata", "kds-testdata-2024.0.1", "resources")
