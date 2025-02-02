@@ -126,26 +126,23 @@ def test_criterion_term_code_search(expected_responses: list[Mapping[str, any]],
                                                              kds_modules=[entry['kdsModule']])
         assert len(response.get('results', [])) > 0, "Expected at least one match for the search query"
         response_entry = response.get('results')[0]
-        assert response_entry.get('id') == entry.get('id'), (f"Hash IDs mismatch [actual={response_entry.get('id')}, "
-                                                             f"expected={entry.get('id')}]")
-        assert response_entry.get('display') == entry.get('display'), (f"Display mismatch "
-                                                                       f"[actual={response_entry.get('display')}, "
-                                                                       f"expected={entry.get('display')}]")
-        assert response_entry.get('context') == entry.get('context'), (f"Context mismatch "
-                                                                       f"[actual={response_entry.get('context')}, "
-                                                                       f"expected={entry.get('context')}]")
+        assert response_entry.get('id') == entry.get('id'), (f"Hash IDs mismatch [actual={response_entry}, "
+                                                             f"expected={entry}]")
+        assert response_entry.get('display') == entry.get('display'), (f"Display mismatch [actual={response_entry}, "
+                                                                       f"expected={entry}]")
+        assert response_entry.get('context') == entry.get('context'), (f"Context mismatch [actual={response_entry}, "
+                                                                       f"expected={entry}]")
         assert response_entry.get('terminology') == entry.get('terminology'), (f"Code system mismatch "
-                                                                               f"[actual={response_entry.get('terminology')}, "
-                                                                               f"expected={entry.get('terminology')}]")
+                                                                               f"[actual={response_entry}, "
+                                                                               f"expected={entry}]")
         assert response_entry.get('termcode') == entry.get('termcode'), (f"Term code mismatch "
-                                                                         f"[actual={response_entry.get('termcode')}, "
-                                                                         f"expected={entry.get('termcode')}]")
+                                                                         f"[actual={response_entry}, expected={entry}]")
         assert response_entry.get('kdsModule') == entry.get('kdsModule'), (f"Term code mismatch "
-                                                                           f"[actual={response_entry.get('kdsModule')}, "
-                                                                           f"expected={entry.get('kdsModule')}]")
+                                                                           f"[actual={response_entry}, "
+                                                                           f"expected={entry}]")
         assert response_entry.get('selectable') == entry.get('selectable'), (f"Term code mismatch "
-                                                                             f"[actual={response_entry.get('selectable')}, "
-                                                                             f"expected={entry.get('selectable')}]")
+                                                                             f"[actual={response_entry}, "
+                                                                             f"expected={entry}]")
 
 
 '''
