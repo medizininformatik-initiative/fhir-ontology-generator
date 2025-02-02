@@ -161,9 +161,10 @@ def backend_client() -> FeasibilityBackendClient:
 
 @pytest.fixture(scope="session")
 def fhir_testdata(fhir_ip, test_dir, download=True):
+    target_dir_path = os.path.join(test_dir, "testdata")
     if download:
-        download_and_unzip_kds_test_data(target_folder=test_dir)
-    return os.path.join(test_dir, "testdata")
+        download_and_unzip_kds_test_data(target_dir_path)
+    return target_dir_path
 
 
 def __querying_metadata_schema(test_dir: Union[str, PathLike]) -> Mapping[str, any]:

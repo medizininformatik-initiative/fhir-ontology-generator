@@ -25,7 +25,8 @@ def download_and_unzip_kds_test_data(target_folder="testdata",download_url="http
         file.write(response.content)
     os.makedirs(target_folder, exist_ok=True)
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        zip_ref.extractall("testdata")
+        zip_ref.extractall(target_folder)
+    os.remove(zip_path)
     print("Downloaded testdata successfully")
     return True
 
