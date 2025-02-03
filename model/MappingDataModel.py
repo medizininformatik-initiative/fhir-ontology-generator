@@ -111,6 +111,17 @@ class FhirMapping:
 
 
 @dataclass
+class CQLTimeRestrictionParameter:
+    """
+    Holds information about an element within a FHIR resources that a filter targets
+    :param fhirPath: Path to the targeted element as a FHIRPath expression
+    :param types: List of types supported by this element which can be multiple if the element is polymorphic
+    """
+    fhirPath: str
+    types: List[str]
+
+
+@dataclass
 class CQLMapping:
     """
     CQLMapping stores all necessary information to translate a structured query to a CQL query.
@@ -121,7 +132,7 @@ class CQLMapping:
     termCodeFhirPath: Optional[str] = None
     valueFhirPath: Optional[str] = None
     valueType = None
-    timeRestrictionFhirPath: Optional[str] = None
+    timeRestriction: Optional[CQLTimeRestrictionParameter] = None
     attributeFhirPaths: List[CQLAttributeSearchParameter] = field(default_factory=list)
     # only required for version 1 support
     key: Optional[str] = None

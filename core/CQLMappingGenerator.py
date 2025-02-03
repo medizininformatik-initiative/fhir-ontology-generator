@@ -11,7 +11,7 @@ from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolv
 from core.StrucutureDefinitionParser import resolve_defining_id, extract_value_type, extract_reference_type, \
     CQL_TYPES_TO_VALUE_TYPES
 from helper import generate_attribute_key
-from model.MappingDataModel import CQLMapping, CQLAttributeSearchParameter
+from model.MappingDataModel import CQLMapping, CQLAttributeSearchParameter, CQLTimeRestrictionParameter
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import VALUE_TYPE_OPTIONS
 from model.UiDataModel import TermCode
@@ -136,8 +136,16 @@ class CQLMappingGenerator(object):
                 val_defining_id, profile_snapshot)
             cql_mapping.valueType = self.get_attribute_type(profile_snapshot, val_defining_id)
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
-            cql_mapping.timeRestrictionFhirPath = self.translate_element_id_to_fhir_path_expressions_time_restriction(
+            fhir_path = self.translate_element_id_to_fhir_path_expressions_time_restriction(
                 time_defining_id, profile_snapshot)
+            element =  self.parser.get_element_from_snapshot(profile_snapshot, time_defining_id)
+            element_types = element.get("type", [])
+            if not element_types:
+                raise KeyError("ElementDefinition.type cannot be empty as at least one type is required for CQL "
+                               f"translation [profile='{profile_snapshot.get('name')}, "
+                               f"element_id='{time_defining_id}']")
+            types = [elem_type.get('code') for elem_type in element_types]
+            cql_mapping.timeRestriction = CQLTimeRestrictionParameter(fhir_path, types)
         for attr_defining_id, attr_attributes in querying_meta_data.attribute_defining_id_type_map.items():
             attr_type = attr_attributes.get("type", "")
             self.set_attribute_search_param(attr_defining_id, cql_mapping, attr_type, profile_snapshot)
