@@ -101,7 +101,7 @@ def backend_ip(docker_services) -> str:
 
     logger.info(f"Waiting for service '{dataportal_backend_name}' to become responsive at {url_health_test}...")
     docker_services.wait_until_responsive(
-        timeout=180.0,
+        timeout=300.0,
         pause=5,
         check=lambda: util.http.requests.is_responsive(url_health_test)
     )
@@ -117,7 +117,7 @@ def fhir_ip(docker_services, test_dir: str) -> str:
 
     logger.info(f"Waiting for service '{fhir_name}' to become responsive at {url_health_test}...")
     docker_services.wait_until_responsive(
-        timeout=180.0,
+        timeout=300.0,
         pause=5,
         check=lambda: util.http.requests.is_responsive(url_health_test)
     )
@@ -135,7 +135,7 @@ def elastic_ip(docker_services) -> str:
 
     logger.info(f"Waiting for service '{elastic_name}' to be responsive at {url}...")
     docker_services.wait_until_responsive(
-        timeout=180.0,
+        timeout=300.0,
         pause=5,
         check=lambda: util.http.requests.is_responsive(url)
     )
