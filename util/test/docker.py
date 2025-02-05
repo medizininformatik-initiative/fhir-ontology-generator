@@ -7,14 +7,13 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
-def save_docker_logs():
+def save_docker_logs(dir_path: str):
     """
     Test to save logs of all running Docker containers to a logs folder.
     This should be the last test in the file to ensure all other tests are complete.
     """
     # Directory of the (this) test file
-    test_dir_path = os.path.dirname(os.path.realpath(__file__))
-    output_folder = os.path.join(test_dir_path, "docker_logs")
+    output_folder = os.path.join(dir_path, "docker_logs")
     os.makedirs(output_folder, exist_ok=True)
 
     try:

@@ -84,7 +84,7 @@ def docker_compose_file(pytestconfig) -> str:
                     os.path.join(tmp_path, "elastic.zip"))
 
     yield os.path.join(__test_dir(), "docker-compose.yml")
-    util.test.docker.save_docker_logs()
+    util.test.docker.save_docker_logs(__test_dir())
 
 
 @pytest.fixture(scope="session")

@@ -61,4 +61,4 @@ jobs:
       if: ${{ failure() }}
       with:
         name: docker_logs
-        path: test/integration/docker_logs
+        path: test/integration/backend/docker_logs
