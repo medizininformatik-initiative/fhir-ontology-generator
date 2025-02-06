@@ -50,12 +50,14 @@ class ElasticSearchGenerator:
                         context_termcode_hash_to_crit_set[cont_term_hash].append(crit_set_url)
 
     @staticmethod
-    def __get_relation_crit_object(code, system, term_code_info_map, namespace_uuid_str):
+    def __get_relation_crit_object(code, system, context, term_code_info_map, namespace_uuid_str):
 
-        term_code_hash = ElasticSearchGenerator.__get_termcode_hash(
-            {"code": code, "system": system}, namespace_uuid_str=namespace_uuid_str)
+        term_code = {"code": code, "system": system}
 
-        parent_term_code_info = term_code_info_map[term_code_hash]
+        context_term_code_hash = ElasticSearchGenerator.__get_contextualized_termcode_hash(context, term_code,
+                                                                                           namespace_uuid_str)
+
+        parent_term_code_info = term_code_info_map[context_term_code_hash]
         parent_context = parent_term_code_info['context']
         parent_term_code = parent_term_code_info['term_code']
 
@@ -75,21 +77,28 @@ class ElasticSearchGenerator:
 
             for entry in ui_tree['entries']:
 
-                term_code_hash = ElasticSearchGenerator.__get_termcode_hash(
-                    {"code": entry['key'], "system": ui_tree['system']}, namespace_uuid_str)
-                term_code_info = term_code_info_map[term_code_hash]
+                cur_tree_context = ui_tree['context']
+                ui_tree_term_code = {
+                    "system": ui_tree['system'],
+                    "code": entry['key']
+                }
+
+                context_termcode_hash = ElasticSearchGenerator.__get_contextualized_termcode_hash(cur_tree_context,
+                                                                                                  ui_tree_term_code,                                                                                                  namespace_uuid_str)
+
+                term_code_info = term_code_info_map[context_termcode_hash]
 
                 term_code = term_code_info['term_code']
+                context = term_code_info['context']
                 selectable = True if term_code_info['children_count'] < children_cut_off else False
                 obj = {
-                    'hash': ElasticSearchGenerator.__get_contextualized_termcode_hash(term_code_info['context'],
-                                                                                      term_code, namespace_uuid_str),
+                    'hash': context_termcode_hash,
                     'name': term_code['display'],
                     'availability': 0,
                     'terminology': term_code['system'],
                     'termcode': term_code['code'],
                     'selectable': selectable,
-                    'context': term_code_info['context'],
+                    'context': context,
                     'termcodes': [term_code_info['term_code']],
                     'criteria_sets': [],
                     'display': terminology_resolver.resolve_term(term_code),
@@ -101,12 +110,12 @@ class ElasticSearchGenerator:
 
                 for parent_code in entry['parents']:
                     obj['parents'].append(
-                        ElasticSearchGenerator.__get_relation_crit_object(parent_code, ui_tree['system'],
+                        ElasticSearchGenerator.__get_relation_crit_object(parent_code, ui_tree['system'], context,
                                                                           term_code_info_map, namespace_uuid_str))
 
                 for child_code in entry['children']:
                     obj['children'].append(
-                        ElasticSearchGenerator.__get_relation_crit_object(child_code, ui_tree['system'],
+                        ElasticSearchGenerator.__get_relation_crit_object(child_code, ui_tree['system'], context,
                                                                           term_code_info_map, namespace_uuid_str))
 
                 # TODO - Siblings - needs to be considered as it is possible to have siblings from other ui_tree
@@ -233,8 +242,9 @@ class ElasticSearchGenerator:
 
             print(f"loaded termcode info map from file {filename_prefix}")
             for term_code_info in term_code_info_list:
-                term_code_hash = ElasticSearchGenerator.__get_termcode_hash(term_code_info['term_code'],
-                                                                            namespace_uuid_str)
+                term_code_hash = ElasticSearchGenerator.__get_contextualized_termcode_hash(term_code_info['context'],
+                                                                                           term_code_info['term_code'],
+                                                                                           namespace_uuid_str)
                 term_code_info_map[term_code_hash] = term_code_info
 
         return term_code_info_map
