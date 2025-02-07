@@ -2,24 +2,24 @@
     "totalHits": 1,
     "results": [
         {
-            "id": "2e2a0198-f503-36b2-b103-c8345345a20d",
+            "id": "d282104b-0f5d-3a57-89f4-f9e89be5bb56",
             "display": {
-                "original": "Inzision, Embolektomie und Thrombektomie von Blutgefäßen: Arterien Unterarm und Hand: A. princeps pollicis",
+                "original": "Replacement of cast",
                 "translations": [
                     {
                         "language": "de-DE",
-                        "value": ""
+                        "value": "Ersatz des Gipses"
                     },
                     {
                         "language": "en-US",
-                        "value": ""
+                        "value": "Replacement of cast"
                     }
                 ]
             },
             "availability": 0,
             "context": "Procedure",
-            "terminology": "http://fhir.de/CodeSystem/bfarm/ops",
-            "termcode": "5-380.27",
+            "terminology": "http://snomed.info/sct",
+            "termcode": "288142002",
             "kdsModule": "Prozedur",
             "selectable": true
         }

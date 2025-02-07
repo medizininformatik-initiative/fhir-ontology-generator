@@ -1,0 +1,27 @@
+{
+    "totalHits": 1,
+    "results": [
+        {
+            "id": "6825edfa-04b7-373a-9856-5e1401d58ef0",
+            "display": {
+                "original": "(111In)Indiumpentetreotid",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": "(111In)Indiumpentetreotid"
+                    },
+                    {
+                        "language": "en-US",
+                        "value": "(111In)indium pentetreotide"
+                    }
+                ]
+            },
+            "availability": 0,
+            "context": "Medikamentenanordnung",
+            "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+            "termcode": "V09IB01",
+            "kdsModule": "Medikation",
+            "selectable": true
+        }
+    ]
+}

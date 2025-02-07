@@ -1,0 +1,27 @@
+{
+    "totalHits": 1,
+    "results": [
+        {
+            "id": "cf51805d-58f6-3219-a180-463fc9bea37a",
+            "display": {
+                "original": "2-Hydroxyglutarazidämie",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": "2-Hydroxyglutarazidämie"
+                    },
+                    {
+                        "language": "en-US",
+                        "value": "2-Hydroxyglutaric acidemia"
+                    }
+                ]
+            },
+            "availability": 0,
+            "context": "Diagnose",
+            "terminology": "http://fhir.de/CodeSystem/bfarm/alpha-id",
+            "termcode": "I118627",
+            "kdsModule": "Diagnose",
+            "selectable": true
+        }
+    ]
+}

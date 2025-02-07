@@ -2,24 +2,24 @@
     "totalHits": 1,
     "results": [
         {
-            "id": "0ecfa59f-f48f-34ed-b9b1-dc76bf213621",
+            "id": "49ad1a0b-d0c2-3d16-ae3b-2569b70a5d9e",
             "display": {
-                "original": "(111In)Indiumpentetreotid",
+                "original": "(123I)Iodiofetamin",
                 "translations": [
                     {
                         "language": "de-DE",
-                        "value": ""
+                        "value": "(123I)Iodiofetamin"
                     },
                     {
                         "language": "en-US",
-                        "value": ""
+                        "value": "(123I)Iodiofetamine"
                     }
                 ]
             },
             "availability": 0,
             "context": "Medikamentenverabreichung",
             "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
-            "termcode": "V09IB01",
+            "termcode": "V09AB01",
             "kdsModule": "Medikation",
             "selectable": true
         }

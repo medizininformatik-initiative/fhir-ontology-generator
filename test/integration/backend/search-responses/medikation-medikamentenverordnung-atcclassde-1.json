@@ -2,24 +2,24 @@
     "totalHits": 1,
     "results": [
         {
-            "id": "6825edfa-04b7-373a-9856-5e1401d58ef0",
+            "id": "c9b1f213-c024-3ee4-ac30-6e9b4c5bd18f",
             "display": {
-                "original": "(111In)Indiumpentetreotid",
+                "original": "(123I)Iodiofetamin",
                 "translations": [
                     {
                         "language": "de-DE",
-                        "value": ""
+                        "value": "(123I)Iodiofetamin"
                     },
                     {
                         "language": "en-US",
-                        "value": ""
+                        "value": "(123I)Iodiofetamine"
                     }
                 ]
             },
             "availability": 0,
-            "context": "Medikamentenanordnung",
+            "context": "Medikamentenverordnung",
             "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
-            "termcode": "V09IB01",
+            "termcode": "V09AB01",
             "kdsModule": "Medikation",
             "selectable": true
         }

@@ -9,6 +9,7 @@ from jsonpath_ng import parse
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from util.http.backend.FeasibilityBackendClient import FeasibilityBackendClient
 from util.test.fhir import load_list_of_resources_onto_fhir_server, delete_list_of_resources_from_fhir_server
+from util.test.functions import mismatch_str
 
 
 def resolve_ref(ref: str, ensemble=None, resolved=None, resolving=None) -> list[str]:
@@ -96,7 +97,7 @@ def test_ccdl_query(data_resource_file, query_resource_path, backend_client, fhi
         print("Uploaded fhir data")
 
     # send ccdl to backend
-    with open(os.path.join(test_dir, "test_querys", query_resource_path), "r", encoding="utf-8") as f:
+    with open(os.path.join(test_dir, "test-queries", query_resource_path), "r", encoding="utf-8") as f:
         query = json.dumps(json.load(f))
     query_id = backend_client.query(query).split("/")[-1]
 
@@ -120,29 +121,44 @@ def test_criterion_definition_validity(querying_metadata: ResourceQueryingMetaDa
 def test_criterion_term_code_search(expected_responses: list[Mapping[str, any]],
                                     backend_client: FeasibilityBackendClient, backend_ip, elastic_ip):
     for expected_response in expected_responses:
-        entry = expected_response['results'][0]
-        response = backend_client.search_terminology_entries(search_term=entry['termcode'], contexts=[entry['context']],
-                                                             terminologies=[entry['terminology']],
-                                                             kds_modules=[entry['kdsModule']])
+        expected_entry = expected_response['results'][0]
+        response = backend_client.search_terminology_entries(search_term=expected_entry['termcode'],
+                                                             contexts=[expected_entry['context']],
+                                                             terminologies=[expected_entry['terminology']],
+                                                             kds_modules=[expected_entry['kdsModule']])
         assert len(response.get('results', [])) > 0, "Expected at least one match for the search query"
         response_entry = response.get('results')[0]
-        assert response_entry.get('id') == entry.get('id'), (f"Hash IDs mismatch [actual={response_entry}, "
-                                                             f"expected={entry}]")
-        assert response_entry.get('display') == entry.get('display'), (f"Display mismatch [actual={response_entry}, "
-                                                                       f"expected={entry}]")
-        assert response_entry.get('context') == entry.get('context'), (f"Context mismatch [actual={response_entry}, "
-                                                                       f"expected={entry}]")
-        assert response_entry.get('terminology') == entry.get('terminology'), (f"Code system mismatch "
-                                                                               f"[actual={response_entry}, "
-                                                                               f"expected={entry}]")
-        assert response_entry.get('termcode') == entry.get('termcode'), (f"Term code mismatch "
-                                                                         f"[actual={response_entry}, expected={entry}]")
-        assert response_entry.get('kdsModule') == entry.get('kdsModule'), (f"Term code mismatch "
-                                                                           f"[actual={response_entry}, "
-                                                                           f"expected={entry}]")
-        assert response_entry.get('selectable') == entry.get('selectable'), (f"Term code mismatch "
-                                                                             f"[actual={response_entry}, "
-                                                                             f"expected={entry}]")
+
+        actual_id = response_entry.get('id')
+        expected_id = expected_entry.get('id')
+        assert actual_id == expected_id, mismatch_str("hash ID", actual_id, expected_id)
+
+        actual_display = response_entry.get('display')
+        expected_display = expected_entry.get('display')
+        assert actual_display == expected_display, mismatch_str("display", actual_display, expected_display)
+
+        actual_context = response_entry.get('context')
+        expected_context = response_entry.get('context')
+        assert actual_context == expected_context, mismatch_str("context", actual_context, expected_context)
+
+        actual_terminology = response_entry.get('terminology')
+        expected_terminology = expected_entry.get('terminology')
+        assert actual_terminology == expected_terminology, mismatch_str("terminology", actual_terminology,
+                                                                        expected_terminology)
+
+        actual_termcode = response_entry.get('termcode')
+        expected_termcode = expected_entry.get('termcode')
+        assert actual_termcode == expected_termcode, mismatch_str("termcode", actual_termcode, expected_termcode)
+
+        actual_kds_module = response_entry.get('kdsModule')
+        expected_kds_module = expected_entry.get('kdsModule')
+        assert actual_kds_module == expected_kds_module, mismatch_str("kdsModule", actual_kds_module,
+                                                                      expected_kds_module)
+
+        actual_selectable = response_entry.get('selectable')
+        expected_selectable = expected_entry.get('selectable')
+        assert actual_selectable == expected_selectable, mismatch_str("selectable", actual_selectable,
+                                                                      expected_selectable)
 
 
 '''

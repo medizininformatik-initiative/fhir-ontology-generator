@@ -138,11 +138,12 @@ services:
         read_only: true
 
   blaze:
-    image: "samply/blaze:0.30"
+    image: "samply/blaze:0.32"
     environment:
       BASE_URL: "http://blaze:8080"
       JAVA_TOOL_OPTIONS: "-Xmx1g"
       LOG_LEVEL: "debug"
+      ENFORCE_REFERENTIAL_INTEGRITY: "false"
     ports:
       - "8082:8080"
     volumes:

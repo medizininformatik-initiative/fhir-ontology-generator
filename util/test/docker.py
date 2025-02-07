@@ -19,7 +19,7 @@ def save_docker_logs(dir_path: str):
     try:
         # Get the list of running container IDs
         result = subprocess.run(
-            ["docker", "ps", "-q"],
+            ["docker", "ps", "-aq"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
@@ -28,7 +28,7 @@ def save_docker_logs(dir_path: str):
         container_ids = result.stdout.strip().split("\n")
 
         if not container_ids or container_ids == ['']:
-            logger.info("No running containers found.")
+            logger.warning("Found no running containers found")
             return
 
         now = datetime.now()

@@ -45,7 +45,7 @@ def test_criterion_term_code_search(querying_metadata: ResourceQueryingMetaData,
         pytest.fail(f"Failed to retrieve term codes for testing. Reason: {exc}")
 
     contexts = [querying_metadata.context.code]
-    modules = [querying_metadata.module.display] # FIXME: Should be code in the future
+    modules = [querying_metadata.backend.display] # FIXME: Should be code in the future
     for term_code in term_codes:
         search_term = term_code.code
         terminologies = [term_code.system]
@@ -63,7 +63,7 @@ def test_criterion_term_code_search(querying_metadata: ResourceQueryingMetaData,
         term_code_entries = backend_client.get_criteria_profile_data(criteria_ids=ids)
         assert len(term_code_entries) == len(ids)
         # All returned term codes should be associated with the UI profile corresponding to the querying metadata
-        # profile since we restricted the search to its context, module and defining term codes value set
+        # profile since we restricted the search to its context, backend and defining term codes value set
         for entry in term_code_entries:
             context = entry.get('context')
             assert context, "A contextualized term code should have a context attribute that is not empty"

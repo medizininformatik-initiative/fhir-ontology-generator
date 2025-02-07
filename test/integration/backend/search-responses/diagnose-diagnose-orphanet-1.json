@@ -2,24 +2,24 @@
     "totalHits": 1,
     "results": [
         {
-            "id": "69b733e2-99eb-3a12-bcd1-8e7b16c750ae",
+            "id": "7b96164f-abf0-3075-8027-560d6bd8a5a1",
             "display": {
-                "original": "Idiopathische Hypotonie",
+                "original": "Anotie",
                 "translations": [
                     {
                         "language": "de-DE",
-                        "value": ""
+                        "value": "Anotie"
                     },
                     {
                         "language": "en-US",
-                        "value": ""
+                        "value": "Anotia"
                     }
                 ]
             },
             "availability": 0,
             "context": "Diagnose",
-            "terminology": "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
-            "termcode": "I95.0",
+            "terminology": "http://www.orpha.net",
+            "termcode": "93976",
             "kdsModule": "Diagnose",
             "selectable": true
         }

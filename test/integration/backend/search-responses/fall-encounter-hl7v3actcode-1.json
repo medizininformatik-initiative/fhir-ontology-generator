@@ -2,25 +2,25 @@
     "totalHits": 1,
     "results": [
         {
-            "id": "7a5400b8-0c6b-3bb4-ae8c-80ec9b3ac0eb",
+            "id": "a14c6f57-88d1-3ea8-8b1e-3b86f7d2b4ae",
             "display": {
-                "original": "(123I)Natriumiodid",
+                "original": "inpatient encounter",
                 "translations": [
                     {
                         "language": "de-DE",
-                        "value": ""
+                        "value": "stationäre Begegnung"
                     },
                     {
                         "language": "en-US",
-                        "value": ""
+                        "value": "inpatient encounter"
                     }
                 ]
             },
             "availability": 0,
-            "context": "Medikamentenverordnung",
-            "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
-            "termcode": "V09FX02",
-            "kdsModule": "Medikation",
+            "context": "Fall",
+            "terminology": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+            "termcode": "IMP",
+            "kdsModule": "Fall",
             "selectable": true
         }
     ]

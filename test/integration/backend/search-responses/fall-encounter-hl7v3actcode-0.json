@@ -2,25 +2,25 @@
     "totalHits": 1,
     "results": [
         {
-            "id": "05d8b345-6db3-36e8-a186-918865fa9a2e",
+            "id": "4c9a0679-5d40-377d-b2b7-b1c71c12d767",
             "display": {
-                "original": "Platelets given [Type]",
+                "original": "ambulatory",
                 "translations": [
                     {
                         "language": "de-DE",
-                        "value": ""
+                        "value": "ambulant"
                     },
                     {
                         "language": "en-US",
-                        "value": "Platelets given [Type]"
+                        "value": "ambulatory"
                     }
                 ]
             },
             "availability": 0,
-            "context": "Laboruntersuchung",
-            "terminology": "http://loinc.org",
-            "termcode": "10412-5",
-            "kdsModule": "Labor",
+            "context": "Fall",
+            "terminology": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+            "termcode": "AMB",
+            "kdsModule": "Fall",
             "selectable": true
         }
     ]
