@@ -1,6 +1,6 @@
 services:
   dataportal-backend:
-    container_name: dataportal-backend
+    container_name: integration-test_dataportal-backend
     image: ghcr.io/medizininformatik-initiative/feasibility-backend:6.1.0-alpha.1
     ports:
       - "8091:8090"
@@ -96,7 +96,7 @@ services:
 
   dataportal-postgres:
     image: 'postgres:16-alpine'
-    container_name: dataportal-postgres
+    container_name: integration-test_dataportal-postgres
     ports:
       - "5432:5432"
     environment:
@@ -106,7 +106,7 @@ services:
 
   dataportal-elastic:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.16.1
-    container_name: dataportal-elastic
+    container_name: integration-test_dataportal-elastic
     ports:
       - '9200:9200'
       - '9300:9300'
@@ -126,6 +126,7 @@ services:
     depends_on:
       - dataportal-elastic
     image: ghcr.io/medizininformatik-initiative/dataportal-es-init:1.2
+    container_name: integration-test_elastic-search-init
     environment:
       ES_HOST: dataportal-elastic
       ONTO_GIT_TAG: v3.0.2-alpha
@@ -139,6 +140,7 @@ services:
 
   blaze:
     image: "samply/blaze:0.32"
+    container_name: integration-test_blaze
     environment:
       BASE_URL: "http://blaze:8080"
       JAVA_TOOL_OPTIONS: "-Xmx1g"
@@ -161,6 +163,7 @@ services:
 
   auth-db:
     image: postgres:16-alpine
+    container_name: integration-test_auth-db
     restart: unless-stopped
     environment:
       POSTGRES_DB: "keycloakdb"
@@ -171,6 +174,7 @@ services:
 
   auth:
     image: keycloak/keycloak:21.1
+    container_name: integration-test_auth
     command: ["start-dev", "--import-realm"]
     restart: unless-stopped
     environment:
@@ -194,4 +198,6 @@ services:
 
 volumes:
   dataportal-auth-db:
+    name: integration-test_dataportal-auth-db
   blaze-data:
+    name: integration-test_blaze-data

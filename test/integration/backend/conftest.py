@@ -3,9 +3,10 @@ import os
 import shutil
 from collections import defaultdict
 from os import PathLike, mkdir
-from typing import Mapping, Union
+from typing import Mapping, Union, Iterator
 
 from _pytest.python import Metafunc
+from pytest_docker.plugin import Services, get_docker_services, containers_scope
 
 import util.http.requests
 import util.test.docker
@@ -84,17 +85,37 @@ def docker_compose_file(pytestconfig) -> str:
                     os.path.join(tmp_path, "elastic.zip"))
 
     yield os.path.join(__test_dir(), "docker-compose.yml")
-    util.test.docker.save_docker_logs(__test_dir())
+    #util.test.docker.save_docker_logs(__test_dir(), "integration-test")
 
 
 @pytest.fixture(scope="session")
 def docker_setup(pytestconfig) -> Union[list[str], str]:
-    return ["up --build --force-recreate -d --wait"]
+    return ["up --build -d --wait"]
 
 
 @pytest.fixture(scope="session")
 def docker_cleanup() -> Union[list[str], str]:
-    return ["stop"]
+    return ["down -v"]
+
+
+@pytest.fixture(scope="session")
+def docker_services(
+    docker_compose_command: str,
+    docker_compose_file: Union[list[str], str],
+    docker_compose_project_name: str,
+    docker_setup: str,
+    docker_cleanup: str,
+) -> Iterator[Services]:
+    # We overwrite this fixture to allow for the Docker container logs to be saved before `pytest-docker` removes them
+    with get_docker_services(
+        docker_compose_command,
+        docker_compose_file,
+        docker_compose_project_name,
+        docker_setup,
+        docker_cleanup,
+    ) as docker_service:
+        yield docker_service
+        util.test.docker.save_docker_logs(__test_dir(), "integration-test")
 
 
 @pytest.fixture(scope="session")

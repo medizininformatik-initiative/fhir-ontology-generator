@@ -3,14 +3,18 @@ import subprocess
 import logging
 from datetime import datetime
 
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 
-def save_docker_logs(dir_path: str):
+def save_docker_logs(dir_path: str, project_name: Optional[str] = None) -> None:
     """
-    Test to save logs of all running Docker containers to a logs folder.
+    Saves logs of all running Docker containers to a logs folder.
     This should be the last test in the file to ensure all other tests are complete.
+    :param dir_path: Location (directory) in which to save the directory containing the container logs
+    :param project_name: Optional Docker project name no filter container names for.
+                         Pattern: <project_name>_<service_name>
     """
     # Directory of the (this) test file
     output_folder = os.path.join(dir_path, "docker_logs")
@@ -18,16 +22,19 @@ def save_docker_logs(dir_path: str):
 
     try:
         # Get the list of running container IDs
+        args = ["docker", "ps", "-a", "--format", "{{.ID}} {{.Names}}"]
+        if project_name:
+            args.extend(["-f", f"name=^{project_name}"])
         result = subprocess.run(
-            ["docker", "ps", "-aq"],
+            args,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
             check=True
         )
-        container_ids = result.stdout.strip().split("\n")
+        containers = [(s[0], s[1]) for s in [c.split(" ") for c in result.stdout.strip().split("\n")]]
 
-        if not container_ids or container_ids == ['']:
+        if not containers:
             logger.warning("Found no running containers found")
             return
 
@@ -35,8 +42,8 @@ def save_docker_logs(dir_path: str):
         current_time = now.strftime('%H_%M_%S')
 
         # Save logs for each container
-        for container_id in container_ids:
-            log_file = os.path.join(output_folder, f"{container_id}_{current_time}_logs.txt")
+        for container_id, container_name in containers:
+            log_file = os.path.join(output_folder, f"{container_name}_{current_time}_logs.txt")
             with open(log_file, "w") as f:
                 subprocess.run(
                     ["docker", "logs", container_id],
@@ -45,6 +52,6 @@ def save_docker_logs(dir_path: str):
                     text=True,
                     check=True
                 )
-            print(f"Logs saved for container {container_id} in {log_file}")
+            logger.info(f"Logs saved for container {container_name} [id={container_id}] in {log_file}")
     except subprocess.CalledProcessError as e:
-        print(f"Error while fetching logs: {e.stderr}")
+        logger.error(f"Error while fetching logs: {e.stderr}")
