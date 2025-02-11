@@ -1,0 +1,27 @@
+{
+    "totalHits": 1,
+    "results": [
+        {
+            "id": "05d8b345-6db3-36e8-a186-918865fa9a2e",
+            "display": {
+                "original": "Platelets given [Type]",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": "Thrombozyten verabreicht [Typ]"
+                    },
+                    {
+                        "language": "en-US",
+                        "value": "Platelets given [Type]"
+                    }
+                ]
+            },
+            "availability": 0,
+            "context": "Laboruntersuchung",
+            "terminology": "http://loinc.org",
+            "termcode": "10412-5",
+            "kdsModule": "Labor",
+            "selectable": true
+        }
+    ]
+}

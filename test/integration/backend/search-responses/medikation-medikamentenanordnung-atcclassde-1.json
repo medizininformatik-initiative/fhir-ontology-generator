@@ -1,0 +1,27 @@
+{
+    "totalHits": 1,
+    "results": [
+        {
+            "id": "e53c2e7b-4f7f-30b6-9da4-8bcae5a4d8e6",
+            "display": {
+                "original": "(123I)Iodiofetamin",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": "(123I)Iodiofetamin"
+                    },
+                    {
+                        "language": "en-US",
+                        "value": "(123I)Iodiofetamine"
+                    }
+                ]
+            },
+            "availability": 0,
+            "context": "Medikamentenanordnung",
+            "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+            "termcode": "V09AB01",
+            "kdsModule": "Medikation",
+            "selectable": true
+        }
+    ]
+}

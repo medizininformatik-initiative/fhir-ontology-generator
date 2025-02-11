@@ -1,0 +1,27 @@
+{
+    "totalHits": 1,
+    "results": [
+        {
+            "id": "69b733e2-99eb-3a12-bcd1-8e7b16c750ae",
+            "display": {
+                "original": "Idiopathische Hypotonie",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": "Idiopathische Hypotonie"
+                    },
+                    {
+                        "language": "en-US",
+                        "value": "Idiopathic hypotension"
+                    }
+                ]
+            },
+            "availability": 0,
+            "context": "Diagnose",
+            "terminology": "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
+            "termcode": "I95.0",
+            "kdsModule": "Diagnose",
+            "selectable": true
+        }
+    ]
+}

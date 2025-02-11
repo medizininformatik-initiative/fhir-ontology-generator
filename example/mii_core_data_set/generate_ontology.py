@@ -242,7 +242,7 @@ def configure_args_parser() -> argparse.ArgumentParser:
     parser.add_argument('--generate_ui_trees', action='store_true', help='Generate UI trees')
     parser.add_argument('--generate_ui_profiles', action='store_true', help='Generate UI profiles')
     parser.add_argument('--generate_mapping', action='store_true', help='Generate mappings')
-    parser.add_argument('--modules', nargs='+', help='Modules to generate the ontology for')
+    parser.add_argument('--module', nargs='+', help='Modules to generate the ontology for')
     parser.add_argument(
         "--loglevel",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
@@ -489,7 +489,7 @@ def main():
     onto_result_dir = "generated-ontology"
     differential_folder = "differential"
 
-    modules = args.modules if args.modules else [module for module in os.listdir("CDS_Module")]
+    modules = args.module if args.module else [module for module in os.listdir("CDS_Module")]
 
     for module in modules:
 

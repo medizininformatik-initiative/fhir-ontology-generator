@@ -1,6 +1,6 @@
 import unittest
 import os
-from util.SqlMerger import SqlMerger
+from util.sql.SqlMerger import SqlMerger
 
 
 class SqlMergerTest(unittest.TestCase):

@@ -33,7 +33,6 @@ def get_element_from_snapshot(profile_snapshot, element_id) -> dict:
     :param element_id: element id
     :return: element
     """
-
     if not profile_snapshot.get("snapshot"):
         raise KeyError(f"KeyError the snapshot has no snapshot elements. The snapshot: {profile_snapshot.get('name')}")
     try:

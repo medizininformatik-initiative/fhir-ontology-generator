@@ -1,0 +1,27 @@
+{
+    "totalHits": 1,
+    "results": [
+        {
+            "id": "86c01db6-3121-335b-bf0f-c93b2d27611a",
+            "display": {
+                "original": "BIOMAT Analysedaten zusammenfuehren Dritte",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": ""
+                    },
+                    {
+                        "language": "en-US",
+                        "value": ""
+                    }
+                ]
+            },
+            "availability": 0,
+            "context": "Einwilligung",
+            "terminology": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+            "termcode": "JA",
+            "kdsModule": "Einwilligung",
+            "selectable": true
+        }
+    ]
+}

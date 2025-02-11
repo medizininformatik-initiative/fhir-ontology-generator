@@ -1,0 +1,27 @@
+{
+    "totalHits": 1,
+    "results": [
+        {
+            "id": "4eeeddc1-b5a3-3d64-9c5e-bf28f39bdefe",
+            "display": {
+                "original": "Heat stroke",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": "Hitzschlag"
+                    },
+                    {
+                        "language": "en-US",
+                        "value": "Heat stroke"
+                    }
+                ]
+            },
+            "availability": 0,
+            "context": "Diagnose",
+            "terminology": "http://snomed.info/sct",
+            "termcode": "52072009",
+            "kdsModule": "Diagnose",
+            "selectable": true
+        }
+    ]
+}

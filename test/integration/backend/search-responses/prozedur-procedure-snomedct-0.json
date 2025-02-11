@@ -1,0 +1,27 @@
+{
+    "totalHits": 1,
+    "results": [
+        {
+            "id": "ff2fd3b2-28f6-3828-b699-db97891ca83f",
+            "display": {
+                "original": "\"Section\" examination - approved doctor",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": "\"Sektionsprüfung - zugelassener Arzt"
+                    },
+                    {
+                        "language": "en-US",
+                        "value": "\"Section\" examination - approved doctor"
+                    }
+                ]
+            },
+            "availability": 0,
+            "context": "Procedure",
+            "terminology": "http://snomed.info/sct",
+            "termcode": "171425002",
+            "kdsModule": "Prozedur",
+            "selectable": true
+        }
+    ]
+}

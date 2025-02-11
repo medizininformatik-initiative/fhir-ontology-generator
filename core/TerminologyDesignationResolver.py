@@ -5,11 +5,11 @@ import os
 import re
 from itertools import groupby
 
-from util.LoggingUtil import init_logger, log_to_stdout
+from util.logging.LoggingUtil import init_logger, log_to_stdout
 from typing import List, TypeVar
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, \
     REQUESTS_SESSION
-from util.FhirUtil import create_bundle, BundleType
+from util.fhir.FhirUtil import create_bundle, BundleType
 
 logger = init_logger("TerminologyDesignationResolver", logging.DEBUG)
 log_to_stdout("TerminologyDesignationResolver", logging.DEBUG)

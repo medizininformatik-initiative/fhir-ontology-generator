@@ -15,7 +15,6 @@ from TerminologService.valueSetToRoots import get_closure_map, remove_non_direct
 from model.TreeMap import TreeMap, TermEntryNode
 from model.UiDataModel import TermCode
 
-from util.LoggingUtil import init_logger, log_to_stdout
 
 def setup_logging(log_level):
     logging.basicConfig(

@@ -6,9 +6,9 @@ import re
 from typing import Tuple, List, Dict
 from lxml import etree
 
-from core import StrucutureDefinitionParser as FHIRParser
+from core import StructureDefinitionParser as FHIRParser
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
-from core.StrucutureDefinitionParser import resolve_defining_id, extract_value_type, extract_reference_type, \
+from core.StructureDefinitionParser import resolve_defining_id, extract_value_type, extract_reference_type, \
     CQL_TYPES_TO_VALUE_TYPES
 from core.exceptions.UnsupportedTypingException import UnsupportedTypingException
 from helper import generate_attribute_key
