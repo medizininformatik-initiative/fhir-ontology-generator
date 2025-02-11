@@ -1,10 +1,18 @@
 [
+  "de.medizininformatikinitiative.kerndatensatz.onkologie 2025.0.2",
+  "de.medizininformatikinitiative.kerndatensatz.patho 2025.0.2",
+  "de.medizininformatikinitiative.kerndatensatz.mikrobiologie 2025.0.1",
+  "de.medizininformatikinitiative.kerndatensatz.studie 2025.0.0",
   "de.medizininformatikinitiative.kerndatensatz.laborbefund 2025.0.0-alpha1",
   "de.medizininformatikinitiative.kerndatensatz.medikation 2025.0.0-alpha5",
   "de.medizininformatikinitiative.kerndatensatz.diagnose 2025.0.0-alpha2",
   "de.medizininformatikinitiative.kerndatensatz.prozedur 2025.0.0-alpha2",
   "de.medizininformatikinitiative.kerndatensatz.person 2025.0.0-alpha4",
   "de.medizininformatikinitiative.kerndatensatz.consent 1.0.7",
+  "de.medizininformatikinitiative.kerndatensatz.biobank 2025.0.0",
+  "de.medizininformatikinitiative.kerndatensatz.icu 2025.0.1",
+  "de.medizininformatikinitiative.kerndatensatz.molgen 2025.0.0",
+  "de.medizininformatikinitiative.kerndatensatz.bildgebung 2025.0.0",
   "de.medizininformatikinitiative.kerndatensatz.fall 2025.0.0-alpha4",
-  "de.medizininformatikinitiative.kerndatensatz.biobank 2025.0.0"
+  "de.medizininformatikinitiative.kerndatensatz.icu 2025.0.1"
 ]

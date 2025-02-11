@@ -215,7 +215,9 @@ class ProfileTreeGenerator():
                         content = json.load(f)
 
                         if (
-                                "resourceType" in content
+                                "https://www.medizininformatik-initiative.de" in content["url"]
+                                and "snapshot" in content
+                                and "resourceType" in content
                                 and content["resourceType"] == "StructureDefinition"
                                 and content["baseDefinition"]
                                 not in ["http://hl7.org/fhir/StructureDefinition/Extension"]

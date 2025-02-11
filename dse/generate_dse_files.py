@@ -86,6 +86,7 @@ def download_simplifier_packages(package_names):
         if os.path.exists("package.json"):
             os.remove("package.json")
 
+        logging.info(f"Downloading '{package}'")
         os.system(f"fhir install {package} --here")
 
     os.chdir(prev_dir)
