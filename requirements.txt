@@ -16,3 +16,4 @@ jsonschema==3.2.0
 typing-extensions==4.12.2
 jsonpath-ng~=1.7.0
 typing_extensions~=4.12.2
+fhir.resources==8.0.0
