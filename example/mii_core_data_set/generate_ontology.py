@@ -433,13 +433,16 @@ def generate_cql_mapping(
     :param onto_result_dir: The base directory for output files.
     :param logger: The logger object.
     """
-    logger.info("Generating CQL mapping...")
-    cql_generator = CQLMappingGenerator(resolver)
-    cql_term_code_mappings, cql_concept_mappings = cql_generator.generate_mapping(differential_folder, module_name)
-    cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
-    cql_mapping_file = os.path.join(onto_result_dir, 'mapping', 'cql', 'mapping_cql.json')
-    with open(cql_mapping_file, 'w', encoding='utf-8') as f:
-        f.write(cql_mappings.to_json())
+    try:
+        logger.info("Generating CQL mapping...")
+        cql_generator = CQLMappingGenerator(resolver)
+        cql_term_code_mappings, cql_concept_mappings = cql_generator.generate_mapping(differential_folder, module_name)
+        cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
+        cql_mapping_file = os.path.join(onto_result_dir, 'mapping', 'cql', 'mapping_cql.json')
+        with open(cql_mapping_file, 'w', encoding='utf-8') as f:
+            f.write(cql_mappings.to_json())
+    except Exception as exc:
+        raise Exception("CQL mapping generation failed. No mapping will be emitted", exc)
 
 
 def generate_fhir_mapping(
@@ -528,7 +531,7 @@ def main():
                     resolver, os.path.join("CDS_Module", module, "differential"), os.path.join("CDS_Module", module, onto_result_dir), StandardSearchParameterResolver(module), module, logger
                 )
         except Exception as e:
-            logger.error(f"An error occurred: {e}", exc_info=True)
+            logger.error(f"An error occurred while running generator for module '{module}': {e}", exc_info=True)
         finally:
             # Dump the database to the module's directory
             if args.generate_ui_profiles:

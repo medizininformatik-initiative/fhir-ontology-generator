@@ -23,7 +23,8 @@ from core.docker.Images import POSTGRES_IMAGE
 from database.DataBaseWriter import DataBaseWriter
 from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, load_querying_meta_data, \
     mkdir_if_not_exists
-from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList, FixedFHIRCriteria, PathlingMapping
+from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList, FixedFHIRCriteria, PathlingMapping, \
+    CQLTimeRestrictionParameter
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.TreeMap import ContextualizedTermCodeInfoList, TreeMapList
 from model.UIProfileModel import UIProfile
@@ -402,7 +403,7 @@ def get_combined_consent_fhir_mapping():
 
 def get_combined_consent_cql_mapping():
     combined_consent_cql_mapping = CQLMapping("CombinedConsent")
-    combined_consent_cql_mapping.timeRestrictionFhirPath = "Consent.datetime"
+    combined_consent_cql_mapping.timeRestriction = CQLTimeRestrictionParameter("Consent.datetime", ["dateTime"])
     combined_consent_cql_mapping.fhirResourceType = "Consent"
     primaryCode = TermCode("http://loinc.org", "54133-1", "Consent Document")
     combined_consent_cql_mapping.primaryCode = primaryCode
