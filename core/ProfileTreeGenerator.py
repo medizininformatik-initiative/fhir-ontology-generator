@@ -166,7 +166,7 @@ class ProfileTreeGenerator():
 
             profile_child_index = self.get_profile_in_node(cur_node, profile["name"])
 
-            if index == len(path) - 1:
+            if index == len(path) - 1 and profile_child_index == -1:
                 profile["leaf"] = True
                 profile["selectable"] = True
 
