@@ -1,0 +1,27 @@
+{
+    "totalHits": 1,
+    "results": [
+        {
+            "id": "b5e06130-84d4-386f-b721-286f7846cb6c",
+            "display": {
+                "original": "Diabetes mellitus",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": "Diabetes mellitus"
+                    },
+                    {
+                        "language": "en-US",
+                        "value": "Diabetes mellitus"
+                    }
+                ]
+            },
+            "availability": 0,
+            "context": "Diagnose",
+            "terminology": "http://snomed.info/sct",
+            "termcode": "73211009",
+            "kdsModule": "Diagnose",
+            "selectable": true
+        }
+    ]
+}

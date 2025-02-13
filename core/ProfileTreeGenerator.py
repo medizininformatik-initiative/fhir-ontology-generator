@@ -166,7 +166,7 @@ class ProfileTreeGenerator():
 
             profile_child_index = self.get_profile_in_node(cur_node, profile["name"])
 
-            if index == len(path) - 1:
+            if index == len(path) - 1 and profile_child_index == -1:
                 profile["leaf"] = True
                 profile["selectable"] = True
 
@@ -215,7 +215,9 @@ class ProfileTreeGenerator():
                         content = json.load(f)
 
                         if (
-                                "resourceType" in content
+                                "https://www.medizininformatik-initiative.de" in content["url"]
+                                and "snapshot" in content
+                                and "resourceType" in content
                                 and content["resourceType"] == "StructureDefinition"
                                 and content["baseDefinition"]
                                 not in ["http://hl7.org/fhir/StructureDefinition/Extension"]

@@ -1,0 +1,26 @@
+name: Set Locale
+
+description: 'Sets system locale'
+
+inputs:
+  locale:
+    required: true
+    description: 'Locale code to set as system locale'
+    default: 'de_DE.UTF-8'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set locale
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install tzdata locales -y
+        sudo locale-gen ${{ inputs.locale }}
+        sudo localectl set-locale LANG="${{ inputs.locale }}"
+        export LANG="${{ inputs.locale }}"
+        sudo update-locale
+        locale -a
+        locale
+        locale -c -k LC_NUMERIC
+        localectl status

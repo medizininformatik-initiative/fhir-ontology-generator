@@ -1,0 +1,27 @@
+{
+    "totalHits": 1,
+    "results": [
+        {
+            "id": "c1812229-9e10-3532-97e0-fea15914dc4f",
+            "display": {
+                "original": "Leukocytes other/100 leukocytes in Blood",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": "Leukozyten andere/100 Leukozyten in Blut"
+                    },
+                    {
+                        "language": "en-US",
+                        "value": "Leukocytes other/100 leukocytes in Blood"
+                    }
+                ]
+            },
+            "availability": 0,
+            "context": "Laboruntersuchung",
+            "terminology": "http://loinc.org",
+            "termcode": "26471-3",
+            "kdsModule": "Labor",
+            "selectable": true
+        }
+    ]
+}

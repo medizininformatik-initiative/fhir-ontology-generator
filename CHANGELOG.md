@@ -13,6 +13,46 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 ### Security
 
+## [3.1.0] - 2025-02-13
+
+| Modul            | Version                                                                    | Changelog    |
+|------------------|----------------------------------------------------------------------------|--------------|
+| MII_DIAGNOSE     | "de.medizininformatikinitiative.kerndatensatz.diagnose 2025.0.0-alpha2"    |              |
+| MII_LAB          | "de.medizininformatikinitiative.kerndatensatz.laborbefund 2025.0.0-alpha1" |              |
+| MII_MEDICATION   | "de.medizininformatikinitiative.kerndatensatz.medikation 2025.0.0-alpha5"  |              |
+| MII_PERSON       | "de.medizininformatikinitiative.kerndatensatz.person 2025.0.0-alpha4"      |              |
+| MII_PROCEDURE    | "de.medizininformatikinitiative.kerndatensatz.prozedur 2025.0.0-alpha2"    |              |
+| MII_FALL         | "de.medizininformatikinitiative.kerndatensatz.fall 2025.0.0-alpha4"        |              |
+| MII_SPECIMEN     | "de.medizininformatikinitiative.kerndatensatz.biobank 2025.0.0"            |              |
+| MII_CONSENT      | "de.medizininformatikinitiative.kerndatensatz.consent 1.0.7"               |              |
+| MII_ICU          | "de.medizininformatikinitiative.kerndatensatz.icu 2025.0.1"                | Added to DSE |
+| MII_MOLGEN       | "de.medizininformatikinitiative.kerndatensatz.molgen 2025.0.0"             | Added to DSE |
+| MII_RADIOLOGY    | "de.medizininformatikinitiative.kerndatensatz.bildgebung 2025.0.0"         | Added to DSE |
+| MII_ONKOLOGY     | "de.medizininformatikinitiative.kerndatensatz.onkologie 2025.0.2"          | Added to DSE |
+| MII_PATHOLOGY    | "de.medizininformatikinitiative.kerndatensatz.patho 2025.0.2"              | Added to DSE |
+| MII_MICROBIOLOGY | "de.medizininformatikinitiative.kerndatensatz.mikrobiologie 2025.0.1"      | Added to DSE |
+| MII_STUDIES      | "de.medizininformatikinitiative.kerndatensatz.studie 2025.0.0"             | Added to DSE |
+
+
+### Added
+
+- Added Erweiterungsmodule  by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/165
+- Add translations for code systems by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/121
+- Make display translations searchable by @michael-82 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/96
+- Extending UI profile for display translations by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/139
+- Addressed empty translation array by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/151
+- Add flag to update translation files on build by @juliangruendner in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/150
+- Implement type emission for time restriction in CQL mapping by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/157
+- blacklisting of too general value sets for filter of dse features by @juliangruendner in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/168
+- create integration test base setup by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/155
+
+### Fixed
+
+- fix: only make leaf profile tree profiles in dse selectable @juliangruendner in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/170
+- Index display.original fields in elastic search files by @michael-82 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/153
+- Fix usage of wrong hash functions for contextualized termcodes by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/160
+- Fix key error by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/142
+
 ## [3.0.1]
 
 ### Fixed

@@ -1,0 +1,27 @@
+{
+    "totalHits": 1,
+    "results": [
+        {
+            "id": "a36b6ef7-40ce-3148-b815-dc7b13fb9016",
+            "display": {
+                "original": "Geschlecht",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": "Geschlecht"
+                    },
+                    {
+                        "language": "en-US",
+                        "value": "Gender"
+                    }
+                ]
+            },
+            "availability": 0,
+            "context": "Patient",
+            "terminology": "http://snomed.info/sct",
+            "termcode": "263495000",
+            "kdsModule": "Person",
+            "selectable": true
+        }
+    ]
+}

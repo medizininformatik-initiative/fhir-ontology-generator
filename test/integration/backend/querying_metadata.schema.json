@@ -1,0 +1,112 @@
+{
+  "$id": "https://medizininformatik-initiative.de/fdpg/QueryingMetadata/v1/schema",
+  "$defs": {
+    "coding": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "display": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": ["system", "code", "display"],
+      "additionalProperties": false
+    }
+  },
+  "title": "QueryingMetadata",
+  "description": "A document defining a FHIR resource type specific criterion",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "resource_type": {
+      "type": "string"
+    },
+    "module": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "display": {
+          "type": "string"
+        }
+      },
+      "required": ["code", "display"],
+      "additionalProperties": false
+    },
+    "context": {
+      "$ref": "#/$defs/coding"
+    },
+    "term_codes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/coding"
+      }
+    },
+    "term_code_defining_id": {
+      "type": "string"
+    },
+    "value_defining_id": {
+      "type": "string"
+    },
+    "value_defining_type": {
+      "type": "string"
+    },
+    "value_optional": {
+      "type": "boolean"
+    },
+    "value_type": {
+      "type": "string"
+    },
+    "attribute_defining_id_type_map": {
+      "type": "object",
+      "$comment": "Use pattern '^((([A-Za-z]+)|(\\((?1)\\)))(\\.[A-Za-z0-9:\\[\\]\\-]+)+)$' with Python 3.11",
+      "patternProperties": {
+        "^\\(*([A-Za-z]+)(\\.([A-Za-z0-9:\\[\\]\\-]+)\\)?)+$": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "optional": {
+              "type": "boolean"
+            }
+          },
+          "required": ["optional"],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "time_restriction_defining_id": {
+      "type": "string"
+    }
+  },
+  "required": ["name", "resource_type", "context"],
+  "dependentRequired": {
+    "value_defining_id": ["value_optional", "value_type"]
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "oneOf": [
+        {
+          "required": ["term_code_defining_id"]
+        },
+        {
+          "required": ["term_codes"]
+        }
+      ]
+    }
+  ]
+}

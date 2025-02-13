@@ -1,5 +1,5 @@
 {
-    "settings": {
+  "settings": {
     "analysis": {
       "tokenizer": {
         "edge_ngram_tokenizer": {
@@ -81,6 +81,25 @@
       },
       "value_sets": {
         "type": "keyword"
+      },
+      "display": {
+        "properties": {
+          "original": {
+            "type": "text",
+            "analyzer": "edge_ngram_analyzer_include_punctuation",
+            "search_analyzer": "lowercase_analyzer"
+          },
+          "de": {
+            "type": "text",
+            "analyzer": "edge_ngram_analyzer_include_punctuation",
+            "search_analyzer": "lowercase_analyzer"
+          },
+          "en": {
+            "type": "text",
+            "analyzer": "edge_ngram_analyzer_include_punctuation",
+            "search_analyzer": "lowercase_analyzer"
+          }
+        }
       }
     }
   }

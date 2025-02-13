@@ -6,18 +6,21 @@ import re
 from typing import Tuple, List, Dict
 from lxml import etree
 
-from core import StrucutureDefinitionParser as FHIRParser
+from core import StructureDefinitionParser as FHIRParser
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
-from core.StrucutureDefinitionParser import resolve_defining_id, extract_value_type, extract_reference_type, \
+from core.StructureDefinitionParser import resolve_defining_id, extract_value_type, extract_reference_type, \
     CQL_TYPES_TO_VALUE_TYPES
+from core.exceptions.UnsupportedTypingException import UnsupportedTypingException
 from helper import generate_attribute_key
-from model.MappingDataModel import CQLMapping, CQLAttributeSearchParameter
+from model.MappingDataModel import CQLMapping, CQLAttributeSearchParameter, CQLTimeRestrictionParameter
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import VALUE_TYPE_OPTIONS
 from model.UiDataModel import TermCode
 
 
 class CQLMappingGenerator(object):
+    __allowed_time_restriction_fhir_types = {"date", "dateTime", "Period"}
+
     def __init__(self, querying_meta_data_resolver: ResourceQueryingMetaDataResolver, parser=FHIRParser):
         """
         :param querying_meta_data_resolver: resolves the for the query relevant metadata for a given FHIR profile
@@ -136,8 +139,22 @@ class CQLMappingGenerator(object):
                 val_defining_id, profile_snapshot)
             cql_mapping.valueType = self.get_attribute_type(profile_snapshot, val_defining_id)
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
-            cql_mapping.timeRestrictionFhirPath = self.translate_element_id_to_fhir_path_expressions_time_restriction(
+            fhir_path = self.translate_element_id_to_fhir_path_expressions_time_restriction(
                 time_defining_id, profile_snapshot)
+            element =  self.parser.get_element_from_snapshot(profile_snapshot, time_defining_id)
+            element_types = element.get("type", [])
+            if not element_types:
+                raise KeyError("ElementDefinition.type cannot be empty as at least one type is required for CQL "
+                               f"translation [profile='{profile_snapshot.get('name')}, "
+                               f"element_id='{time_defining_id}']")
+            types = (self.__allowed_time_restriction_fhir_types
+                     .intersection({elem_type.get('code') for elem_type in element_types}))
+            if len(types) == 0:
+                raise UnsupportedTypingException(f"Supported type range of element '{element.get('id')}' has no "
+                                                 f"overlap with the expected type range of a time restricting element "
+                                                 f"in the CQL mapping [present={types}, "
+                                                 f"allowed={self.__allowed_time_restriction_fhir_types}]")
+            cql_mapping.timeRestriction = CQLTimeRestrictionParameter(fhir_path, list(types))
         for attr_defining_id, attr_attributes in querying_meta_data.attribute_defining_id_type_map.items():
             attr_type = attr_attributes.get("type", "")
             self.set_attribute_search_param(attr_defining_id, cql_mapping, attr_type, profile_snapshot)

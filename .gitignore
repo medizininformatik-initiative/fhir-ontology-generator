@@ -10,13 +10,26 @@ dependencies
 /.git/
 availability/*.json
 !availability/stratum-to-context.json
-
-/.commit
-.commit
-
 /example/code_systems_translations/*.json
 
 # FSH
 /fsh/*
 
+### Own ###
+# Files to edit and store commit messages
+/.commit
+.commit
+# Terminology translations with potentially large size
+/example/code_systems_translations/*.json
 local-onto-gen.sh
+# JetBrains run config export folder
+/.run
+# Directories holding temporary data which are used for example CI during runs or when testing locally
+/test/elastic_search/tmp/
+/temp/
+**/tmp
+**/temp
+/test/**/testdata
+**/.coverage
+# Directories holding docker logs recorded during (intergration) testing
+**/docker_logs/

@@ -242,7 +242,7 @@ def configure_args_parser() -> argparse.ArgumentParser:
     parser.add_argument('--generate_ui_trees', action='store_true', help='Generate UI trees')
     parser.add_argument('--generate_ui_profiles', action='store_true', help='Generate UI profiles')
     parser.add_argument('--generate_mapping', action='store_true', help='Generate mappings')
-    parser.add_argument('--modules', nargs='+', help='Modules to generate the ontology for')
+    parser.add_argument('--module', nargs='+', help='Modules to generate the ontology for')
     parser.add_argument(
         "--loglevel",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
@@ -433,13 +433,16 @@ def generate_cql_mapping(
     :param onto_result_dir: The base directory for output files.
     :param logger: The logger object.
     """
-    logger.info("Generating CQL mapping...")
-    cql_generator = CQLMappingGenerator(resolver)
-    cql_term_code_mappings, cql_concept_mappings = cql_generator.generate_mapping(differential_folder, module_name)
-    cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
-    cql_mapping_file = os.path.join(onto_result_dir, 'mapping', 'cql', 'mapping_cql.json')
-    with open(cql_mapping_file, 'w', encoding='utf-8') as f:
-        f.write(cql_mappings.to_json())
+    try:
+        logger.info("Generating CQL mapping...")
+        cql_generator = CQLMappingGenerator(resolver)
+        cql_term_code_mappings, cql_concept_mappings = cql_generator.generate_mapping(differential_folder, module_name)
+        cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
+        cql_mapping_file = os.path.join(onto_result_dir, 'mapping', 'cql', 'mapping_cql.json')
+        with open(cql_mapping_file, 'w', encoding='utf-8') as f:
+            f.write(cql_mappings.to_json())
+    except Exception as exc:
+        raise Exception("CQL mapping generation failed. No mapping will be emitted", exc)
 
 
 def generate_fhir_mapping(
@@ -486,7 +489,7 @@ def main():
     onto_result_dir = "generated-ontology"
     differential_folder = "differential"
 
-    modules = args.modules if args.modules else [module for module in os.listdir("CDS_Module")]
+    modules = args.module if args.module else [module for module in os.listdir("CDS_Module")]
 
     for module in modules:
 
@@ -528,7 +531,7 @@ def main():
                     resolver, os.path.join("CDS_Module", module, "differential"), os.path.join("CDS_Module", module, onto_result_dir), StandardSearchParameterResolver(module), module, logger
                 )
         except Exception as e:
-            logger.error(f"An error occurred: {e}", exc_info=True)
+            logger.error(f"An error occurred while running generator for module '{module}': {e}", exc_info=True)
         finally:
             # Dump the database to the module's directory
             if args.generate_ui_profiles:

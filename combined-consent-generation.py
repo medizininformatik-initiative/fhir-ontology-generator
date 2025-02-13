@@ -2,7 +2,7 @@ import csv
 import json
 from model.helper import del_none
 from model.UiDataModel import TermCode
-from model.MappingDataModel import FhirMapping, FixedFHIRCriteria
+from model.MappingDataModel import FhirMapping, FixedFHIRCriteria, CQLTimeRestrictionParameter
 from model.MappingDataModel import CQLMapping, FixedCQLCriteria
 from model.TreeMap import TreeMap, TermEntryNode
 import argparse
@@ -83,7 +83,7 @@ def process_csv(csv_file: str):
             fhir_mapping.timeRestrictionParameter = "date"
             cql_mapping.key = term_code
             cql_mapping.context = context
-            cql_mapping.timeRestrictionFhirPath = "Consent.datetime"
+            cql_mapping.timeRestriction = CQLTimeRestrictionParameter("Consent.datetime", ["dateTime"])
             cql_mapping.resourceType = "Consent"
             cql_mapping.primaryCode= {
                             "code": "57016-8",
@@ -113,12 +113,12 @@ def process_csv(csv_file: str):
 
 
 def save_json(filename: str, data):
-    with open(filename, "w+") as f:
+    with open(filename, "w+", encoding='UTF-8') as f:
         json.dump(data, f, default=lambda o: del_none(o.__dict__))
 
 
 def append_to_json(filename: str, input_filename: str, data):
-    with open(input_filename, "r") as f:
+    with open(input_filename, "r", encoding='UTF-8') as f:
         existing_data = json.load(f)
         existing_data.extend(data)
     save_json(filename, existing_data)
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     save_json(f"{consent_input_dir}/consent-mappings_cql.json", consents_cql)
     save_json(f"{consent_input_dir}/consent-mappings-tree.json", consent_mapping_tree.to_dict())
 
-    with open(f"{consent_input_dir}/consent-js-lookup-table.js", "w+") as f:
+    with open(f"{consent_input_dir}/consent-js-lookup-table.js", "w+", encoding='UTF-8') as f:
         f.write(generate_js_lookup_table(lookup_table))
 
     if args.merge_mappings:

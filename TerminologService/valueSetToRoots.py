@@ -1,7 +1,4 @@
-import bisect
-import json
 import logging
-import os.path
 from typing import List
 import locale
 
@@ -12,7 +9,7 @@ from itertools import groupby
 
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, REQUESTS_SESSION
 from model.UiDataModel import TermCode
-from util.LoggingUtil import init_logger
+from util.logging.LoggingUtil import init_logger
 
 locale.setlocale(locale.LC_ALL, 'de_DE.UTF-8')
 logger = init_logger("valueSetToRoots", logging.DEBUG)

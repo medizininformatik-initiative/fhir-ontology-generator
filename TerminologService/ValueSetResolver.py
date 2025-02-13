@@ -7,7 +7,7 @@ from TerminologService.valueSetToRoots import create_vs_tree_map, expand_value_s
 # from dse.generate_dse_files import logger
 from model.TreeMap import ContextualizedTermCodeInfo
 from model.UiDataModel import TermCode
-from util.LoggingUtil import init_logger
+from util.logging.LoggingUtil import init_logger
 from logging import DEBUG
 
 POSSIBLE_CODE_SYSTEMS = ["http://loinc.org", "http://snomed.info/sct"]

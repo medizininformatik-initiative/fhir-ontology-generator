@@ -1,15 +1,24 @@
 from __future__ import annotations
 
+import copy
 import errno
 import json
+import logging
 import os
 import re
 from os import path
 from typing import List, Set, Protocol, Dict
 
-from model.ResourceQueryingMetaData import ResourceQueryingMetaData
-from model.UiDataModel import TermCode
+from typing_extensions import deprecated
 
+from model.ResourceQueryingMetaData import ResourceQueryingMetaData
+from model.UiDataModel import TermCode, TranslationElementDisplay
+from util.logging.LoggingUtil import init_logger
+from core.exceptions.MissingTranslationException import MissingTranslationException
+
+logger = init_logger("helper", logging.DEBUG)
+
+translation_map_default = {'de-DE': {'language': "de-DE", 'value': ""}, 'en-US': {'language': "en-US", 'value': ""}}
 
 def traverse_tree(result: List[TermCode], node: dict):
     """
@@ -165,7 +174,7 @@ def is_structure_definition(file: str) -> bool:
         try:
             json_data = json.load(json_file)
         except json.decoder.JSONDecodeError:
-            print(f"Could not decode {file}")
+            logger.warning(f"Could not decode {file}")
             return False
         if json_data.get("resourceType") == "StructureDefinition":
             return True
@@ -221,23 +230,102 @@ def load_english_to_german_attribute_names() -> Dict[str, str]:
     return attribute_names
 
 
-def generate_attribute_key(element_id: str) -> TermCode:
+def get_attribute_key(element_id: str) -> str:
     """
-    Generates the attribute key for the given element id
-    :param element_id: element id
+    Generates the attribute key from the given element id (`ElementDefinition.id`)
+
+    :param element_id: element id the key will be based on
     :return: attribute key
     """
     if '(' and ')' in element_id:
         element_id = element_id[element_id.rfind('(') + 1:element_id.find(')')]
+
     if ':' in element_id:
         element_id = element_id.split(':')[-1]
         key = element_id.split('.')[0]
     else:
         key = element_id.split('.')[-1]
-    display = get_german_display(key)
+
     if not key:
         raise ValueError(f"Could not find key for {element_id}")
-    return TermCode("http://hl7.org/fhir/StructureDefinition", key, display)
+
+    return key
+
+
+def get_display_from_element_definition(snapshot_element: dict,
+                                        default: str = None) -> TranslationElementDisplay:
+    """
+    Extracts the display and translations from the descriptive elements within the ElementDefinition instance. If the
+    identified `ElementDefinition` instance in the provided snapshot features translations for the elements short
+    description, they will be provided as translations of the display value. The `original` display value is determined
+    as follows:
+
+    If a snapshot element with the provided if exists:
+
+    - Use the `short` element value of the snapshot element if it exists
+    - Otherwise use the `sliceName` element value of the snapshot element if it exists
+
+    Else use the attribute key code
+
+    :param snapshot_element: the element to extract (display) translations from
+    :param default: value used as display if there is no other valid source in the element definition
+    :return: TranslationElementDisplay instance holding the display value and all language variants
+    """
+    translations_map = copy.deepcopy(translation_map_default)
+    display = default
+    try:
+        if snapshot_element is None or len(snapshot_element.keys()) == 0:
+            raise MissingTranslationException(f"No translations can be extracted since an empty element was passed")
+        if snapshot_element.get("short"):
+            display = snapshot_element.get('short')
+        elif snapshot_element.get("sliceName"):
+            logger.info(f"Falling back to value of 'sliceName' for original display value of element. A short "
+                         f"description via 'short' element should be added")
+            display = snapshot_element.get('sliceName')
+
+        for lang_container in snapshot_element.get("_short", {}).get("extension", []):
+            if lang_container.get("url") != "http://hl7.org/fhir/StructureDefinition/translation":
+                continue
+            language = next(filter(lambda x: x.get("url") == "lang", lang_container.get("extension"))).get("valueCode")
+            language_value = next(filter(lambda x: x.get("url") == "content", lang_container.get("extension"))).get("valueString")
+            translations_map[language] = {'language': language, 'value': language_value}
+
+        if translations_map == translation_map_default:
+            logger.warning(f"No translation could be identified for element '{snapshot_element.get('id')}' since no "
+                           f"language extensions are present => Defaulting")
+
+    except MissingTranslationException as exc:
+        logger.warning(exc)
+    except Exception as exc:
+        logger.warning(f"Something went wrong when trying to extract translations from element '{snapshot_element.get('id')}'. "
+                       f"Reason: {exc}", exc_info=exc)
+
+    return TranslationElementDisplay(original=display, translations=list(translations_map.values()))
+
+
+def process_element_definition(snapshot_element: dict, default: str = None) -> (TermCode, TranslationElementDisplay):
+    """
+    Uses the provided ElementDefinition instance to determine the attribute code as well as associated display values
+    (primary value and - if present - language variants)
+
+    :param snapshot_element: ElementDefinition instance to process
+    :param default: value to use as fallback if there is no 'id' in the ElementDefinition
+    :return: the attribute code and suitable display values
+    """
+    if 'id' not in snapshot_element:
+        key = default
+    else:
+        key = get_attribute_key(snapshot_element.get('id'))
+
+    display = get_display_from_element_definition(snapshot_element, default=key)
+
+    return TermCode("http://hl7.org/fhir/StructureDefinition", key, display.original), display
+
+
+@deprecated("Switch over to process_element_definition to obtain better display values")
+def generate_attribute_key(element_id: str) -> TermCode:
+    key = get_attribute_key(element_id)
+    return TermCode("http://hl7.org/fhir/StructureDefinition", key, key)
 
 
 def get_german_display(key: str) -> str:
