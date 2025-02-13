@@ -1,7 +1,7 @@
 services:
   dataportal-backend:
     container_name: integration-test_dataportal-backend
-    image: ghcr.io/medizininformatik-initiative/feasibility-backend:6.1.0-alpha.1
+    image: ghcr.io/medizininformatik-initiative/feasibility-backend:6.1.0-alpha.2
     ports:
       - "8091:8090"
     depends_on:
