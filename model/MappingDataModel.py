@@ -120,6 +120,25 @@ class CQLTimeRestrictionParameter:
     fhirPath: str
     types: List[str]
 
+@dataclass
+class CQLTermCodeParameter:
+    """
+    Holds information about an element within a FHIR resources that a filter targets
+    :param fhirPath: Path to the targeted element as a FHIRPath expression
+    :param types: List of types supported by this element which can be multiple if the element is polymorphic
+    """
+    fhirPath: str
+    types: List[str]
+
+@dataclass
+class CQLValueParameter:
+    """
+    Holds information about an element within a FHIR resources that a filter targets
+    :param fhirPath: Path to the targeted element as a FHIRPath expression
+    :param types: List of types supported by this element which can be multiple if the element is polymorphic
+    """
+    fhirPath: str
+    types: List[str]
 
 @dataclass
 class CQLMapping:
@@ -132,6 +151,8 @@ class CQLMapping:
     termCodeFhirPath: Optional[str] = None
     valueFhirPath: Optional[str] = None
     valueType = None
+    termCode: Optional[CQLTermCodeParameter] = None
+    value: Optional[CQLValueParameter] = None
     timeRestriction: Optional[CQLTimeRestrictionParameter] = None
     attributeFhirPaths: List[CQLAttributeSearchParameter] = field(default_factory=list)
     # only required for version 1 support
