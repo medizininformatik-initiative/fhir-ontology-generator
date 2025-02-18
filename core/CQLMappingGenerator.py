@@ -13,7 +13,7 @@ from core.StructureDefinitionParser import resolve_defining_id, extract_value_ty
 from core.exceptions.UnsupportedTypingException import UnsupportedTypingException
 from helper import generate_attribute_key
 from model.MappingDataModel import CQLMapping, CQLAttributeSearchParameter, CQLTimeRestrictionParameter, \
-    CQLTermCodeParameter
+    CQLTermCodeParameter, CQLValueParameter
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import VALUE_TYPE_OPTIONS
 from model.UiDataModel import TermCode
@@ -136,7 +136,10 @@ class CQLMappingGenerator(object):
             term_code_fhir_path = self.translate_term_element_id_to_fhir_path_expression(tc_defining_id, profile_snapshot)
             if not self.is_primary_path(cql_mapping.resourceType, term_code_fhir_path):
                 cql_mapping.termCodeFhirPath = term_code_fhir_path
-            element = self.parser.get_element_from_snapshot(profile_snapshot, tc_defining_id)
+            if self.parser.is_element_in_snapshot(profile_snapshot, tc_defining_id):
+                element = self.parser.get_element_from_snapshot(profile_snapshot, tc_defining_id)
+            else:
+                element = self.parser.get_element_defining_elements(tc_defining_id,profile_snapshot,self.module_dir,self.data_set_dir)[-1]
             element_types = element.get("type",[])
             if not element_types:
                 raise KeyError("ElementDefinition.type cannot be empty as at least one type is required for CQL "
@@ -149,7 +152,6 @@ class CQLMappingGenerator(object):
                                                  f"in the CQL mapping [present={element_types}, "
                                                  f"allowed={self.__allowed_defining_code_fhir_types}]")
             cql_mapping.termCode = CQLTermCodeParameter(term_code_fhir_path,list(types))
-
         if val_defining_id := querying_meta_data.value_defining_id:
             value_fhir_path = self.translate_element_id_to_fhir_path_expressions(val_defining_id, profile_snapshot)
             cql_mapping.valueType = self.get_attribute_type(profile_snapshot, val_defining_id)
@@ -166,8 +168,7 @@ class CQLMappingGenerator(object):
                                                  f"in the CQL mapping [present={element_types}, "
                                                  f"allowed={self.__allowed_defining_value_fhir_types}]")
             cql_mapping.valueFhirPath = value_fhir_path
-            cql_mapping.value = CQLTermCodeParameter(value_fhir_path,list(types))
-
+            cql_mapping.value = CQLValueParameter(value_fhir_path,list(types))
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
             fhir_path = self.translate_element_id_to_fhir_path_expressions_time_restriction(
                 time_defining_id, profile_snapshot)
