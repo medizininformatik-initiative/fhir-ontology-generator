@@ -2,7 +2,7 @@ import csv
 import json
 from model.helper import del_none
 from model.UiDataModel import TermCode
-from model.MappingDataModel import FhirMapping, FixedFHIRCriteria, CQLTimeRestrictionParameter
+from model.MappingDataModel import FhirMapping, FixedFHIRCriteria, CQLTimeRestrictionParameter, CQLTypeParameter
 from model.MappingDataModel import CQLMapping, FixedCQLCriteria
 from model.TreeMap import TreeMap, TermEntryNode
 import argparse
@@ -83,6 +83,7 @@ def process_csv(csv_file: str):
             fhir_mapping.timeRestrictionParameter = "date"
             cql_mapping.key = term_code
             cql_mapping.context = context
+            cql_mapping.termCode = CQLTypeParameter("Consent.provision.provision.code", ["CodeableConcept"])
             cql_mapping.timeRestriction = CQLTimeRestrictionParameter("Consent.datetime", ["dateTime"])
             cql_mapping.resourceType = "Consent"
             cql_mapping.primaryCode= {

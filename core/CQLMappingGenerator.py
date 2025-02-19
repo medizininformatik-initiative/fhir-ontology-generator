@@ -134,8 +134,6 @@ class CQLMappingGenerator(object):
         cql_mapping.resourceType = querying_meta_data.resource_type
         if tc_defining_id := querying_meta_data.term_code_defining_id:
             term_code_fhir_path = self.translate_term_element_id_to_fhir_path_expression(tc_defining_id, profile_snapshot)
-            if not self.is_primary_path(cql_mapping.resourceType, term_code_fhir_path):
-                cql_mapping.termCodeFhirPath = term_code_fhir_path
             if self.parser.is_element_in_snapshot(profile_snapshot, tc_defining_id):
                 element = self.parser.get_element_from_snapshot(profile_snapshot, tc_defining_id)
             else:
