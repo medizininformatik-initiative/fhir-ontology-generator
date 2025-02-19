@@ -165,7 +165,6 @@ class CQLMappingGenerator(object):
                                                  f"overlap with the expected type range of a time restricting element "
                                                  f"in the CQL mapping [present={element_types}, "
                                                  f"allowed={self.__allowed_defining_value_fhir_types}]")
-            cql_mapping.valueFhirPath = value_fhir_path
             cql_mapping.value = CQLTypeParameter(value_fhir_path,list(types))
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
             fhir_path = self.translate_element_id_to_fhir_path_expressions_time_restriction(
