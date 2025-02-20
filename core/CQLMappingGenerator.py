@@ -133,7 +133,6 @@ class CQLMappingGenerator(object):
         cql_mapping = CQLMapping(querying_meta_data.name)
         cql_mapping.resourceType = querying_meta_data.resource_type
         if tc_defining_id := querying_meta_data.term_code_defining_id:
-            term_code_fhir_path = self.translate_term_element_id_to_fhir_path_expression(tc_defining_id, profile_snapshot)
             if self.parser.is_element_in_snapshot(profile_snapshot, tc_defining_id):
                 element = self.parser.get_element_from_snapshot(profile_snapshot, tc_defining_id)
             else:
@@ -149,9 +148,10 @@ class CQLMappingGenerator(object):
                                                  f"overlap with the expected type range of a time restricting element "
                                                  f"in the CQL mapping [present={element_types}, "
                                                  f"allowed={self.__allowed_defining_code_fhir_types}]")
+            term_code_fhir_path = self.translate_term_element_id_to_fhir_path_expression(tc_defining_id, profile_snapshot)
             cql_mapping.termCode = CQLTypeParameter(term_code_fhir_path,list(types))
+
         if val_defining_id := querying_meta_data.value_defining_id:
-            value_fhir_path = self.translate_element_id_to_fhir_path_expressions(val_defining_id, profile_snapshot)
             cql_mapping.valueType = self.get_attribute_type(profile_snapshot, val_defining_id)
             element = self.parser.get_element_from_snapshot(profile_snapshot, val_defining_id)
             element_types = element.get("type",[])
@@ -165,10 +165,10 @@ class CQLMappingGenerator(object):
                                                  f"overlap with the expected type range of a time restricting element "
                                                  f"in the CQL mapping [present={element_types}, "
                                                  f"allowed={self.__allowed_defining_value_fhir_types}]")
+            value_fhir_path = self.translate_element_id_to_fhir_path_expressions(val_defining_id, profile_snapshot)
             cql_mapping.value = CQLTypeParameter(value_fhir_path,list(types))
+
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
-            fhir_path = self.translate_element_id_to_fhir_path_expressions_time_restriction(
-                time_defining_id, profile_snapshot)
             element =  self.parser.get_element_from_snapshot(profile_snapshot, time_defining_id)
             element_types = element.get("type", [])
             if not element_types:
@@ -182,6 +182,7 @@ class CQLMappingGenerator(object):
                                                  f"overlap with the expected type range of a time restricting element "
                                                  f"in the CQL mapping [present={element_types}, "
                                                  f"allowed={self.__allowed_time_restriction_fhir_types}]")
+            fhir_path = self.translate_element_id_to_fhir_path_expressions_time_restriction(time_defining_id, profile_snapshot)
             cql_mapping.timeRestriction = CQLTimeRestrictionParameter(fhir_path, list(types))
         for attr_defining_id, attr_attributes in querying_meta_data.attribute_defining_id_type_map.items():
             attr_type = attr_attributes.get("type", "")
@@ -207,7 +208,7 @@ class CQLMappingGenerator(object):
                                                                                          profile_snapshot)
         attribute = CQLAttributeSearchParameter(attribute_type, attribute_key, attribute_fhir_path)
         if attribute_type == "Reference":
-            attribute.attributeReferenceTargetType = self.get_reference_type(profile_snapshot, attr_defining_id)
+            attribute.referenceTargetType = self.get_reference_type(profile_snapshot, attr_defining_id)
 
         cql_mapping.add_attribute(attribute)
 

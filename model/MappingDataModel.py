@@ -37,8 +37,8 @@ class AttributeSearchParameter:
     """
 
     def __init__(self, criteria_type, attribute_code: TermCode):
-        self.attributeKey = attribute_code
-        self.attributeType = criteria_type
+        self.key = attribute_code
+        self.type = criteria_type
 
 
 class FhirSearchAttributeSearchParameter(AttributeSearchParameter):
@@ -67,7 +67,7 @@ class CQLAttributeSearchParameter(AttributeSearchParameter):
         :param fhir_path:
         """
         super().__init__(criteria_type, attribute_code)
-        self.attributePath = fhir_path
+        self.path = fhir_path
 
 
 class FhirMapping:
@@ -142,13 +142,13 @@ class CQLMapping:
     termCode: Optional[CQLTermCodeParameter] = None
     value: Optional[CQLValueParameter] = None
     timeRestriction: Optional[CQLTimeRestrictionParameter] = None
-    attributeFhirPaths: List[CQLAttributeSearchParameter] = field(default_factory=list)
+    attributes: List[CQLAttributeSearchParameter] = field(default_factory=list)
     # only required for version 1 support
     key: Optional[str] = None
 
 
     def add_attribute(self, attribute_search_parameter: CQLAttributeSearchParameter):
-        self.attributeFhirPaths.append(attribute_search_parameter)
+        self.attributes.append(attribute_search_parameter)
 
     @classmethod
     def from_json(cls, json_dict):
