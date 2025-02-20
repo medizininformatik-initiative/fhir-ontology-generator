@@ -152,7 +152,6 @@ class CQLMappingGenerator(object):
             cql_mapping.termCode = CQLTypeParameter(term_code_fhir_path,list(types))
 
         if val_defining_id := querying_meta_data.value_defining_id:
-            cql_mapping.valueType = self.get_attribute_type(profile_snapshot, val_defining_id)
             element = self.parser.get_element_from_snapshot(profile_snapshot, val_defining_id)
             element_types = element.get("type",[])
             if not element_types:

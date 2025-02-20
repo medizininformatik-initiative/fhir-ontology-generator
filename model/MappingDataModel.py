@@ -138,9 +138,8 @@ class CQLMapping:
     """
     name: str
     resourceType: str | None = None
-    valueType = None
-    termCode: Optional[CQLTermCodeParameter] = None
-    value: Optional[CQLValueParameter] = None
+    termCode: Optional[CQLTypeParameter] = None
+    value: Optional[CQLTypeParameter] = None
     timeRestriction: Optional[CQLTimeRestrictionParameter] = None
     attributes: List[CQLAttributeSearchParameter] = field(default_factory=list)
     # only required for version 1 support
