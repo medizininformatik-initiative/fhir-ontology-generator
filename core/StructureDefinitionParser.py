@@ -14,6 +14,7 @@ from model.UiDataModel import TermCode
 
 from importlib import resources
 from resources import fhir, cql
+from util.typing.fhir import FHIRPath, FHIRPathlike
 
 UCUM_SYSTEM = "http://unitsofmeasure.org"
 FHIR_TYPES_TO_VALUE_TYPES = json.load(fp=(resources.files(fhir) / 'fhir-types-to-value-types.json')
@@ -425,15 +426,17 @@ def translate_element_to_fhir_path_expression(elements: List[dict], profile_snap
 
 def replace_x_with_cast_expression(element_path, element_type):
     # Regular expression to capture [x] and [x]:arbitrary_slicing
-    match = re.search(r'(\[x\](?::[\w]+)?)', element_path)
+    match = re.search(r'(\[x](?::\w+)?)', element_path)
     if match:
         pre_match = element_path[:match.start()]
         post_match = element_path[match.end():]
-        # If there's a following attribute expression, add parentheses
-        if '.' in post_match:
-            replacement = f'({pre_match} as {element_type}){post_match}'
-        else:
-            replacement = f'{pre_match} as {element_type}'
+        # TODO: Rework handling of FHIRPath-like expressions. We currently only use string manipulation when working
+        #       with such expressions which leads to a lot of edge case handling and double checking. Instead strings
+        #       should be tokenized somewhat so that information about the expression is readily available throughout
+        #       the processing chain
+        # Always add parenthesis for now to avoid functions agnostic to the actual structure of the expression to
+        # generate invalid FHIRPath expressions accidentally
+        replacement = f'({pre_match} as {element_type}){post_match}'
         return replacement
     return element_path
 
