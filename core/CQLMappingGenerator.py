@@ -17,6 +17,7 @@ from model.MappingDataModel import CQLMapping, CQLAttributeSearchParameter, CQLT
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import VALUE_TYPE_OPTIONS
 from model.UiDataModel import TermCode
+from util.typing.fhir import FHIRPath
 
 
 class CQLMappingGenerator(object):
@@ -337,15 +338,15 @@ class CQLMappingGenerator(object):
             return path_expression
         return path_after_dot.split(" as ")[0]
 
-    def get_cql_optimized_path_expression(self, path_expression: str) -> str:
+    def get_cql_optimized_path_expression(self, path_expression: FHIRPath) -> str:
         # TODO: Remove this method once the new path expressions are compatible with the cql implementation?
         """
         Translates a path expression to a cql optimized path expression
         :param path_expression: path expression
         :return: cql optimized path expression
         """
-        cql_path_expression = self.convert_as_to_dot_as(path_expression)
-        cql_path_expression = self.add_first_after_extension_where_expression(cql_path_expression)
+        #cql_path_expression = self.convert_as_to_dot_as(path_expression)
+        cql_path_expression = self.add_first_after_extension_where_expression(path_expression)
         return cql_path_expression
 
     @staticmethod
@@ -416,7 +417,7 @@ class CQLMappingGenerator(object):
         """
         # TODO: Find a better rule than contains extension.where(...) to apply the first() rule
         # Use regex to find the pattern "extension.where(...)"
-        match = re.search(r'(extension\.where\([^)]+\))(.+)', cql_path_expression)
+        match = re.search(r"(.*extension\.where\([^)]+\))(.+)", cql_path_expression)
 
         if match:
             before_extension = match.group(1)
