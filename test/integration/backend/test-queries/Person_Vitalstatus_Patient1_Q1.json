@@ -1,1 +1,39 @@
-{"version":"http://to_be_decided.com/draft-1/schema#","display":"Ausgewählte Merkmale","inclusionCriteria":[[{"termCodes":[{"code":"67162-8","display":"Patient Disposition","system":"http://loinc.org","version":""}],"context":{"code":"Vitalstatus","display":"Vitalstatus","system":"fdpg.mii.cds","version":"1.0.0"},"timeRestriction":{"afterDate":"2024-02-21","beforeDate":"2024-02-21"},"valueFilter":{"selectedConcepts":[{"code":"T","display":"Patient verstorben","system":"https://www.medizininformatik-initiative.de/fhir/core/modul-person/CodeSystem/Vitalstatus","version":"2099"}],"type":"concept"}}]]}
+{
+  "version": "http://to_be_decided.com/draft-1/schema#",
+  "display": "Ausgewählte Merkmale",
+  "inclusionCriteria": [
+    [
+      {
+        "termCodes": [
+          {
+            "code": "67162-8",
+            "display": "Patient Disposition",
+            "system": "http://loinc.org",
+            "version": ""
+          }
+        ],
+        "context": {
+          "code": "Vitalstatus",
+          "display": "Vitalstatus",
+          "system": "fdpg.mii.cds",
+          "version": "1.0.0"
+        },
+        "timeRestriction": {
+          "afterDate": "2024-02-21",
+          "beforeDate": "2024-02-21"
+        },
+        "valueFilter": {
+          "selectedConcepts": [
+            {
+              "code": "T",
+              "display": "Patient verstorben",
+              "system": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/CodeSystem/Vitalstatus",
+              "version": "2099"
+            }
+          ],
+          "type": "concept"
+        }
+      }
+    ]
+  ]
+}
