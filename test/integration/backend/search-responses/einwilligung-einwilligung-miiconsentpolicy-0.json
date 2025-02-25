@@ -8,18 +8,18 @@
                 "translations": [
                     {
                         "language": "de-DE",
-                        "value": ""
+                        "value": "BIOMAT Analysedaten zusammenfuehren Dritte"
                     },
                     {
                         "language": "en-US",
-                        "value": ""
+                        "value": "BIOMAT Combine analysis data Third parties"
                     }
                 ]
             },
             "availability": 0,
             "context": "Einwilligung",
             "terminology": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
-            "termcode": "JA",
+            "termcode": "2.16.840.1.113883.3.1937.777.24.5.3.23",
             "kdsModule": "Einwilligung",
             "selectable": true
         }
