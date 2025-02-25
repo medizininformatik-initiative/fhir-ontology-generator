@@ -17,7 +17,7 @@ from model.MappingDataModel import CQLMapping, CQLAttributeSearchParameter, CQLT
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import VALUE_TYPE_OPTIONS
 from model.UiDataModel import TermCode
-from util.typing.fhir import FHIRPath
+from util.typing.fhir import FHIRPath, FHIRPathlike
 
 
 class CQLMappingGenerator(object):
@@ -134,23 +134,27 @@ class CQLMappingGenerator(object):
         cql_mapping = CQLMapping(querying_meta_data.name)
         cql_mapping.resourceType = querying_meta_data.resource_type
         if tc_defining_id := querying_meta_data.term_code_defining_id:
-            if self.parser.is_element_in_snapshot(profile_snapshot, tc_defining_id):
-                element = self.parser.get_element_from_snapshot(profile_snapshot, tc_defining_id)
-            else:
-                element = self.parser.get_element_defining_elements(tc_defining_id, profile_snapshot, self.module_dir, self.data_set_dir)[-1]
-            element_types = element.get("type",[])
-            if not element_types:
-                raise KeyError("ElementDefinition.type cannot be empty as at least one type is required for CQL "
-                               f"translation [profile='{profile_snapshot.get('name')}, "
-                               f"element_id='{tc_defining_id}']")
-            types = (self.__allowed_defining_code_fhir_types.intersection({elem_type.get('code') for elem_type in element_types}))
-            if len(types) == 0:
-                raise UnsupportedTypingException(f"Supported type range of element '{element.get('id')}' has no "
-                                                 f"overlap with the expected type range of a time restricting element "
-                                                 f"in the CQL mapping [present={element_types}, "
-                                                 f"allowed={self.__allowed_defining_code_fhir_types}]")
-            term_code_fhir_path = self.translate_term_element_id_to_fhir_path_expression(tc_defining_id, profile_snapshot)
-            cql_mapping.termCode = CQLTypeParameter(term_code_fhir_path,list(types))
+            if self.is_primary_path(querying_meta_data.resource_type, tc_defining_id):
+                if self.parser.is_element_in_snapshot(profile_snapshot, tc_defining_id):
+                    element = self.parser.get_element_from_snapshot(profile_snapshot, tc_defining_id)
+                else:
+                    element = self.parser.get_element_defining_elements(tc_defining_id, profile_snapshot,
+                                                                        self.module_dir, self.data_set_dir)[-1]
+                element_types = element.get("type",[])
+                if not element_types:
+                    raise KeyError("ElementDefinition.type cannot be empty as at least one type is required for CQL "
+                                   f"translation [profile='{profile_snapshot.get('name')}, "
+                                   f"element_id='{tc_defining_id}']")
+                types = (self.__allowed_defining_code_fhir_types.intersection({elem_type.get('code')
+                                                                               for elem_type in element_types}))
+                if len(types) == 0:
+                    raise UnsupportedTypingException(f"Supported type range of element '{element.get('id')}' has no "
+                                                     f"overlap with the expected type range of a time restricting "
+                                                     f"element in the CQL mapping [present={element_types}, "
+                                                     f"allowed={self.__allowed_defining_code_fhir_types}]")
+                term_code_fhir_path = self.translate_term_element_id_to_fhir_path_expression(tc_defining_id,
+                                                                                             profile_snapshot)
+                cql_mapping.termCode = CQLTypeParameter(term_code_fhir_path,list(types))
 
         if val_defining_id := querying_meta_data.value_defining_id:
             element = self.parser.get_element_from_snapshot(profile_snapshot, val_defining_id)
@@ -338,7 +342,25 @@ class CQLMappingGenerator(object):
             return path_expression
         return path_after_dot.split(" as ")[0]
 
-    def get_cql_optimized_path_expression(self, path_expression: FHIRPath) -> str:
+    @staticmethod
+    def remove_fhir_resource_type(path_expression: FHIRPathlike) -> FHIRPathlike:
+        """
+        If a given FHIRPath expression starts with a FHIR resource type, remove this initial node and return the pruned
+        expression
+        :param path_expression: FHIRPath expression to prune
+        :return: Pruned FHIRPath expression without an initial FHIR resource type node
+        """
+        match = re.match(r"^\(*(?P<capture_str>[A-Z][a-zA-Z0-9]*(?P<closing_prnths>\)*)\.)", path_expression)
+        if match:
+            # Account for wrapping parentheses
+            capture_str_start = match.start("capture_str")
+            capture_str_end = match.end("capture_str")
+            num_closing_parentheses = len(match.group("closing_prnths"))
+            return path_expression[:capture_str_start - num_closing_parentheses] + path_expression[capture_str_end:]
+        else:
+            return path_expression
+
+    def get_cql_optimized_path_expression(self, path_expression: FHIRPathlike) -> str:
         # TODO: Remove this method once the new path expressions are compatible with the cql implementation?
         """
         Translates a path expression to a cql optimized path expression
@@ -347,6 +369,7 @@ class CQLMappingGenerator(object):
         """
         #cql_path_expression = self.convert_as_to_dot_as(path_expression)
         cql_path_expression = self.add_first_after_extension_where_expression(path_expression)
+        cql_path_expression = self.remove_fhir_resource_type(cql_path_expression)
         return cql_path_expression
 
     @staticmethod
