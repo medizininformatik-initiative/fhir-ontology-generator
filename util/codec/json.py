@@ -2,7 +2,6 @@ import json
 from collections.abc import Callable
 from typing import Any, Tuple, TypeAlias
 
-from funcy import compose
 from typing_extensions import Never, Optional
 
 from model.helper import del_none
