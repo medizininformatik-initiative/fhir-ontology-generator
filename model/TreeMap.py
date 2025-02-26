@@ -4,7 +4,7 @@ from typing import List, Dict
 import json
 import logging
 
-from helper import JsonSerializable
+from helper import JSONSerializable
 from model.UIProfileModel import del_keys, del_none
 from model.UiDataModel import Module, TermCode
 
@@ -27,7 +27,7 @@ class TermEntryNode:
                 "children": self.children}
 
 @dataclass
-class TreeMap(JsonSerializable):
+class TreeMap(JSONSerializable):
     entries: Dict[str, TermEntryNode] 
     context: TermCode
     system: str
@@ -45,7 +45,7 @@ class TreeMap(JsonSerializable):
         return del_none(del_keys(data, self.DO_NOT_SERIALIZE))
     
 @dataclass
-class TreeMapList(JsonSerializable):
+class TreeMapList(JSONSerializable):
     entries: List[TreeMap] = field(default_factory=list)
     # For naming the files
     module_name: str = None
@@ -110,7 +110,7 @@ class ContextualizedTermCodeInfo:
                 return count
 
 @dataclass
-class ContextualizedTermCodeInfoList(JsonSerializable):
+class ContextualizedTermCodeInfoList(JSONSerializable):
     entries: List[ContextualizedTermCodeInfo] = field(default_factory=list)
 
     def update_children_count(self, tree_map_list: TreeMapList):

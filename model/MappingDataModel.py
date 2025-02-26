@@ -2,72 +2,77 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from sortedcontainers import SortedSet
 
 from model.UIProfileModel import VALUE_TYPE_OPTIONS
 from model.UiDataModel import TermCode
 from model.helper import del_none
+from util.codec.json import JSONSetEncoder
+from util.typing.fhir import FHIRPath
 
 
 class FixedFHIRCriteria:
-    def __init__(self, criteria_type, search_parameter, value=None):
+    def __init__(self, types: Set[str], search_parameter, value=None):
         if value is None:
             value = []
-        self.type = criteria_type
+        self.types = types
         self.value = value
         self.searchParameter = search_parameter
 
 
 class FixedCQLCriteria:
-    def __init__(self, criteria_type, fhir_path, value=None):
+    def __init__(self, types: Set[str], path: FHIRPath, value=None):
         if value is None:
             value = []
-        self.type = criteria_type
+        self.type = types
         self.value = value
-        self.fhirPath = fhir_path
+        self.path = path
 
 
 class AttributeSearchParameter:
-    """
-    AttributeSearchParameter the information how to translate the attribute part of a criteria to a FHIR query snippet
-    :param attribute_code defines the code of the attribute and acts as unique identifier within the ui_profile
-    (Required)
-    """
+    key: TermCode
+    types: Set[str]
 
-    def __init__(self, criteria_type, attribute_code: TermCode):
+    def __init__(self, types: Set[str], attribute_code: TermCode):
+        """
+        AttributeSearchParameter the information how to translate the attribute part of a criteria to a FHIR query snippet
+        :param attribute_code: Defines the code of the attribute and acts as unique identifier within the ui_profile
+                               (Required)
+        :param types: Set of types the attribute supports
+        """
         self.key = attribute_code
-        self.type = criteria_type
+        self.types = types
 
 
 class FhirSearchAttributeSearchParameter(AttributeSearchParameter):
-    def __init__(self, criteria_type: VALUE_TYPE_OPTIONS, attribute_code: TermCode, search_parameter: str,
+    def __init__(self, types: Set[VALUE_TYPE_OPTIONS], attribute_code: TermCode, search_parameter: str,
                  composite_code=None):
         """
         FhirSearchAttributeSearchParameter stores the information how to translate the attribute part of a criteria to a
         FHIR Search query snippet
-        :param criteria_type defines the type of the criteria
-        :param attribute_code defines the code of the attribute and acts as unique identifier within the ui_profile
-        :param search_parameter defines the FHIR search parameter for the attribute
-        :param composite_code defines the composite code for the attribute
+        :param types: Defines the type of the criteria
+        :param attribute_code: Defines the code of the attribute and acts as unique identifier within the ui_profile
+        :param search_parameter: Defines the FHIR search parameter for the attribute
+        :param composite_code: Defines the composite code for the attribute
         """
-        super().__init__(criteria_type, attribute_code)
+        super().__init__(types, attribute_code)
         self.attributeSearchParameter = search_parameter
         self.compositeCode = composite_code
 
 
 class CQLAttributeSearchParameter(AttributeSearchParameter):
-    def __init__(self, criteria_type, attribute_code: TermCode, fhir_path: str):
+    def __init__(self, types: Set[str], attribute_code: TermCode, path: FHIRPath):
         """
         CQLAttributeSearchParameter stores the information how to translate the attribute part of a criteria to a CQL
         query snippet
-        :param criteria_type:
-        :param attribute_code:
-        :param fhir_path:
+        :param types: Set of types the attribute supports
+        :param attribute_code: Coding identifying the attribute
+        :param path: FHIRPath expression used in CQL to address the location the value
         """
-        super().__init__(criteria_type, attribute_code)
-        self.path = fhir_path
+        super().__init__(types, attribute_code)
+        self.path = path
 
 
 class FhirMapping:
@@ -114,21 +119,21 @@ class FhirMapping:
 class CQLTimeRestrictionParameter:
     """
     Holds information about an element within a FHIR resources that a filter targets
-    :param fhirPath: Path to the targeted element as a FHIRPath expression
-    :param types: List of types supported by this element which can be multiple if the element is polymorphic
+    :param path: Path to the targeted element as a FHIRPath expression
+    :param types: Set of types supported by this element which can be multiple if the element is polymorphic
     """
-    fhirPath: str
-    types: List[str]
+    path: FHIRPath
+    types: Set[str]
 
 @dataclass
 class CQLTypeParameter:
     """
     Holds information about an element within a FHIR resources that a filter targets
-    :param fhirPath: Path to the targeted element as a FHIRPath expression
-    :param types: List of types supported by this element which can be multiple if the element is polymorphic
+    :param path: Path to the targeted element as a FHIRPath expression
+    :param types: Set of types supported by this element which can be multiple if the element is polymorphic
     """
-    fhirPath: str
-    types: List[str]
+    path: FHIRPath
+    types: Set[str]
 
 @dataclass
 class CQLMapping:
@@ -171,15 +176,15 @@ class CQLMapping:
 
 
 class PathlingAttributeSearchParameter(AttributeSearchParameter):
-    def __init__(self, criteria_type, attribute_code: TermCode, fhir_path: str):
+    def __init__(self, types, attribute_code: TermCode, fhir_path: str):
         """
         PathlingAttributeSearchParameter stores the information how to translate the attribute part of a criteria to a
         Pathling query snippet
-        :param criteria_type:
+        :param types:
         :param attribute_code:
         :param fhir_path:
         """
-        super().__init__(criteria_type, attribute_code)
+        super().__init__(types, attribute_code)
         self.attributePath = fhir_path
 
 
@@ -228,14 +233,14 @@ class MapEntryList:
 
     def to_json(self):
         self.entries = list(self.entries)
-        return json.dumps(self.entries, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)
+        return json.dumps(self.entries, cls=JSONSetEncoder, sort_keys=True, indent=4)
 
     def get_code_systems(self):
         code_systems = SortedSet()
         for entry in self.entries:
             code_systems.add(entry.key.system)
             for fixed_criteria in entry.fixedCriteria:
-                if fixed_criteria.type == "Coding":
+                if fixed_criteria.types == "Coding":
                     for value in fixed_criteria.value:
                         code_systems.add(value.system)
         return code_systems

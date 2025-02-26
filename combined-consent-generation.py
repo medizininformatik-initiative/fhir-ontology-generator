@@ -1,12 +1,14 @@
 import csv
 import json
-from model.helper import del_none
 from model.UiDataModel import TermCode
 from model.MappingDataModel import FhirMapping, FixedFHIRCriteria, CQLTimeRestrictionParameter, CQLTypeParameter
 from model.MappingDataModel import CQLMapping, FixedCQLCriteria
 from model.TreeMap import TreeMap, TermEntryNode
 import argparse
 import os
+
+from util.codec.json import JSONSetEncoder
+
 
 def configure_args_parser():
     arg_parser = argparse.ArgumentParser(description='Generate the consent for the MII-FDPG')
@@ -45,13 +47,13 @@ def convert_bool_analysis_to_code(distributed_analysis, eu_gdpr, insurance_data,
 
 def generate_fixed_fhir_criteria(provisions_code, provisions_display) -> list[FixedFHIRCriteria]:
 
-    return [FixedFHIRCriteria("coding", "mii-provision-provision-code",
+    return [FixedFHIRCriteria({"coding"}, "mii-provision-provision-code",
             [{"code": code, "display": display, "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3"}])
             for code, display in zip(provisions_code, provisions_display)]
 
 
 def generate_fixed_cql_criteria(provisions_code, provisions_display) -> list[FixedCQLCriteria]:
-    return [FixedCQLCriteria("Coding", "provision.provision.code.coding",
+    return [FixedCQLCriteria({"Coding"}, "provision.provision.code.coding",
             [{"code": code, "display": display, "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3"}])
             for code, display in zip(provisions_code, provisions_display)]
 
@@ -83,8 +85,8 @@ def process_csv(csv_file: str):
             fhir_mapping.timeRestrictionParameter = "date"
             cql_mapping.key = term_code
             cql_mapping.context = context
-            cql_mapping.termCode = CQLTypeParameter("Consent.provision.provision.code", ["CodeableConcept"])
-            cql_mapping.timeRestriction = CQLTimeRestrictionParameter("Consent.datetime", ["dateTime"])
+            cql_mapping.termCode = CQLTypeParameter("provision.provision.code", {"CodeableConcept"})
+            cql_mapping.timeRestriction = CQLTimeRestrictionParameter("datetime", {"dateTime"})
             cql_mapping.resourceType = "Consent"
             cql_mapping.primaryCode= {
                             "code": "57016-8",
@@ -115,7 +117,7 @@ def process_csv(csv_file: str):
 
 def save_json(filename: str, data):
     with open(filename, "w+", encoding='UTF-8') as f:
-        json.dump(data, f, default=lambda o: del_none(o.__dict__))
+        json.dump(data, f, cls=JSONSetEncoder)
 
 
 def append_to_json(filename: str, input_filename: str, data):
