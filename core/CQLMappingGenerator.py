@@ -17,7 +17,7 @@ from model.MappingDataModel import CQLMapping, CQLAttributeSearchParameter, CQLT
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import VALUE_TYPE_OPTIONS
 from model.UiDataModel import TermCode
-from util.typing.fhir import FHIRPath, FHIRPathlike
+from util.typing.fhir import FHIRPathlike
 
 
 class CQLMappingGenerator(object):
@@ -134,7 +134,7 @@ class CQLMappingGenerator(object):
         cql_mapping = CQLMapping(querying_meta_data.name)
         cql_mapping.resourceType = querying_meta_data.resource_type
         if tc_defining_id := querying_meta_data.term_code_defining_id:
-            if self.is_primary_path(querying_meta_data.resource_type, tc_defining_id):
+            if not self.is_primary_path(querying_meta_data.resource_type, self.remove_fhir_resource_type(tc_defining_id)):
                 if self.parser.is_element_in_snapshot(profile_snapshot, tc_defining_id):
                     element = self.parser.get_element_from_snapshot(profile_snapshot, tc_defining_id)
                 else:
@@ -154,7 +154,7 @@ class CQLMappingGenerator(object):
                                                      f"allowed={self.__allowed_defining_code_fhir_types}]")
                 term_code_fhir_path = self.translate_term_element_id_to_fhir_path_expression(tc_defining_id,
                                                                                              profile_snapshot)
-                cql_mapping.termCode = CQLTypeParameter(term_code_fhir_path,list(types))
+                cql_mapping.termCode = CQLTypeParameter(term_code_fhir_path, types)
 
         if val_defining_id := querying_meta_data.value_defining_id:
             element = self.parser.get_element_from_snapshot(profile_snapshot, val_defining_id)
@@ -170,7 +170,7 @@ class CQLMappingGenerator(object):
                                                  f"in the CQL mapping [present={element_types}, "
                                                  f"allowed={self.__allowed_defining_value_fhir_types}]")
             value_fhir_path = self.translate_element_id_to_fhir_path_expressions(val_defining_id, profile_snapshot)
-            cql_mapping.value = CQLTypeParameter(value_fhir_path,list(types))
+            cql_mapping.value = CQLTypeParameter(value_fhir_path, types)
 
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
             element =  self.parser.get_element_from_snapshot(profile_snapshot, time_defining_id)
@@ -187,7 +187,7 @@ class CQLMappingGenerator(object):
                                                  f"in the CQL mapping [present={element_types}, "
                                                  f"allowed={self.__allowed_time_restriction_fhir_types}]")
             fhir_path = self.translate_element_id_to_fhir_path_expressions_time_restriction(time_defining_id, profile_snapshot)
-            cql_mapping.timeRestriction = CQLTimeRestrictionParameter(fhir_path, list(types))
+            cql_mapping.timeRestriction = CQLTimeRestrictionParameter(fhir_path, types)
         for attr_defining_id, attr_attributes in querying_meta_data.attribute_defining_id_type_map.items():
             attr_type = attr_attributes.get("type", "")
             self.set_attribute_search_param(attr_defining_id, cql_mapping, attr_type, profile_snapshot)
@@ -210,7 +210,7 @@ class CQLMappingGenerator(object):
         else:
             attribute_fhir_path = self.translate_term_element_id_to_fhir_path_expression(attr_defining_id,
                                                                                          profile_snapshot)
-        attribute = CQLAttributeSearchParameter(attribute_type, attribute_key, attribute_fhir_path)
+        attribute = CQLAttributeSearchParameter({attribute_type}, attribute_key, attribute_fhir_path)
         if attribute_type == "Reference":
             attribute.referenceTargetType = self.get_reference_type(profile_snapshot, attr_defining_id)
 
@@ -266,7 +266,7 @@ class CQLMappingGenerator(object):
         composite_code = self.get_composite_code(attribute, profile_snapshot)
         updated_where_clause = f".where(code.coding.exists(system = {composite_code.system} and code = {composite_code.code}))"
         # replace original where clause in attribute using string manipulation and regex
-        updated_attribute_path = re.sub(r"\.where\([^\)]*\)", f"{updated_where_clause}", attribute)
+        updated_attribute_path = re.sub(r"\.where\([^)]*\)", f"{updated_where_clause}", attribute)
 
         where_clause, prefix = self.extract_where_clause(updated_attribute_path)
 
