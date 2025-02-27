@@ -26,7 +26,7 @@ class FixedCQLCriteria:
     def __init__(self, types: Set[str], path: FHIRPath, value=None):
         if value is None:
             value = []
-        self.type = types
+        self.types = types
         self.value = value
         self.path = path
 
