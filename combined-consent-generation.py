@@ -53,7 +53,7 @@ def generate_fixed_fhir_criteria(provisions_code, provisions_display) -> list[Fi
 
 
 def generate_fixed_cql_criteria(provisions_code, provisions_display) -> list[FixedCQLCriteria]:
-    return [FixedCQLCriteria({"Coding"}, "provision.provision.code.coding",
+    return [FixedCQLCriteria({"CodeableConcept"}, "provision.provision.code",
             [{"code": code, "display": display, "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3"}])
             for code, display in zip(provisions_code, provisions_display)]
 
@@ -85,7 +85,6 @@ def process_csv(csv_file: str):
             fhir_mapping.timeRestrictionParameter = "date"
             cql_mapping.key = term_code
             cql_mapping.context = context
-            cql_mapping.termCode = CQLTypeParameter("provision.provision.code", {"CodeableConcept"})
             cql_mapping.timeRestriction = CQLTimeRestrictionParameter("datetime", {"dateTime"})
             cql_mapping.resourceType = "Consent"
             cql_mapping.primaryCode= {
