@@ -1,7 +1,7 @@
 import csv
 import json
 from model.UiDataModel import TermCode
-from model.MappingDataModel import FhirMapping, FixedFHIRCriteria, CQLTimeRestrictionParameter, CQLTypeParameter
+from model.MappingDataModel import FhirMapping, FixedFHIRCriteria, CQLTimeRestrictionParameter, SimpleCardinality
 from model.MappingDataModel import CQLMapping, FixedCQLCriteria
 from model.TreeMap import TreeMap, TermEntryNode
 import argparse
@@ -53,7 +53,7 @@ def generate_fixed_fhir_criteria(provisions_code, provisions_display) -> list[Fi
 
 
 def generate_fixed_cql_criteria(provisions_code, provisions_display) -> list[FixedCQLCriteria]:
-    return [FixedCQLCriteria({"CodeableConcept"}, "provision.provision.code",
+    return [FixedCQLCriteria({"CodeableConcept"}, "provision.provision.code", SimpleCardinality.MANY,
             [{"code": code, "display": display, "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3"}])
             for code, display in zip(provisions_code, provisions_display)]
 

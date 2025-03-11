@@ -12,12 +12,17 @@ Snapshot = Annotated[StructureDefinition, ("Dictionary representing FHIR Structu
 
 
 def get_parent_element(element: ElementDefinition, snapshot: Snapshot) -> Optional[ElementDefinition]:
-    element_path = element.get('id')
-    if not element_path:
+    element_id = element.get('id')
+    if not element_id:
         raise KeyError(f"'ElementDefinition.id' is missing in element [path='{element.get('path')}']")
     # We can determine the parent elements ID using the child elements path the FHIR spec requires the ID to align close
     # to the elements path and be hierarchical
-    parent_id = ".".join(element_path.split('.')[:-1])
+    split = element_id.split('.')
+    element_name = split[-1]
+    parent_id = ".".join(split[:-1])
+    # Handle slices
+    if ":" in element_name:
+        parent_id += "." + element_name.split(":")[0]
     parents = list(filter(lambda e: e.get('id') == parent_id, snapshot.get('snapshot', {}).get('element', [])))
     match len(parents):
         case 0:

@@ -4,17 +4,20 @@ import json
 import logging
 import os
 import re
+from functools import reduce
 from typing import Tuple, List, Dict, Set
+
 from lxml import etree
+from typing_extensions import LiteralString
 
 from core import StructureDefinitionParser as FHIRParser
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from core.StructureDefinitionParser import resolve_defining_id, extract_value_type, extract_reference_type, \
-    CQL_TYPES_TO_VALUE_TYPES
+    CQL_TYPES_TO_VALUE_TYPES, get_element_defining_elements_with_source_snapshots
 from core.exceptions.UnsupportedTypingException import UnsupportedTypingException
 from helper import generate_attribute_key
 from model.MappingDataModel import CQLMapping, CQLAttributeSearchParameter, CQLTimeRestrictionParameter, \
-    CQLTypeParameter
+    CQLTypeParameter, SimpleCardinality
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import VALUE_TYPE_OPTIONS
 from model.UiDataModel import TermCode
@@ -61,8 +64,8 @@ class CQLMappingGenerator(object):
         """
         pass
 
-    @staticmethod
-    def __select_element_compatible_with_cql_operations(element: ElementDefinition,
+    @classmethod
+    def __select_element_compatible_with_cql_operations(cls, element: ElementDefinition,
                                                         snapshot: Snapshot) -> (ElementDefinition, Set[str]):
         """
         Uses the given element to determine - if necessary - an element which is more suitable for generating the CQL
@@ -86,7 +89,10 @@ class CQLMappingGenerator(object):
                 if targeted_type in {"CodeableConcept", "Reference"}:
                     parent_element = get_parent_element(element, snapshot)
                     if parent_element:
-                        compatible_element = parent_element
+                        # Recurse until the actual ancestor element is reached. Slicing element definitions do not have
+                        # such an element as their parent (direct ancestor)
+                        compatible_element, _ = cls.__select_element_compatible_with_cql_operations(parent_element,
+                                                                                                    snapshot)
                         targeted_types = {targeted_type}
             else:
                 raise KeyError(f"Element [id='{element.get('id')}'] is missing required 'ElementDefinition.base.path' "
@@ -170,7 +176,7 @@ class CQLMappingGenerator(object):
         cql_mapping = CQLMapping(querying_meta_data.name)
         cql_mapping.resourceType = querying_meta_data.resource_type
         if tc_defining_id := querying_meta_data.term_code_defining_id:
-            # TODO: Temporary fix by filtering out CDS Medication querying definitions since they receive special
+            # TODO: Temporary fix by filtering out CDS Medication querying metadata since they receive special
             #       treatment in sq2cql
             if (not self.is_primary_path(querying_meta_data.resource_type,
                                          self.remove_fhir_resource_type(tc_defining_id))
@@ -194,7 +200,8 @@ class CQLMappingGenerator(object):
                                                      f"allowed={self.__allowed_defining_code_fhir_types}]")
                 term_code_fhir_path = self.translate_term_element_id_to_fhir_path_expression(element_id,
                                                                                              profile_snapshot)
-                cql_mapping.termCode = CQLTypeParameter(term_code_fhir_path, types)
+                card = CQLMappingGenerator.__aggregate_cardinality_using_element(element, profile_snapshot)
+                cql_mapping.termCode = CQLTypeParameter(term_code_fhir_path, types, card)
 
         if val_defining_id := querying_meta_data.value_defining_id:
             element = self.parser.get_element_from_snapshot(profile_snapshot, val_defining_id)
@@ -211,7 +218,8 @@ class CQLMappingGenerator(object):
                                                  f"mapping [present={types}, "
                                                  f"allowed={self.__allowed_defining_value_fhir_types}]")
             value_fhir_path = self.translate_element_id_to_fhir_path_expressions(element_id, profile_snapshot)
-            cql_mapping.value = CQLTypeParameter(value_fhir_path, types)
+            card = CQLMappingGenerator.__aggregate_cardinality_using_element(element, profile_snapshot)
+            cql_mapping.value = CQLTypeParameter(value_fhir_path, types, card)
 
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
             element = self.parser.get_element_from_snapshot(profile_snapshot, time_defining_id)
@@ -235,7 +243,7 @@ class CQLMappingGenerator(object):
 
         return cql_mapping
 
-    def set_attribute_search_param(self, attr_defining_id, cql_mapping, attr_type, profile_snapshot):
+    def set_attribute_search_param(self, attr_defining_id: str, cql_mapping, attr_type, profile_snapshot):
         attribute_key = generate_attribute_key(attr_defining_id)
         attribute_type = attr_type if attr_type else self.get_attribute_type(profile_snapshot, attr_defining_id)
         # FIXME:
@@ -244,6 +252,9 @@ class CQLMappingGenerator(object):
         attribute_type = "Reference" if attr_type == "reference" else attribute_type
         attribute_types = None
         if attribute_type == "composite":
+            element = self.parser.get_element_from_snapshot(profile_snapshot, attr_defining_id)
+            element, _ = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
+
             attribute_fhir_path = self.translate_composite_attribute_to_fhir_path_expression(attr_defining_id,
                                                                                              profile_snapshot)
             attribute_key = self.get_composite_code(attr_defining_id, profile_snapshot)
@@ -257,7 +268,8 @@ class CQLMappingGenerator(object):
             attribute_fhir_path = self.translate_term_element_id_to_fhir_path_expression(attr_defining_id,
                                                                                          profile_snapshot)
         attribute_types = attribute_types if attribute_types else {attribute_type}
-        attribute = CQLAttributeSearchParameter(attribute_types, attribute_key, attribute_fhir_path)
+        cards = self.__aggregate_cardinality_using_element_id(attr_defining_id, profile_snapshot)
+        attribute = CQLAttributeSearchParameter(attribute_types, attribute_key, attribute_fhir_path, cards)
         if attribute_type == "Reference":
             attribute.referenceTargetType = self.get_reference_type(profile_snapshot, attr_defining_id)
 
@@ -538,4 +550,52 @@ class CQLMappingGenerator(object):
                 return True
         return False
 
+    @staticmethod
+    def __aggregate_cardinality_using_element(element: ElementDefinition, snapshot: Snapshot,
+                                              card_type: LiteralString["min", "max"] = "max") -> SimpleCardinality:
+        """
+        Aggregates the cardinality of an element along its path by collecting the cardinalities of itself and the parent
+        elements and combining them to obtain the aggregated value as viewed from the root of the FHIR Resource
+        :param element: Element to calculate the aggregated cardinality for
+        :param snapshot: Snapshot of profile defining the element
+        :param card_type: Type of cardinality to aggregate (either 'mix' or 'max')
+        :return: Aggregated cardinality stating whether an element can occur multiple times or not
+        """
+        opt_element, _ = CQLMappingGenerator.__select_element_compatible_with_cql_operations(element, snapshot)
+        card = SimpleCardinality.from_fhir_cardinality(opt_element.get(card_type))
+        opt_element_path = opt_element.get('path')
+        is_root = opt_element_path.count(".") == 0
+        match card:
+            case SimpleCardinality.MANY:
+                # End recursion since with the current enum members reaching this state leads to no further changes. An
+                # exception will be made if the element is a root element since at that level we always assume singleton
+                # occurrence (e.g. for paths like '<resource-type>')
+                return SimpleCardinality.SINGLE if is_root else card
+            case _:
+                match get_parent_element(opt_element, snapshot):
+                    case None:
+                        if not is_root:
+                            raise Exception(f"No parent could be identified for element '{opt_element.get('id')}' with "
+                                            f"non-root path '{opt_element_path}'")
+                        else:
+                            # The root element is always assumed to have `SINGLE` cardinality
+                            return SimpleCardinality.SINGLE
+                    case parent_element:
+                        return CQLMappingGenerator.__aggregate_cardinality_using_element(parent_element,
+                                                                                         snapshot, card_type) * card
 
+    def __aggregate_cardinality_using_element_id(self, element_defining_id: str,
+                                                 profile_snapshot: Snapshot) -> SimpleCardinality:
+        element_results = get_element_defining_elements_with_source_snapshots(element_defining_id, profile_snapshot,
+                                                                              self.module_dir, self.data_set_dir)
+        if element_results is None or len(element_results) == 0:
+            raise Exception(f"Aggregated cardinality could not be determined: No defining elements could be "
+                            f"identified using element defining ID '{element_defining_id}' and snapshot "
+                            f"'{profile_snapshot.get('id')}'")
+        else:
+            cards = []
+            for result in element_results:
+                opt_element, _ = self.__select_element_compatible_with_cql_operations(
+                    result.element, result.profile_snapshot)
+                cards.append(self.__aggregate_cardinality_using_element(opt_element, result.profile_snapshot))
+            return reduce(lambda a, b: a * b, cards)
