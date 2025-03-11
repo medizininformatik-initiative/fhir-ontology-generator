@@ -26,12 +26,16 @@ def extract_designation(parameters: dict, language: str, fuzzy = True) -> str | 
     for designation in filter(lambda p: p.get("name") == "designation", parameters.get("parameter", [])):
         part = designation.get("part")
         if part:
-            designation_language = list(filter(lambda p: p.get("name") == "language", part))[0].get("valueCode")
-            if len(list(filter(lambda p: p.get("name") == "use", part))) == 0: continue
-            designation_use = list(filter(lambda p: p.get("name") == "use", part))[0].get("valueCoding").get("code")
-            matches = re.match(rf'^{language}(-\S+)?$', designation_language) if fuzzy else (language == designation_language)
-            if matches and (designation_use == "display" or designation_use == "preferredForLanguage"):
-                return list(filter(lambda p: p.get("name") == "value", part))[0].get("valueString")
+            try:
+                designation_language = list(filter(lambda p: p.get("name") == "language", part))[0].get("valueCode")
+                if len(list(filter(lambda p: p.get("name") == "use", part))) == 0: continue
+                designation_use = list(filter(lambda p: p.get("name") == "use", part))[0].get("valueCoding").get("code")
+                matches = re.match(rf'^{language}(-\S+)?$', designation_language) if fuzzy else (
+                        language == designation_language)
+                if matches and (designation_use == "display" or designation_use == "preferredForLanguage"):
+                    return list(filter(lambda p: p.get("name") == "value", part))[0].get("valueString")
+            except IndexError:
+                logger.warning(f"Designation could not be extracted. Code:{designation}")
     return None
 
 
