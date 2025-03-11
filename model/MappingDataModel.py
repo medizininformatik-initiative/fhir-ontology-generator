@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import dataclasses
 import json
+from abc import ABC
 from dataclasses import dataclass, field
-from typing import List, Optional, Set
+from enum import Enum
+from typing import List, Optional, Set, Literal, Union
 
 from sortedcontainers import SortedSet
 
@@ -11,24 +14,6 @@ from model.UiDataModel import TermCode
 from model.helper import del_none
 from util.codec.json import JSONSetEncoder
 from util.typing.fhir import FHIRPath
-
-
-class FixedFHIRCriteria:
-    def __init__(self, types: Set[str], search_parameter, value=None):
-        if value is None:
-            value = []
-        self.types = types
-        self.value = value
-        self.searchParameter = search_parameter
-
-
-class FixedCQLCriteria:
-    def __init__(self, types: Set[str], path: FHIRPath, value=None):
-        if value is None:
-            value = []
-        self.types = types
-        self.value = value
-        self.path = path
 
 
 class AttributeSearchParameter:
@@ -62,16 +47,77 @@ class FhirSearchAttributeSearchParameter(AttributeSearchParameter):
         self.compositeCode = composite_code
 
 
-class CQLAttributeSearchParameter(AttributeSearchParameter):
-    def __init__(self, types: Set[str], attribute_code: TermCode, path: FHIRPath):
+class SimpleCardinality(str, Enum):
+    SINGLE = "single"
+    MANY = "many"
+
+    def __mul__(self, other: SimpleCardinality) -> SimpleCardinality:
+        if self == SimpleCardinality.MANY or other == SimpleCardinality.MANY:
+            return SimpleCardinality.MANY
+        else:
+            return SimpleCardinality.SINGLE
+
+    @staticmethod
+    def from_fhir_cardinality(fhir_card: Union[int, str]) -> SimpleCardinality:
+        """
+        Maps the cardinality value of an ElementDefinition instance in a FHIR StructureDefinition resource instance to a
+        member of this enum. Note that the value '0' will be mapped to 'SINGLE'
+        :param fhir_card: Cardinality value (either of 'min' or 'max' element) to map
+        :return: Member of this enum class corresponding to the provided cardinality value
+        """
+        match fhir_card:
+            case 0 | 1 | "0" | "1":
+                return SimpleCardinality.SINGLE
+            case _:
+                return SimpleCardinality.MANY
+
+
+@dataclass
+class HasSimpleCardinality(ABC):
+    """
+    Abstract class to represent inheriting classes having information about cardinality in a simplified manner, i.e.
+    whether some of its aspects are repeatable or not
+    """
+    cardinality: SimpleCardinality
+
+    def __init__(self, cardinality: SimpleCardinality):
+        self.cardinality = cardinality
+
+
+class FixedFHIRCriteria:
+    def __init__(self, types: Set[str], search_parameter, value=None):
+        if value is None:
+            value = []
+        self.types = types
+        self.value = value
+        self.searchParameter = search_parameter
+
+
+class FixedCQLCriteria(HasSimpleCardinality):
+    def __init__(self, types: Set[str], path: FHIRPath, cardinality: SimpleCardinality, value=None,):
+        HasSimpleCardinality.__init__(self, cardinality)
+        if value is None:
+            value = []
+        self.types = types
+        self.value = value
+        self.path = path
+
+
+@dataclass
+class CQLAttributeSearchParameter(AttributeSearchParameter, HasSimpleCardinality):
+    path: FHIRPath
+
+    def __init__(self, types: Set[str], attribute_code: TermCode, path: FHIRPath, cardinality: SimpleCardinality):
         """
         CQLAttributeSearchParameter stores the information how to translate the attribute part of a criteria to a CQL
         query snippet
         :param types: Set of types the attribute supports
         :param attribute_code: Coding identifying the attribute
         :param path: FHIRPath expression used in CQL to address the location the value
+        :param cardinality: Aggregated cardinality of the target element
         """
-        super().__init__(types, attribute_code)
+        AttributeSearchParameter.__init__(self, types, attribute_code)
+        HasSimpleCardinality.__init__(self, cardinality)
         self.path = path
 
 
@@ -116,7 +162,7 @@ class FhirMapping:
 
 
 @dataclass
-class CQLTimeRestrictionParameter:
+class CQLTypeParameter(HasSimpleCardinality):
     """
     Holds information about an element within a FHIR resources that a filter targets
     :param path: Path to the targeted element as a FHIRPath expression
@@ -125,15 +171,21 @@ class CQLTimeRestrictionParameter:
     path: FHIRPath
     types: Set[str]
 
+    def __init__(self, path: FHIRPath, types: Set[str], cardinality: SimpleCardinality):
+        super().__init__(cardinality)
+        self.path = path
+        self.types = types
+
+
 @dataclass
-class CQLTypeParameter:
+class CQLTimeRestrictionParameter(CQLTypeParameter):
     """
-    Holds information about an element within a FHIR resources that a filter targets
-    :param path: Path to the targeted element as a FHIRPath expression
-    :param types: Set of types supported by this element which can be multiple if the element is polymorphic
+    Represents a time restriction element in a CQL mapping entry. Since we expect the corresponding element in the
+    instance data to never repeat (i.e. be a list of date/time values) its cardinality is fixed to `SINGLE`
     """
-    path: FHIRPath
-    types: Set[str]
+    def __init__(self, path: FHIRPath, types: Set[str]):
+        CQLTypeParameter.__init__(self, path, types, SimpleCardinality.SINGLE)
+
 
 @dataclass
 class CQLMapping:
