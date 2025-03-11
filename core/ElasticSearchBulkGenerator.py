@@ -50,7 +50,7 @@ class ElasticSearchGenerator:
                         context_termcode_hash_to_crit_set[cont_term_hash].append(crit_set_url)
 
     @staticmethod
-    def __get_relation_crit_object(code, system, context, term_code_info_map, namespace_uuid_str):
+    def __get_relation_crit_object(code, system, context, term_code_info_map, namespace_uuid_str, terminology_resolver):
 
         term_code = {"code": code, "system": system}
 
@@ -61,10 +61,14 @@ class ElasticSearchGenerator:
         parent_context = parent_term_code_info['context']
         parent_term_code = parent_term_code_info['term_code']
 
-        return {'name': parent_term_code_info['term_code']['display'],
-                'contextualized_termcode_hash': ElasticSearchGenerator.__get_contextualized_termcode_hash(
-                    parent_context, parent_term_code,
-                    namespace_uuid_str=namespace_uuid_str)}
+        return {
+            #'name': parent_term_code_info['term_code']['display'],
+            'display': terminology_resolver.resolve_term(parent_term_code),
+            'contextualized_termcode_hash': ElasticSearchGenerator.__get_contextualized_termcode_hash(
+                parent_context,
+                parent_term_code,
+                namespace_uuid_str=namespace_uuid_str
+            )}
 
     @staticmethod
     def __iterate_tree(ui_tree_list, term_code_info_map, target_elastic_crit_list, context_termcode_hash_to_crit_set,
@@ -110,13 +114,17 @@ class ElasticSearchGenerator:
 
                 for parent_code in entry['parents']:
                     obj['parents'].append(
-                        ElasticSearchGenerator.__get_relation_crit_object(parent_code, ui_tree['system'], context,
-                                                                          term_code_info_map, namespace_uuid_str))
+                        ElasticSearchGenerator.__get_relation_crit_object(
+                            parent_code, ui_tree['system'], context,term_code_info_map, namespace_uuid_str, terminology_resolver
+                        )
+                    )
 
                 for child_code in entry['children']:
                     obj['children'].append(
-                        ElasticSearchGenerator.__get_relation_crit_object(child_code, ui_tree['system'], context,
-                                                                          term_code_info_map, namespace_uuid_str))
+                        ElasticSearchGenerator.__get_relation_crit_object(
+                            child_code, ui_tree['system'], context,term_code_info_map, namespace_uuid_str, terminology_resolver
+                        )
+                    )
 
                 # TODO - Siblings - needs to be considered as it is possible to have siblings from other ui_tree
                 # for sibling_code in term_code_info['siblings']:
