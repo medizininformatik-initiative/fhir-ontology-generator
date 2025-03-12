@@ -35,7 +35,8 @@ def extract_designation(parameters: dict, language: str, fuzzy = True) -> str | 
                 if matches and (designation_use == "display" or designation_use == "preferredForLanguage"):
                     return list(filter(lambda p: p.get("name") == "value", part))[0].get("valueString")
             except IndexError:
-                logger.warning(f"Designation could not be extracted. Code:{designation}")
+                logger.warning(f"Designation could not be extracted. Probably code not present on Server."
+                               f" Code:{designation}")
     return None
 
 
