@@ -306,10 +306,12 @@ class ProfileTreeGenerator():
         return ""
 
     def generate_profiles_tree(self):
+        self.logger.info("Generating profile tree")
 
         tree = {"name": "Root", "module": "no-module", "url": "no-url", "children": [], "selectable": False}
 
         for profile in self.profiles.values():
+            self.logger.info(f"Processing profile {profile.get('name')}")
             path = self.build_profile_path([], profile, self.profiles)
             module = profile["module"]
             path.insert(0, {

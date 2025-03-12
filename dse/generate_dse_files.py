@@ -252,7 +252,6 @@ def generate_dse_mapping_trees(vs_dir_path: Union[str, os.PathLike]) -> list[dic
 
 if __name__ == '__main__':
 
-
     parser = configure_args_parser()
     args = parser.parse_args()
     log_level = getattr(logging, args.loglevel)
