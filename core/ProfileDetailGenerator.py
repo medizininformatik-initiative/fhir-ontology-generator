@@ -5,10 +5,10 @@ from collections.abc import Mapping
 
 class ProfileDetailGenerator():
 
-    def __init__(self, profiles, mapping_type_code, blacklistedValueSets, fields_to_exclude, field_trees_to_exclude, reference_base_url):
+    def __init__(self, profiles, mapping_type_code, blacklisted_value_sets, fields_to_exclude, field_trees_to_exclude, reference_base_url):
 
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.blacklistedValueSets = blacklistedValueSets
+        self.blacklisted_value_sets = blacklisted_value_sets
         self.profiles = profiles
         self.mapping_type_code = mapping_type_code
         self.fields_to_exclude = fields_to_exclude
@@ -67,7 +67,7 @@ class ProfileDetailGenerator():
 
                 value_set = elem["binding"]["valueSet"]
 
-                if value_set not in self.blacklistedValueSets:
+                if value_set not in self.blacklisted_value_sets:
                     value_sets.append(value_set)
 
             elif len(value_sets) == 0 and "patternCoding" in elem or "fixed" in elem:
@@ -84,7 +84,7 @@ class ProfileDetailGenerator():
 
                 value_set = elem["binding"]["valueSet"]
 
-                if value_set not in self.blacklistedValueSets:
+                if value_set not in self.blacklisted_value_sets:
                     value_sets.append(value_set)
 
             elif "patternCoding" in elem or "fixed" in elem:
