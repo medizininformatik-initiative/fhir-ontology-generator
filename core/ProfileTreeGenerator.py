@@ -33,9 +33,11 @@ class ProfileTreeGenerator:
         self.fields_to_exclude = fields_to_exclude
         self.field_trees_to_exclude = field_trees_to_exclude
         self.profiles_to_process = profiles_to_process
+        self.simple_data_types = ["instant", "time", "date", "dateTime", "decimal", "boolean", "integer", "string",
+                                  "uri", "base64Binary", "code", "id", "oid", "unsignedInt", "positiveInt", "markdown",
+                                  "url", "canonical", "uuid"]
 
     def get_name_from_id(self, id):
-
         name = id.split(".")[-1]
         name = name.split(":")[-1]
         name = name.replace("[x]", "")
@@ -356,6 +358,7 @@ class ProfileTreeGenerator:
         tree = {"name": "Root", "module": "no-module", "url": "no-url", "children": [], "selectable": False}
 
         for profile in self.get_suitable_mii_profiles().values():
+            self.logger.info(f"Processing profile {profile.get('name')}")
             try:
                 path = self.build_profile_path([], profile, self.__get_profiles(SnapshotPackageScope.MII))
                 module = profile["module"]

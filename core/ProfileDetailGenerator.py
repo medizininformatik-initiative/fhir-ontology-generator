@@ -145,7 +145,7 @@ class ProfileDetailGenerator:
         #       Coding.system etc.).
         #       In the future we should switch to a more dynamic solution were the selectable elements can be defined in
         #       externalized config files using a well-defined syntax to prevent such hard-coded solutions.
-        if (field.type in FhirPrimitiveDataType and len(path) > 1 and
+        if (field_type in FhirPrimitiveDataType and len(path) > 1 and
                 field.get('id') not in {"Patient.address:Strassenanschrift.postalCode",
                                         "Patient.address:Strassenanschrift.country"}):
             return
