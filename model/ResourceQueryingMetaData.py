@@ -16,11 +16,11 @@ class ResourceQueryingMetaData:
     :param context defines the context of the resource. (Required)
     :param term_code_defining_id defines the id that identifies the term_code element.
     :param term_codes defines the term_code elements. Prefer using term_code_defining_id. But if no id to obtain the
-    term_code from is available use this parameter. I.E to define the term_code for Patient.birthdate.
-    If possible use snomed codes.
+           term_code from is available use this parameter. I.E to define the term_code for Patient.birthdate.
+           If possible use snomed codes.
     :param value_defining_id defines the id that identifies the value element.
     :param value_type defines the value type of the value element.
-    Typically this will be inferred from the FHIR profile. But can be overwritten here.
+           Typically this will be inferred from the FHIR profile. But can be overwritten here.
     :param attribute_defining_id_type_map define the ids that identify the attribute elements. The corresponding type
     entry defines the type of the attribute element and is typically inferred from the FHIR profile. But can be
     overwritten here.
