@@ -252,6 +252,7 @@ def generate_dse_mapping_trees(vs_dir_path: Union[str, os.PathLike]) -> list[dic
 
 if __name__ == '__main__':
 
+
     parser = configure_args_parser()
     args = parser.parse_args()
     log_level = getattr(logging, args.loglevel)
@@ -280,7 +281,7 @@ if __name__ == '__main__':
     if args.copy_snapshots:
         tree_generator.copy_profile_snapshots()
 
-    tree_generator.get_profiles()
+    tree_generator.get_profile_snapshots()
     profile_tree = tree_generator.generate_profiles_tree()
 
     with open(os.path.join("generated", "profile_tree.json"), "w") as f:

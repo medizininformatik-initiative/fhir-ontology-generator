@@ -10,7 +10,7 @@ from core import StructureDefinitionParser as FHIRParser
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from core.StructureDefinitionParser import resolve_defining_id, extract_value_type, extract_reference_type, \
     CQL_TYPES_TO_VALUE_TYPES
-from core.exceptions.UnsupportedTypingException import UnsupportedTypingException
+from core.exceptions.typing import UnsupportedTypingException
 from helper import generate_attribute_key
 from model.MappingDataModel import CQLMapping, CQLAttributeSearchParameter, CQLTimeRestrictionParameter
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
