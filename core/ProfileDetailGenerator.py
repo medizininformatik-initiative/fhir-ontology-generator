@@ -151,6 +151,7 @@ class ProfileDetailGenerator:
             return
 
         for index in range(0, len(path) - 1):
+
             id_end = path[index]
             field_child_index = self.get_field_in_node(cur_node.__dict__, id_end)
 

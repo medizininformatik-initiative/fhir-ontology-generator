@@ -38,6 +38,7 @@ class ProfileTreeGenerator:
                                   "url", "canonical", "uuid"]
 
     def get_name_from_id(self, id):
+
         name = id.split(".")[-1]
         name = name.split(":")[-1]
         name = name.replace("[x]", "")
