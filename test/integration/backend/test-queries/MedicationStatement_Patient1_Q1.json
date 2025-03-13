@@ -1,1 +1,28 @@
-{"version":"http://to_be_decided.com/draft-1/schema#","display":"Ausgewählte Merkmale","inclusionCriteria":[[{"termCodes":[{"code":"B01AC06","display":"Acetylsalicylsäure","system":"http://fhir.de/CodeSystem/bfarm/atc","version":"2024"}],"context":{"code":"Medikamentenanordnung","display":"Anordnung von Medikamenten","system":"fdpg.mii.cds","version":"1.0.0"},"timeRestriction":{"afterDate":"2020-08-30","beforeDate":"2020-08-30"}}]]}
+{
+  "version": "http://to_be_decided.com/draft-1/schema#",
+  "display": "Ausgewählte Merkmale",
+  "inclusionCriteria": [
+    [
+      {
+        "termCodes": [
+          {
+            "code": "B01AC06",
+            "display": "Acetylsalicylsäure",
+            "system": "http://fhir.de/CodeSystem/bfarm/atc",
+            "version": "2024"
+          }
+        ],
+        "context": {
+          "code": "Medikamentenverordnung",
+          "display": "Verordnung von Medikamenten",
+          "system": "fdpg.mii.cds",
+          "version": "1.0.0"
+        },
+        "timeRestriction": {
+          "afterDate": "2020-08-30",
+          "beforeDate": "2020-08-30"
+        }
+      }
+    ]
+  ]
+}

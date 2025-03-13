@@ -1,7 +1,7 @@
 services:
   dataportal-backend:
     container_name: integration-test_dataportal-backend
-    image: ghcr.io/medizininformatik-initiative/feasibility-backend:6.1.0-alpha.2
+    image: ghcr.io/medizininformatik-initiative/feasibility-backend:6.2.0-alpha.1
     ports:
       - "8091:8090"
     depends_on:
@@ -139,7 +139,7 @@ services:
         read_only: true
 
   blaze:
-    image: "samply/blaze:0.32"
+    image: "samply/blaze:0.33"
     container_name: integration-test_blaze
     environment:
       BASE_URL: "http://blaze:8080"
