@@ -1,1 +1,28 @@
-{"version":"http://to_be_decided.com/draft-1/schema#","display":"Ausgewählte Merkmale","inclusionCriteria":[[{"termCodes":[{"code":"5-323.51","display":"Segmentresektion der Lunge: 1 Segment, thorakoskopisch: Ohne Lymphadenektomie","system":"http://fhir.de/CodeSystem/bfarm/ops","version":"2024"}],"context":{"code":"Procedure","display":"Prozedur","system":"fdpg.mii.cds","version":"1.0.0"},"timeRestriction":{"afterDate":"2024-02-20","beforeDate":"2024-02-20"}}]]}
+{
+  "version": "http://to_be_decided.com/draft-1/schema#",
+  "display": "Ausgewählte Merkmale",
+  "inclusionCriteria": [
+    [
+      {
+        "termCodes": [
+          {
+            "code": "5-323.51",
+            "display": "Segmentresektion der Lunge: 1 Segment, thorakoskopisch: Ohne Lymphadenektomie",
+            "system": "http://fhir.de/CodeSystem/bfarm/ops",
+            "version": "2024"
+          }
+        ],
+        "context": {
+          "code": "Procedure",
+          "display": "Prozedur",
+          "system": "fdpg.mii.cds",
+          "version": "1.0.0"
+        },
+        "timeRestriction": {
+          "afterDate": "2024-02-19",
+          "beforeDate": "2024-02-21"
+        }
+      }
+    ]
+  ]
+}
