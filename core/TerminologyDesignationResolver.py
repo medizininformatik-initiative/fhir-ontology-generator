@@ -35,7 +35,7 @@ def extract_designation(parameters: dict, language: str, fuzzy = True) -> str | 
                 if matches and (designation_use == "display" or designation_use == "preferredForLanguage"):
                     return list(filter(lambda p: p.get("name") == "value", part))[0].get("valueString")
             except IndexError:
-                logger.warning(f"Designation could not be extracted. Probably code not present on Server."
+                logger.warning(f"Designation could not be extracted. Code is probably not present on server."
                                f" Code:{designation}")
     return None
 
@@ -390,7 +390,7 @@ class TerminologyDesignationResolver:
                     else:
                         self.code_systems[url] = codesystem
 
-    def resolve_term(self, term_code):
+    def resolve_term(self, term_code)->dict:
         """
         Generates the 'display' property of a term_code
         providing the ability of multilingual search.
