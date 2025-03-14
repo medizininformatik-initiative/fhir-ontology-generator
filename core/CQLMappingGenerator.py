@@ -22,7 +22,7 @@ from model.UiDataModel import TermCode
 class CQLMappingGenerator(object):
     __allowed_time_restriction_fhir_types = {"date", "dateTime", "Period"}
     __allowed_defining_code_fhir_types = {"Coding", "CodeableConcept", "Reference"}
-    __allowed_defining_value_fhir_types = {"code", "date", "Coding"}
+    __allowed_defining_value_fhir_types = {"code", "date", "Coding", "Quantity"}
 
     def __init__(self, querying_meta_data_resolver: ResourceQueryingMetaDataResolver, parser=FHIRParser):
         """
