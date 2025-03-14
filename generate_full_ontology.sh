@@ -69,6 +69,7 @@ if should_run_step 3; then
      "$BASE_DIR/example/mii_core_data_set/CDS_Module/Labor/generated-ontology" \
      "$BASE_DIR/example/mii_core_data_set/CDS_Module/Medikation/generated-ontology" \
      "$BASE_DIR/example/mii_core_data_set/CDS_Module/Prozedur/generated-ontology" \
+     "$BASE_DIR/example/mii_core_data_set/CDS_Module/ICU/generated-ontology" \
      "$BASE_DIR/example/mii_core_data_set/CDS_Module/Einwilligung/generated-ontology"
 fi
 
