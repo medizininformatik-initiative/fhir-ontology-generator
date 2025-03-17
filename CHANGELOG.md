@@ -13,6 +13,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 ### Security
 
+## [3.2.2] - 2025-03-17
+
+### Fixed
+
+- Add temporary fix to address automatic selection of referenced profiles in UI by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/212
+
 ## [3.2.1] - 2025-03-17
 
 ### Fix
