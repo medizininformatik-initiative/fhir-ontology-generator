@@ -1,5 +1,6 @@
 import logging
 import re
+from collections.abc import Mapping
 
 
 class ProfileDetailGenerator():
@@ -115,11 +116,12 @@ class ProfileDetailGenerator():
         path = re.split(r"[.:]", field["id"])
         path = path[1:]
         parent_recommended = False
+        field_type = field.get('type')
 
         if len(path) == 0:
             return
 
-        if field['type'] in self.simple_data_types and len(path) > 1:
+        if field_type in self.simple_data_types and len(path) > 1:
             return
 
         for index in range(0, len(path) - 1):
@@ -256,7 +258,6 @@ class ProfileDetailGenerator():
                     mii_references.append(profile)
 
             if len(mii_references) == 0:
-
                 for profile in target_profiles:
                     fhir_type = profile.rstrip('/').split('/')[-1]
                     mii_references.extend(self.find_mii_references_by_type(fhir_type))
@@ -264,7 +265,6 @@ class ProfileDetailGenerator():
         return mii_references
 
     def generate_detail_for_profile(self, profile):
-
         self.logger.info(f"Generating profile detail for: {profile['url']}")
 
         if not "snapshot" in profile["structureDefinition"]:
@@ -347,6 +347,11 @@ class ProfileDetailGenerator():
             is_recommended_field = self.check_at_least_one_in_elem_and_true(element, ["min"])
             is_required_field = self.check_at_least_one_in_elem_and_true(element, ["isModifier"])
 
+            # FIXME: Temporary fix to make elements of type 'Reference' not recommended due to issues in the UI except
+            #        for references to the MII Medication profile
+            if field_type == "Reference" and not ".medication" in field_id:
+                is_recommended_field = False
+
             name = self.get_name_from_id(element["id"])
 
             field = {"id": field_id,
@@ -385,7 +390,6 @@ class ProfileDetailGenerator():
             if field_type == "Reference" and len(self.get_referenced_mii_profiles(element, field_type)) == 0:
                 self.logger.warning(f"Discarding field: {element['id']} - No mii profiles that match referenced profiles, parent profile is {profile['url']}")
                 continue
-
 
             self.insert_field_to_tree(field_tree, field)
 
