@@ -12,7 +12,7 @@ from core.StructureDefinitionParser import InvalidValueTypeException, UCUM_SYSTE
     ProcessedElementResult, get_fixed_term_codes, FHIR_TYPES_TO_VALUE_TYPES, extract_value_type
 from helper import logger, process_element_definition
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
-from model.UIProfileModel import ValueDefinition, UIProfile, AttributeDefinition, CriteriaSet, VALUE_TYPE_OPTIONS
+from model.UIProfileModel import ValueDefinition, UIProfile, AttributeDefinition, CriteriaSet
 from model.UiDataModel import TermCode
 
 AGE_UNIT_VALUE_SET = "http://hl7.org/fhir/ValueSet/age-units"

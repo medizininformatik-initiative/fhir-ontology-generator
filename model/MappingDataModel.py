@@ -1,18 +1,17 @@
 from __future__ import annotations
 
-import dataclasses
 import json
 from abc import ABC
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Optional, Set, Literal, Union
+from typing import List, Optional, Set, Union
 
 from sortedcontainers import SortedSet
 
 from model.UIProfileModel import VALUE_TYPE_OPTIONS
 from model.UiDataModel import TermCode
 from model.helper import del_none
-from util.codec.json import JSONSetEncoder
+from util.codec.json import JSONFhirOntoEncoder
 from util.typing.fhir import FHIRPath
 
 
@@ -31,18 +30,20 @@ class AttributeSearchParameter:
         self.types = types
 
 
-class FhirSearchAttributeSearchParameter(AttributeSearchParameter):
-    def __init__(self, types: Set[VALUE_TYPE_OPTIONS], attribute_code: TermCode, search_parameter: str,
+# TODO: Remodel similar to CQL counterpart by incorporating abstract base classes structure
+class FhirSearchAttributeSearchParameter:
+    def __init__(self, criteria_type: VALUE_TYPE_OPTIONS, attribute_code: TermCode, search_parameter: str,
                  composite_code=None):
         """
         FhirSearchAttributeSearchParameter stores the information how to translate the attribute part of a criteria to a
         FHIR Search query snippet
-        :param types: Defines the type of the criteria
+        :param criteria_type: Defines the type of the criteria
         :param attribute_code: Defines the code of the attribute and acts as unique identifier within the ui_profile
         :param search_parameter: Defines the FHIR search parameter for the attribute
         :param composite_code: Defines the composite code for the attribute
         """
-        super().__init__(types, attribute_code)
+        self.attributeType = criteria_type
+        self.attributeKey = attribute_code
         self.attributeSearchParameter = search_parameter
         self.compositeCode = composite_code
 
@@ -85,10 +86,10 @@ class HasSimpleCardinality(ABC):
 
 
 class FixedFHIRCriteria:
-    def __init__(self, types: Set[str], search_parameter, value=None):
+    def __init__(self, criteria_type: str, search_parameter, value=None):
         if value is None:
             value = []
-        self.types = types
+        self.type = criteria_type
         self.value = value
         self.searchParameter = search_parameter
 
@@ -211,7 +212,7 @@ class CQLMapping:
         return cls(**json_dict)
 
     def to_json(self):
-        return json.dumps(self, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)
+        return json.dumps(self, cls=JSONFhirOntoEncoder, sort_keys=True, indent=4)
 
     # only required for version 1 support
     def __eq__(self, other):
@@ -263,7 +264,7 @@ class PathlingMapping:
         return cls(**json_dict)
 
     def to_json(self):
-        return json.dumps(self, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)
+        return json.dumps(self, cls=JSONFhirOntoEncoder, sort_keys=True, indent=4)
 
     # only required for version 1 support
     def __eq__(self, other):
@@ -285,14 +286,14 @@ class MapEntryList:
 
     def to_json(self):
         self.entries = list(self.entries)
-        return json.dumps(self.entries, cls=JSONSetEncoder, sort_keys=True, indent=4)
+        return json.dumps(self.entries, cls=JSONFhirOntoEncoder, sort_keys=True, indent=4)
 
     def get_code_systems(self):
         code_systems = SortedSet()
         for entry in self.entries:
             code_systems.add(entry.key.system)
             for fixed_criteria in entry.fixedCriteria:
-                if fixed_criteria.types == "Coding":
+                if fixed_criteria.type == "Coding":
                     for value in fixed_criteria.value:
                         code_systems.add(value.system)
         return code_systems
