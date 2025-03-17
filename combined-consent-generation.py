@@ -7,7 +7,7 @@ from model.TreeMap import TreeMap, TermEntryNode
 import argparse
 import os
 
-from util.codec.json import JSONSetEncoder
+from util.codec.json import JSONFhirOntoEncoder
 
 
 def configure_args_parser():
@@ -47,7 +47,7 @@ def convert_bool_analysis_to_code(distributed_analysis, eu_gdpr, insurance_data,
 
 def generate_fixed_fhir_criteria(provisions_code, provisions_display) -> list[FixedFHIRCriteria]:
 
-    return [FixedFHIRCriteria({"coding"}, "mii-provision-provision-code",
+    return [FixedFHIRCriteria("coding", "mii-provision-provision-code",
             [{"code": code, "display": display, "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3"}])
             for code, display in zip(provisions_code, provisions_display)]
 
@@ -116,7 +116,7 @@ def process_csv(csv_file: str):
 
 def save_json(filename: str, data):
     with open(filename, "w+", encoding='UTF-8') as f:
-        json.dump(data, f, cls=JSONSetEncoder)
+        json.dump(data, f, cls=JSONFhirOntoEncoder)
 
 
 def append_to_json(filename: str, input_filename: str, data):

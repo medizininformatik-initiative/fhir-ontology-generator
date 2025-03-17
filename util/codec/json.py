@@ -7,9 +7,10 @@ from typing_extensions import Never, Optional
 from model.helper import del_none
 
 
-class JSONSetEncoder(json.JSONEncoder):
+class JSONFhirOntoEncoder(json.JSONEncoder):
     """
-    Custom JSON encoder to enable encoding of Python set instances to JSON arrays
+    Custom JSON encoder for the project which has some additional capabilities such as set encoding and deleting keys
+    without values
     """
     def default(self, o: Any):
         """
