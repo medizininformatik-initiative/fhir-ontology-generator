@@ -1,25 +1,35 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
-from typing import Tuple, List, Dict
+from functools import reduce
+from typing import Tuple, List, Dict, Set
+
 from lxml import etree
+from typing_extensions import LiteralString
 
 from core import StructureDefinitionParser as FHIRParser
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from core.StructureDefinitionParser import resolve_defining_id, extract_value_type, extract_reference_type, \
-    CQL_TYPES_TO_VALUE_TYPES
+    CQL_TYPES_TO_VALUE_TYPES, get_element_defining_elements_with_source_snapshots
 from core.exceptions.UnsupportedTypingException import UnsupportedTypingException
 from helper import generate_attribute_key
-from model.MappingDataModel import CQLMapping, CQLAttributeSearchParameter, CQLTimeRestrictionParameter
+from model.MappingDataModel import CQLMapping, CQLAttributeSearchParameter, CQLTimeRestrictionParameter, \
+    CQLTypeParameter, SimpleCardinality
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import VALUE_TYPE_OPTIONS
 from model.UiDataModel import TermCode
+from util.fhir.structure_definition import get_parent_element, ElementDefinition, Snapshot
+from util.typing.fhir import FHIRPathlike
 
 
 class CQLMappingGenerator(object):
     __allowed_time_restriction_fhir_types = {"date", "dateTime", "Period"}
+    __allowed_defining_code_fhir_types = {"Coding", "CodeableConcept", "Reference"}
+    __allowed_defining_value_fhir_types = {"code", "date", "Coding", "CodeableConcept", "Quantity"}
+    __logger = logging.getLogger("CQLMappingGenerator")
 
     def __init__(self, querying_meta_data_resolver: ResourceQueryingMetaDataResolver, parser=FHIRParser):
         """
@@ -54,11 +64,47 @@ class CQLMappingGenerator(object):
         """
         pass
 
-    def generate_mapping(self, fhir_dataset_dir: str, module_name) \
+    @classmethod
+    def __select_element_compatible_with_cql_operations(cls, element: ElementDefinition,
+                                                        snapshot: Snapshot) -> (ElementDefinition, Set[str]):
+        """
+        Uses the given element to determine - if necessary - an element which is more suitable for generating the CQL
+        mapping
+        :param element: ElementDefinition instance to possibly replace
+        :param snapshot: StructureDefinition instance in snapshot form to which the element belongs
+        :return: Alternative element and targeted type if a more compatible element could be identified or the given
+                 element and its type if not
+        """
+        element_types = element.get('type', [])
+        element_type_codes = {t['code'] for t in element_types}
+        compatible_element = element
+        targeted_types = element_type_codes
+        ### Coding -> CodeableConcept
+        if len(element_types) == 1 and "Coding" in element_type_codes:
+            # If the given element has type Coding which is part of the CodeableConcept type, the parent element is
+            # returned to allow the CQL generation to use this information for query optimization
+            element_base_path = element.get('base', {}).get('path')
+            if element_base_path:
+                targeted_type = element_base_path.split('.')[0]
+                if targeted_type in {"CodeableConcept", "Reference"}:
+                    parent_element = get_parent_element(element, snapshot)
+                    if parent_element:
+                        # Recurse until the actual ancestor element is reached. Slicing element definitions do not have
+                        # such an element as their parent (direct ancestor)
+                        compatible_element, _ = cls.__select_element_compatible_with_cql_operations(parent_element,
+                                                                                                    snapshot)
+                        targeted_types = {targeted_type}
+            else:
+                raise KeyError(f"Element [id='{element.get('id')}'] is missing required 'ElementDefinition.base.path' "
+                               f"element which is required in snapshots")
+        return compatible_element if compatible_element else element, targeted_types
+
+    def generate_mapping(self, fhir_dataset_dir: str, module_name: str) \
             -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, CQLMapping]]:
         """
         Generates the FHIR search mappings for the given FHIR dataset directory
         :param fhir_dataset_dir: FHIR dataset directory
+        :param module_name: Name of the module to generate the mapping for
         :return: normalized term code FHIR search mapping
         """
         self.data_set_dir = fhir_dataset_dir
@@ -78,7 +124,7 @@ class CQLMappingGenerator(object):
         return (full_context_term_code_cql_mapping_name_mapping,
                 full_cql_mapping_name_cql_mapping)
 
-    def generate_normalized_term_code_cql_mapping(self, profile_snapshot, module_name: TermCode) \
+    def generate_normalized_term_code_cql_mapping(self, profile_snapshot, module_name: str) \
             -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, CQLMapping]]:
         """
         Generates the normalized term code to CQL mapping for the given FHIR profile snapshot
@@ -122,64 +168,110 @@ class CQLMappingGenerator(object):
     def generate_cql_mapping(self, profile_snapshot, querying_meta_data: ResourceQueryingMetaData) \
             -> CQLMapping:
         """
-        Generates the CQL mapping for the given FHIR profile snapshot and querying meta data entry
+        Generates the CQL mapping for the given FHIR profile snapshot and querying metadata entry
         :param profile_snapshot: FHIR profile snapshot
-        :param querying_meta_data: querying meta data entry
+        :param querying_meta_data: querying metadata entry
         :return: CQL mapping
         """
         cql_mapping = CQLMapping(querying_meta_data.name)
         cql_mapping.resourceType = querying_meta_data.resource_type
         if tc_defining_id := querying_meta_data.term_code_defining_id:
-            term_code_fhir_path = self.translate_term_element_id_to_fhir_path_expression(
-                tc_defining_id, profile_snapshot)
-            if not self.is_primary_path(cql_mapping.resourceType, term_code_fhir_path):
-                cql_mapping.termCodeFhirPath = term_code_fhir_path
+            # TODO: Temporary fix by filtering out CDS Medication querying metadata since they receive special
+            #       treatment in sq2cql
+            if (not self.is_primary_path(querying_meta_data.resource_type,
+                                         self.remove_fhir_resource_type(tc_defining_id))
+                    and not querying_meta_data.module.code == "mii-cds-medikation"):
+                if self.parser.is_element_in_snapshot(profile_snapshot, tc_defining_id):
+                    element = self.parser.get_element_from_snapshot(profile_snapshot, tc_defining_id)
+                else:
+                    element = self.parser.get_element_defining_elements(tc_defining_id, profile_snapshot,
+                                                                        self.module_dir, self.data_set_dir)[-1]
+                element, types = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
+                element_id = element.get('id')
+                if not types:
+                    raise KeyError("ElementDefinition.type cannot be empty as at least one type is required for CQL "
+                                   f"translation [profile='{profile_snapshot.get('name')}, "
+                                   f"element_id='{element_id}']")
+                types = (self.__allowed_defining_code_fhir_types.intersection(types))
+                if len(types) == 0:
+                    raise UnsupportedTypingException(f"Supported type range of element '{element_id}' has no "
+                                                     f"overlap with the expected type range of a time restricting "
+                                                     f"element in the CQL mapping [present={types}, "
+                                                     f"allowed={self.__allowed_defining_code_fhir_types}]")
+                term_code_fhir_path = self.translate_term_element_id_to_fhir_path_expression(element_id,
+                                                                                             profile_snapshot)
+                card = CQLMappingGenerator.__aggregate_cardinality_using_element(element, profile_snapshot)
+                cql_mapping.termCode = CQLTypeParameter(term_code_fhir_path, types, card)
+
         if val_defining_id := querying_meta_data.value_defining_id:
-            cql_mapping.valueFhirPath = self.translate_element_id_to_fhir_path_expressions(
-                val_defining_id, profile_snapshot)
-            cql_mapping.valueType = self.get_attribute_type(profile_snapshot, val_defining_id)
-        if time_defining_id := querying_meta_data.time_restriction_defining_id:
-            fhir_path = self.translate_element_id_to_fhir_path_expressions_time_restriction(
-                time_defining_id, profile_snapshot)
-            element =  self.parser.get_element_from_snapshot(profile_snapshot, time_defining_id)
-            element_types = element.get("type", [])
-            if not element_types:
+            element = self.parser.get_element_from_snapshot(profile_snapshot, val_defining_id)
+            element, types = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
+            element_id = element.get('id')
+            if not types:
                 raise KeyError("ElementDefinition.type cannot be empty as at least one type is required for CQL "
                                f"translation [profile='{profile_snapshot.get('name')}, "
-                               f"element_id='{time_defining_id}']")
-            types = (self.__allowed_time_restriction_fhir_types
-                     .intersection({elem_type.get('code') for elem_type in element_types}))
+                               f"element_id='{element_id}']")
+            types = (self.__allowed_defining_value_fhir_types.intersection(types))
             if len(types) == 0:
-                raise UnsupportedTypingException(f"Supported type range of element '{element.get('id')}' has no "
+                raise UnsupportedTypingException(f"Supported type range of element '{element_id}' has no "
+                                                 f"overlap with the expected type range of a value element in the CQL "
+                                                 f"mapping [present={types}, "
+                                                 f"allowed={self.__allowed_defining_value_fhir_types}]")
+            value_fhir_path = self.translate_element_id_to_fhir_path_expressions(element_id, profile_snapshot)
+            card = CQLMappingGenerator.__aggregate_cardinality_using_element(element, profile_snapshot)
+            cql_mapping.value = CQLTypeParameter(value_fhir_path, types, card)
+
+        if time_defining_id := querying_meta_data.time_restriction_defining_id:
+            element = self.parser.get_element_from_snapshot(profile_snapshot, time_defining_id)
+            element, types = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
+            element_id = element.get('id')
+            if not types:
+                raise KeyError("ElementDefinition.type cannot be empty as at least one type is required for CQL "
+                               f"translation [profile='{profile_snapshot.get('name')}, "
+                               f"element_id='{element_id}']")
+            types = self.__allowed_time_restriction_fhir_types.intersection(types)
+            if len(types) == 0:
+                raise UnsupportedTypingException(f"Supported type range of element '{element_id}' has no "
                                                  f"overlap with the expected type range of a time restricting element "
                                                  f"in the CQL mapping [present={types}, "
                                                  f"allowed={self.__allowed_time_restriction_fhir_types}]")
-            cql_mapping.timeRestriction = CQLTimeRestrictionParameter(fhir_path, list(types))
+            fhir_path = self.translate_element_id_to_fhir_path_expressions_time_restriction(element_id, profile_snapshot)
+            cql_mapping.timeRestriction = CQLTimeRestrictionParameter(fhir_path, types)
         for attr_defining_id, attr_attributes in querying_meta_data.attribute_defining_id_type_map.items():
             attr_type = attr_attributes.get("type", "")
             self.set_attribute_search_param(attr_defining_id, cql_mapping, attr_type, profile_snapshot)
 
         return cql_mapping
 
-    def set_attribute_search_param(self, attr_defining_id, cql_mapping, attr_type, profile_snapshot):
+    def set_attribute_search_param(self, attr_defining_id: str, cql_mapping, attr_type, profile_snapshot):
         attribute_key = generate_attribute_key(attr_defining_id)
-        attribute_type = attr_type if attr_type else self.get_attribute_type(profile_snapshot,
-                                                                             attr_defining_id)
+        attribute_type = attr_type if attr_type else self.get_attribute_type(profile_snapshot, attr_defining_id)
         # FIXME:
         # This is a hack to change the attribute_type to upper-case Reference to match the FHIR Type while
         # Fhir Search does not use the FHIR types...
         attribute_type = "Reference" if attr_type == "reference" else attribute_type
+        attribute_types = None
         if attribute_type == "composite":
-            attribute_fhir_path = self.translate_composite_attribute_to_fhir_path_expression(
-                attr_defining_id, profile_snapshot)
+            element = self.parser.get_element_from_snapshot(profile_snapshot, attr_defining_id)
+            element, _ = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
+
+            attribute_fhir_path = self.translate_composite_attribute_to_fhir_path_expression(attr_defining_id,
+                                                                                             profile_snapshot)
             attribute_key = self.get_composite_code(attr_defining_id, profile_snapshot)
             attribute_type = self.get_composite_attribute_type(attr_defining_id, profile_snapshot)
         else:
+            if attribute_type != "Reference":
+                element = self.parser.get_element_from_snapshot(profile_snapshot, attr_defining_id)
+                element, attribute_types = self.__select_element_compatible_with_cql_operations(element,
+                                                                                                profile_snapshot)
+                attr_defining_id = element.get('id')
             attribute_fhir_path = self.translate_term_element_id_to_fhir_path_expression(attr_defining_id,
                                                                                          profile_snapshot)
-        attribute = CQLAttributeSearchParameter(attribute_type, attribute_key, attribute_fhir_path)
+        attribute_types = attribute_types if attribute_types else {attribute_type}
+        cards = self.__aggregate_cardinality_using_element_id(attr_defining_id, profile_snapshot)
+        attribute = CQLAttributeSearchParameter(attribute_types, attribute_key, attribute_fhir_path, cards)
         if attribute_type == "Reference":
-            attribute.attributeReferenceTargetType = self.get_reference_type(profile_snapshot, attr_defining_id)
+            attribute.referenceTargetType = self.get_reference_type(profile_snapshot, attr_defining_id)
 
         cql_mapping.add_attribute(attribute)
 
@@ -233,7 +325,7 @@ class CQLMappingGenerator(object):
         composite_code = self.get_composite_code(attribute, profile_snapshot)
         updated_where_clause = f".where(code.coding.exists(system = {composite_code.system} and code = {composite_code.code}))"
         # replace original where clause in attribute using string manipulation and regex
-        updated_attribute_path = re.sub(r"\.where\([^\)]*\)", f"{updated_where_clause}", attribute)
+        updated_attribute_path = re.sub(r"\.where\([^)]*\)", f"{updated_where_clause}", attribute)
 
         where_clause, prefix = self.extract_where_clause(updated_attribute_path)
 
@@ -259,8 +351,9 @@ class CQLMappingGenerator(object):
                                                              self.data_set_dir)
         # TODO: Revisit and evaluate if this really the way to go.
         for element in elements:
-            for element_type in element.get("type"):
-                if element_type.get("code") == "Reference":
+            element, types = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
+            for element_type in types:
+                if element_type == "Reference":
                     return self.get_cql_optimized_path_expression(
                         self.parser.translate_element_to_fhir_path_expression(elements, profile_snapshot)[
                             0]) + ".reference"
@@ -309,7 +402,25 @@ class CQLMappingGenerator(object):
             return path_expression
         return path_after_dot.split(" as ")[0]
 
-    def get_cql_optimized_path_expression(self, path_expression: str) -> str:
+    @staticmethod
+    def remove_fhir_resource_type(path_expression: FHIRPathlike) -> FHIRPathlike:
+        """
+        If a given FHIRPath expression starts with a FHIR resource type, remove this initial node and return the pruned
+        expression
+        :param path_expression: FHIRPath expression to prune
+        :return: Pruned FHIRPath expression without an initial FHIR resource type node
+        """
+        match = re.match(r"^\(*(?P<capture_str>[A-Z][a-zA-Z0-9]*(?P<closing_prnths>\)*)\.)", path_expression)
+        if match:
+            # Account for wrapping parentheses
+            capture_str_start = match.start("capture_str")
+            capture_str_end = match.end("capture_str")
+            num_closing_parentheses = len(match.group("closing_prnths"))
+            return path_expression[:capture_str_start - num_closing_parentheses] + path_expression[capture_str_end:]
+        else:
+            return path_expression
+
+    def get_cql_optimized_path_expression(self, path_expression: FHIRPathlike) -> str:
         # TODO: Remove this method once the new path expressions are compatible with the cql implementation?
         """
         Translates a path expression to a cql optimized path expression
@@ -317,11 +428,33 @@ class CQLMappingGenerator(object):
         :return: cql optimized path expression
         """
         cql_path_expression = self.convert_as_to_dot_as(path_expression)
+        cql_path_expression = self.__clean_parentheses(cql_path_expression)
         cql_path_expression = self.add_first_after_extension_where_expression(cql_path_expression)
+        cql_path_expression = self.remove_fhir_resource_type(cql_path_expression)
         return cql_path_expression
 
+
     @staticmethod
-    def convert_as_to_dot_as(path_expression: str) -> str:
+    def __clean_parentheses(path_expression: FHIRPathlike):
+        opening_cnt = path_expression.count('(')
+        closing_cnt = path_expression.count(')')
+        diff = closing_cnt - opening_cnt
+        if diff < 0:
+            char = '('
+            split = path_expression.split(char)
+            idx = abs(diff) + 1
+            return "".join(split[:idx]) + char.join(split[idx:])
+        elif diff > 0:
+            char = ')'
+            split = path_expression.split(char)
+            idx = opening_cnt + 1
+            return char.join(split[:idx]) + "".join(split[idx:])
+        else:
+            return path_expression
+
+
+    @staticmethod
+    def convert_as_to_dot_as(path_expression: FHIRPathlike) -> FHIRPathlike:
         """
         Converts the " as " pattern to ".as("
         :param path_expression: path expression
@@ -388,7 +521,7 @@ class CQLMappingGenerator(object):
         """
         # TODO: Find a better rule than contains extension.where(...) to apply the first() rule
         # Use regex to find the pattern "extension.where(...)"
-        match = re.search(r'(extension\.where\([^)]+\))(.+)', cql_path_expression)
+        match = re.search(r"(.*extension\.where\([^)]+\))(.+)", cql_path_expression)
 
         if match:
             before_extension = match.group(1)
@@ -417,4 +550,52 @@ class CQLMappingGenerator(object):
                 return True
         return False
 
+    @staticmethod
+    def __aggregate_cardinality_using_element(element: ElementDefinition, snapshot: Snapshot,
+                                              card_type: LiteralString["min", "max"] = "max") -> SimpleCardinality:
+        """
+        Aggregates the cardinality of an element along its path by collecting the cardinalities of itself and the parent
+        elements and combining them to obtain the aggregated value as viewed from the root of the FHIR Resource
+        :param element: Element to calculate the aggregated cardinality for
+        :param snapshot: Snapshot of profile defining the element
+        :param card_type: Type of cardinality to aggregate (either 'mix' or 'max')
+        :return: Aggregated cardinality stating whether an element can occur multiple times or not
+        """
+        opt_element, _ = CQLMappingGenerator.__select_element_compatible_with_cql_operations(element, snapshot)
+        card = SimpleCardinality.from_fhir_cardinality(opt_element.get(card_type))
+        opt_element_path = opt_element.get('path')
+        is_root = opt_element_path.count(".") == 0
+        match card:
+            case SimpleCardinality.MANY:
+                # End recursion since with the current enum members reaching this state leads to no further changes. An
+                # exception will be made if the element is a root element since at that level we always assume singleton
+                # occurrence (e.g. for paths like '<resource-type>')
+                return SimpleCardinality.SINGLE if is_root else card
+            case _:
+                match get_parent_element(opt_element, snapshot):
+                    case None:
+                        if not is_root:
+                            raise Exception(f"No parent could be identified for element '{opt_element.get('id')}' with "
+                                            f"non-root path '{opt_element_path}'")
+                        else:
+                            # The root element is always assumed to have `SINGLE` cardinality
+                            return SimpleCardinality.SINGLE
+                    case parent_element:
+                        return CQLMappingGenerator.__aggregate_cardinality_using_element(parent_element,
+                                                                                         snapshot, card_type) * card
 
+    def __aggregate_cardinality_using_element_id(self, element_defining_id: str,
+                                                 profile_snapshot: Snapshot) -> SimpleCardinality:
+        element_results = get_element_defining_elements_with_source_snapshots(element_defining_id, profile_snapshot,
+                                                                              self.module_dir, self.data_set_dir)
+        if element_results is None or len(element_results) == 0:
+            raise Exception(f"Aggregated cardinality could not be determined: No defining elements could be "
+                            f"identified using element defining ID '{element_defining_id}' and snapshot "
+                            f"'{profile_snapshot.get('id')}'")
+        else:
+            cards = []
+            for result in element_results:
+                opt_element, _ = self.__select_element_compatible_with_cql_operations(
+                    result.element, result.profile_snapshot)
+                cards.append(self.__aggregate_cardinality_using_element(opt_element, result.profile_snapshot))
+            return reduce(lambda a, b: a * b, cards)

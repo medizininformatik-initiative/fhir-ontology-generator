@@ -13,6 +13,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 ### Security
 
+## [3.2.1] - 2025-03-17
+
+### Fix
+
+- Reintroduce missing profile snapshots for DSE gen by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/202
+- Undo changes caused in FHIRSearch mapping by update of CQL mapping by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/205
+
+## [3.2.0] - 2025-03-13
+
+### Added
+
+- Added typing for all attributes and values by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/173
+- Extend CQL mapping model by adding basic cardinality information by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/194
+- Implement Coding resolution for CQL mapping by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/190
+
+### Changed
+
+- Update test data by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/196
+- Improve CQL mapping naming ang typing by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/183
+
+### Fixed
+
+- Fix Elasticsearch tokenizer max N-gram length by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/174
+- Fix issues generation with FHIRPath generation for CQL mapping by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/177
+- Fix consent integration tests by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/180
+- Fix generated FHIRPath expressions in CQL mapping by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/181
+- Fix attribute naming in CQL mapping by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/185
+- Fix term code emission for CQL mapping in combined consent generation by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/192
+
 ## [3.1.0] - 2025-02-13
 
 | Modul            | Version                                                                    | Changelog    |

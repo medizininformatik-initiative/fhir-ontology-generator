@@ -4,15 +4,15 @@
         {
             "id": "c1812229-9e10-3532-97e0-fea15914dc4f",
             "display": {
-                "original": "Leukocytes other/100 leukocytes in Blood",
+                "original": "Leukocytes other/Leukocytes in Blood",
                 "translations": [
                     {
                         "language": "de-DE",
-                        "value": "Leukozyten andere/100 Leukozyten in Blut"
+                        "value": "Leukozyten andere/Leukozyten in Blut"
                     },
                     {
                         "language": "en-US",
-                        "value": "Leukocytes other/100 leukocytes in Blood"
+                        "value": "Leukocytes other/Leukocytes in Blood"
                     }
                 ]
             },

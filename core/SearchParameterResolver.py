@@ -93,8 +93,8 @@ class SearchParameterResolver(ABC):
 
             if missing_search_parameters := [key for key, value in result.items() if not value]:
                 raise ValueError(
-                    f"Could not find search parameter for {missing_search_parameters} {fhir_path_expressions} \n"
-                    f"You may need to add an custom search parameter")
+                    f"Could not find search parameter for [{missing_search_parameters,} {fhir_path_expressions}]. "
+                    f"You may need to add a custom search parameter")
         return result
 
     def _load_all_search_parameters(self) -> List[Dict]:

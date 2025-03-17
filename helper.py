@@ -181,12 +181,12 @@ def is_structure_definition(file: str) -> bool:
         return False
 
 
-class JsonSerializable(Protocol):
+class JSONSerializable(Protocol):
     def to_json(self) -> str:
         ...
 
 
-def write_object_as_json(serializable: JsonSerializable, file_name: str):
+def write_object_as_json(serializable: JSONSerializable, file_name: str):
     """
     Writes a list of objects as json to a file
     :param serializable: object that can be serialized to json

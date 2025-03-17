@@ -1,1 +1,28 @@
-{"version":"http://to_be_decided.com/draft-1/schema#","display":"Ausgewählte Merkmale","inclusionCriteria":[[{"termCodes":[{"code":"J01XA04","display":"Dalbavancin","system":"http://fhir.de/CodeSystem/bfarm/atc","version":"2024"}],"context":{"code":"Medikamentenverabreichung","display":"Verabreichung von Medikamenten","system":"fdpg.mii.cds","version":"1.0.0"},"timeRestriction":{"afterDate":"2024-02-16","beforeDate":"2024-02-16"}}]]}
+{
+  "version": "http://to_be_decided.com/draft-1/schema#",
+  "display": "Ausgewählte Merkmale",
+  "inclusionCriteria": [
+    [
+      {
+        "termCodes": [
+          {
+            "code": "J01XA04",
+            "display": "Dalbavancin",
+            "system": "http://fhir.de/CodeSystem/bfarm/atc",
+            "version": "2024"
+          }
+        ],
+        "context": {
+          "code": "Medikamentenverabreichung",
+          "display": "Verabreichung von Medikamenten",
+          "system": "fdpg.mii.cds",
+          "version": "1.0.0"
+        },
+        "timeRestriction": {
+          "afterDate": "2024-02-15",
+          "beforeDate": "2024-02-17"
+        }
+      }
+    ]
+  ]
+}

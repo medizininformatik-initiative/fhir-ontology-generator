@@ -10,7 +10,7 @@ from fhir.resources.R4B.operationoutcome import OperationOutcome, OperationOutco
 from typing_extensions import TypedDict, Mapping
 from urllib3 import add_stderr_logger
 
-from util.fhir.FhirUtil import create_bundle, BundleType
+from util.fhir.bundle import create_bundle, BundleType
 
 logger = logging.getLogger(__name__)
 
