@@ -35,8 +35,7 @@ class ProfileDetailGenerator:
         self.field_trees_to_exclude = field_trees_to_exclude
         self.reference_base_url = reference_base_url
 
-    def find_and_load_struct_def_from_path(self, struct_def, path):
-
+    def find_and_load_struct_def_from_path(self, struct_def: Mapping[str, any], path: str):
         elements = struct_def['snapshot']["element"]
 
         for elem in (elem for elem in elements if elem['id'] == path):
@@ -168,7 +167,7 @@ class ProfileDetailGenerator:
 
         cur_node["children"].append(field)
 
-    def filter_element(self, element):
+    def filter_element(self, element: Mapping[str, any]) -> bool:
         # TODO: This is a temporary workaround to allow both the postal code and the country information to be selected
         #       during data selection. To preserve context, selecting elements with simple data types which are not on
         #       the top level of a resource is disabled (e.g. to forbid selecting just Coding.code without

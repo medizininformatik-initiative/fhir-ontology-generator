@@ -1,19 +1,15 @@
-from abc import abstractmethod
 from enum import unique, Enum, EnumMeta
+
 from typing_extensions import Self
 
 
 class PrimitiveFhirTypeMeta(EnumMeta):
     def __contains__(cls, item: str | Self) -> bool:
-        import builtins
-        match type(item):
-            case cls.__class__:
-                return item in cls.__members__.keys()
-            case builtins.str:
-                return item in cls.__members__.values()
-            case _:
-                raise TypeError(f"Argument type not supported [provided='{type(item)}', "
-                                f"allowed={ {type(str), type(cls.__class__)} }]")
+        try:
+            cls(item)
+        except ValueError:
+            return False
+        return True
 
 
 @unique
