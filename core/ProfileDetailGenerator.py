@@ -35,8 +35,7 @@ class ProfileDetailGenerator:
         self.field_trees_to_exclude = field_trees_to_exclude
         self.reference_base_url = reference_base_url
 
-    def find_and_load_struct_def_from_path(self, struct_def, path):
-
+    def find_and_load_struct_def_from_path(self, struct_def: Mapping[str, any], path: str):
         elements = struct_def['snapshot']["element"]
 
         for elem in (elem for elem in elements if elem['id'] == path):
@@ -73,8 +72,9 @@ class ProfileDetailGenerator:
             if not struct_def:
                 return None
 
-            type = struct_def['type']
-            return self.get_value_sets_for_code_filter(struct_def, f"{type}.{fhir_path.split(').')[-1]}")
+            struct_def_type = struct_def['type']
+            return self.get_value_sets_for_code_filter(struct_def,
+                                                       f"{struct_def_type}.{fhir_path.split(').')[-1]}")
 
         pattern = rf"{fhir_path}[^.]*$"
 
@@ -112,7 +112,8 @@ class ProfileDetailGenerator:
 
         return value_sets
 
-    def get_field_in_node(self, node, id_end):
+    @staticmethod
+    def get_field_in_node(node, id_end):
 
         if "children" not in node:
             node["children"] = []
@@ -141,7 +142,6 @@ class ProfileDetailGenerator:
             return
 
         for index in range(0, len(path) - 1):
-
             id_end = path[index]
             field_child_index = self.get_field_in_node(cur_node, id_end)
 
@@ -159,7 +159,7 @@ class ProfileDetailGenerator:
 
         cur_node["children"].append(field)
 
-    def filter_element(self, element):
+    def filter_element(self, element: Mapping[str, any]) -> bool:
 
         attributes_true_level_one = ["mustSupport", "isModifier", "min"]
 
@@ -188,10 +188,11 @@ class ProfileDetailGenerator:
             return True
 
         if element["base"]["path"].split(".")[0] in {"Resource", "DomainResource"} and not "mustSupport" in element:
-            self.__logger.debug(f"Excluding: {element['id']} as base is Resource or DomainResource and not must Support")
+            self.__logger.debug(f"Excluding: {element['id']} as base is Resource or DomainResource and not mustSupport")
             return True
 
-    def check_at_least_one_in_elem_and_true(self, element, attributes_to_check):
+    @staticmethod
+    def check_at_least_one_in_elem_and_true(element: Mapping[str, any], attributes_to_check: List[str]) -> bool:
 
         path = element["id"].split(".")
 
@@ -204,9 +205,10 @@ class ProfileDetailGenerator:
 
         return True
 
-    def get_name_from_id(self, id):
+    @staticmethod
+    def get_name_from_id(element_id: str) -> str:
 
-        name = id.split(".")[-1]
+        name = element_id.split(".")[-1]
         name = name.split(":")[-1]
         name = name.replace("[x]", "")
 
@@ -224,30 +226,30 @@ class ProfileDetailGenerator:
 
         return None
 
-    def get_element_by_content_ref(self, content_ref, elements):
-
+    @staticmethod
+    def get_element_by_content_ref(content_ref: str, elements: List[Mapping[str, any]]) -> Optional[Mapping[str, any]]:
         for element in elements:
             if element['id'] == content_ref:
                 return element
-
         return None
 
-    def get_value_for_lang_code(self, data, langCode):
+    @staticmethod
+    def get_value_for_lang_code(data: Mapping[str, any], lang_code: str) -> str:
         for ext in data.get('extension', []):
-            if any(e.get('url') == 'lang' and e.get('valueCode') == langCode for e in ext.get('extension', [])):
+            if any(e.get('url') == 'lang' and e.get('valueCode') == lang_code for e in ext.get('extension', [])):
                 return next(e['valueString'] for e in ext['extension'] if e.get('url') == 'content')
         return ""
 
-    def resource_type_to_date_param(self, resource_type):
+    @staticmethod
+    def resource_type_to_date_param(resource_type: str) -> str:
         if resource_type == 'Condition':
             return "recorded-date"
-
         return "date"
 
     def __get_profiles(self, scope: Optional[str] = None) -> Mapping[str, Mapping[str, Any]]:
         """
         Returns all profile entries in a certain scope or all if none is provided
-        :param scope: Scope for which to return the profile entries
+        :param scope: Scope from which to return the profile entries
         :return: All profile entries matching the provided scope
         """
         if scope:
@@ -267,31 +269,50 @@ class ProfileDetailGenerator:
 
         return matching_mii_references
 
-    def __resolve_selectable_profiles(self, profile_url: str) -> List[str]:
+    def __resolve_selectable_profiles(self, profile_url: str, module: Optional[str]=None) -> List[str]:
         """
         Collects profile URLs of all selectable profiles given a parent profile from which other profiles in the scope
         of this class instance (all profiles in the ProfileDetailGenerator::profiles field) might be derived. If they
         are then they would also be selectable if the parent profile defines the range of a Reference element
         :param profile_url: string representing the URL of the profile from which to start the resolution
+        :param module: Optional module name string from which the profile identified by the `profile_url` parameter
+                       originates
         :return: list of URLs of selectable profiles
         """
+        selectable_profiles = []
+        children = filter(lambda t: t[1].get('baseDefinition', None) == profile_url,
+                          map(lambda p: (p.get('module'), p.get('structureDefinition', {})),
+                              self.__all_profiles.values()))
+
         # FIXME: The logic should only rely on the value of the `abstract` element of a given StructureDefinition
         #        instance to determine whether it itself is selectable or not. Currently whether other profiles in the
-        #        scope are derived from it is used to determine "abstractness"
-        selectable_profiles = []
-        for child in map(lambda p: p.get('structureDefinition', {}), self.__all_profiles.values()):
+        #        same module are derived from it is used to determine "abstractness"
+        # Determine whether the parent profile itself should be included
+        if profile_url in self.__all_profiles:
+            parent_profile = self.__all_profiles.get(profile_url, {}).get('structureDefinition', None)
+            if parent_profile:
+                if not parent_profile.get('abstract', False):
+                    if all(m != module for m, _ in children):
+                        selectable_profiles.append(profile_url)
+        elif profile_url not in self.__all_profiles:
+            # TODO: Decide on right log level since this matches every time the FHIR base resource profiles are
+            #       encountered
+            # If the URL does not match any profile in any scope it might be missing
+            self.__logger.debug(f"Provided profile URL '{profile_url}' is not present and cannot be analyzed further. "
+                                f"Consider including it via dependencies if this is not intended.")
+
+        for child_module, child in map(lambda p: (p.get('module'), p.get('structureDefinition', {})),
+                                       self.__all_profiles.values()):
             if child.get('baseDefinition', None) == profile_url:
                 child_profile_url = child.get('url', None)
-                child_selectable_profiles = self.__resolve_selectable_profiles(child_profile_url)
-                selectable_profiles.extend(child_selectable_profiles
-                                           if len(child_selectable_profiles) > 0
-                                           else [child_profile_url])
+                child_selectable_profiles = self.__resolve_selectable_profiles(child_profile_url, child_module)
+                selectable_profiles.extend(child_selectable_profiles)
         return selectable_profiles
 
     def get_referenced_mii_profiles(self, element: Mapping[str, any], field_type: str,
                                     is_root: bool = True) -> List[str]:
         """
-        Searches for and aggregates referenced MII profiles in a Reference elements supported profile hierarchy within
+        Searches for and aggregates referenced MII profiles listed by Reference elements supporting and present within
         the scope of profiles known to this ProfileDetailGenerator instance. Given some target profile specified for a
         Reference element all MII profiles are identified that are its descendants and have no profiles based on them
         in the instances profile scope
@@ -329,22 +350,44 @@ class ProfileDetailGenerator:
                 # Iterate over all types with type code 'Extension'
                 for ext_type in filter(lambda t: t.get('code', None) == "Extension", element.get('type', [])):
                     # Iterate over all MII target profiles explicitly supported by the element
-                    for ext_profile_url in filter(lambda u: u.startswith('https://www.medizininformatik-initiative.de'),
-                                              ext_type.get("profile", [])):
+                    for ext_profile_url in ext_type.get("profile", []):
                         ext_profile = self.__all_profiles.get(ext_profile_url, None)
                         if not ext_profile:
                             raise MissingProfileException(f"Missing extension profile with URL '{ext_profile_url}' in "
                                                           f"current scope. This can likely be fixed by adding its "
                                                           f"snapshot to the DSE package snapshots directory")
-                        ext_value_elements = ext_profile.get('structureDefinition', {}).get('elements', [])
+                        ext_elements = ext_profile.get('structureDefinition', {}).get('snapshot', {}).get('element', [])
+                        ext_value_elements = list(
+                            filter(lambda e: e.get('path', "").startswith("Extension.value"), ext_elements)
+                        )
                         # By definition Extension instances can only have up to one 'value' element
                         ext_value_element = ext_value_elements[0] if len(ext_value_elements) > 0 else None
-                        if ext_value_element:
+                        if ext_value_element and ext_value_element.get('max') != "0":
                             # Iterate over all types supported by the extensions value element to retrieve MII profiles
                             # they support
-                            for element_type in ext_value_element.get('type', []):
+                            for element_type in [t.get('code') for t in ext_value_element.get('type', [])]:
                                 references = self.get_referenced_mii_profiles(ext_value_element, element_type, False)
-                                supports_reference = len(references) > 0
+                                mii_references.extend(references)
+
+                        # Filter for Extensions element definition in the Extensions definition
+                        ext_ext_elements = list(
+                            filter((lambda e: e.get('path', "").startswith('Extension.extension')),
+                                   ext_elements)
+                        )
+                        if len(ext_value_elements) > 0:
+                            # There are two cases we have to cover:
+                            # 1) There are references to other Extension profiles within some extension element
+                            #    definitions
+                            # 2) The Extension element is defined directly in the current Extension profile
+                            for ext_ext_element in ext_ext_elements:
+                                ext_ext_element_types = {t.get('code') for t in ext_ext_element.get('type', [])}
+                                references = []
+                                if 'Extension' in ext_ext_element_types:
+                                    references.extend(self.get_referenced_mii_profiles(ext_ext_element, "Extension",
+                                                                                       False))
+                                elif 'Reference' in ext_ext_element_types:
+                                    references.extend(self.get_referenced_mii_profiles(ext_ext_element, "Reference",
+                                                                                       False))
                                 mii_references.extend(references)
 
         if is_root and supports_reference and len(mii_references) == 0:
@@ -370,18 +413,19 @@ class ProfileDetailGenerator:
 
             profile_detail = {
                 "url": profile["url"],
-                "display": {"original": struct_def.get("title", ""),
-                            "translations": [
-                                {
-                                    "language": "de-DE",
-                                    "value": self.get_value_for_lang_code(struct_def.get("_title", {}), "de-DE")
-                                },
-                                {
-                                    "language": "en-US",
-                                    "value": self.get_value_for_lang_code(struct_def.get("_title", {}), "en-US")
-                                }
-                            ]
-                            },
+                "display": {
+                    "original": struct_def.get("title", ""),
+                    "translations": [
+                        {
+                            "language": "de-DE",
+                            "value": self.get_value_for_lang_code(struct_def.get("_title", {}), "de-DE")
+                        },
+                        {
+                            "language": "en-US",
+                            "value": self.get_value_for_lang_code(struct_def.get("_title", {}), "en-US")
+                        }
+                    ]
+                },
                 "filters": [
                     {"type": "date", "name": date_param, "ui_type": "timeRestriction"}
                 ],
@@ -408,7 +452,6 @@ class ProfileDetailGenerator:
             source_elements = profile["structureDefinition"]["snapshot"]["element"]
 
             for element in source_elements:
-
                 field_id = element["id"]
 
                 if self.filter_element(element):
@@ -426,11 +469,11 @@ class ProfileDetailGenerator:
                 field_type = None
 
                 if "type" in element:
-                    for type in element["type"]:
+                    for element_type in element["type"]:
 
-                        field_type = type["code"]
+                        field_type = element_type["code"]
 
-                        if type["code"] == "Reference":
+                        if element_type["code"] == "Reference":
                             break
 
                 else:
@@ -442,42 +485,50 @@ class ProfileDetailGenerator:
 
                 name = self.get_name_from_id(element["id"])
 
-                referenced_mii_profiles = self.get_referenced_mii_profiles(element, field_type)
+                try:
+                    referenced_mii_profiles = self.get_referenced_mii_profiles(element, field_type)
+                except MissingProfileException as exc:
+                    self.__logger.warning(f"Could not resolve referenced MII profiles [element_id='{field_id}']. "
+                                          f"Reason: {exc}")
+                    referenced_mii_profiles = []
 
-                field = {"id": field_id,
-                         "display": {"original": name,
-                                     "translations": [
-                                         {
-                                             "language": "de-DE",
-                                             "value": self.get_value_for_lang_code(element.get('_short', {}), "de-DE")
-                                         },
-                                         {
-                                             "language": "en-US",
-                                             "value": self.get_value_for_lang_code(element.get('_short', {}), "en-US")
-                                         }
-                                     ],
-                                     },
-                         "description": {"original": element.get("definition", ""),
-                                         "translations": [
-                                             {
-                                                 "language": "de-DE",
-                                                 "value": self.get_value_for_lang_code(element.get('_definition', {}),
-                                                                                       "de-DE")
-                                             },
-                                             {
-                                                 "language": "en-US",
-                                                 "value": self.get_value_for_lang_code(element.get('_definition', {}),
-                                                                                       "en-US")
-                                             }
-                                         ],
-                                         },
-                         "referencedProfiles": referenced_mii_profiles,
-                         "type": field_type,
-                         "recommended": is_recommended_field,
-                         "required": is_required_field
-                         }
+                field = {
+                    "id": field_id,
+                    "display": {
+                        "original": name,
+                        "translations": [
+                             {
+                                 "language": "de-DE",
+                                 "value": self.get_value_for_lang_code(element.get('_short', {}), "de-DE")
+                             },
+                             {
+                                 "language": "en-US",
+                                 "value": self.get_value_for_lang_code(element.get('_short', {}), "en-US")
+                             }
+                        ],
+                    },
+                    "description": {
+                        "original": element.get("definition", ""),
+                        "translations": [
+                             {
+                                 "language": "de-DE",
+                                 "value": self.get_value_for_lang_code(element.get('_definition', {}),
+                                                                       "de-DE")
+                             },
+                             {
+                                 "language": "en-US",
+                                 "value": self.get_value_for_lang_code(element.get('_definition', {}),
+                                                                       "en-US")
+                             }
+                        ],
+                    },
+                    "referencedProfiles": referenced_mii_profiles,
+                    "type": field_type,
+                    "recommended": is_recommended_field,
+                    "required": is_required_field
+                }
 
-                if field_type in {"Reference", "Extension"} and len(referenced_mii_profiles) == 0:
+                if field_type == "Reference" and len(referenced_mii_profiles) == 0:
                     self.__logger.warning(f"Element '{element.get('id')}' references profiles that do not match any "
                                           f"MII profile => Discarding")
                     continue
@@ -501,8 +552,8 @@ class ProfileDetailGenerator:
         """
         self.__logger.info(f"Generating profile details for profiles in scope '{scope}'")
         if cond is None:
-            def cond_fn(x: Any): return True
-            cond = cond_fn
+            def true(_: Any): return True
+            cond = true
         profile_details = []
         profiles_in_scope = self.__get_profiles(scope)
         if len(profiles_in_scope) == 0:

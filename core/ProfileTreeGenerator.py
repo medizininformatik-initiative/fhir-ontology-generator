@@ -5,7 +5,10 @@ import json
 import shutil
 import logging
 from enum import Enum
-from typing import Mapping
+from multiprocessing.connection import Listener
+from typing import Mapping, Optional, Any
+
+from typing_extensions import LiteralString
 
 from util.fhir.enums import PrimitiveFhirType
 from util.typing.filesystem import FilePathStr
@@ -23,7 +26,7 @@ class ProfileTreeGenerator:
     def __init__(self, packages_dir: str, snapshots_dir: str, exclude_dirs, excluded_profiles, module_order,
                  module_translation, fields_to_exclude, field_trees_to_exclude, profiles_to_process):
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.profiles = {scope: dict() for scope in SnapshotPackageScope}
+        self.profiles= {scope: dict() for scope in SnapshotPackageScope}
         self.packages_dir = packages_dir
         self.snapshots_dir = snapshots_dir
         self.exclude_dirs = exclude_dirs
@@ -188,7 +191,6 @@ class ProfileTreeGenerator:
             if index == len(path) - 1:
                 profile["leaf"] = True
                 profile["selectable"] = True
-
             else:
                 profile["leaf"] = False
                 profile["selectable"] = False
@@ -215,10 +217,11 @@ class ProfileTreeGenerator:
         return None
 
     def copy_profile_snapshots(self):
-        exclude_dirs = set(os.path.abspath(os.path.join(self.packages_dir, d)) for d in self.exclude_dirs)
+        #exclude_dirs = set(os.path.abspath(os.path.join(self.packages_dir, d)) for d in self.exclude_dirs)
+        #print(exclude_dirs)
 
         package_dirs = [os.path.join(self.packages_dir, i) for i in os.listdir(self.packages_dir)
-                        if os.path.isdir(os.path.join(self.packages_dir, i)) and i not in exclude_dirs]
+                        if os.path.isdir(os.path.join(self.packages_dir, i)) and i not in self.exclude_dirs]
         os.makedirs(os.path.join(self.snapshots_dir, "mii"), exist_ok=True)
         os.makedirs(os.path.join(self.snapshots_dir, "default"), exist_ok=True)
 
@@ -243,8 +246,8 @@ class ProfileTreeGenerator:
                                     and content["resourceType"] == "StructureDefinition"
                                     # and content["baseDefinition"]
                                     # not in ["http://hl7.org/fhir/StructureDefinition/Extension"]
-                                    and content["status"] == "active"
-                                    # and content["kind"] == "resource"
+                                    # and content["status"] == "active"
+                                    and content["kind"] == "resource" or content.get("type") == "Extension"
                                     and content["url"] not in self.excluded_profiles
                             ):
                                 destination = os.path.join(os.path.join(self.snapshots_dir, snapshot_scope),
@@ -268,9 +271,7 @@ class ProfileTreeGenerator:
                 scope = SnapshotPackageScope(file_path.split(os.sep)[-2]).value
 
                 try:
-
                     with open(file_path, "r") as f:
-
                         content = json.load(f)
 
                         if self.profiles_to_process and content["url"] not in self.profiles_to_process:
@@ -279,8 +280,8 @@ class ProfileTreeGenerator:
                         if (
                                 "resourceType" in content
                                 and content["resourceType"] == "StructureDefinition"
-                                and content["status"] == "active"
-                                and content["kind"] in {"resource", "complex-type"}
+                                # and content["status"] == "active"
+                                and content["kind"] == "resource" or content.get("type") == "Extension"
                                 and content.get("snapshot")
                         ):
                             module_extract = self.extract_module_string(content["url"])
@@ -306,18 +307,30 @@ class ProfileTreeGenerator:
                 except Exception as exc:
                     self.logger.warning(f"File {file_path} could not be processed. Reason: {exc}", exc_info=exc)
 
-    def custom_sort(self, item, order):
+    @staticmethod
+    def custom_sort(item, order):
         name = item["module"]
         if name in order:
-            return (0, order.index(name))
+            return 0, order.index(name)
         else:
-            return (1, name)
+            return 1, name
 
-    def get_value_for_lang_code(self, data, langCode):
+    def get_value_for_lang_code(self, data: Mapping[str, any], lang_code: str):
         for ext in data.get('extension', []):
-            if any(e.get('url') == 'lang' and e.get('valueCode') == langCode for e in ext.get('extension', [])):
+            if any(e.get('url') == 'lang' and e.get('valueCode') == lang_code for e in ext.get('extension', [])):
                 return next(e['valueString'] for e in ext['extension'] if e.get('url') == 'content')
         return ""
+
+    def __get_profiles(self, scope: Optional[str] = None) -> Mapping[str, Mapping[str, Any]]:
+        """
+        Returns all profile entries in a certain scope or all if none is provided
+        :param scope: Scope from which to return the profile entries
+        :return: All profile entries matching the provided scope
+        """
+        if scope:
+            return self.profiles.get(scope, {})
+        else:
+            return {k: v for d in self.profiles.values() for k, v in d.items()}
 
     def get_suitable_mii_profiles(self) -> Mapping[str, Mapping[str, any]]:
         """
@@ -338,7 +351,7 @@ class ProfileTreeGenerator:
 
         for profile in self.get_suitable_mii_profiles().values():
             try:
-                path = self.build_profile_path([], profile, self.profiles)
+                path = self.build_profile_path([], profile, self.__get_profiles(SnapshotPackageScope.MII))
                 module = profile["module"]
                 path.insert(0, {
                     "id": str(uuid.uuid4()),
