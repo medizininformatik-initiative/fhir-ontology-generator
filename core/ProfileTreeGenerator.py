@@ -33,9 +33,6 @@ class ProfileTreeGenerator:
         self.fields_to_exclude = fields_to_exclude
         self.field_trees_to_exclude = field_trees_to_exclude
         self.profiles_to_process = profiles_to_process
-        self.simple_data_types = ["instant", "time", "date", "dateTime", "decimal", "boolean", "integer", "string",
-                                  "uri", "base64Binary", "code", "id", "oid", "unsignedInt", "positiveInt", "markdown",
-                                  "url", "canonical", "uuid"]
 
     def get_name_from_id(self, id):
 
