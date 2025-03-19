@@ -10,7 +10,7 @@ from typing import Mapping, Optional, Any
 
 from typing_extensions import LiteralString
 
-from util.fhir.enums import PrimitiveFhirType
+from util.fhir.enums import FhirPrimitiveDataType
 from util.typing.filesystem import FilePathStr
 
 _logger = logging.getLogger("ProfileTreeGenerator")
@@ -62,7 +62,7 @@ class ProfileTreeGenerator:
                             f"[path='{element.get('path')}']")
             return False
 
-        if "type" in element and element["type"][0]["code"] in PrimitiveFhirType and len(path) > 1:
+        if "type" in element and element["type"][0]["code"] in FhirPrimitiveDataType and len(path) > 1:
             return True
 
         if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element

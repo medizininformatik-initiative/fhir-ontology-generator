@@ -1,11 +1,13 @@
 import logging
 import re
 from collections.abc import Callable
+from dataclasses import asdict
 from typing import Mapping, List, TypedDict, Any, Optional
 
 from core.exceptions.profile import MissingProfileException
-from util.fhir.enums import PrimitiveFhirType
-
+from model.UiDataModel import TranslationElementDisplay
+from model.dse import FieldDetail, ProfileDetail, Filter
+from util.fhir.enums import FhirPrimitiveDataType, FhirDataType, FhirSearchType
 
 Profile = Mapping[str, any]
 
@@ -115,7 +117,7 @@ class ProfileDetailGenerator:
     @staticmethod
     def get_field_in_node(node, id_end):
 
-        if "children" not in node:
+        if "children" not in node or node["children"] is None:
             node["children"] = []
 
         children = node["children"]
@@ -123,15 +125,14 @@ class ProfileDetailGenerator:
         for index in range(0, len(children)):
 
             child = children[index]
-            if child["id"].endswith(id_end):
+            if child.id.endswith(id_end):
                 return index
 
         return -1
 
-    def insert_field_to_tree(self, tree, field):
-
+    def insert_field_to_tree(self, tree: FieldDetail, field: FieldDetail):
         cur_node = tree
-        path = re.split(r"[.:]", field["id"])
+        path = re.split(r"[.:]", field.id)
         path = path[1:]
         parent_recommended = False
         field_type = field.get('type')
@@ -139,26 +140,26 @@ class ProfileDetailGenerator:
         if len(path) == 0:
             return
 
-        if field_type in PrimitiveFhirType and len(path) > 1:
+        if field.type in FhirPrimitiveDataType and len(path) > 1:
             return
 
         for index in range(0, len(path) - 1):
             id_end = path[index]
-            field_child_index = self.get_field_in_node(cur_node, id_end)
+            field_child_index = self.get_field_in_node(cur_node.__dict__, id_end)
 
             if field_child_index != -1:
-                cur_node = cur_node["children"][field_child_index]
+                cur_node = cur_node.children[field_child_index]
 
-            if parent_recommended == False and "recommended" in cur_node:
-                parent_recommended = cur_node['recommended']
+            if not parent_recommended:
+                parent_recommended = cur_node.recommended
 
             if parent_recommended:
-                field['recommended'] = False
+                field.recommended = False
 
-        if "children" not in cur_node:
-            cur_node["children"] = []
+        if cur_node.children is None:
+            cur_node.children = []
 
-        cur_node["children"].append(field)
+        cur_node.children.append(field)
 
     def filter_element(self, element: Mapping[str, any]) -> bool:
 
@@ -245,7 +246,6 @@ class ProfileDetailGenerator:
     def resource_type_to_date_param(resource_type: str) -> str:
         if resource_type == 'Condition':
             return "recorded-date"
-
         return "date"
 
     def __get_profiles(self, scope: Optional[str] = None) -> Mapping[str, Mapping[str, Any]]:
@@ -401,7 +401,7 @@ class ProfileDetailGenerator:
 
         return mii_references
 
-    def generate_detail_for_profile(self, profile):
+    def generate_detail_for_profile(self, profile: Mapping[str, any]) -> Optional[ProfileDetail]:
         self.__logger.info(f"Generating profile detail [url={profile['url']}]")
 
         try:
@@ -413,11 +413,11 @@ class ProfileDetailGenerator:
 
             date_param = self.resource_type_to_date_param(struct_def['type'])
 
-            profile_detail = {
-                "url": profile["url"],
-                "display": {
-                    "original": struct_def.get("title", ""),
-                    "translations": [
+            profile_detail = ProfileDetail(
+                url=profile["url"],
+                display=TranslationElementDisplay(
+                    original=struct_def.get("title", ""),
+                    translations=[
                         {
                             "language": "de-DE",
                             "value": self.get_value_for_lang_code(struct_def.get("_title", {}), "de-DE")
@@ -427,11 +427,11 @@ class ProfileDetailGenerator:
                             "value": self.get_value_for_lang_code(struct_def.get("_title", {}), "en-US")
                         }
                     ]
-                },
-                "filters": [
-                    {"type": "date", "name": date_param, "ui_type": "timeRestriction"}
-                ],
-            }
+                ),
+                filters=[
+                    Filter(type="date", name=date_param, ui_type="timeRestriction")
+                ]
+            )
 
             profile_type = profile['structureDefinition']['type']
             code_search_param = (result := self.mapping_type_code.get(profile_type, None)) and result.get("search_param",
@@ -443,14 +443,14 @@ class ProfileDetailGenerator:
                 value_set_urls = self.get_value_sets_for_code_filter(profile['structureDefinition'], fhir_path)
 
             if value_set_urls:
-                profile_detail['filters'].append({
-                    "type": "token",
-                    "name": code_search_param,
-                    "ui_type": "code",
-                    "valueSetUrls": value_set_urls,
-                })
+                profile_detail.filters.append(Filter(
+                    type="token",
+                    name=code_search_param,
+                    ui_type="code",
+                    valueSetUrls=value_set_urls,
+                ))
 
-            field_tree = {"children": []}
+            field_tree = FieldDetail(id=struct_def.get('type'))
             source_elements = profile["structureDefinition"]["snapshot"]["element"]
 
             for element in source_elements:
@@ -499,11 +499,11 @@ class ProfileDetailGenerator:
                                           f"Reason: {exc}")
                     referenced_mii_profiles = []
 
-                field = {
-                    "id": field_id,
-                    "display": {
-                        "original": name,
-                        "translations": [
+                field = FieldDetail(
+                    id=field_id,
+                    display=TranslationElementDisplay(
+                        original=name,
+                        translations=[
                              {
                                  "language": "de-DE",
                                  "value": self.get_value_for_lang_code(element.get('_short', {}), "de-DE")
@@ -513,27 +513,25 @@ class ProfileDetailGenerator:
                                  "value": self.get_value_for_lang_code(element.get('_short', {}), "en-US")
                              }
                         ],
-                    },
-                    "description": {
-                        "original": element.get("definition", ""),
-                        "translations": [
-                             {
-                                 "language": "de-DE",
-                                 "value": self.get_value_for_lang_code(element.get('_definition', {}),
-                                                                       "de-DE")
-                             },
-                             {
-                                 "language": "en-US",
-                                 "value": self.get_value_for_lang_code(element.get('_definition', {}),
-                                                                       "en-US")
-                             }
-                        ],
-                    },
-                    "referencedProfiles": referenced_mii_profiles,
-                    "type": field_type,
-                    "recommended": is_recommended_field,
-                    "required": is_required_field
-                }
+                    ),
+                    descriptions=TranslationElementDisplay(
+                        original=element.get("definition", ""),
+                        translations=[
+                            {
+                                "language": "de-DE",
+                                "value": self.get_value_for_lang_code(element.get('_definition', {}), "de-DE")
+                            },
+                            {
+                                "language": "en-US",
+                                "value": self.get_value_for_lang_code(element.get('_definition', {}), "en-US")
+                            }
+                        ]
+                    ),
+                    referenceProfiles=referenced_mii_profiles,
+                    type=field_type,
+                    recommended=is_recommended_field,
+                    required=is_required_field
+                )
 
                 if field_type == "Reference" and len(referenced_mii_profiles) == 0:
                     self.__logger.warning(f"Element '{element.get('id')}' references profiles that do not match any "
@@ -542,7 +540,7 @@ class ProfileDetailGenerator:
 
                 self.insert_field_to_tree(field_tree, field)
 
-            profile_detail["fields"] = field_tree["children"]
+            profile_detail.fields = field_tree.children
 
             return profile_detail
         except Exception as exc:
@@ -550,7 +548,7 @@ class ProfileDetailGenerator:
 
     def generate_profile_details_for_profiles_in_scope(self, scope: str,
                                                        cond: Optional[Callable[[Mapping[str, Any]], bool]] = None
-                                                       ) -> List[Mapping[str, Any]]:
+                                                       ) -> List[ProfileDetail]:
         """
         Generate profile details for all profiles within the given scope
         :param scope: The scope containing all the profiles to generated details for
@@ -569,7 +567,8 @@ class ProfileDetailGenerator:
         for profile_entry in profiles_in_scope.values():
             sd = profile_entry.get("structureDefinition", {})
             if cond(sd):
-                profile_details.append(self.generate_detail_for_profile(profile_entry))
+                if profile_detail := self.generate_detail_for_profile(profile_entry):
+                    profile_details.append(profile_detail)
             else:
                 self.__logger.debug(f"Profile [url={sd.get('url')}] did not match conditions => Skipping")
         return profile_details
