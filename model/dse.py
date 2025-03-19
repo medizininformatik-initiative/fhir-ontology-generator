@@ -1,25 +1,37 @@
-import abc
-from typing import Optional, List
+from __future__ import annotations
 
+import abc
+from typing import Optional, List, Literal
+
+from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 
 from model.UiDataModel import TranslationElementDisplay
+from util.fhir.enums import FhirDataType, FhirSearchType
 
 
-@dataclass
-class Filter:
-    type: str
+class Filter(BaseModel):
+    type: FhirSearchType
     name: str
-    ui_type: str
-    valueSetUrls: List[str]
+    ui_type: Literal["code", "timeRestriction"]
+    valueSetUrls: Optional[List[str]] = None
 
 
-class Details(abc.ABC):
-    display: TranslationElementDisplay
-    description: Optional[TranslationElementDisplay]
-    filters: List[Filter]
+class Detail(BaseModel, abc.ABC):
+    display: Optional[TranslationElementDisplay] = None
+    description: Optional[TranslationElementDisplay] = None
 
 
+class FieldDetail(Detail):
+    id: str
+    referencedProfiles: List[str] = []
+    type: Optional[FhirDataType] = None
+    recommended: bool = False
+    required: bool = False
+    children: Optional[List[FieldDetail]] = None
 
-@dataclass
-class ProfileDetails:
+
+class ProfileDetail(Detail):
+    url: str
+    filters: List[Filter] = []
+    fields: List[FieldDetail] = []
