@@ -221,7 +221,6 @@ class ElasticSearchGenerator:
         with open(current_file_name, 'w+', encoding='UTF-8') as current_file:
 
             for insert in es_availability_inserts:
-
                 count = count + 1
                 current_line = f"{json.dumps(insert, cls=JSONFhirOntoEncoder)}\n"
                 current_file.write(current_line)
