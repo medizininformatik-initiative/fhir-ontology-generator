@@ -8,6 +8,7 @@ from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS
 
 from core.TerminologyDesignationResolver import TerminologyDesignationResolver, logger
 from model.UiDataModel import RelationalTermcode
+from util.codec.json import JSONFhirOntoEncoder
 
 
 class ElasticSearchGenerator:
@@ -193,7 +194,7 @@ class ElasticSearchGenerator:
                 current_line = f'{{"index": {{"_index": "{index_name}", "_id": "{obj_hash}"}}}}\n'
                 current_file.write(current_line)
                 current_file_size += len(current_line)
-                current_line = json.dumps(obj) + "\n"
+                current_line = json.dumps(obj, cls=JSONFhirOntoEncoder) + "\n"
                 current_file.write(current_line)
                 current_file_size += len(current_line)
 
@@ -222,7 +223,7 @@ class ElasticSearchGenerator:
             for insert in es_availability_inserts:
 
                 count = count + 1
-                current_line = f"{json.dumps(insert)}\n"
+                current_line = f"{json.dumps(insert, cls=JSONFhirOntoEncoder)}\n"
                 current_file.write(current_line)
                 current_file_size += len(current_line)
 
