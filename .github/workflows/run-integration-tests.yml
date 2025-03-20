@@ -58,6 +58,15 @@ jobs:
         PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
       run: ./generate_full_ontology.sh --all
 
+    - name: Upload Ontology
+      uses: actions/upload-artifact@v4
+      with:
+        name: packaged ontology
+        path: | 
+          example/fdpg-ontology/elastic.zip
+          example/fdpg-ontology/backend.zip
+          example/fdpg-ontology/mapping.zip
+
     - name: Install testing pytest
       run: pip3 install pytest pytest-docker pytest-cov
 
