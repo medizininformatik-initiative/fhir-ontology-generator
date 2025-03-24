@@ -1,13 +1,12 @@
 import logging
 import re
 from collections.abc import Callable
-from dataclasses import asdict
 from typing import Mapping, List, TypedDict, Any, Optional
 
 from core.exceptions.profile import MissingProfileException
 from model.UiDataModel import TranslationElementDisplay
 from model.dse import FieldDetail, ProfileDetail, Filter
-from util.fhir.enums import FhirPrimitiveDataType, FhirDataType, FhirSearchType
+from util.fhir.enums import FhirPrimitiveDataType
 
 Profile = Mapping[str, any]
 
@@ -135,7 +134,7 @@ class ProfileDetailGenerator:
         path = re.split(r"[.:]", field.id)
         path = path[1:]
         parent_recommended = False
-        field_type = field.get('type')
+        field_type = field.type
 
         if len(path) == 0:
             return
@@ -419,20 +418,26 @@ class ProfileDetailGenerator:
 
         return mii_references
 
-    def generate_detail_for_profile(self, profile: Mapping[str, any]) -> Optional[ProfileDetail]:
-        self.__logger.info(f"Generating profile detail [url={profile['url']}]")
+    def generate_detail_for_profile(self, profile: Mapping[str, any],
+                                    profile_tree: Optional[Mapping[str, any]]=None) -> Optional[ProfileDetail]:
+        profile_url = profile.get('url')
+        self.__logger.info(f"Generating profile detail [url='{profile_url}']")
 
         try:
             if not "snapshot" in profile["structureDefinition"]:
-                self.__logger.warning(f"Profile has no snapshot [url={profile['url']}] => Ignoring")
+                self.__logger.warning(f"Profile has no snapshot [url='{profile_url}'] => Skipping")
                 return None
 
             struct_def = profile["structureDefinition"]
-
             date_param = self.resource_type_to_date_param(struct_def['type'])
 
+            if profile_tree and not self.__is_profile_selectable(profile_url, profile_tree):
+                self.__logger.debug(f"Profile is not selectable according to profile tree [url='{profile_url}'] => "
+                                    f"Skipping")
+                return None
+
             profile_detail = ProfileDetail(
-                url=profile["url"],
+                url=profile_url,
                 display=TranslationElementDisplay(
                     original=struct_def.get("title", ""),
                     translations=[
@@ -503,8 +508,8 @@ class ProfileDetailGenerator:
                 is_recommended_field = self.check_at_least_one_in_elem_and_true(element, ["min"])
                 is_required_field = self.check_at_least_one_in_elem_and_true(element, ["isModifier"])
 
-                # FIXME: Temporary fix to make elements of type 'Reference' not recommended due to issues in the UI except
-                #        for references to the MII Medication profile
+                # FIXME: Temporary fix to make elements of type 'Reference' not recommended due to issues in the UI
+                #        except for references to the MII Medication profile
                 if field_type == "Reference" and not ".medication" in field_id:
                     is_recommended_field = False
 
@@ -532,7 +537,7 @@ class ProfileDetailGenerator:
                              }
                         ],
                     ),
-                    descriptions=TranslationElementDisplay(
+                    description=TranslationElementDisplay(
                         original=element.get("definition", ""),
                         translations=[
                             {
@@ -545,7 +550,7 @@ class ProfileDetailGenerator:
                             }
                         ]
                     ),
-                    referenceProfiles=referenced_mii_profiles,
+                    referencedProfiles=referenced_mii_profiles,
                     type=field_type,
                     recommended=is_recommended_field,
                     required=is_required_field
@@ -564,13 +569,31 @@ class ProfileDetailGenerator:
         except Exception as exc:
             raise Exception(f"Failed to generate profile details for profile '{profile.get('url')}'") from exc
 
+    @staticmethod
+    def __is_profile_selectable(profile_url: str, profile_tree: Mapping[str, any]) -> bool:
+        """
+        Searches the profile tree to determine whether a profile (identified by the provided URL) is selectable. Returns
+        False if the profile is not present in the tree or has no attribute 'selectable'
+        :param profile_url: URL of the profile for which to determine whether it is selectable
+        :param profile_tree: Profile tree to search
+        :return: Boolean indicating whether profile is selectable
+        """
+        if profile_tree.get('url') == profile_url:
+            return profile_tree.get('selectable', False)
+        else:
+            return any([ProfileDetailGenerator.__is_profile_selectable(profile_url, tree)
+                        for tree in profile_tree.get('children', [])])
+
     def generate_profile_details_for_profiles_in_scope(self, scope: str,
-                                                       cond: Optional[Callable[[Mapping[str, Any]], bool]] = None
+                                                       cond: Optional[Callable[[Mapping[str, Any]], bool]] = None,
+                                                       profile_tree: Mapping[str, any] = None
                                                        ) -> List[ProfileDetail]:
         """
         Generate profile details for all profiles within the given scope
         :param scope: The scope containing all the profiles to generated details for
         :param cond: Optional filter to match only certain StructureDefinition instances in scope
+        :param profile_tree: Optional profile tree to determine whether a profile detail should be generated for a given
+                             profile based on whether it is selectable
         :return: List of profile details for the given scope
         """
         self.__logger.info(f"Generating profile details for profiles in scope '{scope}'")
@@ -585,7 +608,7 @@ class ProfileDetailGenerator:
         for profile_entry in profiles_in_scope.values():
             sd = profile_entry.get("structureDefinition", {})
             if cond(sd):
-                if profile_detail := self.generate_detail_for_profile(profile_entry):
+                if profile_detail := self.generate_detail_for_profile(profile_entry, profile_tree):
                     profile_details.append(profile_detail)
             else:
                 self.__logger.debug(f"Profile [url={sd.get('url')}] did not match conditions => Skipping")

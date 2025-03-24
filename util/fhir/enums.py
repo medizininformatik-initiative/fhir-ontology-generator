@@ -13,7 +13,7 @@ class FhirPrimitiveDataTypeMeta(EnumMeta):
 
 
 @unique
-class FhirPrimitiveDataType(Enum, metaclass=FhirPrimitiveDataTypeMeta):
+class FhirPrimitiveDataType(str, Enum, metaclass=FhirPrimitiveDataTypeMeta):
     INSTANT = 'instant'
     TIME = 'time'
     DATE = 'date'
@@ -45,7 +45,7 @@ class FhirComplexDataTypeEnumMeta(EnumMeta):
 
 
 @unique
-class FhirComplexDataType(Enum, metaclass=FhirComplexDataTypeEnumMeta):
+class FhirComplexDataType(str, Enum, metaclass=FhirComplexDataTypeEnumMeta):
     ELEMENT = "Element"
     RATIO = "Ratio"
     PERIOD = "Period"

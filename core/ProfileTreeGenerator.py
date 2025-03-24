@@ -5,10 +5,7 @@ import json
 import shutil
 import logging
 from enum import Enum
-from multiprocessing.connection import Listener
 from typing import Mapping, Optional, Any
-
-from typing_extensions import LiteralString
 
 from util.fhir.enums import FhirPrimitiveDataType
 from util.typing.filesystem import FilePathStr
@@ -318,7 +315,7 @@ class ProfileTreeGenerator:
 
     @staticmethod
     def custom_sort(item, order):
-        name = item["module"]
+        name = item.get('name')
         if name in order:
             return 0, order.index(name)
         else:
@@ -345,7 +342,7 @@ class ProfileTreeGenerator:
         """
         Returns only those profiles which are snapshots that apply to FHIR resource types excluding Extension and are
         part of the Medical Informatics Initiative (MII)
-        """
+        <"""
         profiles = {}
         for url, profile in self.profiles.get('mii', {}).items():
             snapshot = profile.get('structureDefinition')
