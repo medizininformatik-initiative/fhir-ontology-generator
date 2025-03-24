@@ -2,10 +2,11 @@ import json
 import os
 import shutil
 from collections import defaultdict
-from os import PathLike, mkdir
-from typing import Mapping, Union, Iterator
+from os import PathLike
+from typing import Mapping, Union, Iterator, Optional
 
 from _pytest.python import Metafunc
+from pydantic import BaseModel
 from pytest_docker.plugin import Services, get_docker_services, containers_scope
 
 import util.http.requests
@@ -22,6 +23,16 @@ logger = logging.getLogger(__name__)
 
 #generated_profile_tree_path = os.path.join("example", "fdpg-ontology", "profile_tree.json")
 #project_path = os.path.join("example", "mii_core_data_set")
+
+
+class Status(BaseModel):
+    disabled: bool = False
+    reason: Optional[str] = None
+
+
+class CCDLTestdataEntry(BaseModel):
+    data: list[str] = []
+    status: Status = Status()
 
 
 def __test_dir() -> str:
@@ -249,10 +260,15 @@ def pytest_generate_tests(metafunc: Metafunc):
     """
     qm_list = __querying_metadata_list(metafunc.config.rootpath)
 
-
     if "test_ccdl_query" == metafunc.definition.name:
         with open(os.path.join(__test_dir(), "ModuleTestDataConfig.json"), "r", encoding="utf-8") as f:
-            test_data = json.load(f)
+            test_data_mapping = json.load(f)
+        test_data = []
+        for entry in map(lambda e: CCDLTestdataEntry.model_validate(e), test_data_mapping):
+            marks = []
+            if entry.status.disabled:
+                marks = [pytest.mark.xfail(reason=entry.status.reason)]
+            test_data.append(pytest.param(*entry.data, marks=marks))
         metafunc.parametrize(argnames=("data_resource_file", "query_resource_path"),
                              argvalues=test_data)
 
