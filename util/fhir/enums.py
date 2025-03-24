@@ -13,6 +13,7 @@ class FhirPrimitiveDataTypeMeta(EnumMeta):
 
 
 @unique
+<<<<<<< HEAD
 class FhirPrimitiveDataType(str, Enum, metaclass=FhirPrimitiveDataTypeMeta):
     INSTANT = 'instant'
     TIME = 'time'
@@ -46,6 +47,42 @@ class FhirComplexDataTypeEnumMeta(EnumMeta):
 
 @unique
 class FhirComplexDataType(str, Enum, metaclass=FhirComplexDataTypeEnumMeta):
+||||||| efd5107
+=======
+class FhirPrimitiveDataType(Enum, metaclass=FhirPrimitiveDataTypeMeta):
+    INSTANT = 'instant'
+    TIME = 'time'
+    DATE = 'date'
+    DATE_TIME = 'dateTime'
+    BASE_64_BINARY = 'base64Binary'
+    DECIMAL = 'decimal'
+    BOOLEAN = 'boolean'
+    URI = 'uri'
+    URL = 'url'
+    CANONICAL = 'canonical'
+    CODE = 'code'
+    STRING = 'string'
+    INTEGER = 'integer'
+    MARKDOWN = 'markdown'
+    ID = 'id'
+    OID = 'oid'
+    UUID = 'uuid'
+    UNSIGNED_INT = 'unsignedInt'
+    POSITIVE_INT = 'positiveInt'
+
+
+class FhirComplexDataTypeEnumMeta(EnumMeta):
+    def __contains__(cls, item: str | Self) -> bool:
+        try:
+            cls(item)
+        except ValueError:
+            return False
+        return True
+
+
+@unique
+class FhirComplexDataType(Enum, metaclass=FhirComplexDataTypeEnumMeta):
+>>>>>>> c6e97827889cb89c458ea4ee397c0c2a49d8208d
     ELEMENT = "Element"
     RATIO = "Ratio"
     PERIOD = "Period"
