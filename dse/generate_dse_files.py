@@ -305,8 +305,7 @@ if __name__ == '__main__':
         )
 
         with open(os.path.join("generated", "profile_details_all.json"), mode="w+", encoding="utf-8") as p_details_f:
-            l = [del_none(o.model_dump()) for o in profile_details]
-            json.dump(l, p_details_f, cls=JSONFhirOntoEncoder)
+            json.dump(profile_details, p_details_f, cls=JSONFhirOntoEncoder)
 
         generate_r_load_sql(profile_details)
 
