@@ -1,0 +1,18 @@
+{
+  "context": {
+    "code": "Vitaldaten",
+    "display": "Vitaldaten",
+    "system": "fdpg.mii.cds",
+    "version": "1.0.0"
+  },
+  "module": {
+    "code": "mii-cds-ICU",
+    "display": "ICU"
+  },
+  "name": "SD_MII_ICU_Sauerstoffsaettigung_Im_Arteriellen_Blut_Durch_Pulsoxymetrie",
+  "resource_type": "Observation",
+  "term_code_defining_id": "Observation.code.coding:loinc",
+  "time_restriction_defining_id": "Observation.effective[x]",
+  "value_defining_id": "Observation.value[x]",
+  "value_optional": false
+}
