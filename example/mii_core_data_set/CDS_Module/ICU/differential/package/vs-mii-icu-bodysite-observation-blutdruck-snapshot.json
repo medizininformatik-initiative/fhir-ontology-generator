@@ -1,0 +1,44 @@
+{
+  "resourceType": "ValueSet",
+  "id": "vs-mii-icu-bodysite-observation-blutdruck",
+  "text": {
+    "status": "empty",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">No human-readable text provided in this case.</div>"
+  },
+  "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/vs-mii-icu-bodysite-observation-blutdruck",
+  "version": "2025.0.2",
+  "name": "VS_MII_ICU_BodySite_Observation_Blutdruck",
+  "title": "VS MII ICU BodySite Observation Blutdruck",
+  "status": "active",
+  "experimental": false,
+  "date": "2025-02-11",
+  "publisher": "https://www.medizininformatik-initiative.de",
+  "description": "Dieses ValueSet enthält Codes für bodySites von Blutdrücken (pulsatilen Drücken).",
+  "compose": {
+    "include": [
+      {
+        "system": "http://snomed.info/sct",
+        "concept": [
+          {
+            "code": "11527006"
+          },
+          {
+            "code": "81040000"
+          },
+          {
+            "code": "264856002"
+          },
+          {
+            "code": "277633001"
+          },
+          {
+            "code": "244383003"
+          },
+          {
+            "code": "244387002"
+          }
+        ]
+      }
+    ]
+  }
+}
