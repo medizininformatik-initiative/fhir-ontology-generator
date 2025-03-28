@@ -1,0 +1,98 @@
+{
+  "resourceType": "ValueSet",
+  "id": "vs-mii-icu-code-observation-bilanzen-snomed",
+  "text": {
+    "status": "empty",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">No human-readable text provided in this case.</div>"
+  },
+  "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/ValueSet/vs-mii-icu-code-observation-bilanzen-snomed",
+  "version": "2025.0.2",
+  "name": "VS_MII_ICU_Code_Observation_Bilanzen_SNOMED",
+  "title": "VS MII ICU Code Observation Bilanzen [SNOMED]",
+  "status": "active",
+  "experimental": false,
+  "date": "2025-02-11",
+  "publisher": "https://www.medizininformatik-initiative.de",
+  "description": "Dieses ValueSet enthält Codes für die im Kontext einer Bilanz verwendeten Parameter.",
+  "compose": {
+    "include": [
+      {
+        "system": "http://snomed.info/sct",
+        "concept": [
+          {
+            "code": "251850009",
+            "display": "Ultrafiltrate fluid loss (observable entity)"
+          },
+          {
+            "code": "251843005",
+            "display": "Fluid output from drain (observable entity)"
+          },
+          {
+            "code": "251844004",
+            "display": "Fluid output from surgical drain (observable entity)"
+          },
+          {
+            "code": "251845003",
+            "display": "Fluid output from wound drain (observable entity)"
+          },
+          {
+            "code": "251847006",
+            "display": "Total fluid loss (observable entity)"
+          },
+          {
+            "code": "1162670008",
+            "display": "Volume of drainage of chyle (observable entity)"
+          },
+          {
+            "code": "1162667009",
+            "display": "Volume of drainage of bile duct (observable entity)"
+          },
+          {
+            "code": "251848001",
+            "display": "Gastric fluid loss (observable entity)"
+          },
+          {
+            "code": "1162668004",
+            "display": "Volume of drainage of pancreatic fluid (observable entity)"
+          },
+          {
+            "code": "364202003",
+            "display": "Measure of urine output (observable entity)"
+          },
+          {
+            "code": "250771004",
+            "display": "Actual blood loss (observable entity)"
+          },
+          {
+            "code": "251854000",
+            "display": "Enteral fluid input (observable entity)"
+          },
+          {
+            "code": "251855004",
+            "display": "Parenteral fluid input (observable entity)"
+          },
+          {
+            "code": "251853006",
+            "display": "Oral fluid input (observable entity)"
+          },
+          {
+            "code": "251841007",
+            "display": "Total fluid output (observable entity)"
+          },
+          {
+            "code": "251841001",
+            "display": "Total fluid input (observable entity)"
+          },
+          {
+            "code": "251856003",
+            "display": "Fluid balance status (observable entity)"
+          },
+          {
+            "code": "364202003",
+            "display": "Measure of urine output (observable entity)"
+          }
+        ]
+      }
+    ]
+  }
+}
