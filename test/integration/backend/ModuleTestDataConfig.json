@@ -13,5 +13,8 @@
   ["Patient-mii-exa-test-data-patient-1.json","Person_Gender_Patient1_Q1.json"],
   ["Patient-mii-exa-test-data-patient-1.json","Person_Vitalstatus_Patient1_Q1.json"],
   ["Patient-mii-exa-test-data-patient-1.json","Prozedur_OPS_Patient1_Q1.json"],
-  ["Patient-mii-exa-test-data-patient-1.json","Prozedur_SCT_Patient1_Q1.json"]
+  ["Patient-mii-exa-test-data-patient-1.json","Prozedur_SCT_Patient1_Q1.json"],
+  ["Patient-mii-exa-test-data-patient-1.json","ICU_Systolic_Patient1_Q1.json"],
+  ["Patient-mii-exa-test-data-patient-1.json","ICU_Diastolic_Patient1_Q1.json"],
+  ["Patient-mii-exa-test-data-patient-1.json","ICU_Systolic+Diastolic_Patient1_Q1.json"]
 ]
