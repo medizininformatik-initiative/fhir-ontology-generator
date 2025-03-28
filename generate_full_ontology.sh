@@ -1,8 +1,8 @@
 #!/bin/bash
 
-export ONTOLOGY_SERVER_ADDRESS=${ONTOLOGY_SERVER_ADDRESS:-http://my-onto-server-address/fhir/}
-export PRIVATE_KEY=${PRIVATE_KEY:-path-to-key-file}
-export SERVER_CERTIFICATE=${SERVER_CERTIFICATE:-path-to-cert-file}
+export ONTOLOGY_SERVER_ADDRESS=${ONTOLOGY_SERVER_ADDRESS:-https://ontoserver.mii-termserv.de/fhir/}
+export PRIVATE_KEY=${PRIVATE_KEY:-/mnt/d/projects/code/FDPGplus/fhir-ontology-generator/certs/fdpg-key.pem}
+export SERVER_CERTIFICATE=${SERVER_CERTIFICATE:-/mnt/d/projects/code/FDPGplus/fhir-ontology-generator/certs/fdpg-cert.pem}
 export POSTGRES_VERSION=${POSTGRES_VERSION:-16}
 
 BASE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 || exit 1 ; pwd -P )"
@@ -52,7 +52,7 @@ fi
 if should_run_step 2; then
     printf "\n#################\nStep 2: Generating DSE ontology\n#################\n"
     cd "$BASE_DIR/dse" || exit 1
-    python3 generate_dse_files.py --generate_profile_details --download_value_sets --generate_mapping_trees
+    python3 generate_dse_files.py --generate_profile_details --download_value_sets --generate_mapping_trees --loglevel INFO
 fi
 
 # Step 3: Merging Ontologies into fdpg-ontology
@@ -69,7 +69,14 @@ if should_run_step 3; then
      "$BASE_DIR/example/mii_core_data_set/CDS_Module/Labor/generated-ontology" \
      "$BASE_DIR/example/mii_core_data_set/CDS_Module/Medikation/generated-ontology" \
      "$BASE_DIR/example/mii_core_data_set/CDS_Module/Prozedur/generated-ontology" \
+     "$BASE_DIR/example/mii_core_data_set/CDS_Module/ICU/generated-ontology" \
      "$BASE_DIR/example/mii_core_data_set/CDS_Module/Einwilligung/generated-ontology"
+
+     #"$BASE_DIR/example/mii_core_data_set/CDS_Module/Molgen/generated-ontology" \
+
+
+
+
 fi
 
 # Step 4: Generating and merging in combined consent
