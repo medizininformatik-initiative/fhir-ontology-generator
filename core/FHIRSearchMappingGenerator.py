@@ -188,7 +188,7 @@ class FHIRSearchMappingGenerator(object):
         search_param_components = self.resolve_fhir_search_parameter(attribute, profile_snapshot, "")
         first_search_param = next(iter(search_param_components.values()))
         if first_search_param.get("type") == "quantity":
-            attribute_type = "composite-quantity"
+            attribute_type = "quantity"
         elif first_search_param.get("type") == "token":
             attribute_type = "composite-concept"
         else:

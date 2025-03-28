@@ -190,6 +190,42 @@ def get_element_defining_elements_with_source_snapshots(chained_element_id, prof
     return process_element_id(parsed_list, profile_snapshot, start_module_dir, data_set_dir)
 
 
+def get_parent_slice_id(element_id: str):
+    parent_slice_name = element_id.split(":")[-1].split(".")[0]
+    parent_slice_id = element_id.rsplit(":", 1)[0] + ":" + parent_slice_name
+    return parent_slice_id
+
+
+def get_parent_slice_element(profile_snapshot,element_id: str):
+    parent_slice_id = get_parent_slice_id(element_id)
+    return get_element_from_snapshot(profile_snapshot, parent_slice_id)
+
+
+def is_element_slice_base(element_id: str):
+    return get_parent_slice_id(element_id) == element_id
+
+
+def get_common_ancestor_id(element_id_1: str, element_id_2: str):
+    """
+    extracts the longest common ancestor from two element IDs while ensuring that the result does not end with a separator (. or :)
+    """
+    last_common_ancestor = []
+    parts_1 = re.split(r"([.:])", element_id_1)
+    parts_2 = re.split(r"([.:])", element_id_2)
+
+    for sec_el_1, sec_el_2 in zip(parts_1, parts_2):
+        if sec_el_1 != sec_el_2:
+            if last_common_ancestor[-1] == "." or last_common_ancestor[-1] == ":":
+                last_common_ancestor.pop()
+            break
+        last_common_ancestor.append(sec_el_1)
+    return "".join(last_common_ancestor)
+
+
+def get_common_ancestor(profile_snapshot,element_id_1: str, element_id_2: str):
+    return get_element_from_snapshot(profile_snapshot, get_common_ancestor_id(element_id_1, element_id_2))
+
+
 def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, data_set_dir: str,
                        last_desc: ShortDesc = None) -> List[ProcessedElementResult] | None:
     results = []

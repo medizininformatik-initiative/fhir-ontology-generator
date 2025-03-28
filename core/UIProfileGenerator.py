@@ -9,8 +9,8 @@ from TerminologService.ValueSetResolver import get_termcodes_from_onto_server
 from core import ResourceQueryingMetaDataResolver
 from core import StructureDefinitionParser as FHIRParser
 from core.StructureDefinitionParser import InvalidValueTypeException, UCUM_SYSTEM, get_binding_value_set_url, \
-    ProcessedElementResult, get_fixed_term_codes, FHIR_TYPES_TO_VALUE_TYPES, extract_value_type
-from helper import logger, process_element_definition
+    ProcessedElementResult, get_fixed_term_codes, FHIR_TYPES_TO_VALUE_TYPES, extract_value_type, get_common_ancestor
+from helper import logger, process_element_definition, get_display_from_element_definition
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import ValueDefinition, UIProfile, AttributeDefinition, CriteriaSet
 from model.UiDataModel import TermCode
@@ -103,10 +103,29 @@ class UIProfileGenerator:
         ui_profile = UIProfile(profile_snapshot["name"])
         ui_profile.timeRestrictionAllowed = self.is_time_restriction_allowed(querying_meta_data)
         if querying_meta_data.value_defining_id:
-            ui_profile.valueDefinition = self.get_value_definition(profile_snapshot,
-                                                                   querying_meta_data)
+            ui_profile.valueDefinition = self.get_value_definition(profile_snapshot,querying_meta_data)
         ui_profile.attributeDefinitions = self.get_attribute_definitions(profile_snapshot, querying_meta_data)
         return ui_profile
+
+    def get_allowed_units_from_quantity(self, profile_snapshot, value_defining_element):
+        unit_defining_path = value_defining_element.get("path") + ".code"
+        unit_defining_elements = self.parser.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
+        if len(unit_defining_elements) == 1:
+            return self.parser.get_units(unit_defining_elements[0], profile_snapshot.get("name"))
+
+        if pattern_quantity := value_defining_element.get("patternQuantity"):
+            if pattern_quantity.get("code"):
+                return [TermCode(pattern_quantity.get("system"), pattern_quantity.get("code"),
+                                 pattern_quantity.get("unit"))]
+
+        if value_quantity := self.parser.get_element_from_snapshot(profile_snapshot, (
+                value_defining_element.get("path") + ":valueQuantity")):
+            if pattern_quantity := value_quantity.get("patternQuantity"):
+                if pattern_quantity.get("code"):
+                    return [TermCode(pattern_quantity.get("system"), pattern_quantity.get("code"),
+                                     pattern_quantity.get("unit"))]
+        raise Exception(f"Could not determine allowed units for {value_defining_element.get('path')} in {profile_snapshot.get('name')} ")
+
 
     def get_value_definition(self, profile_snapshot, querying_meta_data) -> ValueDefinition:
         """
@@ -135,12 +154,13 @@ class UIProfileGenerator:
                                                                                       profile_snapshot.get("name"))
         elif value_type == "quantity":
             # "Observation.valueQuantity" -> "Observation.valueQuantity.code"
-            unit_defining_path = value_defining_element.get("path") + ".code"
-            unit_defining_elements = self.parser.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
-            if len(unit_defining_elements) > 1:
-                raise Exception(f"More than one element found for path {unit_defining_path}")
-            value_definition.allowedUnits = self.parser.get_units(unit_defining_elements[0],
-                                                                  profile_snapshot.get("name"))
+            # unit_defining_path = value_defining_element.get("path") + ".code"
+            # unit_defining_elements = self.parser.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
+            # if len(unit_defining_elements) > 1:
+            #     raise Exception(f"More than one element found for path {unit_defining_path}")
+            # value_definition.allowedUnits = self.parser.get_units(unit_defining_elements[0],profile_snapshot.get("name"))
+            value_definition.allowedUnits = self.get_allowed_units_from_quantity(profile_snapshot, value_defining_element)
+
         elif value_type == "Age":
             value_definition.type = "quantity"
             # TODO: This could be the better option once the ValueSet is available, but then we might want to limit the
@@ -224,8 +244,7 @@ class UIProfileGenerator:
             attribute_definition = self.generate_reference_attribute_definition(profile_snapshot,
                                                                                 attribute_defining_element_id)
         elif attribute_type == "composite":
-            attribute_definition = self.generate_composite_attribute(profile_snapshot,
-                                                                     attribute_defining_element_id)
+            attribute_definition = self.generate_composite_attribute(profile_snapshot,attribute_defining_element_id)
         else:
             raise InvalidValueTypeException("Invalid value type: " + attribute_type)
         return attribute_definition
@@ -242,15 +261,21 @@ class UIProfileGenerator:
         attribute_definition = AttributeDefinition(attribute_code, "composite")
         attribute_type = self.parser.get_element_type(element)
         if attribute_type == "Quantity":
-            unit_defining_path = element.get("path") + ".code"
-            unit_defining_elements = self.parser.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
-            if len(unit_defining_elements) > 1:
-                unit_defining_elements = list(filter(lambda x: self.get_slice_name(x) == self.get_slice_name(element),
-                                                     unit_defining_elements))
+            if pattern_quantity := element.get("patternQuantity"):
+                if pattern_quantity.get("code"):
+                    attribute_definition.allowedUnits = [TermCode(pattern_quantity.get("system"), pattern_quantity.get("code"), pattern_quantity.get("unit"))]
+            else:
+                unit_defining_path = element.get("path") + ".code"
+                unit_defining_elements = self.parser.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
                 if len(unit_defining_elements) > 1:
-                    raise Exception(f"More than one element found for path {unit_defining_path}")
-            attribute_definition.allowedUnits = self.parser.get_units(unit_defining_elements[0],
-                                                                      profile_snapshot.get("name"))
+                    unit_defining_elements = list(filter(lambda x: self.get_slice_name(x) == self.get_slice_name(element),
+                                                         unit_defining_elements))
+                    if len(unit_defining_elements) > 1:
+                        raise Exception(f"More than one element found for path {unit_defining_path}")
+                attribute_definition.allowedUnits = self.parser.get_units(unit_defining_elements[0],profile_snapshot.get("name"))
+
+            attribute_definition.display = get_display_from_element_definition(get_common_ancestor(profile_snapshot, element.get("id"),predicate.get("id")))
+            attribute_definition.type = "quantity"
             return attribute_definition
         elif attribute_type == "CodeableConcept":
             if binding := predicate.get("binding"):
@@ -278,7 +303,12 @@ class UIProfileGenerator:
         if element.get("sliceName"):
             return element.get("sliceName")
         elif ':' in element.get("id"):
+            # if len(element.get("id").split(':')) == 3:
+            #     # Observation.component:SystolicBP.value[x]:---->valueQuantity<----.code
+            #     return element.get("id").split(':')[2].split(".")[0]
+            # Observation.component:----->SystolicBP<-----.value[x].code
             return element.get("id").split(":")[1].split(".")[0]
+
         else:
             return ""
 
