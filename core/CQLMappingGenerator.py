@@ -252,8 +252,10 @@ class CQLMappingGenerator(object):
         attribute_type = "Reference" if attr_type == "reference" else attribute_type
         attribute_types = None
         if attribute_type == "composite":
-            # element = self.parser.get_element_from_snapshot(profile_snapshot, attr_defining_id)
-            # element, _ = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
+            # elements = self.parser.get_element_defining_elements(attr_defining_id, profile_snapshot,)
+            # attribute_value = self.get_composite_attribute_value_element(attr_defining_id, profile_snapshot)
+            # element, _ = self.__select_element_compatible_with_cql_operations(attribute_value, profile_snapshot)
+            # attr_defining_id = element.get('id')
 
             attribute_fhir_path = self.translate_composite_attribute_to_fhir_path_expression(attr_defining_id,
                                                                                              profile_snapshot)
@@ -276,20 +278,28 @@ class CQLMappingGenerator(object):
         cql_mapping.add_attribute(attribute)
 
     def get_composite_code(self, attribute, profile_snapshot):
+        where_clause_element = self.get_composite_code_element(attribute, profile_snapshot)
+        return self.parser.get_fixed_term_codes(where_clause_element, profile_snapshot, self.data_set_dir,
+                                                self.module_dir)[0]
+
+    def get_composite_code_element(self, attribute, profile_snapshot):
         attribute_parsed = self.parser.get_element_defining_elements(attribute, profile_snapshot, self.module_dir,
                                                                      self.data_set_dir)
         if len(attribute_parsed) != 2:
             raise ValueError("Composite search parameters must have exactly two elements")
         where_clause_element = attribute_parsed[-1]
-        return self.parser.get_fixed_term_codes(where_clause_element, profile_snapshot, self.data_set_dir,
-                                                self.module_dir)[0]
+        return where_clause_element
 
-    def get_composite_attribute_type(self, attribute, profile_snapshot):
+    def get_composite_attribute_value_element(self, attribute, profile_snapshot):
         attribute_parsed = self.parser.get_element_defining_elements(attribute, profile_snapshot, self.module_dir,
                                                                      self.data_set_dir)
         if len(attribute_parsed) != 2:
             raise ValueError("Composite search parameters must have exactly two elements")
         value_element = attribute_parsed[0]
+        return value_element
+
+    def get_composite_attribute_type(self, attribute, profile_snapshot):
+        value_element = self.get_composite_attribute_value_element(attribute, profile_snapshot)
         return self.parser.get_element_type(value_element)
 
     @staticmethod
@@ -312,7 +322,7 @@ class CQLMappingGenerator(object):
         if where_clause_match:
             remaining_string = updated_attribute_path[where_clause_match.end() - 1:]
             where_clause = self.find_balanced_parentheses(remaining_string)
-            prefix = updated_attribute_path[:where_clause_match.end() - 1 + len(where_clause)]
+            prefix = updated_attribute_path[:where_clause_match.end() - 1 + len(where_clause)].split(".",1)[-1]
             return where_clause, prefix
         else:
             return "", ""
@@ -320,10 +330,14 @@ class CQLMappingGenerator(object):
     def translate_composite_attribute_to_fhir_path_expression(self, attribute, profile_snapshot):
         elements = self.parser.get_element_defining_elements(attribute, profile_snapshot, self.module_dir,
                                                              self.data_set_dir)
-        expressions = self.parser.translate_element_to_fhir_path_expression(elements, profile_snapshot)
+
+        # first seems to be the value every time
+        elements[0], _ = self.__select_element_compatible_with_cql_operations(elements[0], profile_snapshot)
+
+        expressions = self.parser.translate_element_to_fhir_path_expression(elements, profile_snapshot, is_composite=True)
         value_clause = expressions[0]
         composite_code = self.get_composite_code(attribute, profile_snapshot)
-        updated_where_clause = f".where(code.coding.exists(system = {composite_code.system} and code = {composite_code.code}))"
+        updated_where_clause = f".where(code.coding.exists(system = '{composite_code.system}' and code = '{composite_code.code}'))"
         # replace original where clause in attribute using string manipulation and regex
         updated_attribute_path = re.sub(r"\.where\([^)]*\)", f"{updated_where_clause}", attribute)
 
