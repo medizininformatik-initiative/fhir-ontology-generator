@@ -80,6 +80,17 @@ class Module:
         return {"code": self.code,
                 "display": self.display}
 
+@dataclass
+class RelationalTermcode:
+    contextualized_termcode_hash: str
+    display: str | dict
+
+    def to_dict(self):
+        return {
+            "contextualized_termcode_hash": self.contextualized_termcode_hash,
+            "display": self.display
+        }
+
 
 @dataclass
 class TranslationElementDisplay:
