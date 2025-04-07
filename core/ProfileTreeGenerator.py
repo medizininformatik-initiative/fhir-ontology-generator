@@ -39,6 +39,15 @@ class ProfileTreeGenerator():
         return ""
 
     def filter_element(self, element):
+        # TODO: This is a temporary workaround to allow both the postal code and the country information to be selected
+        #       during data selection. To preserve context, selecting elements with simple data types which are not on
+        #       the top level of a resource is disabled (e.g. to forbid selecting just Coding.code without
+        #       Coding.system etc.).
+        #       In the future we should switch to a more dynamic solution were the selectable elements can be defined in
+        #       externalized config files using a well-defined syntax to prevent such hard-coded solutions.
+        element_id = element.get('id')
+        if element_id in {"Patient.address:Strassenanschrift.postalCode", "Patient.address:Strassenanschrift.country"}:
+            return False
 
         attributes_true_level_one = ["mustSupport", "isModifier", "min"]
         path = re.split(r"[.:]", element["id"])
