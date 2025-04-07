@@ -121,7 +121,15 @@ class ProfileDetailGenerator():
         if len(path) == 0:
             return
 
-        if field_type in self.simple_data_types and len(path) > 1:
+        # TODO: This is a temporary workaround to allow both the postal code and the country information to be selected
+        #       during data selection. To preserve context, selecting elements with simple data types which are not on
+        #       the top level of a resource is disabled (e.g. to forbid selecting just Coding.code without
+        #       Coding.system etc.).
+        #       In the future we should switch to a more dynamic solution were the selectable elements can be defined in
+        #       externalized config files using a well-defined syntax to prevent such hard-coded solutions.
+        if (field_type in self.simple_data_types and len(path) > 1 and
+                field.get('id') not in {"Patient.address:Strassenanschrift.postalCode",
+                                        "Patient.address:Strassenanschrift.country"}):
             return
 
         for index in range(0, len(path) - 1):
@@ -144,6 +152,15 @@ class ProfileDetailGenerator():
         cur_node["children"].append(field)
 
     def filter_element(self, element):
+        # TODO: This is a temporary workaround to allow both the postal code and the country information to be selected
+        #       during data selection. To preserve context, selecting elements with simple data types which are not on
+        #       the top level of a resource is disabled (e.g. to forbid selecting just Coding.code without
+        #       Coding.system etc.).
+        #       In the future we should switch to a more dynamic solution were the selectable elements can be defined in
+        #       externalized config files using a well-defined syntax to prevent such hard-coded solutions.
+        element_id = element.get('id')
+        if element_id in {"Patient.address:Strassenanschrift.postalCode", "Patient.address:Strassenanschrift.country"}:
+            return False
 
         attributes_true_level_one = ["mustSupport", "isModifier", "min"]
 
