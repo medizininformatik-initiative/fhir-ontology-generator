@@ -14,7 +14,10 @@
   ["Patient-mii-exa-test-data-patient-1.json","Person_Vitalstatus_Patient1_Q1.json"],
   ["Patient-mii-exa-test-data-patient-1.json","Prozedur_OPS_Patient1_Q1.json"],
   ["Patient-mii-exa-test-data-patient-1.json","Prozedur_SCT_Patient1_Q1.json"],
-  ["Patient-mii-exa-test-data-patient-1.json","ICU_Systolic_Patient1_Q1.json"],
-  ["Patient-mii-exa-test-data-patient-1.json","ICU_Diastolic_Patient1_Q1.json"],
-  ["Patient-mii-exa-test-data-patient-1.json","ICU_Systolic+Diastolic_Patient1_Q1.json"]
+  ["Patient-mii-exa-test-data-patient-1.json","ICU_ArteriellerBlutdruck_Patient1_Q1.json"],
+  ["Patient-mii-exa-test-data-patient-1.json","ICU_Atemfrequenz_Patient1_Q1.json"],
+  ["Patient-mii-exa-test-data-patient-1.json","ICU_Herzfrequenz_Patient1_Q1.json"],
+  ["Patient-mii-exa-test-data-patient-1.json","ICU_Koerpergroesse_Patient1_Q1.json"],
+  ["Patient-mii-exa-test-data-patient-1.json","ICU_Koepergewicht_Patient1_Q1.json"],
+  ["Patient-mii-exa-test-data-patient-1.json","ICU_spo2-pulsoxymetrie_Patient1_Q1.json"]
 ]
