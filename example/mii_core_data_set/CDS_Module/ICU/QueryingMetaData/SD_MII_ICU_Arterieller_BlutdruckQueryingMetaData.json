@@ -12,13 +12,5 @@
   "name": "SD_MII_ICU_Arterieller_Blutdruck",
   "resource_type": "Observation",
   "term_code_defining_id": "Observation.code.coding:loinc",
-  "time_restriction_defining_id": "Observation.effective[x]",
-  "attribute_defining_id_type_map": {
-    "Observation.component.where(Observation.component:SystolicBP.code):SystolicBP.value[x]": {
-      "type": "composite"
-    },
-    "Observation.component.where(Observation.component:DiastolicBP.code):DiastolicBP.value[x]": {
-      "type": "composite"
-    }
-  }
+  "time_restriction_defining_id": "Observation.effective[x]"
 }
