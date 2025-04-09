@@ -4,14 +4,13 @@ from typing import List
 
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, REQUESTS_SESSION
 from TerminologService.valueSetToRoots import create_vs_tree_map, expand_value_set
-# from dse.generate_dse_files import logger
 from model.TreeMap import ContextualizedTermCodeInfo
 from model.UiDataModel import TermCode
-from util.logging.LoggingUtil import init_logger
-from logging import DEBUG
+
+from util.log.functions import get_logger
 
 POSSIBLE_CODE_SYSTEMS = ["http://loinc.org", "http://snomed.info/sct"]
-logger = init_logger("ValueSetResolver", DEBUG)
+logger = get_logger(__file__)
 
 
 def get_term_map_from_onto_server(value_set_canonical_url: str):

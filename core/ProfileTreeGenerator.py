@@ -3,14 +3,15 @@ import re
 import os
 import json
 import shutil
+
+from util.log.functions import get_class_logger
+
 import logging
 from enum import Enum
 from typing import Mapping, Optional, Any
 
 from util.fhir.enums import FhirPrimitiveDataType
 from util.typing.filesystem import FilePathStr
-
-_logger = logging.getLogger("ProfileTreeGenerator")
 
 
 class SnapshotPackageScope(str, Enum):
@@ -19,6 +20,7 @@ class SnapshotPackageScope(str, Enum):
 
 
 class ProfileTreeGenerator:
+    __logger = get_class_logger("ProfileTreeGenerator")
 
     def __init__(self, packages_dir: str, snapshots_dir: str, exclude_dirs, excluded_profiles, module_order,
                  module_translation, fields_to_exclude, field_trees_to_exclude, profiles_to_process):
@@ -210,10 +212,8 @@ class ProfileTreeGenerator:
 
     def module_name_to_display(self, profile_name):
         parts = profile_name.split('-')
-
         if len(parts) > 1:
             return parts[1].capitalize()
-
         return profile_name
 
     def extract_module_string(self, path):
@@ -225,7 +225,6 @@ class ProfileTreeGenerator:
     def copy_profile_snapshots(self):
         #exclude_dirs = set(os.path.abspath(os.path.join(self.packages_dir, d)) for d in self.exclude_dirs)
         #print(exclude_dirs)
-
         package_dirs = [os.path.join(self.packages_dir, i) for i in os.listdir(self.packages_dir)
                         if os.path.isdir(os.path.join(self.packages_dir, i)) and i not in self.exclude_dirs]
         os.makedirs(os.path.join(self.snapshots_dir, "mii"), exist_ok=True)
@@ -238,11 +237,11 @@ class ProfileTreeGenerator:
             for root, _ , files in os.walk(package_dir):
                 for rel_file_path in filter(lambda p: p.endswith(".json"), files):
                     file_path = os.path.join(root, rel_file_path)
-                    if "/examples/" in file_path:
+                    if "/projects/" in file_path:
                         continue
 
                     try:
-                        with open(file_path, "r", encoding='utf-8-sig') as f:
+                        with open(file_path, mode="r", encoding='utf-8-sig') as f:
                             content = json.load(f)
                             if (
                                     # "https://www.medizininformatik-initiative.de" in content["url"]
@@ -268,7 +267,6 @@ class ProfileTreeGenerator:
 
 
     def get_profile_snapshots(self):
-
         for root, dirs, files in os.walk(self.snapshots_dir):
             dirs[:] = [d for d in dirs if os.path.abspath(os.path.join(root, d))]
 
@@ -303,15 +301,15 @@ class ProfileTreeGenerator:
                                 "url": content["url"],
                             }
 
-                            self.logger.info(f"Adding profile snapshot to tree: {file_path}")
+                            self.__logger.info(f"Adding profile snapshot to tree: {file_path}")
 
                         else:
-                            self.logger.debug(f"Profile did not match criteria for inclusion: {file_path}")
+                            self.__logger.debug(f"Profile did not match criteria for inclusion: {file_path}")
 
                 except UnicodeDecodeError:
-                    self.logger.warning(f"File {file_path} is not a text file or cannot be read as text -> Ignoring")
+                    self.__logger.warning(f"File {file_path} is not a text file or cannot be read as text => Skipping")
                 except Exception as exc:
-                    self.logger.warning(f"File {file_path} could not be processed. Reason: {exc}", exc_info=exc)
+                    self.__logger.warning(f"File {file_path} could not be processed. Reason: {exc}", exc_info=exc)
 
     @staticmethod
     def custom_sort(item, order):
@@ -351,7 +349,7 @@ class ProfileTreeGenerator:
         return  profiles
 
     def generate_profiles_tree(self):
-        self.logger.info("Generating profile tree")
+        self.__logger.info("Generating profile tree")
 
         tree = {"name": "Root", "module": "no-module", "url": "no-url", "children": [], "selectable": False}
 

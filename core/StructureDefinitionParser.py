@@ -23,6 +23,9 @@ CQL_TYPES_TO_VALUE_TYPES = json.load(fp=(resources.files(cql) / 'cql-types-to-va
                                       .open('r', encoding='utf-8'))
 
 
+logger = get_logger(__file__)
+
+
 class InvalidValueTypeException(Exception):
     pass
 
@@ -68,18 +71,18 @@ def is_element_in_snapshot(profile_snapshot, element_id) -> bool:
         return False
 
 
-def get_profiles_with_base_definition(fhir_dataset_dir: str, base_definition: str) -> Tuple[dict, str]:
+def get_profiles_with_base_definition(modules_dir_path: str, base_definition: str) -> Tuple[dict, str]:
     """
     Returns the profiles that have the given base definition
-    :param fhir_dataset_dir: path to the FHIR dataset directory
+    :param modules_dir_path: path to the modules directory
     :param base_definition: base definition
     :return: generator of profiles that have the given base definition
     """
-    for module_dir in [folder for folder in os.scandir(fhir_dataset_dir) if folder.is_dir()]:
-        print(f"Searching in {module_dir.path}")
-        files = [file for file in os.scandir(f"{module_dir.path}/differential/package") if file.is_file()
+    for module_dir in [folder for folder in os.scandir(modules_dir_path) if folder.is_dir()]:
+        logger.debug(f"Searching in {module_dir.path}")
+        files = [file for file in os.scandir(os.path.join(module_dir.path, "differential", "package")) if file.is_file()
                  and file.name.endswith("snapshot.json")]
-        print(f"Found {len(files)} files")
+        logger.debug(f"Found {len(files)} file(s)")
         for file in files:
             with open(file.path, "r", encoding="utf8") as f:
                 profile = json.load(f)
@@ -99,7 +102,7 @@ def get_extension_definition(module_dir: str, extension_profile_url: str) -> dic
     :param extension_profile_url:  extension profile url
     :return: extension definition
     """
-    files = [file for file in os.scandir(f"{module_dir}/extension") if file.is_file()
+    files = [file for file in os.scandir(os.path.join(module_dir, "extension")) if file.is_file()
              and file.name.endswith("snapshot.json")]
     for file in files:
         with open(file.path, "r", encoding="utf8") as f:
@@ -266,7 +269,7 @@ def get_common_ancestor(profile_snapshot: dict, element_id_1: str, element_id_2:
     return get_element_from_snapshot(profile_snapshot, get_common_ancestor_id(element_id_1, element_id_2))
 
 
-def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, data_set_dir: str,
+def process_element_id(element_ids, profile_snapshot: dict, module_dir_name: str, modules_dir_path: str,
                        last_desc: ShortDesc = None) -> List[ProcessedElementResult] | None:
     results = []
 
@@ -277,7 +280,7 @@ def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, dat
         element = get_element_from_snapshot(profile_snapshot, element_id)
         short_desc = (element_id, get_display_from_element_definition(element)) \
             if last_desc is None else None
-        result = [ProcessedElementResult(element=element, profile_snapshot=profile_snapshot, module_dir=module_dir,
+        result = [ProcessedElementResult(element=element, profile_snapshot=profile_snapshot, module_dir=module_dir_name,
                                          last_short_desc=short_desc)]
 
         for elem in element.get("type"):
@@ -285,32 +288,29 @@ def process_element_id(element_ids, profile_snapshot: dict, module_dir: str, dat
                 profile_urls = elem.get("profile")
                 if len(profile_urls) > 1:
                     raise Exception("Extension with multiple types not supported")
-                extension = get_extension_definition(module_dir, profile_urls[0])
+                extension = get_extension_definition(module_dir_name, profile_urls[0])
                 element_ids.insert(0, f"Extension" + element_ids.pop(0))
-                result.extend(process_element_id(element_ids, extension, module_dir, data_set_dir))
+                result.extend(process_element_id(element_ids, extension, module_dir_name, modules_dir_path))
             elif elem.get("code") == "Reference":
-                target_profiles = elem.get("targetProfile")
-                # if len(target_profiles) > 1:
-                #     raise Exception("Reference with multiple types not supported")
                 target_resource_type = elem.get("targetProfile")[0]
                 # FIXME This should not be hardcoded to CDS_Module
-                referenced_profile, module_dir = get_profiles_with_base_definition("CDS_Module", target_resource_type)
+                referenced_profile, module_dir_name = get_profiles_with_base_definition(modules_dir_path, target_resource_type)
                 element_ids.insert(0, f"{referenced_profile.get('type') + element_ids.pop(0)}")
-                result.extend(process_element_id(element_ids, referenced_profile, module_dir, data_set_dir))
+                result.extend(process_element_id(element_ids, referenced_profile, module_dir_name, modules_dir_path))
         results.extend(result)
     return results
 
 
-def resolve_defining_id(profile_snapshot: dict, defining_id: str, data_set_dir: str, module_dir: str) \
+def resolve_defining_id(profile_snapshot: dict, defining_id: str, modules_dir_path: str, module_dir_name: str) \
         -> dict | str:
     """
     :param profile_snapshot: FHIR profile snapshot
     :param defining_id: defining id
-    :param module_dir: path to the module directory
-    :param data_set_dir: path to the FHIR dataset directory
+    :param module_dir_name: name of the module directory
+    :param modules_dir_path: path to the FHIR dataset directory
     :return: resolved defining id
     """
-    return get_element_defining_elements(defining_id, profile_snapshot, module_dir, data_set_dir)[-1]
+    return get_element_defining_elements(defining_id, profile_snapshot, module_dir_name, modules_dir_path)[-1]
 
 
 def extract_value_type(value_defining_element: dict, profile_name: str = "") -> VALUE_TYPE_OPTIONS:
@@ -321,7 +321,7 @@ def extract_value_type(value_defining_element: dict, profile_name: str = "") -> 
     :return: value type
     """
     if not value_defining_element:
-        print(f"Could not find value defining element for {profile_name}")
+        logger.warning(f"Could not find value defining element for {profile_name}")
     fhir_value_types = value_defining_element.get("type")
     if not fhir_value_types:
         raise InvalidValueTypeException(f"No value type defined in element: {str(value_defining_element)}"
@@ -332,20 +332,19 @@ def extract_value_type(value_defining_element: dict, profile_name: str = "") -> 
     return fhir_value_types[0].get("code")
 
 
-def extract_reference_type(value_defining_element: dict, data_set_dir: str, profile_name: str = "") -> str:
+def extract_reference_type(value_defining_element: dict, profile_name: str = "") -> str:
     """
     Extracts the reference type from the given value defining element
     :param value_defining_element: element that defines the value
-    :param data_set_dir: path to the FHIR dataset directory
     :param profile_name: name of the FHIR profile for debugging purposes can be omitted
     :return: reference type
     """
     if not value_defining_element:
-        print(f"Could not find value defining element for {profile_name}")
+        logger.warning(f"Could not find value defining element for {profile_name}")
     # if len(target_profiles) > 1:
     #     raise Exception("Reference with multiple types not supported")
     if not value_defining_element.get("targetProfile"):
-        print(f"Could not find target profile for {profile_name}")
+        logger.warning(f"Could not find target profile for {profile_name}")
     target_resource_type = value_defining_element.get("targetProfile")[0]
     # FIXME This should not be hardcoded to CDS_Module
     referenced_profile, module_dir = get_profiles_with_base_definition("CDS_Module", target_resource_type)
@@ -530,7 +529,7 @@ def get_parent_element_type(element_id, profile_snapshot):
         element_id = re.sub(r'(\[x\]).*?(?=\.)', r'\1', element_id)
     try:
         parent_element = get_element_from_snapshot(profile_snapshot, element_id)
-    except Exception as e:
+    except Exception:
         element_id = re.sub(r'(\[x\]).*', r'\1', element_id)
         parent_element = get_element_from_snapshot(profile_snapshot, element_id)
     return get_element_type(parent_element)

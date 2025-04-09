@@ -35,7 +35,7 @@ def identify_duplicate_loinc_codes(directory):
 
 if __name__ == "__main__":
     duplicates = identify_duplicate_loinc_codes(
-        "../../example/mii_core_data_set/resources/fdpg_differential/Laboruntersuchung/package/")
+        "../../projects/mii_core_data_set/resources/fdpg_differential/Laboruntersuchung/package/")
 
     for code, filenames in duplicates.items():
         print(f"LOINC Code: {code}")

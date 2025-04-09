@@ -8,7 +8,7 @@ Takes the merged ontology folder and parcels the files for distribution and use 
 
 ## Example Call
 
-`python3 parcel_final_ontology.py --ontology_dir example/fdpg-ontology`
+`python3 parcel_final_ontology.py --ontology_dir projects/fdpg-ontology`
 
 ### Configuration
 

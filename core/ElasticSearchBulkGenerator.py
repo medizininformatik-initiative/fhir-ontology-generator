@@ -5,13 +5,16 @@ import zipfile
 from zipfile import ZipFile
 import re
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS
+from TerminologService.valueSetToRoots import logger
 
 from core.TerminologyDesignationResolver import TerminologyDesignationResolver, logger
 from model.UiDataModel import RelationalTermcode
 from util.codec.json import JSONFhirOntoEncoder
 
+from util.log.functions import get_class_logger
 
 class ElasticSearchGenerator:
+    __logger = get_class_logger("ElasticSearchGenerator")
 
     def __init__(self):
         pass
@@ -264,7 +267,7 @@ class ElasticSearchGenerator:
 
             term_code_info_list = json.load(f)
 
-            print(f"loaded termcode info map from file {filename_prefix}")
+            logger.debug(f"loaded termcode info map from file {filename_prefix}")
             for term_code_info in term_code_info_list:
                 term_code_hash = ElasticSearchGenerator.__get_contextualized_termcode_hash(term_code_info['context'],
                                                                                            term_code_info['term_code'],
@@ -374,7 +377,7 @@ class ElasticSearchGenerator:
                                      index_name='ontology',
                                      filename_prefix='onto_es_',
                                      max_filesize_mb=10,
-                                     code_system_translations_folder="example/code_systems_translations",
+                                     code_system_translations_folder="projects/code_systems_translations",
                                      base_translation_conf=None,
                                      update_translation_supplements=False):
         extension = '.json'
@@ -395,7 +398,7 @@ class ElasticSearchGenerator:
         terminology_resolver.load_designations(code_system_translations_folder,update_translation_supplements)
 
         if generate_availability:
-            print('Generating availability')
+            logger.debug('Generating availability')
             es_availability_inserts = []
 
             with open(os.path.join(availability_input_dir, "stratum-to-context.json")) as f:

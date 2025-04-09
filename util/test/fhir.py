@@ -1,18 +1,17 @@
 import json
 import os
-import logging
 import zipfile
-from enum import Enum
-from typing import List, Tuple, Optional
+from typing import Tuple, Optional
 
 import requests
 from fhir.resources.R4B.operationoutcome import OperationOutcome, OperationOutcomeIssue
-from typing_extensions import TypedDict, Mapping
-from urllib3 import add_stderr_logger
 
 from util.fhir.bundle import create_bundle, BundleType
+from util.log.functions import get_logger
 
-logger = logging.getLogger(__name__)
+
+logger = get_logger(__file__)
+
 
 def download_and_unzip_kds_test_data(target_folder="testdata",download_url="https://github.com/medizininformatik-initiative/mii-testdata/releases/download/v1.0.1/kds-testdata-2024.0.1.zip")->bool:
     """
@@ -38,7 +37,7 @@ def download_and_unzip_kds_test_data(target_folder="testdata",download_url="http
 def load_bundle_onto_fhir_server(fhir_api: str, bundle: dict) -> bool:
     """
     Loads given bundle onto the FHIR server.
-    :param fhir_api: The FHIR API endpoint. example= http://localhost:8083/fhir
+    :param fhir_api: The FHIR API endpoint. projects= http://localhost:8083/fhir
     :param bundle: The bundle to load.
     """
     try:

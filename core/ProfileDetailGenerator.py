@@ -1,4 +1,3 @@
-import logging
 import re
 from collections.abc import Callable
 from typing import Mapping, List, TypedDict, Any, Optional
@@ -7,6 +6,8 @@ from core.exceptions.profile import MissingProfileException
 from model.UiDataModel import TranslationElementDisplay
 from model.dse import FieldDetail, ProfileDetail, Filter
 from util.fhir.enums import FhirPrimitiveDataType
+
+from util.log.functions import get_class_logger
 
 Profile = Mapping[str, any]
 
@@ -17,7 +18,8 @@ class SearchParamPathMapping(TypedDict):
 
 
 class ProfileDetailGenerator:
-    __logger = logging.getLogger(__name__)
+    __logger = get_class_logger("ProfileDetailGenerator")
+
     blacklisted_values_sets: List[str]
     profiles: Mapping[str, Mapping[str, Mapping[str, any]]]
     mapping_type_code: Mapping[str, SearchParamPathMapping]
@@ -226,23 +228,17 @@ class ProfileDetailGenerator:
 
     @staticmethod
     def get_name_from_id(element_id: str) -> str:
-
         name = element_id.split(".")[-1]
         name = name.split(":")[-1]
         name = name.replace("[x]", "")
-
         return name
 
     def find_field_in_profile_fields(self, field_id, fields):
-
         for field in fields:
-
             if 'children' in field:
                 self.find_field_in_profile_fields(field_id, field['children'])
-
             if field['id'] == field_id:
                 return field
-
         return None
 
     @staticmethod

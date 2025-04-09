@@ -3,7 +3,6 @@ from __future__ import annotations
 import copy
 import errno
 import json
-import logging
 import os
 import re
 from os import path
@@ -13,10 +12,11 @@ from typing_extensions import deprecated
 
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UiDataModel import TermCode, TranslationElementDisplay
-from util.logging.LoggingUtil import init_logger
+from core.exceptions.MissingTranslationException import MissingTranslationException
+from util.log.functions import get_logger
 from core.exceptions.translation import MissingTranslationException
 
-logger = init_logger("helper", logging.DEBUG)
+logger = get_logger(__file__)
 
 translation_map_default = {'de-DE': {'language': "de-DE", 'value': ""}, 'en-US': {'language': "en-US", 'value': ""}}
 
@@ -192,7 +192,8 @@ def write_object_as_json(serializable: JSONSerializable, file_name: str):
     :param serializable: object that can be serialized to json
     :param file_name: name of the file
     """
-    with open(file_name, "w") as f:
+    os.makedirs(os.path.dirname(file_name), exist_ok=True)
+    with open(file_name, mode="w", encoding="utf-8") as f:
         f.write(serializable.to_json())
 
 

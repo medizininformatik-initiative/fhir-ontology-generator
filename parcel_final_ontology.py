@@ -1,8 +1,8 @@
 import argparse
+import importlib.resources
 import os
 import shutil
-import zipfile
-from zipfile import ZipFile
+import resources.terminology
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -21,7 +21,8 @@ if __name__ == '__main__':
     temp_ontology_dir = f'{args.ontology_dir}/ontology/backend'
     os.makedirs(temp_ontology_dir, exist_ok=True)
     shutil.copy(f'{args.ontology_dir}/profile_tree.json', f'{temp_ontology_dir}/profile_tree.json')
-    shutil.copy(f'{args.ontology_dir}/terminology_systems.json', f'{temp_ontology_dir}/terminology_systems.json')
+    with importlib.resources.path(resources.terminology, 'terminology_systems.json') as file:
+        shutil.copy(file, f'{temp_ontology_dir}/terminology_systems.json')
     shutil.copy(f'{args.ontology_dir}/sql_scripts/R__load_latest_dse_profiles.sql', f'{temp_ontology_dir}/R__load_latest_dse_profiles.sql')
     shutil.copy(f'{args.ontology_dir}/sql_scripts/R__Load_latest_ui_profile.sql', f'{temp_ontology_dir}/R__Load_latest_ui_profile.sql')
     shutil.make_archive(f'{args.ontology_dir}/backend', 'zip', f'{args.ontology_dir}/ontology/backend')

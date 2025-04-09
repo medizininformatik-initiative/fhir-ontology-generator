@@ -1,18 +1,14 @@
 import json
 import copy
-import logging
 import os
 import re
 from itertools import groupby
 
-from util.logging.LoggingUtil import init_logger, log_to_stdout
 from typing import List, TypeVar
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, \
     REQUESTS_SESSION
 from util.fhir.bundle import create_bundle, BundleType
-
-logger = init_logger("TerminologyDesignationResolver", logging.DEBUG)
-log_to_stdout("TerminologyDesignationResolver", logging.DEBUG)
+from util.log.functions import get_class_logger
 
 
 def extract_designation(parameters: dict, language: str, fuzzy = True) -> str | None:
@@ -62,6 +58,8 @@ def split_bundle(bundle: dict, chunk_size: int = 10) -> List[dict]:
 
 
 class TerminologyDesignationResolver:
+    __logger = get_class_logger("TerminologyDesignationResolver")
+    
     def __init__(self, base_translations_conf: str = None, server_address: str = TERMINOLOGY_SERVER_ADDRESS,
                  max_bundle_size: int = 10_000):
         self.code_systems = {}
@@ -111,15 +109,15 @@ class TerminologyDesignationResolver:
         a terminology server. The file should contain a mapping form code system URL to a `Parameters` resource
         specifying common parameters passed for each coding to look up in a request
         """
-        logger.debug(f"Loading base translation config located @ {base_translation_conf}")
+        self.__logger.debug(f"Loading base translation config located @ {base_translation_conf}")
         if self.base_translation_mapping is None:
             self.base_translation_mapping = dict()
         try:
             with open(base_translation_conf, mode='r', encoding='UTF-8') as conf_file:
                 self.base_translation_mapping.update(json.load(conf_file).get("code_system_translations", {}))
         except OSError as exc:
-            logger.warning(f"Failed to load base translation config @ {base_translation_conf}", exc_info=exc,
-                           stack_info=True)
+            self.__logger.warning(f"Failed to load base translation config @ {base_translation_conf}", exc_info=exc,
+                             stack_info=True)
 
     def __batch_lookup(self, bundle: dict) -> dict:
         """
@@ -166,7 +164,7 @@ class TerminologyDesignationResolver:
                 msg = "No resource present in bundle entry"
                 if "status_code" in response or "outcome" in response:
                     msg += f" [status_code={response['status_code']}]. Details:\n{response['outcome']}"
-                logger.warning(msg)
+                self.__logger.warning(msg)
             else:
                 match resource["resourceType"]:
                     case "Parameters":
@@ -181,16 +179,16 @@ class TerminologyDesignationResolver:
                                 if language not in designations:
                                     designations[language] = designation
                     case "OperationOutcome":
-                        logger.warning(f"Operation failed. Details:\n{resource}")
+                        self.__logger.warning(f"Operation failed. Details:\n{resource}")
                     case _:
-                        logger.warning(f"Unexpected resource type '{resource['type']}'. Skipping")
+                        self.__logger.warning(f"Unexpected resource type '{resource['type']}'. Skipping")
 
     def __load_base_designations_for_ui_tree(self, ui_tree: dict):
         """
         Load authoritative designations for concepts in a UI tree using terminology server
         :param ui_tree: UI tree code system entry
         """
-        logger.debug("Loading base designations for UI tree")
+        self.__logger.debug("Loading base designations for UI tree")
         request_part = {
             "method": "POST",
             "url": "CodeSystem/$lookup"
@@ -199,18 +197,18 @@ class TerminologyDesignationResolver:
         for system_tree in ui_tree:
             system = system_tree.get("system")
             if system is None:
-                logger.warning("Tree has no system URL and thus no look up can be performed. Skipping")
+                self.__logger.warning("Tree has no system URL and thus no look up can be performed. Skipping")
                 continue
             version = system_tree.get("version")
             parameters_template = self.base_translation_mapping.get(system)
             if parameters_template is None:
-                logger.debug(f"No parameters template defined for system [url={system}]. Skipping")
+                self.__logger.debug(f"No parameters template defined for system [url={system}]. Skipping")
                 continue
-            logger.debug(f"Processing system tree [url={system}, "f"version={version}]")
+            self.__logger.debug(f"Processing system tree [url={system}, "f"version={version}]")
             bundle = create_bundle(BundleType.BATCH)
             for entry in system_tree.get("entries", []):
                 if "key" not in entry:
-                    logger.warning("No key in system tree. Skipping")
+                    self.__logger.warning("No key in system tree. Skipping")
                     continue
                 parameters = copy.deepcopy(parameters_template)
                 parameters.get("parameter").extend([
@@ -238,7 +236,7 @@ class TerminologyDesignationResolver:
         Load authoritative designations for concepts in an expanded `ValueSet` resource using terminology server
         :param value_set: Expanded `ValueSet` resource
         """
-        logger.debug(f"Loading base designations for value set [url={value_set.get('url')}]")
+        self.__logger.debug(f"Loading base designations for value set [url={value_set.get('url')}]")
         request_part = {
             "method": "POST",
             "url": "CodeSystem/$lookup"
@@ -250,9 +248,9 @@ class TerminologyDesignationResolver:
         for system, concepts in groupby(expansion_content, lambda c: c.get("system")):
             parameters_template = self.base_translation_mapping.get(system)
             if parameters_template is None:
-                logger.debug(f"No parameters template defined for system [url={system}]. Skipping")
+                self.__logger.debug(f"No parameters template defined for system [url={system}]. Skipping")
                 continue
-            logger.debug(f"Processing system concepts [url={system}]")
+            self.__logger.debug(f"Processing system concepts [url={system}]")
             bundle = create_bundle(BundleType.BATCH)
             for concept in concepts:
                 parameters = copy.deepcopy(parameters_template)
@@ -284,7 +282,7 @@ class TerminologyDesignationResolver:
         :param ui_tree_dir: Path to directory containing UI tree JSON files
         :param value_set_dir: Path to directory containing expanded `ValueSet` resource FHIR JSON files
         """
-        logger.debug("Loading base translations")
+        self.__logger.debug("Loading base translations")
         if ui_tree_dir is None:
             ui_trees = []
         else:
@@ -296,14 +294,14 @@ class TerminologyDesignationResolver:
             value_sets = [json.load(open(os.path.join(value_set_dir, file_name), mode='r', encoding='UTF-8'))
                           for file_name in os.listdir(value_set_dir) if file_name.endswith('.json')]
         if not self.base_translation_mapping:
-            logger.warning("No mapping seems to exist and thus no designations can be loaded. Aborting")
+            self.__logger.warning("No mapping seems to exist and thus no designations can be loaded. Aborting")
         else:
             for ui_tree in ui_trees:
                 self.__load_base_designations_for_ui_tree(ui_tree)
             for value_set in value_sets:
                 self.__load_base_designations_for_value_set(value_set)
 
-    def load_designations(self, folder_path: str = os.path.join("..", "example", "code_systems_translations"),
+    def load_designations(self, folder_path: str = os.path.join("..", "projects", "code_systems_translations"),
                           update_translation_supplements=False):
         """
         Loads the code_system files from specified folder into memory
@@ -311,14 +309,14 @@ class TerminologyDesignationResolver:
         :param update_translation_supplements: specifies if supplements should be downloaded or updated from TERMINOLOGY_SERVER_ADDRESS
         """
         if update_translation_supplements:
-            logger.info("Downloading and Updating from the supplement registry")
+            self.__logger.info("Downloading and Updating from the supplement registry")
             response_supp_registry = REQUESTS_SESSION.get(
                 url=self.server_address + "CodeSystem/fdpg-plus-translation-supplement-registry",
                 cert=(SERVER_CERTIFICATE, PRIVATE_KEY)
             )
             if response_supp_registry.status_code != 200:
-                logger.info("Something went wrong. Status code: " + response_supp_registry.status_code +" Expected 200")
-                logger.info("Content: "+response_supp_registry.content)
+                self.__logger.info("Something went wrong. Status code: " + response_supp_registry.status_code + " Expected 200")
+                self.__logger.info("Content: " + response_supp_registry.content)
 
             supplement_registry = response_supp_registry.json()
             for code_system_concept in supplement_registry.get('concept'):
@@ -338,25 +336,25 @@ class TerminologyDesignationResolver:
                         )
 
                         if response_particular_cs.status_code != 200:
-                            logger.info("code_system not found. Status Code: "+response_particular_cs.status_code+
-                                        " Skipping: "+code_system_url+"|"+code_system_version)
+                            self.__logger.info("code_system not found. Status Code: " + response_particular_cs.status_code +
+                                        " Skipping: " + code_system_url +"|" + code_system_version)
                             continue
 
                         supplement_code_system_bundle = response_particular_cs.json()
                         if not supplement_code_system_bundle.get('entry'):
-                            logger.info("No entry was found in this bundle. Skipping " + code_system_url+"|"+code_system_version)
+                            self.__logger.info("No entry was found in this bundle. Skipping " + code_system_url + "|" + code_system_version)
                             continue
 
                         supplement_code_system_full_url = supplement_code_system_bundle.get('entry')[0].get('fullUrl')
-                        logger.info( "Downloading: "+ supplement_code_system_full_url)
+                        self.__logger.info("Downloading: " + supplement_code_system_full_url)
                         response_cs_content = REQUESTS_SESSION.get(
                             url=supplement_code_system_full_url,
                             cert=(SERVER_CERTIFICATE, PRIVATE_KEY)
                         )
 
                         if response_cs_content.status_code != 200:
-                            logger.info("Something went wrong. Status code:" + response_cs_content.status_code + ". Expected 200")
-                            logger.info("Content: " + response_cs_content.content)
+                            self.__logger.info("Something went wrong. Status code:" + response_cs_content.status_code + ". Expected 200")
+                            self.__logger.info("Content: " + response_cs_content.content)
                             continue
 
 
@@ -369,7 +367,7 @@ class TerminologyDesignationResolver:
         codesystem_files = os.listdir(folder_path)
         for codesystem_file in sorted(codesystem_files):
             if codesystem_file.endswith(".json"):
-                logger.debug(f"Processing CodeSystem supplement file {codesystem_file}")
+                self.__logger.debug(f"Processing CodeSystem supplement file {codesystem_file}")
                 with open(os.path.join(folder_path,codesystem_file), encoding="UTF-8") as json_file:
                     codesystem = json.load(json_file)
                     url = codesystem.get('supplements').split("|")[0]
@@ -412,11 +410,11 @@ class TerminologyDesignationResolver:
                 if 'en' in concept:
                     display['en'] = concept.get('en')
                     if concept.get('en') is None:
-                        logger.warning("Did not find Englisch version of code: " + term_code['code'])
+                        self.__logger.warning("Did not find Englisch version of code: " + term_code['code'])
                 if 'de' in concept:
                     display['de'] = concept.get('de')
                     if concept.get('de') is None:
-                        logger.warning("Did not find German version of code: " + term_code['code'])
+                        self.__logger.warning("Did not find German version of code: " + term_code['code'])
         else:
-            logger.warning("Did not find codesystem: " + term_code['system'] + " Requested Code: " + term_code['code'])
+            self.__logger.warning("Did not find codesystem: " + term_code['system'] + " Requested Code: " + term_code['code'])
         return display

@@ -14,7 +14,7 @@ from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SE
 from TerminologService.valueSetToRoots import get_closure_map, remove_non_direct_ancestors, create_concept_map
 from model.TreeMap import TreeMap, TermEntryNode
 from model.UiDataModel import TermCode
-from model.helper import del_none
+from util.log.functions import get_logger
 from util.codec.json import JSONFhirOntoEncoder
 
 
@@ -68,12 +68,6 @@ def configure_args_parser():
         '--profiles',
         nargs='+',
         help="List of profiles to process - if none process all"
-    )
-    arg_parser.add_argument(
-        "--loglevel",
-        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        default="INFO",
-        help="Set the log level",
     )
     return arg_parser
 
@@ -255,9 +249,7 @@ def generate_dse_mapping_trees(vs_dir_path: Union[str, os.PathLike]) -> list[dic
 if __name__ == '__main__':
     parser = configure_args_parser()
     args = parser.parse_args()
-    log_level = getattr(logging, args.loglevel)
-    setup_logging(log_level)
-    logger = logging.getLogger(__name__)
+    logger = get_logger(__file__)
 
     if args.download_packages:
         with open("required-packages.json", mode="r", encoding="utf-8") as f:

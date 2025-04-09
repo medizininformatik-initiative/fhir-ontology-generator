@@ -11,18 +11,18 @@ from pytest_docker.plugin import Services, get_docker_services, containers_scope
 
 import util.http.requests
 import util.test.docker
-import logging
 import pytest
 
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from util.http.auth.authentication import OAuthClientCredentials
 from util.http.backend.FeasibilityBackendClient import FeasibilityBackendClient
+from util.log import get_logger
 from util.test.fhir import download_and_unzip_kds_test_data
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__file__)
 
-#generated_profile_tree_path = os.path.join("example", "fdpg-ontology", "profile_tree.json")
-#project_path = os.path.join("example", "mii_core_data_set")
+#generated_profile_tree_path = os.path.join("projects", "fdpg-ontology", "profile_tree.json")
+#project_path = os.path.join("projects", "mii_core_data_set")
 
 
 class Status(BaseModel):
@@ -63,7 +63,7 @@ def docker_compose_file(pytestconfig) -> str:
 
     # Copy and unpack ontology archives
     backend_path = os.path.join(tmp_path, "backend.zip")
-    shutil.copyfile(os.path.join(pytestconfig.rootpath, "example", "fdpg-ontology", "backend.zip"), backend_path)
+    shutil.copyfile(os.path.join(pytestconfig.rootpath, "projects", "fdpg-ontology", "backend.zip"), backend_path)
     shutil.unpack_archive(backend_path, ontology_dir_path)
 
     migration_path = os.path.join(ontology_dir_path, "migration")
@@ -77,7 +77,7 @@ def docker_compose_file(pytestconfig) -> str:
     shutil.move(os.path.join(ontology_dir_path, "profile_tree.json"), dse_dir_path)
 
     mapping_path = os.path.join(tmp_path, "mapping.zip")
-    shutil.copyfile(os.path.join(pytestconfig.rootpath, "example", "fdpg-ontology", "mapping.zip"), mapping_path)
+    shutil.copyfile(os.path.join(pytestconfig.rootpath, "projects", "fdpg-ontology", "mapping.zip"), mapping_path)
     shutil.unpack_archive(mapping_path, ontology_dir_path)
 
     unpacked_dir_path = os.path.join(ontology_dir_path, "mapping")
@@ -92,7 +92,7 @@ def docker_compose_file(pytestconfig) -> str:
     shutil.rmtree(unpacked_dir_path)
 
     # Copy elastic archive
-    shutil.copyfile(os.path.join(pytestconfig.rootpath, "example", "fdpg-ontology", "elastic.zip"),
+    shutil.copyfile(os.path.join(pytestconfig.rootpath, "projects", "fdpg-ontology", "elastic.zip"),
                     os.path.join(tmp_path, "elastic.zip"))
 
     yield os.path.join(__test_dir(), "docker-compose.yml")
@@ -215,7 +215,7 @@ def querying_metadata_schema(test_dir: Union[str, PathLike]) -> Mapping[str, any
 
 
 def __querying_metadata_list(project_root_dir: Union[str, PathLike]) -> list[ResourceQueryingMetaData]:
-    modules_dir_path = os.path.join(project_root_dir, "example", "mii_core_data_set", "CDS_Module")
+    modules_dir_path = os.path.join(project_root_dir, "projects", "mii_core_data_set", "CDS_Module")
     metadata_list = []
     for module_dir in os.listdir(modules_dir_path): # ../CDS_Modules/*
         metadata_dir_path = os.path.join(modules_dir_path, module_dir, "QueryingMetaData")

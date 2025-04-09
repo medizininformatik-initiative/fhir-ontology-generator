@@ -1,6 +1,4 @@
-import logging
 from typing import List
-import locale
 
 from model.TreeMap import TermEntryNode, TreeMap
 from sortedcontainers import SortedSet
@@ -9,10 +7,10 @@ from itertools import groupby
 
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, REQUESTS_SESSION
 from model.UiDataModel import TermCode
-from util.logging.LoggingUtil import init_logger
+from util.log.functions import get_logger
 
-locale.setlocale(locale.LC_ALL, 'de_DE.UTF-8')
-logger = init_logger("valueSetToRoots", logging.DEBUG)
+
+logger = get_logger(__file__)
 
 
 def get_value_set_expansion(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
@@ -46,7 +44,7 @@ def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
             if parameter["name"] == "version":
                 global_version = parameter["valueUri"].split("|")[-1]
         if "contains" not in value_set_data["expansion"]:
-            print(f"{url} is empty")
+            logger.debug(f"{url} is empty")
             return term_codes
         for contains in value_set_data["expansion"]["contains"]:
             system = contains["system"]
@@ -61,7 +59,7 @@ def expand_value_set(url: str, onto_server: str = TERMINOLOGY_SERVER_ADDRESS):
             term_code = TermCode(system, code, display, version)
             term_codes.add(term_code)
     else:
-        print(f"Error expanding {url}")
+        logger.warning(f"Error expanding {url}")
         return []
         # raise Exception(response.status_code, response.content)
     return term_codes

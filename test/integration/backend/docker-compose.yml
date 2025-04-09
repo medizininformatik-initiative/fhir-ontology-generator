@@ -77,7 +77,7 @@ services:
       ELASTIC_SEARCH_ENABLED: true
       ELASTIC_SEARCH_HOST: dataportal-elastic:9200
       ELASTIC_SEARCH_FILTER: context,terminology,kds_module
-      # ---- logging
+      # ---- log
       LOG_LEVEL_SQL: "warn"
       LOG_LEVEL: "warn"
     restart: unless-stopped

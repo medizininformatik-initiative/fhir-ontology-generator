@@ -29,7 +29,7 @@ def configure_args_parser():
         type=str,
         default='DEBUG',
         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
-        help="Set the logging level"
+        help="Set the log level"
     )
 
     return arg_parser

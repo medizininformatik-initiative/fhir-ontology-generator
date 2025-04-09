@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import logging
 import os
 import re
 from functools import reduce
@@ -10,6 +9,7 @@ from typing import Tuple, List, Dict, Set
 from lxml import etree
 from typing_extensions import LiteralString
 
+import resources.cql
 from core import StructureDefinitionParser as FHIRParser
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from core.StructureDefinitionParser import resolve_defining_id, extract_value_type, extract_reference_type, \
@@ -22,31 +22,35 @@ from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import VALUE_TYPE_OPTIONS
 from model.UiDataModel import TermCode
 from util.fhir.structure_definition import get_parent_element, ElementDefinition, Snapshot
+from util.log.functions import get_class_logger
+from util.project import Project
 from util.typing.fhir import FHIRPathlike
+from importlib.resources import files
 
 
 class CQLMappingGenerator(object):
     __allowed_time_restriction_fhir_types = {"date", "dateTime", "Period"}
     __allowed_defining_code_fhir_types = {"Coding", "CodeableConcept", "Reference"}
     __allowed_defining_value_fhir_types = {"code", "date", "Coding", "CodeableConcept", "Quantity"}
-    __logger = logging.getLogger("CQLMappingGenerator")
+    __logger = get_class_logger("CQLMappingGenerator")
 
-    def __init__(self, querying_meta_data_resolver: ResourceQueryingMetaDataResolver, parser=FHIRParser):
+    def __init__(self, project: Project, querying_meta_data_resolver: ResourceQueryingMetaDataResolver,
+                 parser=FHIRParser):
         """
+        :param project: Project to operate on
         :param querying_meta_data_resolver: resolves the for the query relevant metadata for a given FHIR profile
         snapshot
         """
+        self.project = project
         self.querying_meta_data_resolver = querying_meta_data_resolver
         self.primary_paths = self.get_primary_paths_per_resource()
         self.generated_mappings = []
         self.parser = parser
-        self.data_set_dir: str = ""
-        self.module_dir: str = ""
 
     @staticmethod
     def get_primary_paths_per_resource() -> Dict[str, str]:
         primary_paths = {}
-        with open("../../resources/cql/elm-modelinfo.xml", encoding="utf-8") as f:
+        with files(resources.cql).joinpath("elm-modelinfo.xml").open(mode="r", encoding="utf-8") as f:
             root = etree.parse(f)
             namespace_map = {'elm': 'urn:hl7-org:elm-modelinfo:r1'}
             for type_info in root.xpath('.//elm:typeInfo', namespaces=namespace_map):
@@ -55,14 +59,6 @@ class CQLMappingGenerator(object):
                 if resource_type and primary_path:
                     primary_paths[resource_type] = primary_path
         return primary_paths
-
-    def resolve_fhir_path(self, element_id) -> str:
-        """
-        Based on the element id, this method resolves the FHIR path for the given FHIR Resource attribute
-        :param element_id: element id that defines the of the FHIR Resource attribute
-        :return: FHIR path
-        """
-        pass
 
     @classmethod
     def __select_element_compatible_with_cql_operations(cls, element: ElementDefinition,
@@ -99,20 +95,18 @@ class CQLMappingGenerator(object):
                                f"element which is required in snapshots")
         return compatible_element if compatible_element else element, targeted_types
 
-    def generate_mapping(self, fhir_dataset_dir: str, module_name: str) \
+    def generate_mapping(self, module_name: str) \
             -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, CQLMapping]]:
         """
         Generates the FHIR search mappings for the given FHIR dataset directory
-        :param fhir_dataset_dir: FHIR dataset directory
         :param module_name: Name of the module to generate the mapping for
         :return: normalized term code FHIR search mapping
         """
-        self.data_set_dir = fhir_dataset_dir
+        modules_dir = self.project.input("modules")
         full_context_term_code_cql_mapping_name_mapping: Dict[Tuple[TermCode, TermCode]] | dict = {}
         full_cql_mapping_name_cql_mapping: Dict[str, CQLMapping] | dict = {}
-        for module_dir in [folder for folder in os.scandir(fhir_dataset_dir) if folder.is_dir()]:
-            self.module_dir: str = module_dir.path
-            files = [file.path for file in os.scandir(f"{fhir_dataset_dir}/{module_dir.name}") if file.is_file()
+        for module_dir in [folder for folder in os.scandir(modules_dir) if folder.is_dir()]:
+            files = [file.path for file in os.scandir(os.path.join(modules_dir, module_dir.name)) if file.is_file()
                      and file.name.endswith("snapshot.json")]
             for file in files:
                 with open(file, "r", encoding="utf8") as f:
@@ -132,13 +126,14 @@ class CQLMappingGenerator(object):
         :param module_name: name of the module the profile belongs to
         :return: normalized term code to CQL mapping
         """
+        modules_dir = self.project.input("modules")
         querying_meta_data: List[ResourceQueryingMetaData] = \
             self.querying_meta_data_resolver.get_query_meta_data(profile_snapshot, module_name)
         term_code_mapping_name_mapping: Dict[Tuple[TermCode, TermCode], str] | dict = {}
         mapping_name_cql_mapping: Dict[str, CQLMapping] | dict = {}
         for querying_meta_data_entry in querying_meta_data:
             if querying_meta_data_entry.name not in self.generated_mappings:
-                cql_mapping = self.generate_cql_mapping(profile_snapshot, querying_meta_data_entry)
+                cql_mapping = self.generate_cql_mapping(profile_snapshot, querying_meta_data_entry, module_name)
                 self.generated_mappings.append(querying_meta_data_entry.name)
                 mapping_name = cql_mapping.name
                 mapping_name_cql_mapping[mapping_name] = cql_mapping
@@ -147,7 +142,7 @@ class CQLMappingGenerator(object):
             # The logic to get the term_codes here always has to be identical with the mapping Generators!
             term_codes = querying_meta_data_entry.term_codes if querying_meta_data_entry.term_codes else \
                 self.parser.get_term_code_by_id(profile_snapshot, querying_meta_data_entry.term_code_defining_id,
-                                                self.data_set_dir, self.module_dir)
+                                                modules_dir, module_name)
             primary_keys = [(querying_meta_data_entry.context, term_code) for term_code in term_codes]
             mapping_names = [mapping_name] * len(primary_keys)
             table = dict(zip(primary_keys, mapping_names))
@@ -165,14 +160,16 @@ class CQLMappingGenerator(object):
             return self.sub_path_equals(self.primary_paths[resource_type], fhir_path)
         return False
 
-    def generate_cql_mapping(self, profile_snapshot, querying_meta_data: ResourceQueryingMetaData) \
+    def generate_cql_mapping(self, profile_snapshot, querying_meta_data: ResourceQueryingMetaData, module_dir_name: str) \
             -> CQLMapping:
         """
         Generates the CQL mapping for the given FHIR profile snapshot and querying metadata entry
         :param profile_snapshot: FHIR profile snapshot
         :param querying_meta_data: querying metadata entry
+        :param module_dir_name: Name of the module where the QueryingMetadata file and profiles snapshot are located
         :return: CQL mapping
         """
+        modules_dir = self.project.input("modules")
         cql_mapping = CQLMapping(querying_meta_data.name)
         cql_mapping.resourceType = querying_meta_data.resource_type
         if tc_defining_id := querying_meta_data.term_code_defining_id:
@@ -185,7 +182,7 @@ class CQLMappingGenerator(object):
                     element = self.parser.get_element_from_snapshot(profile_snapshot, tc_defining_id)
                 else:
                     element = self.parser.get_element_defining_elements(tc_defining_id, profile_snapshot,
-                                                                        self.module_dir, self.data_set_dir)[-1]
+                                                                        module_dir_name, modules_dir)[-1]
                 element, types = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
                 element_id = element.get('id')
                 if not types:
@@ -199,7 +196,8 @@ class CQLMappingGenerator(object):
                                                      f"element in the CQL mapping [present={types}, "
                                                      f"allowed={self.__allowed_defining_code_fhir_types}]")
                 term_code_fhir_path = self.translate_term_element_id_to_fhir_path_expression(element_id,
-                                                                                             profile_snapshot)
+                                                                                             profile_snapshot,
+                                                                                             module_dir_name)
                 card = CQLMappingGenerator.__aggregate_cardinality_using_element(element, profile_snapshot)
                 cql_mapping.termCode = CQLTypeParameter(term_code_fhir_path, types, card)
 
@@ -217,7 +215,8 @@ class CQLMappingGenerator(object):
                                                  f"overlap with the expected type range of a value element in the CQL "
                                                  f"mapping [present={types}, "
                                                  f"allowed={self.__allowed_defining_value_fhir_types}]")
-            value_fhir_path = self.translate_element_id_to_fhir_path_expressions(element_id, profile_snapshot)
+            value_fhir_path = self.translate_element_id_to_fhir_path_expressions(element_id, profile_snapshot,
+                                                                                 module_dir_name)
             card = CQLMappingGenerator.__aggregate_cardinality_using_element(element, profile_snapshot)
             cql_mapping.value = CQLTypeParameter(value_fhir_path, types, card)
 
@@ -235,17 +234,21 @@ class CQLMappingGenerator(object):
                                                  f"overlap with the expected type range of a time restricting element "
                                                  f"in the CQL mapping [present={types}, "
                                                  f"allowed={self.__allowed_time_restriction_fhir_types}]")
-            fhir_path = self.translate_element_id_to_fhir_path_expressions_time_restriction(element_id, profile_snapshot)
+            fhir_path = self.translate_element_id_to_fhir_path_expressions_time_restriction(element_id,
+                                                                                            profile_snapshot,
+                                                                                            module_dir_name)
             cql_mapping.timeRestriction = CQLTimeRestrictionParameter(fhir_path, types)
         for attr_defining_id, attr_attributes in querying_meta_data.attribute_defining_id_type_map.items():
             attr_type = attr_attributes.get("type", "")
-            self.set_attribute_search_param(attr_defining_id, cql_mapping, attr_type, profile_snapshot)
+            self.set_attribute_search_param(attr_defining_id, cql_mapping, attr_type, profile_snapshot, module_dir_name)
 
         return cql_mapping
 
-    def set_attribute_search_param(self, attr_defining_id: str, cql_mapping, attr_type, profile_snapshot):
+    def set_attribute_search_param(self, attr_defining_id: str, cql_mapping, attr_type, profile_snapshot: Snapshot,
+                                   module_dir_name: str):
         attribute_key = generate_attribute_key(attr_defining_id)
-        attribute_type = attr_type if attr_type else self.get_attribute_type(profile_snapshot, attr_defining_id)
+        attribute_type = attr_type if attr_type else self.get_attribute_type(profile_snapshot, attr_defining_id,
+                                                                             module_dir_name)
         # FIXME:
         # This is a hack to change the attribute_type to upper-case Reference to match the FHIR Type while
         # Fhir Search does not use the FHIR types...
@@ -256,9 +259,10 @@ class CQLMappingGenerator(object):
             # element, _ = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
 
             attribute_fhir_path = self.translate_composite_attribute_to_fhir_path_expression(attr_defining_id,
-                                                                                             profile_snapshot)
-            attribute_key = self.get_composite_code(attr_defining_id, profile_snapshot)
-            attribute_type = self.get_composite_attribute_type(attr_defining_id, profile_snapshot)
+                                                                                             profile_snapshot,
+                                                                                             module_dir_name)
+            attribute_key = self.get_composite_code(attr_defining_id, profile_snapshot, module_dir_name)
+            attribute_type = self.get_composite_attribute_type(attr_defining_id, profile_snapshot, module_dir_name)
         else:
             if attribute_type != "Reference":
                 element = self.parser.get_element_from_snapshot(profile_snapshot, attr_defining_id)
@@ -266,27 +270,30 @@ class CQLMappingGenerator(object):
                                                                                                 profile_snapshot)
                 attr_defining_id = element.get('id')
             attribute_fhir_path = self.translate_term_element_id_to_fhir_path_expression(attr_defining_id,
-                                                                                         profile_snapshot)
+                                                                                         profile_snapshot,
+                                                                                         module_dir_name)
         attribute_types = attribute_types if attribute_types else {attribute_type}
-        cards = self.__aggregate_cardinality_using_element_id(attr_defining_id, profile_snapshot)
+        cards = self.__aggregate_cardinality_using_element_id(attr_defining_id, profile_snapshot, module_dir_name)
         attribute = CQLAttributeSearchParameter(attribute_types, attribute_key, attribute_fhir_path, cards)
         if attribute_type == "Reference":
-            attribute.referenceTargetType = self.get_reference_type(profile_snapshot, attr_defining_id)
+            attribute.referenceTargetType = self.get_reference_type(profile_snapshot, attr_defining_id, module_dir_name)
 
         cql_mapping.add_attribute(attribute)
 
-    def get_composite_code(self, attribute, profile_snapshot):
-        attribute_parsed = self.parser.get_element_defining_elements(attribute, profile_snapshot, self.module_dir,
-                                                                     self.data_set_dir)
+    def get_composite_code(self, attribute, profile_snapshot, module_dir_name):
+        modules_dir = self.project.input("modules")
+        attribute_parsed = self.parser.get_element_defining_elements(attribute, profile_snapshot, module_dir_name,
+                                                                     modules_dir)
         if len(attribute_parsed) != 2:
             raise ValueError("Composite search parameters must have exactly two elements")
         where_clause_element = attribute_parsed[-1]
-        return self.parser.get_fixed_term_codes(where_clause_element, profile_snapshot, self.data_set_dir,
-                                                self.module_dir)[0]
+        return self.parser.get_fixed_term_codes(where_clause_element, profile_snapshot, modules_dir,
+                                                module_dir_name)[0]
 
-    def get_composite_attribute_type(self, attribute, profile_snapshot):
-        attribute_parsed = self.parser.get_element_defining_elements(attribute, profile_snapshot, self.module_dir,
-                                                                     self.data_set_dir)
+    def get_composite_attribute_type(self, attribute, profile_snapshot, module_dir_name):
+        modules_dir = self.project.input("modules")
+        attribute_parsed = self.parser.get_element_defining_elements(attribute, profile_snapshot, module_dir_name,
+                                                                     modules_dir)
         if len(attribute_parsed) != 2:
             raise ValueError("Composite search parameters must have exactly two elements")
         value_element = attribute_parsed[0]
@@ -317,12 +324,12 @@ class CQLMappingGenerator(object):
         else:
             return "", ""
 
-    def translate_composite_attribute_to_fhir_path_expression(self, attribute, profile_snapshot):
-        elements = self.parser.get_element_defining_elements(attribute, profile_snapshot, self.module_dir,
-                                                             self.data_set_dir)
+    def translate_composite_attribute_to_fhir_path_expression(self, attribute, profile_snapshot, module_dir_name: str):
+        modules_dir = self.project.input("modules")
+        elements = self.parser.get_element_defining_elements(attribute, profile_snapshot, module_dir_name, modules_dir)
         expressions = self.parser.translate_element_to_fhir_path_expression(elements, profile_snapshot)
         value_clause = expressions[0]
-        composite_code = self.get_composite_code(attribute, profile_snapshot)
+        composite_code = self.get_composite_code(attribute, profile_snapshot, module_dir_name)
         updated_where_clause = f".where(code.coding.exists(system = {composite_code.system} and code = {composite_code.code}))"
         # replace original where clause in attribute using string manipulation and regex
         updated_attribute_path = re.sub(r"\.where\([^)]*\)", f"{updated_where_clause}", attribute)
@@ -346,9 +353,11 @@ class CQLMappingGenerator(object):
         full_composite_path = prefix + "." + uncommon_expr2 if uncommon_expr2[0] != "." else prefix + uncommon_expr2
         return full_composite_path
 
-    def translate_term_element_id_to_fhir_path_expression(self, element_id, profile_snapshot) -> str:
-        elements = self.parser.get_element_defining_elements(element_id, profile_snapshot, self.module_dir,
-                                                             self.data_set_dir)
+    def translate_term_element_id_to_fhir_path_expression(self, element_id, profile_snapshot,
+                                                          module_dir_name: str) -> str:
+        modules_dir = self.project.input("modules")
+        elements = self.parser.get_element_defining_elements(element_id, profile_snapshot, module_dir_name,
+                                                             modules_dir)
         # TODO: Revisit and evaluate if this really the way to go.
         for element in elements:
             element, types = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
@@ -357,29 +366,31 @@ class CQLMappingGenerator(object):
                     return self.get_cql_optimized_path_expression(
                         self.parser.translate_element_to_fhir_path_expression(elements, profile_snapshot)[
                             0]) + ".reference"
-        return self.translate_element_id_to_fhir_path_expressions(element_id, profile_snapshot)
+        return self.translate_element_id_to_fhir_path_expressions(element_id, profile_snapshot, module_dir_name)
 
-    def translate_element_id_to_fhir_path_expressions(self, element_id, profile_snapshot: dict) -> str:
+    def translate_element_id_to_fhir_path_expressions(self, element_id, profile_snapshot: dict,
+                                                      module_dir_name: str) -> str:
         """
         Translates an element id to a fhir search parameter
         :param element_id: element id
         :param profile_snapshot: FHIR profile snapshot containing the element id
+        :param module_dir_name: Name of the module directory
         :return: fhir search parameter
         """
-        elements = self.parser.get_element_defining_elements(element_id, profile_snapshot, self.module_dir,
-                                                             self.data_set_dir)
+        modules_dir = self.project.input("modules")
+        elements = self.parser.get_element_defining_elements(element_id, profile_snapshot, module_dir_name, modules_dir)
         expressions = self.parser.translate_element_to_fhir_path_expression(elements, profile_snapshot)
         return ".".join([self.get_cql_optimized_path_expression(expression) for expression in expressions])
 
-    def translate_element_id_to_fhir_path_expressions_time_restriction(self, element_id, profile_snapshot: dict) -> str:
+    def translate_element_id_to_fhir_path_expressions_time_restriction(self, element_id, profile_snapshot: dict, module_dir_name: str) -> str:
         """
         Translates an element id to a fhir search parameter
         :param element_id: element id
         :param profile_snapshot: FHIR profile snapshot containing the element id
         :return: fhir search parameter
         """
-        elements = self.parser.get_element_defining_elements(element_id, profile_snapshot, self.module_dir,
-                                                             self.data_set_dir)
+        modules_dir = self.project.input("modules")
+        elements = self.parser.get_element_defining_elements(element_id, profile_snapshot, module_dir_name, modules_dir)
         expressions = self.parser.translate_element_to_fhir_path_expression(elements, profile_snapshot)
         return ".".join([self.get_cql_path_time_restriction(expression) for expression in expressions])
 
@@ -482,35 +493,39 @@ class CQLMappingGenerator(object):
             transformed += f".{rest}"
         return transformed
 
-    def get_attribute_type(self, profile_snapshot: dict, attribute_id: str) -> VALUE_TYPE_OPTIONS:
+    def get_attribute_type(self, profile_snapshot: dict, attribute_id: str, module_dir_name: str) -> VALUE_TYPE_OPTIONS:
         """
         Returns the type of the given attribute
         :param profile_snapshot: FHIR profile snapshot
         :param attribute_id: attribute id
+        :param module_dir_name: Name of the module directory
         :return: attribute type
         """
+        modules_dir = self.project.input("modules")
         # remove cast expression as it is irrelevant for the type
         if " as ValueSet" in attribute_id:
             attribute_id = attribute_id.replace(" as ValueSet", "")
-        attribute_element = resolve_defining_id(profile_snapshot, attribute_id, self.data_set_dir, self.module_dir)
+        attribute_element = resolve_defining_id(profile_snapshot, attribute_id, modules_dir, module_dir_name)
 
         attribute_type = extract_value_type(attribute_element, profile_snapshot.get('name'))
 
         return CQL_TYPES_TO_VALUE_TYPES.get(attribute_type)
 
-    def get_reference_type(self, profile_snapshot: dict, attr_defining_id):
+    def get_reference_type(self, profile_snapshot: dict, attr_defining_id, module_dir_name: str):
         """
         Returns the type of the given attribute
         :param profile_snapshot: FHIR profile snapshot
         :param attr_defining_id: attribute id
+        :param module_dir_name: Name of the module directory
         :return: attribute type
         """
-        elements = self.parser.get_element_defining_elements(attr_defining_id, profile_snapshot, self.module_dir,
-                                                             self.data_set_dir)
+        modules_dir = self.project.input("modules")
+        elements = self.parser.get_element_defining_elements(attr_defining_id, profile_snapshot, module_dir_name,
+                                                             modules_dir)
         for element in elements:
             for element_type in element.get("type"):
                 if element_type.get("code") == "Reference":
-                    return extract_reference_type(element_type, self.data_set_dir, profile_snapshot.get('name'))
+                    return extract_reference_type(element_type, profile_snapshot.get('name'))
 
     @staticmethod
     def add_first_after_extension_where_expression(cql_path_expression):
@@ -585,9 +600,10 @@ class CQLMappingGenerator(object):
                                                                                          snapshot, card_type) * card
 
     def __aggregate_cardinality_using_element_id(self, element_defining_id: str,
-                                                 profile_snapshot: Snapshot) -> SimpleCardinality:
+                                                 profile_snapshot: Snapshot, module_dir_name: str) -> SimpleCardinality:
+        modules_dir = self.project.input("modules")
         element_results = get_element_defining_elements_with_source_snapshots(element_defining_id, profile_snapshot,
-                                                                              self.module_dir, self.data_set_dir)
+                                                                              module_dir_name, modules_dir)
         if element_results is None or len(element_results) == 0:
             raise Exception(f"Aggregated cardinality could not be determined: No defining elements could be "
                             f"identified using element defining ID '{element_defining_id}' and snapshot "
