@@ -35,7 +35,7 @@ note the filename is irrelevant, but should end on .json
 
 ## Example Call
 
-`python3 generate_elasticsearch_files.py --ontology_dir example/fdpg-ontology`
+`python3 generate_elasticsearch_files.py --ontology_dir projects/fdpg-ontology`
 
 
 ### Configuration

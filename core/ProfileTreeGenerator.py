@@ -3,13 +3,14 @@ import re
 import os
 import json
 import shutil
-import logging
+
+from util.log.functions import get_class_logger
+
 
 class ProfileTreeGenerator():
+    __logger = get_class_logger("ProfileTreeGenerator")
 
     def __init__(self, packages_dir: str, snapshots_dir: str, exclude_dirs, excluded_profiles, module_order, module_translation, fields_to_exclude, field_trees_to_exclude, profiles_to_process):
-
-        self.logger = logging.getLogger(self.__class__.__name__)
         self.profiles = {}
         self.packages_dir = packages_dir
         self.snapshots_dir = snapshots_dir
@@ -206,7 +207,7 @@ class ProfileTreeGenerator():
             for file in (file for file in files if file.endswith(".json")):
                 file_path = os.path.join(root, file)
 
-                if "/examples/" in file_path:
+                if "/projectss/" in file_path:
                     continue
 
                 try:
@@ -227,11 +228,11 @@ class ProfileTreeGenerator():
                         ):
 
                             destination = f"{self.snapshots_dir}/{os.path.basename(file_path)}"
-                            self.logger.info(f"Copying snapshot file for further processing: {file_path} -> {destination}")
+                            self.__logger.info(f"Copying snapshot file for further processing: {file_path} -> {destination}")
                             shutil.copy(file_path, destination)
 
                 except UnicodeDecodeError:
-                    self.logger.debug(f"File {file_path} is not a text file or cannot be read as text.")
+                    self.__logger.debug(f"File {file_path} is not a text file or cannot be read as text.")
                 except Exception:
                     pass
 
@@ -276,10 +277,10 @@ class ProfileTreeGenerator():
                                 "url": content["url"],
                             }
 
-                            self.logger.info(f"Adding profile to tree: {file_path}")
+                            self.__logger.info(f"Adding profile to tree: {file_path}")
 
                 except UnicodeDecodeError:
-                    self.logger.info(f"File {file_path} is not a text file or cannot be read as text -> ignoring")
+                    self.__logger.info(f"File {file_path} is not a text file or cannot be read as text -> ignoring")
                 except Exception:
                     pass
 

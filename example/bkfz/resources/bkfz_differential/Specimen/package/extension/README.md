@@ -1,1 +1,0 @@
-Extensions of Specimen module.

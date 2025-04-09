@@ -5,11 +5,14 @@ import zipfile
 from zipfile import ZipFile
 import re
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS
+from TerminologService.valueSetToRoots import logger
 
 from core.TerminologyDesignationResolver import TerminologyDesignationResolver
 
+from util.log.functions import get_class_logger
 
 class ElasticSearchGenerator:
+    __logger = get_class_logger("ElasticSearchGenerator")
 
     def __init__(self):
         pass
@@ -192,7 +195,7 @@ class ElasticSearchGenerator:
         count = 0
 
         current_file_name = os.path.join(write_dir, f"{filename_prefix}_{current_file_subindex}{extension}")
-        print(f"writing to file {current_file_name}")
+        logger.debug(f"writing to file {current_file_name}")
         with open(current_file_name, 'w+', encoding='UTF-8') as current_file:
 
             for insert in es_availability_inserts:
@@ -208,7 +211,7 @@ class ElasticSearchGenerator:
                     current_file_size = 0
                     current_file.close()
                     current_file = open(current_file_name, 'w', encoding='UTF-8')
-                    print(f"writing to file {current_file_name}")
+                    logger.debug(f"writing to file {current_file_name}")
 
     @staticmethod
     def __zip_elastic_files(output_file, work_dir, filename_prefix, extension, include_additional_files):
@@ -240,7 +243,7 @@ class ElasticSearchGenerator:
 
             term_code_info_list = json.load(f)
 
-            print(f"loaded termcode info map from file {filename_prefix}")
+            logger.debug(f"loaded termcode info map from file {filename_prefix}")
             for term_code_info in term_code_info_list:
                 term_code_hash = ElasticSearchGenerator.__get_contextualized_termcode_hash(term_code_info['context'],
                                                                                            term_code_info['term_code'],
@@ -350,7 +353,7 @@ class ElasticSearchGenerator:
                                      index_name='ontology',
                                      filename_prefix='onto_es_',
                                      max_filesize_mb=10,
-                                     code_system_translations_folder="example/code_systems_translations",
+                                     code_system_translations_folder="projects/code_systems_translations",
                                      base_translation_conf=None,
                                      update_translation_supplements=False):
         extension = '.json'
@@ -371,7 +374,7 @@ class ElasticSearchGenerator:
         terminology_resolver.load_designations(code_system_translations_folder,update_translation_supplements)
 
         if generate_availability:
-            print('Generating availability')
+            logger.debug('Generating availability')
             es_availability_inserts = []
 
             with open(os.path.join(availability_input_dir, "stratum-to-context.json")) as f:

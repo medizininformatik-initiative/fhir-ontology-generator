@@ -3,9 +3,8 @@ from typing import Optional
 from datetime import datetime
 from requests import Session
 from requests.auth import AuthBase
-from util.logging.LoggingUtil import init_logger
+from util.log import get_class_logger
 
-logger = init_logger(__name__,3)
 
 class OAuthClientCredentials(AuthBase):
     client_credentials: tuple[str, Optional[str]]
@@ -17,6 +16,8 @@ class OAuthClientCredentials(AuthBase):
     refresh_token: str = None
     refresh_expires_in: int = 0
     last_retrieval: float = 0
+
+    __logger = get_class_logger("OAuthClientCredentials")
 
     def __init__(self, client_credentials: tuple[str, Optional[str]], token_access_url: str, session: Session = None,
                  user_credentials: Optional[tuple[str, str]] = None):
@@ -63,7 +64,6 @@ class OAuthClientCredentials(AuthBase):
                 self.__refresh_access_token()
             else:
                 self.__fetch_access_token()
-
 
     def __call__(self, r):
         self.__check_access_token()

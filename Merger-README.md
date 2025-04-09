@@ -32,7 +32,7 @@ It further combines the R__Load_latest_ui_profile.sql files found in the differe
 
 ## Example Call
 
-`python3 OntologyMergeUtil.py --merge_mappings --merge_uitrees --merge_sqldump --merge_dse  --ontodirs absolute-path-to-repo/example/mii_core_data_set/generated-ontology --dseontodir absolute-path-to-repo/dse/generated --outputdir absolute-path-to-repo/example/your-folder-here`
+`python3 OntologyMergeUtil.py --merge_mappings --merge_uitrees --merge_sqldump --merge_dse  --ontodirs absolute-path-to-repo/projects/mii_core_data_set/generated-ontology --dseontodir absolute-path-to-repo/dse/generated --outputdir absolute-path-to-repo/example/your-folder-here`
 
 ### Configuration
 

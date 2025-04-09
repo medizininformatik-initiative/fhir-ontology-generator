@@ -1,11 +1,15 @@
 import argparse
+import importlib.resources
 import json
-import logging
 import os
 import shutil
-import sys
 
+import resources.terminology
+from util.log.functions import get_logger
 from util.sql.SqlMerger import SqlMerger
+
+
+logger = get_logger(__file__)
 
 
 def configure_args_parser():
@@ -33,38 +37,14 @@ def configure_args_parser():
         help="output directory for merged ontology"
     )
 
-    arg_parser.add_argument(
-        '--log-level',
-        type=str,
-        default='DEBUG',  # Default log level if not provided
-        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],  # Valid log levels
-        help="Set the logging level"
-    )
-
     return arg_parser
-
-
-def setup_logging(log_level):
-    # Configure logging
-    logging.basicConfig(
-        level=log_level,  # Set the logging level
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",  # Define the format of the log messages
-    )
-
-    logger = logging.getLogger("fhir_onto_logger")
-
-    stream_handler = logging.StreamHandler(sys.stdout)
-    stream_handler.setLevel(log_level)  # Set the log level for stdout logging
-    logger.addHandler(stream_handler)
-
-    return logger
 
 
 def path_for_file(base, filename):
     for root, dir, files in os.walk(base):
         if filename in files:
             return os.path.join(root, filename)
-    log.error(f"no {filename} in {base}")
+    logger.error(f"no {filename} in {base}")
     quit()
 
 
@@ -83,7 +63,8 @@ def add_system_urls_to_systems_json(merged_ontology_dir, system_urls):
 
     new_terminology_systems = {}
 
-    with open (f'{merged_ontology_dir}/terminology_systems.json', "r+") as systems_file:
+    with (importlib.resources.files(resources.terminology).joinpath('terminology_systems.json')
+                  .open(mode='r', encoding='utf-8') as systems_file):
         terminology_systems = json.load(systems_file)
 
         for terminology_system in terminology_systems:
@@ -143,19 +124,14 @@ def collect_all_terminology_systems(merged_ontology_dir):
     return system_urls
 
 
-
-
-
 if __name__ == '__main__':
 
     parser = configure_args_parser()
     args = parser.parse_args()
 
-    log_level = args.log_level
-    log = setup_logging(log_level)
-    log.info(f"# Starting fhir ontology merger with logging level: {log_level}")
+    logger.info(f"# Starting fhir ontology merger")
 
-    log.info(f"Merging ontologies from folders: {args.ontodirs}")
+    logger.info(f"Merging ontologies from folders: {args.ontodirs}")
 
     if args.merge_mappings:
 
@@ -220,9 +196,7 @@ if __name__ == '__main__':
         os.makedirs(output_sql_script_dir, exist_ok=True)
 
         for ontodir in args.ontodirs:
-            print(ontodir)
             cur_sql_file_path = path_for_file(ontodir, "R__Load_latest_ui_profile.sql")
-            print(cur_sql_file_path)
             shutil.copy(f'{cur_sql_file_path}',
                         f'{output_sql_script_dir}/R__Load_latest_ui_profile_{str(sql_script_index)}.sql')
 
@@ -261,5 +235,3 @@ if __name__ == '__main__':
     system_urls = collect_all_terminology_systems(args.outputdir)
 
     add_system_urls_to_systems_json(args.outputdir, system_urls)
-
-

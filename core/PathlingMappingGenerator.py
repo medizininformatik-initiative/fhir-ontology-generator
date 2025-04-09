@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import json
 import os
-import re
 from typing import Tuple, List, Dict
 
 from core import StructureDefinitionParser as FHIRParser
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
-from core.StructureDefinitionParser import resolve_defining_id, extract_value_type, extract_reference_type
+from core.StructureDefinitionParser import resolve_defining_id, extract_value_type
 from helper import generate_attribute_key
 from model.MappingDataModel import PathlingMapping, PathlingAttributeSearchParameter
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData

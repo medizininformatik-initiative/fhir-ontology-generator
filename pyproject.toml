@@ -1,9 +1,7 @@
 [tool.pytest.ini_options]
 log_cli = 1
 log_cli_level = "INFO"
-pythonpath = [
-    ".", "test", "src"
-]
+pythonpath = [".", "test", "src"]
 env = [
     "CLIENT_ID=dataportal-webapp",
     "CLIENT_SECRET=piczMMlNFoQuKTjRT4o4FJibPUFuI2bk",

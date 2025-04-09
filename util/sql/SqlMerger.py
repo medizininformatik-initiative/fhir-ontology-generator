@@ -6,6 +6,9 @@ import time
 import psycopg2
 
 from core.docker.Images import POSTGRES_IMAGE
+from util.log.functions import get_logger
+
+logger = get_logger(__file__)
 
 
 def insert_content(base_file, content_to_insert, insert_after='SET row_security = off;'):
@@ -30,7 +33,7 @@ def insert_content(base_file, content_to_insert, insert_after='SET row_security 
     with open(base_file, 'w',encoding="UTF-8") as target_file:
         target_file.writelines(base_content)
 
-    print(f"Content of {content_to_insert} has been inserted into {base_file}.")
+    logger.debug(f"Content of {content_to_insert} has been inserted into {base_file}.")
 
 
 class SqlMerger:
@@ -62,15 +65,15 @@ class SqlMerger:
 
     def shutdown(self):
         if self.conn:
-            print('closing db connection')
+            logger.debug('closing db connection')
             self.conn.close()
-        print('shutting down container')
+        logger.debug('shutting down container')
         self.db_container.stop()
         self.db_container.remove()
 
     def setup_db_container(self):
         client = docker.from_env()
-        print(f"Starting PostgreSQL Docker container and binding to port {self.db_port}")
+        logger.info(f"Starting PostgreSQL Docker container and binding to port {self.db_port}")
         self.db_container = client.containers.run(
             POSTGRES_IMAGE,
             name=self.container_name,
@@ -100,7 +103,7 @@ class SqlMerger:
                     port=self.db_port,
                 )
             except psycopg2.OperationalError as e:
-                print("Connection failed, retrying...")
+                logger.info("Connection failed, retrying...")
                 time.sleep(5)
 
     def setup_container_and_get_connection(self):
@@ -143,7 +146,7 @@ class SqlMerger:
 
                     cmd = f"sh -c 'psql -U {self.db_user} -d {self.db_name} < {self.sql_mapped_dir}/init_{db_index}.sql'"
                     time.sleep(5)
-                    print(f"Executing command {cmd}")
+                    logger.debug(f"Executing command {cmd}")
                     self.db_container.exec_run(cmd=cmd)
                     os.remove(f"{self.sql_script_dir}/init_{db_index}.sql")
 
@@ -153,7 +156,7 @@ class SqlMerger:
                         target.write(template.read().replace('public.', f'{schema_name}.'))
                     cmd = f"sh -c 'psql -U {self.db_user} -d {self.db_name} < {self.sql_mapped_dir}/modified_{filename}'"
                     time.sleep(5)
-                    print(f"Executing command {cmd}")
+                    logger.debug(f"Executing command {cmd}")
                     self.db_container.exec_run(cmd=cmd)
                     os.remove(f"{self.sql_script_dir}/{filename}")
                     os.remove(f"{self.sql_script_dir}/modified_{filename}")
@@ -165,11 +168,11 @@ class SqlMerger:
                         target.write(template.read())
                     cmd = f"sh -c 'psql -U {self.db_user} -d {self.db_name} < {self.sql_mapped_dir}/modified_remove_fk_constraints.sql'"
                     time.sleep(5)
-                    print(f"Executing command {cmd}")
+                    logger.debug(f"Executing command {cmd}")
                     self.db_container.exec_run(cmd=cmd)
                     os.remove(f"{self.sql_script_dir}/modified_remove_fk_constraints.sql")
                 else:
-                    print(f"{filename} does not match pattern {self.match_expression}")
+                    logger.warning(f"{filename} does not match pattern {self.match_expression}")
 
     def merge_schemas(self):
         cur = self.conn.cursor()
@@ -184,7 +187,7 @@ class SqlMerger:
         for schema in schema_result:
             if schema[0].startswith("import_"):
                 schema_name = schema[0]
-                print(f"Importing schema {schema_name}...to public")
+                logger.debug(f"Importing schema {schema_name}...to public")
                 # Import the context table and write back new foreign keys to import schema
                 query_copy_context = """
                 WITH source_data AS (
@@ -260,11 +263,11 @@ class SqlMerger:
         self.db_container.exec_run(cmd=cmd)
 
     def execute_merge(self):
-        print("Setting up container")
+        logger.info("Setting up container")
         self.setup_container_and_get_connection()
-        print("Populate db with initial values")
+        logger.info("Populate db with initial values")
         self.populate_db()
-        print("Merge db schemas")
+        logger.info("Merge db schemas")
         self.merge_schemas()
-        print("Dump merged schema")
+        logger.info("Dump merged schema")
         self.dump_merged_schema()

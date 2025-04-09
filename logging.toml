@@ -1,0 +1,29 @@
+# ======================================================================================================================
+#    Logging
+# ======================================================================================================================
+[loggers]
+keys=root
+
+[handlers]
+keys=console
+
+[formatters]
+keys=standard
+
+[logger_root]
+level=NOTSET
+handlers=console
+propagate=1
+
+[handler_console]
+class=StreamHandler
+level=DEBUG
+formatter=standard
+args=(sys.stdout,)
+
+[formatter_standard]
+format=%(asctime)s.%(msecs)03d [%(levelname)s] %(module)s%(className)s::%(funcName)s:%(lineno)d - %(message)s
+datefmt=%Y-%m-%dT%H:%M:%S
+style=%
+validate=1
+class=util.log.ColorFormatter

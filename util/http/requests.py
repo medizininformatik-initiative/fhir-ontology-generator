@@ -1,8 +1,8 @@
 import requests
-import logging
 
+from util.log.functions import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__file__)
 
 
 def is_responsive(url: str, expect: int = 200) -> bool:

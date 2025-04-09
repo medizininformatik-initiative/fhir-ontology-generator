@@ -5,9 +5,10 @@ from typing import List, Tuple, Dict
 import psycopg2.extras
 import psycopg2
 
-from TerminologService.ValueSetResolver import get_termcodes_from_onto_server
 from model.UIProfileModel import UIProfile, CriteriaSet
-from model.UiDataModel import TermCode 
+from model.UiDataModel import TermCode
+
+from util.log.functions import get_class_logger
 
 NAMESPACE_UUID = uuid.UUID('00000000-0000-0000-0000-000000000000')
 
@@ -135,6 +136,7 @@ class DataBaseWriter:
     DataBaseWriter is a class that handles the connection to the database and the insertion of data into the database
     for the feasibility tool ontology.
     """
+    __logger = get_class_logger("DataBaseWriter")
 
     def __init__(self, port=5432):
         self.db_connection = None
@@ -362,7 +364,7 @@ class DataBaseWriter:
             """, (context.system, context.code, context.version if context.version else '', term_code.system,
                   term_code.code, term_code.version if term_code.version else '', mapping_type))
         result = self.cursor.fetchall()
-        print(result)
+        self.__logger.debug(result)
         return result[0][0] if result else None
 
     def add_critieria_set(self, criteria_set: CriteriaSet):
@@ -396,7 +398,7 @@ class DataBaseWriter:
 
         values = [(self.calculate_context_term_code_hash(context, term_code), canonical_url) for context, term_code in
                   entries]
-        print(canonical_url)
+        self.__logger.debug(canonical_url)
         psycopg2.extras.execute_batch(self.cursor,
                                       """
                                       INSERT INTO contextualized_termcode_to_criteria_set (context_termcode_hash, criteria_set_id) 

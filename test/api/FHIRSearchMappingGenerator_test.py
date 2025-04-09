@@ -12,7 +12,6 @@ from model.MappingDataModel import MapEntryList
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UiDataModel import TermCode, TermEntry
 
-
 class TestSearchParameterResolver(SearchParameterResolver):
     def _load_module_search_parameters(self):
         return []
@@ -153,7 +152,7 @@ class MyTestCase(unittest.TestCase):
         resolver = TestQueryMetaDataResolver()
         mapping_generator = CQLMappingGenerator(resolver)
         mapping_generator.module_dir = "../resources/Profiles"
-        mapping_generator.data_set_dir = "../resources/Profiles"
+        mapping_generator.modules_dir = "../resources/Profiles"
         with open("../resources/Profiles/Profile-Observation-BloodPressure-snapshot.json") as f:
             profile_snapshot = json.load(f)
             mapping = mapping_generator.generate_normalized_term_code_cql_mapping(profile_snapshot, "Test")
@@ -273,10 +272,10 @@ class MyTestCase(unittest.TestCase):
     # def test_complex_specimen_id_to_path_translation(self):
     #     resolver = MIICoreDataSetQueryingMetaDataResolver()
     #     mapping_generator = FHIRSearchMappingGenerator(resolver)
-    #     mapping_generator.module_dir = "../../example/mii_core_data_set/resources/fdpg_differential/Bioprobe/"
-    #     mapping_generator.data_set_dir = "../../example/mii_core_data_set/resources/fdpg_differential/"
+    #     mapping_generator.module_dir = "../../projects/mii_core_data_set/resources/fdpg_differential/Bioprobe/"
+    #     mapping_generator.data_set_dir = "../../projects/mii_core_data_set/resources/fdpg_differential/"
     #
-    #     with open('../../example/mii_core_data_set/resources/fdpg_differential/Bioprobe/package/'
+    #     with open('../../projects/mii_core_data_set/resources/fdpg_differential/Bioprobe/package/'
     #               'FDPG_Bioprobe-snapshot.json', 'r') as f:
     #         profile_snapshot = json.load(f)
     #         actual_fhir_paths = mapping_generator.translate_element_id_to_fhir_path_expressions(
@@ -292,11 +291,11 @@ class MyTestCase(unittest.TestCase):
     # def test_complex_medication_administration_id_to_path_translation(self):
     #     resolver = MIICoreDataSetQueryingMetaDataResolver()
     #     mapping_generator = FHIRSearchMappingGenerator(resolver)
-    #     mapping_generator.module_dir = "../../example/mii_core_data_set/resources/fdpg_differential/" \
+    #     mapping_generator.module_dir = "../../projects/mii_core_data_set/resources/fdpg_differential/" \
     #                                    "Medikamentenverabreichung/"
-    #     mapping_generator.data_set_dir = "../../example/mii_core_data_set/resources/fdpg_differential/"
+    #     mapping_generator.data_set_dir = "../../projects/mii_core_data_set/resources/fdpg_differential/"
     #
-    #     with open("../../example/mii_core_data_set/resources/fdpg_differential/Medikamentenverabreichung/package/"
+    #     with open("../../projects/mii_core_data_set/resources/fdpg_differential/Medikamentenverabreichung/package/"
     #               "ABIDE_MedicationAdministration_Ref.StructureDefinition-snapshot.json", 'r', encoding="utf-8") as f:
     #         profile_snapshot = json.load(f)
     #         actual_fhir_paths = mapping_generator.translate_element_id_to_fhir_path_expressions(
@@ -309,11 +308,11 @@ class MyTestCase(unittest.TestCase):
     # def test_resolve_fhir_search_parameter_medication_administration(self):
     #     resolver = MIICoreDataSetQueryingMetaDataResolver()
     #     mapping_generator = FHIRSearchMappingGenerator(resolver)
-    #     mapping_generator.module_dir = "../../example/mii_core_data_set/resources/fdpg_differential/" \
+    #     mapping_generator.module_dir = "../../projects/mii_core_data_set/resources/fdpg_differential/" \
     #                                    "Medikamentenverabreichung/"
-    #     mapping_generator.data_set_dir = "../../example/mii_core_data_set/resources/fdpg_differential/"
+    #     mapping_generator.data_set_dir = "../../projects/mii_core_data_set/resources/fdpg_differential/"
     #
-    #     with open("../../example/mii_core_data_set/resources/fdpg_differential/Medikamentenverabreichung/package/"
+    #     with open("../../projects/mii_core_data_set/resources/fdpg_differential/Medikamentenverabreichung/package/"
     #               "ABIDE_MedicationAdministration_Ref.StructureDefinition-snapshot.json", 'r', encoding="utf-8") as f:
     #         profile_snapshot = json.load(f)
     #         actual_search_parameter = mapping_generator.resolve_fhir_search_parameter(
@@ -327,10 +326,10 @@ class MyTestCase(unittest.TestCase):
     # def test_resolve_fhir_search_parameter_specimen(self):
     #     resolver = MIICoreDataSetQueryingMetaDataResolver()
     #     mapping_generator = FHIRSearchMappingGenerator(resolver)
-    #     mapping_generator.module_dir = "../../example/mii_core_data_set/resources/fdpg_differential/Bioprobe/"
-    #     mapping_generator.data_set_dir = "../../example/mii_core_data_set/resources/fdpg_differential/"
+    #     mapping_generator.module_dir = "../../projects/mii_core_data_set/resources/fdpg_differential/Bioprobe/"
+    #     mapping_generator.data_set_dir = "../../projects/mii_core_data_set/resources/fdpg_differential/"
     #
-    #     with open('../../example/mii_core_data_set/resources/fdpg_differential/Bioprobe/package/'
+    #     with open('../../projects/mii_core_data_set/resources/fdpg_differential/Bioprobe/package/'
     #               'FDPG_Bioprobe-snapshot.json', 'r') as f:
     #         profile_snapshot = json.load(f)
     #         actual_search_parameter = mapping_generator.resolve_fhir_search_parameter(
@@ -345,10 +344,10 @@ class MyTestCase(unittest.TestCase):
     # def test_resolve_fhir_search_parameter_condition_on_set(self):
     #     resolver = MIICoreDataSetQueryingMetaDataResolver()
     #     mapping_generator = FHIRSearchMappingGenerator(resolver)
-    #     mapping_generator.module_dir = "../../example/mii_core_data_set/resources/fdpg_differential/Diagnose/"
-    #     mapping_generator.data_set_dir = "../../example/mii_core_data_set/resources/fdpg_differential/"
+    #     mapping_generator.module_dir = "../../projects/mii_core_data_set/resources/fdpg_differential/Diagnose/"
+    #     mapping_generator.data_set_dir = "../../projects/mii_core_data_set/resources/fdpg_differential/"
     #
-    #     with open("../../example/mii_core_data_set/resources/fdpg_differential/Diagnose/package/"
+    #     with open("../../projects/mii_core_data_set/resources/fdpg_differential/Diagnose/package/"
     #               "FDPG_Diagnose-snapshot.json", 'r') as f:
     #         profile_snapshot = json.load(f)
     #         actual_search_parameter = mapping_generator.resolve_fhir_search_parameter(

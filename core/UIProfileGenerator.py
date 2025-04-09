@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import logging
 import os
 from typing import Dict, Tuple, List
 
@@ -10,10 +9,12 @@ from core import ResourceQueryingMetaDataResolver
 from core import StructureDefinitionParser as FHIRParser
 from core.StructureDefinitionParser import InvalidValueTypeException, UCUM_SYSTEM, get_binding_value_set_url, \
     ProcessedElementResult, get_fixed_term_codes, FHIR_TYPES_TO_VALUE_TYPES, extract_value_type
-from helper import logger, process_element_definition
+from helper import process_element_definition
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import ValueDefinition, UIProfile, AttributeDefinition, CriteriaSet
 from model.UiDataModel import TermCode
+from util.log.functions import get_class_logger
+from util.project import Project
 
 AGE_UNIT_VALUE_SET = "http://hl7.org/fhir/ValueSet/age-units"
 
@@ -22,34 +23,37 @@ class UIProfileGenerator:
     """
     This class is responsible for generating UI profiles for a given FHIR profile.
     """
+    __logger = get_class_logger("UIProfileGenerator")
 
-    def __init__(self, querying_meta_data_resolver: ResourceQueryingMetaDataResolver, parser=FHIRParser):
+    def __init__(self, project: Project, querying_meta_data_resolver: ResourceQueryingMetaDataResolver,
+                 parser=FHIRParser):
         """
-        :param querying_meta_data_resolver: resolves the for the query relevant meta data for a given FHIR profile
+        :param project: Project to operate on
+        :param querying_meta_data_resolver: resolves the for the query relevant metadata for a given FHIR profile
         :param parser: parser for the FHIR profile
         snapshot
         """
-        self.logger = logging.getLogger(self.__class__.__name__)
         self.querying_meta_data_resolver = querying_meta_data_resolver
         self.module_dir: str = ""
         self.data_set_dir: str = ""
         self.parser = parser
+        self.project = project
 
-    def generate_ui_profiles(self, fhir_dataset_dir: str, module_name) -> \
+    def generate_ui_profiles(self, module_name) -> \
             Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, UIProfile]]:
         """
         Generates the ui trees for all FHIR profiles in the differential directory
-        :param fhir_dataset_dir: root directory of the FHIR dataset containing the module and their packages containing
         the FHIR Profiles and their snapshots of interest
         {FHIR_DATASET_DIR}/{MODULE_NAME}/
+        :param module_name: Name of the module to generate UI profiles for
         :return: ui profiles for all FHIR profiles in the differential directory
         """
-        self.data_set_dir = fhir_dataset_dir
+        modules_dir = self.project.input("modules")
         full_context_term_code_ui_profile_name_mapping = {}
         full_ui_profile_name_ui_profile_mapping = {}
-        for module_dir in [folder for folder in os.scandir(fhir_dataset_dir) if folder.is_dir()]:
+        for module_dir in [folder for folder in os.scandir(modules_dir) if folder.is_dir()]:
             self.module_dir: str = module_dir.path
-            files = [file.path for file in os.scandir(f"{fhir_dataset_dir}/{module_dir.name}") if file.is_file()
+            files = [file.path for file in os.scandir(os.path.join(modules_dir, module_dir.name)) if file.is_file()
                      and file.name.endswith("snapshot.json")]
             for file in files:
                 with open(file, "r", encoding="utf8") as f:
@@ -99,7 +103,7 @@ class UIProfileGenerator:
         :param profile_snapshot: FHIR profile snapshot
         :return: UI profile for the given FHIR profile snapshot
         """
-        logger.info(f"Processing querying metadata '{querying_meta_data.name}'")
+        self.__logger.info(f"Processing querying metadata '{querying_meta_data.name}'")
         ui_profile = UIProfile(profile_snapshot["name"])
         ui_profile.timeRestrictionAllowed = self.is_time_restriction_allowed(querying_meta_data)
         if querying_meta_data.value_defining_id:
@@ -203,7 +207,7 @@ class UIProfileGenerator:
         # TODO: attribute_defining_elements is a list of element but we only ever expect one in this instance (at least that is what the logic can handle)
 
         if len(attribute_defining_elements)>1:
-            self.logger.warning("more than one attribute definition element, only one supported, using last one instead")
+            self.__logger.warning("more than one attribute definition element, only one supported, using last one instead")
 
         attribute_code, attribute_display = process_element_definition(attribute_defining_element)
 

@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 from typing import Mapping
 
@@ -9,11 +8,12 @@ from jsonpath_ng import parse
 
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from util.http.backend.FeasibilityBackendClient import FeasibilityBackendClient
+from util.log import get_logger
 from util.test.fhir import load_list_of_resources_onto_fhir_server, delete_list_of_resources_from_fhir_server
 from util.test.functions import mismatch_str
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__file__)
 
 
 def resolve_ref(ref: str, ensemble=None, resolved=None, resolving=None) -> list[str]:

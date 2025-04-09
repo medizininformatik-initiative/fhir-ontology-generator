@@ -9,9 +9,9 @@ if __name__ == '__main__':
     parser.add_argument('--ontology_dir', type=str)
     parser.add_argument('--availability_input_dir', type=str)
     parser.add_argument('--generate_availability', action='store_true')
-    parser.add_argument('--code_system_translations_folder', type=str, default='example/code_systems_translations')
+    parser.add_argument('--code_system_translations_folder', type=str, default='projectsprojects/code_systems_translations')
     parser.add_argument('--base_translation_config', type=str,
-                        default='example/fdpg-ontology/resources/translation/base_translations.json')
+                        default='projects/fdpg-ontology/resources/translation/base_translations.json')
     parser.add_argument('--update_translation_supplements', action='store_true')
 
     args = parser.parse_args()

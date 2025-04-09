@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-from typing import Mapping, Optional, TypedDict
-
-from requests import Session, Response
+from typing import Optional, TypedDict
 from requests.auth import AuthBase
 
 from util.http.BaseClient import BaseClient
 from util.http.exceptions.ClientError import ClientError
-from util.http.exceptions.functions import raise_appropriate_exception
-from util.http.url import insert_path_params, format_query_params, merge_urls
+from util.http.url import merge_urls
 
 
 class SiteResult(TypedDict):

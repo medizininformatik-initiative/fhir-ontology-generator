@@ -1,11 +1,13 @@
 import os
 import subprocess
-import logging
 from datetime import datetime
 
 from typing import Optional
 
-logger = logging.getLogger(__name__)
+from util.log.functions import get_logger
+
+
+logger = get_logger(__file__)
 
 
 def save_docker_logs(dir_path: str, project_name: Optional[str] = None) -> None:
