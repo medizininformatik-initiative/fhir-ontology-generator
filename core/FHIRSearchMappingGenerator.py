@@ -57,7 +57,7 @@ class FHIRSearchMappingGenerator(object):
         full_fhir_search_mapping_name_fhir_search_mapping: Dict[str, FhirMapping] = {}
         files = [file for file in snapshot_dir.rglob("*-snapshot.json") if file.is_file()]
         for file in files:
-            with open(file, "r", encoding="utf8") as f:
+            with open(file, mode="r", encoding="utf8") as f:
                 snapshot = json.load(f)
                 context_tc_to_mapping_name, fhir_search_mapping_name_to_mapping = \
                     self.generate_normalized_term_code_fhir_search_mapping(snapshot, module_name)

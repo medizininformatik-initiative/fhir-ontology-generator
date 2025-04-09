@@ -6,12 +6,8 @@ import shutil
 
 from util.log.functions import get_class_logger
 
-import logging
 from enum import Enum
 from typing import Mapping, Optional, Any
-
-from util.fhir.enums import FhirPrimitiveDataType
-from util.typing.filesystem import FilePathStr
 
 
 class SnapshotPackageScope(str, Enum):
@@ -24,7 +20,6 @@ class ProfileTreeGenerator:
 
     def __init__(self, packages_dir: str, snapshots_dir: str, exclude_dirs, excluded_profiles, module_order,
                  module_translation, fields_to_exclude, field_trees_to_exclude, profiles_to_process):
-        self.logger = logging.getLogger(self.__class__.__name__)
         self.profiles= {scope: dict() for scope in SnapshotPackageScope}
         self.packages_dir = packages_dir
         self.snapshots_dir = snapshots_dir
@@ -275,6 +270,7 @@ class ProfileTreeGenerator:
                 scope = SnapshotPackageScope(file_path.split(os.sep)[-2]).value
 
                 try:
+
                     with open(file_path, "r") as f:
                         content = json.load(f)
 

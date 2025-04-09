@@ -60,7 +60,7 @@ def split_bundle(bundle: dict, chunk_size: int = 10) -> List[dict]:
 
 class TerminologyDesignationResolver:
     __logger = get_class_logger("TerminologyDesignationResolver")
-    
+
     def __init__(self, base_translations_conf: str | Path = None, server_address: str = TERMINOLOGY_SERVER_ADDRESS,
                  max_bundle_size: int = 10_000):
         self.code_systems = {}

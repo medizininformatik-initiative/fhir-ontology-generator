@@ -314,10 +314,8 @@ class ElasticSearchGenerator:
                     report = json.load(f)
 
                     for group in report["group"]:
-
                         for stratifier in group["stratifier"]:
                             if "stratum" in stratifier:
-
                                 strat_code = stratifier["code"][0]["coding"][0]["code"]
 
                                 if strat_code not in stratum_to_context:

@@ -18,15 +18,6 @@ from util.log.functions import get_logger
 from util.codec.json import JSONFhirOntoEncoder
 
 
-def setup_logging(log_level):
-    logging.basicConfig(
-        level=log_level,
-        format="%(asctime)s - %(name)s - %(levelname)s: %(message)s",
-        handlers=[
-            logging.StreamHandler()
-        ]
-    )
-
 module_translation = {
     "de-DE": {
         "modul-diagnose": "Diagnose",

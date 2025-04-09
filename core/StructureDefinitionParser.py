@@ -15,7 +15,7 @@ from model.UiDataModel import TermCode
 
 from importlib import resources
 from resources import fhir, cql
-from util.typing.fhir import FHIRPath, FHIRPathlike
+from util.log.functions import get_logger
 
 UCUM_SYSTEM = "http://unitsofmeasure.org"
 FHIR_TYPES_TO_VALUE_TYPES = json.load(fp=(resources.files(fhir) / 'fhir-types-to-value-types.json')
