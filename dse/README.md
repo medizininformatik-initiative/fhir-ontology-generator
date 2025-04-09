@@ -55,7 +55,7 @@ You can then download all required packages by running the generate_ontology.py 
 
 **NOTE:** There is currently a problem with too many retries when downloading many packages from simplifier. The current solution is to retry the download at a later stage.
 
-### Step 4 - Generate snapthots used for the ontology generation
+### Step 4 - Generate snapshots used for the ontology generation
 
 You can now generate your data selection ontology by running the program with the flags `--generate_profile_details` and `--download_value_sets`.
 
@@ -67,7 +67,7 @@ Therefore one should execute the program at least once with `--download_value_se
 
 ## How it works - Detailed (Check out the step by step guide before)
 
-The program goes through all packages and their snaphots and for each checks if it is a StructureDefinition, is not an Extension, is active and is of type resource
+The program goes through all packages and their snapshots and for each checks if it is a StructureDefinition, is not an Extension, is active and is of type resource
 to ensure only profiles for actual HRIs are processed.
 
 It then assigns each to a module based on the profile url and builds a hierarchy within each profile as an HRI based on inter profile references.

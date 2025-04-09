@@ -1,0 +1,2 @@
+class MissingProfileException(Exception):
+    pass

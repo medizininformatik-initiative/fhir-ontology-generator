@@ -9,11 +9,13 @@ import requests
 from urllib.parse import urlparse
 
 from core.ProfileDetailGenerator import ProfileDetailGenerator
-from core.ProfileTreeGenerator import ProfileTreeGenerator
+from core.ProfileTreeGenerator import ProfileTreeGenerator, SnapshotPackageScope
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY
 from TerminologService.valueSetToRoots import get_closure_map, remove_non_direct_ancestors, create_concept_map
 from model.TreeMap import TreeMap, TermEntryNode
 from model.UiDataModel import TermCode
+from model.helper import del_none
+from util.codec.json import JSONFhirOntoEncoder
 
 
 def setup_logging(log_level):
@@ -114,8 +116,8 @@ def download_all_value_sets(profile_details):
     value_set_urls = set()
 
     for detail in profile_details:
-        for filter in (filter for filter in detail['filters'] if filter['ui_type'] == 'code'):
-            for value_set_url in filter['valueSetUrls']:
+        for filter in (filter for filter in detail.filters if filter.ui_type == 'code'):
+            for value_set_url in filter.valueSetUrls:
                 value_set_urls.add(value_set_url)
 
     for value_set_url in list(value_set_urls):
@@ -130,8 +132,8 @@ def generate_r_load_sql(profile_details):
 
         for index, profile_detail in enumerate(profile_details):
 
-            profile_detaildb = json.dumps(profile_detail).replace("'", "''")
-            value_line = f"({index + 1},'{profile_detail['url']}','{profile_detaildb}')"
+            profile_detaildb = json.dumps(profile_detail, cls=JSONFhirOntoEncoder).replace("'", "''")
+            value_line = f"({index + 1},'{profile_detail.url}','{profile_detaildb}')"
             sql_file.write(value_line)
             if index < len(profile_details) - 1:
                 sql_file.write(",\n")
@@ -251,8 +253,6 @@ def generate_dse_mapping_trees(vs_dir_path: Union[str, os.PathLike]) -> list[dic
 
 
 if __name__ == '__main__':
-
-
     parser = configure_args_parser()
     args = parser.parse_args()
     log_level = getattr(logging, args.loglevel)
@@ -260,15 +260,15 @@ if __name__ == '__main__':
     logger = logging.getLogger(__name__)
 
     if args.download_packages:
-        with open("required-packages.json", "r") as f:
+        with open("required-packages.json", mode="r", encoding="utf-8") as f:
             required_packages = json.load(f)
 
         download_simplifier_packages(required_packages)
 
-    with open("excluded-dirs.json", "r") as f:
+    with open("excluded-dirs.json", mode="r", encoding="utf-8") as f:
         excluded_dirs = json.load(f)
 
-    with open("excluded-profiles.json", "r") as f:
+    with open("excluded-profiles.json", mode="r", encoding="utf-8") as f:
         excluded_profiles = json.load(f)
 
     packages_dir = os.path.join(os.getcwd(), "dse-packages", "dependencies")
@@ -281,13 +281,13 @@ if __name__ == '__main__':
     if args.copy_snapshots:
         tree_generator.copy_profile_snapshots()
 
-    tree_generator.get_profiles()
+    tree_generator.get_profile_snapshots()
     profile_tree = tree_generator.generate_profiles_tree()
 
-    with open(os.path.join("generated", "profile_tree.json"), "w") as f:
-        json.dump(profile_tree, f, ensure_ascii=False)
+    with open(os.path.join("generated", "profile_tree.json"), mode="w", encoding="utf-8") as f:
+        json.dump(profile_tree, f, ensure_ascii=False, cls=JSONFhirOntoEncoder)
 
-    with open("mapping-type-code.json", "r") as f:
+    with open("mapping-type-code.json", mode="r", encoding="utf-8") as f:
         mapping_type_code = json.load(f)
 
     blacklistedValueSets = ['http://hl7.org/fhir/ValueSet/observation-codes']
@@ -298,17 +298,14 @@ if __name__ == '__main__':
         profile_detail_generator = ProfileDetailGenerator(profiles, mapping_type_code, blacklistedValueSets,
                                                           fields_to_exclude, field_trees_to_exclude, reference_resolve_base_url)
 
-        profile_details = []
+        profile_details = profile_detail_generator.generate_profile_details_for_profiles_in_scope(
+            SnapshotPackageScope.MII,
+            cond=lambda p: p.get('kind') == 'resource',
+            profile_tree=profile_tree
+        )
 
-        for profile in profiles:
-
-            profile_detail = profile_detail_generator.generate_detail_for_profile(profiles[profile])
-
-            if profile_detail:
-                profile_details.append(profile_detail)
-
-        with open(os.path.join("generated", "profile_details_all.json"), "w+") as p_details_f:
-            json.dump(profile_details, p_details_f)
+        with open(os.path.join("generated", "profile_details_all.json"), mode="w+", encoding="utf-8") as p_details_f:
+            json.dump(profile_details, p_details_f, cls=JSONFhirOntoEncoder)
 
         generate_r_load_sql(profile_details)
 
@@ -318,5 +315,5 @@ if __name__ == '__main__':
         if args.generate_mapping_trees:
             dse_mapping_trees = generate_dse_mapping_trees(os.path.join('generated', 'value-sets'))
 
-            with open(os.path.join('generated', 'dse_mapping_tree.json'), "w+") as dse_tree_f:
-                json.dump(dse_mapping_trees, dse_tree_f)
+            with open(os.path.join('generated', 'dse_mapping_tree.json'), mode="w+", encoding="utf-8") as dse_tree_f:
+                json.dump(dse_mapping_trees, dse_tree_f, cls=JSONFhirOntoEncoder)

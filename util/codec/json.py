@@ -1,8 +1,7 @@
 import json
-from collections.abc import Callable
-from typing import Any, Tuple, TypeAlias
+from typing import Any
 
-from typing_extensions import Never, Optional
+from pydantic import BaseModel
 
 from model.helper import del_none
 
@@ -22,6 +21,9 @@ class JSONFhirOntoEncoder(json.JSONEncoder):
         if isinstance(o, set):
             o.discard(None)
             return list(o)
+        # Else if the object is a pydantic model class use the dump method inherent to it
+        elif isinstance(o, BaseModel):
+            return del_none(o.model_dump())
         # Else if an object can be serialized via the __dict__ attribute use it
         elif hasattr(o, "__dict__"):
             return del_none(o.__dict__)
