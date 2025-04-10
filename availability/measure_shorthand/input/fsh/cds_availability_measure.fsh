@@ -22,10 +22,10 @@ Description: "Example Measure to count all ICD-10 codes and the patient count."
 // Profil Laboratory
 * insert AddStratifierGroup(1, "Observation?_profile:below=https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab", Observation, Observation.subject.reference)
 //* insert AddStratifierToGroupWhere(1, 0, Observation.code.coding.where, system='http://loinc.org', "observation-lab-loinc-code" , "lab-loinc")
-* insert AddStratifierToGroup(1, 0, Observation.code.coding.where(system='http://loinc.org'\), "observation-lab-loinc-code" , "lab-loincr")
+* insert AddStratifierToGroup(1, 0, Observation.code.coding.where(system='http://loinc.org'\), "observation-lab-loinc-code" , "lab-loinc")
 
 // Profil Patient
-* insert AddStratifierGroup(2, "Patient?_profile:below=https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Patient", Patient, id)
+* insert AddStratifierGroup(2, "Patient?_profile:below=https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Patient", Patient, Patient.id.value)
 * insert AddStratifierToGroup(2, 0, Patient.gender, "patient-gender" , "patient-gender")
 * insert AddStratifierToGroupWhere(2, 1, Patient.birthDate.exists, , "patient-birthdate-exists" , "patient-birthdate-exists")
 
@@ -62,9 +62,8 @@ Description: "Example Measure to count all ICD-10 codes and the patient count."
 * insert AddStratifierToGroup(8, 0, Encounter.class.coding, "encounter-class-coding" , "encounter-class-coding")
 
 
-
-
-
-
 // Consent
-//TODO
+* insert AddStratifierGroup(9, "Consent?_profile:below=http://fhir.de/ConsentManagement/StructureDefinition/Consent", Consent, Consent.patient.reference)
+* insert AddStratifierToGroup(9, 0, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.20'\), "consent-patientendaten-erheben-speichern-nutzen" , "consent-patientendaten-erheben-speichern-nutzen")
+
+
