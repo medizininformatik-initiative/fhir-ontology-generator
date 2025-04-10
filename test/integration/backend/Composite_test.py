@@ -41,6 +41,8 @@ def test_cql_composite_attributes(test_dir):
     # sometimes the types are not in alphabetical order
     if cql_mapping_json.get("timeRestriction").get("type"):
         cql_mapping_json["timeRestriction"]["type"].sort()
+    if expected.get("timeRestriction").get("type"):
+        expected["timeRestriction"]["type"].sort()
 
     assert (expected == cql_mapping_json)
 
