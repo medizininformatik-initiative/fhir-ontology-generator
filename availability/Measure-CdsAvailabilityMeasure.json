@@ -216,7 +216,7 @@
               }
             ]
           },
-          "id": "lab-loincr"
+          "id": "lab-loinc"
         }
       ],
       "id": "group-1"
@@ -263,7 +263,7 @@
             ]
           },
           "criteria": {
-            "expression": "id",
+            "expression": "Patient.id.value",
             "language": "text/fhirpath"
           },
           "extension": [
@@ -834,6 +834,83 @@
         }
       ],
       "id": "group-8"
+    },
+    {
+      "population": [
+        {
+          "code": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/measure-population",
+                "code": "initial-population"
+              }
+            ]
+          },
+          "criteria": {
+            "expression": "Consent?_profile:below=http://fhir.de/ConsentManagement/StructureDefinition/Consent",
+            "language": "text/x-fhir-query"
+          },
+          "id": "initial-population-identifier"
+        },
+        {
+          "code": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/measure-population",
+                "code": "measure-population"
+              }
+            ]
+          },
+          "criteria": {
+            "expression": "Consent",
+            "language": "text/fhirpath"
+          },
+          "id": "measure-population-identifier"
+        },
+        {
+          "code": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/measure-population",
+                "code": "measure-observation"
+              }
+            ]
+          },
+          "criteria": {
+            "expression": "Consent.patient.reference",
+            "language": "text/fhirpath"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-aggregateMethod",
+              "valueCode": "unique-count"
+            },
+            {
+              "url": "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-criteriaReference",
+              "valueString": "measure-population-identifier"
+            }
+          ],
+          "id": "measure-observation-identifier"
+        }
+      ],
+      "stratifier": [
+        {
+          "criteria": {
+            "language": "text/fhirpath",
+            "expression": "Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.20')"
+          },
+          "code": {
+            "coding": [
+              {
+                "code": "consent-patientendaten-erheben-speichern-nutzen",
+                "system": "http://fhir-data-evaluator/strat/system"
+              }
+            ]
+          },
+          "id": "consent-patientendaten-erheben-speichern-nutzen"
+        }
+      ],
+      "id": "group-9"
     }
   ],
   "status": "active",
