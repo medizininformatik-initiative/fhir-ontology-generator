@@ -4,8 +4,8 @@ import json
 import os
 import shutil
 
-import resources.terminology
 from util.log.functions import get_logger
+from util.project import Project
 from util.sql.SqlMerger import SqlMerger
 
 
@@ -19,64 +19,50 @@ def configure_args_parser():
     arg_parser.add_argument('--merge_sqldump', action='store_true')
     arg_parser.add_argument('--merge_dse', action='store_true')
     arg_parser.add_argument(
-        '-d', '--ontodirs',
-        nargs='+',  # Allows multiple arguments for this option
+        '-dp', '--project',
         required=True,  # Makes this argument required
-        help="List of directory paths to ontologies to be merged"
+        help="Project to merge ontology files for"
     )
-
     arg_parser.add_argument(
         '-s', '--dseontodir',
         required=True,  # Makes this argument required
         help="List of directory paths to ontologies to be merged"
     )
-
-    arg_parser.add_argument(
-        '-o', '--outputdir',
-        required=True,  # Makes this argument required
-        help="output directory for merged ontology"
-    )
-
     return arg_parser
 
 
-def path_for_file(base, filename):
+def path_for_file(base, file_name):
     for root, dir, files in os.walk(base):
-        if filename in files:
-            return os.path.join(root, filename)
-    logger.error(f"no {filename} in {base}")
+        if file_name in files:
+            return os.path.join(root, file_name)
+    logger.error(f"No file {file_name} in {base}")
     quit()
 
 
-def load_ontology_file(ontodir, filename):
-    file_path = path_for_file(ontodir, filename)
-    with open(file_path, "r") as file:
+def load_ontology_file(onto_dir, file_name):
+    file_path = path_for_file(onto_dir, file_name)
+    with open(file_path, mode="r", encoding="utf-8") as file:
         return json.load(file)
 
+
 def write_json_to_file(filepath, object):
-    with open(filepath, "w+") as file:
+    with open(filepath, mode="w+", encoding="utf-8") as file:
         json.dump(object, file)
 
 
-
-def add_system_urls_to_systems_json(merged_ontology_dir, system_urls):
-
+def add_system_urls_to_systems_json(project: Project, system_urls):
     new_terminology_systems = {}
 
-    with (importlib.resources.files(resources.terminology).joinpath('terminology_systems.json')
-                  .open(mode='r', encoding='utf-8') as systems_file):
+    with (open(project.input("terminology") / "terminology_systems.json", mode='r', encoding='utf-8') as systems_file):
         terminology_systems = json.load(systems_file)
 
         for terminology_system in terminology_systems:
             new_terminology_systems[terminology_system['url']] = terminology_system['name']
 
-
         for system_url in list(system_urls):
             if system_url not in new_terminology_systems:
-
                 name = system_url.split("/")[-1]
                 new_terminology_systems[system_url] = name
-
 
         terminology_systems = []
         for key, value in new_terminology_systems.items():
@@ -85,32 +71,33 @@ def add_system_urls_to_systems_json(merged_ontology_dir, system_urls):
                 "name": value
             })
 
-        systems_file.truncate(0)
-        systems_file.seek(0)
+        #systems_file.truncate(0)
+        #systems_file.seek(0)
 
-        json.dump(terminology_systems, systems_file)
+        with open(project.output("terminology") / os.path.basename(systems_file.name),
+                  mode='w', encoding='utf-8') as output_file:
+            json.dump(terminology_systems, output_file)
 
 
 def collect_all_terminology_systems(merged_ontology_dir):
-
     system_urls = set()
 
-    cur_ui_termcode_info_dir = f'{merged_ontology_dir}/term-code-info'
-    for filename in os.listdir(cur_ui_termcode_info_dir):
-        with open(f'{cur_ui_termcode_info_dir}/{filename}', "r") as termcode_info_file:
+    cur_ui_termcode_info_dir = os.path.join(merged_ontology_dir, "term-code-info")
+    for file_name in os.listdir(cur_ui_termcode_info_dir):
+        with open(os.path.join(cur_ui_termcode_info_dir, file_name), mode="r", encoding="utf-8") as termcode_info_file:
             termcode_infos = json.load(termcode_info_file)
 
             for termcode_info in termcode_infos:
                 system_url = termcode_info["term_code"]["system"]
                 system_urls.add(system_url)
 
-    cur_ui_value_set_dir = f'{merged_ontology_dir}/value-sets'
-    for filename in os.listdir(cur_ui_value_set_dir):
+    cur_ui_value_set_dir = os.path.join(merged_ontology_dir, "value-sets")
+    for file_name in os.listdir(cur_ui_value_set_dir):
 
-        if not filename.endswith(".json"):
+        if not file_name.endswith(".json"):
             continue
 
-        with open(f'{cur_ui_value_set_dir}/{filename}', "r") as value_set_file:
+        with open(os.path.join(cur_ui_value_set_dir, file_name), mode="r", encoding="utf-8") as value_set_file:
 
             value_set = json.load(value_set_file)
 
@@ -125,80 +112,83 @@ def collect_all_terminology_systems(merged_ontology_dir):
 
 
 if __name__ == '__main__':
-
     parser = configure_args_parser()
     args = parser.parse_args()
 
-    logger.info(f"# Starting fhir ontology merger")
+    logger.info("Running FHIR Ontology Merger")
+    logger.info(f"Merging ontologies for project '{args.project}'")
 
-    logger.info(f"Merging ontologies from folders: {args.ontodirs}")
+    project = Project(args.project)
+    modules_dir = project.output("modules")
+    module_dirs = list(map(lambda d: d.path, filter(lambda e: e.is_dir(), os.scandir(modules_dir))))
+    output_dir = project.output("merged_ontology")
 
     if args.merge_mappings:
-
+        logger.info("Merging CCDL mappings")
         mapping_cql = []
         mapping_fhir = []
         mapping_tree = []
 
-        for ontodir in args.ontodirs:
-            mapping_cql = mapping_cql + load_ontology_file(ontodir, "mapping_cql.json")
-            mapping_fhir = mapping_fhir + load_ontology_file(ontodir, "mapping_fhir.json")
+        for module_dir in module_dirs:
+            mapping_cql = mapping_cql + load_ontology_file(module_dir, "mapping_cql.json")
+            mapping_fhir = mapping_fhir + load_ontology_file(module_dir, "mapping_fhir.json")
 
-            cur_ui_tree_dir = f'{ontodir}/ui-trees'
+            cur_ui_tree_dir = os.path.join(module_dir, "ui-trees")
             for filename in os.listdir(cur_ui_tree_dir):
                 cur_mapping_tree = load_ontology_file(cur_ui_tree_dir, filename)
                 mapping_tree.extend(cur_mapping_tree)
 
-        cql_dir = f"{args.outputdir}/mapping/cql"
-        fhir_dir = f"{args.outputdir}/mapping/fhir"
+        cql_dir = os.path.join(output_dir, "mapping", "cql")
+        fhir_dir = os.path.join(output_dir, "mapping", "fhir")
         os.makedirs(cql_dir, exist_ok=True)
         os.makedirs(fhir_dir, exist_ok=True)
 
-        write_json_to_file(f"{cql_dir}/mapping_cql.json", mapping_cql)
-        write_json_to_file(f"{fhir_dir}/mapping_fhir.json", mapping_fhir)
-        write_json_to_file(f"{args.outputdir}/mapping/mapping_tree.json", mapping_tree)
+        write_json_to_file(os.path.join(cql_dir, "mapping_cql.json"), mapping_cql)
+        write_json_to_file(os.path.join(fhir_dir, "mapping_fhir.json"), mapping_fhir)
+        write_json_to_file(os.path.join(output_dir, "mapping", "mapping_tree.json"), mapping_tree)
 
     if args.merge_uitrees:
-
-        output_ui_tree_dir = f'{args.outputdir}/ui-trees'
+        logger.info("Merging UI trees")
+        output_ui_tree_dir = os.path.join(output_dir, "ui-trees")
         os.makedirs(output_ui_tree_dir, exist_ok=True)
 
-        output_ui_termcode_info_dir = f'{args.outputdir}/term-code-info'
+        output_ui_termcode_info_dir = os.path.join(output_dir, "term-code-info")
         os.makedirs(output_ui_termcode_info_dir, exist_ok=True)
 
-        output_crit_set_dir = f'{args.outputdir}/criteria-sets'
+        output_crit_set_dir = os.path.join(output_dir, "criteria-sets")
         os.makedirs(output_crit_set_dir, exist_ok=True)
 
-        output_value_set_dir = f'{args.outputdir}/value-sets'
+        output_value_set_dir = os.path.join(output_dir, "value-sets")
         os.makedirs(output_value_set_dir, exist_ok=True)
 
-        for ontodir in args.ontodirs:
-
-            cur_ui_tree_dir = f'{ontodir}/ui-trees'
+        for module_dir in module_dirs:
+            cur_ui_tree_dir = os.path.join(module_dir, "ui-trees")
             for filename in os.listdir(cur_ui_tree_dir):
-                shutil.copy(f'{cur_ui_tree_dir}/{filename}', f'{output_ui_tree_dir}/{filename}')
+                shutil.copy(os.path.join(cur_ui_tree_dir, filename), os.path.join(output_ui_tree_dir, filename))
 
-            cur_ui_termcode_info_dir = f'{ontodir}/term-code-info'
+            cur_ui_termcode_info_dir = os.path.join(module_dir, "term-code-info")
             for filename in os.listdir(cur_ui_termcode_info_dir):
-                shutil.copy(f'{cur_ui_termcode_info_dir}/{filename}', f'{output_ui_termcode_info_dir}/{filename}')
+                shutil.copy(os.path.join(cur_ui_termcode_info_dir, filename),
+                            os.path.join(output_ui_termcode_info_dir, filename))
 
-            cur_crit_set_dir = f'{ontodir}/criteria-sets'
+            cur_crit_set_dir = os.path.join(module_dir, "criteria-sets")
             for filename in os.listdir(cur_crit_set_dir):
-                shutil.copy(f'{cur_crit_set_dir}/{filename}', f'{output_crit_set_dir}/{filename}')
+                shutil.copy(os.path.join(cur_crit_set_dir, filename), os.path.join(output_crit_set_dir, filename))
 
-            cur_value_set_dir = f'{ontodir}/value-sets'
+            cur_value_set_dir = os.path.join(module_dir, "value-sets")
             for filename in os.listdir(cur_value_set_dir):
-                shutil.copy(f'{cur_value_set_dir}/{filename}', f'{output_value_set_dir}/{filename}')
+                shutil.copy(os.path.join(cur_value_set_dir, filename), os.path.join(output_value_set_dir, filename))
 
     if args.merge_sqldump:
-
-        output_sql_script_dir = f'{args.outputdir}/sql_scripts'
+        logger.info("Merging SQL dumps")
+        output_sql_script_dir = os.path.join(output_dir, "sql_scripts")
         sql_script_index = 0
         os.makedirs(output_sql_script_dir, exist_ok=True)
 
-        for ontodir in args.ontodirs:
-            cur_sql_file_path = path_for_file(ontodir, "R__Load_latest_ui_profile.sql")
-            shutil.copy(f'{cur_sql_file_path}',
-                        f'{output_sql_script_dir}/R__Load_latest_ui_profile_{str(sql_script_index)}.sql')
+        for module_dir in module_dirs:
+            cur_sql_file_path = path_for_file(module_dir, "R__Load_latest_ui_profile.sql")
+            shutil.copy(str(cur_sql_file_path),
+                        os.path.join(output_sql_script_dir, "R__Load_latest_ui_profile_{str(sql_script_index)}.sql"))
 
             sql_script_index += 1
 
@@ -207,31 +197,30 @@ if __name__ == '__main__':
         sql_merger.shutdown()
 
     if args.merge_dse:
-
-        output_value_set_dir = f'{args.outputdir}/value-sets'
+        logger.info("Merging DSE content")
+        output_value_set_dir = os.path.join(output_dir, "value-sets")
         os.makedirs(output_value_set_dir, exist_ok=True)
-        cur_value_set_dir = f'{args.dseontodir}/value-sets'
+        cur_value_set_dir = os.path.join(args.dseontodir, "value-sets")
 
         for filename in os.listdir(cur_value_set_dir):
-            shutil.copy(f'{cur_value_set_dir}/{filename}', f'{output_value_set_dir}/{filename}')
+            shutil.copy(os.path.join(cur_value_set_dir, filename), os.path.join(output_value_set_dir, filename))
 
         cur_sql_file_path = path_for_file(args.dseontodir, "R__load_latest_dse_profiles.sql")
-        output_sql_script_dir = f'{args.outputdir}/sql_scripts'
+        output_sql_script_dir = os.path.join(output_dir, "sql_scripts")
         os.makedirs(output_sql_script_dir, exist_ok=True)
-        shutil.copy(f'{cur_sql_file_path}',
-                    f'{output_sql_script_dir}/R__load_latest_dse_profiles.sql')
+        shutil.copy(str(cur_sql_file_path),
+                    os.path.join(output_sql_script_dir, "R__load_latest_dse_profiles.sql"))
 
         cur_dse_tree_path = path_for_file(args.dseontodir, "profile_tree.json")
 
-        shutil.copy(f'{cur_dse_tree_path}',
-                    f'{args.outputdir}/profile_tree.json')
+        shutil.copy(str(cur_dse_tree_path),
+                    os.path.join(output_dir, "profile_tree.json"))
 
         cur_dse_mapping_tree_path = path_for_file(args.dseontodir, "dse_mapping_tree.json")
 
-        shutil.copy(f'{cur_dse_mapping_tree_path}',
-                    f'{args.outputdir}/mapping/dse_mapping_tree.json')
+        shutil.copy(str(cur_dse_mapping_tree_path),
+                    os.path.join(output_dir, "mapping", "dse_mapping_tree.json"))
 
+    system_urls = collect_all_terminology_systems(output_dir)
 
-    system_urls = collect_all_terminology_systems(args.outputdir)
-
-    add_system_urls_to_systems_json(args.outputdir, system_urls)
+    add_system_urls_to_systems_json(project, system_urls)

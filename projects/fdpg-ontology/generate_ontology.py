@@ -15,19 +15,17 @@ import resources.schema
 
 from core.CQLMappingGenerator import CQLMappingGenerator
 from core.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
-from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
-from core.SearchParameterResolver import SearchParameterResolver
+from core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver, StandardDataSetQueryingMetaDataResolver
+from core.resolvers.search_parameter import SearchParameterResolver, StandardSearchParameterResolver
 from core.UIProfileGenerator import UIProfileGenerator
 from core.UITreeGenerator import UITreeGenerator
 from database.DataBaseWriter import DataBaseWriter
 from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, mkdir_if_not_exists
 from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList
-from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import UIProfile
 from model.UiDataModel import TermCode
 from core.docker.Images import POSTGRES_IMAGE
 from util.log.functions import get_logger
-from util.ontology.OntologyMergeUtil import write_json_to_file
 from util.project import Project
 
 logger = get_logger(__file__)
@@ -39,65 +37,6 @@ INPUT_DIR = PROJECT / "input"
 OUTPUT_DIR = PROJECT / "output"
 MODULES_DIR = os.path.join(INPUT_DIR, "modules")
 
-class StandardDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
-    def __init__(self):
-        super().__init__()
-
-    @staticmethod
-    def _load_profile_to_metadata_mapping(module_name) -> Dict[str, List[str]]:
-        """
-        Loads the profile to metadata mapping from a JSON file.
-        :return: A dictionary mapping profile names to lists of metadata names.
-        """
-        mapping_file = os.path.join(MODULES_DIR, module_name, "profile_to_query_meta_data_resolver_mapping.json")
-        with open(mapping_file, "r") as f:
-            return json.load(f)
-
-    def get_query_meta_data(
-        self, fhir_profile_snapshot: dict, module_name, _context: TermCode = None
-    ) -> List[ResourceQueryingMetaData]:
-        """
-        Retrieves query metadata for a given FHIR profile snapshot.
-        :param fhir_profile_snapshot: The FHIR profile snapshot.
-        :param _context: The context term code (unused in this implementation).
-        :return: A list of ResourceQueryingMetaData objects.
-        """
-        result = []
-        profile_name = fhir_profile_snapshot.get("name")
-        self.profile_to_metadata_mapping = self._load_profile_to_metadata_mapping(module_name)
-        if profile_name in self.profile_to_metadata_mapping:
-            for metadata_name in self.profile_to_metadata_mapping[profile_name]:
-                metadata_file = os.path.join(MODULES_DIR, module_name, "QueryingMetaData", f"{metadata_name}QueryingMetaData.json")
-                with open(metadata_file, "r") as file:
-                    result.append(ResourceQueryingMetaData.from_json(file))
-        else:
-            logger.warning(f"No query metadata mapping found for profile: {profile_name}")
-        return result
-
-
-class StandardSearchParameterResolver(SearchParameterResolver):
-    def __init__(self, module_name: str):
-        self.module_name = module_name
-        super().__init__()
-    def _load_module_search_parameters(self) -> List[Dict]:
-        """
-        Loads module-specific search parameters from JSON files.
-        :return: A list of search parameter dictionaries.
-        """
-        params = []
-        search_param_dir = os.path.join(MODULES_DIR, self.module_name, "search_parameter")
-        search_param_dir_path = Path(search_param_dir)
-
-        if not search_param_dir_path.exists() or not search_param_dir_path.is_dir():
-            return params
-
-        for filename in os.listdir(search_param_dir):
-            if filename.endswith(".json"):
-                file_path = os.path.join(search_param_dir, filename)
-                with open(file_path, "r", encoding="utf-8") as f:
-                    params.append(json.load(f))
-
-        return params
 
 def validate_fhir_mapping(mapping_name: str):
     """
@@ -326,9 +265,7 @@ def generate_fhir_snapshots(differential_folder: str, required_packages: List[Di
     generate_snapshots(differential_folder, required_packages)
 
 
-def generate_ui_trees(
-    resolver: ResourceQueryingMetaDataResolver, onto_result_dir: str, module_name: str
-):
+def generate_ui_trees(resolver: ResourceQueryingMetaDataResolver, onto_result_dir: str, module_name: str):
     """
     Generates UI trees and writes them to files.
     :param resolver: An instance of ResourceQueryingMetaDataResolver.
@@ -396,9 +333,7 @@ def dump_database(container: docker.models.containers.Container, module_director
     )
     logger.info("Database dumped to R__Load_latest_ui_profile.sql")
 
-def generate_cql_mapping(
-    resolver: ResourceQueryingMetaDataResolver, onto_result_dir: str, module_name: str
-):
+def generate_cql_mapping(resolver: ResourceQueryingMetaDataResolver, onto_result_dir: str, module_name: str):
     """
     Generates CQL mappings and writes them to files.
     :param resolver: An instance of ResourceQueryingMetaDataResolver.
@@ -406,13 +341,13 @@ def generate_cql_mapping(
     :param module_name: Name of the module to generate CQL mapping for
     """
     try:
-        logger.info("Generating CQL mapping...")
+        logger.info("Generating CQL mapping")
         cql_generator = CQLMappingGenerator(PROJECT, resolver)
         cql_term_code_mappings, cql_concept_mappings = cql_generator.generate_mapping(module_name)
         cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
         cql_mapping_file = os.path.join(onto_result_dir, 'mapping', 'cql', 'mapping_cql.json')
         os.makedirs(os.path.dirname(cql_mapping_file), exist_ok=True)
-        with open(cql_mapping_file, 'w', encoding='utf-8') as f:
+        with open(cql_mapping_file, mode='w', encoding='utf-8') as f:
             f.write(cql_mappings.to_json())
     except Exception as exc:
         raise Exception("CQL mapping generation failed. No mapping will be emitted", exc)
@@ -421,17 +356,16 @@ def generate_cql_mapping(
 def generate_fhir_mapping(
     resolver: ResourceQueryingMetaDataResolver,
     onto_result_dir: str,
-    search_parameter_resolver: SearchParameterResolver,
     module_name: str
 ):
     """
     Generates FHIR mappings and writes them to files.
     :param resolver: An instance of ResourceQueryingMetaDataResolver.
     :param onto_result_dir: The base directory for output files.
-    :param search_parameter_resolver: An instance of SearchParameterResolver.
     :param module_name: The name of the module to generate FHIR mapping for
     """
-    logger.info("Generating FHIR mapping...")
+    logger.info("Generating FHIR mapping")
+    search_parameter_resolver = StandardSearchParameterResolver(PROJECT.input("modules", module_name))
     fhir_search_generator = FHIRSearchMappingGenerator(PROJECT, resolver, search_parameter_resolver)
     fhir_search_term_code_mappings, fhir_search_concept_mappings = fhir_search_generator.generate_mapping(
         module_name
@@ -473,7 +407,7 @@ def main():
                 if args.generate_snapshot:
                     generate_snapshots(os.path.join(MODULES_DIR, module), required_packages)
 
-            resolver = StandardDataSetQueryingMetaDataResolver()
+            resolver = StandardDataSetQueryingMetaDataResolver(PROJECT)
             if args.generate_ui_trees:
                 generate_ui_trees(resolver, output_module_directory, module)
 
@@ -483,7 +417,7 @@ def main():
             if args.generate_mapping:
                 generate_cql_mapping(resolver, output_module_directory, module)
                 generate_fhir_mapping(
-                    resolver, output_module_directory, StandardSearchParameterResolver(module), module
+                    resolver, output_module_directory, module
                 )
 
         except Exception as e:

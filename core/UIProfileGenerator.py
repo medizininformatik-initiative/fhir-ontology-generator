@@ -5,7 +5,7 @@ import os
 from typing import Dict, Tuple, List
 
 from TerminologService.ValueSetResolver import get_termcodes_from_onto_server
-from core import ResourceQueryingMetaDataResolver
+from core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
 from core import StructureDefinitionParser as FHIRParser
 from core.StructureDefinitionParser import InvalidValueTypeException, UCUM_SYSTEM, get_binding_value_set_url, \
     ProcessedElementResult, get_fixed_term_codes, FHIR_TYPES_TO_VALUE_TYPES, extract_value_type

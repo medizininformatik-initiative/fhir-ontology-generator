@@ -5,7 +5,7 @@ import os
 from typing import Tuple, List, Dict
 
 from core import StructureDefinitionParser as FHIRParser
-from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
+from core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
 from core.StructureDefinitionParser import resolve_defining_id, extract_value_type
 from helper import generate_attribute_key
 from model.MappingDataModel import PathlingMapping, PathlingAttributeSearchParameter

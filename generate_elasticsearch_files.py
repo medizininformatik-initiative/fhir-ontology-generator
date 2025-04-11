@@ -1,24 +1,25 @@
 import argparse
-from email.policy import default
 
 from core.ElasticSearchBulkGenerator import ElasticSearchGenerator
-from core.StructureDefinitionParser import parse
+from util.log.functions import get_logger
+from util.project import Project
+
+logger = get_logger(__file__)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ontology_dir', type=str)
-    parser.add_argument('--availability_input_dir', type=str)
+    parser.add_argument('--project', type=str,
+                        help="Name of the project to generate Elasticsearch file for")
     parser.add_argument('--generate_availability', action='store_true')
-    parser.add_argument('--code_system_translations_folder', type=str, default='projectsprojects/code_systems_translations')
-    parser.add_argument('--base_translation_config', type=str,
-                        default='projects/fdpg-ontology/resources/translation/base_translations.json')
     parser.add_argument('--update_translation_supplements', action='store_true')
 
     args = parser.parse_args()
-    ElasticSearchGenerator.generate_elasticsearch_files(ontology_dir=args.ontology_dir,
-                                                        generate_availability=args.generate_availability,
-                                                        availability_input_dir=args.availability_input_dir,
-                                                        code_system_translations_folder=args.code_system_translations_folder,
-                                                        base_translation_conf=args.base_translation_config,
-                                                        update_translation_supplements=args.update_translation_supplements
-                                                        )
+
+    logger.info("Generating Elasticsearch files")
+
+    project = Project(name=args.project)
+
+    generator = ElasticSearchGenerator(project)
+    generator.generate_elasticsearch_files(generate_availability=args.generate_availability,
+                                           update_translation_supplements=args.update_translation_supplements)

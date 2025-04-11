@@ -3,7 +3,7 @@ from typing import Optional
 from datetime import datetime
 from requests import Session
 from requests.auth import AuthBase
-from util.log import get_class_logger
+from util.log.functions import get_class_logger
 
 
 class OAuthClientCredentials(AuthBase):

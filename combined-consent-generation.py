@@ -1,5 +1,7 @@
 import csv
 import json
+from pathlib import Path
+
 from model.UiDataModel import TermCode
 from model.MappingDataModel import FhirMapping, FixedFHIRCriteria, CQLTimeRestrictionParameter, SimpleCardinality
 from model.MappingDataModel import CQLMapping, FixedCQLCriteria
@@ -8,6 +10,10 @@ import argparse
 import os
 
 from util.codec.json import JSONFhirOntoEncoder
+from util.log.functions import get_logger
+from util.project import Project
+
+logger = get_logger(__file__)
 
 
 def configure_args_parser():
@@ -15,27 +21,17 @@ def configure_args_parser():
 
     arg_parser.add_argument('--merge_mappings', action='store_true')
     arg_parser.add_argument(
-         '--consentinputdir',
+         '--project',
         required=True,
-        help="List of directory paths to ontologies to be merged"
-    )
-    arg_parser.add_argument(
-         '--mergedontodir',
-        required=True,
-        help="output directory for merged ontology"
-    )
-    arg_parser.add_argument(
-        '--log-level',
-        type=str,
-        default='DEBUG',
-        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
-        help="Set the log level"
+        help="Project to generate for"
     )
 
     return arg_parser
 
+
 def bool_value(value: str) -> bool:
     return value.lower() == "yes"
+
 
 def generate_key(distributed_analysis, eu_gdpr, insurance_data, contact) -> str:
     return ":".join([distributed_analysis, eu_gdpr, insurance_data, contact])
@@ -46,7 +42,6 @@ def convert_bool_analysis_to_code(distributed_analysis, eu_gdpr, insurance_data,
 
 
 def generate_fixed_fhir_criteria(provisions_code, provisions_display) -> list[FixedFHIRCriteria]:
-
     return [FixedFHIRCriteria("coding", "mii-provision-provision-code",
             [{"code": code, "display": display, "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3"}])
             for code, display in zip(provisions_code, provisions_display)]
@@ -58,7 +53,7 @@ def generate_fixed_cql_criteria(provisions_code, provisions_display) -> list[Fix
             for code, display in zip(provisions_code, provisions_display)]
 
 
-def process_csv(csv_file: str):
+def process_csv(csv_file: str | Path):
     lookup_table = {}
     consents_fhir = []
     consents_cql = []
@@ -114,16 +109,17 @@ def process_csv(csv_file: str):
     return consents_fhir, consents_cql, consent_mapping_tree, lookup_table
 
 
-def save_json(filename: str, data):
-    with open(filename, "w+", encoding='UTF-8') as f:
+def save_json(file: str | Path, data):
+    os.makedirs(os.path.dirname(file), exist_ok=True)
+    with open(file, mode="w+", encoding='UTF-8') as f:
         json.dump(data, f, cls=JSONFhirOntoEncoder)
 
 
-def append_to_json(filename: str, input_filename: str, data):
-    with open(input_filename, "r", encoding='UTF-8') as f:
+def append_to_json(output_file: str | Path, input_file: str | Path, data):
+    with open(input_file, mode="r", encoding='UTF-8') as f:
         existing_data = json.load(f)
         existing_data.extend(data)
-    save_json(filename, existing_data)
+    save_json(output_file, existing_data)
 
 
 def generate_js_lookup_table(lookup_table: dict) -> str:
@@ -134,21 +130,34 @@ def generate_js_lookup_table(lookup_table: dict) -> str:
 
 
 if __name__ == "__main__":
-
     args = configure_args_parser().parse_args()
 
-    merged_ontology_dir = args.mergedontodir
-    consent_input_dir = args.consentinputdir
+    project = Project(name=args.project)
 
-    consents_fhir, consents_cql, consent_mapping_tree, lookup_table = process_csv(os.path.join(consent_input_dir, "csv-consent.csv"))
-    save_json(f"{consent_input_dir}/consent-mappings_fhir.json", consents_fhir)
-    save_json(f"{consent_input_dir}/consent-mappings_cql.json", consents_cql)
-    save_json(f"{consent_input_dir}/consent-mappings-tree.json", consent_mapping_tree.to_dict())
+    logger.info(f"Running combined consent generation for project '{project.name}'")
 
-    with open(f"{consent_input_dir}/consent-js-lookup-table.js", "w+", encoding='UTF-8') as f:
+    consent_input_dir = project.input("consent")
+    consent_output_dir = project.output("consent")
+    output_dir = project.output("merged_ontology", "mapping")
+
+    input_file = consent_input_dir / "csv-consent.csv"
+    logger.info(f"Processing input data @ {input_file}")
+    consents_fhir, consents_cql, consent_mapping_tree, lookup_table = process_csv(input_file)
+
+    logger.info("Storing generated consent mappings")
+    save_json(consent_output_dir / "consent-mappings_fhir.json", consents_fhir)
+    save_json(consent_output_dir / "consent-mappings_cql.json", consents_cql)
+    save_json(consent_output_dir / "consent-mappings-tree.json", consent_mapping_tree.to_dict())
+
+    logger.info("Generating lookup table")
+    with open(consent_output_dir / "consent-js-lookup-table.js", mode="w+", encoding='UTF-8') as f:
         f.write(generate_js_lookup_table(lookup_table))
 
     if args.merge_mappings:
-        append_to_json(f"{merged_ontology_dir}/mapping/cql/mapping_cql.json", f"{merged_ontology_dir}/mapping/cql/mapping_cql.json", consents_cql)
-        append_to_json(f"{merged_ontology_dir}/mapping/fhir/mapping_fhir.json", f"{merged_ontology_dir}/mapping/fhir/mapping_fhir.json", consents_fhir)
-        append_to_json(f"{merged_ontology_dir}/mapping/mapping_tree.json", f"{merged_ontology_dir}/mapping/mapping_tree.json",[consent_mapping_tree.to_dict()])
+        logger.info("Merging consent mappings")
+        append_to_json(output_dir / "cql" / "mapping_cql.json", output_dir / "cql" / "mapping_cql.json",
+                       consents_cql)
+        append_to_json(output_dir / "fhir" / "mapping_fhir.json", output_dir / "fhir" / "mapping_fhir.json",
+                       consents_fhir)
+        append_to_json(output_dir / "mapping_tree.json", output_dir / "mapping_tree.json",
+                       [consent_mapping_tree.to_dict()])

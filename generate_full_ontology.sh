@@ -33,7 +33,7 @@ should_run_step() {
 }
 
 if $delete_folders; then
-    OUT_FOLDER_DIR="$BASE_DIR/projects/fdpg-ontology"
+    OUT_FOLDER_DIR="$BASE_DIR/projects/fdpg-ontology/output"
     folders=("$OUT_FOLDER_DIR/criteria-sets" "$OUT_FOLDER_DIR/elastic" "$OUT_FOLDER_DIR/mapping" "$OUT_FOLDER_DIR/sql_scripts" "$OUT_FOLDER_DIR/term-code-info" "$OUT_FOLDER_DIR/ui-trees" "$OUT_FOLDER_DIR/value-sets")
     for folder in "${folders[@]}"; do
         [ -d "$folder" ] && rm -r "$folder" && echo "Deleted $folder" || echo "$folder does not exist"
@@ -44,7 +44,7 @@ fi
 # Step 1: Generating cohort selection ontology
 if should_run_step 1; then
     printf "\n#################\nStep 1: Generating cohort selection ontology\n#################\n"
-    cd "$BASE_DIR/projects/mii_core_data_set" || exit 1
+    cd "$BASE_DIR/projects/fdpg-ontology" || exit 1
     python3 generate_ontology.py --generate_ui_trees --generate_ui_profiles --generate_mapping
 fi
 
@@ -57,19 +57,11 @@ fi
 
 # Step 3: Merging Ontologies into fdpg-ontology
 if should_run_step 3; then
-    printf "\n#################\nStep 3: Merging Ontologies into fdpg-ontology\n#################\n"
+    printf "\n#################\nStep 3: Merging Ontologies for project 'fdpg-ontology'\n#################\n"
     cd "$BASE_DIR/util/ontology" || exit 1
     python3 OntologyMergeUtil.py --merge_mappings --merge_uitrees --merge_sqldump --merge_dse \
      --dseontodir "$BASE_DIR/dse/generated" \
-     --outputdir "$BASE_DIR/projects/fdpg-ontology" \
-     --ontodirs "$BASE_DIR/projects/mii_core_data_set/CDS_Module/Diagnose/generated-ontology" \
-     "$BASE_DIR/projects/mii_core_data_set/CDS_Module/Bioprobe/generated-ontology" \
-     "$BASE_DIR/projects/mii_core_data_set/CDS_Module/Person/generated-ontology" \
-     "$BASE_DIR/projects/mii_core_data_set/CDS_Module/Fall/generated-ontology" \
-     "$BASE_DIR/projects/mii_core_data_set/CDS_Module/Labor/generated-ontology" \
-     "$BASE_DIR/projects/mii_core_data_set/CDS_Module/Medikation/generated-ontology" \
-     "$BASE_DIR/projects/mii_core_data_set/CDS_Module/Prozedur/generated-ontology" \
-     "$BASE_DIR/projects/mii_core_data_set/CDS_Module/Einwilligung/generated-ontology"
+     --project "fdpg-ontology"
 fi
 
 # Step 4: Generating and merging in combined consent
@@ -77,8 +69,7 @@ if should_run_step 4; then
     printf "\n#################\nStep 4: Generating and merging in combined consent\n#################\n"
     cd "$BASE_DIR" || exit 1
     python3 combined-consent-generation.py --merge_mappings \
-     --consentinputdir "$BASE_DIR/projects/mii-consent-generation" \
-     --mergedontodir "$BASE_DIR/projects/fdpg-ontology"
+     --project "fdpg-ontology"
 fi
 
 # Step 5: Generating Elastic Search files
@@ -86,7 +77,7 @@ if should_run_step 5; then
     printf "\n#################\nStep 5: Generating Elastic Search files\n#################\n"
     cd "$BASE_DIR" || exit 1
     python3 generate_elasticsearch_files.py \
-     --ontology_dir "$BASE_DIR/projects/fdpg-ontology" \
+     --project "fdpg-ontology" \
      --update_translation_supplements
 fi
 

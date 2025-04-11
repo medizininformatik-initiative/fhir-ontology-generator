@@ -4,18 +4,23 @@ import re
 import docker
 import time
 import psycopg2
+import resources.sql
 
 from core.docker.Images import POSTGRES_IMAGE
 from util.log.functions import get_logger
 
+from importlib.resources import files
+
+
 logger = get_logger(__file__)
+sql_resources_dir = files(resources.sql)
 
 
 def insert_content(base_file, content_to_insert, insert_after='SET row_security = off;'):
-    with open(content_to_insert, 'r',encoding="UTF-8") as inserted_content_file:
+    with open(content_to_insert, 'r', encoding="UTF-8") as inserted_content_file:
         inserted_content = inserted_content_file.read()
 
-    with open(base_file, 'r',encoding="UTF-8") as target_file:
+    with open(base_file, 'r', encoding="UTF-8") as target_file:
         base_content = target_file.readlines()
 
     if insert_after is not None:
@@ -37,14 +42,13 @@ def insert_content(base_file, content_to_insert, insert_after='SET row_security 
 
 
 class SqlMerger:
-
     def __init__(self,
                  container_name='pg_container',
                  db_name='merge_db',
                  db_user='dbuser',
                  db_password='dbpassword',
                  db_port=5430,
-                 sql_init_script_dir='../../resources/sql-scripts',
+                 sql_init_script_dir='../../resources/sql',
                  sql_script_dir='source',
                  sql_mapped_dir='/tmp/sql',
                  repeatable_scripts_prefix='R__Load_latest_ui_profile_'
@@ -65,9 +69,9 @@ class SqlMerger:
 
     def shutdown(self):
         if self.conn:
-            logger.debug('closing db connection')
+            logger.debug('Closing database connection')
             self.conn.close()
-        logger.debug('shutting down container')
+        logger.debug('Shutting down container')
         self.db_container.stop()
         self.db_container.remove()
 
@@ -103,7 +107,7 @@ class SqlMerger:
                     port=self.db_port,
                 )
             except psycopg2.OperationalError as e:
-                logger.info("Connection failed, retrying...")
+                logger.info("Connection failed => Retrying")
                 time.sleep(5)
 
     def setup_container_and_get_connection(self):
@@ -113,12 +117,12 @@ class SqlMerger:
 
     def populate_db(self):
         # init empty public schema (ddl only)
-        with open(f"{self.sql_init_script_dir}/init.sql", 'r',encoding="UTF-8") as template, open(
-                f"{self.sql_script_dir}/public_init.sql", 'w',encoding="UTF-8") as target:
+        with (sql_resources_dir.joinpath("init.sql").open(mode='r', encoding="UTF-8") as template,
+              open(os.path.join(self.sql_script_dir, "public_init.sql"), mode='w', encoding="UTF-8") as target):
             target.write(template.read())
 
-        with open(f"{self.sql_init_script_dir}/create_functions.sql", 'r',encoding="UTF-8") as template, open(
-                f"{self.sql_script_dir}/public_create_functions.sql", 'w',encoding="UTF-8") as target:
+        with (sql_resources_dir.joinpath("create_functions.sql").open(mode='r', encoding="UTF-8") as template,
+              open(os.path.join(self.sql_script_dir, "public_create_functions.sql"), mode='w', encoding="UTF-8") as target):
             target.write(template.read())
 
         cmd = f"sh -c 'psql -U {self.db_user} -d {self.db_name} < {self.sql_mapped_dir}/public_init.sql'"
@@ -128,8 +132,8 @@ class SqlMerger:
         cmd = f"sh -c 'psql -U {self.db_user} -d {self.db_name} < {self.sql_mapped_dir}/public_create_functions.sql'"
         self.db_container.exec_run(cmd=cmd)
 
-        os.remove(f"{self.sql_script_dir}/public_init.sql")
-        os.remove(f"{self.sql_script_dir}/public_create_functions.sql")
+        os.remove(os.path.join(self.sql_script_dir, "public_init.sql"))
+        os.remove(os.path.join(self.sql_script_dir, "public_create_functions.sql"))
 
         # create and populate schemas for each load_ui_profile file
         for filename in os.listdir(self.sql_script_dir):
@@ -138,8 +142,8 @@ class SqlMerger:
                     db_index = self.pattern.search(filename).group(1)
                     schema_name = f"import_{db_index}"
                     # initialize the db
-                    with open(f"{self.sql_init_script_dir}/init.sql", 'r',encoding="UTF-8") as template, open(
-                            f"{self.sql_script_dir}/init_{db_index}.sql", 'w',encoding="UTF-8") as target:
+                    with (sql_resources_dir.joinpath("init.sql").open(mode='r' ,encoding="UTF-8") as template, open(
+                            os.path.join(self.sql_script_dir, f"init_{db_index}.sql"), mode='w' ,encoding="UTF-8") as target):
                         target.write(f"CREATE schema {schema_name};\n")
                         target.write(f"SET search_path TO {schema_name};\n\n")
                         target.write(template.read())
@@ -148,29 +152,29 @@ class SqlMerger:
                     time.sleep(5)
                     logger.debug(f"Executing command {cmd}")
                     self.db_container.exec_run(cmd=cmd)
-                    os.remove(f"{self.sql_script_dir}/init_{db_index}.sql")
+                    os.remove(os.path.join(self.sql_script_dir, f"init_{db_index}.sql"))
 
                     # import the data
-                    with open(f"{self.sql_script_dir}/{filename}", 'r', encoding="UTF-8") as template, open(
-                            f"{self.sql_script_dir}/modified_{filename}", 'w',encoding="UTF-8") as target:
+                    with open(os.path.join(self.sql_script_dir, filename), mode='r', encoding="UTF-8") as template, open(
+                            os.path.join(self.sql_script_dir, f"modified_{filename}"), mode='w',encoding="UTF-8") as target:
                         target.write(template.read().replace('public.', f'{schema_name}.'))
                     cmd = f"sh -c 'psql -U {self.db_user} -d {self.db_name} < {self.sql_mapped_dir}/modified_{filename}'"
                     time.sleep(5)
                     logger.debug(f"Executing command {cmd}")
                     self.db_container.exec_run(cmd=cmd)
-                    os.remove(f"{self.sql_script_dir}/{filename}")
-                    os.remove(f"{self.sql_script_dir}/modified_{filename}")
+                    os.remove(os.path.join(self.sql_script_dir, filename))
+                    os.remove(os.path.join(self.sql_script_dir, f"modified_{filename}"))
 
                     # remove fk constraints
-                    with open(f"{self.sql_init_script_dir}/remove_fk_constraints.sql", 'r',encoding="UTF-8") as template, open(
-                            f"{self.sql_script_dir}/modified_remove_fk_constraints.sql", 'w',encoding="UTF-8") as target:
+                    with sql_resources_dir.joinpath("remove_fk_constraints.sql").open(mode='r',encoding="UTF-8") as template, open(
+                            os.path.join(self.sql_script_dir, "modified_remove_fk_constraints.sql"), mode='w',encoding="UTF-8") as target:
                         target.write(f"SET search_path TO {schema_name};\n\n")
                         target.write(template.read())
                     cmd = f"sh -c 'psql -U {self.db_user} -d {self.db_name} < {self.sql_mapped_dir}/modified_remove_fk_constraints.sql'"
                     time.sleep(5)
                     logger.debug(f"Executing command {cmd}")
                     self.db_container.exec_run(cmd=cmd)
-                    os.remove(f"{self.sql_script_dir}/modified_remove_fk_constraints.sql")
+                    os.remove(os.path.join(self.sql_script_dir, "modified_remove_fk_constraints.sql"))
                 else:
                     logger.warning(f"{filename} does not match pattern {self.match_expression}")
 
@@ -256,7 +260,7 @@ class SqlMerger:
         cmd = f"pg_dump -U {self.db_user} -d {self.db_name} -a -O -t termcode -t context -t ui_profile -t mapping -t contextualized_termcode -t contextualized_termcode_to_criteria_set -t criteria_set -f {self.sql_mapped_dir}/R__Load_latest_ui_profile.sql"
         self.db_container.exec_run(cmd=cmd)
         self.db_container.exec_run(cmd=f'chown {os.geteuid()}:{os.getegid()} {self.sql_mapped_dir}/R__Load_latest_ui_profile.sql')
-        insert_content(f'{self.sql_script_dir}/R__Load_latest_ui_profile.sql', f'{self.sql_init_script_dir}/delete_statements.sql', )
+        insert_content(os.path.join(self.sql_script_dir, "R__Load_latest_ui_profile.sql"), str(sql_resources_dir.joinpath("delete_statements.sql")), )
 
     def create_functions(self):
         cmd = f"sh -c 'psql -U {self.db_user} -d {self.db_name} < {self.sql_mapped_dir}/create_functions.sql'"
@@ -265,9 +269,9 @@ class SqlMerger:
     def execute_merge(self):
         logger.info("Setting up container")
         self.setup_container_and_get_connection()
-        logger.info("Populate db with initial values")
+        logger.info("Populate database with initial values")
         self.populate_db()
-        logger.info("Merge db schemas")
+        logger.info("Merge database schemata")
         self.merge_schemas()
         logger.info("Dump merged schema")
         self.dump_merged_schema()

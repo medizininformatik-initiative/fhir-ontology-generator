@@ -26,4 +26,4 @@ def get_class_logger(cls: Any | str) -> logging.LoggerAdapter:
     :return: `log.LoggerAdapter` instance to log with
     """
     class_name = cls if isinstance(cls, str) else cls.__name__
-    return logging.LoggerAdapter(logging.getLogger(class_name), extra={'className': f":{class_name}"})
+    return logging.LoggerAdapter(logging.getLogger(class_name), extra={'className': f".{class_name}"})

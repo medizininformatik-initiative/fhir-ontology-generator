@@ -4,6 +4,7 @@ import json
 import os
 import re
 from collections import namedtuple
+from pathlib import Path
 from typing import List, Tuple
 
 from TerminologService.ValueSetResolver import get_termcodes_from_onto_server, get_term_code_display_from_onto_server
@@ -71,7 +72,7 @@ def is_element_in_snapshot(profile_snapshot, element_id) -> bool:
         return False
 
 
-def get_profiles_with_base_definition(modules_dir_path: str, base_definition: str) -> Tuple[dict, str]:
+def get_profiles_with_base_definition(modules_dir_path: str | Path, base_definition: str) -> Tuple[dict, str]:
     """
     Returns the profiles that have the given base definition
     :param modules_dir_path: path to the modules directory
@@ -102,7 +103,7 @@ def get_extension_definition(module_dir: str, extension_profile_url: str) -> dic
     :param extension_profile_url:  extension profile url
     :return: extension definition
     """
-    files = [file for file in os.scandir(os.path.join(module_dir, "extension")) if file.is_file()
+    files = [file for file in os.scandir(os.path.join(module_dir, "differential", "package", "extension")) if file.is_file()
              and file.name.endswith("snapshot.json")]
     for file in files:
         with open(file.path, "r", encoding="utf8") as f:
@@ -175,7 +176,7 @@ def tokenize(chained_fhir_element_id):
 
 
 def get_element_defining_elements(chained_element_id, profile_snapshot: dict, start_module_dir: str,
-                                  data_set_dir: str) -> List[dict] | None:
+                                  data_set_dir: str | Path) -> List[dict] | None:
     return [element_with_source_snapshot.element for element_with_source_snapshot in
             get_element_defining_elements_with_source_snapshots(chained_element_id, profile_snapshot, start_module_dir,
                                                                 data_set_dir)]
@@ -269,7 +270,7 @@ def get_common_ancestor(profile_snapshot: dict, element_id_1: str, element_id_2:
     return get_element_from_snapshot(profile_snapshot, get_common_ancestor_id(element_id_1, element_id_2))
 
 
-def process_element_id(element_ids, profile_snapshot: dict, module_dir_name: str, modules_dir_path: str,
+def process_element_id(element_ids, profile_snapshot: dict, module_dir_name: str, modules_dir_path: str | Path,
                        last_desc: ShortDesc = None) -> List[ProcessedElementResult] | None:
     results = []
 
@@ -288,12 +289,11 @@ def process_element_id(element_ids, profile_snapshot: dict, module_dir_name: str
                 profile_urls = elem.get("profile")
                 if len(profile_urls) > 1:
                     raise Exception("Extension with multiple types not supported")
-                extension = get_extension_definition(module_dir_name, profile_urls[0])
+                extension = get_extension_definition(os.path.join(modules_dir_path, module_dir_name), profile_urls[0])
                 element_ids.insert(0, f"Extension" + element_ids.pop(0))
                 result.extend(process_element_id(element_ids, extension, module_dir_name, modules_dir_path))
             elif elem.get("code") == "Reference":
                 target_resource_type = elem.get("targetProfile")[0]
-                # FIXME This should not be hardcoded to CDS_Module
                 referenced_profile, module_dir_name = get_profiles_with_base_definition(modules_dir_path, target_resource_type)
                 element_ids.insert(0, f"{referenced_profile.get('type') + element_ids.pop(0)}")
                 result.extend(process_element_id(element_ids, referenced_profile, module_dir_name, modules_dir_path))
@@ -332,10 +332,11 @@ def extract_value_type(value_defining_element: dict, profile_name: str = "") -> 
     return fhir_value_types[0].get("code")
 
 
-def extract_reference_type(value_defining_element: dict, profile_name: str = "") -> str:
+def extract_reference_type(value_defining_element: dict, modules_dir: str | Path, profile_name: str = "") -> str:
     """
     Extracts the reference type from the given value defining element
     :param value_defining_element: element that defines the value
+    :param modules_dir: Path to the directory containing all module data
     :param profile_name: name of the FHIR profile for debugging purposes can be omitted
     :return: reference type
     """
@@ -347,7 +348,7 @@ def extract_reference_type(value_defining_element: dict, profile_name: str = "")
         logger.warning(f"Could not find target profile for {profile_name}")
     target_resource_type = value_defining_element.get("targetProfile")[0]
     # FIXME This should not be hardcoded to CDS_Module
-    referenced_profile, module_dir = get_profiles_with_base_definition("CDS_Module", target_resource_type)
+    referenced_profile, module_dir = get_profiles_with_base_definition(modules_dir, target_resource_type)
     return referenced_profile.get("type")
 
 

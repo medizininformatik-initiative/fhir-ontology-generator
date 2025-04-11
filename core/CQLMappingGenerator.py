@@ -11,7 +11,7 @@ from typing_extensions import LiteralString
 
 import resources.cql
 from core import StructureDefinitionParser as FHIRParser
-from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
+from core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
 from core.StructureDefinitionParser import resolve_defining_id, extract_value_type, extract_reference_type, \
     CQL_TYPES_TO_VALUE_TYPES, get_element_defining_elements_with_source_snapshots
 from core.exceptions.typing import UnsupportedTypingException
@@ -98,23 +98,21 @@ class CQLMappingGenerator(object):
     def generate_mapping(self, module_name: str) \
             -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, CQLMapping]]:
         """
-        Generates the FHIR search mappings for the given FHIR dataset directory
+        Generates the CQL mappings for the given module
         :param module_name: Name of the module to generate the mapping for
-        :return: normalized term code FHIR search mapping
+        :return: normalized term code CQL mapping
         """
-        modules_dir = self.project.input("modules")
+        snapshot_dir = self.project.input("modules", module_name, "differential", "package")
         full_context_term_code_cql_mapping_name_mapping: Dict[Tuple[TermCode, TermCode]] | dict = {}
         full_cql_mapping_name_cql_mapping: Dict[str, CQLMapping] | dict = {}
-        for module_dir in [folder for folder in os.scandir(modules_dir) if folder.is_dir()]:
-            files = [file.path for file in os.scandir(os.path.join(modules_dir, module_dir.name)) if file.is_file()
-                     and file.name.endswith("snapshot.json")]
-            for file in files:
-                with open(file, "r", encoding="utf8") as f:
-                    snapshot = json.load(f)
-                    context_tc_to_mapping_name, cql_mapping_name_to_mapping = \
-                        self.generate_normalized_term_code_cql_mapping(snapshot, module_name)
-                    full_context_term_code_cql_mapping_name_mapping.update(context_tc_to_mapping_name)
-                    full_cql_mapping_name_cql_mapping.update(cql_mapping_name_to_mapping)
+        files = [file for file in snapshot_dir.rglob("*-snapshot.json") if file.is_file()]
+        for file in files:
+            with open(file, mode="r", encoding="utf8") as f:
+                snapshot = json.load(f)
+                context_tc_to_mapping_name, cql_mapping_name_to_mapping = \
+                    self.generate_normalized_term_code_cql_mapping(snapshot, module_name)
+                full_context_term_code_cql_mapping_name_mapping.update(context_tc_to_mapping_name)
+                full_cql_mapping_name_cql_mapping.update(cql_mapping_name_to_mapping)
         return (full_context_term_code_cql_mapping_name_mapping,
                 full_cql_mapping_name_cql_mapping)
 
@@ -525,7 +523,7 @@ class CQLMappingGenerator(object):
         for element in elements:
             for element_type in element.get("type"):
                 if element_type.get("code") == "Reference":
-                    return extract_reference_type(element_type, profile_snapshot.get('name'))
+                    return extract_reference_type(element_type, modules_dir, profile_snapshot.get('name'))
 
     @staticmethod
     def add_first_after_extension_where_expression(cql_path_expression):
