@@ -5,12 +5,13 @@ from typing import List
 
 from core.CQLMappingGenerator import CQLMappingGenerator
 from core.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
-from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
-from core.SearchParameterResolver import SearchParameterResolver
+from core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
+from core.resolvers.search_parameter import SearchParameterResolver
 from core.UIProfileGenerator import UIProfileGenerator
 from model.MappingDataModel import MapEntryList
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UiDataModel import TermCode, TermEntry
+
 
 class TestSearchParameterResolver(SearchParameterResolver):
     def _load_module_search_parameters(self):

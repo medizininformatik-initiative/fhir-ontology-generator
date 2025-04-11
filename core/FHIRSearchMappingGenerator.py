@@ -1,18 +1,19 @@
+import collections
 import functools
 import json
-import os
-from tracemalloc import Snapshot
 from typing import Dict, Tuple, List, OrderedDict
 
-from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
+from core.exceptions.common import NotFoundError
+from core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
 from core import StructureDefinitionParser as FHIRParser
-from core.SearchParameterResolver import SearchParameterResolver
+from core.resolvers.search_parameter import SearchParameterResolver
 from core.StructureDefinitionParser import extract_value_type, resolve_defining_id, FHIR_TYPES_TO_VALUE_TYPES
 from helper import generate_attribute_key
 from model.MappingDataModel import FhirMapping
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UIProfileModel import VALUE_TYPE_OPTIONS
 from model.UiDataModel import TermCode
+from util.log.functions import get_class_logger
 from util.project import Project
 
 SUPPORTED_TYPES = ['date', 'dateTime', 'decimal', 'integer', 'Age', 'CodeableConcept', 'Coding', 'Quantity',
@@ -27,6 +28,7 @@ class FHIRSearchMappingGenerator(object):
     """
     This class is responsible for generating FHIR mappings for a given FHIR profile.
     """
+    __logger = get_class_logger("FHIRSearchMappingGenerator")
 
     def __init__(self, project: Project, querying_meta_data_resolver: ResourceQueryingMetaDataResolver,
                  fhir_search_mapping_resolver: SearchParameterResolver,
@@ -43,25 +45,24 @@ class FHIRSearchMappingGenerator(object):
         self.fhir_search_mapping_resolver = fhir_search_mapping_resolver
         self.__modules_dir = self.project.input("modules")
 
-    def generate_mapping(self, module_name) \
+    def generate_mapping(self, module_name: str) \
             -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, FhirMapping]]:
         """
         Generates the FHIR search mappings for the given FHIR dataset directory
         :param module_name: Name of the module
         :return: normalized term code FHIR search mapping
         """
+        snapshot_dir = self.project.input("modules", module_name, "differential", "package")
         full_context_term_code_fhir_search_mapping_name_mapping: Dict[Tuple[TermCode, TermCode]] = {}
         full_fhir_search_mapping_name_fhir_search_mapping: Dict[str, FhirMapping] = {}
-        for module_dir in [folder for folder in os.scandir(self.__modules_dir) if folder.is_dir()]:
-            files = [file.path for file in os.scandir(os.path.join(self.__modules_dir, module_dir.name)) if file.is_file()
-                     and file.name.endswith("snapshot.json")]
-            for file in files:
-                with open(file, "r", encoding="utf8") as f:
-                    snapshot = json.load(f)
-                    context_tc_to_mapping_name, fhir_search_mapping_name_to_mapping = \
-                        self.generate_normalized_term_code_fhir_search_mapping(snapshot, module_name)
-                    full_context_term_code_fhir_search_mapping_name_mapping.update(context_tc_to_mapping_name)
-                    full_fhir_search_mapping_name_fhir_search_mapping.update(fhir_search_mapping_name_to_mapping)
+        files = [file for file in snapshot_dir.rglob("*-snapshot.json") if file.is_file()]
+        for file in files:
+            with open(file, "r", encoding="utf8") as f:
+                snapshot = json.load(f)
+                context_tc_to_mapping_name, fhir_search_mapping_name_to_mapping = \
+                    self.generate_normalized_term_code_fhir_search_mapping(snapshot, module_name)
+                full_context_term_code_fhir_search_mapping_name_mapping.update(context_tc_to_mapping_name)
+                full_fhir_search_mapping_name_fhir_search_mapping.update(fhir_search_mapping_name_to_mapping)
         return (full_context_term_code_fhir_search_mapping_name_mapping,
                 full_fhir_search_mapping_name_fhir_search_mapping)
 
@@ -77,10 +78,18 @@ class FHIRSearchMappingGenerator(object):
         """
         fhir_path_expressions = self.translate_element_id_to_fhir_path_expressions(element_id, profile_snapshot,
                                                                                    module_dir_name)
-        search_parameters = self.fhir_search_mapping_resolver.find_search_parameter(fhir_path_expressions)
-        if attribute_type == "composite":
-            return self._resolve_composite_search_parameter(search_parameters)
-        return search_parameters
+        try:
+            search_parameters = self.fhir_search_mapping_resolver.find_search_parameter(fhir_path_expressions)
+            if attribute_type == "composite":
+                return self._resolve_composite_search_parameter(search_parameters)
+            return search_parameters
+        except NotFoundError as err:
+            location_hint = self.project.input("modules", module_dir_name, "search_parameters")
+            self.__logger.error(f"Could not find search parameter for expressions {fhir_path_expressions}. If standard "
+                                f"search parameters do not suffice, consider adding a custom search parameter "
+                                f"definition to {location_hint}")
+            self.__logger.debug("[Reason]", exc_info=err)
+            return collections.OrderedDict.fromkeys([])
 
     def _resolve_composite_search_parameter(self, search_parameter: OrderedDict[str, dict]):
         if len(search_parameter) != 2:
@@ -136,14 +145,15 @@ class FHIRSearchMappingGenerator(object):
         fhir_mapping = FhirMapping(querying_meta_data.name)
         fhir_mapping.fhirResourceType = querying_meta_data.resource_type
         if querying_meta_data.term_code_defining_id:
-            self.set_term_code_search_param(fhir_mapping, profile_snapshot, querying_meta_data)
+            self.set_term_code_search_param(fhir_mapping, profile_snapshot, querying_meta_data, module_dir_name)
         if querying_meta_data.value_defining_id:
             self.set_value_search_param(fhir_mapping, profile_snapshot, querying_meta_data, module_dir_name)
         if querying_meta_data.time_restriction_defining_id:
             fhir_mapping.timeRestrictionParameter = self._handle_search_parameter("date",
                                                                                   self.resolve_fhir_search_parameter(
                                                                                       querying_meta_data.time_restriction_defining_id,
-                                                                                      profile_snapshot, "date"))
+                                                                                      profile_snapshot, module_dir_name,
+                                                                                      "date"))
         for attribute, predefined_attributes in querying_meta_data.attribute_defining_id_type_map.items():
             predefined_type = predefined_attributes.get("type", "")
             self.set_attribute_search_param(attribute, fhir_mapping, predefined_type, profile_snapshot, module_dir_name)
@@ -170,11 +180,11 @@ class FHIRSearchMappingGenerator(object):
         attribute_key = generate_attribute_key(attribute)
         attribute_type = predefined_type if predefined_type else self.get_attribute_type(profile_snapshot,
                                                                                          attribute, module_dir_name)
-        attribute_search_params = self.resolve_fhir_search_parameter(attribute, profile_snapshot,
+        attribute_search_params = self.resolve_fhir_search_parameter(attribute, profile_snapshot, module_dir_name,
                                                                      attribute_type)
         composite_code = None
         if attribute_type == "composite":
-            attribute_type = self.get_composite_attribute_type(attribute, profile_snapshot)
+            attribute_type = self.get_composite_attribute_type(attribute, profile_snapshot, module_dir_name)
             composite_code = self.get_composite_code(attribute, profile_snapshot, module_dir_name)
             attribute_key = composite_code
         fhir_mapping.add_attribute(attribute_type, attribute_key,
@@ -190,8 +200,9 @@ class FHIRSearchMappingGenerator(object):
         return self.parser.get_fixed_term_codes(where_clause_element, profile_snapshot, self.__modules_dir,
                                                 module_dir_name)[0]
 
-    def get_composite_attribute_type(self, attribute, profile_snapshot):
-        search_param_components = self.resolve_fhir_search_parameter(attribute, profile_snapshot, "")
+    def get_composite_attribute_type(self, attribute, profile_snapshot, module_dir_name: str):
+        search_param_components = self.resolve_fhir_search_parameter(attribute, profile_snapshot, module_dir_name,
+                                                                     "composite")
         first_search_param = next(iter(search_param_components.values()))
         if first_search_param.get("type") == "quantity":
             attribute_type = "composite-quantity"
@@ -206,12 +217,12 @@ class FHIRSearchMappingGenerator(object):
             self.get_attribute_type(profile_snapshot, querying_meta_data.value_defining_id, module_dir_name)
         fhir_mapping.valueType = value_type
         value_search_params = self.resolve_fhir_search_parameter(
-            querying_meta_data.value_defining_id, profile_snapshot, value_type)
+            querying_meta_data.value_defining_id, profile_snapshot, module_dir_name, value_type)
         fhir_mapping.valueSearchParameter = self._handle_search_parameter(value_type, value_search_params)
 
-    def set_term_code_search_param(self, fhir_mapping, profile_snapshot, querying_meta_data):
+    def set_term_code_search_param(self, fhir_mapping, profile_snapshot, querying_meta_data, module_dir_name: str):
         term_code_search_params = self.resolve_fhir_search_parameter(
-            querying_meta_data.term_code_defining_id, profile_snapshot, "concept")
+            querying_meta_data.term_code_defining_id, profile_snapshot, module_dir_name, "concept")
         search_param_str = self.chain_search_parameters(term_code_search_params)
         fhir_mapping.termCodeSearchParameter = search_param_str
 
@@ -226,7 +237,7 @@ class FHIRSearchMappingGenerator(object):
         # remove cast expression as it is irrelevant for the type
         if " as ValueSet" in attribute_id:
             attribute_id = attribute_id.replace(" as ValueSet", "")
-        attribute_element = resolve_defining_id(profile_snapshot, attribute_id, self.__modules_dir, module_dir_name)
+        attribute_element = resolve_defining_id(profile_snapshot, attribute_id, str(self.__modules_dir), module_dir_name)
         return FHIR_TYPES_TO_VALUE_TYPES.get(extract_value_type(attribute_element, profile_snapshot.get('name'))) \
             if extract_value_type(attribute_element,
                                   profile_snapshot.get('name')) in FHIR_TYPES_TO_VALUE_TYPES else extract_value_type(

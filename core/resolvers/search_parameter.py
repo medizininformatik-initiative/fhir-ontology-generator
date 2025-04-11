@@ -1,15 +1,26 @@
 import json
 import math
+import os
 import re
+import resources
 from abc import ABC, abstractmethod
+from importlib.resources import files
+from pathlib import Path
 from typing import List, OrderedDict, Dict, Tuple
 from collections import OrderedDict as orderedDict
 
+from core.exceptions.common import NotFoundError
+from util.log.functions import get_class_logger
 
+
+# TODO: Refactor class hierarchy: The ABC only really needs to implement the most basic functionalities, the rest could
+#       be implemented by derived classes. Though this is likely unnecessary since the standard implementation covers
+#       covers most use cases
 class SearchParameterResolver(ABC):
     """
     Abstract class for resolving the search parameters.
     """
+    __logger = get_class_logger("SearchParameterResolver")
 
     def __init__(self):
         self.search_parameters: List[dict] = self._load_all_search_parameters()
@@ -44,7 +55,6 @@ class SearchParameterResolver(ABC):
         :return: the search parameter
         :raises ValueError: if the search parameter could not be found
         """
-
         def shortened_path(fhir_path: str) -> str:
             """Returns the path without its last element."""
             return fhir_path.rsplit(".", 1)[0]
@@ -56,46 +66,53 @@ class SearchParameterResolver(ABC):
         fhir_path_expressions_to_search_parameter: OrderedDict[str, Tuple[dict, int]] = orderedDict(
             [(expression, (None, math.inf)) for expression in fhir_path_expressions]
         )
-        for search_parameter in self.search_parameters:
-            expressions = self.get_cleaned_expressions(search_parameter)
-            for path_expression in fhir_path_expressions:
-                if path_expression in expressions:
-                    resource_type = path_expression.split('.')[0]
-                    number_of_relevant_expressions = len(
-                        list(filter(lambda x: x.startswith(resource_type), expressions)))
-                    if not fhir_path_expressions_to_search_parameter.get(path_expression) or \
-                            number_of_relevant_expressions \
-                            < fhir_path_expressions_to_search_parameter.get(path_expression)[1]:
-                        fhir_path_expressions_to_search_parameter[path_expression] = (search_parameter,
-                                                                                      number_of_relevant_expressions)
-        result = orderedDict([(key, value[0]) for key, value in fhir_path_expressions_to_search_parameter.items()])
-        if missing_search_parameters := [key for key, value in result.items() if not value]:
-            if any([" as " in fhir_path_expressions and '.' not in fhir_path_expressions.split("as")[1] for
-                    fhir_path_expressions in missing_search_parameters]):
-                result_without_as_cast = self.find_search_parameter([fhir_path_expressions.split(" as ")[0] for
-                                                                     fhir_path_expressions in
-                                                                     missing_search_parameters])
-                result = orderedDict([(key if key.split(" as ")[0] not in result_without_as_cast else
-                                       key.split(" as ")[0],
-                                       value if key.split(" as ")[0] not in result_without_as_cast else
-                                       result_without_as_cast[key.split(" as ")[0]]) for key, value in result.items()])
-            else:
-                missing_search_parameters = [key for key, value in result.items() if not value]
 
-                # Get search parameters for the shortened paths
-                result_without_last_path_element = self.find_search_parameter(
-                    [shortened_path(path) for path in missing_search_parameters])
-                for path in result.keys():
-                    for shortened_path in result_without_last_path_element.keys():
-                        if shortened_path in path:
-                            result[shortened_path] = result_without_last_path_element[shortened_path]
-                            result.pop(path)
-
+        try:
+            for search_parameter in self.search_parameters:
+                expressions = self.get_cleaned_expressions(search_parameter)
+                for path_expression in fhir_path_expressions:
+                    if path_expression in expressions:
+                        resource_type = path_expression.split('.')[0]
+                        number_of_relevant_expressions = len(
+                            list(filter(lambda x: x.startswith(resource_type), expressions)))
+                        if not fhir_path_expressions_to_search_parameter.get(path_expression) or \
+                                number_of_relevant_expressions \
+                                < fhir_path_expressions_to_search_parameter.get(path_expression)[1]:
+                            fhir_path_expressions_to_search_parameter[path_expression] = (search_parameter,
+                                                                                          number_of_relevant_expressions)
+            result = orderedDict([(key, value[0]) for key, value in fhir_path_expressions_to_search_parameter.items()])
             if missing_search_parameters := [key for key, value in result.items() if not value]:
-                raise ValueError(
-                    f"Could not find search parameter for [{missing_search_parameters,} {fhir_path_expressions}]. "
-                    f"You may need to add a custom search parameter")
-        return result
+                if any([" as " in fhir_path_expressions and '.' not in fhir_path_expressions.split("as")[1] for
+                        fhir_path_expressions in missing_search_parameters]):
+                    result_without_as_cast = self.find_search_parameter([fhir_path_expressions.split(" as ")[0] for
+                                                                         fhir_path_expressions in
+                                                                         missing_search_parameters])
+                    result = orderedDict([(key if key.split(" as ")[0] not in result_without_as_cast else
+                                           key.split(" as ")[0],
+                                           value if key.split(" as ")[0] not in result_without_as_cast else
+                                           result_without_as_cast[key.split(" as ")[0]]) for key, value in result.items()])
+                else:
+                    missing_search_parameters = [key for key, value in result.items() if not value]
+
+                    # Get search parameters for the shortened paths
+                    new_paths = [shortened_path(path) for path in missing_search_parameters]
+                    if set(new_paths) == set(missing_search_parameters):
+                        raise RecursionError("Exhausted all paths up to their base node without finding a result")
+                    result_without_last_path_element = self.find_search_parameter(
+                        [shortened_path(path) for path in missing_search_parameters])
+                    for path in result.keys():
+                        for shortened_path in result_without_last_path_element.keys():
+                            if shortened_path in path:
+                                result[shortened_path] = result_without_last_path_element[shortened_path]
+                                result.pop(path)
+
+                if missing_search_parameters := [key for key, value in result.items() if not value]:
+                    raise ValueError(
+                        f"Could not find search parameter for [{missing_search_parameters,} {fhir_path_expressions}]. "
+                        f"You may need to add a custom search parameter")
+            return result
+        except (RecursionError, NotFoundError) as err:
+            raise NotFoundError(f"Could not find search parameter for expressions {fhir_path_expressions}") from err
 
     def _load_all_search_parameters(self) -> List[Dict]:
         """
@@ -112,7 +129,7 @@ class SearchParameterResolver(ABC):
 
     @staticmethod
     def _load_default_search_parameters() -> List[Dict]:
-        with open("../../resources/fhir_search_parameter_definition.json", 'r', encoding="utf-8") as f:
+        with files(resources).joinpath("fhir_search_parameter_definition.json").open(mode='r', encoding="utf-8") as f:
             search_parameter_definition = json.load(f)
         return [entry['resource'] for entry in search_parameter_definition["entry"]]
 
@@ -159,3 +176,28 @@ class SearchParameterResolver(ABC):
                 Exception("Not implemented: Todo: Put operation in round brackets. "
                           "I.e. Observation.(value as CodeableConcept).text")
         return expression
+
+
+class StandardSearchParameterResolver(SearchParameterResolver):
+    def __init__(self, module_path: str | Path):
+        self.__module_path = (module_path if isinstance(module_path, Path) else Path(module_path)).resolve()
+        super().__init__()
+
+    def _load_module_search_parameters(self) -> List[Dict]:
+        """
+        Loads module-specific search parameters from JSON files.
+        :return: A list of search parameter dictionaries.
+        """
+        params = []
+        search_param_dir_path = self.__module_path / "search_parameter"
+
+        if not search_param_dir_path.exists() or not search_param_dir_path.is_dir():
+            return params
+
+        for filename in os.listdir(search_param_dir_path):
+            if filename.endswith(".json"):
+                file_path = search_param_dir_path / filename
+                with open(file_path, mode="r", encoding="utf-8") as f:
+                    params.append(json.load(f))
+
+        return params

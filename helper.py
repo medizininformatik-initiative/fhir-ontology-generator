@@ -12,7 +12,7 @@ from typing_extensions import deprecated
 
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UiDataModel import TermCode, TranslationElementDisplay
-from core.exceptions.MissingTranslationException import MissingTranslationException
+from core.exceptions.translation import MissingTranslationException
 from util.log.functions import get_logger
 
 logger = get_logger(__file__)

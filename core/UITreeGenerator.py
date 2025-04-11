@@ -2,11 +2,9 @@ import json
 import os
 from typing import List
 
-from typing_extensions import deprecated
-
 from core import StructureDefinitionParser as FhirParser
 from TerminologService.ValueSetResolver import get_term_map_from_onto_server, get_term_info_from_onto_server
-from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
+from core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
 from helper import is_structure_definition
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.TreeMap import ContextualizedTermCodeInfo, ContextualizedTermCodeInfoList, TermEntryNode, TreeMapList, TreeMap

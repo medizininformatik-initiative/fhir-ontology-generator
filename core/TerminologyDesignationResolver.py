@@ -3,6 +3,7 @@ import copy
 import os
 import re
 from itertools import groupby
+from pathlib import Path
 
 from typing import List, TypeVar
 from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, \
@@ -55,7 +56,7 @@ def split_bundle(bundle: dict, chunk_size: int = 10) -> List[dict]:
 class TerminologyDesignationResolver:
     __logger = get_class_logger("TerminologyDesignationResolver")
     
-    def __init__(self, base_translations_conf: str = None, server_address: str = TERMINOLOGY_SERVER_ADDRESS,
+    def __init__(self, base_translations_conf: str | Path = None, server_address: str = TERMINOLOGY_SERVER_ADDRESS,
                  max_bundle_size: int = 10_000):
         self.code_systems = {}
         self.server_address = server_address
@@ -98,7 +99,7 @@ class TerminologyDesignationResolver:
                 temp[concept.get('code')][designation.get('language')] = designation.get('value')
         return temp
 
-    def __load_base_translations(self, base_translation_conf: str):
+    def __load_base_translations(self, base_translation_conf: str | Path):
         """
         Loads base translations mapping to later be able to retrieve authoritative designations, i.e. translations, from
         a terminology server. The file should contain a mapping form code system URL to a `Parameters` resource
@@ -269,7 +270,7 @@ class TerminologyDesignationResolver:
             lookup_bundle = self.__batch_lookup(bundle)
             self.__save_bundle_content(lookup_bundle, system, languages=["de", "en"])
 
-    def load_base_designations(self, ui_tree_dir: str = None, value_set_dir: str = None):
+    def load_base_designations(self, ui_tree_dir: str | Path = None, value_set_dir: str | Path = None):
         """
         Loads authoritative designations for UI trees and expanded `ValueSet` resources using a terminology server.
         Since they are retrieved from the FHIR resources stored by the terminology server, their values are regarded as
@@ -296,22 +297,21 @@ class TerminologyDesignationResolver:
             for value_set in value_sets:
                 self.__load_base_designations_for_value_set(value_set)
 
-    def load_designations(self, folder_path: str = os.path.join("..", "projects", "code_systems_translations"),
-                          update_translation_supplements=False):
+    def load_designations(self, folder_path: str | Path, update_translation_supplements=False):
         """
         Loads the code_system files from specified folder into memory
         :param folder_path: folder containing translated code_systems
         :param update_translation_supplements: specifies if supplements should be downloaded or updated from TERMINOLOGY_SERVER_ADDRESS
         """
         if update_translation_supplements:
-            self.__logger.info("Downloading and Updating from the supplement registry")
+            self.__logger.info("Updating the supplement registry")
             response_supp_registry = REQUESTS_SESSION.get(
                 url=self.server_address + "CodeSystem/fdpg-plus-translation-supplement-registry",
                 cert=(SERVER_CERTIFICATE, PRIVATE_KEY)
             )
             if response_supp_registry.status_code != 200:
-                self.__logger.info("Something went wrong. Status code: " + response_supp_registry.status_code + " Expected 200")
-                self.__logger.info("Content: " + response_supp_registry.content)
+                self.__logger.warning("Something went wrong. Status code: " + response_supp_registry.status_code + " Expected 200")
+                self.__logger.debug("Content: " + response_supp_registry.content)
 
             supplement_registry = response_supp_registry.json()
             for code_system_concept in supplement_registry.get('concept'):
@@ -331,13 +331,13 @@ class TerminologyDesignationResolver:
                         )
 
                         if response_particular_cs.status_code != 200:
-                            self.__logger.info("code_system not found. Status Code: " + response_particular_cs.status_code +
+                            self.__logger.warning("Code system not found. Status Code: " + response_particular_cs.status_code +
                                         " Skipping: " + code_system_url +"|" + code_system_version)
                             continue
 
                         supplement_code_system_bundle = response_particular_cs.json()
                         if not supplement_code_system_bundle.get('entry'):
-                            self.__logger.info("No entry was found in this bundle. Skipping " + code_system_url + "|" + code_system_version)
+                            self.__logger.warning("No entry was found in this bundle. Skipping " + code_system_url + "|" + code_system_version)
                             continue
 
                         supplement_code_system_full_url = supplement_code_system_bundle.get('entry')[0].get('fullUrl')
@@ -348,8 +348,8 @@ class TerminologyDesignationResolver:
                         )
 
                         if response_cs_content.status_code != 200:
-                            self.__logger.info("Something went wrong. Status code:" + response_cs_content.status_code + ". Expected 200")
-                            self.__logger.info("Content: " + response_cs_content.content)
+                            self.__logger.warning("Something went wrong. Status code:" + response_cs_content.status_code + ". Expected 200")
+                            self.__logger.debug("Content: " + response_cs_content.content)
                             continue
 
 
