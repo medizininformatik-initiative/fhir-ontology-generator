@@ -12,6 +12,7 @@ from model.MappingDataModel import MapEntryList
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UiDataModel import TermCode, TermEntry
 
+
 class TestSearchParameterResolver(SearchParameterResolver):
     def _load_module_search_parameters(self):
         return []

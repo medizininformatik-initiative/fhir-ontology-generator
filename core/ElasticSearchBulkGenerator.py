@@ -164,6 +164,7 @@ class ElasticSearchGenerator:
             return
 
         for termcode in value_set['expansion']['contains']:
+
             termcode_hash_input = f"{termcode['code']}{termcode['system']}"
             namespace_uuid = uuid.UUID(namespace_uuid_str)
             termcode_hash = str(uuid.uuid3(namespace_uuid, termcode_hash_input))

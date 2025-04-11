@@ -152,8 +152,7 @@ class FHIRSearchMappingGenerator(object):
             fhir_mapping.timeRestrictionParameter = self._handle_search_parameter("date",
                                                                                   self.resolve_fhir_search_parameter(
                                                                                       querying_meta_data.time_restriction_defining_id,
-                                                                                      profile_snapshot, module_dir_name,
-                                                                                      "date"))
+                                                                                      profile_snapshot, "date"))
         for attribute, predefined_attributes in querying_meta_data.attribute_defining_id_type_map.items():
             predefined_type = predefined_attributes.get("type", "")
             self.set_attribute_search_param(attribute, fhir_mapping, predefined_type, profile_snapshot, module_dir_name)
