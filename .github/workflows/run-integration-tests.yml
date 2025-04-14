@@ -71,7 +71,7 @@ jobs:
       run: pip3 install pytest pytest-docker pytest-cov
 
     - name: Run integration tests
-      run: pytest test/integration -v --cov
+      run: pytest test/integration -v --cov --project "fdpg-ontology"
 
     - name: Upload Docker logs
       uses: actions/upload-artifact@v4

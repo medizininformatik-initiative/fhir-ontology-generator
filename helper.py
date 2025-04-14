@@ -12,9 +12,8 @@ from typing_extensions import deprecated
 
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UiDataModel import TermCode, TranslationElementDisplay
-from core.exceptions.translation import MissingTranslationException
-from util.log.functions import get_logger
-from core.exceptions.translation import MissingTranslationException
+from common.exceptions.translation import MissingTranslationException
+from common.util.log.functions import get_logger
 
 logger = get_logger(__file__)
 
@@ -197,18 +196,6 @@ def write_object_as_json(serializable: JSONSerializable, file_name: str):
         f.write(serializable.to_json())
 
 
-VALUE_TYPE_TO_FHIR_SEARCH_TYPE = {
-    "concept": "token",
-    "quantity": "quantity",
-    "reference": "reference",
-    "date": "date"
-}
-
-
-def get_fhir_search_parameters() -> List[dict]:
-    pass
-
-
 def flatten(lst) -> List:
     """
     Flattens a list of lists with arbitrary depth
@@ -223,12 +210,6 @@ def flatten(lst) -> List:
                 yield from flatten(element)
             else:
                 yield element
-
-
-def load_english_to_german_attribute_names() -> Dict[str, str]:
-    with open("../../resources/english_to_german_attribute_names.json", "r", encoding="utf-8") as f:
-        attribute_names = json.load(f)
-    return attribute_names
 
 
 def get_attribute_key(element_id: str) -> str:
@@ -328,36 +309,3 @@ def generate_attribute_key(element_id: str) -> TermCode:
     key = get_attribute_key(element_id)
     return TermCode("http://hl7.org/fhir/StructureDefinition", key, key)
 
-
-def get_german_display(key: str) -> str:
-    """
-    Returns the german display for the given key if it exists else the key itself and creates an entry in the
-    english_to_german_attribute_names.json
-    :param key: attribute key
-    :return: german display or original key
-    """
-    english_to_german_attribute_names = load_english_to_german_attribute_names()
-    if key not in english_to_german_attribute_names:
-        english_to_german_attribute_names[key] = key
-        with open("../../resources/english_to_german_attribute_names.json", "w", encoding="utf-8") as f:
-            json.dump(english_to_german_attribute_names, f, ensure_ascii=False, indent=4)
-    return english_to_german_attribute_names.get(key)
-
-
-def generate_result_folder():
-    """
-    Generates the mapping, csv and ui-profiles folder if they do not exist in the result folder
-    :return:
-    """
-    mkdir_if_not_exists("mapping")
-    mkdir_if_not_exists("mapping/fhir")
-    mkdir_if_not_exists("mapping/cql")
-    mkdir_if_not_exists("ui-trees")
-    mkdir_if_not_exists("csv")
-    mkdir_if_not_exists("ui-profiles")
-    mkdir_if_not_exists("ui-profiles-old")
-    mkdir_if_not_exists("mapping-old")
-    mkdir_if_not_exists("mapping-old/fhir")
-    mkdir_if_not_exists("mapping-old/cql")
-    mkdir_if_not_exists("value-sets")
-    mkdir_if_not_exists("criteria-sets")

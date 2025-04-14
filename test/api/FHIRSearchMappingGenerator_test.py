@@ -49,9 +49,9 @@ class TestQueryMetaDataResolver(ResourceQueryingMetaDataResolver):
 def denormalize_mapping(mapping):
     def denormalize_mapping_to_old_format(term_code_to_mapping_name, mapping_name_to_mapping):
         """
-        Denormalizes the mapping to the old format
+        Denormalizes the generators to the old format
 
-        :param term_code_to_mapping_name: mapping from term codes to mapping names
+        :param term_code_to_mapping_name: generators from term codes to generators names
         :param mapping_name_to_mapping: mappings to use
         :return: denormalized entries
         """
@@ -63,7 +63,7 @@ def denormalize_mapping(mapping):
                 mapping.context = context_and_term_code[0]
                 result.entries.append(mapping)
             except KeyError:
-                print("No mapping found for term code " + context_and_term_code[1].code)
+                print("No generators found for term code " + context_and_term_code[1].code)
         return result
 
     return denormalize_mapping_to_old_format(mapping[0], mapping[1])
@@ -82,7 +82,7 @@ def denormalize_ui_profile(ui_profile_mapping):
 
 
             except KeyError:
-                print("No mapping found for term code " + context_and_term_code[1].code)
+                print("No generators found for term code " + context_and_term_code[1].code)
     return denormalize_ui_profile(ui_profile_mapping[0], ui_profile_mapping[1])
 
 

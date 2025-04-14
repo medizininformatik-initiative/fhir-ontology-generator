@@ -59,7 +59,7 @@ fi
 if should_run_step 3; then
     printf "\n#################\nStep 3: Merging Ontologies for project 'fdpg-ontology'\n#################\n"
     cd "$BASE_DIR/util/ontology" || exit 1
-    python3 OntologyMergeUtil.py --merge_mappings --merge_uitrees --merge_sqldump --merge_dse \
+    python3 merge_ontologies.py --merge_mappings --merge_uitrees --merge_sqldump --merge_dse \
      --dseontodir "$BASE_DIR/dse/generated" \
      --project "fdpg-ontology"
 fi
@@ -68,7 +68,7 @@ fi
 if should_run_step 4; then
     printf "\n#################\nStep 4: Generating and merging in combined consent\n#################\n"
     cd "$BASE_DIR" || exit 1
-    python3 combined-consent-generation.py --merge_mappings \
+    python3 combined_consent_generation.py --merge_mappings \
      --project "fdpg-ontology"
 fi
 

@@ -7,7 +7,7 @@ from core.resolvers.querying_metadata import StandardDataSetQueryingMetaDataReso
 from core.resolvers.search_parameter import StandardSearchParameterResolver
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UiDataModel import TermCode, AttributeDefinition
-from util.project import Project
+from common.util.project import Project
 
 
 class UIProfileGeneratorTestCases(unittest.TestCase):

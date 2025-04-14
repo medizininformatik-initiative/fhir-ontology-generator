@@ -9,16 +9,16 @@ from _pytest.python import Metafunc
 from pydantic import BaseModel
 from pytest_docker.plugin import Services, get_docker_services, containers_scope
 
-import util.http.requests
-import util.test.docker
+from common import util
+import common.util.test.docker
 import pytest
 
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
-from util.http.auth.authentication import OAuthClientCredentials
-from util.http.backend.FeasibilityBackendClient import FeasibilityBackendClient
-from util.log.functions import get_logger
-from util.project import Project
-from util.test.fhir import download_and_unzip_kds_test_data
+from common.util.http.auth.credentials import OAuthClientCredentials
+from common.util.http.backend.client import FeasibilityBackendClient
+from common.util.log.functions import get_logger
+from common.util.project import Project
+from common.util.test.fhir import download_and_unzip_kds_test_data
 
 logger = get_logger(__file__)
 
@@ -92,9 +92,9 @@ def docker_compose_file(pytestconfig) -> str:
     os.makedirs(dse_dir_path)
     shutil.move(os.path.join(ontology_dir_path, "profile_tree.json"), dse_dir_path)
 
-    mapping_path = os.path.join(tmp_path, "mapping.zip")
-    shutil.copyfile(project.output("merged_ontology") / "mapping.zip", mapping_path)
-    unpacked_dir_path = os.path.join(ontology_dir_path, "mapping")
+    mapping_path = os.path.join(tmp_path, "generators.zip")
+    shutil.copyfile(project.output("merged_ontology") / "generators.zip", mapping_path)
+    unpacked_dir_path = os.path.join(ontology_dir_path, "generators")
     os.makedirs(unpacked_dir_path, exist_ok=True)
     shutil.unpack_archive(mapping_path, ontology_dir_path)
 
@@ -143,7 +143,7 @@ def docker_services(
         docker_cleanup,
     ) as docker_service:
         yield docker_service
-        util.test.docker.save_docker_logs(__test_dir(), "integration-test")
+        common.util.test.docker.save_docker_logs(__test_dir(), "integration-test")
 
 
 @pytest.fixture(scope="session")
@@ -157,7 +157,7 @@ def backend_ip(docker_services) -> str:
     docker_services.wait_until_responsive(
         timeout=300.0,
         pause=5,
-        check=lambda: util.http.requests.is_responsive(url_health_test)
+        check=lambda: common.util.http.requests.is_responsive(url_health_test)
     )
     return url
 
@@ -173,7 +173,7 @@ def fhir_ip(docker_services, test_dir: str) -> str:
     docker_services.wait_until_responsive(
         timeout=300.0,
         pause=5,
-        check=lambda: util.http.requests.is_responsive(url_health_test)
+        check=lambda: common.util.http.requests.is_responsive(url_health_test)
     )
 
     # upload testdata for fhir server for testing
@@ -191,7 +191,7 @@ def elastic_ip(docker_services) -> str:
     docker_services.wait_until_responsive(
         timeout=300.0,
         pause=5,
-        check=lambda: util.http.requests.is_responsive(url)
+        check=lambda: common.util.http.requests.is_responsive(url)
     )
     return url
 

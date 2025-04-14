@@ -7,7 +7,7 @@ on:
         description: "Path to the generated elastic.zip file"
         value: ${{ steps.save_zips.outputs.elastic_zip }}
       mapping_zip:
-        description: "Path to the generated mapping.zip file"
+        description: "Path to the generated generators.zip file"
         value: ${{ steps.save_zips.outputs.mapping_zip }}
       backend_zip:
         description: "Path to the generated backend.zip file"
