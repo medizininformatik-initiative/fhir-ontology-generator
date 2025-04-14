@@ -86,5 +86,5 @@ if should_run_step 6; then
     printf "\n#################\nStep 6: Parcel ontology files\n#################\n"
     cd "$BASE_DIR" || exit 1
     python3 parcel_final_ontology.py \
-    --ontology_dir "$BASE_DIR/projects/fdpg-ontology"
+    --project "fdpg-ontology"
 fi
