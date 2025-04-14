@@ -1,0 +1,29 @@
+{
+  "name": "TNM-Klassifikation",
+  "resource_type": "Observation",
+  "module": {
+    "code": "mii-cds-Onkologie",
+    "display": "Onkologie"
+  },
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "Onkologie",
+    "display": "Onkologie",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "Observation.code",
+  "time_restriction_defining_id": "Observation.effective[x]",
+  "attribute_defining_id_type_map": {
+    "(Observation.focus).code.coding:icd10-gm": {
+      "type": "reference",
+      "optional": true
+    },
+    "(Observation.hasMember).value[x]": {
+      "type": "reference",
+      "optional": true
+    },
+    "Observation.method": {
+      "optional": true
+    }
+  }
+}
