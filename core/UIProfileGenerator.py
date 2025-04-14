@@ -107,24 +107,53 @@ class UIProfileGenerator:
         ui_profile.attributeDefinitions = self.get_attribute_definitions(profile_snapshot, querying_meta_data)
         return ui_profile
 
-    def get_allowed_units_from_quantity(self, profile_snapshot, value_defining_element):
+    def get_allowed_units_from_quantity(self, profile_snapshot: dict, value_defining_element: dict) -> List[TermCode]:
+        """
+        Get the units from 3 possible places in the following order:
+
+        1. the standard way:
+            * units are found under: "<path>.code"  \n
+            example: FALL (Vitalstatus)
+                * id: "Observation.value[x].coding:Vitalstatus"
+                * path: "Observation.value[x].coding"
+
+        2. Units in value[x].patternQuantity
+            * units are located at: "Element(<id>).patternQuantity" \n
+            example: ICU (Arterieller Blutdruck)
+                * value_defining_element: "Observation.component:SystolicBP.value[x]"
+                * units: "Element(Observation.component:SystolicBP.value[x]).patternQuantity"
+
+        3. Units in value[x]:valueQuantity.patternQuantity
+            * units are located at: "Element(<id>):valueQuantity.patternQuantity" \n
+            example: ICU (Sauerstoffsättigung)
+                * value_defining_element: "Observation.value[x]"
+                * units: "Element(Observation.value[x]:valueQuantity).patternQuantity"
+
+        :param profile_snapshot: profile snapshot
+        :param value_defining_element: value defining element as set in the QueryingMetaData files
+        :raise LookupError: if no units are found
+        """
+
         unit_defining_path = value_defining_element.get("path") + ".code"
         unit_defining_elements = self.parser.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
+        # get the units the standard way
         if len(unit_defining_elements) == 1:
             return self.parser.get_units(unit_defining_elements[0], profile_snapshot.get("name"))
 
+        # get units from value[x].patternQuantity
         if pattern_quantity := value_defining_element.get("patternQuantity"):
             if pattern_quantity.get("code"):
                 return [TermCode(pattern_quantity.get("system"), pattern_quantity.get("code"),
                                  pattern_quantity.get("unit"))]
 
+        # get units from value[x]:valueQuantity.patternQuantity
         if value_quantity := self.parser.get_element_from_snapshot(profile_snapshot, (
                 value_defining_element.get("path") + ":valueQuantity")):
             if pattern_quantity := value_quantity.get("patternQuantity"):
                 if pattern_quantity.get("code"):
                     return [TermCode(pattern_quantity.get("system"), pattern_quantity.get("code"),
                                      pattern_quantity.get("unit"))]
-        raise Exception(f"Could not determine allowed units for {value_defining_element.get('path')} in {profile_snapshot.get('name')} ")
+        raise LookupError(f"Could not determine allowed units for {value_defining_element.get('path')} in {profile_snapshot.get('name')} ")
 
 
     def get_value_definition(self, profile_snapshot, querying_meta_data) -> ValueDefinition:

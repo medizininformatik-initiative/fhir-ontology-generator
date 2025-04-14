@@ -190,24 +190,57 @@ def get_element_defining_elements_with_source_snapshots(chained_element_id, prof
     return process_element_id(parsed_list, profile_snapshot, start_module_dir, data_set_dir)
 
 
-def get_parent_slice_id(element_id: str):
+def get_parent_slice_id(element_id: str) -> str:
+    """
+    Extracts the ID of the slice on the highest level
+    :param element_id: the element id
+    :return: the ID of the slice on the highest level
+
+    Example:
+        get_parent_slice_id("Observation.component:Diastolic.code.coding:sct") \n
+        => 'Observation.component:Diastolic'
+    """
     parent_slice_name = element_id.split(":")[-1].split(".")[0]
     parent_slice_id = element_id.rsplit(":", 1)[0] + ":" + parent_slice_name
     return parent_slice_id
 
 
-def get_parent_slice_element(profile_snapshot,element_id: str):
+def get_parent_slice_element(profile_snapshot: dict, element_id: str) -> dict:
+    """
+    Returns the parent slice element for the provided ID
+    :param profile_snapshot: snapshot of the profile the element is in
+    :param element_id: the element id
+    :return: the parent slice element for the provided ID
+    """
     parent_slice_id = get_parent_slice_id(element_id)
     return get_element_from_snapshot(profile_snapshot, parent_slice_id)
 
 
-def is_element_slice_base(element_id: str):
+def is_element_slice_base(element_id: str) -> bool:
+    """
+    Is the specified element id a slice base
+
+    Example:
+        is_element_slice_base("Observation.component:Diastolic")  => TRUE \n
+        is_element_slice_base("Observation.component:Diastolic.code")  => FALSE \n
+
+    :param element_id:
+    :return: bool
+    """
     return get_parent_slice_id(element_id) == element_id
 
 
-def get_common_ancestor_id(element_id_1: str, element_id_2: str):
+def get_common_ancestor_id(element_id_1: str, element_id_2: str) -> str:
     """
-    extracts the longest common ancestor from two element IDs while ensuring that the result does not end with a separator (. or :)
+    Extracts the nearest common ancestor from two element IDs
+    :param element_id_1: the first element ID
+    :param element_id_2: the second element ID
+    :return: the common ancestor ID
+
+    Example
+        id1 = "Observation.component:Systolic.short" \n
+        id2 = "Observation.component:Diastolic.code.short" \n
+        get_common_ancestor_id(id1, id2) => "Observation.component" \n
     """
     last_common_ancestor = []
     parts_1 = re.split(r"([.:])", element_id_1)
@@ -222,7 +255,14 @@ def get_common_ancestor_id(element_id_1: str, element_id_2: str):
     return "".join(last_common_ancestor)
 
 
-def get_common_ancestor(profile_snapshot,element_id_1: str, element_id_2: str):
+def get_common_ancestor(profile_snapshot: dict, element_id_1: str, element_id_2: str) -> dict:
+    """
+    Return the element of the common ancestor of the provided ids
+    :param profile_snapshot: snapshot of the profile the element is in
+    :param element_id_1: first element ID
+    :param element_id_2: second element ID
+    :return: the element of the common ancestor of the provided ids
+    """
     return get_element_from_snapshot(profile_snapshot, get_common_ancestor_id(element_id_1, element_id_2))
 
 
