@@ -63,7 +63,7 @@ Description: "Example Measure to count all ICD-10 codes and the patient count."
 
 
 // Consent
-* insert AddStratifierGroup(9, "Consent?_profile:below=http://fhir.de/ConsentManagement/StructureDefinition/Consent", Consent, Consent.patient.reference)
+* insert AddStratifierGroup(9, "Consent?_profile:below=https://www.medizininformatik-initiative.de/fhir/modul-consent/StructureDefinition/mii-pr-consent-einwilligung", Consent, Consent.patient.reference)
 * insert AddStratifierToGroup(9, 0, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.1'\), "consent-patientendaten-erheben-speichern-nutzen" , "consent-patientendaten-erheben-speichern-nutzen")
 * insert AddStratifierToGroup(9, 1, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.2'\), "consent-idat-erheben" , "consent-idat-erheben")
 * insert AddStratifierToGroup(9, 2, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.3'\), "consent-idat-speichern-verarbeiten" , "consent-idat-speichern-verarbeiten")
@@ -134,23 +134,23 @@ Description: "Example Measure to count all ICD-10 codes and the patient count."
 
 
 // ICU - Arterieller Blutdruck
-* insert AddStratifierGroup(10, "Observation?_profile:below=https://simplifier.net/medizininformatikinitiative-modul-intensivmedizin/sd_mii_icu_arterieller_blutdruck", Observation, Observation.subject.reference)
+* insert AddStratifierGroup(10, "Observation?_profile:below=https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/arterieller-blutdruck", Observation, Observation.subject.reference)
 * insert AddStratifierToGroup(10, 0, Observation.code.coding.where(system='http://loinc.org'\), "icu-arterieller-blutdruck" , "icu-arterieller-blutdruck")
 
 // ICU - Atemfrequenz
-* insert AddStratifierGroup(11, "Observation?_profile:below=https://simplifier.net/medizininformatikinitiative-modul-intensivmedizin/sd_mii_icu_atemfrequenz", Observation, Observation.subject.reference)
+* insert AddStratifierGroup(11, "Observation?_profile:below=https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/atemfrequenz", Observation, Observation.subject.reference)
 * insert AddStratifierToGroup(11, 0, Observation.code.coding.where(system='http://loinc.org'\), "icu-atemfrequenz" , "icu-atemfrequenz")
 
 // ICU - Herzfrequenz
-* insert AddStratifierGroup(12, "Observation?_profile:below=https://simplifier.net/medizininformatikinitiative-modul-intensivmedizin/sd_mii_icu_herzfrequenz", Observation, Observation.subject.reference)
+* insert AddStratifierGroup(12, "Observation?_profile:below=https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/herzfrequenz", Observation, Observation.subject.reference)
 * insert AddStratifierToGroup(12, 0, Observation.code.coding.where(system='http://loinc.org'\), "icu-herzfrequenz" , "icu-herzfrequenz")
 
 // ICU - Koepergewicht
-* insert AddStratifierGroup(13, "Observation?_profile:below=https://simplifier.net/medizininformatikinitiative-modul-intensivmedizin/sd_mii_icu_koerpergewicht", Observation, Observation.subject.reference)
+* insert AddStratifierGroup(13, "Observation?_profile:below=https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/koerpergewicht", Observation, Observation.subject.reference)
 * insert AddStratifierToGroup(13, 0, Observation.code.coding.where(system='http://loinc.org'\), "icu-koerpergewicht" , "icu-koerpergewicht")
 
 // ICU - Koerpergroesse
-* insert AddStratifierGroup(14, "Observation?_profile:below=https://simplifier.net/medizininformatikinitiative-modul-intensivmedizin/sd_mii_icu_koerpergroesse", Observation, Observation.subject.reference)
+* insert AddStratifierGroup(14, "Observation?_profile:below=https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/sd_mii_icu_koerpergroesse", Observation, Observation.subject.reference)
 * insert AddStratifierToGroup(14, 0, Observation.code.coding.where(system='http://loinc.org'\), "icu-koerpergroesse" , "icu-koerpergroesse")
 
 // ICU - o2saettigung
