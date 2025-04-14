@@ -445,3 +445,4 @@ class ElasticSearchGenerator:
 
         self.__write_es_import_to_file(current_file_index, current_file, json_flat, index_name, max_filesize_mb,
                                        filename_prefix, extension)
+

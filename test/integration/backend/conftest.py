@@ -96,7 +96,7 @@ def docker_compose_file(pytestconfig) -> str:
     shutil.copyfile(project.output("merged_ontology") / "mapping.zip", mapping_path)
     unpacked_dir_path = os.path.join(ontology_dir_path, "mapping")
     os.makedirs(unpacked_dir_path, exist_ok=True)
-    shutil.unpack_archive(mapping_path, unpacked_dir_path)
+    shutil.unpack_archive(mapping_path, ontology_dir_path)
 
     shutil.move(os.path.join(unpacked_dir_path, "cql", "mapping_cql.json"),
                 os.path.join(ontology_dir_path, "mapping_cql.json"))
