@@ -1,0 +1,41 @@
+{
+  "MII_PR_Onko_Diagnose_Primaertumor": [
+    "Primaerdiagnose"
+  ],
+  "MII_PR_Onko_Specimen": [
+    "Bioprobe"
+  ],
+  "MII_PR_Onko_Befund": [
+    "Histologiebefund"
+  ],
+  "MII_PR_Onko_Grading": [
+    "Histologiegrading"
+  ],
+  "MII_PR_Onko_Studienteilnahme": [
+    "Studienteilnahme"
+  ],
+  "MII_PR_Onko_Genetische_Variante": [
+    "Variantenassessment"
+  ],
+  "MII_PR_Onko_Tod": [
+    "Tod"
+  ],
+  "MII_PR_Onko_Verlauf": [
+    "Verlauf"
+  ],
+  "MII_PR_Onko_Fernmetastasen": [
+    "Fernmetastasen"
+  ],
+  "MII_PR_Onko_Residualstatus": [
+    "Residualstatus"
+  ],
+  "MII_PR_Onko_TNM_Klassifkiation": [
+    "TNM-Klassifikation"
+  ],
+  "MII_PR_Onko_Systemische_Therapie": [
+    "Systemtherapie"
+  ],
+  "MII_PR_Onko_Systemische_Therapie_Medikation": [
+    "Systemtherapie-Medikation"
+  ]
+}

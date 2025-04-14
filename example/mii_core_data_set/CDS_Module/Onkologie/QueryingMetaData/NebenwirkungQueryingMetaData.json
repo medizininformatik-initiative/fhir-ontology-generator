@@ -1,0 +1,21 @@
+{
+  "name": "Nebenwirkung",
+  "resource_type": "AdverseEvent",
+  "module": {
+    "code": "mii-cds-Onkologie",
+    "display": "Onkologie"
+  },
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "Onkologie",
+    "display": "Onkologie",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "AdverseEvent.category",
+  "time_restriction_defining_id": "AdverseEvent.recordedDate",
+  "attribute_defining_id_type_map": {
+    "AdverseEvent.seriousness": {
+      "optional": true
+    }
+  }
+}
