@@ -13,6 +13,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 ### Security
 
+## [3.3.0] - 2025-04-14
+
+### Added
+
+- Add CDS ICU module vital sign profiles to cohort selection by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/226
+
 ## [3.2.1] - 2025-03-17
 
 ### Fix
