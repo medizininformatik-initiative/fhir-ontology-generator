@@ -1,0 +1,22 @@
+{
+  "name": "Karnofsky",
+  "resource_type": "Observation",
+  "module": {
+    "code": "mii-cds-Onkologie",
+    "display": "Onkologie"
+  },
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "MII_Onkologie_Leistungszustand",
+    "display": "MII Onkologie Leistungszustand",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "Observation.code.coding",
+  "time_restriction_defining_id": "Observation.effective[x]",
+  "attribute_defining_id_type_map": {
+    "Observation.value[x].coding": {
+      "type": "",
+      "optional": true
+    }
+  }
+}
