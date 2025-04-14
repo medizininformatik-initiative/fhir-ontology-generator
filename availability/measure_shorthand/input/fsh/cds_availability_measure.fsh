@@ -1,13 +1,13 @@
 Instance: CdsAvailabilityMeasure
 InstanceOf: http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cv-measure-cqfm
-Description: "Example Measure to count all ICD-10 codes and the patient count."
+Description: "Measure to determine the availability of criteria based on the amount codings from different terminologies in the dataset"
 * status = #active
 * url = "https://medizininformatik-initiative.de/fhir/fdpg/Measure/CdsAvailabilityMeasure"
 * version = "1.0"
 * name = "CDSAvailabilityMeasure"
 * experimental = false
 * publisher = "FDPG-Plus-Availability"
-* description = "Measure to count the availabilities of different crtieria based on terminology system code counts"
+* description = "Measure to determine the availability of criteria based on the amount codings from different terminologies in the dataset"
 
 
 // Profil Diagnose
