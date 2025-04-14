@@ -13,6 +13,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 ### Security
 
+### [3.3.0]
+
+## Added
+
+- Add CDS ICU modules vital sign profiles to cohort selection by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/233
+- Add profile hierarchy resolution in DSE generation by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/216
+- Add translations for parent and child concepts in concept explorer by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/186
+- Add selection of patient postal code and country as fields in data selection by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/224
+
 ## [3.2.2] - 2025-03-17
 
 ### Fixed

@@ -1,0 +1,27 @@
+{
+  "version": "http://to_be_decided.com/draft-1/schema#",
+  "display": "Ausgewählte Merkmale",
+  "inclusionCriteria": [
+    [
+      {
+        "termCodes": [
+          {
+            "code": "9279-1",
+            "display": "Respiratory rate",
+            "system": "http://loinc.org",
+            "version": ""
+          }
+        ],
+        "context": {
+          "code": "Vitaldaten",
+          "display": "Vitaldaten",
+          "system": "fdpg.mii.cds",
+          "version": "1.0.0"
+        },
+        "timeRestriction": {
+          "afterDate": "2015-02-20"
+        }
+      }
+    ]
+  ]
+}

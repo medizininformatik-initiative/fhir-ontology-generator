@@ -14,7 +14,7 @@ from core import StructureDefinitionParser as FHIRParser
 from core.ResourceQueryingMetaDataResolver import ResourceQueryingMetaDataResolver
 from core.StructureDefinitionParser import resolve_defining_id, extract_value_type, extract_reference_type, \
     CQL_TYPES_TO_VALUE_TYPES, get_element_defining_elements_with_source_snapshots
-from core.exceptions.UnsupportedTypingException import UnsupportedTypingException
+from core.exceptions.typing import UnsupportedTypingException
 from helper import generate_attribute_key
 from model.MappingDataModel import CQLMapping, CQLAttributeSearchParameter, CQLTimeRestrictionParameter, \
     CQLTypeParameter, SimpleCardinality
@@ -252,8 +252,8 @@ class CQLMappingGenerator(object):
         attribute_type = "Reference" if attr_type == "reference" else attribute_type
         attribute_types = None
         if attribute_type == "composite":
-            element = self.parser.get_element_from_snapshot(profile_snapshot, attr_defining_id)
-            element, _ = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
+            # element = self.parser.get_element_from_snapshot(profile_snapshot, attr_defining_id)
+            # element, _ = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
 
             attribute_fhir_path = self.translate_composite_attribute_to_fhir_path_expression(attr_defining_id,
                                                                                              profile_snapshot)
