@@ -1,0 +1,1 @@
+{"version":"http://to_be_decided.com/draft-1/schema#","display":"Ausgewählte Merkmale","inclusionCriteria":[[{"termCodes":[{"code":"8302-2","display":"Body height","system":"http://loinc.org","version":""}],"context":{"code":"Vitaldaten","display":"Vitaldaten","system":"fdpg.mii.cds","version":"1.0.0"},"timeRestriction":{"beforeDate":"2025-04-07"}}]]}

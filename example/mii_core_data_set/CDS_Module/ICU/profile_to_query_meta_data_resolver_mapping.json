@@ -1,0 +1,20 @@
+{
+  "SD_MII_ICU_Arterieller_Blutdruck": [
+    "SD_MII_ICU_Arterieller_Blutdruck"
+  ],
+  "SD_MII_ICU_Atemfrequenz": [
+    "SD_MII_ICU_Atemfrequenz"
+  ],
+  "SD_MII_ICU_Koerpergewicht": [
+    "SD_MII_ICU_Koerpergewicht"
+  ],
+  "SD_MII_ICU_Koerpergroesse": [
+    "SD_MII_ICU_Koerpergroesse"
+  ],
+  "SD_MII_ICU_Sauerstoffsaettigung_Im_Arteriellen_Blut_Durch_Pulsoxymetrie": [
+    "SD_MII_ICU_Sauerstoffsaettigung_Im_Arteriellen_Blut_Durch_Pulsoxymetrie"
+  ],
+  "SD_MII_ICU_Herzfrequenz": [
+    "SD_MII_ICU_Herzfrequenz"
+  ]
+}
