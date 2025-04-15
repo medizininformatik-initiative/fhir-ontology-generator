@@ -19,6 +19,12 @@ runs:
         ls -al
         ls -al ./availability/measure_shorthand
 
+    - name: Set permissions
+      shell: bash
+      run: chmod +x availability/measure_shorthand/generate-availability-measure.sh
+
+
+
 
     - name: Run Availability generation
       shell: bash
