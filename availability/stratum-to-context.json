@@ -95,18 +95,6 @@
     "display": "Bioprobe",
     "version": "1.0.0"
   },
-  "consent-patientendaten-erheben,-speichern,-nutzen": {
-    "system": "fdpg.mii.cds",
-    "code": "Einwilligung",
-    "display": "Einwilligung",
-    "version": "1.0.0"
-  },
-  "consent-mdat-erheben": {
-    "system": "fdpg.mii.cds",
-    "code": "Einwilligung",
-    "display": "Einwilligung",
-    "version": "1.0.0"
-  },
   "condition-death-reason-icd10-code": {
     "system": "fdpg.mii.cds",
     "code": "Todesursache",
