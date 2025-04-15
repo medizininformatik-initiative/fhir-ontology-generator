@@ -12,25 +12,14 @@ runs:
       shell: bash
       run: npm install -g fsh-sushi
 
-    - name: Debug path
-      shell: bash
-      run: |
-        echo "Current dir: $(pwd)"
-        ls -al
-        ls -al ./availability/measure_shorthand
-
     - name: Set permissions
       shell: bash
       run: chmod +x availability/measure_shorthand/generate-availability-measure.sh
-
-
-
 
     - name: Run Availability generation
       shell: bash
       working-directory: ./availability/measure_shorthand
       run: ./generate-availability-measure.sh
-
 
     - name: Upload Availability
       uses: actions/upload-artifact@v4
