@@ -12,23 +12,12 @@ runs:
       shell: bash
       run: npm install -g fsh-sushi
 
-    - name: Debug path
-      shell: bash
-      run: |
-        echo "Current dir: $(pwd)"
-        ls -al
-        ls -al ./availability/measure_shorthand
-
-
     - name: Run Availability generation
       shell: bash
-      run: |
-        sushi .
-        cp fsh-generated/resources/Measure-CdsAvailabilityMeasure.json ../Measure-CdsAvailabilityMeasure.json
-
+      run: availability/measure_shorthand/generate-availability-measure.sh
 
     - name: Upload Availability
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact
       with:
         name: availability
         path: availability/*.json

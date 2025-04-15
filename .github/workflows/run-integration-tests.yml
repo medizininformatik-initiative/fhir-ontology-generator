@@ -34,7 +34,6 @@ jobs:
     - name: Generate_Availability
       uses: ./.github/actions/availability
 
-
     - name: Setup python 3 environment
       uses: actions/setup-python@v5
       with:
