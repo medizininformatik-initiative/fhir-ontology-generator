@@ -67,7 +67,11 @@ jobs:
         SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
         PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
       run: ./generate_full_ontology.sh --all
-      
+
+    - name: Generate_Availability
+      uses: ./.github/actions/avalability
+
+
     - name: Save ZIP file paths
       id: save_zips
       run: |
