@@ -13,8 +13,9 @@ runs:
       run: npm install -g fsh-sushi
 
     - name: Run Availability generation
+      working-directory: availability/measure_shorthand
       shell: bash
-      run: ./availability/measure_shorthand/generate-availability-measure.sh
+      run: ./generate-availability-measure.sh
 
     - name: Upload Availability
       uses: actions/upload-artifact@v4
