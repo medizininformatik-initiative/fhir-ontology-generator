@@ -32,7 +32,7 @@ jobs:
         localectl status
 
     - name: Generate_Availability
-      uses: ./.github/actions/avalability
+      uses: ./.github/actions/availability
 
 
     - name: Setup python 3 environment
