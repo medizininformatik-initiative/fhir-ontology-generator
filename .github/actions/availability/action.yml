@@ -13,7 +13,7 @@ runs:
       run: npm install -g fsh-sushi
 
     - name: Run Availability generation
-      working-directory: availability/measure_shorthand
+      working-directory: ../../../availability/measure_shorthand
       shell: bash
       run: ./generate-availability-measure.sh
 
