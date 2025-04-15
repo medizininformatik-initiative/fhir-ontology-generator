@@ -1,0 +1,23 @@
+name: Generate Availability Measure
+
+description: 'Generates availability measure'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install npm
+      uses: actions/setup-node@v4
+
+    - name: Install Sushi
+      shell: bash
+      run: npm install -g fsh-sushi
+
+    - name: Run Availability generation
+      shell: bash
+      run: availability/measure_shorthand/generate-availability-measure.sh
+
+    - name: Upload Availability
+      uses: actions/upload-artifact
+      with:
+        name: availability
+        path: availability/*.json
