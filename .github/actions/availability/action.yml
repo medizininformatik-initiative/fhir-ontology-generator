@@ -22,9 +22,7 @@ runs:
 
     - name: Run Availability generation
       shell: bash
-      run: |
-        sushi .
-        cp fsh-generated/resources/Measure-CdsAvailabilityMeasure.json ../Measure-CdsAvailabilityMeasure.json
+      run: ./availability/measure_shorthand/generate-availability-measure.sh
 
 
     - name: Upload Availability
