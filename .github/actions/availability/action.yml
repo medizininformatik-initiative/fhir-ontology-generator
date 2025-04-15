@@ -17,7 +17,7 @@ runs:
       run: availability/measure_shorthand/generate-availability-measure.sh
 
     - name: Upload Availability
-      uses: actions/upload-artifact
+      uses: actions/upload-artifact@v4
       with:
         name: availability
         path: availability/*.json
