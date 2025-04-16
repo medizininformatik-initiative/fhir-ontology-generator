@@ -2,6 +2,12 @@ name: Generate Availability Measure
 
 description: 'Generates availability measure'
 
+inputs:
+  tag:
+    required: false
+    description: 'Git tag if present'
+    default: ""
+
 runs:
   using: "composite"
   steps:
@@ -20,6 +26,18 @@ runs:
       shell: bash
       working-directory: ./availability/measure_shorthand
       run: ./generate-availability-measure.sh
+
+    - name: Rename JSON (with tag if available)
+      shell: bash
+      working-directory: ./availability/
+      run: |
+        TAG="${{ inputs.tag }}"
+        if [[ -n "$TAG" ]]; then
+          NEW_NAME="fdpg_availability_measure_${TAG}.json"
+        else
+          NEW_NAME="fdpg_availability_measure.json"
+        fi
+        mv Measure-CdsAvailabilityMeasure.json "$NEW_NAME"
 
     - name: Upload Availability
       uses: actions/upload-artifact@v4

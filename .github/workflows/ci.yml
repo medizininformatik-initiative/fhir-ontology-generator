@@ -58,8 +58,11 @@ jobs:
         PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
       run: ./generate_full_ontology.sh --project "fdpg-ontology" --all
 
-    - name: Generate_Availability
-      uses: ./.github/actions/avalability
+    - name: Generate Availability
+      uses: ./.github/actions/availability
+      with:
+        tag: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+
 
     - name: Release
       uses: softprops/action-gh-release@v2
