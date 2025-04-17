@@ -5,6 +5,7 @@ import json
 import shutil
 from pathlib import Path
 
+from common.util.fhir.enums import FhirPrimitiveDataType
 from common.util.log.functions import get_class_logger
 
 from enum import Enum
@@ -19,8 +20,8 @@ class SnapshotPackageScope(str, Enum):
 class ProfileTreeGenerator:
     __logger = get_class_logger("ProfileTreeGenerator")
 
-    def __init__(self, packages_dir: str, snapshots_dir: str, exclude_dirs, excluded_profiles, module_order,
-                 module_translation, fields_to_exclude, field_trees_to_exclude, profiles_to_process):
+    def __init__(self, packages_dir: Path | str, snapshots_dir:  Path | str, exclude_dirs, excluded_profiles,
+                 module_order, module_translation, fields_to_exclude, field_trees_to_exclude, profiles_to_process):
         self.profiles= {scope: dict() for scope in SnapshotPackageScope}
         self.packages_dir = packages_dir
         self.snapshots_dir = snapshots_dir
@@ -32,14 +33,15 @@ class ProfileTreeGenerator:
         self.field_trees_to_exclude = field_trees_to_exclude
         self.profiles_to_process = profiles_to_process
 
-    def get_name_from_id(self, id):
+    @staticmethod
+    def get_name_from_id(id):
         name = id.split(".")[-1]
         name = name.split(":")[-1]
         name = name.replace("[x]", "")
-
         return name
 
-    def get_value_for_lang_code(self, data, langCode):
+    @staticmethod
+    def get_value_for_lang_code(data, langCode):
         for ext in data.get('extension', []):
             if any(e.get('url') == 'lang' and e.get('valueCode') == langCode for e in ext.get('extension', [])):
                 return next(e['valueString'] for e in ext['extension'] if e.get('url') == 'content')
@@ -61,8 +63,8 @@ class ProfileTreeGenerator:
             path = re.split(r"[.:]", element["id"])
             path = path[1:]
         except KeyError:
-            _logger.warning(f"ElementDefinition instance will be rejected since it does not have an 'id' element "
-                            f"[path='{element.get('path')}']")
+            self.__logger.warning(f"ElementDefinition instance will be rejected since it does not have an 'id' element "
+                                  f"[path='{element.get('path')}']")
             return False
 
         if "type" in element and element["type"][0]["code"] in FhirPrimitiveDataType and len(path) > 1:
@@ -249,13 +251,13 @@ class ProfileTreeGenerator:
                             ):
                                 destination = os.path.join(os.path.join(self.snapshots_dir, snapshot_scope),
                                                            os.path.basename(file_path))
-                                self.logger.info(f"Copying snapshot file for further processing: {file_path} -> "
-                                                 f"{destination}")
+                                self.__logger.info(f"Copying snapshot file for further processing: {file_path} -> "
+                                                   f"{destination}")
                                 shutil.copy(file_path, destination)
                     except UnicodeDecodeError:
-                        self.logger.warning(f"File {file_path} is not a text file or cannot be read as text.")
+                        self.__logger.warning(f"File {file_path} is not a text file or cannot be read as text.")
                     except Exception as exc:
-                        self.logger.error(f"Failed to copy file '{file_path}'", exc_info=exc)
+                        self.__logger.error(f"Failed to copy file '{file_path}'", exc_info=exc)
 
 
     def get_profile_snapshots(self):
@@ -311,12 +313,6 @@ class ProfileTreeGenerator:
         else:
             return 1, name
 
-    def get_value_for_lang_code(self, data: Mapping[str, any], lang_code: str):
-        for ext in data.get('extension', []):
-            if any(e.get('url') == 'lang' and e.get('valueCode') == lang_code for e in ext.get('extension', [])):
-                return next(e['valueString'] for e in ext['extension'] if e.get('url') == 'content')
-        return ""
-
     def __get_profiles(self, scope: Optional[str] = None) -> Mapping[str, Mapping[str, Any]]:
         """
         Returns all profile entries in a certain scope or all if none is provided
@@ -346,7 +342,7 @@ class ProfileTreeGenerator:
         tree = {"name": "Root", "module": "no-module", "url": "no-url", "children": [], "selectable": False}
 
         for profile in self.get_suitable_mii_profiles().values():
-            self.logger.info(f"Processing profile {profile.get('name')}")
+            self.__logger.info(f"Processing profile {profile.get('name')}")
             try:
                 path = self.build_profile_path([], profile, self.__get_profiles(SnapshotPackageScope.MII))
                 module = profile["module"]
@@ -396,7 +392,7 @@ class ProfileTreeGenerator:
         return sorted_tree
 
     @staticmethod
-    def determine_snapshot_scope_for_package(manifest_file_path: FilePathStr) -> SnapshotPackageScope:
+    def determine_snapshot_scope_for_package(manifest_file_path: Path | str) -> SnapshotPackageScope:
         with open(manifest_file_path, encoding="utf8", mode="r") as manifest_file:
             manifest = json.load(manifest_file)
             package_name =  manifest.get('name', None)

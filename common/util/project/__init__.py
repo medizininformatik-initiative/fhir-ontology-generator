@@ -5,7 +5,7 @@ from typing import Optional, Annotated, Any, Mapping
 from pydantic import BaseModel, Field, model_validator, ValidationError
 
 from common.util.log.functions import get_class_logger
-from common.util.project.files import PROJECT_ROOT
+from common.constants.project import PROJECT_ROOT
 
 
 class Project(BaseModel):

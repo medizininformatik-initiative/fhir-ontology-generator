@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 from collections import defaultdict
+from email.policy import default
 from os import PathLike
 from typing import Mapping, Union, Iterator, Optional
 
@@ -57,8 +58,9 @@ def repository_root_dir(request) -> str:
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--project", action="store", required=True, help="Name of project to run these integration tests for"
+        "--project", action="store", default="fdpg-ontology", help="Name of project to run these integration tests for"
     )
+
 
 @pytest.fixture
 def project(request) -> Project:

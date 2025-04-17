@@ -5,7 +5,6 @@ from requests.auth import AuthBase
 
 from common.util.http.client import BaseClient
 from common.util.http.exceptions import ClientError
-from common.util.http.url import merge_urls
 
 
 class SiteResult(TypedDict):

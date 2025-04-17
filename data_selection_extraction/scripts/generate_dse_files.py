@@ -285,7 +285,7 @@ if __name__ == '__main__':
 
     if args.generate_profile_details:
         profiles = tree_generator.profiles
-        profile_detail_generator = ProfileDetailGenerator(profiles, mapping_type_code, blacklistedValueSets,
+        profile_detail_generator = ProfileDetailGenerator(profiles, mapping_type_code, blacklisted_value_sets,
                                                           fields_to_exclude, field_trees_to_exclude, reference_resolve_base_url)
 
         profile_details = profile_detail_generator.generate_profile_details_for_profiles_in_scope(
@@ -294,7 +294,7 @@ if __name__ == '__main__':
             profile_tree=profile_tree
         )
 
-        with open(os.path.join("generated", "profile_details_all.json"), mode="w+", encoding="utf-8") as p_details_f:
+        with open(dse_output_dir / "profile_details_all.json", mode="w+", encoding="utf-8") as p_details_f:
             json.dump(profile_details, p_details_f, cls=JSONFhirOntoEncoder)
 
         generate_r_load_sql(profile_details)

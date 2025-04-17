@@ -270,7 +270,6 @@ def get_common_ancestor(profile_snapshot: dict, element_id_1: str, element_id_2:
 
 
 def process_element_id(element_ids, profile_snapshot: dict, module_dir_name: str, modules_dir_path: str | Path,
-def process_element_id(element_ids, profile_snapshot: dict, module_dir_name: str, modules_dir_path: str | Path,
                        last_desc: ShortDesc = None) -> List[ProcessedElementResult] | None:
     results = []
 

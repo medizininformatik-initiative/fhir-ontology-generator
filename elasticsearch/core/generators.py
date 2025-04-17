@@ -8,6 +8,7 @@ from zipfile import ZipFile
 import re
 
 from cohort_selection_ontology.model.ui_data import RelationalTermcode
+from common.util.codec.json import JSONFhirOntoEncoder
 from elasticsearch.core.resolvers.designation import TerminologyDesignationResolver
 
 from common.util.log.functions import get_class_logger
@@ -19,7 +20,7 @@ class ElasticSearchGenerator:
 
     def __init__(self, project: Project):
         self.__project = project
-        self.__terminology_resolver = TerminologyDesignationResolver(
+        self.__designation_resolver = TerminologyDesignationResolver(
             project,
             project.input("translation") / "base_translations.json"
         )
@@ -53,9 +54,8 @@ class ElasticSearchGenerator:
                     else:
                         context_termcode_hash_to_crit_set[cont_term_hash].append(crit_set_url)
 
-    @staticmethod
-    def __get_relation_crit_object(code: str|int, system: dict, context: dict, term_code_info_map: dict, namespace_uuid_str: str,
-                                   terminology_resolver: TerminologyDesignationResolver) -> RelationalTermcode:
+    def __get_relation_crit_object(self, code: str|int, system: dict, context: dict, term_code_info_map: dict,
+                                   namespace_uuid_str: str) -> RelationalTermcode:
         """
         Returns the information of a given child/parent node,
         including the contextualized_termcode_hash and the translations
@@ -65,29 +65,28 @@ class ElasticSearchGenerator:
         :param context: context of parent/child node
         :param term_code_info_map: dict with all codes, saved based on their contextualized_termcode_hash
         :param namespace_uuid_str: uuid of namespace
-        :param terminology_resolver: terminology resolver provides translations based on termcode
         :return: dict[str, dict] with information of the given parent/child node
         """
         term_code = {"code": code, "system": system}
-        context_term_code_hash = ElasticSearchGenerator.__get_contextualized_termcode_hash(context, term_code,namespace_uuid_str)
+        context_term_code_hash = self.__get_contextualized_termcode_hash(context, term_code,namespace_uuid_str)
 
         parent_term_code_info = term_code_info_map[context_term_code_hash]
         parent_context = parent_term_code_info['context']
         parent_term_code = parent_term_code_info['term_code']
 
         parent_realtional_termcode = RelationalTermcode(
-            contextualized_termcode_hash= ElasticSearchGenerator.__get_contextualized_termcode_hash(
+            contextualized_termcode_hash= self.__get_contextualized_termcode_hash(
                 parent_context,
                 parent_term_code,
                 namespace_uuid_str=namespace_uuid_str
             ),
-            display= terminology_resolver.resolve_term(parent_term_code)
+            display=self.__designation_resolver.resolve_term(parent_term_code)
         )
 
         return parent_realtional_termcode
 
-    def __iterate_tree(self, ui_tree_list: dict, term_code_info_map: dict, target_elastic_crit_list: list, context_termcode_hash_to_crit_set: dict,
-                       namespace_uuid_str: str, terminology_resolver: TerminologyDesignationResolver):
+    def __iterate_tree(self, ui_tree_list: dict, term_code_info_map: dict, target_elastic_crit_list: list,
+                       context_termcode_hash_to_crit_set: dict, namespace_uuid_str: str):
         """
         Iterates ui tree and complements information about each node
         """
@@ -95,7 +94,7 @@ class ElasticSearchGenerator:
         children_cut_off = 400
 
         for ui_tree in ui_tree_list:
-            if not self.__terminology_resolver.has_designations_for(ui_tree.get('system')):
+            if not self.__designation_resolver.has_designations_for(ui_tree.get('system')):
                 self.__logger.warning(f"No designations are loaded for code system '{ui_tree.get('system')}' "
                                       f"=> Skipping")
                 continue
@@ -125,7 +124,7 @@ class ElasticSearchGenerator:
                     'context': context,
                     'termcodes': [term_code_info['term_code']],
                     'criteria_sets': [],
-                    'display': self.__terminology_resolver.resolve_term(term_code),
+                    'display': self.__designation_resolver.resolve_term(term_code),
                     'parents': [],
                     'children': [],
                     'related_terms': [],
@@ -135,14 +134,14 @@ class ElasticSearchGenerator:
                 for parent_code in entry['parents']:
                     obj['parents'].append(
                         self.__get_relation_crit_object(
-                            parent_code, ui_tree['system'], context,term_code_info_map, namespace_uuid_str, terminology_resolver
+                            parent_code, ui_tree['system'], context,term_code_info_map, namespace_uuid_str
                         )
                     )
 
                 for child_code in entry['children']:
                     obj['children'].append(
                         self.__get_relation_crit_object(
-                            child_code, ui_tree['system'], context,term_code_info_map, namespace_uuid_str, terminology_resolver
+                            child_code, ui_tree['system'], context,term_code_info_map, namespace_uuid_str
                         )
                     )
 
@@ -178,7 +177,7 @@ class ElasticSearchGenerator:
                             "version": 2099
                         },
                     "value_sets": [value_set['url']],
-                    "display": self.__terminology_resolver.resolve_term(termcode),
+                    "display": self.__designation_resolver.resolve_term(termcode),
                 }
 
             else:
@@ -251,9 +250,7 @@ class ElasticSearchGenerator:
                         file_path = os.path.join(root, file)
                         elastic_zip.write(file_path, os.path.relpath(file_path, include_additional_files))
 
-    @staticmethod
-    def load_termcode_info(self, tree_file_name, namespace_uuid_str) -> Mapping[str, dict]:
-
+    def __load_termcode_info(self, tree_file_name, namespace_uuid_str) -> Mapping[str, dict]:
         term_code_info_map = {}
 
         folder = self.__project.output() / "merged_ontology" / "term-code-info"
@@ -384,8 +381,8 @@ class ElasticSearchGenerator:
         crit_set_dir = generated_ontology_dir / "criteria-sets"
         self.__build_crit_set_map(context_termcode_hash_to_crit_set, crit_set_dir, namespace_uuid_str)
 
-        self.__terminology_resolver.load_base_designations(ui_tree_dir, value_set_dir)
-        self.__terminology_resolver.load_designations(translations_dir, update_translation_supplements)
+        self.__designation_resolver.load_base_designations(ui_tree_dir, value_set_dir)
+        self.__designation_resolver.load_designations(translations_dir, update_translation_supplements)
 
         if generate_availability:
             self.__logger.info('Generating availability')

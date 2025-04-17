@@ -2,9 +2,9 @@ import re
 from collections.abc import Callable
 from typing import Mapping, List, TypedDict, Any, Optional
 
-from core.exceptions.profile import MissingProfileException
-from model.UiDataModel import TranslationElementDisplay
-from model.dse import FieldDetail, ProfileDetail, Filter
+from common.exceptions.profile import MissingProfileException
+from cohort_selection_ontology.model.ui_data import TranslationElementDisplay
+from data_selection_extraction.model.detail import FieldDetail, ProfileDetail, Filter
 from common.util.fhir.enums import FhirPrimitiveDataType
 
 from common.util.log.functions import get_class_logger

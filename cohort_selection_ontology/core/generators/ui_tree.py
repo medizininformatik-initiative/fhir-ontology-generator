@@ -38,7 +38,7 @@ class UITreeGenerator:
         :param module_name: name of the module the profile belongs to
         :return: root of the ui subtree
         """
-        applicable_querying_meta_data = self.get_query_meta_data(fhir_profile_snapshot, module_name)
+        applicable_querying_meta_data = self.query_meta_data_resolver.get_query_meta_data(fhir_profile_snapshot, module_name)
         if not applicable_querying_meta_data:
             self.__logger.warning(f"No querying meta data found for {fhir_profile_snapshot['name']}")
         return self.translate(fhir_profile_snapshot, applicable_querying_meta_data, module_name)

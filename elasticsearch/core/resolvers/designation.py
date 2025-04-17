@@ -5,13 +5,15 @@ import re
 from itertools import groupby
 from pathlib import Path
 
-from typing import List, TypeVar, Optional, Any, Mapping
+from typing import List, TypeVar, Any, Mapping
 
-from common.exceptions import NotFoundError
 from common.util.fhir.bundle import create_bundle, BundleType
 from common.util.http.terminology.client import FhirTerminologyClient
-from common.util.log.functions import get_class_logger
+from common.util.log.functions import get_class_logger, get_logger
 from common.util.project import Project
+
+
+logger = get_logger(__file__)
 
 
 def extract_designation(parameters: dict, language: str, fuzzy = True) -> str | None:
@@ -405,7 +407,7 @@ class TerminologyDesignationResolver:
 
     def has_designations_for(self, canonical_url: str) -> bool:
         """
-        Checks if there are designations loaded for the code system identified by tis canonical URL
+        Checks if there are designations loaded for the code system identified by this canonical URL
         :param canonical_url: Canonical URL of the code system
         :return: Boolean indicating whether this instance has designations for the code system
         """

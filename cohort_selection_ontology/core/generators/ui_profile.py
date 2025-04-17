@@ -7,9 +7,10 @@ from typing import Dict, Tuple, List
 from cohort_selection_ontology.core.terminology.client import CohortSelectionTerminologyClient
 from cohort_selection_ontology.core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
 from cohort_selection_ontology.util import structure_definition as sd
-from cohort_selection_ontology.util.structure_definition import InvalidValueTypeException, UCUM_SYSTEM, get_binding_value_set_url, \
-    ProcessedElementResult, get_fixed_term_codes, FHIR_TYPES_TO_VALUE_TYPES, extract_value_type
-from helper import process_element_definition
+from cohort_selection_ontology.util.structure_definition import InvalidValueTypeException, UCUM_SYSTEM, \
+    get_binding_value_set_url, \
+    ProcessedElementResult, get_fixed_term_codes, FHIR_TYPES_TO_VALUE_TYPES, extract_value_type, get_common_ancestor
+from helper import process_element_definition, get_display_from_element_definition
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from cohort_selection_ontology.model.ui_profile import ValueDefinition, UIProfile, AttributeDefinition, CriteriaSet
 from cohort_selection_ontology.model.ui_data import TermCode
@@ -108,7 +109,8 @@ class UIProfileGenerator:
         ui_profile.attributeDefinitions = self.get_attribute_definitions(profile_snapshot, querying_meta_data)
         return ui_profile
 
-    def get_allowed_units_from_quantity(self, profile_snapshot: dict, value_defining_element: dict) -> List[TermCode]:
+    @staticmethod
+    def get_allowed_units_from_quantity(profile_snapshot: dict, value_defining_element: dict) -> List[TermCode]:
         """
         Get the units from 3 possible places in the following order:
 
@@ -136,10 +138,10 @@ class UIProfileGenerator:
         """
 
         unit_defining_path = value_defining_element.get("path") + ".code"
-        unit_defining_elements = self.parser.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
+        unit_defining_elements = sd.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
         # get the units the standard way
         if len(unit_defining_elements) == 1:
-            return self.parser.get_units(unit_defining_elements[0], profile_snapshot.get("name"))
+            return sd.get_units(unit_defining_elements[0], profile_snapshot.get("name"))
 
         # get units from value[x].patternQuantity
         if pattern_quantity := value_defining_element.get("patternQuantity"):
@@ -148,7 +150,7 @@ class UIProfileGenerator:
                                  pattern_quantity.get("unit"))]
 
         # get units from value[x]:valueQuantity.patternQuantity
-        if value_quantity := self.parser.get_element_from_snapshot(profile_snapshot, (
+        if value_quantity := sd.get_element_from_snapshot(profile_snapshot, (
                 value_defining_element.get("path") + ":valueQuantity")):
             if pattern_quantity := value_quantity.get("patternQuantity"):
                 if pattern_quantity.get("code"):
