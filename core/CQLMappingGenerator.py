@@ -7,7 +7,6 @@ import re
 from functools import reduce
 from typing import Tuple, List, Dict, Set
 
-from dill.pointers import parent
 from lxml import etree
 from typing_extensions import LiteralString
 
