@@ -380,7 +380,7 @@ class DataBaseWriter:
         # TODO: Remove this context once we know the context:
         self.insert_context_codes([entry[0] for entry in entries])
 
-        self.insert_term_codes(entry[1] for entry in entries)
+        self.insert_term_codes(list(entry[1] for entry in entries))
 
         contextualized_termcode_values = [
             (self.calculate_context_term_code_hash(context, term_code), context.system, context.code,

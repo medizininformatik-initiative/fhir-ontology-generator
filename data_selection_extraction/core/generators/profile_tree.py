@@ -3,6 +3,7 @@ import re
 import os
 import json
 import shutil
+from pathlib import Path
 
 from common.util.log.functions import get_class_logger
 
@@ -32,7 +33,6 @@ class ProfileTreeGenerator:
         self.profiles_to_process = profiles_to_process
 
     def get_name_from_id(self, id):
-
         name = id.split(".")[-1]
         name = name.split(":")[-1]
         name = name.replace("[x]", "")
@@ -127,7 +127,6 @@ class ProfileTreeGenerator:
         }
 
     def build_profile_path(self, path, profile, profiles):
-
         profile_struct = profile["structureDefinition"]
         parent_profile_url = profile_struct.get("baseDefinition")
 
@@ -168,7 +167,6 @@ class ProfileTreeGenerator:
         return path
 
     def get_profile_in_node(self, node, name):
-
         if "children" not in node:
             node["children"] = []
 
@@ -183,7 +181,6 @@ class ProfileTreeGenerator:
         return -1
 
     def insert_path_to_tree(self, tree, path):
-
         cur_node = tree
         for index in range(0, len(path)):
 
@@ -270,8 +267,7 @@ class ProfileTreeGenerator:
                 scope = SnapshotPackageScope(file_path.split(os.sep)[-2]).value
 
                 try:
-
-                    with open(file_path, "r") as f:
+                    with open(file_path, mode='r', encoding='utf-8') as f:
                         content = json.load(f)
 
                         if self.profiles_to_process and content["url"] not in self.profiles_to_process:

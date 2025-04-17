@@ -5,8 +5,8 @@ import json
 import logging
 
 from helper import JSONSerializable
-from model.UIProfileModel import del_keys, del_none
-from model.UiDataModel import Module, TermCode
+from cohort_selection_ontology.model.ui_profile import del_keys, del_none
+from cohort_selection_ontology.model.ui_data import Module, TermCode
 
 
 @dataclass

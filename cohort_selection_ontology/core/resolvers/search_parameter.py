@@ -2,14 +2,14 @@ import json
 import math
 import os
 import re
-import resources
+import cohort_selection_ontology.resources.fhir as fhir_resource_files
 from abc import ABC, abstractmethod
 from importlib.resources import files
 from pathlib import Path
 from typing import List, OrderedDict, Dict, Tuple
 from collections import OrderedDict as orderedDict
 
-from core.exceptions.common import NotFoundError
+from common.exceptions import NotFoundError
 from common.util.log.functions import get_class_logger
 
 
@@ -33,7 +33,7 @@ class SearchParameterResolver(ABC):
         :raises ValueError: if the composite search parameter could not be found
         """
         if len(search_parameters) != 2:
-            raise ValueError("Only two search parameters are allowed for composite search.")
+            raise ValueError("Only two search parameters are allowed for composite search")
         search_parameter_url_1, search_parameter_url_2 = [param.get("url") for param in search_parameters.values()]
         path_1, path_2 = search_parameters.keys()
         joined_path = f"{path_1}.where({path_2})"
@@ -46,7 +46,7 @@ class SearchParameterResolver(ABC):
             if components[0].get("definition") == search_parameter_url_2 and components[1].get(
                     "definition") == search_parameter_url_1:
                 return orderedDict({joined_path: composite_search_parameter})
-        raise ValueError("Composite search parameter not found.")
+        raise ValueError("Composite search parameter not found")
 
     def find_search_parameter(self, fhir_path_expressions: List[str]) -> OrderedDict[str, dict]:
         """
@@ -129,7 +129,8 @@ class SearchParameterResolver(ABC):
 
     @staticmethod
     def _load_default_search_parameters() -> List[Dict]:
-        with files(resources).joinpath("fhir_search_parameter_definition.json").open(mode='r', encoding="utf-8") as f:
+        with (files(fhir_resource_files).joinpath("fhir_search_parameter_definition.json")
+                      .open(mode='r', encoding="utf-8") as f):
             search_parameter_definition = json.load(f)
         return [entry['resource'] for entry in search_parameter_definition["entry"]]
 

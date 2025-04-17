@@ -4,25 +4,28 @@ import json
 import os
 from typing import Tuple, List, Dict
 
-from cohort_selection_ontology.util import structure_definition as FHIRParser
-from core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
+from cohort_selection_ontology.core.terminology.client import CohortSelectionTerminologyClient
+from cohort_selection_ontology.util import structure_definition as sd
+from cohort_selection_ontology.core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
 from cohort_selection_ontology.util.structure_definition import resolve_defining_id, extract_value_type
+from common.util.project import Project
 from helper import generate_attribute_key
-from model.MappingDataModel import PathlingMapping, PathlingAttributeSearchParameter
-from model.ResourceQueryingMetaData import ResourceQueryingMetaData
-from model.UIProfileModel import VALUE_TYPE_OPTIONS
-from model.UiDataModel import TermCode
+from cohort_selection_ontology.model.mapping import PathlingMapping, PathlingAttributeSearchParameter
+from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
+from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS
+from cohort_selection_ontology.model.ui_data import TermCode
 
 
 class PathlingMappingGenerator(object):
-    def __init__(self, querying_meta_data_resolver: ResourceQueryingMetaDataResolver, parser=FHIRParser):
+    def __init__(self, project: Project, querying_meta_data_resolver: ResourceQueryingMetaDataResolver):
         """
-        :param querying_meta_data_resolver: resolves the for the query relevant meta data for a given FHIR profile
+        :param querying_meta_data_resolver: resolves the for the query relevant metadata for a given FHIR profile
         snapshot
         """
+        self.__project = project
+        self.__client = CohortSelectionTerminologyClient(self.__project)
         self.querying_meta_data_resolver = querying_meta_data_resolver
         self.generated_mappings = []
-        self.parser = parser
         self.data_set_dir: str = ""
         self.module_dir: str = ""
 
@@ -39,7 +42,7 @@ class PathlingMappingGenerator(object):
         """
         Generates the FHIR search mappings for the given FHIR dataset directory
         :param fhir_dataset_dir: FHIR dataset directory
-        :return: normalized term code FHIR search generators
+        :return: normalized term code FHIR search mapping
         """
         self.data_set_dir = fhir_dataset_dir
         full_context_term_code_pathling_mapping_name_mapping: Dict[Tuple[TermCode, TermCode]] | dict = {}
@@ -58,13 +61,13 @@ class PathlingMappingGenerator(object):
         return (full_context_term_code_pathling_mapping_name_mapping,
                 full_pathling_mapping_name_pathling_mapping)
 
-    def generate_normalized_term_code_pathling_mapping(self, profile_snapshot, module_name: TermCode) \
+    def generate_normalized_term_code_pathling_mapping(self, profile_snapshot, module_name: str) \
             -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, PathlingMapping]]:
         """
-        Generates the normalized term code to pathling generators for the given FHIR profile snapshot
+        Generates the normalized term code to pathling mapping for the given FHIR profile snapshot
         :param profile_snapshot: FHIR profile snapshot
-        :param module_name: name of the module the profile belongs to
-        :return: normalized term code to pathling generators
+        :param module_name: Name of the module the profile belongs to
+        :return: normalized Term code to pathling mapping
         """
         querying_meta_data: List[ResourceQueryingMetaData] = \
             self.querying_meta_data_resolver.get_query_meta_data(profile_snapshot, module_name)
@@ -78,10 +81,10 @@ class PathlingMappingGenerator(object):
                 mapping_name_pathling_mapping[mapping_name] = pathling_mapping
             else:
                 mapping_name = querying_meta_data_entry.name
-            # The logic to get the term_codes here always has to be identical with the generators Generators!
+            # The logic to get the term_codes here always has to be identical with the mapping
             term_codes = querying_meta_data_entry.term_codes if querying_meta_data_entry.term_codes else \
-                self.parser.get_term_code_by_id(profile_snapshot, querying_meta_data_entry.term_code_defining_id,
-                                                self.data_set_dir, self.module_dir)
+                sd.get_term_code_by_id(profile_snapshot, querying_meta_data_entry.term_code_defining_id,
+                                                self.data_set_dir, self.module_dir, self.__client)
             primary_keys = [(querying_meta_data_entry.context, term_code) for term_code in term_codes]
             mapping_names = [mapping_name] * len(primary_keys)
             table = dict(zip(primary_keys, mapping_names))
@@ -91,10 +94,10 @@ class PathlingMappingGenerator(object):
     def generate_pathling_mapping(self, profile_snapshot, querying_meta_data: ResourceQueryingMetaData) \
             -> PathlingMapping:
         """
-        Generates the pathling generators for the given FHIR profile snapshot and querying meta data entry
+        Generates the pathling mapping for the given FHIR profile snapshot and querying metadata entry
         :param profile_snapshot: FHIR profile snapshot
-        :param querying_meta_data: querying meta data entry
-        :return: pathling generators
+        :param querying_meta_data: querying metadata entry
+        :return: pathling mapping
         """
         pathling_mapping = PathlingMapping(querying_meta_data.name)
         pathling_mapping.resourceType = querying_meta_data.resource_type
@@ -127,14 +130,14 @@ class PathlingMappingGenerator(object):
         return pathling_mapping
 
     def translate_term_element_id_to_fhir_path_expression(self, element_id, profile_snapshot) -> str:
-        elements = self.parser.get_element_defining_elements(element_id, profile_snapshot, self.module_dir,
+        elements = sd.get_element_defining_elements(element_id, profile_snapshot, self.module_dir,
                                                              self.data_set_dir)
         # TODO: Revisit and evaluate if this really the way to go.
         for element in elements:
             for element_type in element.get("type"):
                 if element_type.get("code") == "Reference":
                     return self.get_pathling_optimized_path_expression(
-                        self.parser.translate_element_to_fhir_path_expression(elements, profile_snapshot)[
+                        sd.translate_element_to_fhir_path_expression(elements, profile_snapshot)[
                             0]) + ".reference"
         return self.translate_element_id_to_fhir_path_expressions(element_id, profile_snapshot)
 
@@ -145,9 +148,9 @@ class PathlingMappingGenerator(object):
         :param profile_snapshot: FHIR profile snapshot containing the element id
         :return: fhir search parameter
         """
-        elements = self.parser.get_element_defining_elements(element_id, profile_snapshot, self.module_dir,
+        elements = sd.get_element_defining_elements(element_id, profile_snapshot, self.module_dir,
                                                              self.data_set_dir)
-        expressions = self.parser.translate_element_to_fhir_path_expression(elements, profile_snapshot)
+        expressions = sd.translate_element_to_fhir_path_expression(elements, profile_snapshot)
         return ".".join([self.get_pathling_optimized_path_expression(expression) for expression in expressions])
 
     def get_pathling_optimized_path_expression(self, path_expression: str) -> str:
@@ -210,7 +213,7 @@ class PathlingMappingGenerator(object):
     #     :param attr_defining_id: attribute id
     #     :return: attribute type
     #     """
-    #     elements = self.parser.get_element_defining_elements(attr_defining_id, profile_snapshot, self.module_dir,
+    #     elements = sd.get_element_defining_elements(attr_defining_id, profile_snapshot, self.module_dir,
     #                                                          self.data_set_dir)
     #     for element in elements:
     #         for element_type in element.get("type"):

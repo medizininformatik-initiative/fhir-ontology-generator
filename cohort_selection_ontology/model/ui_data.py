@@ -9,7 +9,7 @@ from typing import List
 
 
 def del_none(dictionary):
-    import model.UIProfileModel
+    import cohort_selection_ontology.model.ui_profile
     """
     Delete keys with the value ``None`` in a dictionary, recursively.
 
@@ -18,7 +18,7 @@ def del_none(dictionary):
     for key, value in list(dictionary.items()):
         if value is None:
             del dictionary[key]
-        elif isinstance(value, model.UIProfileModel.UIProfile):
+        elif isinstance(value, cohort_selection_ontology.model.ui_profile.UIProfile):
             ui_profile = value.__dict__.copy()
             del ui_profile["name"]
             dictionary.update(del_none(ui_profile))

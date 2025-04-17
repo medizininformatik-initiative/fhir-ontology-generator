@@ -13,9 +13,10 @@ from common import util
 import common.util.test.docker
 import pytest
 
-from model.ResourceQueryingMetaData import ResourceQueryingMetaData
+from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from common.util.http.auth.credentials import OAuthClientCredentials
 from common.util.http.backend.client import FeasibilityBackendClient
+from common.util.http.functions import is_responsive
 from common.util.log.functions import get_logger
 from common.util.project import Project
 from common.util.test.fhir import download_and_unzip_kds_test_data
@@ -92,9 +93,9 @@ def docker_compose_file(pytestconfig) -> str:
     os.makedirs(dse_dir_path)
     shutil.move(os.path.join(ontology_dir_path, "profile_tree.json"), dse_dir_path)
 
-    mapping_path = os.path.join(tmp_path, "generators.zip")
-    shutil.copyfile(project.output("merged_ontology") / "generators.zip", mapping_path)
-    unpacked_dir_path = os.path.join(ontology_dir_path, "generators")
+    mapping_path = os.path.join(tmp_path, "mapping.zip")
+    shutil.copyfile(project.output("merged_ontology") / "mapping.zip", mapping_path)
+    unpacked_dir_path = os.path.join(ontology_dir_path, "mapping")
     os.makedirs(unpacked_dir_path, exist_ok=True)
     shutil.unpack_archive(mapping_path, ontology_dir_path)
 
@@ -157,7 +158,7 @@ def backend_ip(docker_services) -> str:
     docker_services.wait_until_responsive(
         timeout=300.0,
         pause=5,
-        check=lambda: common.util.http.requests.is_responsive(url_health_test)
+        check=lambda: is_responsive(url_health_test)
     )
     return url
 
@@ -173,7 +174,7 @@ def fhir_ip(docker_services, test_dir: str) -> str:
     docker_services.wait_until_responsive(
         timeout=300.0,
         pause=5,
-        check=lambda: common.util.http.requests.is_responsive(url_health_test)
+        check=lambda: is_responsive(url_health_test)
     )
 
     # upload testdata for fhir server for testing
@@ -191,7 +192,7 @@ def elastic_ip(docker_services) -> str:
     docker_services.wait_until_responsive(
         timeout=300.0,
         pause=5,
-        check=lambda: common.util.http.requests.is_responsive(url)
+        check=lambda: is_responsive(url)
     )
     return url
 

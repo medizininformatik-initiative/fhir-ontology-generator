@@ -4,7 +4,7 @@ from typing import Optional, TypedDict
 from requests.auth import AuthBase
 
 from common.util.http.client import BaseClient
-from common.util import ClientError
+from common.util.http.exceptions import ClientError
 from common.util.http.url import merge_urls
 
 
@@ -167,7 +167,7 @@ class FeasibilityBackendClient(BaseClient):
 
     def query(self, query: str) -> str:
         headers = {'Content-Type': "application/json"}
-        location = (self.post(merge_urls(self._get_base_url(), "/query"), headers=headers, body=query)
+        location = (self.post("/query", headers=headers, body=query)
                     .headers.get('Location'))
         if location is None: raise Exception("No Location header in response")
         else: return location
@@ -175,32 +175,30 @@ class FeasibilityBackendClient(BaseClient):
     def validate_query(self, query: str) -> tuple[bool, Optional[dict]]:
         try:
             headers = {'Content-Type': "application/json"}
-            response = self.post(merge_urls(self._get_base_url(), "/query/validate"), headers=headers, body=query)
+            response = self.post("/query/validate", headers=headers, body=query)
             return True, response.json()
         except ClientError as err:
             if err.status_code == 400: return False, None # Invalid SQ
             else: raise
 
     def get_query_summary_result(self, query_id: str) -> QueryStatus:
-        return self.get(merge_urls(self._get_base_url(), "query/{query_id}/summary-result"),
-                        path_params={'query_id': query_id}).json()
+        return self.get("/query/{query_id}/summary-result", path_params={'query_id': query_id}).json()
 
     def delete_saved_query(self, query_id: str) -> QuerySlots:
-        return self.delete(merge_urls(self._get_base_url(), "query/{query_id}/saved"),
-                           path_params={'query_id': query_id}).json()
+        return self.delete("/query/{query_id}/saved", path_params={'query_id': query_id}).json()
 
     def get_current_querys(self)-> list[QueryListEntry]:
-        return self.get(merge_urls(self.__base_url, "query")).json()
+        return self.get("/query").json()
 
     # NOTE: It is likely that a username has to be supplied via the Authorization header for this request to work
     def get_saved_query_slots(self) -> QuerySlots:
-        return self.get(merge_urls(self._get_base_url(), "query/saved-query-slots")).json()
+        return self.get("query/saved-query-slots").json()
 
     def get_terminology_search_filter(self) -> list[SearchFilter]:
-        return self.get(merge_urls(self._get_base_url(), "terminology/search/filter")).json()
+        return self.get("terminology/search/filter").json()
 
     def get_terminology_systems(self) -> list[TerminologySystem]:
-        return self.get(merge_urls(self._get_base_url(), "terminology/systems")).json()
+        return self.get("terminology/systems").json()
 
     def search_terminology_entries(self, search_term: str, contexts: Optional[list[str]] = None,
                                    terminologies: Optional[list[str]] = None, kds_modules: Optional[list[str]] = None,
@@ -209,34 +207,27 @@ class FeasibilityBackendClient(BaseClient):
         query_params = {'searchterm': search_term, 'contexts': contexts, 'terminologies': terminologies,
                         'kds_modules': kds_modules, 'criteria_sets': criteria_sets, 'availability': availability,
                         'page_size': page_size, 'page': page}
-        return self.get(merge_urls(self._get_base_url(), "/terminology/entry/search"),
-                        query_params=query_params).json()
+        return self.get("/terminology/entry/search", query_params=query_params).json()
 
     def get_criterion_relations(self, criterion_id: str) -> RelationEntry:
-        return self.get(merge_urls(self._get_base_url(), "/terminology/entry/{id}/relations"),
-                        path_params={'id': criterion_id}).json()
+        return self.get("/terminology/entry/{id}/relations", path_params={'id': criterion_id}).json()
 
     def get_criterion(self, criterion_id: str) -> ElasticSearchResult:
-        return self.get(merge_urls(self._get_base_url(), "/terminology/entry/{id}"),
-                        path_params={'id': criterion_id}).json()
+        return self.get("/terminology/entry/{id}", path_params={'id': criterion_id}).json()
 
     def get_criteria_profile_data(self, criteria_ids: list[str]) -> list[CriteriaProfileData]:
-        return self.get(merge_urls(self._get_base_url(), "/terminology/criteria-profile-data"),
-                        query_params={'ids': ','.join(criteria_ids)}).json()
+        return self.get("/terminology/criteria-profile-data", query_params={'ids': ','.join(criteria_ids)}).json()
 
     def search_codeable_concepts(self, search_term: str, value_sets: list[str] = None, page_size: int = 20,
                                  page: int = 0) -> CodeableConceptSearchResult:
         query_params = {'searchterm': search_term, 'value_sets': value_sets, 'page_size': page_size, 'page': page}
-        return self.get(merge_urls(self._get_base_url(), "/codeable-concept/entry/search"),
-                        query_params=query_params).json()
+        return self.get("/codeable-concept/entry/search", query_params=query_params).json()
 
     def get_codeable_concept(self, concept_id: str) -> CodeableConceptSearchResultItem:
-        return self.get(merge_urls(self._get_base_url(), "/codeable-concept/entry/{id}"),
-                        path_params={'id': concept_id}).json()
+        return self.get("/codeable-concept/entry/{id}", path_params={'id': concept_id}).json()
 
     def get_dse_profile_tree(self) -> ProfileTreeNode:
-        return self.get(merge_urls(self._get_base_url(), "/dse/profile-tree")).json()
+        return self.get("/dse/profile-tree").json()
 
     def get_dse_profile_data(self, profile_ids: list[str]) -> ProfileData:
-        return self.get(merge_urls(self._get_base_url(), "/dse/profile-data"),
-                        query_params={'profile_ids': ','.join(profile_ids)}).json()
+        return self.get("/dse/profile-data", query_params={'profile_ids': ','.join(profile_ids)}).json()

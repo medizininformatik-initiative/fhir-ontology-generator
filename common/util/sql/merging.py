@@ -5,21 +5,23 @@ import docker
 import time
 import psycopg2
 
-from core.docker.Images import POSTGRES_IMAGE
+import common.resources.sql
+
+from common.constants.docker import POSTGRES_IMAGE
 from common.util.log.functions import get_logger
 
 from importlib.resources import files
 
 
 logger = get_logger(__file__)
-sql_resources_dir = files(resources.sql)
+sql_resources_dir = files(common.resources.sql)
 
 
 def insert_content(base_file, content_to_insert, insert_after='SET row_security = off;'):
-    with open(content_to_insert, 'r', encoding="UTF-8") as inserted_content_file:
+    with open(content_to_insert, mode='r', encoding="UTF-8") as inserted_content_file:
         inserted_content = inserted_content_file.read()
 
-    with open(base_file, 'r', encoding="UTF-8") as target_file:
+    with open(base_file, mode='r', encoding="UTF-8") as target_file:
         base_content = target_file.readlines()
 
     if insert_after is not None:
@@ -34,7 +36,7 @@ def insert_content(base_file, content_to_insert, insert_after='SET row_security 
 
     base_content.insert(insert_index, inserted_content + "\n")
 
-    with open(base_file, 'w',encoding="UTF-8") as target_file:
+    with open(base_file, mode='w',encoding="UTF-8") as target_file:
         target_file.writelines(base_content)
 
     logger.debug(f"Content of {content_to_insert} has been inserted into {base_file}.")

@@ -2,10 +2,10 @@ import csv
 import json
 from pathlib import Path
 
-from model.UiDataModel import TermCode
-from model.MappingDataModel import FhirMapping, FixedFHIRCriteria, CQLTimeRestrictionParameter, SimpleCardinality
-from model.MappingDataModel import CQLMapping, FixedCQLCriteria
-from model.TreeMap import TreeMap, TermEntryNode
+from cohort_selection_ontology.model.ui_data import TermCode
+from cohort_selection_ontology.model.mapping import (FhirMapping, FixedFHIRCriteria, CQLTimeRestrictionParameter,
+                                                     SimpleCardinality, CQLMapping, FixedCQLCriteria)
+from cohort_selection_ontology.model.tree_map import TreeMap, TermEntryNode
 import argparse
 import os
 

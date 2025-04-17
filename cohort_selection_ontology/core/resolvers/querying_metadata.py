@@ -2,8 +2,8 @@ import json
 from abc import ABC, abstractmethod
 from typing import List, Dict
 
-from model.ResourceQueryingMetaData import ResourceQueryingMetaData
-from model.UiDataModel import TermCode
+from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
+from cohort_selection_ontology.model.ui_data import TermCode
 from common.util.log.functions import get_class_logger
 from common.util.project import Project
 
@@ -35,9 +35,9 @@ class StandardDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
 
     def __load_profile_to_metadata_mapping(self, module_name) -> Dict[str, List[str]]:
         """
-        Loads the profile to metadata generators from a JSON file.
-        :param module_name: Name of the module to load generators for
-        :return: A dictionary generators profile names to lists of metadata names.
+        Loads the profile to metadata mapping from a JSON file.
+        :param module_name: Name of the module to load mapping for
+        :return: A dictionary mapping profile names to lists of metadata names.
         """
         mapping_file = self.__project.input("modules", module_name) / "profile_to_query_meta_data_resolver_mapping.json"
         with open(mapping_file, mode="r", encoding="utf-8") as f:
@@ -63,5 +63,5 @@ class StandardDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
                 with open(metadata_file, "r") as file:
                     result.append(ResourceQueryingMetaData.from_json(file))
         else:
-            self.__logger.warning(f"No query metadata generators found for profile: {profile_name}")
+            self.__logger.warning(f"No query metadata mapping found for profile: {profile_name}")
         return result

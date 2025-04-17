@@ -19,9 +19,9 @@ if __name__ == '__main__':
     ontology_dir = project.output("merged_ontology")
     temp_ontology_dir = project.output("merged_ontology", "temp")
 
-    logger.info("Generating generators archive")
-    mapping_dir = ontology_dir / "generators"
-    temp_mapping_dir = project.output("merged_ontology", "temp", "generators")
+    logger.info("Generating mapping archive")
+    mapping_dir = ontology_dir / "mapping"
+    temp_mapping_dir = project.output("merged_ontology", "temp", "mapping")
 
     shutil.copytree(mapping_dir, temp_mapping_dir, dirs_exist_ok=True)
     shutil.make_archive(str(mapping_dir), 'zip', temp_ontology_dir)

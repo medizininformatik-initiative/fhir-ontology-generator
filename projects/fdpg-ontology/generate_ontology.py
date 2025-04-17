@@ -11,20 +11,21 @@ from typing import List, ValuesView, Dict, Tuple
 import docker
 from jsonschema import validate
 
-import resources.schema
+import cohort_selection_ontology.resources.schema as schema_files
 
-from core.CQLMappingGenerator import CQLMappingGenerator
-from core.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
-from core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver, StandardDataSetQueryingMetaDataResolver
-from core.resolvers.search_parameter import StandardSearchParameterResolver
-from core.UIProfileGenerator import UIProfileGenerator
-from core.UITreeGenerator import UITreeGenerator
-from database.DataBaseWriter import DataBaseWriter
+from cohort_selection_ontology.core.generators.cql import CQLMappingGenerator
+from cohort_selection_ontology.core.generators.fhir_search import FHIRSearchMappingGenerator
+from cohort_selection_ontology.core.resolvers.querying_metadata import (ResourceQueryingMetaDataResolver,
+                                                                        StandardDataSetQueryingMetaDataResolver)
+from cohort_selection_ontology.core.resolvers.search_parameter import StandardSearchParameterResolver
+from cohort_selection_ontology.core.generators.ui_profile import UIProfileGenerator
+from cohort_selection_ontology.core.generators.ui_tree import UITreeGenerator
+from cohort_selection_ontology.util.database import DataBaseWriter
 from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, mkdir_if_not_exists
-from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList
-from model.UIProfileModel import UIProfile
-from model.UiDataModel import TermCode
-from core.docker.Images import POSTGRES_IMAGE
+from cohort_selection_ontology.model.mapping import CQLMapping, FhirMapping, MapEntryList
+from cohort_selection_ontology.model.ui_profile import UIProfile
+from cohort_selection_ontology.model.ui_data import TermCode
+from common.constants.docker import POSTGRES_IMAGE
 from common.util.log.functions import get_logger
 from common.util.project import Project
 
@@ -40,27 +41,27 @@ MODULES_DIR = os.path.join(INPUT_DIR, "modules")
 
 def validate_fhir_mapping(mapping_name: str):
     """
-    Validates the FHIR generators against its JSON schema.
-    :param mapping_name: The name of the generators file (without extension).
+    Validates the FHIR mapping against its JSON schema.
+    :param mapping_name: The name of the mapping file (without extension).
     """
-    mapping_file = os.path.join(OUTPUT_DIR, "generators", "fhir", f"{mapping_name}.json")
-    with open(mapping_file, 'r') as f:
+    mapping_file = OUTPUT_DIR / "generated" / "fhir" / f"{mapping_name}.json"
+    with open(mapping_file, mode='r', encoding='utf-8') as f:
         mapping_data = json.load(f)
-    with open_text(resources.schema, "fhir-generators-schema.json") as f:
+    with open_text(schema_files, "fhir-mapping-schema.json", encoding='utf-8') as f:
         schema = json.load(f)
     validate(instance=mapping_data, schema=schema)
 
 
-def validate_mapping_tree(tree_name: str, mapping_tree_folder="generators-tree"):
+def validate_mapping_tree(tree_name: str, mapping_tree_folder="mapping-tree"):
     """
-    Validates the generators tree against its JSON schema.
-    :param tree_name: The name of the generators tree file (without extension).
-    :param mapping_tree_folder: The directory containing the generators tree files.
+    Validates the mapping tree against its JSON schema.
+    :param tree_name: The name of the mapping tree file (without extension).
+    :param mapping_tree_folder: The directory containing the mapping tree files.
     """
     tree_file = os.path.join(mapping_tree_folder, f"{tree_name}.json")
-    with open(tree_file, 'r') as f:
+    with open(tree_file, mode='r', encoding='utf-8') as f:
         tree_data = json.load(f)
-    with open_text(resources.schema, "codex-code-tree-schema.json") as f:
+    with open_text(schema_files, "codex-code-tree-schema.json", encoding='utf-8') as f:
         schema = json.load(f)
     validate(instance=tree_data, schema=schema)
 
@@ -68,7 +69,8 @@ def validate_mapping_tree(tree_name: str, mapping_tree_folder="generators-tree")
 def write_ui_trees_to_files(trees: List, module_name: str, directory: str = "ui-trees", ):
     """
     Writes UI trees to JSON files in the specified directory.
-    :param trees: List of UI tree objects.
+    :param trees: List of UI tree objects
+    :param module_name: Name of the module
     :param directory: Directory to write the UI tree files to.
     """
     for i, tree in enumerate(trees):
@@ -152,7 +154,7 @@ def write_ui_profiles_to_files(
         file_name = f"{profile.name.replace(' ', '_').replace('.', '_')}.json"
         sanitized_name = remove_reserved_characters(file_name)
         file_path = os.path.join(folder, sanitized_name)
-        with open(file_path, 'w', encoding="utf-8") as f:
+        with open(file_path, mode='w', encoding='utf-8') as f:
             f.write(profile.to_json())
 
 
@@ -162,7 +164,7 @@ def denormalize_mapping_to_old_format(
 ) -> MapEntryList:
     """
     Denormalizes mappings to the old format.
-    :param term_code_to_mapping_name: Mapping from term codes to generators names.
+    :param term_code_to_mapping_name: Mapping from term codes to mapping names.
     :param mapping_name_to_mapping: Mappings to use.
     :return: A MapEntryList containing the denormalized entries.
     """
@@ -174,7 +176,7 @@ def denormalize_mapping_to_old_format(
             mapping.context = context
             result.entries.append(mapping)
         except KeyError:
-            logger.warning(f"No generators found for term code {term_code.code}")
+            logger.warning(f"No mapping found for term code {term_code.code}")
     return result
 
 
@@ -199,10 +201,10 @@ def generate_result_folder(base_dir: str = ""):
     :param base_dir: Base directory for the ontology results.
     """
     paths = [
-        "generators",
-        "generators/fhir",
-        "generators/cql",
-        "generators-tree",
+        "mapping",
+        "mapping/fhir",
+        "mapping/cql",
+        "mapping-tree",
         "term-code-info",
         "ui-trees",
         "ui-profiles",
@@ -327,7 +329,7 @@ def dump_database(container: docker.models.containers.Container, module_director
     """
     container.exec_run(
         'pg_dump --dbname="codex_ui" -U codex-postgres -a -O '
-        '-t termcode -t context -t ui_profile -t generators '
+        '-t termcode -t context -t ui_profile -t mapping '
         '-t contextualized_termcode -t contextualized_termcode_to_criteria_set '
         '-t criteria_set -f /opt/db_data/R__Load_latest_ui_profile.sql'
     )
@@ -338,19 +340,19 @@ def generate_cql_mapping(resolver: ResourceQueryingMetaDataResolver, onto_result
     Generates CQL mappings and writes them to files.
     :param resolver: An instance of ResourceQueryingMetaDataResolver.
     :param onto_result_dir: The base directory for output files.
-    :param module_name: Name of the module to generate CQL generators for
+    :param module_name: Name of the module to generate CQL mapping for
     """
     try:
-        logger.info("Generating CQL generators")
+        logger.info("Generating CQL mapping")
         cql_generator = CQLMappingGenerator(PROJECT, resolver)
         cql_term_code_mappings, cql_concept_mappings = cql_generator.generate_mapping(module_name)
         cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
-        cql_mapping_file = os.path.join(onto_result_dir, 'generators', 'cql', 'mapping_cql.json')
+        cql_mapping_file = os.path.join(onto_result_dir, 'mapping', 'cql', 'mapping_cql.json')
         os.makedirs(os.path.dirname(cql_mapping_file), exist_ok=True)
         with open(cql_mapping_file, mode='w', encoding='utf-8') as f:
             f.write(cql_mappings.to_json())
     except Exception as exc:
-        raise Exception("CQL generators generation failed. No generators will be emitted", exc)
+        raise Exception("CQL mapping generation failed. No mapping will be emitted", exc)
 
 
 def generate_fhir_mapping(
@@ -362,9 +364,9 @@ def generate_fhir_mapping(
     Generates FHIR mappings and writes them to files.
     :param resolver: An instance of ResourceQueryingMetaDataResolver.
     :param onto_result_dir: The base directory for output files.
-    :param module_name: The name of the module to generate FHIR generators for
+    :param module_name: The name of the module to generate FHIR mapping for
     """
-    logger.info("Generating FHIR generators")
+    logger.info("Generating FHIR mapping")
     search_parameter_resolver = StandardSearchParameterResolver(PROJECT.input("modules", module_name))
     fhir_search_generator = FHIRSearchMappingGenerator(PROJECT, resolver, search_parameter_resolver)
     fhir_search_term_code_mappings, fhir_search_concept_mappings = fhir_search_generator.generate_mapping(
@@ -373,12 +375,12 @@ def generate_fhir_mapping(
     fhir_search_mapping = denormalize_mapping_to_old_format(
         fhir_search_term_code_mappings, fhir_search_concept_mappings
     )
-    fhir_mapping_file = os.path.join(onto_result_dir, 'generators', 'fhir', 'mapping_fhir.json')
+    fhir_mapping_file = os.path.join(onto_result_dir, 'mapping', 'fhir', 'mapping_fhir.json')
     os.makedirs(os.path.dirname(fhir_mapping_file), exist_ok=True)
-    with open(fhir_mapping_file, 'w', encoding='utf-8') as f:
+    with open(fhir_mapping_file, mode='w', encoding='utf-8') as f:
         f.write(fhir_search_mapping.to_json())
     # validate_fhir_mapping("mapping_fhir")
-    logger.info("FHIR generators generated and validated.")
+    logger.info("FHIR mapping generated and validated.")
 
 
 def main():

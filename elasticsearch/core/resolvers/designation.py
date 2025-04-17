@@ -5,11 +5,13 @@ import re
 from itertools import groupby
 from pathlib import Path
 
-from typing import List, TypeVar
-from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS, SERVER_CERTIFICATE, PRIVATE_KEY, \
-    REQUESTS_SESSION
+from typing import List, TypeVar, Optional, Any, Mapping
+
+from common.exceptions import NotFoundError
 from common.util.fhir.bundle import create_bundle, BundleType
+from common.util.http.terminology.client import FhirTerminologyClient
 from common.util.log.functions import get_class_logger
+from common.util.project import Project
 
 
 def extract_designation(parameters: dict, language: str, fuzzy = True) -> str | None:
@@ -60,17 +62,18 @@ def split_bundle(bundle: dict, chunk_size: int = 10) -> List[dict]:
 
 class TerminologyDesignationResolver:
     __logger = get_class_logger("TerminologyDesignationResolver")
-
-    def __init__(self, base_translations_conf: str | Path = None, server_address: str = TERMINOLOGY_SERVER_ADDRESS,
-                 max_bundle_size: int = 10_000):
+    
+    def __init__(self, project: Project, base_translations_conf: str | Path = None, max_bundle_size: int = 10_000):
         self.code_systems = {}
-        self.server_address = server_address
+        self.__project = project
+        self.__client = FhirTerminologyClient.from_project(project)
         self.base_translation_mapping = {}
         if base_translations_conf is not None:
             self.__load_base_translations(base_translations_conf)
         self.max_bundle_size = max_bundle_size
 
-    def __optimize_code_system_concepts(self, code_system_content):
+    @staticmethod
+    def __optimize_code_system_concepts(code_system_content):
         """
         Reduces the complexity of the code system concepts, making the
         single concepts accessible with .get(code), optimizing speed.
@@ -106,8 +109,8 @@ class TerminologyDesignationResolver:
 
     def __load_base_translations(self, base_translation_conf: str | Path):
         """
-        Loads base translations generators to later be able to retrieve authoritative designations, i.e. translations, from
-        a terminology server. The file should contain a generators form code system URL to a `Parameters` resource
+        Loads base translations mapping to later be able to retrieve authoritative designations, i.e. translations, from
+        a terminology server. The file should contain a mapping form code system URL to a `Parameters` resource
         specifying common parameters passed for each coding to look up in a request
         """
         self.__logger.debug(f"Loading base translation config located @ {base_translation_conf}")
@@ -128,15 +131,11 @@ class TerminologyDesignationResolver:
         :param bundle: Bundle resource containing individual entries for lookup requests
         :return: Response Bundle resource if successful
         """
-        media_type = "application/fhir+json"
         response_bundle = {"resourceType": "Bundle", "type": BundleType.BATCH_RESPONSE.value, "entry": []}
         for bundle_chunk in split_bundle(bundle, self.max_bundle_size):
-            response = REQUESTS_SESSION.post(
-                url=self.server_address.rstrip('/'),
-                json=bundle_chunk,
-                headers={"Content-Type": media_type, "Accept": media_type},
-                cert=(SERVER_CERTIFICATE, PRIVATE_KEY)
-            )
+            response = self.__client.post("", body=json.dumps(bundle_chunk),
+                                          headers={'Content-Type': "application/fhir+json",
+                                                   'Accept': "application/fhir+json"})
             if response.status_code != 200:
                 raise Exception(f"Unexpected status code [actual={response.status_code}, expected=200]. "
                                 f"Content: {response.text}")
@@ -146,7 +145,7 @@ class TerminologyDesignationResolver:
 
     def __save_bundle_content(self, bundle: dict, system_url: str, languages: List[str]):
         """
-        Saves content of batch `CodeSystem/$lookup` bundle to internal designation generators
+        Saves content of batch `CodeSystem/$lookup` bundle to internal designation mapping
         :param bundle: Response bundle of batch `CodeSystem/$lookup` request
         :param system_url: URL of code system to which the codes belong
         :param languages: Language codes to extract from the responses
@@ -295,7 +294,7 @@ class TerminologyDesignationResolver:
             value_sets = [json.load(open(os.path.join(value_set_dir, file_name), mode='r', encoding='UTF-8'))
                           for file_name in os.listdir(value_set_dir) if file_name.endswith('.json')]
         if not self.base_translation_mapping:
-            self.__logger.warning("No generators seems to exist and thus no designations can be loaded. Aborting")
+            self.__logger.warning("No mapping seems to exist and thus no designations can be loaded. Aborting")
         else:
             for ui_tree in ui_trees:
                 self.__load_base_designations_for_ui_tree(ui_tree)
@@ -310,65 +309,50 @@ class TerminologyDesignationResolver:
         """
         if update_translation_supplements:
             self.__logger.info("Updating the supplement registry")
-            response_supp_registry = REQUESTS_SESSION.get(
-                url=self.server_address + "CodeSystem/fdpg-plus-translation-supplement-registry",
-                cert=(SERVER_CERTIFICATE, PRIVATE_KEY)
-            )
-            if response_supp_registry.status_code != 200:
-                self.__logger.warning("Something went wrong. Status code: " + response_supp_registry.status_code + " Expected 200")
-                self.__logger.debug("Content: " + response_supp_registry.content)
 
-            supplement_registry = response_supp_registry.json()
-            for code_system_concept in supplement_registry.get('concept'):
-                for prop in code_system_concept.get('property'):
-                    if prop.get('code') == "supplement-canonical":
+            supplement_registry = self.__client.get_code_system("fdpg-plus-translation-supplement-registry")
+            if supplement_registry is None:
+                self.__logger.warning("Could not find supplement registry code system on the terminology server "
+                                      "=> Skipping update")
+            else:
+                for code_system_concept in supplement_registry.concept:
+                    for prop in code_system_concept.property:
+                        if prop.code == "supplement-canonical":
+                            code_system_url_split = prop.valueString.split('|')
+                            code_system_url = code_system_url_split[0]
+                            code_system_version = ""
 
-                        code_system_url_split = prop.get('valueString').split('|')
-                        code_system_url = code_system_url_split[0]
-                        code_system_version = ""
+                            if len(code_system_url_split) == 2:
+                                code_system_version = prop.valueString.split('|')[-1]
 
-                        if len(code_system_url_split) == 2:
-                            code_system_version = prop.get('valueString').split('|')[-1]
+                            supplement_code_system_bundle = self.__client.search_code_system(url=code_system_url,
+                                                                                             version=code_system_version)
+                            if not supplement_code_system_bundle.entry:
+                                self.__logger.warning("No entry was found in this bundle => Skipping " +
+                                                      code_system_url + "|" + code_system_version)
+                                continue
 
-                        response_particular_cs = REQUESTS_SESSION.get(
-                            url=self.server_address + f"CodeSystem?url={code_system_url}&version={code_system_version}",
-                            cert=(SERVER_CERTIFICATE, PRIVATE_KEY)
-                        )
+                            supplement_code_system_full_url = supplement_code_system_bundle.entry[0].fullUrl
+                            self.__logger.info("Downloading: " + supplement_code_system_full_url)
+                            response_cs_content = self.__client.get(full_url=supplement_code_system_full_url,
+                                                                    headers={'Accept': "application/fhir+json"})
 
-                        if response_particular_cs.status_code != 200:
-                            self.__logger.warning("Code system not found. Status Code: " + response_particular_cs.status_code +
-                                        " Skipping: " + code_system_url +"|" + code_system_version)
-                            continue
+                            if response_cs_content.status_code != 200:
+                                self.__logger.warning("Something went wrong. Status code:" + response_cs_content.status_code + ". Expected 200")
+                                self.__logger.debug("Content: " + response_cs_content.content)
+                                continue
 
-                        supplement_code_system_bundle = response_particular_cs.json()
-                        if not supplement_code_system_bundle.get('entry'):
-                            self.__logger.warning("No entry was found in this bundle. Skipping " + code_system_url + "|" + code_system_version)
-                            continue
-
-                        supplement_code_system_full_url = supplement_code_system_bundle.get('entry')[0].get('fullUrl')
-                        self.__logger.info("Downloading: " + supplement_code_system_full_url)
-                        response_cs_content = REQUESTS_SESSION.get(
-                            url=supplement_code_system_full_url,
-                            cert=(SERVER_CERTIFICATE, PRIVATE_KEY)
-                        )
-
-                        if response_cs_content.status_code != 200:
-                            self.__logger.warning("Something went wrong. Status code:" + response_cs_content.status_code + ". Expected 200")
-                            self.__logger.debug("Content: " + response_cs_content.content)
-                            continue
-
-
-                        actual_code_system = response_cs_content.json()
-                        actual_code_system_name = actual_code_system.get('name')
-                        file_path_save_code_system=os.path.join(folder_path,actual_code_system_name+".json")
-                        with open(file_path_save_code_system, mode='w', encoding='UTF-8') as f:
-                            f.write(json.dumps(actual_code_system, indent=4))
+                            actual_code_system = response_cs_content.json()
+                            actual_code_system_name = actual_code_system.get('name')
+                            file_path_save_code_system=os.path.join(folder_path, actual_code_system_name + ".json")
+                            with open(file_path_save_code_system, mode='w', encoding='UTF-8') as f:
+                                f.write(json.dumps(actual_code_system, indent=4))
 
         codesystem_files = os.listdir(folder_path)
         for codesystem_file in sorted(codesystem_files):
             if codesystem_file.endswith(".json"):
                 self.__logger.debug(f"Processing CodeSystem supplement file {codesystem_file}")
-                with open(os.path.join(folder_path,codesystem_file), encoding="UTF-8") as json_file:
+                with open(os.path.join(folder_path,codesystem_file), mode='r', encoding="UTF-8") as json_file:
                     codesystem = json.load(json_file)
                     url = codesystem.get('supplements').split("|")[0]
 
@@ -388,7 +372,7 @@ class TerminologyDesignationResolver:
                     else:
                         self.code_systems[url] = codesystem
 
-    def resolve_term(self, term_code)->dict:
+    def resolve_term(self, term_code) -> Mapping[str, Any]:
         """
         Generates the 'display' property of a term_code
         providing the ability of multilingual search.
@@ -416,5 +400,13 @@ class TerminologyDesignationResolver:
                     if concept.get('de') is None:
                         self.__logger.warning("Did not find German version of code: " + term_code['code'])
         else:
-            self.__logger.warning("Did not find codesystem: " + term_code['system'] + " Requested Code: " + term_code['code'])
+            self.__logger.warning(f"Did not find codesystem '{term_code['system']}'. Requested Code: {term_code['code']}")
         return display
+
+    def has_designations_for(self, canonical_url: str) -> bool:
+        """
+        Checks if there are designations loaded for the code system identified by tis canonical URL
+        :param canonical_url: Canonical URL of the code system
+        :return: Boolean indicating whether this instance has designations for the code system
+        """
+        return canonical_url in self.code_systems

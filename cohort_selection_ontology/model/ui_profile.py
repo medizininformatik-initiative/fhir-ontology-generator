@@ -3,7 +3,7 @@ import json
 from dataclasses import dataclass, field, asdict
 from typing import Literal, List, Tuple, ClassVar, Dict
 
-from model.UiDataModel import TermCode, TranslationElementDisplay
+from cohort_selection_ontology.model.ui_data import TermCode, TranslationElementDisplay
 from common.util.codec.functions import del_none
 
 UI_PROFILES = set()

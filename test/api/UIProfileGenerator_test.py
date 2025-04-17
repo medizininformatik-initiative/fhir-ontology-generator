@@ -19,7 +19,7 @@ class UIProfileGeneratorTestCases(unittest.TestCase):
         sp_resolver = StandardSearchParameterResolver("Bioprobe")
         mapper = FHIRSearchMappingGenerator(self.__project, qmr_resolver, sp_resolver)
         mapper.data_set_dir = '../../projects/mii_core_data_set/resources/fdpg_differential'
-        mapper.module_dir = '../../projects/mii_core_data_set/resources/fdpg_differential/Bioprobe'
+        mapper.module = '../../projects/mii_core_data_set/resources/fdpg_differential/Bioprobe'
         with open('../../projects/mii_core_data_set/resources/fdpg_differential/Bioprobe/package/'
                   'FDPG_Bioprobe-snapshot.json', 'r') as f:
             fhir_path = mapper.translate_element_id_to_fhir_path_expressions(
@@ -39,7 +39,7 @@ class UIProfileGeneratorTestCases(unittest.TestCase):
                 querying_meta_data = ResourceQueryingMetaData.from_json(g)
                 generator = UIProfileGenerator(self.__project, resolver)
                 generator.data_set_dir = '../../projects/mii_core_data_set/resources/fdpg_differential'
-                generator.module_dir = '../../projects/mii_core_data_set/resources/fdpg_differential/Bioprobe'
+                generator.module = '../../projects/mii_core_data_set/resources/fdpg_differential/Bioprobe'
                 ui_profile = generator.generate_ui_profile(profile_snapshot, querying_meta_data)
                 attribute_code = TermCode("http://hl7.org/fhir/StructureDefinition", "festgestellteDiagnose",
                                           "Festgestellte Diagnose")

@@ -8,8 +8,8 @@ from typing import List, Optional, Set, Union
 
 from sortedcontainers import SortedSet
 
-from model.UIProfileModel import VALUE_TYPE_OPTIONS
-from model.UiDataModel import TermCode
+from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS
+from cohort_selection_ontology.model.ui_data import TermCode
 from common.util.codec.functions import del_none
 from common.util.codec.json import JSONFhirOntoEncoder
 from common.typing.fhir import FHIRPath
@@ -126,7 +126,7 @@ class FhirMapping:
     def __init__(self, name: str, term_code_search_parameter: str = None):
         """
         FhirMapping stores all necessary information to translate a structured query to a FHIR query.
-        :param name: name of the generators acting as primary key
+        :param name: name of the mapping acting as primary key
         :param term_code_search_parameter: FHIR search parameter that is used to identify the criteria in the structured
         """
         self.name = name
@@ -181,7 +181,7 @@ class CQLTypeParameter(HasSimpleCardinality):
 @dataclass
 class CQLTimeRestrictionParameter(CQLTypeParameter):
     """
-    Represents a time restriction element in a CQL generators entry. Since we expect the corresponding element in the
+    Represents a time restriction element in a CQL mapping entry. Since we expect the corresponding element in the
     instance data to never repeat (i.e. be a list of date/time values) its cardinality is fixed to `SINGLE`
     """
     def __init__(self, path: FHIRPath, types: Set[str]):
@@ -192,7 +192,7 @@ class CQLTimeRestrictionParameter(CQLTypeParameter):
 class CQLMapping:
     """
     CQLMapping stores all necessary information to translate a structured query to a CQL query.
-    :param name: name of the generators acting as primary key
+    :param name: name of the mapping acting as primary key
     """
     name: str
     resourceType: str | None = None
@@ -245,7 +245,7 @@ class PathlingAttributeSearchParameter(AttributeSearchParameter):
 class PathlingMapping:
     """
     PathlingMapping stores all necessary information to translate a structured query to a Pathling query.
-    :param name: name of the generators acting as primary key
+    :param name: name of the mapping acting as primary key
     """
     name: str
     termCodeFhirPath: Optional[str] = None

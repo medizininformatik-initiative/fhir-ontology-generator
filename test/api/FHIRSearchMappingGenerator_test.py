@@ -92,7 +92,7 @@ class MyTestCase(unittest.TestCase):
         resolver = TestQueryMetaDataResolver()
         search_mapping_resolver = TestSearchParameterResolver()
         mapping_generator = FHIRSearchMappingGenerator(resolver, search_mapping_resolver)
-        mapping_generator.module_dir = "../resources/Profiles"
+        mapping_generator.module = "../resources/Profiles"
         mapping_generator.data_set_dir = "../resources/Profiles"
         with open("../resources/Profiles/Profile-Observation-BloodPressure-snapshot.json") as f:
             profile_snapshot = json.load(f)
@@ -152,7 +152,7 @@ class MyTestCase(unittest.TestCase):
     def test_composite_cql_mapping(self):
         resolver = TestQueryMetaDataResolver()
         mapping_generator = CQLMappingGenerator(resolver)
-        mapping_generator.module_dir = "../resources/Profiles"
+        mapping_generator.module = "../resources/Profiles"
         mapping_generator.modules_dir = "../resources/Profiles"
         with open("../resources/Profiles/Profile-Observation-BloodPressure-snapshot.json") as f:
             profile_snapshot = json.load(f)
@@ -201,7 +201,7 @@ class MyTestCase(unittest.TestCase):
     def test_composite_ui_profile(self):
         query_meta_data_resolver = TestQueryMetaDataResolver()
         ui_profile_generator = UIProfileGenerator(query_meta_data_resolver)
-        ui_profile_generator.module_dir = "../resources/Profiles"
+        ui_profile_generator.module = "../resources/Profiles"
         ui_profile_generator.data_set_dir = "../resources/Profiles"
         with open("../resources/Profiles/Profile-Observation-BloodPressure-snapshot.json") as f:
             profile_snapshot = json.load(f)

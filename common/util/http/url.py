@@ -4,7 +4,7 @@ from typing import Mapping, Optional
 def format_query_params(query_params: Optional[Mapping[str, any]] = None) -> Optional[Mapping[str, any]]:
     if query_params is None:
         return None
-    return {k.replace('_', '-'): v for k, v in query_params.items()}
+    return {k.replace('_', '-'): v for k, v in query_params.items() if k is not None}
 
 
 def insert_path_params(url: str, **path_params) -> str:

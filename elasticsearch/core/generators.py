@@ -1,20 +1,17 @@
 import os
 import json
+import shutil
 import uuid
 import zipfile
 from typing import Mapping
 from zipfile import ZipFile
 import re
 
-from TerminologService.TermServerConstants import TERMINOLOGY_SERVER_ADDRESS
-from TerminologService.valueSetToRoots import logger
+from cohort_selection_ontology.model.ui_data import RelationalTermcode
+from elasticsearch.core.resolvers.designation import TerminologyDesignationResolver
 
-from core.TerminologyDesignationResolver import TerminologyDesignationResolver, logger
-from model.UiDataModel import RelationalTermcode
-from util.codec.json import JSONFhirOntoEncoder
-
-from util.log.functions import get_class_logger
-from util.project import Project
+from common.util.log.functions import get_class_logger
+from common.util.project import Project
 
 
 class ElasticSearchGenerator:
@@ -23,8 +20,8 @@ class ElasticSearchGenerator:
     def __init__(self, project: Project):
         self.__project = project
         self.__terminology_resolver = TerminologyDesignationResolver(
-            project.input("translation") / "base_translations.json",
-            TERMINOLOGY_SERVER_ADDRESS
+            project,
+            project.input("translation") / "base_translations.json"
         )
 
     @staticmethod
@@ -98,6 +95,11 @@ class ElasticSearchGenerator:
         children_cut_off = 400
 
         for ui_tree in ui_tree_list:
+            if not self.__terminology_resolver.has_designations_for(ui_tree.get('system')):
+                self.__logger.warning(f"No designations are loaded for code system '{ui_tree.get('system')}' "
+                                      f"=> Skipping")
+                continue
+
             for entry in ui_tree['entries']:
                 cur_tree_context = ui_tree['context']
                 ui_tree_term_code = {
@@ -155,8 +157,8 @@ class ElasticSearchGenerator:
 
     def __convert_value_set(self, value_set, termcode_to_valueset, namespace_uuid_str):
         if len(value_set.get("expansion", {}).get("contains", [])) == 0:
-            logger.warning(f"Value set [url={value_set.get('url', '<missing>')}] is not expanded or its expansion is "
-                           f"empty => Skipping")
+            self.__logger.warning(f"Value set [url={value_set.get('url', '<missing>')}] is not expanded or its "
+                                  f"expansion is empty => Skipping")
             return
 
         for termcode in value_set['expansion']['contains']:
@@ -215,7 +217,7 @@ class ElasticSearchGenerator:
         count = 0
 
         current_file_name = os.path.join(write_dir, f"{filename_prefix}_{current_file_subindex}{extension}")
-        logger.debug(f"writing to file {current_file_name}")
+        ElasticSearchGenerator.__logger.debug(f"Writing to file {current_file_name}")
         with open(current_file_name, mode='w+', encoding='UTF-8') as current_file:
 
             for insert in es_availability_inserts:
@@ -229,8 +231,8 @@ class ElasticSearchGenerator:
                     current_file_name = os.path.join(write_dir, f"{filename_prefix}_{current_file_subindex}{extension}")
                     current_file_size = 0
                     current_file.close()
-                    current_file = open(current_file_name, 'w', encoding='UTF-8')
-                    logger.debug(f"writing to file {current_file_name}")
+                    current_file = open(current_file_name, mode='w', encoding='UTF-8')
+                    ElasticSearchGenerator.__logger.debug(f"Writing to file {current_file_name}")
 
     @staticmethod
     def __zip_elastic_files(output_file, work_dir, filename_prefix, extension, include_additional_files):
@@ -261,7 +263,7 @@ class ElasticSearchGenerator:
         with open(folder / f"{filename_prefix}_term_code_info.json", mode='r', encoding="UTF-8") as f:
             term_code_info_list = json.load(f)
 
-            logger.debug(f"Loaded termcode info map from file '{filename_prefix}'")
+            self.__logger.debug(f"Loaded termcode info map from file '{filename_prefix}'")
             for term_code_info in term_code_info_list:
                 term_code_hash = self.__get_contextualized_termcode_hash(term_code_info['context'],
                                                                          term_code_info['term_code'],
@@ -311,6 +313,7 @@ class ElasticSearchGenerator:
                     report = json.load(f)
 
                     for group in report["group"]:
+
                         for stratifier in group["stratifier"]:
                             if "stratum" in stratifier:
                                 strat_code = stratifier["code"][0]["coding"][0]["code"]
@@ -362,9 +365,7 @@ class ElasticSearchGenerator:
                                      filename_prefix='onto_es_', max_filesize_mb=10,
                                      update_translation_supplements=False):
         generated_ontology_dir = self.__project.output("merged_ontology")
-
         translations_dir = self.__project.output("translation", "supplements")
-
         availability_output_dir = self.__project.output("availability")
 
         extension = '.json'
@@ -372,6 +373,9 @@ class ElasticSearchGenerator:
         current_file_index = 0
 
         elastic_dir = generated_ontology_dir / "elastic"
+        self.__logger.debug(f"Cleaning up output directory @ {elastic_dir}")
+        if elastic_dir.exists():
+            shutil.rmtree(elastic_dir)
         os.makedirs(elastic_dir, exist_ok=True)
 
         value_set_dir = generated_ontology_dir / "value-sets"
@@ -384,11 +388,11 @@ class ElasticSearchGenerator:
         self.__terminology_resolver.load_designations(translations_dir, update_translation_supplements)
 
         if generate_availability:
-            logger.info('Generating availability')
+            self.__logger.info('Generating availability')
             es_availability_inserts = []
 
             avail_hash_tree = self.__get_hashed_tree()
-            logger.debug("Updating availability on hash tree")
+            self.__logger.debug("Updating availability on hash tree")
             self.__update_availability_on_hash_tree(avail_hash_tree, namespace_uuid_str)
 
             for key, value in avail_hash_tree.items():
@@ -405,7 +409,7 @@ class ElasticSearchGenerator:
 
             return
 
-        logger.info("Generating Elasticsearch term code index documents")
+        self.__logger.info("Generating Elasticsearch term code index documents")
         for filename in os.listdir(ui_tree_dir):
             if filename.endswith(extension):
                 current_file = elastic_dir / f"{filename_prefix}_{index_name}_{current_file_index}{extension}"
@@ -424,7 +428,7 @@ class ElasticSearchGenerator:
 
                 current_file_index = current_file_index + 1
 
-        logger.info("Generate Elasticsearch value set index documents")
+        self.__logger.info("Generate Elasticsearch value set index documents")
         index_name = 'codeable_concept'
         termcode_to_valueset = {}
 

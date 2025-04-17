@@ -4,7 +4,7 @@ import json
 from typing import List, Dict
 
 from common.util.codec.functions import del_none
-from model.UiDataModel import TermCode, Module
+from cohort_selection_ontology.model.ui_data import TermCode, Module
 
 
 class ResourceQueryingMetaData:

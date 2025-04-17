@@ -2,13 +2,14 @@ import json
 import os
 from typing import List
 
-from cohort_selection_ontology.util import structure_definition as FhirParser
-from common.util.terminology.ValueSetResolver import get_term_map_from_onto_server, get_term_info_from_onto_server
-from core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
+from cohort_selection_ontology.util import structure_definition as sd
+from cohort_selection_ontology.core.terminology.client import CohortSelectionTerminologyClient
+from cohort_selection_ontology.core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
 from helper import is_structure_definition
-from model.ResourceQueryingMetaData import ResourceQueryingMetaData
-from model.TreeMap import ContextualizedTermCodeInfo, ContextualizedTermCodeInfoList, TermEntryNode, TreeMapList, TreeMap
-from model.UiDataModel import TermCode
+from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
+from cohort_selection_ontology.model.tree_map import (ContextualizedTermCodeInfo, ContextualizedTermCodeInfoList, 
+                                                      TermEntryNode, TreeMapList, TreeMap)
+from cohort_selection_ontology.model.ui_data import TermCode
 from common.util.log.functions import get_class_logger
 from common.util.project import Project
 
@@ -17,20 +18,18 @@ class UITreeGenerator:
     """
     Generates the ui tree for the given FHIR profiles
     """
-
     __logger = get_class_logger("UITreeGenerator")
 
-    def __init__(self, project: Project, querying_meta_data_resolver: ResourceQueryingMetaDataResolver, parser=FhirParser):
+    def __init__(self, project: Project, querying_meta_data_resolver: ResourceQueryingMetaDataResolver):
         """
         :param project: Project to operate on
         :param querying_meta_data_resolver: resolves the for the query relevant metadata for a given FHIR profile
-        :parser: parses the FHIR profiles
         snapshot
         """
-        self.project = project
+        self.__project = project
+        self.__client = CohortSelectionTerminologyClient(self.__project)
         self.query_meta_data_resolver = querying_meta_data_resolver
-        self.parser = parser
-        self.__modules_dir = self.project.input("modules")
+        self.__modules_dir = self.__project.input("modules")
 
     def generate_ui_subtree(self, fhir_profile_snapshot: dict, module_name) -> List[TreeMap]:
         """
@@ -54,18 +53,17 @@ class UITreeGenerator:
         :return: root of the ui tree
         """
         result_map: dict[(TermCode, str), TreeMap] = dict()
-        for applicable_querying_meta_data in applicable_querying_meta_data:
+        for qmd in applicable_querying_meta_data:
             tree_maps: List[TreeMap] = list()
-            if applicable_querying_meta_data.term_code_defining_id:
-                tree_maps = self.get_term_entries_by_id(fhir_profile_snapshot, applicable_querying_meta_data.
-                                                       term_code_defining_id, module_dir_name)
-            elif applicable_querying_meta_data.term_codes:
-                tree_maps = [TreeMap({term_code.code: TermEntryNode(term_code)},
-                                     context=applicable_querying_meta_data.context, system=term_code.system,
-                                     version=term_code.version)
-                             for term_code in applicable_querying_meta_data.term_codes]
+            if qmd.term_code_defining_id:
+                tree_maps = self.get_term_entries_by_id(fhir_profile_snapshot, qmd.term_code_defining_id,
+                                                        module_dir_name)
+            elif qmd.term_codes:
+                tree_maps = [TreeMap({term_code.code: TermEntryNode(term_code)}, context=qmd.context,
+                                     system=term_code.system, version=term_code.version)
+                             for term_code in qmd.term_codes]
             for tree_map in tree_maps:
-                context: TermCode = applicable_querying_meta_data.context
+                context: TermCode = qmd.context
                 tree_map.context = context
                 if (context, tree_map.system) not in result_map:
                     result_map[(context, tree_map.system)] = tree_map
@@ -105,25 +103,25 @@ class UITreeGenerator:
         :param module_dir_name: Name of the module directory
         :return: term entries
         """
-        term_code_defining_element = self.parser.resolve_defining_id(fhir_profile_snapshot, term_code_defining_id,
+        term_code_defining_element = sd.resolve_defining_id(fhir_profile_snapshot, term_code_defining_id,
                                                                      self.__modules_dir, module_dir_name)
         if not term_code_defining_element:
             raise Exception(f"Could not resolve term code defining id {term_code_defining_id} "
                             f"in {fhir_profile_snapshot.get('name')}")
         if "patternCoding" in term_code_defining_element:
             if "code" in term_code_defining_element["patternCoding"]:
-                term_code = self.parser.pattern_coding_to_term_code(term_code_defining_element)
+                term_code = sd.pattern_coding_to_term_code(term_code_defining_element, self.__client)
                 return [TreeMap({term_code.code: TermEntryNode(term_code)}, None, term_code.system, term_code.version)]
         if "patternCodeableConcept" in term_code_defining_element:
             if "coding" in term_code_defining_element["patternCodeableConcept"]:
-                term_code = self.parser.pattern_codeable_concept_to_term_code(term_code_defining_element)
+                term_code = sd.pattern_codeable_concept_to_term_code(term_code_defining_element, self.__client)
                 return [TreeMap({term_code.code: TermEntryNode(term_code)}, None, term_code.system, term_code.version)]
         if "binding" in term_code_defining_element:
             value_set = term_code_defining_element.get("binding").get("valueSet")
-            return [get_term_map_from_onto_server(value_set)]
+            return [self.__client.get_term_map(value_set)]
         else:
-            term_code = self.parser.try_get_term_code_from_sub_elements(fhir_profile_snapshot, term_code_defining_id,
-                                                                        self.__modules_dir, module_dir_name)
+            term_code = sd.try_get_term_code_from_sub_elements(fhir_profile_snapshot, term_code_defining_id,
+                                                               self.__modules_dir, module_dir_name, self.__client)
             if term_code:
                 return [TreeMap({term_code.code: TermEntryNode(term_code)}, None, term_code.system, term_code.version)]
             raise Exception(
@@ -194,8 +192,11 @@ class UITreeGenerator:
         if not querying_meta_data.term_code_defining_id:
             contextualized_term_code_infos = []
             for term_code in querying_meta_data.term_codes:
-                contextualized_term_code_infos.append(ContextualizedTermCodeInfo(term_code, context, module, siblings=[sibling for sibling in querying_meta_data.term_codes
-                                                                                                                       if sibling != term_code]))
+                contextualized_term_code_infos.append(
+                    ContextualizedTermCodeInfo(term_code, context, module,
+                                               siblings=[sibling for sibling in querying_meta_data.term_codes
+                                                         if sibling != term_code])
+                )
             return contextualized_term_code_infos
 
         contextualized_term_code_infos = self.get_term_info_by_id(fhir_profile_snapshot,
@@ -208,25 +209,25 @@ class UITreeGenerator:
 
     def get_term_info_by_id(self, fhir_profile_snapshot, term_code_defining_id,
                             module_dir_name: str) -> List[ContextualizedTermCodeInfo]:
-        term_code_defining_element = self.parser.resolve_defining_id(fhir_profile_snapshot, term_code_defining_id,
+        term_code_defining_element = sd.resolve_defining_id(fhir_profile_snapshot, term_code_defining_id,
                                                                      self.__modules_dir, module_dir_name)
         if not term_code_defining_element:
             raise Exception(f"Could not resolve term code defining id {term_code_defining_id} "
                             f"in {fhir_profile_snapshot.get('name')}")
         if "patternCoding" in term_code_defining_element:
             if "code" in term_code_defining_element["patternCoding"]:
-                term_code = self.parser.pattern_coding_to_term_code(term_code_defining_element)
+                term_code = sd.pattern_coding_to_term_code(term_code_defining_element, self.__client)
                 return [ContextualizedTermCodeInfo(term_code)]
         if "patternCodeableConcept" in term_code_defining_element:
             if "coding" in term_code_defining_element["patternCodeableConcept"]:
-                term_code = self.parser.pattern_codeable_concept_to_term_code(term_code_defining_element)
+                term_code = sd.pattern_codeable_concept_to_term_code(term_code_defining_element, self.__client)
                 return [ContextualizedTermCodeInfo(term_code)]
         if "binding" in term_code_defining_element:
             value_set = term_code_defining_element.get("binding").get("valueSet")
-            return get_term_info_from_onto_server(value_set)
+            return self.__client.get_term_info(value_set)
         else:
-            term_code = self.parser.try_get_term_code_from_sub_elements(fhir_profile_snapshot, term_code_defining_id,
-                                                                        self.__modules_dir, module_dir_name)
+            term_code = sd.try_get_term_code_from_sub_elements(fhir_profile_snapshot, term_code_defining_id,
+                                                               self.__modules_dir, module_dir_name, self.__client)
             if term_code:
                 return [ContextualizedTermCodeInfo(term_code)]
             raise Exception(

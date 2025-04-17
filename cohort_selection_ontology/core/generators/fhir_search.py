@@ -3,16 +3,17 @@ import functools
 import json
 from typing import Dict, Tuple, List, OrderedDict
 
-from core.exceptions.common import NotFoundError
-from core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
-from cohort_selection_ontology.util import structure_definition as FHIRParser
-from core.resolvers.search_parameter import SearchParameterResolver
+from cohort_selection_ontology.core.terminology.client import CohortSelectionTerminologyClient
+from common.exceptions import NotFoundError
+from cohort_selection_ontology.core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
+from cohort_selection_ontology.util import structure_definition as sd
+from cohort_selection_ontology.core.resolvers.search_parameter import SearchParameterResolver
 from cohort_selection_ontology.util.structure_definition import extract_value_type, resolve_defining_id, FHIR_TYPES_TO_VALUE_TYPES
 from helper import generate_attribute_key
-from model.MappingDataModel import FhirMapping
-from model.ResourceQueryingMetaData import ResourceQueryingMetaData
-from model.UIProfileModel import VALUE_TYPE_OPTIONS
-from model.UiDataModel import TermCode
+from cohort_selection_ontology.model.mapping import FhirMapping
+from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
+from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS
+from cohort_selection_ontology.model.ui_data import TermCode
 from common.util.log.functions import get_class_logger
 from common.util.project import Project
 
@@ -31,28 +32,27 @@ class FHIRSearchMappingGenerator(object):
     __logger = get_class_logger("FHIRSearchMappingGenerator")
 
     def __init__(self, project: Project, querying_meta_data_resolver: ResourceQueryingMetaDataResolver,
-                 fhir_search_mapping_resolver: SearchParameterResolver,
-                 parser=FHIRParser):
+                 fhir_search_mapping_resolver: SearchParameterResolver):
         """
         :param project: Project to operate on
         :param querying_meta_data_resolver: resolves the for the query relevant metadata for a given FHIR profile
         snapshot
         """
-        self.project = project
+        self.__project = project
+        self.__client = CohortSelectionTerminologyClient(self.__project)
         self.querying_meta_data_resolver = querying_meta_data_resolver
         self.generated_mappings = []
-        self.parser = parser
         self.fhir_search_mapping_resolver = fhir_search_mapping_resolver
-        self.__modules_dir = self.project.input("modules")
+        self.__modules_dir = self.__project.input("modules")
 
     def generate_mapping(self, module_name: str) \
             -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, FhirMapping]]:
         """
         Generates the FHIR search mappings for the given FHIR dataset directory
         :param module_name: Name of the module
-        :return: normalized term code FHIR search generators
+        :return: normalized term code FHIR search mapping
         """
-        snapshot_dir = self.project.input("modules", module_name, "differential", "package")
+        snapshot_dir = self.__project.input("modules", module_name, "differential", "package")
         full_context_term_code_fhir_search_mapping_name_mapping: Dict[Tuple[TermCode, TermCode]] = {}
         full_fhir_search_mapping_name_fhir_search_mapping: Dict[str, FhirMapping] = {}
         files = [file for file in snapshot_dir.rglob("*-snapshot.json") if file.is_file()]
@@ -84,7 +84,7 @@ class FHIRSearchMappingGenerator(object):
                 return self._resolve_composite_search_parameter(search_parameters)
             return search_parameters
         except NotFoundError as err:
-            location_hint = self.project.input("modules", module_dir_name, "search_parameters")
+            location_hint = self.__project.input("modules", module_dir_name, "search_parameters")
             self.__logger.error(f"Could not find search parameter for expressions {fhir_path_expressions}. If standard "
                                 f"search parameters do not suffice, consider adding a custom search parameter "
                                 f"definition to {location_hint}")
@@ -104,11 +104,11 @@ class FHIRSearchMappingGenerator(object):
     def generate_normalized_term_code_fhir_search_mapping(self, profile_snapshot: dict, module_name: str) \
             -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, FhirMapping]]:
         """
-        Generates the normalized term code FHIR search generators for the given FHIR profile snapshot in the specified
+        Generates the normalized term code FHIR search mapping for the given FHIR profile snapshot in the specified
         context
         :param profile_snapshot: FHIR profile snapshot
         :param module_name: name of the module the profile belongs to
-        :return: normalized term code FHIR search generators
+        :return: normalized term code FHIR search mapping
         """
         querying_meta_data: List[ResourceQueryingMetaData] = \
             self.querying_meta_data_resolver.get_query_meta_data(profile_snapshot, module_name)
@@ -123,10 +123,10 @@ class FHIRSearchMappingGenerator(object):
                 mapping_name_fhir_search_mapping[mapping_name] = fhir_mapping
             else:
                 mapping_name = querying_meta_data_entry.name
-            # The logic to get the term_codes here always has to be identical with the generators Generators!
+            # The logic to get the term_codes here always has to be identical with the mapping Generators!
             term_codes = querying_meta_data_entry.term_codes if querying_meta_data_entry.term_codes else \
-                self.parser.get_term_code_by_id(profile_snapshot, querying_meta_data_entry.term_code_defining_id,
-                                                self.__modules_dir, module_name)
+                sd.get_term_code_by_id(profile_snapshot, querying_meta_data_entry.term_code_defining_id,
+                                       self.__modules_dir, module_name, self.__client)
             primary_keys = [(querying_meta_data_entry.context, term_code) for term_code in term_codes]
             mapping_names = [mapping_name] * len(primary_keys)
             table = dict(zip(primary_keys, mapping_names))
@@ -136,11 +136,11 @@ class FHIRSearchMappingGenerator(object):
     def generate_fhir_search_mapping(self, profile_snapshot: dict, querying_meta_data: ResourceQueryingMetaData,
                                      module_dir_name: str) -> FhirMapping:
         """
-        Generates the FHIR search generators for the given FHIR profile snapshot and querying metadata
+        Generates the FHIR search mapping for the given FHIR profile snapshot and querying metadata
         :param profile_snapshot: FHIR profile snapshot
         :param querying_meta_data: querying metadata
         :param module_dir_name: Name of the module directory
-        :return: FHIR search generators
+        :return: FHIR search mapping
         """
         fhir_mapping = FhirMapping(querying_meta_data.name)
         fhir_mapping.fhirResourceType = querying_meta_data.resource_type
@@ -191,13 +191,13 @@ class FHIRSearchMappingGenerator(object):
                                    composite_code)
 
     def get_composite_code(self, attribute, profile_snapshot, module_dir_name):
-        attribute_parsed = self.parser.get_element_defining_elements(attribute, profile_snapshot, module_dir_name,
+        attribute_parsed = sd.get_element_defining_elements(attribute, profile_snapshot, module_dir_name,
                                                                      self.__modules_dir)
         if len(attribute_parsed) != 2:
             raise ValueError("Composite search parameters must have exactly two elements")
         where_clause_element = attribute_parsed[-1]
-        return self.parser.get_fixed_term_codes(where_clause_element, profile_snapshot, self.__modules_dir,
-                                                module_dir_name)[0]
+        return sd.get_fixed_term_codes(where_clause_element, profile_snapshot, self.__modules_dir,
+                                       module_dir_name, self.__client)[0]
 
     def get_composite_attribute_type(self, attribute, profile_snapshot, module_dir_name: str):
         search_param_components = self.resolve_fhir_search_parameter(attribute, profile_snapshot, module_dir_name,
@@ -251,9 +251,9 @@ class FHIRSearchMappingGenerator(object):
         :param module_dir_name: Name of the module directory
         :return: fhir search parameter
         """
-        elements = self.parser.get_element_defining_elements(element_id, profile_snapshot, module_dir_name,
+        elements = sd.get_element_defining_elements(element_id, profile_snapshot, module_dir_name,
                                                              self.__modules_dir)
-        return self.parser.translate_element_to_fhir_path_expression(elements, profile_snapshot)
+        return sd.translate_element_to_fhir_path_expression(elements, profile_snapshot)
 
     @staticmethod
     def validate_chainable(chainable_search_parameter) -> bool:

@@ -6,12 +6,12 @@ import json
 import os
 import re
 from os import path
-from typing import List, Set, Protocol, Dict
+from typing import List, Set, Protocol
 
 from typing_extensions import deprecated
 
-from model.ResourceQueryingMetaData import ResourceQueryingMetaData
-from model.UiDataModel import TermCode, TranslationElementDisplay
+from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
+from cohort_selection_ontology.model.ui_data import TermCode, TranslationElementDisplay
 from common.exceptions.translation import MissingTranslationException
 from common.util.log.functions import get_logger
 

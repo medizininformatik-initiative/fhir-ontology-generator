@@ -5,7 +5,7 @@ from typing import Mapping, List, TypedDict, Any, Optional
 from core.exceptions.profile import MissingProfileException
 from model.UiDataModel import TranslationElementDisplay
 from model.dse import FieldDetail, ProfileDetail, Filter
-from util.fhir.enums import FhirPrimitiveDataType
+from common.util.fhir.enums import FhirPrimitiveDataType
 
 from common.util.log.functions import get_class_logger
 
@@ -82,9 +82,7 @@ class ProfileDetailGenerator:
         pattern = rf"{fhir_path}[^.]*$"
 
         for elem in (elem for elem in elements if re.search(pattern, elem['id'])):
-
             if "binding" in elem :
-
                 value_set = elem["binding"]["valueSet"]
 
                 if value_set not in self.blacklisted_value_sets:
@@ -99,9 +97,7 @@ class ProfileDetailGenerator:
         pattern = rf"{fhir_path}($|\.coding$)"
 
         for elem in (elem for elem in elements if re.search(pattern, elem['id'])):
-
             if "binding" in elem:
-
                 value_set = elem["binding"]["valueSet"]
 
                 if value_set not in self.blacklisted_value_sets:
@@ -117,14 +113,12 @@ class ProfileDetailGenerator:
 
     @staticmethod
     def get_field_in_node(node, id_end):
-
         if "children" not in node or node["children"] is None:
             node["children"] = []
 
         children = node["children"]
 
         for index in range(0, len(children)):
-
             child = children[index]
             if child.id.endswith(id_end):
                 return index
@@ -153,7 +147,6 @@ class ProfileDetailGenerator:
             return
 
         for index in range(0, len(path) - 1):
-
             id_end = path[index]
             field_child_index = self.get_field_in_node(cur_node.__dict__, id_end)
 
@@ -214,7 +207,6 @@ class ProfileDetailGenerator:
 
     @staticmethod
     def check_at_least_one_in_elem_and_true(element: Mapping[str, any], attributes_to_check: List[str]) -> bool:
-
         path = element["id"].split(".")
 
         if len(path) > 2:

@@ -4,7 +4,7 @@ import logging.config
 from typing import Any, Optional
 
 
-GLOBAL_LOGGING_CONFIG_FILE = os.path.join("/", *os.path.abspath(__file__).split(os.sep)[:-3], "logging.toml")
+GLOBAL_LOGGING_CONFIG_FILE = os.path.join("/", *os.path.abspath(__file__).split(os.sep)[:-4], "logging.toml")
 logging.config.fileConfig(GLOBAL_LOGGING_CONFIG_FILE)
 logging.info(f"Logging using configuration options defined @ {GLOBAL_LOGGING_CONFIG_FILE}",
              extra={'className': ""})

@@ -20,7 +20,7 @@ class Project(BaseModel):
                                                                                  "projects directory")]
     path: Annotated[Path, Field(strict=True, frozen=True, init=False, description="Path object pointing to the root "
                                                                                   "directory of the project")]
-    env: Annotated[Mapping[str, str], Field(strict=True, frozen=True, init=False, description="Environment variables"
+    env: Annotated[Mapping[str, str], Field(frozen=True, init=False, description="Environment variables"
                                                                                               "in the scope of the "
                                                                                               "project")]
 

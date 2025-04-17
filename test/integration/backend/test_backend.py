@@ -6,11 +6,11 @@ import jsonschema
 import pytest
 from jsonpath_ng import parse
 
-from model.ResourceQueryingMetaData import ResourceQueryingMetaData
+from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from common.util.http.backend.client import FeasibilityBackendClient
 from common.util.log.functions import get_logger
 from common.util.test.fhir import load_list_of_resources_onto_fhir_server, delete_list_of_resources_from_fhir_server
-from common.util.test import mismatch_str
+from common.util.test.functions import mismatch_str
 
 
 logger = get_logger(__file__)
