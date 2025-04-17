@@ -27,7 +27,7 @@ runs:
       working-directory: ./availability/measure_shorthand
       run: ./generate-availability-measure.sh
 
-    - name: Rename JSON (with tag if available)
+    - name: Rename JSON (with tag if available) and zip
       shell: bash
       working-directory: ./availability/
       run: |
@@ -38,9 +38,10 @@ runs:
           NEW_NAME="fdpg_availability_measure.json"
         fi
         mv Measure-CdsAvailabilityMeasure.json "$NEW_NAME"
+        zip availability.zip "$NEW_NAME" stratum-to-context.json
 
-    - name: Upload Availability
+    - name: Upload ZIP archive
       uses: actions/upload-artifact@v4
       with:
-        name: availability
-        path: availability/*.json
+        name: availability-zip
+        path: availability/availability.zip

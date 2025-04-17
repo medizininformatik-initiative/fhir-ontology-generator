@@ -72,3 +72,4 @@ jobs:
           example/fdpg-ontology/elastic.zip
           example/fdpg-ontology/backend.zip
           example/fdpg-ontology/mapping.zip
+          availability/availability.zip
