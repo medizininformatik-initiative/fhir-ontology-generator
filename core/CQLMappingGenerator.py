@@ -572,6 +572,18 @@ class CQLMappingGenerator(object):
                 # occurrence (e.g. for paths like '<resource-type>')
                 return SimpleCardinality.SINGLE if is_root else card
             case _:
+                # TODO: Should check if selection in where clause returns a truly unique element (Slices, composite)
+
+                if opt_element_path == get_parent_element(opt_element, snapshot).get("id"):
+                    parent_el = get_parent_element(opt_element, snapshot)
+                    opt_parent_el, _ = CQLMappingGenerator.__select_element_compatible_with_cql_operations(parent_el,snapshot)
+                    grand_parent_el = get_parent_element(opt_parent_el, snapshot)
+                    if grand_parent_el is None and opt_element_path.count(".") == 0:
+                        return SimpleCardinality.SINGLE
+                    # skip one parent
+                    return CQLMappingGenerator.__aggregate_cardinality_using_element(grand_parent_el, snapshot, card_type) * card
+
+
                 match get_parent_element(opt_element, snapshot):
                     case None:
                         if not is_root:
