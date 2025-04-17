@@ -1,7 +1,7 @@
 {
   "attributes": [
     {
-      "cardinality": "many",
+      "cardinality": "single",
       "key": {
         "code": "8480-6",
         "display": "Systolic blood pressure",
@@ -13,7 +13,7 @@
       ]
     },
     {
-      "cardinality": "many",
+      "cardinality": "single",
       "key": {
         "code": "8462-4",
         "display": "Diastolic blood pressure",
