@@ -1,4 +1,8 @@
-# Ontology Merge Script
+# ontology_merging
+
+Module holding scripts, functions, and classes necessary for merging module-specific ontologies into a single ontology
+
+## scripts/merge_ontologies
 This script merges the generated files of two ontologies
 
 The selection of the components to be merged can be done via script parameters, if the entire ontologies should be joined use all 3:

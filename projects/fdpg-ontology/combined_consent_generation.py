@@ -138,7 +138,7 @@ if __name__ == "__main__":
 
     consent_input_dir = project.input("consent")
     consent_output_dir = project.output("consent")
-    output_dir = project.output("merged_ontology", "generators")
+    output_dir = project.output("merged_ontology", "mapping")
 
     input_file = consent_input_dir / "csv-consent.csv"
     logger.info(f"Processing input data @ {input_file}")
