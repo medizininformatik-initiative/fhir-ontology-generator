@@ -72,3 +72,4 @@ jobs:
           projects/fdpg-ontology/output/merged_ontology/elastic.zip
           projects/fdpg-ontology/output/merged_ontology/backend.zip
           projects/fdpg-ontology/output/merged_ontology/mapping.zip
+          availability/availability.zip
