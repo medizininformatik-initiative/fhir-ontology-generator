@@ -82,9 +82,9 @@ services:
       LOG_LEVEL: "warn"
     restart: unless-stopped
     volumes:
-      #- ./ontology/ui_profiles:/opt/dataportal-backend/ontology/ui_profiles
+      #- ./ontology/ui_profile:/opt/dataportal-backend/ontology/ui_profile
       #- ./ontology/codex-code-tree.json:/opt/dataportal-backend/ontology/codex-code-tree.json
-      #- ./ontology/codex-term-code-mapping.json:/opt/dataportal-backend/ontology/codex-term-code-mapping.json
+      #- ./ontology/codex-term-code-generators.json:/opt/dataportal-backend/ontology/codex-term-code-generators.json
       - ./tmp/ontology:/opt/dataportal-backend/ontology
       #- ./secrets:/opt/dataportal-security
       #- ./certs:/opt/dataportal-backend/certs

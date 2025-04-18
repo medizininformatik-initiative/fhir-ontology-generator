@@ -35,3 +35,4 @@ local-onto-gen.sh
 
 # Project output files
 /projects/*/output
+/projects/*/input/**/dependencies

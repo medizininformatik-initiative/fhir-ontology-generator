@@ -7,7 +7,7 @@ on:
         description: "Path to the generated elastic.zip file"
         value: ${{ steps.save_zips.outputs.elastic_zip }}
       mapping_zip:
-        description: "Path to the generated mapping.zip file"
+        description: "Path to the generated generators.zip file"
         value: ${{ steps.save_zips.outputs.mapping_zip }}
       backend_zip:
         description: "Path to the generated backend.zip file"
@@ -66,7 +66,7 @@ jobs:
         ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
         SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
         PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
-      run: ./generate_full_ontology.sh --all
+      run: ./generate_full_ontology.sh --project "fdpg-ontology" --all
       
     - name: Save ZIP file paths
       id: save_zips

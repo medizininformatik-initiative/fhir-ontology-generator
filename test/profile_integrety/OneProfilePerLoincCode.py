@@ -13,7 +13,7 @@ def extract_loinc_code(profile):
 
 def identify_duplicate_loinc_codes(directory):
     """Identify observation profiles with the same LOINC code in a directory."""
-    loinc_code_to_profiles = {}  # To store the mapping from LOINC codes to profiles
+    loinc_code_to_profiles = {}  # To store the generators from LOINC codes to profiles
 
     # Iterate through each file in the directory
     for filename in os.listdir(directory):

@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 from collections import defaultdict
+from email.policy import default
 from os import PathLike
 from typing import Mapping, Union, Iterator, Optional
 
@@ -9,16 +10,17 @@ from _pytest.python import Metafunc
 from pydantic import BaseModel
 from pytest_docker.plugin import Services, get_docker_services, containers_scope
 
-import util.http.requests
-import util.test.docker
+from common import util
+import common.util.test.docker
 import pytest
 
-from model.ResourceQueryingMetaData import ResourceQueryingMetaData
-from util.http.auth.authentication import OAuthClientCredentials
-from util.http.backend.FeasibilityBackendClient import FeasibilityBackendClient
-from util.log.functions import get_logger
-from util.project import Project
-from util.test.fhir import download_and_unzip_kds_test_data
+from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
+from common.util.http.auth.credentials import OAuthClientCredentials
+from common.util.http.backend.client import FeasibilityBackendClient
+from common.util.http.functions import is_responsive
+from common.util.log.functions import get_logger
+from common.util.project import Project
+from common.util.test.fhir import download_and_unzip_kds_test_data
 
 logger = get_logger(__file__)
 
@@ -56,8 +58,9 @@ def repository_root_dir(request) -> str:
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--project", action="store", required=True, help="Name of project to run these integration tests for"
+        "--project", action="store", default="fdpg-ontology", help="Name of project to run these integration tests for"
     )
+
 
 @pytest.fixture
 def project(request) -> Project:
@@ -143,7 +146,7 @@ def docker_services(
         docker_cleanup,
     ) as docker_service:
         yield docker_service
-        util.test.docker.save_docker_logs(__test_dir(), "integration-test")
+        common.util.test.docker.save_docker_logs(__test_dir(), "integration-test")
 
 
 @pytest.fixture(scope="session")
@@ -157,7 +160,7 @@ def backend_ip(docker_services) -> str:
     docker_services.wait_until_responsive(
         timeout=300.0,
         pause=5,
-        check=lambda: util.http.requests.is_responsive(url_health_test)
+        check=lambda: is_responsive(url_health_test)
     )
     return url
 
@@ -173,7 +176,7 @@ def fhir_ip(docker_services, test_dir: str) -> str:
     docker_services.wait_until_responsive(
         timeout=300.0,
         pause=5,
-        check=lambda: util.http.requests.is_responsive(url_health_test)
+        check=lambda: is_responsive(url_health_test)
     )
 
     # upload testdata for fhir server for testing
@@ -191,7 +194,7 @@ def elastic_ip(docker_services) -> str:
     docker_services.wait_until_responsive(
         timeout=300.0,
         pause=5,
-        check=lambda: util.http.requests.is_responsive(url)
+        check=lambda: is_responsive(url)
     )
     return url
 

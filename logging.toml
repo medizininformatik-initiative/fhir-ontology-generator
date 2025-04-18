@@ -26,4 +26,4 @@ format=%(asctime)s [%(levelname)s] %(module)s%(className)s::%(funcName)s:%(linen
 datefmt=%Y-%m-%dT%H:%M:%S
 style=%
 validate=1
-class=util.log.ColorFormatter
+class=common.util.log.ColorFormatter

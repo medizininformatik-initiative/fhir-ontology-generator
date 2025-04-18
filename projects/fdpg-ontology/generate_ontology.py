@@ -11,22 +11,23 @@ from typing import List, ValuesView, Dict, Tuple
 import docker
 from jsonschema import validate
 
-import resources.schema
+import cohort_selection_ontology.resources.schema as schema_files
 
-from core.CQLMappingGenerator import CQLMappingGenerator
-from core.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
-from core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver, StandardDataSetQueryingMetaDataResolver
-from core.resolvers.search_parameter import SearchParameterResolver, StandardSearchParameterResolver
-from core.UIProfileGenerator import UIProfileGenerator
-from core.UITreeGenerator import UITreeGenerator
-from database.DataBaseWriter import DataBaseWriter
+from cohort_selection_ontology.core.generators.cql import CQLMappingGenerator
+from cohort_selection_ontology.core.generators.fhir_search import FHIRSearchMappingGenerator
+from cohort_selection_ontology.core.resolvers.querying_metadata import (ResourceQueryingMetaDataResolver,
+                                                                        StandardDataSetQueryingMetaDataResolver)
+from cohort_selection_ontology.core.resolvers.search_parameter import StandardSearchParameterResolver
+from cohort_selection_ontology.core.generators.ui_profile import UIProfileGenerator
+from cohort_selection_ontology.core.generators.ui_tree import UITreeGenerator
+from cohort_selection_ontology.util.database import DataBaseWriter
 from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, mkdir_if_not_exists
-from model.MappingDataModel import CQLMapping, FhirMapping, MapEntryList
-from model.UIProfileModel import UIProfile
-from model.UiDataModel import TermCode
-from core.docker.Images import POSTGRES_IMAGE
-from util.log.functions import get_logger
-from util.project import Project
+from cohort_selection_ontology.model.mapping import CQLMapping, FhirMapping, MapEntryList
+from cohort_selection_ontology.model.ui_profile import UIProfile
+from cohort_selection_ontology.model.ui_data import TermCode
+from common.constants.docker import POSTGRES_IMAGE
+from common.util.log.functions import get_logger
+from common.util.project import Project
 
 logger = get_logger(__file__)
 
@@ -43,10 +44,10 @@ def validate_fhir_mapping(mapping_name: str):
     Validates the FHIR mapping against its JSON schema.
     :param mapping_name: The name of the mapping file (without extension).
     """
-    mapping_file = os.path.join(OUTPUT_DIR, "mapping", "fhir", f"{mapping_name}.json")
-    with open(mapping_file, 'r') as f:
+    mapping_file = OUTPUT_DIR / "generated" / "fhir" / f"{mapping_name}.json"
+    with open(mapping_file, mode='r', encoding='utf-8') as f:
         mapping_data = json.load(f)
-    with open_text(resources.schema, "fhir-mapping-schema.json") as f:
+    with open_text(schema_files, "fhir-mapping-schema.json", encoding='utf-8') as f:
         schema = json.load(f)
     validate(instance=mapping_data, schema=schema)
 
@@ -58,9 +59,9 @@ def validate_mapping_tree(tree_name: str, mapping_tree_folder="mapping-tree"):
     :param mapping_tree_folder: The directory containing the mapping tree files.
     """
     tree_file = os.path.join(mapping_tree_folder, f"{tree_name}.json")
-    with open(tree_file, 'r') as f:
+    with open(tree_file, mode='r', encoding='utf-8') as f:
         tree_data = json.load(f)
-    with open_text(resources.schema, "codex-code-tree-schema.json") as f:
+    with open_text(schema_files, "codex-code-tree-schema.json", encoding='utf-8') as f:
         schema = json.load(f)
     validate(instance=tree_data, schema=schema)
 
@@ -68,7 +69,8 @@ def validate_mapping_tree(tree_name: str, mapping_tree_folder="mapping-tree"):
 def write_ui_trees_to_files(trees: List, module_name: str, directory: str = "ui-trees", ):
     """
     Writes UI trees to JSON files in the specified directory.
-    :param trees: List of UI tree objects.
+    :param trees: List of UI tree objects
+    :param module_name: Name of the module
     :param directory: Directory to write the UI tree files to.
     """
     for i, tree in enumerate(trees):
@@ -152,7 +154,7 @@ def write_ui_profiles_to_files(
         file_name = f"{profile.name.replace(' ', '_').replace('.', '_')}.json"
         sanitized_name = remove_reserved_characters(file_name)
         file_path = os.path.join(folder, sanitized_name)
-        with open(file_path, 'w', encoding="utf-8") as f:
+        with open(file_path, mode='w', encoding='utf-8') as f:
             f.write(profile.to_json())
 
 
@@ -375,7 +377,7 @@ def generate_fhir_mapping(
     )
     fhir_mapping_file = os.path.join(onto_result_dir, 'mapping', 'fhir', 'mapping_fhir.json')
     os.makedirs(os.path.dirname(fhir_mapping_file), exist_ok=True)
-    with open(fhir_mapping_file, 'w', encoding='utf-8') as f:
+    with open(fhir_mapping_file, mode='w', encoding='utf-8') as f:
         f.write(fhir_search_mapping.to_json())
     # validate_fhir_mapping("mapping_fhir")
     logger.info("FHIR mapping generated and validated.")
