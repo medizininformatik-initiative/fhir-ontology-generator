@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 from collections import defaultdict
+from email.policy import default
 from os import PathLike
 from typing import Mapping, Union, Iterator, Optional
 
@@ -9,20 +10,22 @@ from _pytest.python import Metafunc
 from pydantic import BaseModel
 from pytest_docker.plugin import Services, get_docker_services, containers_scope
 
-import util.http.requests
-import util.test.docker
-import logging
+from common import util
+import common.util.test.docker
 import pytest
 
-from model.ResourceQueryingMetaData import ResourceQueryingMetaData
-from util.http.auth.authentication import OAuthClientCredentials
-from util.http.backend.FeasibilityBackendClient import FeasibilityBackendClient
-from util.test.fhir import download_and_unzip_kds_test_data
+from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
+from common.util.http.auth.credentials import OAuthClientCredentials
+from common.util.http.backend.client import FeasibilityBackendClient
+from common.util.http.functions import is_responsive
+from common.util.log.functions import get_logger
+from common.util.project import Project
+from common.util.test.fhir import download_and_unzip_kds_test_data
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__file__)
 
-#generated_profile_tree_path = os.path.join("example", "fdpg-ontology", "profile_tree.json")
-#project_path = os.path.join("example", "mii_core_data_set")
+#generated_profile_tree_path = os.path.join("projects", "fdpg-ontology", "profile_tree.json")
+#project_path = os.path.join("projects", "mii_core_data_set")
 
 
 class Status(BaseModel):
@@ -44,17 +47,33 @@ def test_dir() -> str:
     return __test_dir()
 
 
-def __project_root_dir(request) -> str:
+def __repository_root_dir(request) -> str:
     return request.config.rootpath
 
 
 @pytest.fixture(scope="session")
-def project_root_dir(request) -> str:
-    return __project_root_dir(request)
+def repository_root_dir(request) -> str:
+    return __repository_root_dir(request)
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--project", action="store", default="fdpg-ontology", help="Name of project to run these integration tests for"
+    )
+
+
+@pytest.fixture
+def project(request) -> Project:
+    project_name = request.config.getoption("--project")
+    if project_name is None:
+        raise ValueError("Command line option '--project' has to provided with a proper project name as its value")
+    return Project(name=project_name)
 
 
 @pytest.fixture(scope="session")
 def docker_compose_file(pytestconfig) -> str:
+    project = Project(name=pytestconfig.getoption("--project"))
+
     tmp_path = os.path.join(__test_dir(), "tmp")
     if os.path.exists(tmp_path):
         shutil.rmtree(tmp_path)
@@ -63,7 +82,7 @@ def docker_compose_file(pytestconfig) -> str:
 
     # Copy and unpack ontology archives
     backend_path = os.path.join(tmp_path, "backend.zip")
-    shutil.copyfile(os.path.join(pytestconfig.rootpath, "example", "fdpg-ontology", "backend.zip"), backend_path)
+    shutil.copyfile(project.output("merged_ontology") / "backend.zip", backend_path)
     shutil.unpack_archive(backend_path, ontology_dir_path)
 
     migration_path = os.path.join(ontology_dir_path, "migration")
@@ -77,10 +96,11 @@ def docker_compose_file(pytestconfig) -> str:
     shutil.move(os.path.join(ontology_dir_path, "profile_tree.json"), dse_dir_path)
 
     mapping_path = os.path.join(tmp_path, "mapping.zip")
-    shutil.copyfile(os.path.join(pytestconfig.rootpath, "example", "fdpg-ontology", "mapping.zip"), mapping_path)
+    shutil.copyfile(project.output("merged_ontology") / "mapping.zip", mapping_path)
+    unpacked_dir_path = os.path.join(ontology_dir_path, "mapping")
+    os.makedirs(unpacked_dir_path, exist_ok=True)
     shutil.unpack_archive(mapping_path, ontology_dir_path)
 
-    unpacked_dir_path = os.path.join(ontology_dir_path, "mapping")
     shutil.move(os.path.join(unpacked_dir_path, "cql", "mapping_cql.json"),
                 os.path.join(ontology_dir_path, "mapping_cql.json"))
     shutil.move(os.path.join(unpacked_dir_path, "fhir", "mapping_fhir.json"),
@@ -92,7 +112,7 @@ def docker_compose_file(pytestconfig) -> str:
     shutil.rmtree(unpacked_dir_path)
 
     # Copy elastic archive
-    shutil.copyfile(os.path.join(pytestconfig.rootpath, "example", "fdpg-ontology", "elastic.zip"),
+    shutil.copyfile(project.output("merged_ontology") / "elastic.zip",
                     os.path.join(tmp_path, "elastic.zip"))
 
     yield os.path.join(__test_dir(), "docker-compose.yml")
@@ -126,7 +146,7 @@ def docker_services(
         docker_cleanup,
     ) as docker_service:
         yield docker_service
-        util.test.docker.save_docker_logs(__test_dir(), "integration-test")
+        common.util.test.docker.save_docker_logs(__test_dir(), "integration-test")
 
 
 @pytest.fixture(scope="session")
@@ -140,7 +160,7 @@ def backend_ip(docker_services) -> str:
     docker_services.wait_until_responsive(
         timeout=300.0,
         pause=5,
-        check=lambda: util.http.requests.is_responsive(url_health_test)
+        check=lambda: is_responsive(url_health_test)
     )
     return url
 
@@ -156,7 +176,7 @@ def fhir_ip(docker_services, test_dir: str) -> str:
     docker_services.wait_until_responsive(
         timeout=300.0,
         pause=5,
-        check=lambda: util.http.requests.is_responsive(url_health_test)
+        check=lambda: is_responsive(url_health_test)
     )
 
     # upload testdata for fhir server for testing
@@ -174,7 +194,7 @@ def elastic_ip(docker_services) -> str:
     docker_services.wait_until_responsive(
         timeout=300.0,
         pause=5,
-        check=lambda: util.http.requests.is_responsive(url)
+        check=lambda: is_responsive(url)
     )
     return url
 
@@ -214,20 +234,20 @@ def querying_metadata_schema(test_dir: Union[str, PathLike]) -> Mapping[str, any
     return __querying_metadata_schema(test_dir)
 
 
-def __querying_metadata_list(project_root_dir: Union[str, PathLike]) -> list[ResourceQueryingMetaData]:
-    modules_dir_path = os.path.join(project_root_dir, "example", "mii_core_data_set", "CDS_Module")
+def __querying_metadata_list(project: Project) -> list[ResourceQueryingMetaData]:
+    modules_dir_path = project.input("modules")
     metadata_list = []
-    for module_dir in os.listdir(modules_dir_path): # ../CDS_Modules/*
-        metadata_dir_path = os.path.join(modules_dir_path, module_dir, "QueryingMetaData")
-        for file in os.listdir(metadata_dir_path): # ../CDS_Modules/*/QueryingMetaData/*.json
+    for module_dir in os.listdir(modules_dir_path): # ../modules/*
+        metadata_dir_path = modules_dir_path / module_dir / "QueryingMetaData"
+        for file in os.listdir(metadata_dir_path): # ../modules/*/QueryingMetaData/*.json
             if file.endswith(".json"):
-                with open(os.path.join(metadata_dir_path, file), "r", encoding="utf8") as f:
+                with open(metadata_dir_path / file, mode="r", encoding="utf8") as f:
                     metadata_list.append(ResourceQueryingMetaData.from_json(f))
     return metadata_list
 
 
-def querying_metadata_list(project_root_dir: Union[str, PathLike]) -> list[ResourceQueryingMetaData]:
-    return __querying_metadata_list(project_root_dir)
+def querying_metadata_list(project: Project) -> list[ResourceQueryingMetaData]:
+    return __querying_metadata_list(project)
 
 
 def querying_metadata_id_fn(val):
@@ -258,10 +278,10 @@ def pytest_generate_tests(metafunc: Metafunc):
     """
     Generates tests dynamically based on the collected querying metadata files within the project directory
     """
-    qm_list = __querying_metadata_list(metafunc.config.rootpath)
+    qm_list = __querying_metadata_list(Project(name=metafunc.config.getoption("--project")))
 
     if "test_ccdl_query" == metafunc.definition.name:
-        with open(os.path.join(__test_dir(), "ModuleTestDataConfig.json"), "r", encoding="utf-8") as f:
+        with open(os.path.join(__test_dir(), "ModuleTestDataConfig.json"), mode="r", encoding="utf-8") as f:
             test_data_mapping = json.load(f)
         test_data = []
         for entry in map(lambda e: CCDLTestdataEntry.model_validate(e), test_data_mapping):

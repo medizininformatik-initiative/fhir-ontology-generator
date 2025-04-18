@@ -56,7 +56,7 @@ jobs:
         ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
         SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
         PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
-      run: ./generate_full_ontology.sh --all
+      run: ./generate_full_ontology.sh --project "fdpg-ontology" --all
 
     - name: Upload Ontology
       uses: actions/upload-artifact@v4

@@ -3,40 +3,44 @@ import unittest
 
 from core.FHIRSearchMappingGenerator import FHIRSearchMappingGenerator
 from core.UIProfileGenerator import UIProfileGenerator
-from example.mii_core_data_set.generate_ontology import StandardDataSetQueryingMetaDataResolver
+from core.resolvers.querying_metadata import StandardDataSetQueryingMetaDataResolver
+from core.resolvers.search_parameter import StandardSearchParameterResolver
 from model.ResourceQueryingMetaData import ResourceQueryingMetaData
 from model.UiDataModel import TermCode, AttributeDefinition
+from common.util.project import Project
 
 
 class UIProfileGeneratorTestCases(unittest.TestCase):
+    __project = Project(name="fdpg-ontology")
+
+
     def test_translate_element_id_to_fhir_search_parameter(self):
-        resolver = StandardDataSetQueryingMetaDataResolver()
-        mapper = FHIRSearchMappingGenerator(resolver)
-        mapper.data_set_dir = '../../example/mii_core_data_set/resources/fdpg_differential'
-        mapper.module_dir = '../../example/mii_core_data_set/resources/fdpg_differential/Bioprobe'
-        with open('../../example/mii_core_data_set/resources/fdpg_differential/Bioprobe/package/'
+        qmr_resolver = StandardDataSetQueryingMetaDataResolver(self.__project)
+        sp_resolver = StandardSearchParameterResolver("Bioprobe")
+        mapper = FHIRSearchMappingGenerator(self.__project, qmr_resolver, sp_resolver)
+        mapper.data_set_dir = '../../projects/mii_core_data_set/resources/fdpg_differential'
+        mapper.module = '../../projects/mii_core_data_set/resources/fdpg_differential/Bioprobe'
+        with open('../../projects/mii_core_data_set/resources/fdpg_differential/Bioprobe/package/'
                   'FDPG_Bioprobe-snapshot.json', 'r') as f:
             fhir_path = mapper.translate_element_id_to_fhir_path_expressions(
                 '((Specimen.extension:festgestellteDiagnose).value[x]).code.coding:icd10-gm',
-                json.load(f))
+                json.load(f), "Bioprobe")
             self.assertEqual(["Specimen.extension.where(url='https://www.medizininformatik-initiative.de/"
                               "fhir/ext/modul-biobank/StructureDefinition/Diagnose').value",
                               "Extension.value as Reference", "Condition.code.coding"], fhir_path)
 
     def test_generate_ui_profile(self):
-        resolver = StandardDataSetQueryingMetaDataResolver()
-        with open('../../example/mii_core_data_set/CDS_Module/Bioprobe/differential/package/FDPG_Bioprobe-snapshot.json', 'r') as f:
+        resolver = StandardDataSetQueryingMetaDataResolver(self.__project)
+        with open('../../projects/mii_core_data_set/resources/fdpg_differential/Bioprobe/package/'
+                  'FDPG_Bioprobe-snapshot.json', 'r') as f:
             profile_snapshot = json.load(f)
-            with open('../../example/mii_core_data_set/CDS_Module/Bioprobe/QueryingMetaData/SpecimenQueryingMetaData.json',
+            with open('../../projects/mii_core_data_set/resources/QueryingMetaData/SpecimenQueryingMetaData.json',
                       'r') as g:
                 querying_meta_data = ResourceQueryingMetaData.from_json(g)
-                generator = UIProfileGenerator(resolver)
-                generator.data_set_dir = '../../example/mii_core_data_set/CDS_Module'
-                generator.module_dir = '../../example/mii_core_data_set/CDS_Module/Bioprobe/differential/package'
+                generator = UIProfileGenerator(self.__project, resolver)
+                generator.data_set_dir = '../../projects/mii_core_data_set/resources/fdpg_differential'
+                generator.module = '../../projects/mii_core_data_set/resources/fdpg_differential/Bioprobe'
                 ui_profile = generator.generate_ui_profile(profile_snapshot, querying_meta_data)
-
-                print(ui_profile)
-
                 attribute_code = TermCode("http://hl7.org/fhir/StructureDefinition", "festgestellteDiagnose",
                                           "Festgestellte Diagnose")
                 expected_attribute_definition = AttributeDefinition(attribute_code, "reference")

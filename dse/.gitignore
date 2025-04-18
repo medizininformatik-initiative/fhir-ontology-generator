@@ -1,7 +1,0 @@
-dse-packages/package.json
-dse-packages/fhirpkg.lock.json
-dse-packages/dependencies
-generated/*.json
-generated/*.sql
-generated
-test.py
