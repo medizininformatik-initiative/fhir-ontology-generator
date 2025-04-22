@@ -39,10 +39,10 @@ def test_cql_composite_attributes(test_dir):
     cql_mapping.context = querying_meta_data.context
     cql_mapping_json = json.loads(cql_mapping.to_json())
     # sometimes the types are not in alphabetical order
-    if cql_mapping_json.get("timeRestriction").get("type"):
-        cql_mapping_json["timeRestriction"]["type"].sort()
-    if expected.get("timeRestriction").get("type"):
-        expected["timeRestriction"]["type"].sort()
+    if cql_mapping_json.get("timeRestriction").get("types"):
+        cql_mapping_json["timeRestriction"]["types"].sort()
+    if expected.get("timeRestriction").get("types"):
+        expected["timeRestriction"]["types"].sort()
 
     assert (expected == cql_mapping_json)
 
