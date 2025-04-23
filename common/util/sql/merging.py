@@ -1,5 +1,7 @@
 import os
 import re
+from importlib.abc import Traversable
+from pathlib import Path
 
 import docker
 import time
@@ -44,15 +46,15 @@ def insert_content(base_file, content_to_insert, insert_after='SET row_security 
 
 class SqlMerger:
     def __init__(self,
-                 container_name='pg_container',
-                 db_name='merge_db',
-                 db_user='dbuser',
-                 db_password='dbpassword',
-                 db_port=5430,
-                 sql_init_script_dir='../../resources/sql',
-                 sql_script_dir='source',
-                 sql_mapped_dir='/tmp/sql',
-                 repeatable_scripts_prefix='R__Load_latest_ui_profile_'
+                 sql_script_dir: str | Path | Traversable,
+                 container_name: str='pg_container',
+                 db_name: str='merge_db',
+                 db_user: str='dbuser',
+                 db_password: str='dbpassword',
+                 db_port: int=5430,
+                 sql_init_script_dir: str | Path | Traversable=files(common.resources.sql),
+                 sql_mapped_dir: str | Path | Traversable="/tmp/sql",
+                 repeatable_scripts_prefix: str='R__Load_latest_ui_profile_'
                  ):
         self.db_container = None
         self.conn = None
@@ -270,9 +272,9 @@ class SqlMerger:
     def execute_merge(self):
         logger.info("Setting up container")
         self.setup_container_and_get_connection()
-        logger.info("Populate database with initial values")
+        logger.info("Populating database with initial values")
         self.populate_db()
-        logger.info("Merge database schemata")
+        logger.info("Merging database schemata")
         self.merge_schemas()
-        logger.info("Dump merged schema")
+        logger.info("Dumping merged schema")
         self.dump_merged_schema()
