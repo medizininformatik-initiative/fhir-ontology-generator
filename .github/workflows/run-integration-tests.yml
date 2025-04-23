@@ -31,6 +31,12 @@ jobs:
         locale -c -k LC_NUMERIC
         localectl status
 
+    - name: Generate Availability
+      uses: ./.github/actions/availability
+      with:
+        tag: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+
+
     - name: Setup python 3 environment
       uses: actions/setup-python@v5
       with:
