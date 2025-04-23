@@ -1,0 +1,49 @@
+{
+  "attributes": [
+    {
+      "cardinality": "single",
+      "key": {
+        "code": "8480-6",
+        "display": "Systolic blood pressure",
+        "system": "http://loinc.org"
+      },
+      "path": "Observation.component.where(code.coding.exists(system = http://loinc.org and code = 8480-6)).(Observation.component.value as Quantity)",
+      "types": [
+        "Quantity"
+      ]
+    },
+    {
+      "cardinality": "single",
+      "key": {
+        "code": "8462-4",
+        "display": "Diastolic blood pressure",
+        "system": "http://loinc.org"
+      },
+      "path": "Observation.component.where(code.coding.exists(system = http://loinc.org and code = 8462-4)).(Observation.component.value as Quantity)",
+      "types": [
+        "Quantity"
+      ]
+    }
+  ],
+  "context": {
+    "code": "Vitaldaten",
+    "display": "Vitaldaten",
+    "system": "fdpg.mii.cds",
+    "version": "1.0.0"
+  },
+  "key": {
+    "code": "85354-9",
+    "display": "Blood pressure panel with all children optional",
+    "system": "http://loinc.org"
+  },
+  "name": "SD_MII_ICU_Arterieller_Blutdruck",
+  "resourceType": "Observation",
+  "timeRestriction": {
+    "cardinality": "single",
+    "path": "effective",
+    "types": [
+      "dateTime",
+      "Period"
+    ]
+  }
+}

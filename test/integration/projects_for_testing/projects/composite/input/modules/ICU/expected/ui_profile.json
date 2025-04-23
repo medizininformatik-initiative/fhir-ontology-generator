@@ -1,0 +1,79 @@
+{
+    "attributeDefinitions": [
+        {
+            "allowedUnits": [
+                {
+                    "code": "mm[Hg]",
+                    "display": "millimeter Mercury column",
+                    "system": "http://unitsofmeasure.org",
+                    "version": null
+                }
+            ],
+            "attributeCode": {
+                "code": "8480-6",
+                "display": "Systolic blood pressure",
+                "system": "http://loinc.org",
+                "version": null
+            },
+            "display": {
+                "original": "Ergebnis systolischer Blutdruckmessung",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": "Ergebnis systolischer Blutdruckmessung"
+                    },
+                    {
+                        "language": "en-US",
+                        "value": "Result systolic blood pressure measurement"
+                    }
+                ]
+            },
+            "max": null,
+            "min": null,
+            "optional": true,
+            "precision": 1,
+            "referencedCriteriaSet": null,
+            "referencedValueSet": null,
+            "type": "quantity"
+        },
+        {
+            "allowedUnits": [
+                {
+                    "code": "mm[Hg]",
+                    "display": "millimeter Mercury column",
+                    "system": "http://unitsofmeasure.org",
+                    "version": null
+                }
+            ],
+            "attributeCode": {
+                "code": "8462-4",
+                "display": "Diastolic blood pressure",
+                "system": "http://loinc.org",
+                "version": null
+            },
+            "display": {
+                "original": "Ergebnis diastolische Blutdruckmessung",
+                "translations": [
+                    {
+                        "language": "de-DE",
+                        "value": "Ergebnis diastolische Blutdruckmessung"
+                    },
+                    {
+                        "language": "en-US",
+                        "value": "Result diastolic blood pressure measurement"
+                    }
+                ]
+            },
+            "max": null,
+            "min": null,
+            "optional": true,
+            "precision": 1,
+            "referencedCriteriaSet": null,
+            "referencedValueSet": null,
+            "type": "quantity"
+        }
+    ],
+    "name": "SD_MII_ICU_Arterieller_Blutdruck",
+    "timeRestrictionAllowed": true,
+    "valueDefinition": null
+}

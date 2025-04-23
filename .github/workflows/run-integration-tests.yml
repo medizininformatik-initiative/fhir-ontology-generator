@@ -74,6 +74,10 @@ jobs:
       run: pip3 install pytest pytest-docker pytest-cov
 
     - name: Run integration tests
+      env:
+        ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
+        SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
+        PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
       run: pytest test/integration -v --cov --project "fdpg-ontology"
 
     - name: Upload Docker logs
