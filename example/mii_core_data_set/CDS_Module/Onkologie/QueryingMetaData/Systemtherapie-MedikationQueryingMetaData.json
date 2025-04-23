@@ -12,11 +12,5 @@
     "version": "1.0.0"
   },
   "term_code_defining_id": "MedicationStatement.category",
-  "time_restriction_defining_id": "MedicationStatement.effective[x]",
-  "attribute_defining_id_type_map": {
-    "(MedicationStatement.medication[x]:medicationReference).code.coding:Pharmazentralnummer": {
-      "type": "reference",
-      "optional": true
-    }
-  }
+  "time_restriction_defining_id": "MedicationStatement.effective[x]"
 }
