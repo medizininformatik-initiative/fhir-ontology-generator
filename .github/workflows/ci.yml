@@ -65,6 +65,6 @@ jobs:
         draft: true
         generate_release_notes: true
         files: |
-          projects/fdpg-ontology/elastic.zip
-          projects/fdpg-ontology/backend.zip
-          projects/fdpg-ontology/mapping.zip
+          projects/fdpg-ontology/output/merged_ontology/elastic.zip
+          projects/fdpg-ontology/output/merged_ontology/backend.zip
+          projects/fdpg-ontology/output/merged_ontology/mapping.zip

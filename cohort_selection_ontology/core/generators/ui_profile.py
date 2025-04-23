@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 from typing import Dict, Tuple, List
 
 from cohort_selection_ontology.core.terminology.client import CohortSelectionTerminologyClient
@@ -33,8 +34,8 @@ class UIProfileGenerator:
         """
         self.querying_meta_data_resolver = querying_meta_data_resolver
         self.module_dir: str = ""
-        self.data_set_dir: str = ""
         self.__project = project
+        self.data_set_dir: Path = self.__project.input("modules")
         self.__client = CohortSelectionTerminologyClient(self.__project)
 
     def generate_ui_profiles(self, module_name) -> \
@@ -49,19 +50,18 @@ class UIProfileGenerator:
         modules_dir = self.__project.input("modules")
         full_context_term_code_ui_profile_name_mapping = {}
         full_ui_profile_name_ui_profile_mapping = {}
-        for module_dir in [folder for folder in os.scandir(modules_dir) if folder.is_dir()]:
-            self.module_dir: str = module_dir.path
-            files = [file.path for file in os.scandir(os.path.join(modules_dir, module_dir.name)) if file.is_file()
-                     and file.name.endswith("snapshot.json")]
-            for file in files:
-                with open(file, "r", encoding="utf8") as f:
-                    snapshot = json.load(f)
-                    context_tc_mapping, profile_name_profile_mapping = \
-                        self.generate_normalized_term_code_ui_profile_mapping(snapshot, module_name)
-                    full_context_term_code_ui_profile_name_mapping = {**full_context_term_code_ui_profile_name_mapping,
-                                                                      **context_tc_mapping}
-                    full_ui_profile_name_ui_profile_mapping = {**full_ui_profile_name_ui_profile_mapping,
-                                                               **profile_name_profile_mapping}
+        self.module_dir = modules_dir / module_name
+        files = self.module_dir.rglob("*snapshot.json")
+        for file in files:
+            with open(file, mode="r", encoding="utf8") as f:
+                snapshot = json.load(f)
+                context_tc_mapping, profile_name_profile_mapping = \
+                    self.generate_normalized_term_code_ui_profile_mapping(snapshot, module_name)
+                full_context_term_code_ui_profile_name_mapping = {**full_context_term_code_ui_profile_name_mapping,
+                                                                  **context_tc_mapping}
+                full_ui_profile_name_ui_profile_mapping = {**full_ui_profile_name_ui_profile_mapping,
+                                                           **profile_name_profile_mapping}
+
         return full_context_term_code_ui_profile_name_mapping, full_ui_profile_name_ui_profile_mapping
 
     def generate_normalized_term_code_ui_profile_mapping(self, profile_snapshot: dict, module_name) \
@@ -109,8 +109,7 @@ class UIProfileGenerator:
         ui_profile.attributeDefinitions = self.get_attribute_definitions(profile_snapshot, querying_meta_data)
         return ui_profile
 
-    @staticmethod
-    def get_allowed_units_from_quantity(profile_snapshot: dict, value_defining_element: dict) -> List[TermCode]:
+    def get_allowed_units_from_quantity(self, profile_snapshot: dict, value_defining_element: dict) -> List[TermCode]:
         """
         Get the units from 3 possible places in the following order:
 
@@ -141,7 +140,7 @@ class UIProfileGenerator:
         unit_defining_elements = sd.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
         # get the units the standard way
         if len(unit_defining_elements) == 1:
-            return sd.get_units(unit_defining_elements[0], profile_snapshot.get("name"))
+            return sd.get_units(unit_defining_elements[0], profile_snapshot.get("name"), self.__client)
 
         # get units from value[x].patternQuantity
         if pattern_quantity := value_defining_element.get("patternQuantity"):
@@ -162,7 +161,7 @@ class UIProfileGenerator:
     def get_value_definition(self, profile_snapshot, querying_meta_data) -> ValueDefinition:
         """
         Returns the value definition for the given FHIR profile snapshot at the value defining element id
-        :param querying_meta_data: The querying meta data for the FHIR profile snapshot
+        :param querying_meta_data: The querying metadata for the FHIR profile snapshot
         :param profile_snapshot: FHIR profile snapshot
         :return: value definition
         :raises InvalidValueTypeException: if the value type is not supported
@@ -183,7 +182,8 @@ class UIProfileGenerator:
         value_definition.optional = querying_meta_data.value_optional
         if value_type == "concept":
             value_definition.referencedValueSet = sd.get_selectable_concepts(value_defining_element,
-                                                                                      profile_snapshot.get("name"))
+                                                                             profile_snapshot.get("name"),
+                                                                             self.__client)
         elif value_type == "quantity":
             # "Observation.valueQuantity" -> "Observation.valueQuantity.code"
             # unit_defining_path = value_defining_element.get("path") + ".code"
@@ -264,8 +264,8 @@ class UIProfileGenerator:
         attribute_definition.display = attribute_display
         if attribute_type == "concept":
             attribute_definition.referencedValueSet = sd.get_selectable_concepts(
-                attribute_defining_element,
-                profile_snapshot.get("name"))
+                attribute_defining_element, profile_snapshot.get("name"), self.__client
+            )
         elif attribute_type == "quantity":
             unit_defining_path = attribute_defining_element.get("path") + ".code"
             unit_defining_elements = sd.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
@@ -312,14 +312,10 @@ class UIProfileGenerator:
             return attribute_definition
         elif attribute_type == "CodeableConcept":
             if binding := predicate.get("binding"):
-                concepts = sd.get_selectable_concepts(
-                     predicate,
-                     profile_snapshot.get("name"))
+                concepts = sd.get_selectable_concepts(predicate, profile_snapshot.get("name"), self.__client)
                 attribute_definition.referencedValueSet = concepts
             elif binding := element.get("binding"):
-                concepts = sd.get_selectable_concepts(
-                     element,
-                     profile_snapshot.get("name"))
+                concepts = sd.get_selectable_concepts(element, profile_snapshot.get("name"), self.__client)
                 attribute_definition.referencedValueSet = concepts
             else:
                 concepts = sd.get_fixed_term_codes(predicate, profile_snapshot, self.module_dir, self.data_set_dir,
@@ -416,7 +412,7 @@ class UIProfileGenerator:
         :param module_dir: Module directory of the profile
         :return: Referenced context
         """
-        module_name = module_dir.replace("package", "").split(os.sep)[1]
+        module_name = module_dir.replace("package", "").split(os.sep)[-1]
         return self.querying_meta_data_resolver.get_query_meta_data(profile_snapshot,
                                                                     module_name)[0].context
 

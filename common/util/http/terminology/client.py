@@ -42,9 +42,9 @@ class FhirTerminologyClient(BaseClient):
         return FhirTerminologyClient(base_url, auth, cert, timeout)
 
     def search_value_set(self, url: str) -> list[ValueSet]:
-        bundle = self.get("/ValueSet)", headers=dict([self.__accept_header]),
+        bundle = self.get("/ValueSet", headers=dict([self.__accept_header]),
                           query_params={'url': url}).json()
-        return [ValueSet.model_validate_json(entry['resource'])
+        return [ValueSet.model_validate(entry['resource'])
                 for entry in bundle.get('entry', [])
                 if 'resource' in entry]
 
