@@ -65,6 +65,16 @@ jobs:
         draft: true
         generate_release_notes: true
         files: |
+<<<<<<< Updated upstream
           projects/fdpg-ontology/elastic.zip
           projects/fdpg-ontology/backend.zip
           projects/fdpg-ontology/mapping.zip
+||||||| Stash base
+          example/fdpg-ontology/elastic.zip
+          example/fdpg-ontology/backend.zip
+          example/fdpg-ontology/mapping.zip
+=======
+          projects/fdpg-ontology/output/merged_ontology/elastic.zip
+          projects/fdpg-ontology/output/merged_ontology/backend.zip
+          projects/fdpg-ontology/output/merged_ontology/mapping.zip
+>>>>>>> Stashed changes

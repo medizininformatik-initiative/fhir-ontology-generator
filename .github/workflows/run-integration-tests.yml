@@ -63,15 +63,15 @@ jobs:
       with:
         name: packaged ontology
         path: | 
-          example/fdpg-ontology/elastic.zip
-          example/fdpg-ontology/backend.zip
-          example/fdpg-ontology/mapping.zip
+          projects/fdpg-ontology/output/merged_ontology/elastic.zip
+          projects/fdpg-ontology/output/merged_ontology/backend.zip
+          projects/fdpg-ontology/output/merged_ontology/mapping.zip
 
     - name: Install testing pytest
       run: pip3 install pytest pytest-docker pytest-cov
 
     - name: Run integration tests
-      run: pytest test/integration -v --cov
+      run: pytest test/integration -v --cov --project "fdpg-ontology"
 
     - name: Upload Docker logs
       uses: actions/upload-artifact@v4

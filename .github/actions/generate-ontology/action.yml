@@ -3,6 +3,10 @@ name: Generate Ontology
 description: 'Generates ontology files'
 
 inputs:
+  project:
+    required: false
+    default: "fdpg-ontology"
+    description: 'Name of the project to generate the ontology files for. Defaults to "fdpg-ontology"'
   steps_to_run:
     required: false
     description: 'Optional non-empty list of steps of the ontology generation to run. If not supplied all steps 
@@ -42,4 +46,4 @@ runs:
         ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
         SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
         PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
-      run: ./generate_full_ontology.sh ${{ GENERATOR_STEPS }}
+      run: ./generate_full_ontology.sh --project ${{ inputs.project }} ${{ GENERATOR_STEPS }}

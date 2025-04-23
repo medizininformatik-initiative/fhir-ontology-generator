@@ -71,6 +71,16 @@ jobs:
     - name: Save ZIP file paths
       id: save_zips
       run: |
+<<<<<<< Updated upstream
         echo "elastic_zip=$(readlink -f projects/fdpg-ontology/elastic.zip)" >> "$GITHUB_OUTPUT"
         echo "mapping_zip=$(readlink -f projects/fdpg-ontology/mapping.zip)" >> "$GITHUB_OUTPUT"
         echo "backend_zip=$(readlink -f projects/fdpg-ontology/backend.zip)" >> "$GITHUB_OUTPUT"
+||||||| Stash base
+        echo "elastic_zip=$(readlink -f example/fdpg-ontology/elastic.zip)" >> "$GITHUB_OUTPUT"
+        echo "mapping_zip=$(readlink -f example/fdpg-ontology/mapping.zip)" >> "$GITHUB_OUTPUT"
+        echo "backend_zip=$(readlink -f example/fdpg-ontology/backend.zip)" >> "$GITHUB_OUTPUT"
+=======
+        echo "elastic_zip=$(readlink -f projects/fdpg-ontology/output/merged_ontology/elastic.zip)" >> "$GITHUB_OUTPUT"
+        echo "mapping_zip=$(readlink -f projects/fdpg-ontology/output/merged_ontology/mapping.zip)" >> "$GITHUB_OUTPUT"
+        echo "backend_zip=$(readlink -f projects/fdpg-ontology/output/merged_ontology/backend.zip)" >> "$GITHUB_OUTPUT"
+>>>>>>> Stashed changes
