@@ -80,11 +80,10 @@ def get_profiles_with_base_definition(modules_dir_path: str | Path, base_definit
     """
     for module_dir in [folder for folder in os.scandir(modules_dir_path) if folder.is_dir()]:
         logger.debug(f"Searching in {module_dir.path}")
-        files = [file for file in os.scandir(os.path.join(module_dir.path, "differential", "package")) if file.is_file()
-                 and file.name.endswith("snapshot.json")]
-        logger.debug(f"Found {len(files)} file(s)")
+        files = list(Path(module_dir.path, "differential", "package").rglob("*snapshot.json"))
+        logger.debug(f"Found {len(files)} snapshot file(s) in module @ '{module_dir.path}'")
         for file in files:
-            with open(file.path, "r", encoding="utf8") as f:
+            with open(file, mode="r", encoding="utf8") as f:
                 profile = json.load(f)
                 if profile.get("baseDefinition") == base_definition:
                     return profile, module_dir.path
@@ -365,7 +364,7 @@ def get_selectable_concepts(concept_defining_element, profile_name: str = "",
         if value_set_url := binding.get("valueSet"):
             if '|' in value_set_url:
                 value_set_url = value_set_url.split('|')[0]
-            return ValueSet(value_set_url, client.get_value_set_definition(value_set_url))
+            return ValueSet(value_set_url, client.get_value_set_expansion(value_set_url))
         else:
             raise InvalidValueTypeException(f"No value set defined in element: {str(binding)}"
                                             f" in profile: {profile_name}")

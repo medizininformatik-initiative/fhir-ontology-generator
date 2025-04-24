@@ -181,7 +181,7 @@ if __name__ == '__main__':
 
         for module in module_dirs:
             shutil.copy(modules_dir / module / "R__Load_latest_ui_profile.sql",
-                        output_sql_script_dir / "R__Load_latest_ui_profile_{str(sql_script_index)}.sql")
+                        output_sql_script_dir / f"R__Load_latest_ui_profile_{str(sql_script_index)}.sql")
 
             sql_script_index += 1
 

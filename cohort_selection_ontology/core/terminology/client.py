@@ -440,11 +440,20 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         """
         value_sets = self.search_value_set(canonical_url)
         for vs in value_sets:
-            if 'id' in vs:
-                return self.get_value_set(vs['id']).model_dump()
-        else:
-            self.__logger.warning(f"Failed to retrieve value set '{canonical_url}' => Returning empty definition")
-            return {}
+            if vs.id is not None:
+                return self.get_value_set(vs.id).model_dump()
+        self.__logger.warning(f"Failed to retrieve value set '{canonical_url}' => Returning empty definition")
+        return {}
+
+    # TODO: Replace usages
+    @deprecated("Use `CohortSelectionTerminologyClient::expand_value_set` instead")
+    def get_value_set_expansion(self, url: str) -> Optional[Mapping[str, Any]]:
+        """
+        Retrieves the value set expansion from the terminology server
+        :param url: Canonical URL of the value set
+        :return: JSON data of the value set expansion
+        """
+        return super().expand_value_set(url)
 
     # TODO: Check if we can use that for any resource type
     @deprecated("Use `CohortSelectionTerminologyClient::get_value_set` instead")

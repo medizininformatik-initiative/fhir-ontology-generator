@@ -116,7 +116,6 @@ def generate_r_load_sql(profile_details):
         sql_file.write("INSERT INTO dse_profile(id, url, entry) VALUES \n")
 
         for index, profile_detail in enumerate(profile_details):
-
             profile_detaildb = json.dumps(profile_detail, cls=JSONFhirOntoEncoder).replace("'", "''")
             value_line = f"({index + 1},'{profile_detail.url}','{profile_detaildb}')"
             sql_file.write(value_line)

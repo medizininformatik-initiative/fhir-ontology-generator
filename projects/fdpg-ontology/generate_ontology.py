@@ -5,7 +5,6 @@ import copy
 from importlib.resources import open_text
 import json
 import os
-from pathlib import Path
 from typing import List, ValuesView, Dict, Tuple
 
 import docker
@@ -32,11 +31,10 @@ from common.util.project import Project
 logger = get_logger(__file__)
 
 WINDOWS_RESERVED_CHARACTERS = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
-PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT = Project(path=PROJECT_DIR)
-INPUT_DIR = PROJECT / "input"
-OUTPUT_DIR = PROJECT / "output"
-MODULES_DIR = os.path.join(INPUT_DIR, "modules")
+PROJECT = Project("fdpg-ontology")
+INPUT_DIR = PROJECT.input()
+OUTPUT_DIR = PROJECT.output()
+MODULES_DIR = PROJECT.input("modules")
 
 
 def validate_fhir_mapping(mapping_name: str):
@@ -395,7 +393,7 @@ def main():
         try:
             logger.info(f"Generating ontology for module: {module}")
 
-            output_module_directory = str((Path(OUTPUT_DIR) / "modules" / module).resolve())
+            output_module_directory = str((OUTPUT_DIR / "modules" / module).resolve())
 
             generate_result_folder(output_module_directory)
 
