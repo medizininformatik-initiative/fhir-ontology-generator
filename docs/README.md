@@ -1,0 +1,1 @@
+This directory holds documentation about the different parts of the project as well as advice for developers.

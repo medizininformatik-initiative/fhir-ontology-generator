@@ -13,7 +13,7 @@ def extract_loinc_code(profile):
 
 def identify_duplicate_loinc_codes(directory):
     """Identify observation profiles with the same LOINC code in a directory."""
-    loinc_code_to_profiles = {}  # To store the mapping from LOINC codes to profiles
+    loinc_code_to_profiles = {}  # To store the generators from LOINC codes to profiles
 
     # Iterate through each file in the directory
     for filename in os.listdir(directory):
@@ -35,7 +35,7 @@ def identify_duplicate_loinc_codes(directory):
 
 if __name__ == "__main__":
     duplicates = identify_duplicate_loinc_codes(
-        "../../example/mii_core_data_set/resources/fdpg_differential/Laboruntersuchung/package/")
+        "../../projects/mii_core_data_set/resources/fdpg_differential/Laboruntersuchung/package/")
 
     for code, filenames in duplicates.items():
         print(f"LOINC Code: {code}")

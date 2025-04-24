@@ -31,6 +31,9 @@ jobs:
         locale -c -k LC_NUMERIC
         localectl status
 
+    - name: Generate_Availability
+      uses: ./.github/actions/availability
+
     - name: Setup python 3 environment
       uses: actions/setup-python@v5
       with:
@@ -56,22 +59,22 @@ jobs:
         ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
         SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
         PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
-      run: ./generate_full_ontology.sh --all
+      run: ./generate_full_ontology.sh --project "fdpg-ontology" --all
 
     - name: Upload Ontology
       uses: actions/upload-artifact@v4
       with:
         name: packaged ontology
         path: | 
-          example/fdpg-ontology/elastic.zip
-          example/fdpg-ontology/backend.zip
-          example/fdpg-ontology/mapping.zip
+          projects/fdpg-ontology/output/merged_ontology/elastic.zip
+          projects/fdpg-ontology/output/merged_ontology/backend.zip
+          projects/fdpg-ontology/output/merged_ontology/mapping.zip
 
     - name: Install testing pytest
       run: pip3 install pytest pytest-docker pytest-cov
 
     - name: Run integration tests
-      run: pytest test/integration -v --cov
+      run: pytest test/integration -v --cov --project "fdpg-ontology"
 
     - name: Upload Docker logs
       uses: actions/upload-artifact@v4

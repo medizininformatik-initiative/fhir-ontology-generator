@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 from typing import Mapping
 
@@ -7,13 +6,14 @@ import jsonschema
 import pytest
 from jsonpath_ng import parse
 
-from model.ResourceQueryingMetaData import ResourceQueryingMetaData
-from util.http.backend.FeasibilityBackendClient import FeasibilityBackendClient
-from util.test.fhir import load_list_of_resources_onto_fhir_server, delete_list_of_resources_from_fhir_server
-from util.test.functions import mismatch_str
+from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
+from common.util.http.backend.client import FeasibilityBackendClient
+from common.util.log.functions import get_logger
+from common.util.test.fhir import load_list_of_resources_onto_fhir_server, delete_list_of_resources_from_fhir_server
+from common.util.test.functions import mismatch_str
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__file__)
 
 
 def resolve_ref(ref: str, ensemble=None, resolved=None, resolving=None) -> list[str]:
@@ -61,7 +61,7 @@ def get_patient_files(patient_file: str, test_data_folder: str) -> list[str]:
     :param test_data_folder: The directory containing the test data JSON files
     :return: Ordered list of file names (dependencies first)
     """
-    with open(os.path.join(test_data_folder, patient_file), "r", encoding="utf-8") as f:
+    with open(os.path.join(test_data_folder, patient_file), mode="r", encoding="utf-8") as f:
         patient = json.load(f)
 
     patient_id = patient.get("id")
@@ -70,7 +70,7 @@ def get_patient_files(patient_file: str, test_data_folder: str) -> list[str]:
 
     # Load all JSON files into memory
     ensemble = {
-        file: json.load(open(os.path.join(test_data_folder, file), "r", encoding="utf-8"))
+        file: json.load(open(os.path.join(test_data_folder, file), mode="r", encoding="utf-8"))
         for file in os.listdir(test_data_folder) if file.endswith(".json")
     }
 
@@ -101,7 +101,7 @@ def test_ccdl_query(data_resource_file, query_resource_path, backend_client, fhi
         logger.debug("Uploaded fhir data")
 
     # send ccdl to backend
-    with open(os.path.join(test_dir, "test-queries", query_resource_path), "r", encoding="utf-8") as f:
+    with open(os.path.join(test_dir, "test-queries", query_resource_path), mode="r", encoding="utf-8") as f:
         query = json.dumps(json.load(f))
     query_id = backend_client.query(query).split("/")[-1]
 
@@ -115,7 +115,7 @@ def test_ccdl_query(data_resource_file, query_resource_path, backend_client, fhi
 
 # TODO: Should this be moved to the unit tests?
 def test_criterion_definition_validity(querying_metadata: ResourceQueryingMetaData,
-                                    querying_metadata_schema: Mapping[str, any]):
+                                       querying_metadata_schema: Mapping[str, any]):
     try:
         jsonschema.validate(instance=json.loads(querying_metadata.to_json()), schema=querying_metadata_schema)
     except jsonschema.exceptions.ValidationError:

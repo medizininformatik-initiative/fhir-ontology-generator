@@ -95,7 +95,43 @@
     "display": "Bioprobe",
     "version": "1.0.0"
   },
-  "consent-patientendaten-erheben,-speichern,-nutzen": {
+  "condition-death-reason-icd10-code": {
+    "system": "fdpg.mii.cds",
+    "code": "Todesursache",
+    "display": "Todesursache",
+    "version": "1.0.0"
+  },
+  "observation-vitalstatus-loinc-code": {
+    "system": "fdpg.mii.cds",
+    "code": "Vitalstatus",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-patientendaten-erheben-speichern-nutzen": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-idat-erheben": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-idat-speichern-verarbeiten": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-idat-zusammenfuehren-dritte": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-idat-bereitstellen-eu-dsgvo-niveau": {
     "system": "fdpg.mii.cds",
     "code": "Einwilligung",
     "display": "Einwilligung",
@@ -107,16 +143,394 @@
     "display": "Einwilligung",
     "version": "1.0.0"
   },
-  "condition-death-reason-icd10-code": {
+  "consent-mdat-speichern-verarbeiten": {
     "system": "fdpg.mii.cds",
-    "code": "Todesursache",
-    "display": "Todesursache",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
     "version": "1.0.0"
   },
-  "observation-vitalstatus-loinc-code": {
+  "consent-mdat-wissenschaftlich-nutzen-eu-dsgvo-niveau": {
     "system": "fdpg.mii.cds",
-    "code": "Vitalstatus",
+    "code": "Einwilligung",
     "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-mdat-zusammenfuehren-dritte": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-rekontaktierung-ergebnisse-erheblicher-bedeutung": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-patientendaten-retrospektiv-verarbeiten-nutzen": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-mdat-retrospektiv-speichern-verarbeiten": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-mdat-retrospektiv-wissenschaftlich-nutzen-eu-dsgvo-niveau": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-mdat-retrospektiv-zusammenfuehren-dritte": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-patientendaten-weitergabe-non-dsgvo-niveau": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-mdat-bereitstellen-non-eu-dsgvo-niveau": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-krankenkassendaten-retrospektiv-uebertragen-speichern-nutzen": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-kkdat-5j-retrospektiv-uebertragen": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-kkdat-5j-retrospektiv-speichern-verarbeiten": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-kkdat-5j-retrospektiv-wissenschaftlich-nutzen": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-kkdat-5j-retrospektiv-uebertragen-kvnr": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-kkdat-prospektiv-uebertragen-speichern-nutzen": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-kkdat-5j-prospektiv-uebertragen": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-kkdat-5j-prospektiv-speichern-verarbeiten": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-kkdat-5j-prospektiv-wissenschaftlich-nutzen": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-kkdat-5j-prospektiv-uebertragen-kvnr": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-biomaterial-erheben-lagern-nutzen": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-biomat-erheben": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-biomat-lagern-verarbeiten": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-biomat-eigentum-uebertragen": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-biomat-wissenschaftlich-nutzen-eu-dsgvo-niveau": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-biomat-analysedaten-zusammenfuehren-dritte": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-biomaterial-zusatzentnahme": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-biomat-zusatzmengen-entnehmen": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-biomaterial-retrospektiv-speichern-nutzen": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-biomat-retrospektiv-lagern-verarbeiten": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-biomat-retrospektiv-wissenschaftlich-nutzen-eu-dsgvo-niveau": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-biomat-retrospektiv-analysedaten-zusammenfuehren-dritte": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-biomaterial-weitergabe-non-eu-dsgvo-niveau": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-biomat-bereitstellen-ohne-eu-dsgvo-niveau": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-rekontaktierung-ergaenzungen": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-rekontaktierung-verknuepfung-datenbanken": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-rekontaktierung-weitere-erhebung": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-rekontaktierung-weitere-studien": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-rekontaktierung-zusatzbefund": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-z1-gecco83-nutzung-num/codex": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-mdat-gecco83-komplettieren-einmalig": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-mdat-gecco83-erheben": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-mdat-gecco83-bereitstellen-num/codex": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-mdat-gecco83-speichern-verarbeiten-num/codex": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-mdat-gecco83-wissenschaftlich-nutzen-covid-19-forschung-eu-dsgvo-konform-deprecated": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-mdat-gecco83-wissenschaftlich-nutzen-pandemie-forschung-eu-dsgvo-konform-deprecated": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-mdat-gecco83-wissenschaftlich-nutzen-num/codex-eu-dsgvo-niveau": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-z1-gecco83-weitergabe-num/codex-non-eu-dsgvo-niveau": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-mdat-gecco83-bereitstellen-num/codex-ohne-eu-dsgvo-niveau": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-z2-patientendaten-erheben-nutzen-kontaktierung-im-acribis-projekt": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-patdat-erheben-nutzen-kontaktierung-im-acribis-projekt": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-z2-idat-melderegister-abfragen-speichern-verarbeiten-im-acribis-projekt": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-anschrift-und-vitalstatus-melderegister-abfragen-speichern-verarbeiten-im-acribis-projekt": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-z2-mdat-hausarzt-erheben-speichern-verarbeiten-nutzen-im-acribis-projekt": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-mdat-hausarzt-erheben-speichern-verarbeiten-nutzen-im-acribis-projekt": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-z3-promdat-patientenbefragung": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-promdat-patientenbefragung-erheben": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-promdat-wissenschaftlich-nutzen-auf-eu-dsgvo-niveau": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "consent-rekontaktierung-prom-studien": {
+    "system": "fdpg.mii.cds",
+    "code": "Einwilligung",
+    "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "icu-arterieller-blutdruck": {
+    "code": "Vitaldaten",
+    "display": "Vitaldaten",
+    "system": "fdpg.mii.cds",
+    "version": "1.0.0"
+  },
+  "icu-atemfrequenz": {
+    "code": "Vitaldaten",
+    "display": "Vitaldaten",
+    "system": "fdpg.mii.cds",
+    "version": "1.0.0"
+  },
+  "icu-herzfrequenz": {
+    "code": "Vitaldaten",
+    "display": "Vitaldaten",
+    "system": "fdpg.mii.cds",
+    "version": "1.0.0"
+  },
+  "icu-koerpergewicht": {
+    "code": "Vitaldaten",
+    "display": "Vitaldaten",
+    "system": "fdpg.mii.cds",
+    "version": "1.0.0"
+  },
+  "icu-koerpergroesse": {
+    "code": "Vitaldaten",
+    "display": "Vitaldaten",
+    "system": "fdpg.mii.cds",
+    "version": "1.0.0"
+  },
+  "icu-o2saettigung": {
+    "code": "Vitaldaten",
+    "display": "Vitaldaten",
+    "system": "fdpg.mii.cds",
     "version": "1.0.0"
   }
 }

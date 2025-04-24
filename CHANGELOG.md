@@ -13,7 +13,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 ### Security
 
-### [3.3.0]
+### [3.4.0] - 2025-04-24
+
+## Added
+
+- Refactor module name and files names by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/242
+- Refactor project directory by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/228
+- Add FDPG availability measure generation by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/209
+- Add FDPG availability measure generation output to CI by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/229
+
+## Changed
+
+- [TEMPORARY] No field in the data selection ontology will be required by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/240
+
+### [3.3.0] 2025-04-14
 
 ## Added
 

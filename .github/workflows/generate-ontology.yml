@@ -66,11 +66,14 @@ jobs:
         ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
         SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
         PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
-      run: ./generate_full_ontology.sh --all
-      
+      run: ./generate_full_ontology.sh --project "fdpg-ontology" --all
+
+    - name: Generate_Availability
+      uses: ./.github/actions/avalability
+
     - name: Save ZIP file paths
       id: save_zips
       run: |
-        echo "elastic_zip=$(readlink -f example/fdpg-ontology/elastic.zip)" >> "$GITHUB_OUTPUT"
-        echo "mapping_zip=$(readlink -f example/fdpg-ontology/mapping.zip)" >> "$GITHUB_OUTPUT"
-        echo "backend_zip=$(readlink -f example/fdpg-ontology/backend.zip)" >> "$GITHUB_OUTPUT"
+        echo "elastic_zip=$(readlink -f projects/fdpg-ontology/output/merged_ontology/elastic.zip)" >> "$GITHUB_OUTPUT"
+        echo "mapping_zip=$(readlink -f projects/fdpg-ontology/output/merged_ontology/mapping.zip)" >> "$GITHUB_OUTPUT"
+        echo "backend_zip=$(readlink -f projects/fdpg-ontology/output/merged_ontology/backend.zip)" >> "$GITHUB_OUTPUT"
