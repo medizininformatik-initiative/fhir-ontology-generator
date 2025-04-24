@@ -494,8 +494,14 @@ class ProfileDetailGenerator:
                     self.__logger.warning(f"Element '{element.get('id')}' without type => Discarding")
                     continue
 
-                is_recommended_field = self.check_at_least_one_in_elem_and_true(element, ["min"])
-                is_required_field = self.check_at_least_one_in_elem_and_true(element, ["isModifier"])
+                is_recommended_field = (self.check_at_least_one_in_elem_and_true(element, ["min"]) or
+                                        self.check_at_least_one_in_elem_and_true(element, ["isModifier"]))
+                # FIXME: Currently this value will be hard-coded to `False` since requiring researchers to include some
+                #        fields that might not have some value to their research can unnecessarily complicate access to
+                #        the data since access to these fields might require additional vetting steps and explicit
+                #        permission by an ethics committee (e.g. in the case of the Patient.deceased element)
+                # is_required_field = self.check_at_least_one_in_elem_and_true(element, ["isModifier"])
+                is_required_field = False
 
                 # FIXME: Temporary fix to make elements of type 'Reference' not recommended due to issues in the UI
                 #        except for references to the MII Medication profile
