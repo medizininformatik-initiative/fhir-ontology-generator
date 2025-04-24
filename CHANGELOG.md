@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 ### Security
 
-### [3.4.0]
+### [3.4.0] - 2025-04-24
 
 ## Added
 
@@ -26,7 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - [TEMPORARY] No field in the data selection ontology will be required by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/240
 
-### [3.3.0]
+### [3.3.0] 2025-04-14
 
 ## Added
 
