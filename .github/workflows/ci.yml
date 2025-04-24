@@ -31,6 +31,11 @@ jobs:
         locale -c -k LC_NUMERIC
         localectl status
 
+    - name: Generate Availability
+      uses: ./.github/actions/availability
+      with:
+        tag: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+
     - name: Setup python 3 environment
       uses: actions/setup-python@v5
       with:
@@ -58,7 +63,6 @@ jobs:
         PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
       run: ./generate_full_ontology.sh --project "fdpg-ontology" --all
 
-
     - name: Release
       uses: softprops/action-gh-release@v2
       with:
@@ -68,3 +72,4 @@ jobs:
           projects/fdpg-ontology/output/merged_ontology/elastic.zip
           projects/fdpg-ontology/output/merged_ontology/backend.zip
           projects/fdpg-ontology/output/merged_ontology/mapping.zip
+          availability/availability.zip
