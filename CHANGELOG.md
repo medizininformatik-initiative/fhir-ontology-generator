@@ -13,6 +13,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 ### Security
 
+### [3.4.0]
+
+## Added
+
+- Refactor module name and files names by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/242
+- Refactor project directory by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/228
+- Add FDPG availability measure generation by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/209
+- Add FDPG availability measure generation output to CI by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/229
+
+## Changed
+
+- [TEMPORARY] No field in the data selection ontology will be required by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/240
+
+### [3.3.0]
+
+## Added
+
+- Add CDS ICU modules vital sign profiles to cohort selection by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/233
+- Add profile hierarchy resolution in DSE generation by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/216
+- Add translations for parent and child concepts in concept explorer by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/186
+- Add selection of patient postal code and country as fields in data selection by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/224
+
 ## [3.2.2] - 2025-03-17
 
 ### Fixed
