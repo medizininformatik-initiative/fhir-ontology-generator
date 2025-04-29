@@ -3,13 +3,14 @@ from collections.abc import Callable
 from typing import Mapping, List, TypedDict, Any, Optional
 
 from common.exceptions.profile import MissingProfileError
-from cohort_selection_ontology.model.ui_data import TranslationDisplayElement, BulkTranslationDisplayElement
+from cohort_selection_ontology.model.ui_data import TranslationDisplayElement, BulkTranslationDisplayElement, \
+    Translation
 from common.util.fhir.structure_definition import supports_type, find_type_element, get_element_from_snapshot, \
     get_types_supported_by_element, Snapshot
 from common.util.project import Project
 from data_selection_extraction.core.generators.profile_tree import get_value_for_lang_code
 from data_selection_extraction.model.detail import FieldDetail, ProfileDetail, Filter, ProfileReference, ReferenceDetail
-from common.util.fhir.enums import FhirPrimitiveDataType, FhirComplexDataType
+from common.util.fhir.enums import FhirPrimitiveDataType, FhirComplexDataType, FhirSearchType
 
 from common.util.log.functions import get_class_logger
 
@@ -32,7 +33,7 @@ class ProfileDetailGenerator:
     reference_base_url: str
 
     def __init__(self, project: Project, profiles, mapping_type_code, blacklisted_value_sets, fields_to_exclude, field_trees_to_exclude,
-                 reference_base_url):
+                 reference_base_url, module_translation):
         self.__project = project
         self.blacklisted_value_sets = blacklisted_value_sets
         self.profiles = profiles
@@ -42,6 +43,7 @@ class ProfileDetailGenerator:
         self.fields_to_exclude = fields_to_exclude
         self.field_trees_to_exclude = field_trees_to_exclude
         self.reference_base_url = reference_base_url
+        self.module_translation = module_translation
 
     def find_and_load_struct_def_from_path(self, struct_def: Mapping[str, any], path: str):
         elements = struct_def['snapshot']["element"]
@@ -462,24 +464,37 @@ class ProfileDetailGenerator:
                 self.__logger.debug(f"Profile is not selectable according to profile tree [url='{profile_url}'] => "
                                     f"Skipping")
                 return None
-
+            profile_module = profile.get("module", "")
             profile_detail = ProfileDetail(
                 url=profile_url,
                 display=TranslationDisplayElement(
                     original=struct_def.get("title", ""),
                     translations=[
-                        {
-                            "language": "de-DE",
-                            "value": self.get_value_for_lang_code(struct_def.get("_title", {}), "de-DE")
-                        },
-                        {
-                            "language": "en-US",
-                            "value": self.get_value_for_lang_code(struct_def.get("_title", {}), "en-US")
-                        }
+                        Translation(
+                            language="de-DE",
+                            value=self.get_value_for_lang_code(struct_def.get("_title", {}), "de-DE")
+                        ),
+                        Translation(
+                            language="en-US",
+                            value=self.get_value_for_lang_code(struct_def.get("_title", {}), "en-US")
+                        )
+                    ]
+                ),
+                module = TranslationDisplayElement(
+                    original= profile_module,
+                    translations=[
+                        Translation(
+                            language="de-DE",
+                            value=self.module_translation["de-DE"].get(profile_module, profile_module)
+                        ),
+                        Translation(
+                            language="en-US",
+                            value=self.module_translation["en-US"].get(profile_module, profile_module)
+                        )
                     ]
                 ),
                 filters=[
-                    Filter(type="date", name=date_param, ui_type="timeRestriction")
+                    Filter(type=FhirSearchType.DATE, name=date_param, ui_type="timeRestriction")
                 ]
             )
 
@@ -494,7 +509,7 @@ class ProfileDetailGenerator:
 
             if value_set_urls:
                 profile_detail.filters.append(Filter(
-                    type="token",
+                    type=FhirSearchType.TOKEN,
                     name=code_search_param,
                     ui_type="code",
                     valueSetUrls=value_set_urls,
@@ -592,27 +607,27 @@ class ProfileDetailGenerator:
                 field.display = TranslationDisplayElement(
                     original=name,
                     translations=[
-                         {
-                             "language": "de-DE",
-                             "value": self.get_value_for_lang_code(element.get('_short', {}), "de-DE")
-                         },
-                         {
-                             "language": "en-US",
-                             "value": self.get_value_for_lang_code(element.get('_short', {}), "en-US")
-                         }
+                         Translation(
+                             language="de-DE",
+                             value=self.get_value_for_lang_code(element.get('_short', {}), "de-DE")
+                         ),
+                         Translation(
+                             language="en-US",
+                             value=self.get_value_for_lang_code(element.get('_short', {}), "en-US")
+                        )
                     ],
                 )
                 field.description = TranslationDisplayElement(
                     original=element.get("definition", ""),
                     translations=[
-                        {
-                            "language": "de-DE",
-                            "value": self.get_value_for_lang_code(element.get('_definition', {}), "de-DE")
-                        },
-                        {
-                            "language": "en-US",
-                            "value": self.get_value_for_lang_code(element.get('_definition', {}), "en-US")
-                        }
+                        Translation(
+                            language="de-DE",
+                            value=self.get_value_for_lang_code(element.get('_definition', {}), "de-DE")
+                        ),
+                        Translation(
+                            language="en-US",
+                            value=self.get_value_for_lang_code(element.get('_definition', {}), "en-US")
+                        )
                     ]
                 )
                 field.recommended = is_recommended_field
@@ -703,7 +718,7 @@ class ProfileDetailGenerator:
             return TranslationDisplayElement(
                 original=title,
                 translations=[
-                    {'language': "de-DE", 'value': get_value_for_lang_code(_title, "de-DE")},
-                    {'language': "en-US", 'value': get_value_for_lang_code(_title, "en-US")}
+                    Translation(language="de-DE", value=get_value_for_lang_code(_title, "de-DE")),
+                    Translation(language="en-US", value=get_value_for_lang_code(_title, "en-US"))
                 ]
             )

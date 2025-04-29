@@ -29,7 +29,8 @@ module_translation = {
         "modul-medikation": "Medikation",
         "modul-fall": "Fall",
         "modul-biobank": "Biobank",
-        "modul-consent": "Einwilligung"
+        "modul-consent": "Einwilligung",
+        "modul-icu": "Vitaldaten"
     },
     "en-US": {
         "modul-diagnose": "Diagnosis",
@@ -39,12 +40,13 @@ module_translation = {
         "modul-medikation": "Medication",
         "modul-fall": "Case",
         "modul-biobank": "Biobank",
-        "modul-consent": "Consent"
+        "modul-consent": "Consent",
+        "modul-icu": "Vitaldata"
     }
 }
 
 module_order = ["modul-diagnose", "modul-prozedur", "modul-person", "modul-labor", "modul-medikation", "modul-fall",
-                "modul-biobank", "modul-consent"]
+                "modul-biobank", "modul-consent", "modul-icu"]
 
 
 reference_resolve_base_url = "https://www.medizininformatik-initiative.de"
@@ -285,7 +287,8 @@ if __name__ == '__main__':
     if args.generate_profile_details:
         profiles = tree_generator.profiles
         profile_detail_generator = ProfileDetailGenerator(project, profiles, mapping_type_code, blacklisted_value_sets,
-                                                          fields_to_exclude, field_trees_to_exclude, reference_resolve_base_url)
+                                                          fields_to_exclude, field_trees_to_exclude,
+                                                          reference_resolve_base_url, module_translation)
 
         profile_details = profile_detail_generator.generate_profile_details_for_profiles_in_scope(
             SnapshotPackageScope.MII,
