@@ -5,9 +5,7 @@ import json
 import random as rd
 import uuid
 from dataclasses import dataclass
-from typing import List, Mapping, Any, Optional
-
-from pydantic import BaseModel
+from typing import List
 
 
 def del_none(dictionary):
@@ -94,24 +92,29 @@ class RelationalTermcode:
         }
 
 
-class Translation(BaseModel):
-    language: str
-    value: Optional[str]
-
-
-class BulkTranslation(BaseModel):
-    language: str
-    value: List[Optional[str]] = []
-
-
-class TranslationDisplayElement(BaseModel):
+@dataclass
+class TranslationElementDisplay:
+    """
+    A TranslationElementDisplay represents the translations for a TermCode following this structure:
+    [
+        {
+            "language": lang,
+            "value": self.translations[lang]
+        },
+        {
+            "language": lang,
+            "value": self.translations[lang]
+        }
+    ]
+    """
     original: str
-    translations: List[Translation]
+    translations: List[dict[str,str]]
 
-
-class BulkTranslationDisplayElement(BaseModel):
-    original: List[str] = []
-    translations: List[BulkTranslation] = []
+    def to_dict(self):
+        return {
+            "original": self.original,
+            "translations": self.translations,
+        }
 
 
 @dataclass
@@ -126,7 +129,7 @@ class TermCode:
 
     system: str
     code: str
-    display: str | TranslationDisplayElement
+    display: str | TranslationElementDisplay
     version: str = None
 
     def __eq__(self, other):
@@ -139,8 +142,8 @@ class TermCode:
 
     def __lt__(self, other):
         if isinstance(other, TermCode):
-            this_display = self.display.original if isinstance(self.display, TranslationDisplayElement) else self.display
-            other_display = other.display.original if isinstance(other.display, TranslationDisplayElement) else other.display
+            this_display = self.display.original if isinstance(self.display, TranslationElementDisplay) else self.display
+            other_display = other.display.original if isinstance(other.display, TranslationElementDisplay) else other.display
 
             return this_display.casefold() < other_display.casefold()
         return NotImplemented
@@ -151,8 +154,8 @@ class TermCode:
     def to_dict(self):
         if isinstance(self.display,str):
             return {"system": self.system, "code": self.code, "display": self.display, "version": self.version}
-        if isinstance(self.display, TranslationDisplayElement):
-            return {"system": self.system, "code": self.code, "display": self.display.model_dump_json(), "version": self.version}
+        if isinstance(self.display, TranslationElementDisplay):
+            return {"system": self.system, "code": self.code, "display": self.display.to_dict(), "version": self.version}
 
 
 class ValueDefinition:

@@ -19,8 +19,6 @@ def del_none(dictionary):
                 l.append(element)
             elif isinstance(element, list):
                 l.append(delete_empty_elements_from_list(element))
-            elif element is None:
-                l.append(None)
             else:
                 l.append(del_none(element.__dict__))
         return l
