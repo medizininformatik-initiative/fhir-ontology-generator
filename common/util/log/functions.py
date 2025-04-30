@@ -1,10 +1,10 @@
+import os
 import logging.config
 
 from typing import Any, Optional
 
-from common.constants.project import PROJECT_ROOT
 
-GLOBAL_LOGGING_CONFIG_FILE = PROJECT_ROOT / "logging.toml"
+GLOBAL_LOGGING_CONFIG_FILE = os.path.join("/", *os.path.abspath(__file__).split(os.sep)[:-4], "logging.toml")
 logging.config.fileConfig(GLOBAL_LOGGING_CONFIG_FILE)
 logging.info(f"Logging using configuration options defined @ {GLOBAL_LOGGING_CONFIG_FILE}",
              extra={'className': ""})

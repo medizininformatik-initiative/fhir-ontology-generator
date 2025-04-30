@@ -275,7 +275,7 @@ if __name__ == '__main__':
     profile_tree = tree_generator.generate_profiles_tree()
 
     with open(dse_output_dir / "profile_tree.json", mode='w', encoding='utf-8') as f:
-        json.dump(profile_tree, f, ensure_ascii=False, cls=JSONFhirOntoEncoder)
+        json.dump(profile_tree, f, ensure_ascii=False)
 
     with open(dse_input_dir / "mapping-type-code.json", mode='r', encoding='utf-8') as f:
         mapping_type_code = json.load(f)
