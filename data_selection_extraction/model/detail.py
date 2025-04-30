@@ -3,10 +3,10 @@ from __future__ import annotations
 import abc
 from typing import Optional, List, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
-from cohort_selection_ontology.model.ui_data import TranslationElementDisplay
-from common.util.fhir.enums import FhirDataType, FhirSearchType
+from cohort_selection_ontology.model.ui_data import TranslationDisplayElement, BulkTranslationDisplayElement
+from common.util.fhir.enums import FhirDataType, FhirSearchType, FhirComplexDataType
 
 
 class Filter(BaseModel):
@@ -17,20 +17,33 @@ class Filter(BaseModel):
 
 
 class Detail(BaseModel, abc.ABC):
-    display: Optional[TranslationElementDisplay] = None
-    description: Optional[TranslationElementDisplay] = None
+    display: Optional[TranslationDisplayElement] = None
+    description: Optional[TranslationDisplayElement] = None
+
+
+class ProfileReference(BaseModel):
+    url: str
+    display: TranslationDisplayElement
+    fields: BulkTranslationDisplayElement
 
 
 class FieldDetail(Detail):
     id: str
-    referencedProfiles: List[str] = []
     type: Optional[FhirDataType] = None
     recommended: bool = False
     required: bool = False
-    children: Optional[List[FieldDetail]] = None
+    children: List[FieldDetail] = []
+
+    model_config = ConfigDict(use_enum_values=True)
+
+
+class ReferenceDetail(FieldDetail):
+    type: FhirDataType = FhirComplexDataType.REFERENCE
+    referencedProfiles: List[ProfileReference] = []
 
 
 class ProfileDetail(Detail):
     url: str
     filters: List[Filter] = []
     fields: List[FieldDetail] = []
+    references: List[ReferenceDetail] = []
