@@ -20,6 +20,7 @@ class BaseClient:
         self.__base_url = base_url
         self.__timeout = timeout
 
+
     def _get_session(self) -> Session:
         return self.__session
 

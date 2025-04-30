@@ -3,9 +3,8 @@ import json
 from dataclasses import dataclass, field, asdict
 from typing import Literal, List, Tuple, ClassVar, Dict
 
-from cohort_selection_ontology.model.ui_data import TermCode, TranslationDisplayElement
+from cohort_selection_ontology.model.ui_data import TermCode, TranslationElementDisplay
 from common.util.codec.functions import del_none
-from common.util.codec.json import JSONFhirOntoEncoder
 
 UI_PROFILES = set()
 
@@ -49,7 +48,7 @@ class ValueDefinition:
     max: float = None
     referencedCriteriaSet: CriteriaSet = None
     optional: bool = True
-    display: TranslationDisplayElement = None
+    display: TranslationElementDisplay = None
 
     def to_dict(self):
         data = asdict(self)
@@ -97,7 +96,7 @@ class UIProfile:
         return cls(**json.loads(json_string))
 
     def to_json(self):
-        return json.dumps(self.to_dict(), sort_keys=True, indent=4, cls=JSONFhirOntoEncoder)
+        return json.dumps(self.to_dict(), default=del_none, sort_keys=True, indent=4)
 
     def to_dict(self):
         data = asdict(self)
