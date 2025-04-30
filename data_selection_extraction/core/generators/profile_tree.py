@@ -5,16 +5,25 @@ import json
 import shutil
 from pathlib import Path
 
+from cohort_selection_ontology.model.ui_data import BulkTranslationDisplayElement, \
+    BulkTranslation
 from common.util.fhir.enums import FhirPrimitiveDataType
 from common.util.log.functions import get_class_logger
 
 from enum import Enum
-from typing import Mapping, Optional, Any
+from typing import Mapping, Optional, Any, List
 
 
 class SnapshotPackageScope(str, Enum):
     MII = "mii"
     DEFAULT = "default"
+
+
+def get_value_for_lang_code(data: Mapping[str, Any], lang_code: str) -> Optional[str]:
+    for ext in data.get('extension', []):
+        if any(e.get('url') == 'lang' and e.get('valueCode') == lang_code for e in ext.get('extension', [])):
+            return next(e['valueString'] for e in ext['extension'] if e.get('url') == 'content')
+    return None
 
 
 class ProfileTreeGenerator:
@@ -39,13 +48,6 @@ class ProfileTreeGenerator:
         name = name.split(":")[-1]
         name = name.replace("[x]", "")
         return name
-
-    @staticmethod
-    def get_value_for_lang_code(data, langCode):
-        for ext in data.get('extension', []):
-            if any(e.get('url') == 'lang' and e.get('valueCode') == langCode for e in ext.get('extension', [])):
-                return next(e['valueString'] for e in ext['extension'] if e.get('url') == 'content')
-        return ""
 
     def filter_element(self, element: Mapping[str, any]) -> bool:
         # TODO: This is a temporary workaround to allow both the postal code and the country information to be selected
@@ -92,41 +94,39 @@ class ProfileTreeGenerator:
         if element["base"]["path"].split(".")[0] in {"Resource", "DomainResource"} and not "mustSupport" in element:
             return True
 
-    def get_field_names_for_profile(self, struct_def):
-
+    def get_field_names_for_profile(self, struct_def) -> BulkTranslationDisplayElement:
         names_original = []
         names_en = []
         names_de = []
 
         for element in struct_def["snapshot"]["element"]:
-
             if self.filter_element(element):
                 continue
 
-            elem_name_de = self.get_value_for_lang_code(element.get('_short', {}), "de-DE")
-            elem_name_en = self.get_value_for_lang_code(element.get('_short', {}), "en-US")
+            elem_name_de = get_value_for_lang_code(element.get('_short', {}), "de-DE")
+            elem_name_en = get_value_for_lang_code(element.get('_short', {}), "en-US")
 
             names_original.append(self.get_name_from_id(element["id"]))
 
-            if elem_name_de == "":
-                continue
+            #if elem_name_de == "":
+            #    continue
 
             names_de.append(elem_name_de)
             names_en.append(elem_name_en)
 
-        return {
-            "original": names_original,
-            "translations": [
-                {
-                    "language": "de-DE",
-                    "value": names_de
-                },
-                {
-                    "language": "en-US",
-                    "value": names_en
-                }
+        return BulkTranslationDisplayElement(
+            original=names_original,
+            translations=[
+                BulkTranslation(
+                    language="de-DE",
+                    value=names_de
+                ),
+                BulkTranslation(
+                    language="en-US",
+                    value=names_en
+                )
             ]
-        }
+        )
 
     def build_profile_path(self, path, profile, profiles):
         profile_struct = profile["structureDefinition"]
@@ -148,11 +148,11 @@ class ProfileTreeGenerator:
                     "translations": [
                         {
                             "language": "de-DE",
-                            "value": self.get_value_for_lang_code(profile_struct.get('_title', {}), "de-DE")
+                            "value": get_value_for_lang_code(profile_struct.get('_title', {}), "de-DE")
                         },
                         {
                             "language": "en-US",
-                            "value": self.get_value_for_lang_code(profile_struct.get('_title', {}), "en-US")
+                            "value": get_value_for_lang_code(profile_struct.get('_title', {}), "en-US")
                         }
                     ]
                 },
