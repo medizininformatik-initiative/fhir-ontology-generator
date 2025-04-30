@@ -30,7 +30,13 @@ module_translation = {
         "modul-fall": "Fall",
         "modul-biobank": "Biobank",
         "modul-consent": "Einwilligung",
-        "modul-icu": "Vitaldaten"
+        "modul-icu": "Vitaldaten",
+        "modul-molgen": "Mollekulargenetischer Befund",
+        "modul-bildgebung": "Befunde bildgebender Verfahren",
+        "modul-onko": "Onkologie",
+        "modul-patho": "Pathologie",
+        "modul-mikrobio": "Mikrobiologie",
+        "modul-studie": "Studie"
     },
     "en-US": {
         "modul-diagnose": "Diagnosis",
@@ -41,7 +47,13 @@ module_translation = {
         "modul-fall": "Case",
         "modul-biobank": "Biobank",
         "modul-consent": "Consent",
-        "modul-icu": "Vitaldata"
+        "modul-icu": "Vitaldata",
+        "modul-molgen": "Molecular genetics",
+        "modul-bildgebung": "--",
+        "modul-onko": "Oncology",
+        "modul-patho": "Pathology",
+        "modul-mikrobio": "Mikrobiology",
+        "modul-studie": "Study"
     }
 }
 
