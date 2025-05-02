@@ -284,7 +284,7 @@ if __name__ == '__main__':
 
     if args.generate_profile_details:
         profiles = tree_generator.profiles
-        profile_detail_generator = ProfileDetailGenerator(profiles, mapping_type_code, blacklisted_value_sets,
+        profile_detail_generator = ProfileDetailGenerator(project, profiles, mapping_type_code, blacklisted_value_sets,
                                                           fields_to_exclude, field_trees_to_exclude, reference_resolve_base_url)
 
         profile_details = profile_detail_generator.generate_profile_details_for_profiles_in_scope(

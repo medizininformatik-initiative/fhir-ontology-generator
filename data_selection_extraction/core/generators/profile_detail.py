@@ -1,13 +1,14 @@
 import re
 from collections.abc import Callable
-from optparse import Option
 from typing import Mapping, List, TypedDict, Any, Optional
 
-from common.exceptions import NotFoundError
-from common.exceptions.profile import MissingProfileException
+from common.exceptions.profile import MissingProfileError
 from cohort_selection_ontology.model.ui_data import TranslationDisplayElement, BulkTranslationDisplayElement
+from common.util.fhir.structure_definition import supports_type, find_type_element, get_element_from_snapshot, \
+    get_types_supported_by_element, Snapshot
+from common.util.project import Project
 from data_selection_extraction.core.generators.profile_tree import get_value_for_lang_code
-from data_selection_extraction.model.detail import FieldDetail, ProfileDetail, Filter, ReferenceDetail, ProfileReference
+from data_selection_extraction.model.detail import FieldDetail, ProfileDetail, Filter, ProfileReference, ReferenceDetail
 from common.util.fhir.enums import FhirPrimitiveDataType, FhirComplexDataType
 
 from common.util.log.functions import get_class_logger
@@ -30,8 +31,9 @@ class ProfileDetailGenerator:
     fields_trees_to_exclude: List[str]
     reference_base_url: str
 
-    def __init__(self, profiles, mapping_type_code, blacklisted_value_sets, fields_to_exclude, field_trees_to_exclude,
+    def __init__(self, project: Project, profiles, mapping_type_code, blacklisted_value_sets, fields_to_exclude, field_trees_to_exclude,
                  reference_base_url):
+        self.__project = project
         self.blacklisted_value_sets = blacklisted_value_sets
         self.profiles = profiles
         # Prevents having to generate the mapping over and over again
@@ -361,9 +363,9 @@ class ProfileDetailGenerator:
                     for ext_profile_url in ext_type.get("profile", []):
                         ext_profile = self.__all_profiles.get(ext_profile_url, None)
                         if not ext_profile:
-                            raise MissingProfileException(f"Missing extension profile with URL '{ext_profile_url}' in "
-                                                          f"current scope. This can likely be fixed by adding its "
-                                                          f"snapshot to the DSE package snapshots directory")
+                            raise MissingProfileError(f"Missing extension profile with URL '{ext_profile_url}' in "
+                                                      f"current scope. This can likely be fixed by adding its "
+                                                      f"snapshot to the DSE package snapshots directory")
                         ext_elements = ext_profile.get('structureDefinition', {}).get('snapshot', {}).get('element', [])
                         ext_value_elements = list(
                             filter(lambda e: e.get('path', "").startswith("Extension.value"), ext_elements)
@@ -406,6 +408,42 @@ class ProfileDetailGenerator:
             return []
 
         return mii_references
+
+    def __determine_if_extension_elem_can_be_treated_as_reference(self, element: Mapping[str, Any], profile: Snapshot) -> bool:
+        if extension_type := find_type_element(element, FhirComplexDataType.EXTENSION):
+            supports_references = []
+
+            extension_profiles = extension_type.profile
+            if extension_profiles: # Type element does contain Extension profile references
+                for profile_url in extension_profiles:
+                    profile = self.__all_profiles.get(profile_url, {}).get('structureDefinition')
+                    if not profile:
+                        self.__logger.warning(f"Extension '{profile_url}' was not found. Consider adding it to "
+                                              f"'{self.__project.input('dse', 'snapshots')}' => "
+                                              f"Ignoring potential references")
+                    else:
+                        elem = get_element_from_snapshot(profile, "Extension.value[x]")
+                        if not elem:
+                            supports_references.append(False)
+                        else:
+                            supports_references.append(supports_type(elem, FhirComplexDataType.REFERENCE))
+                if all(supports_references):
+                    return True
+                elif any(supports_references):
+                    self.__logger.warning(f"Element '{element.get('id')}' does not purely support Extensions containing "
+                                          f"references")
+                    return True
+                else:
+                    return False
+            else: # Type element does not contain any Extension profile references
+                element_id = element.get('id') + ".value[x]"
+                value_elem = get_element_from_snapshot(profile, element_id)
+                if not value_elem:
+                    supports_references.append(False)
+                else:
+                    supports_references.append(supports_type(value_elem, FhirComplexDataType.REFERENCE))
+        else:
+            raise ValueError(f"Element '{element.get('id')}' does not support FHIR data type 'Extension'")
 
     def generate_detail_for_profile(self, profile: Mapping[str, any],
                                     profile_tree: Optional[Mapping[str, any]]=None) -> Optional[ProfileDetail]:
@@ -462,14 +500,14 @@ class ProfileDetailGenerator:
                     valueSetUrls=value_set_urls,
                 ))
 
-            source_elements = profile["structureDefinition"]["snapshot"]["element"]
+            source_elements = profile['structureDefinition']['snapshot']['element']
 
             # We sort the elements in ascending order by length of their ID to ensure that parent elements will be
             # processed before their children and thus generated FieldDetail instances will be inserted as children of
             # their parent into the ProfileDetail instance by the `__insert_field_into_profile_detail` method since
             # their parent was already inserted when they will be
             for element in sorted(source_elements, key=lambda e: len(e['id'])):
-                field_id = element["id"]
+                field_id = element['id']
 
                 if self.filter_element(element):
                     continue
@@ -483,22 +521,30 @@ class ProfileDetailGenerator:
 
                     element = self.get_element_by_content_ref(content_reference, source_elements)
 
-                field_type = None
+                supported_types = get_types_supported_by_element(element)
+                if len(supported_types) > 1:
+                    self.__logger.warning(f"Element '{element.get('id')}' supports multiple types but only fixed typed "
+                                          f"elements can be represented faithfully at this point => Proceeding with "
+                                          f"first type listed")
+                field_type = supported_types[0].code
 
-                if "type" in element:
-                    for element_type in element["type"]:
-
-                        field_type = element_type["code"]
-
-                        if element_type["code"] == "Reference":
-                            break
-
+                if supports_type(element, FhirComplexDataType.EXTENSION):
+                    supports_reference = self.__determine_if_extension_elem_can_be_treated_as_reference(element,
+                                                                                                        struct_def)
+                    element_type = "Extension"
                 else:
-                    self.__logger.warning(f"Element '{element.get('id')}' without type => Discarding")
-                    continue
+                    supports_reference = supports_type(element, FhirComplexDataType.REFERENCE)
+                    element_type = "Reference" if supports_reference else field_type
 
                 is_recommended_field = (self.check_at_least_one_in_elem_and_true(element, ["min"]) or
                                         self.check_at_least_one_in_elem_and_true(element, ["isModifier"]))
+                # FIXME: Temporary fix to make elements of type 'Reference' not recommended due to issues in the UI
+                #        except for references to the MII Medication profile
+                if supports_reference:
+                    field_type = "Reference"
+                    if not ".medication" in field_id:
+                        is_recommended_field = False
+
                 # FIXME: Currently this value will be hard-coded to `False` since requiring researchers to include some
                 #        fields that might not have some value to their research can unnecessarily complicate access to
                 #        the data since access to these fields might require additional vetting steps and explicit
@@ -516,21 +562,22 @@ class ProfileDetailGenerator:
                 match field_type:
                     case "Reference":
                         try:
-                            referenced_mii_profiles = self.get_referenced_mii_profiles(element, field_type)
+                            referenced_mii_profiles = self.get_referenced_mii_profiles(element, element_type)
                             referenced_mii_profiles = [ProfileReference(url=url,
                                                                         display=self.__get_profile_title_display(
-                                                                            struct_def),
+                                                                            self.__all_profiles.get(url)
+                                                                            .get('structureDefinition')),
                                                                         fields=self.__get_fields_for_profile(
-                                                                            profile_url,
+                                                                            url,
                                                                             profile_tree)
                                                                         ) for url in referenced_mii_profiles]
-                        except MissingProfileException as exc:
+                        except MissingProfileError as exc:
                             self.__logger.warning(
                                 f"Could not resolve referenced MII profiles [element_id='{field_id}']. "
                                 f"Reason: {exc}")
                             referenced_mii_profiles = []
 
-                        if field_type == "Reference" and len(referenced_mii_profiles) == 0:
+                        if len(referenced_mii_profiles) == 0:
                             self.__logger.warning(
                                 f"Element '{element.get('id')}' references profiles that do not match any "
                                 f"MII profile => Discarding")
