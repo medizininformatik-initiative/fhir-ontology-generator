@@ -11,7 +11,7 @@ from common.util.fhir.enums import FhirPrimitiveDataType
 from common.util.log.functions import get_class_logger
 
 from enum import Enum
-from typing import Mapping, Optional, Any, List
+from typing import Mapping, Optional, Any
 
 
 class SnapshotPackageScope(str, Enum):
@@ -32,8 +32,10 @@ class ProfileTreeGenerator:
     def __init__(self, packages_dir: Path | str, snapshots_dir:  Path | str, exclude_dirs, excluded_profiles,
                  module_order, module_translation, fields_to_exclude, field_trees_to_exclude, profiles_to_process):
         self.profiles= {scope: dict() for scope in SnapshotPackageScope}
-        self.packages_dir = packages_dir
-        self.snapshots_dir = snapshots_dir
+        self.packages_dir = Path(packages_dir).resolve()
+        os.makedirs(self.packages_dir, exist_ok=True)
+        self.snapshots_dir = Path(snapshots_dir).resolve()
+        os.makedirs(self.snapshots_dir, exist_ok=True)
         self.exclude_dirs = exclude_dirs
         self.excluded_profiles = excluded_profiles
         self.module_order = module_order
@@ -219,6 +221,9 @@ class ProfileTreeGenerator:
     def copy_profile_snapshots(self):
         #exclude_dirs = set(os.path.abspath(os.path.join(self.packages_dir, d)) for d in self.exclude_dirs)
         #print(exclude_dirs)
+        if not any(self.packages_dir.iterdir()):
+            self.__logger.warning(f"Package directory @ '{self.packages_dir}' is empty => No snapshots can be copied")
+
         package_dirs = [os.path.join(self.packages_dir, i) for i in os.listdir(self.packages_dir)
                         if os.path.isdir(os.path.join(self.packages_dir, i)) and i not in self.exclude_dirs]
         os.makedirs(os.path.join(self.snapshots_dir, "mii"), exist_ok=True)
@@ -228,36 +233,31 @@ class ProfileTreeGenerator:
             manifest_file_path = os.path.join(package_dir, "package", "package.json")
             snapshot_scope = self.determine_snapshot_scope_for_package(manifest_file_path)
 
-            for root, _ , files in os.walk(package_dir):
-                for rel_file_path in filter(lambda p: p.endswith(".json"), files):
-                    file_path = os.path.join(root, rel_file_path)
-                    if "/projects/" in file_path:
-                        continue
-
-                    try:
-                        with open(file_path, mode="r", encoding='utf-8-sig') as f:
-                            content = json.load(f)
-                            if (
-                                    # "https://www.medizininformatik-initiative.de" in content["url"]
-                                    # and
-                                    "snapshot" in content
-                                    and "resourceType" in content
-                                    and content["resourceType"] == "StructureDefinition"
-                                    # and content["baseDefinition"]
-                                    # not in ["http://hl7.org/fhir/StructureDefinition/Extension"]
-                                    # and content["status"] == "active"
-                                    and content["kind"] == "resource" or content.get("type") == "Extension"
-                                    and content["url"] not in self.excluded_profiles
-                            ):
-                                destination = os.path.join(os.path.join(self.snapshots_dir, snapshot_scope),
-                                                           os.path.basename(file_path))
-                                self.__logger.info(f"Copying snapshot file for further processing: {file_path} -> "
-                                                   f"{destination}")
-                                shutil.copy(file_path, destination)
-                    except UnicodeDecodeError:
-                        self.__logger.warning(f"File {file_path} is not a text file or cannot be read as text.")
-                    except Exception as exc:
-                        self.__logger.error(f"Failed to copy file '{file_path}'", exc_info=exc)
+            for file_path in Path(package_dir, "package").resolve().rglob("*.json"):
+                try:
+                    with open(file_path, mode="r", encoding='utf-8-sig') as f:
+                        content = json.load(f)
+                        if (
+                                # "https://www.medizininformatik-initiative.de" in content["url"]
+                                # and
+                                "snapshot" in content
+                                and "resourceType" in content
+                                and content["resourceType"] == "StructureDefinition"
+                                # and content["baseDefinition"]
+                                # not in ["http://hl7.org/fhir/StructureDefinition/Extension"]
+                                # and content["status"] == "active"
+                                and content["kind"] == "resource" or content.get("type") == "Extension"
+                                and content["url"] not in self.excluded_profiles
+                        ):
+                            destination = os.path.join(os.path.join(self.snapshots_dir, snapshot_scope),
+                                                       os.path.basename(file_path))
+                            self.__logger.info(f"Copying snapshot file for further processing: {file_path} -> "
+                                               f"{destination}")
+                            shutil.copy(file_path, destination)
+                except UnicodeDecodeError:
+                    self.__logger.warning(f"File {file_path} is not a text file or cannot be read as text.")
+                except Exception as exc:
+                    self.__logger.error(f"Failed to copy file '{file_path}'", exc_info=exc)
 
 
     def get_profile_snapshots(self):

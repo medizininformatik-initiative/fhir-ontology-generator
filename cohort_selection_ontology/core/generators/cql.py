@@ -10,10 +10,11 @@ from typing_extensions import LiteralString
 
 import cohort_selection_ontology.resources.cql as cql_resources
 from cohort_selection_ontology.core.terminology.client import CohortSelectionTerminologyClient
-from cohort_selection_ontology.util import structure_definition as sd
 from cohort_selection_ontology.core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
-from cohort_selection_ontology.util.structure_definition import resolve_defining_id, extract_value_type, extract_reference_type, \
-    CQL_TYPES_TO_VALUE_TYPES, get_element_defining_elements_with_source_snapshots
+from cohort_selection_ontology.util.structure_definition import resolve_defining_id, extract_value_type, \
+    extract_reference_type, \
+    CQL_TYPES_TO_VALUE_TYPES, get_element_defining_elements_with_source_snapshots, get_term_code_by_id, \
+    get_element_defining_elements, get_fixed_term_codes, get_element_type, translate_element_to_fhir_path_expression
 from common.exceptions.typing import UnsupportedTypingException
 from helper import generate_attribute_key
 from cohort_selection_ontology.model.mapping import CQLMapping, CQLAttributeSearchParameter, CQLTimeRestrictionParameter, \
@@ -21,7 +22,8 @@ from cohort_selection_ontology.model.mapping import CQLMapping, CQLAttributeSear
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS
 from cohort_selection_ontology.model.ui_data import TermCode
-from common.util.fhir.structure_definition import get_parent_element, ElementDefinition, Snapshot
+from common.util.fhir.structure_definition import get_parent_element, ElementDefinitionDict, Snapshot, \
+    is_element_in_snapshot, get_element_from_snapshot
 from common.util.log.functions import get_class_logger
 from common.util.project import Project
 from common.typing.fhir import FHIRPathlike
@@ -60,8 +62,8 @@ class CQLMappingGenerator(object):
         return primary_paths
 
     @classmethod
-    def __select_element_compatible_with_cql_operations(cls, element: ElementDefinition,
-                                                        snapshot: Snapshot) -> (ElementDefinition, Set[str]):
+    def __select_element_compatible_with_cql_operations(cls, element: ElementDefinitionDict,
+                                                        snapshot: Snapshot) -> (ElementDefinitionDict, Set[str]):
         """
         Uses the given element to determine - if necessary - an element which is more suitable for generating the CQL
         mapping
@@ -138,8 +140,8 @@ class CQLMappingGenerator(object):
                 mapping_name = querying_meta_data_entry.name
             # The logic to get the term_codes here always has to be identical with the mapping
             term_codes = querying_meta_data_entry.term_codes if querying_meta_data_entry.term_codes else \
-                sd.get_term_code_by_id(profile_snapshot, querying_meta_data_entry.term_code_defining_id,
-                                                modules_dir, module_name, self.__client)
+                get_term_code_by_id(profile_snapshot, querying_meta_data_entry.term_code_defining_id,
+                                           modules_dir, module_name, self.__client)
             primary_keys = [(querying_meta_data_entry.context, term_code) for term_code in term_codes]
             mapping_names = [mapping_name] * len(primary_keys)
             table = dict(zip(primary_keys, mapping_names))
@@ -175,11 +177,11 @@ class CQLMappingGenerator(object):
             if (not self.is_primary_path(querying_meta_data.resource_type,
                                          self.remove_fhir_resource_type(tc_defining_id))
                     and not querying_meta_data.module.code == "mii-cds-medikation"):
-                if sd.is_element_in_snapshot(profile_snapshot, tc_defining_id):
-                    element = sd.get_element_from_snapshot(profile_snapshot, tc_defining_id)
+                if is_element_in_snapshot(profile_snapshot, tc_defining_id):
+                    element = get_element_from_snapshot(profile_snapshot, tc_defining_id)
                 else:
-                    element = sd.get_element_defining_elements(tc_defining_id, profile_snapshot,
-                                                                        module_dir_name, modules_dir)[-1]
+                    element = get_element_defining_elements(tc_defining_id, profile_snapshot,
+                                                                   module_dir_name, modules_dir)[-1]
                 element, types = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
                 element_id = element.get('id')
                 if not types:
@@ -199,7 +201,7 @@ class CQLMappingGenerator(object):
                 cql_mapping.termCode = CQLTypeParameter(term_code_fhir_path, types, card)
 
         if val_defining_id := querying_meta_data.value_defining_id:
-            element = sd.get_element_from_snapshot(profile_snapshot, val_defining_id)
+            element = get_element_from_snapshot(profile_snapshot, val_defining_id)
             element, types = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
             element_id = element.get('id')
             if not types:
@@ -218,7 +220,7 @@ class CQLMappingGenerator(object):
             cql_mapping.value = CQLTypeParameter(value_fhir_path, types, card)
 
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
-            element = sd.get_element_from_snapshot(profile_snapshot, time_defining_id)
+            element = get_element_from_snapshot(profile_snapshot, time_defining_id)
             element, types = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
             element_id = element.get('id')
             if not types:
@@ -262,7 +264,7 @@ class CQLMappingGenerator(object):
             attribute_type = self.get_composite_attribute_type(attr_defining_id, profile_snapshot, module_dir_name)
         else:
             if attribute_type != "Reference":
-                element = sd.get_element_from_snapshot(profile_snapshot, attr_defining_id)
+                element = get_element_from_snapshot(profile_snapshot, attr_defining_id)
                 element, attribute_types = self.__select_element_compatible_with_cql_operations(element,
                                                                                                 profile_snapshot)
                 attr_defining_id = element.get('id')
@@ -279,22 +281,22 @@ class CQLMappingGenerator(object):
 
     def get_composite_code(self, attribute, profile_snapshot, module_dir_name):
         modules_dir = self.__project.input("modules")
-        attribute_parsed = sd.get_element_defining_elements(attribute, profile_snapshot, module_dir_name,
-                                                                     modules_dir)
+        attribute_parsed = get_element_defining_elements(attribute, profile_snapshot, module_dir_name,
+                                                                modules_dir)
         if len(attribute_parsed) != 2:
             raise ValueError("Composite search parameters must have exactly two elements")
         where_clause_element = attribute_parsed[-1]
-        return sd.get_fixed_term_codes(where_clause_element, profile_snapshot, modules_dir,
-                                                module_dir_name, self.__client)[0]
+        return get_fixed_term_codes(where_clause_element, profile_snapshot, modules_dir,
+                                           module_dir_name, self.__client)[0]
 
     def get_composite_attribute_type(self, attribute, profile_snapshot, module_dir_name):
         modules_dir = self.__project.input("modules")
-        attribute_parsed = sd.get_element_defining_elements(attribute, profile_snapshot, module_dir_name,
-                                                                     modules_dir)
+        attribute_parsed = get_element_defining_elements(attribute, profile_snapshot, module_dir_name,
+                                                                modules_dir)
         if len(attribute_parsed) != 2:
             raise ValueError("Composite search parameters must have exactly two elements")
         value_element = attribute_parsed[0]
-        return sd.get_element_type(value_element)
+        return get_element_type(value_element)
 
     @staticmethod
     def find_balanced_parentheses(s):
@@ -323,8 +325,8 @@ class CQLMappingGenerator(object):
 
     def translate_composite_attribute_to_fhir_path_expression(self, attribute, profile_snapshot, module_dir_name: str):
         modules_dir = self.__project.input("modules")
-        elements = sd.get_element_defining_elements(attribute, profile_snapshot, module_dir_name, modules_dir)
-        expressions = sd.translate_element_to_fhir_path_expression(elements, profile_snapshot)
+        elements = get_element_defining_elements(attribute, profile_snapshot, module_dir_name, modules_dir)
+        expressions = translate_element_to_fhir_path_expression(elements, profile_snapshot)
         value_clause = expressions[0]
         composite_code = self.get_composite_code(attribute, profile_snapshot, module_dir_name)
         updated_where_clause = f".where(code.coding.exists(system = {composite_code.system} and code = {composite_code.code}))"
@@ -353,15 +355,15 @@ class CQLMappingGenerator(object):
     def translate_term_element_id_to_fhir_path_expression(self, element_id, profile_snapshot,
                                                           module_dir_name: str) -> str:
         modules_dir = self.__project.input("modules")
-        elements = sd.get_element_defining_elements(element_id, profile_snapshot, module_dir_name,
-                                                             modules_dir)
+        elements = get_element_defining_elements(element_id, profile_snapshot, module_dir_name,
+                                                        modules_dir)
         # TODO: Revisit and evaluate if this really the way to go.
         for element in elements:
             element, types = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
             for element_type in types:
                 if element_type == "Reference":
                     return self.get_cql_optimized_path_expression(
-                        sd.translate_element_to_fhir_path_expression(elements, profile_snapshot)[
+                        translate_element_to_fhir_path_expression(elements, profile_snapshot)[
                             0]) + ".reference"
         return self.translate_element_id_to_fhir_path_expressions(element_id, profile_snapshot, module_dir_name)
 
@@ -375,8 +377,8 @@ class CQLMappingGenerator(object):
         :return: fhir search parameter
         """
         modules_dir = self.__project.input("modules")
-        elements = sd.get_element_defining_elements(element_id, profile_snapshot, module_dir_name, modules_dir)
-        expressions = sd.translate_element_to_fhir_path_expression(elements, profile_snapshot)
+        elements = get_element_defining_elements(element_id, profile_snapshot, module_dir_name, modules_dir)
+        expressions = translate_element_to_fhir_path_expression(elements, profile_snapshot)
         return ".".join([self.get_cql_optimized_path_expression(expression) for expression in expressions])
 
     def translate_element_id_to_fhir_path_expressions_time_restriction(self, element_id, profile_snapshot: dict,
@@ -389,8 +391,8 @@ class CQLMappingGenerator(object):
         :return: fhir search parameter
         """
         modules_dir = self.__project.input("modules")
-        elements = sd.get_element_defining_elements(element_id, profile_snapshot, module_dir_name, modules_dir)
-        expressions = sd.translate_element_to_fhir_path_expression(elements, profile_snapshot)
+        elements = get_element_defining_elements(element_id, profile_snapshot, module_dir_name, modules_dir)
+        expressions = translate_element_to_fhir_path_expression(elements, profile_snapshot)
         return ".".join([self.get_cql_path_time_restriction(expression) for expression in expressions])
 
     def get_cql_path_time_restriction(self, path_expression: str) -> str:
@@ -519,8 +521,8 @@ class CQLMappingGenerator(object):
         :return: attribute type
         """
         modules_dir = self.__project.input("modules")
-        elements = sd.get_element_defining_elements(attr_defining_id, profile_snapshot, module_dir_name,
-                                                             modules_dir)
+        elements = get_element_defining_elements(attr_defining_id, profile_snapshot, module_dir_name,
+                                                        modules_dir)
         for element in elements:
             for element_type in element.get("type"):
                 if element_type.get("code") == "Reference":
@@ -565,7 +567,7 @@ class CQLMappingGenerator(object):
         return False
 
     @staticmethod
-    def __aggregate_cardinality_using_element(element: ElementDefinition, snapshot: Snapshot,
+    def __aggregate_cardinality_using_element(element: ElementDefinitionDict, snapshot: Snapshot,
                                               card_type: LiteralString["min", "max"] = "max") -> SimpleCardinality:
         """
         Aggregates the cardinality of an element along its path by collecting the cardinalities of itself and the parent

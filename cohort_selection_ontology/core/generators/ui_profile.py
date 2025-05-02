@@ -7,10 +7,12 @@ from typing import Dict, Tuple, List
 
 from cohort_selection_ontology.core.terminology.client import CohortSelectionTerminologyClient
 from cohort_selection_ontology.core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
-from cohort_selection_ontology.util import structure_definition as sd
 from cohort_selection_ontology.util.structure_definition import InvalidValueTypeException, UCUM_SYSTEM, \
     get_binding_value_set_url, \
-    ProcessedElementResult, get_fixed_term_codes, FHIR_TYPES_TO_VALUE_TYPES, extract_value_type, get_common_ancestor
+    ProcessedElementResult, get_fixed_term_codes, FHIR_TYPES_TO_VALUE_TYPES, extract_value_type, get_common_ancestor, \
+    get_term_code_by_id, get_element_from_snapshot_by_path, get_units, resolve_defining_id, get_selectable_concepts, \
+    get_element_defining_elements, get_element_type, get_element_defining_elements_with_source_snapshots
+from common.util.fhir.structure_definition import get_element_from_snapshot
 from helper import process_element_definition, get_display_from_element_definition
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from cohort_selection_ontology.model.ui_profile import ValueDefinition, UIProfile, AttributeDefinition, CriteriaSet
@@ -82,7 +84,7 @@ class UIProfileGenerator:
             ui_profile = self.generate_ui_profile(profile_snapshot, querying_meta_data_entry)
             # The logic to get the term_codes here always has to be identical with the mapping
             term_codes = querying_meta_data_entry.term_codes if querying_meta_data_entry.term_codes else \
-                sd.get_term_code_by_id(profile_snapshot, querying_meta_data_entry.term_code_defining_id,
+                get_term_code_by_id(profile_snapshot, querying_meta_data_entry.term_code_defining_id,
                                                 self.data_set_dir, self.module_dir, self.__client)
             ui_profile.name += str(i) if i > 0 else ""
             ui_profile_name = ui_profile.name
@@ -137,10 +139,10 @@ class UIProfileGenerator:
         """
 
         unit_defining_path = value_defining_element.get("path") + ".code"
-        unit_defining_elements = sd.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
+        unit_defining_elements = get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
         # get the units the standard way
         if len(unit_defining_elements) == 1:
-            return sd.get_units(unit_defining_elements[0], profile_snapshot.get("name"), self.__client)
+            return get_units(unit_defining_elements[0], profile_snapshot.get("name"), self.__client)
 
         # get units from value[x].patternQuantity
         if pattern_quantity := value_defining_element.get("patternQuantity"):
@@ -148,9 +150,11 @@ class UIProfileGenerator:
                 return [TermCode(pattern_quantity.get("system"), pattern_quantity.get("code"),
                                  pattern_quantity.get("unit"))]
 
+        if not (value_quantity := get_element_from_snapshot(profile_snapshot, (
+                value_defining_element.get("path") + ":valueQuantity"))):
+            pass
         # get units from value[x]:valueQuantity.patternQuantity
-        if value_quantity := sd.get_element_from_snapshot(profile_snapshot, (
-                value_defining_element.get("path") + ":valueQuantity")):
+        else:
             if pattern_quantity := value_quantity.get("patternQuantity"):
                 if pattern_quantity.get("code"):
                     return [TermCode(pattern_quantity.get("system"), pattern_quantity.get("code"),
@@ -166,7 +170,7 @@ class UIProfileGenerator:
         :return: value definition
         :raises InvalidValueTypeException: if the value type is not supported
         """
-        value_defining_element = sd.resolve_defining_id(profile_snapshot, querying_meta_data.value_defining_id,
+        value_defining_element = resolve_defining_id(profile_snapshot, querying_meta_data.value_defining_id,
                                                                  self.data_set_dir, self.module_dir)
         value_type = querying_meta_data.value_type if querying_meta_data.value_type else \
             FHIR_TYPES_TO_VALUE_TYPES.get(extract_value_type(value_defining_element, profile_snapshot.get('name'))) \
@@ -181,7 +185,7 @@ class UIProfileGenerator:
         value_definition = ValueDefinition(value_type)
         value_definition.optional = querying_meta_data.value_optional
         if value_type == "concept":
-            value_definition.referencedValueSet = sd.get_selectable_concepts(value_defining_element,
+            value_definition.referencedValueSet = get_selectable_concepts(value_defining_element,
                                                                              profile_snapshot.get("name"),
                                                                              self.__client)
         elif value_type == "quantity":
@@ -242,7 +246,7 @@ class UIProfileGenerator:
         :param optional: Boolean indicating the optionality of the attribute definition
         :return: Attribute definition
         """
-        attribute_defining_elements = sd.get_element_defining_elements(attribute_defining_element_id,
+        attribute_defining_elements = get_element_defining_elements(attribute_defining_element_id,
                                                                                 profile_snapshot, self.module_dir,
                                                                                 self.data_set_dir)
         attribute_defining_element = attribute_defining_elements[-1]
@@ -263,15 +267,15 @@ class UIProfileGenerator:
         attribute_definition = AttributeDefinition(attribute_code, attribute_type, optional)
         attribute_definition.display = attribute_display
         if attribute_type == "concept":
-            attribute_definition.referencedValueSet = sd.get_selectable_concepts(
+            attribute_definition.referencedValueSet = get_selectable_concepts(
                 attribute_defining_element, profile_snapshot.get("name"), self.__client
             )
         elif attribute_type == "quantity":
             unit_defining_path = attribute_defining_element.get("path") + ".code"
-            unit_defining_elements = sd.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
+            unit_defining_elements = get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
             if len(unit_defining_elements) > 1:
                 raise Exception(f"More than one element found for path {unit_defining_path}")
-            attribute_definition.allowedUnits = sd.get_units(unit_defining_elements[0],
+            attribute_definition.allowedUnits = get_units(unit_defining_elements[0],
                                                                       profile_snapshot.get("name"))
         elif attribute_type == "reference":
             attribute_definition = self.generate_reference_attribute_definition(profile_snapshot,
@@ -283,7 +287,7 @@ class UIProfileGenerator:
         return attribute_definition
 
     def generate_composite_attribute(self, profile_snapshot, attribute_defining_element_id) -> AttributeDefinition:
-        attribute_defining_elements = sd.get_element_defining_elements(attribute_defining_element_id,
+        attribute_defining_elements = get_element_defining_elements(attribute_defining_element_id,
                                                                                 profile_snapshot, self.module_dir,
                                                                                 self.data_set_dir)
         if len(attribute_defining_elements) != 2:
@@ -292,33 +296,33 @@ class UIProfileGenerator:
         predicate = attribute_defining_elements[-1]
         attribute_code = self.generate_composite_attribute_code(profile_snapshot, predicate)
         attribute_definition = AttributeDefinition(attribute_code, "composite")
-        attribute_type = sd.get_element_type(element)
+        attribute_type = get_element_type(element)
         if attribute_type == "Quantity":
             if pattern_quantity := element.get("patternQuantity"):
                 if pattern_quantity.get("code"):
                     attribute_definition.allowedUnits = [TermCode(pattern_quantity.get("system"), pattern_quantity.get("code"), pattern_quantity.get("unit"))]
             else:
                 unit_defining_path = element.get("path") + ".code"
-                unit_defining_elements = sd.get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
+                unit_defining_elements = get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
                 if len(unit_defining_elements) > 1:
                     unit_defining_elements = list(filter(lambda x: self.get_slice_name(x) == self.get_slice_name(element),
                                                          unit_defining_elements))
                     if len(unit_defining_elements) > 1:
                         raise Exception(f"More than one element found for path {unit_defining_path}")
-                attribute_definition.allowedUnits = sd.get_units(unit_defining_elements[0],profile_snapshot.get("name"))
+                attribute_definition.allowedUnits = get_units(unit_defining_elements[0],profile_snapshot.get("name"))
 
             attribute_definition.display = get_display_from_element_definition(get_common_ancestor(profile_snapshot, element.get("id"),predicate.get("id")))
             attribute_definition.type = "quantity"
             return attribute_definition
         elif attribute_type == "CodeableConcept":
             if binding := predicate.get("binding"):
-                concepts = sd.get_selectable_concepts(predicate, profile_snapshot.get("name"), self.__client)
+                concepts = get_selectable_concepts(predicate, profile_snapshot.get("name"), self.__client)
                 attribute_definition.referencedValueSet = concepts
             elif binding := element.get("binding"):
-                concepts = sd.get_selectable_concepts(element, profile_snapshot.get("name"), self.__client)
+                concepts = get_selectable_concepts(element, profile_snapshot.get("name"), self.__client)
                 attribute_definition.referencedValueSet = concepts
             else:
-                concepts = sd.get_fixed_term_codes(predicate, profile_snapshot, self.module_dir, self.data_set_dir,
+                concepts = get_fixed_term_codes(predicate, profile_snapshot, self.module_dir, self.data_set_dir,
                                                    self.__client)
                 attribute_definition.referencedCriteriaSet = self.get_reference_criteria_set_from_fixed_term_codes(
                     concepts, self.get_referenced_context(profile_snapshot, self.module_dir))
@@ -343,7 +347,7 @@ class UIProfileGenerator:
             return ""
 
     def generate_composite_attribute_code(self, profile_snapshot, element) -> TermCode:
-        composite_attribute_code = sd.get_fixed_term_codes(element, profile_snapshot, self.module_dir,
+        composite_attribute_code = get_fixed_term_codes(element, profile_snapshot, self.module_dir,
                                                            self.data_set_dir, self.__client)
         if composite_attribute_code:
             return composite_attribute_code[0]
@@ -376,7 +380,7 @@ class UIProfileGenerator:
         :param profile_snapshot: FHIR profile snapshot
         :param attribute_defining_element_id: element id that defines the reference
         """
-        attribute_defining_elements_with_source_snapshots = sd.get_element_defining_elements_with_source_snapshots(
+        attribute_defining_elements_with_source_snapshots = get_element_defining_elements_with_source_snapshots(
             attribute_defining_element_id,
             profile_snapshot, self.module_dir,
             self.data_set_dir)
