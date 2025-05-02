@@ -1,0 +1,16 @@
+{
+  "context": {
+    "code": "Mollekulargenetischer Befund",
+    "display": "Mollekulargenetischer Befund",
+    "system": "fdpg.mii.cds",
+    "version": "1.0.0"
+  },
+  "module": {
+    "code": "mii-cds-Molgen",
+    "display": "Mollekulargenetischer Befund"
+  },
+  "name": "MII_PR_MolGen_MolekulargenetischerBefundbericht",
+  "resource_type": "ServiceRequest",
+  "term_code_defining_id": "ServiceRequest.code.coding",
+  "time_restriction_defining_id": "ServiceRequest.authoredOn"
+}
