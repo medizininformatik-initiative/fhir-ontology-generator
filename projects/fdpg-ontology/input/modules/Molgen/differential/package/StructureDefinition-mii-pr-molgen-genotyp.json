@@ -1,0 +1,132 @@
+{
+  "resourceType": "StructureDefinition",
+  "id": "mii-pr-molgen-genotyp",
+  "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/genotyp",
+  "version": "2025.0.0",
+  "name": "MII_PR_MolGen_Genotyp",
+  "title": "MII PR MolGen Genotyp",
+  "status": "active",
+  "publisher": "Medizininformatik Initiative",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://www.medizininformatik-initiative.de"
+        }
+      ]
+    }
+  ],
+  "description": "Dieses Profil beschreibt die Feststellung eines bestimmten Genotyps auf der Grundlage einer oder mehrerer Varianten oder Haplotypen.",
+  "fhirVersion": "4.0.1",
+  "mapping": [
+    {
+      "identity": "MII-KDS",
+      "name": "MII KDS Mapping"
+    }
+  ],
+  "kind": "resource",
+  "abstract": false,
+  "type": "Observation",
+  "baseDefinition": "http://hl7.org/fhir/uv/genomics-reporting/StructureDefinition/genotype",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      {
+        "id": "Observation.status",
+        "path": "Observation.status",
+        "mustSupport": true
+      },
+      {
+        "id": "Observation.category",
+        "path": "Observation.category",
+        "mustSupport": true
+      },
+      {
+        "id": "Observation.code",
+        "path": "Observation.code",
+        "mustSupport": true
+      },
+      {
+        "id": "Observation.subject",
+        "path": "Observation.subject",
+        "min": 1,
+        "type": [
+          {
+            "code": "Reference",
+            "targetProfile": [
+              "http://hl7.org/fhir/StructureDefinition/Patient",
+              "http://hl7.org/fhir/StructureDefinition/Group"
+            ]
+          }
+        ],
+        "mustSupport": true
+      },
+      {
+        "id": "Observation.encounter",
+        "path": "Observation.encounter",
+        "mustSupport": true
+      },
+      {
+        "id": "Observation.value[x]",
+        "path": "Observation.value[x]",
+        "mustSupport": true
+      },
+      {
+        "id": "Observation.derivedFrom",
+        "path": "Observation.derivedFrom",
+        "mustSupport": true
+      },
+      {
+        "id": "Observation.component",
+        "path": "Observation.component",
+        "mustSupport": true
+      },
+      {
+        "id": "Observation.component:conclusion-string",
+        "path": "Observation.component",
+        "sliceName": "conclusion-string",
+        "mustSupport": true
+      },
+      {
+        "id": "Observation.component:gene-studied",
+        "path": "Observation.component",
+        "sliceName": "gene-studied",
+        "mustSupport": true,
+        "mapping": [
+          {
+            "identity": "MII-KDS",
+            "map": "mide-dataelement-1400",
+            "comment": "Getestete Gene ID"
+          }
+        ]
+      },
+      {
+        "id": "Observation.component:cytogenetic-location",
+        "path": "Observation.component",
+        "sliceName": "cytogenetic-location",
+        "mustSupport": true,
+        "mapping": [
+          {
+            "identity": "MII-KDS",
+            "map": "mide-dataelement-1434",
+            "comment": "Zytogenetische Lokalisierung (Lokus)"
+          }
+        ]
+      },
+      {
+        "id": "Observation.component:reference-sequence-assembly",
+        "path": "Observation.component",
+        "sliceName": "reference-sequence-assembly",
+        "mustSupport": true,
+        "mapping": [
+          {
+            "identity": "MII-KDS",
+            "map": "mide-dataelement-1788",
+            "comment": "Referenzgenom"
+          }
+        ]
+      }
+    ]
+  }
+}

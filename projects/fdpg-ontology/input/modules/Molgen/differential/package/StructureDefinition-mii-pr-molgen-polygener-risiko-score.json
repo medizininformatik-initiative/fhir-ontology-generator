@@ -1,0 +1,117 @@
+{
+  "resourceType": "StructureDefinition",
+  "id": "mii-pr-molgen-polygener-risiko-score",
+  "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/polygener-risiko-score",
+  "version": "2025.0.0",
+  "name": "MII_PR_MolGen_PolygenerRisikoScore",
+  "title": "MII PR MolGen Polygener Risiko Score",
+  "status": "active",
+  "publisher": "Medizininformatik Initiative",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://www.medizininformatik-initiative.de"
+        }
+      ]
+    }
+  ],
+  "description": "Profil für Polygenen Risiko Score",
+  "fhirVersion": "4.0.1",
+  "kind": "resource",
+  "abstract": false,
+  "type": "RiskAssessment",
+  "baseDefinition": "http://hl7.org/fhir/StructureDefinition/RiskAssessment",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      {
+        "id": "RiskAssessment.identifier",
+        "path": "RiskAssessment.identifier",
+        "mustSupport": true
+      },
+      {
+        "id": "RiskAssessment.status",
+        "path": "RiskAssessment.status",
+        "mustSupport": true
+      },
+      {
+        "id": "RiskAssessment.code",
+        "path": "RiskAssessment.code",
+        "mustSupport": true
+      },
+      {
+        "id": "RiskAssessment.subject",
+        "path": "RiskAssessment.subject",
+        "mustSupport": true
+      },
+      {
+        "id": "RiskAssessment.encounter",
+        "path": "RiskAssessment.encounter",
+        "mustSupport": true
+      },
+      {
+        "id": "RiskAssessment.occurrence[x]",
+        "path": "RiskAssessment.occurrence[x]",
+        "mustSupport": true
+      },
+      {
+        "id": "RiskAssessment.condition",
+        "path": "RiskAssessment.condition",
+        "mustSupport": true
+      },
+      {
+        "id": "RiskAssessment.basis",
+        "path": "RiskAssessment.basis",
+        "mustSupport": true
+      },
+      {
+        "id": "RiskAssessment.prediction",
+        "path": "RiskAssessment.prediction",
+        "mustSupport": true
+      },
+      {
+        "id": "RiskAssessment.prediction.extension:whenCodeableConcept",
+        "path": "RiskAssessment.prediction.extension",
+        "sliceName": "whenCodeableConcept",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "Extension",
+            "profile": [
+              "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/risk-assessment-einflussfaktor"
+            ]
+          }
+        ],
+        "mustSupport": true
+      },
+      {
+        "id": "RiskAssessment.prediction.outcome",
+        "path": "RiskAssessment.prediction.outcome",
+        "mustSupport": true
+      },
+      {
+        "id": "RiskAssessment.prediction.probability[x]",
+        "path": "RiskAssessment.prediction.probability[x]",
+        "mustSupport": true
+      },
+      {
+        "id": "RiskAssessment.prediction.qualitativeRisk",
+        "path": "RiskAssessment.prediction.qualitativeRisk",
+        "mustSupport": true
+      },
+      {
+        "id": "RiskAssessment.prediction.relativeRisk",
+        "path": "RiskAssessment.prediction.relativeRisk",
+        "mustSupport": true
+      },
+      {
+        "id": "RiskAssessment.prediction.when[x]",
+        "path": "RiskAssessment.prediction.when[x]",
+        "mustSupport": true
+      }
+    ]
+  }
+}
