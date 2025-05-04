@@ -19,6 +19,7 @@ class Filter(BaseModel):
 class Detail(BaseModel, abc.ABC):
     display: Optional[TranslationDisplayElement] = None
     description: Optional[TranslationDisplayElement] = None
+    module: Optional[TranslationDisplayElement] = None
 
 
 class ProfileReference(BaseModel):
