@@ -19,51 +19,6 @@ from cohort_selection_ontology.model.tree_map import TreeMap, TermEntryNode
 from cohort_selection_ontology.model.ui_data import TermCode
 from common.util.log.functions import get_logger
 
-
-module_translation = {
-    "de-DE": {
-        "modul-diagnose": "Diagnose",
-        "modul-prozedur": "Prozedur",
-        "modul-person": "Person",
-        "modul-labor": "Labor",
-        "modul-medikation": "Medikation",
-        "modul-fall": "Fall",
-        "modul-biobank": "Biobank",
-        "modul-consent": "Einwilligung",
-        "modul-icu": "Vitaldaten",
-        "modul-molgen": "Mollekulargenetischer Befund",
-        "modul-bildgebung": "Befunde bildgebender Verfahren",
-        "modul-onko": "Onkologie",
-        "modul-patho": "Pathologie",
-        "modul-mikrobio": "Mikrobiologie",
-        "modul-studie": "Studie"
-    },
-    "en-US": {
-        "modul-diagnose": "Diagnosis",
-        "modul-prozedur": "Procedure",
-        "modul-person": "Person",
-        "modul-labor": "Laboratory",
-        "modul-medikation": "Medication",
-        "modul-fall": "Case",
-        "modul-biobank": "Biobank",
-        "modul-consent": "Consent",
-        "modul-icu": "Vitaldata",
-        "modul-molgen": "Molecular genetics",
-        "modul-bildgebung": "--",
-        "modul-onko": "Oncology",
-        "modul-patho": "Pathology",
-        "modul-mikrobio": "Mikrobiology",
-        "modul-studie": "Study"
-    }
-}
-
-module_order = ["modul-diagnose", "modul-prozedur", "modul-person", "modul-labor", "modul-medikation", "modul-fall",
-                "modul-biobank", "modul-consent", "modul-icu"]
-
-
-reference_resolve_base_url = "https://www.medizininformatik-initiative.de"
-
-
 def configure_args_parser():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--download_packages', action='store_true')
@@ -260,6 +215,14 @@ if __name__ == '__main__':
     project = Project(args.project)
     dse_input_dir = project.input("dse")
     dse_output_dir = project.output("dse")
+
+    with open(dse_input_dir / "module_config.json", "r", encoding="utf-8") as f:
+        module_config = json.load(f)
+
+    module_translation = module_config.get("module_translation")
+    module_order = module_config.get("module_order")
+    reference_resolve_base_url = module_config.get("reference_resolve_base_url")
+
 
     if args.download_packages:
         with open(dse_input_dir / "required-packages.json", mode='r', encoding='utf-8') as f:
