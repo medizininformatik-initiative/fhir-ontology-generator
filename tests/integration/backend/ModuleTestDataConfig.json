@@ -78,5 +78,14 @@
   },
   {
     "data": ["Patient-mii-exa-test-data-patient-1.json", "Person_Condition_Todesursache_SNOMED_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Mikrobio_Diagnostik_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Mikrobio_Immunologie_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Mikrobio_Keimzahl_Patient1_Q1.json"]
   }
 ]

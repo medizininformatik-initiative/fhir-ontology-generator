@@ -1,0 +1,35 @@
+{
+  "MII_PR_Mikrobio_Empfindlichkeit": [
+    "MII_PR_Mikrobio_Empfindlichkeit"
+  ],
+  "MII_PR_Mikrobio_Molekulare_Diagnostik": [
+    "MII_PR_Mikrobio_Molekulare_Diagnostik"
+  ],
+  "MII_PR_Mikrobio_Serologie_Immunologie": [
+    "MII_PR_Mikrobio_Serologie_Immunologie"
+  ],
+  "MII_PR_Mikrobio_Keimzahl": [
+    "MII_PR_Mikrobio_Keimzahl"
+  ],
+  "MII_PR_Mikrobio_Mikroskopie": [
+    "MII_PR_Mikrobio_Mikroskopie"
+  ],
+  "MII_PR_Mikrobio_MRE_Klasse": [
+    "MII_PR_Mikrobio_MREKlasse"
+  ],
+  "MII_PR_Mikrobio_MRGN_Klasse": [
+    "MII_PR_Mikrobio_MRGNKlasse"
+  ],
+  "MII_PR_Mikrobio_Resistenzgene": [
+    "MII_PR_Mikrobio_Resistenzgene"
+  ],
+  "MII_PR_Mikrobio_Resistenzmutation": [
+    "MII_PR_Mikrobio_Resistenzmutation"
+  ],
+  "MII_PR_Mikrobio_Virulenzfaktor": [
+    "MII_PR_Mikrobio_Virulenzfaktor"
+  ],
+  "MII_PR_Mikrobio_Voraussichtliche_Empfindlichkeit": [
+    "MII_PR_Mikrobio_VoraussichtlicheEmpfindlichkeit"
+  ]
+}
