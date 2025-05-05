@@ -37,5 +37,17 @@
   ],
   "MII_PR_Onko_Systemische_Therapie_Medikation": [
     "Systemtherapie-Medikation"
+  ],
+  "MII_PR_Onko_Operation": [
+    "Operation"
+  ],
+  "MII_PR_Onko_Strahlentherapie_Neu": [
+    "Strahlentherapie"
+  ],
+  "MII_PR_Onko_Strahlentherapie_Bestrahlung_Nuklearmedizin": [
+    "Bestrahlung-Nuklearmedizin"
+  ],
+  "MII_PR_Onko_Strahlentherapie_Bestrahlung_Strahlentherapie": [
+    "Bestrahlung-Strahlentherapie"
   ]
 }
