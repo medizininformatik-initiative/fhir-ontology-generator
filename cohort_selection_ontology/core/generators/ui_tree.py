@@ -171,10 +171,9 @@ class UITreeGenerator:
         if not term_code_defining_element:
             raise Exception(
                 f"Could not resolve term code defining id {term_code_defining_id} "
-                f"in {fhir_profile_snapshot.name}"
+                f"in {fhir_profile_snapshot.url}"
             )
-        if term_code_defining_element.patternCoding is not None:
-            if term_code_defining_element.patternCoding.code is not None:
+        if (pc := term_code_defining_element.patternCoding) is not None and pc.code is not None:
                 term_code = pattern_coding_to_term_code(
                     term_code_defining_element, self.__client
                 )
@@ -186,8 +185,9 @@ class UITreeGenerator:
                         term_code.version,
                     )
                 ]
-        if term_code_defining_element.patternCodeableConcept is not None:
-            if term_code_defining_element.patternCodeableConcept.coding is not None:
+        elif ((pcc := term_code_defining_element.patternCodeableConcept) is not None
+              and (pccc := pcc.coding) is not None
+              and any(c.code is not None for c in pccc)):
                 term_code = pattern_codeable_concept_to_term_code(
                     term_code_defining_element, self.__client
                 )
@@ -199,8 +199,8 @@ class UITreeGenerator:
                         term_code.version,
                     )
                 ]
-        if term_code_defining_element.binding is not None:
-            value_set = term_code_defining_element.binding.valueSet
+        elif (binding := term_code_defining_element.binding) is not None:
+            value_set = binding.valueSet
             return [self.__client.get_term_map(value_set)]
         else:
             term_code = fhir_profile_snapshot.try_get_term_code_from_sub_elements(
