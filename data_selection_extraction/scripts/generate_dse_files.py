@@ -19,37 +19,6 @@ from cohort_selection_ontology.model.tree_map import TreeMap, TermEntryNode
 from cohort_selection_ontology.model.ui_data import TermCode
 from common.util.log.functions import get_logger
 
-
-module_translation = {
-    "de-DE": {
-        "modul-diagnose": "Diagnose",
-        "modul-prozedur": "Prozedur",
-        "modul-person": "Person",
-        "modul-labor": "Labor",
-        "modul-medikation": "Medikation",
-        "modul-fall": "Fall",
-        "modul-biobank": "Biobank",
-        "modul-consent": "Einwilligung"
-    },
-    "en-US": {
-        "modul-diagnose": "Diagnosis",
-        "modul-prozedur": "Procedure",
-        "modul-person": "Person",
-        "modul-labor": "Laboratory",
-        "modul-medikation": "Medication",
-        "modul-fall": "Case",
-        "modul-biobank": "Biobank",
-        "modul-consent": "Consent"
-    }
-}
-
-module_order = ["modul-diagnose", "modul-prozedur", "modul-person", "modul-labor", "modul-medikation", "modul-fall",
-                "modul-biobank", "modul-consent"]
-
-
-reference_resolve_base_url = "https://www.medizininformatik-initiative.de"
-
-
 def configure_args_parser():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--download_packages', action='store_true')
@@ -247,6 +216,14 @@ if __name__ == '__main__':
     dse_input_dir = project.input("dse")
     dse_output_dir = project.output("dse")
 
+    with open(dse_input_dir / "module_config.json", "r", encoding="utf-8") as f:
+        module_config = json.load(f)
+
+    module_translation = module_config.get("module_translation")
+    module_order = module_config.get("module_order")
+    reference_resolve_base_url = module_config.get("reference_resolve_base_url")
+
+
     if args.download_packages:
         with open(dse_input_dir / "required-packages.json", mode='r', encoding='utf-8') as f:
             required_packages = json.load(f)
@@ -275,7 +252,7 @@ if __name__ == '__main__':
     profile_tree = tree_generator.generate_profiles_tree()
 
     with open(dse_output_dir / "profile_tree.json", mode='w', encoding='utf-8') as f:
-        json.dump(profile_tree, f, ensure_ascii=False)
+        json.dump(profile_tree, f, ensure_ascii=False, cls=JSONFhirOntoEncoder)
 
     with open(dse_input_dir / "mapping-type-code.json", mode='r', encoding='utf-8') as f:
         mapping_type_code = json.load(f)
@@ -284,8 +261,9 @@ if __name__ == '__main__':
 
     if args.generate_profile_details:
         profiles = tree_generator.profiles
-        profile_detail_generator = ProfileDetailGenerator(profiles, mapping_type_code, blacklisted_value_sets,
-                                                          fields_to_exclude, field_trees_to_exclude, reference_resolve_base_url)
+        profile_detail_generator = ProfileDetailGenerator(project, profiles, mapping_type_code, blacklisted_value_sets,
+                                                          fields_to_exclude, field_trees_to_exclude,
+                                                          reference_resolve_base_url, module_translation)
 
         profile_details = profile_detail_generator.generate_profile_details_for_profiles_in_scope(
             SnapshotPackageScope.MII,

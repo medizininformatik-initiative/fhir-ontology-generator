@@ -13,6 +13,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 ### Security
 
+## [3.5.0] - 2025-05-05
+
+## Added
+
+- Add module display names and translations by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/251
+- Separate references into distinct field in DSE profiles by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/254
+- Add shortcut for extension fields containing references by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/255
+
 ### [3.4.0] - 2025-04-24
 
 ## Added

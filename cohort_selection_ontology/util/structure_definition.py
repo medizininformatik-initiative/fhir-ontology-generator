@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import List, Tuple, Optional
 
 from cohort_selection_ontology.core.terminology.client import CohortSelectionTerminologyClient as TerminologyClient
+from common.util.fhir.structure_definition import get_element_from_snapshot, is_element_in_snapshot
 from helper import flatten, get_display_from_element_definition
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS, ValueSet
 from cohort_selection_ontology.model.ui_data import TermCode
@@ -28,47 +29,6 @@ logger = get_logger(__file__)
 
 class InvalidValueTypeException(Exception):
     pass
-
-
-def get_element_from_snapshot(profile_snapshot, element_id) -> dict:
-    """
-    Returns the element from the given FHIR profile snapshot at the given element id
-    :param profile_snapshot: FHIR profile snapshot
-    :param element_id: element id
-    :return: element
-    """
-    if not profile_snapshot.get("snapshot"):
-        raise KeyError(f"KeyError the snapshot has no snapshot elements. The snapshot: {profile_snapshot.get('name')}")
-    try:
-        for element in profile_snapshot["snapshot"]["element"]:
-            if "id" in element and element["id"] == element_id:
-                return element
-        else:
-            raise KeyError(
-                f"Could not find element with id: {element_id} in the snapshot: {profile_snapshot.get('name')}")
-    except KeyError:
-        raise KeyError(
-            f"KeyError the element id: {element_id} is not in the snapshot or the snapshot has no snapshot "
-            f"elements. The snapshot: {profile_snapshot.get('name')}")
-    except TypeError:
-        raise TypeError(f"TypeError the snapshot is not a dict {profile_snapshot}")
-
-
-def is_element_in_snapshot(profile_snapshot, element_id) -> bool:
-    """
-    Returns true if the given element id is in the given FHIR profile snapshot
-    :param profile_snapshot: FHIR profile snapshot
-    :param element_id: element id
-    :return: true if the given element id is in the given FHIR profile snapshot
-    """
-    try:
-        for element in profile_snapshot["snapshot"]["element"]:
-            if "id" in element and element["id"] == element_id:
-                return True
-        else:
-            return False
-    except KeyError:
-        return False
 
 
 def get_profiles_with_base_definition(modules_dir_path: str | Path, base_definition: str) -> Tuple[dict, str]:

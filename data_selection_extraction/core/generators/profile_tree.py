@@ -5,6 +5,8 @@ import json
 import shutil
 from pathlib import Path
 
+from cohort_selection_ontology.model.ui_data import BulkTranslationDisplayElement, \
+    BulkTranslation
 from common.util.fhir.enums import FhirPrimitiveDataType
 from common.util.log.functions import get_class_logger
 
@@ -17,14 +19,23 @@ class SnapshotPackageScope(str, Enum):
     DEFAULT = "default"
 
 
+def get_value_for_lang_code(data: Mapping[str, Any], lang_code: str) -> Optional[str]:
+    for ext in data.get('extension', []):
+        if any(e.get('url') == 'lang' and e.get('valueCode') == lang_code for e in ext.get('extension', [])):
+            return next(e['valueString'] for e in ext['extension'] if e.get('url') == 'content')
+    return None
+
+
 class ProfileTreeGenerator:
     __logger = get_class_logger("ProfileTreeGenerator")
 
     def __init__(self, packages_dir: Path | str, snapshots_dir:  Path | str, exclude_dirs, excluded_profiles,
                  module_order, module_translation, fields_to_exclude, field_trees_to_exclude, profiles_to_process):
         self.profiles= {scope: dict() for scope in SnapshotPackageScope}
-        self.packages_dir = packages_dir
-        self.snapshots_dir = snapshots_dir
+        self.packages_dir = Path(packages_dir).resolve()
+        os.makedirs(self.packages_dir, exist_ok=True)
+        self.snapshots_dir = Path(snapshots_dir).resolve()
+        os.makedirs(self.snapshots_dir, exist_ok=True)
         self.exclude_dirs = exclude_dirs
         self.excluded_profiles = excluded_profiles
         self.module_order = module_order
@@ -39,13 +50,6 @@ class ProfileTreeGenerator:
         name = name.split(":")[-1]
         name = name.replace("[x]", "")
         return name
-
-    @staticmethod
-    def get_value_for_lang_code(data, langCode):
-        for ext in data.get('extension', []):
-            if any(e.get('url') == 'lang' and e.get('valueCode') == langCode for e in ext.get('extension', [])):
-                return next(e['valueString'] for e in ext['extension'] if e.get('url') == 'content')
-        return ""
 
     def filter_element(self, element: Mapping[str, any]) -> bool:
         # TODO: This is a temporary workaround to allow both the postal code and the country information to be selected
@@ -92,41 +96,39 @@ class ProfileTreeGenerator:
         if element["base"]["path"].split(".")[0] in {"Resource", "DomainResource"} and not "mustSupport" in element:
             return True
 
-    def get_field_names_for_profile(self, struct_def):
-
+    def get_field_names_for_profile(self, struct_def) -> BulkTranslationDisplayElement:
         names_original = []
         names_en = []
         names_de = []
 
         for element in struct_def["snapshot"]["element"]:
-
             if self.filter_element(element):
                 continue
 
-            elem_name_de = self.get_value_for_lang_code(element.get('_short', {}), "de-DE")
-            elem_name_en = self.get_value_for_lang_code(element.get('_short', {}), "en-US")
+            elem_name_de = get_value_for_lang_code(element.get('_short', {}), "de-DE")
+            elem_name_en = get_value_for_lang_code(element.get('_short', {}), "en-US")
 
             names_original.append(self.get_name_from_id(element["id"]))
 
-            if elem_name_de == "":
-                continue
+            #if elem_name_de == "":
+            #    continue
 
             names_de.append(elem_name_de)
             names_en.append(elem_name_en)
 
-        return {
-            "original": names_original,
-            "translations": [
-                {
-                    "language": "de-DE",
-                    "value": names_de
-                },
-                {
-                    "language": "en-US",
-                    "value": names_en
-                }
+        return BulkTranslationDisplayElement(
+            original=names_original,
+            translations=[
+                BulkTranslation(
+                    language="de-DE",
+                    value=names_de
+                ),
+                BulkTranslation(
+                    language="en-US",
+                    value=names_en
+                )
             ]
-        }
+        )
 
     def build_profile_path(self, path, profile, profiles):
         profile_struct = profile["structureDefinition"]
@@ -148,11 +150,11 @@ class ProfileTreeGenerator:
                     "translations": [
                         {
                             "language": "de-DE",
-                            "value": self.get_value_for_lang_code(profile_struct.get('_title', {}), "de-DE")
+                            "value": get_value_for_lang_code(profile_struct.get('_title', {}), "de-DE")
                         },
                         {
                             "language": "en-US",
-                            "value": self.get_value_for_lang_code(profile_struct.get('_title', {}), "en-US")
+                            "value": get_value_for_lang_code(profile_struct.get('_title', {}), "en-US")
                         }
                     ]
                 },
@@ -219,6 +221,9 @@ class ProfileTreeGenerator:
     def copy_profile_snapshots(self):
         #exclude_dirs = set(os.path.abspath(os.path.join(self.packages_dir, d)) for d in self.exclude_dirs)
         #print(exclude_dirs)
+        if not any(self.packages_dir.iterdir()):
+            self.__logger.warning(f"Package directory @ '{self.packages_dir}' is empty => No snapshots can be copied")
+
         package_dirs = [os.path.join(self.packages_dir, i) for i in os.listdir(self.packages_dir)
                         if os.path.isdir(os.path.join(self.packages_dir, i)) and i not in self.exclude_dirs]
         os.makedirs(os.path.join(self.snapshots_dir, "mii"), exist_ok=True)
@@ -228,36 +233,31 @@ class ProfileTreeGenerator:
             manifest_file_path = os.path.join(package_dir, "package", "package.json")
             snapshot_scope = self.determine_snapshot_scope_for_package(manifest_file_path)
 
-            for root, _ , files in os.walk(package_dir):
-                for rel_file_path in filter(lambda p: p.endswith(".json"), files):
-                    file_path = os.path.join(root, rel_file_path)
-                    if "/projects/" in file_path:
-                        continue
-
-                    try:
-                        with open(file_path, mode="r", encoding='utf-8-sig') as f:
-                            content = json.load(f)
-                            if (
-                                    # "https://www.medizininformatik-initiative.de" in content["url"]
-                                    # and
-                                    "snapshot" in content
-                                    and "resourceType" in content
-                                    and content["resourceType"] == "StructureDefinition"
-                                    # and content["baseDefinition"]
-                                    # not in ["http://hl7.org/fhir/StructureDefinition/Extension"]
-                                    # and content["status"] == "active"
-                                    and content["kind"] == "resource" or content.get("type") == "Extension"
-                                    and content["url"] not in self.excluded_profiles
-                            ):
-                                destination = os.path.join(os.path.join(self.snapshots_dir, snapshot_scope),
-                                                           os.path.basename(file_path))
-                                self.__logger.info(f"Copying snapshot file for further processing: {file_path} -> "
-                                                   f"{destination}")
-                                shutil.copy(file_path, destination)
-                    except UnicodeDecodeError:
-                        self.__logger.warning(f"File {file_path} is not a text file or cannot be read as text.")
-                    except Exception as exc:
-                        self.__logger.error(f"Failed to copy file '{file_path}'", exc_info=exc)
+            for file_path in Path(package_dir, "package").resolve().rglob("*.json"):
+                try:
+                    with open(file_path, mode="r", encoding='utf-8-sig') as f:
+                        content = json.load(f)
+                        if (
+                                # "https://www.medizininformatik-initiative.de" in content["url"]
+                                # and
+                                "snapshot" in content
+                                and "resourceType" in content
+                                and content["resourceType"] == "StructureDefinition"
+                                # and content["baseDefinition"]
+                                # not in ["http://hl7.org/fhir/StructureDefinition/Extension"]
+                                # and content["status"] == "active"
+                                and content["kind"] == "resource" or content.get("type") == "Extension"
+                                and content["url"] not in self.excluded_profiles
+                        ):
+                            destination = os.path.join(os.path.join(self.snapshots_dir, snapshot_scope),
+                                                       os.path.basename(file_path))
+                            self.__logger.info(f"Copying snapshot file for further processing: {file_path} -> "
+                                               f"{destination}")
+                            shutil.copy(file_path, destination)
+                except UnicodeDecodeError:
+                    self.__logger.warning(f"File {file_path} is not a text file or cannot be read as text.")
+                except Exception as exc:
+                    self.__logger.error(f"Failed to copy file '{file_path}'", exc_info=exc)
 
 
     def get_profile_snapshots(self):

@@ -2,10 +2,15 @@ import re
 from collections.abc import Callable
 from typing import Mapping, List, TypedDict, Any, Optional
 
-from common.exceptions.profile import MissingProfileException
-from cohort_selection_ontology.model.ui_data import TranslationElementDisplay
-from data_selection_extraction.model.detail import FieldDetail, ProfileDetail, Filter
-from common.util.fhir.enums import FhirPrimitiveDataType
+from common.exceptions.profile import MissingProfileError
+from cohort_selection_ontology.model.ui_data import TranslationDisplayElement, BulkTranslationDisplayElement, \
+    Translation
+from common.util.fhir.structure_definition import supports_type, find_type_element, get_element_from_snapshot, \
+    get_types_supported_by_element, Snapshot
+from common.util.project import Project
+from data_selection_extraction.core.generators.profile_tree import get_value_for_lang_code
+from data_selection_extraction.model.detail import FieldDetail, ProfileDetail, Filter, ProfileReference, ReferenceDetail
+from common.util.fhir.enums import FhirPrimitiveDataType, FhirComplexDataType, FhirSearchType
 
 from common.util.log.functions import get_class_logger
 
@@ -27,8 +32,9 @@ class ProfileDetailGenerator:
     fields_trees_to_exclude: List[str]
     reference_base_url: str
 
-    def __init__(self, profiles, mapping_type_code, blacklisted_value_sets, fields_to_exclude, field_trees_to_exclude,
-                 reference_base_url):
+    def __init__(self, project: Project, profiles, mapping_type_code, blacklisted_value_sets, fields_to_exclude, field_trees_to_exclude,
+                 reference_base_url, module_translation):
+        self.__project = project
         self.blacklisted_value_sets = blacklisted_value_sets
         self.profiles = profiles
         # Prevents having to generate the mapping over and over again
@@ -37,6 +43,7 @@ class ProfileDetailGenerator:
         self.fields_to_exclude = fields_to_exclude
         self.field_trees_to_exclude = field_trees_to_exclude
         self.reference_base_url = reference_base_url
+        self.module_translation = module_translation
 
     def find_and_load_struct_def_from_path(self, struct_def: Mapping[str, any], path: str):
         elements = struct_def['snapshot']["element"]
@@ -112,21 +119,19 @@ class ProfileDetailGenerator:
         return value_sets
 
     @staticmethod
-    def get_field_in_node(node, id_end):
-        if "children" not in node or node["children"] is None:
-            node["children"] = []
+    def __find_field(fields: List[FieldDetail], id_end: str) -> Optional[FieldDetail]:
+        for index in range(0, len(fields)):
+            field = fields[index]
+            if field.id.endswith(id_end):
+                return field
+        return None
 
-        children = node["children"]
-
-        for index in range(0, len(children)):
-            child = children[index]
-            if child.id.endswith(id_end):
-                return index
-
-        return -1
-
-    def insert_field_to_tree(self, tree: FieldDetail, field: FieldDetail):
-        cur_node = tree
+    def __insert_field_into_profile_detail(self, profile_detail: ProfileDetail, field: FieldDetail):
+        match field.type:
+            case FhirComplexDataType.REFERENCE:
+                fields = profile_detail.references
+            case _:
+                fields = profile_detail.fields
         path = re.split(r"[.:]", field.id)
         path = path[1:]
         parent_recommended = False
@@ -148,21 +153,20 @@ class ProfileDetailGenerator:
 
         for index in range(0, len(path) - 1):
             id_end = path[index]
-            field_child_index = self.get_field_in_node(cur_node.__dict__, id_end)
+            parent_field = self.__find_field(fields, id_end)
 
-            if field_child_index != -1:
-                cur_node = cur_node.children[field_child_index]
+            if parent_field is None:
+                continue
+
+            current_field = parent_field
+            fields = current_field.children
 
             if not parent_recommended:
-                parent_recommended = cur_node.recommended
-
+                parent_recommended = current_field.recommended
             if parent_recommended:
                 field.recommended = False
 
-        if cur_node.children is None:
-            cur_node.children = []
-
-        cur_node.children.append(field)
+        fields.append(field)
 
     def filter_element(self, element: Mapping[str, any]) -> bool:
         # TODO: This is a temporary workaround to allow both the postal code and the country information to be selected
@@ -361,9 +365,9 @@ class ProfileDetailGenerator:
                     for ext_profile_url in ext_type.get("profile", []):
                         ext_profile = self.__all_profiles.get(ext_profile_url, None)
                         if not ext_profile:
-                            raise MissingProfileException(f"Missing extension profile with URL '{ext_profile_url}' in "
-                                                          f"current scope. This can likely be fixed by adding its "
-                                                          f"snapshot to the DSE package snapshots directory")
+                            raise MissingProfileError(f"Missing extension profile with URL '{ext_profile_url}' in "
+                                                      f"current scope. This can likely be fixed by adding its "
+                                                      f"snapshot to the DSE package snapshots directory")
                         ext_elements = ext_profile.get('structureDefinition', {}).get('snapshot', {}).get('element', [])
                         ext_value_elements = list(
                             filter(lambda e: e.get('path', "").startswith("Extension.value"), ext_elements)
@@ -407,6 +411,42 @@ class ProfileDetailGenerator:
 
         return mii_references
 
+    def __determine_if_extension_elem_can_be_treated_as_reference(self, element: Mapping[str, Any], profile: Snapshot) -> bool:
+        if extension_type := find_type_element(element, FhirComplexDataType.EXTENSION):
+            supports_references = []
+
+            extension_profiles = extension_type.profile
+            if extension_profiles: # Type element does contain Extension profile references
+                for profile_url in extension_profiles:
+                    profile = self.__all_profiles.get(profile_url, {}).get('structureDefinition')
+                    if not profile:
+                        self.__logger.warning(f"Extension '{profile_url}' was not found. Consider adding it to "
+                                              f"'{self.__project.input('dse', 'snapshots')}' => "
+                                              f"Ignoring potential references")
+                    else:
+                        elem = get_element_from_snapshot(profile, "Extension.value[x]")
+                        if not elem:
+                            supports_references.append(False)
+                        else:
+                            supports_references.append(supports_type(elem, FhirComplexDataType.REFERENCE))
+                if all(supports_references):
+                    return True
+                elif any(supports_references):
+                    self.__logger.warning(f"Element '{element.get('id')}' does not purely support Extensions containing "
+                                          f"references")
+                    return True
+                else:
+                    return False
+            else: # Type element does not contain any Extension profile references
+                element_id = element.get('id') + ".value[x]"
+                value_elem = get_element_from_snapshot(profile, element_id)
+                if not value_elem:
+                    supports_references.append(False)
+                else:
+                    supports_references.append(supports_type(value_elem, FhirComplexDataType.REFERENCE))
+        else:
+            raise ValueError(f"Element '{element.get('id')}' does not support FHIR data type 'Extension'")
+
     def generate_detail_for_profile(self, profile: Mapping[str, any],
                                     profile_tree: Optional[Mapping[str, any]]=None) -> Optional[ProfileDetail]:
         profile_url = profile.get('url')
@@ -424,24 +464,37 @@ class ProfileDetailGenerator:
                 self.__logger.debug(f"Profile is not selectable according to profile tree [url='{profile_url}'] => "
                                     f"Skipping")
                 return None
-
+            profile_module = profile.get("module", "")
             profile_detail = ProfileDetail(
                 url=profile_url,
-                display=TranslationElementDisplay(
+                display=TranslationDisplayElement(
                     original=struct_def.get("title", ""),
                     translations=[
-                        {
-                            "language": "de-DE",
-                            "value": self.get_value_for_lang_code(struct_def.get("_title", {}), "de-DE")
-                        },
-                        {
-                            "language": "en-US",
-                            "value": self.get_value_for_lang_code(struct_def.get("_title", {}), "en-US")
-                        }
+                        Translation(
+                            language="de-DE",
+                            value=self.get_value_for_lang_code(struct_def.get("_title", {}), "de-DE")
+                        ),
+                        Translation(
+                            language="en-US",
+                            value=self.get_value_for_lang_code(struct_def.get("_title", {}), "en-US")
+                        )
+                    ]
+                ),
+                module = TranslationDisplayElement(
+                    original= profile_module,
+                    translations=[
+                        Translation(
+                            language="de-DE",
+                            value=self.module_translation["de-DE"].get(profile_module, profile_module)
+                        ),
+                        Translation(
+                            language="en-US",
+                            value=self.module_translation["en-US"].get(profile_module, profile_module)
+                        )
                     ]
                 ),
                 filters=[
-                    Filter(type="date", name=date_param, ui_type="timeRestriction")
+                    Filter(type=FhirSearchType.DATE, name=date_param, ui_type="timeRestriction")
                 ]
             )
 
@@ -456,17 +509,20 @@ class ProfileDetailGenerator:
 
             if value_set_urls:
                 profile_detail.filters.append(Filter(
-                    type="token",
+                    type=FhirSearchType.TOKEN,
                     name=code_search_param,
                     ui_type="code",
                     valueSetUrls=value_set_urls,
                 ))
 
-            field_tree = FieldDetail(id=struct_def.get('type'))
-            source_elements = profile["structureDefinition"]["snapshot"]["element"]
+            source_elements = profile['structureDefinition']['snapshot']['element']
 
-            for element in source_elements:
-                field_id = element["id"]
+            # We sort the elements in ascending order by length of their ID to ensure that parent elements will be
+            # processed before their children and thus generated FieldDetail instances will be inserted as children of
+            # their parent into the ProfileDetail instance by the `__insert_field_into_profile_detail` method since
+            # their parent was already inserted when they will be
+            for element in sorted(source_elements, key=lambda e: len(e['id'])):
+                field_id = element['id']
 
                 if self.filter_element(element):
                     continue
@@ -480,22 +536,30 @@ class ProfileDetailGenerator:
 
                     element = self.get_element_by_content_ref(content_reference, source_elements)
 
-                field_type = None
+                supported_types = get_types_supported_by_element(element)
+                if len(supported_types) > 1:
+                    self.__logger.warning(f"Element '{element.get('id')}' supports multiple types but only fixed typed "
+                                          f"elements can be represented faithfully at this point => Proceeding with "
+                                          f"first type listed")
+                field_type = supported_types[0].code
 
-                if "type" in element:
-                    for element_type in element["type"]:
-
-                        field_type = element_type["code"]
-
-                        if element_type["code"] == "Reference":
-                            break
-
+                if supports_type(element, FhirComplexDataType.EXTENSION):
+                    supports_reference = self.__determine_if_extension_elem_can_be_treated_as_reference(element,
+                                                                                                        struct_def)
+                    element_type = "Extension"
                 else:
-                    self.__logger.warning(f"Element '{element.get('id')}' without type => Discarding")
-                    continue
+                    supports_reference = supports_type(element, FhirComplexDataType.REFERENCE)
+                    element_type = "Reference" if supports_reference else field_type
 
                 is_recommended_field = (self.check_at_least_one_in_elem_and_true(element, ["min"]) or
                                         self.check_at_least_one_in_elem_and_true(element, ["isModifier"]))
+                # FIXME: Temporary fix to make elements of type 'Reference' not recommended due to issues in the UI
+                #        except for references to the MII Medication profile
+                if supports_reference:
+                    field_type = "Reference"
+                    if not ".medication" in field_id:
+                        is_recommended_field = False
+
                 # FIXME: Currently this value will be hard-coded to `False` since requiring researchers to include some
                 #        fields that might not have some value to their research can unnecessarily complicate access to
                 #        the data since access to these fields might require additional vetting steps and explicit
@@ -510,59 +574,86 @@ class ProfileDetailGenerator:
 
                 name = self.get_name_from_id(element["id"])
 
-                try:
-                    referenced_mii_profiles = self.get_referenced_mii_profiles(element, field_type)
-                except MissingProfileException as exc:
-                    self.__logger.warning(f"Could not resolve referenced MII profiles [element_id='{field_id}']. "
-                                          f"Reason: {exc}")
-                    referenced_mii_profiles = []
+                match field_type:
+                    case "Reference":
+                        try:
+                            referenced_mii_profiles = self.get_referenced_mii_profiles(element, element_type)
+                            referenced_mii_profiles = [ProfileReference(url=url,
+                                                                        display=self.__get_profile_title_display(
+                                                                            self.__all_profiles.get(url)
+                                                                            .get('structureDefinition')),
+                                                                        fields=self.__get_fields_for_profile(
+                                                                            url,
+                                                                            profile_tree)
+                                                                        ) for url in referenced_mii_profiles]
+                        except MissingProfileError as exc:
+                            self.__logger.warning(
+                                f"Could not resolve referenced MII profiles [element_id='{field_id}']. "
+                                f"Reason: {exc}")
+                            referenced_mii_profiles = []
 
-                field = FieldDetail(
-                    id=field_id,
-                    display=TranslationElementDisplay(
-                        original=name,
-                        translations=[
-                             {
-                                 "language": "de-DE",
-                                 "value": self.get_value_for_lang_code(element.get('_short', {}), "de-DE")
-                             },
-                             {
-                                 "language": "en-US",
-                                 "value": self.get_value_for_lang_code(element.get('_short', {}), "en-US")
-                             }
-                        ],
-                    ),
-                    description=TranslationElementDisplay(
-                        original=element.get("definition", ""),
-                        translations=[
-                            {
-                                "language": "de-DE",
-                                "value": self.get_value_for_lang_code(element.get('_definition', {}), "de-DE")
-                            },
-                            {
-                                "language": "en-US",
-                                "value": self.get_value_for_lang_code(element.get('_definition', {}), "en-US")
-                            }
-                        ]
-                    ),
-                    referencedProfiles=referenced_mii_profiles,
-                    type=field_type,
-                    recommended=is_recommended_field,
-                    required=is_required_field
+                        if len(referenced_mii_profiles) == 0:
+                            self.__logger.warning(
+                                f"Element '{element.get('id')}' references profiles that do not match any "
+                                f"MII profile => Discarding")
+                            continue
+
+                        field = ReferenceDetail(id=field_id, referencedProfiles=referenced_mii_profiles)
+
+                    case _:
+                        field = FieldDetail(id=field_id)
+                        field.type = field_type
+
+                field.display = TranslationDisplayElement(
+                    original=name,
+                    translations=[
+                         Translation(
+                             language="de-DE",
+                             value=self.get_value_for_lang_code(element.get('_short', {}), "de-DE")
+                         ),
+                         Translation(
+                             language="en-US",
+                             value=self.get_value_for_lang_code(element.get('_short', {}), "en-US")
+                        )
+                    ],
                 )
+                field.description = TranslationDisplayElement(
+                    original=element.get("definition", ""),
+                    translations=[
+                        Translation(
+                            language="de-DE",
+                            value=self.get_value_for_lang_code(element.get('_definition', {}), "de-DE")
+                        ),
+                        Translation(
+                            language="en-US",
+                            value=self.get_value_for_lang_code(element.get('_definition', {}), "en-US")
+                        )
+                    ]
+                )
+                field.recommended = is_recommended_field
+                field.required = is_required_field
 
-                if field_type == "Reference" and len(referenced_mii_profiles) == 0:
-                    self.__logger.warning(f"Element '{element.get('id')}' references profiles that do not match any "
-                                          f"MII profile => Discarding")
-                    continue
-
-                self.insert_field_to_tree(field_tree, field)
-
-            profile_detail.fields = field_tree.children
+                self.__insert_field_into_profile_detail(profile_detail, field)
 
             return profile_detail
         except Exception as exc:
             raise Exception(f"Failed to generate profile details for profile '{profile.get('url')}'") from exc
+
+    @staticmethod
+    def __find_profile_in_tree(profile_url: str, profile_tree: Mapping[str, any]) -> Optional[Mapping[str, any]]:
+        """
+        Searches for a profile in the given profile tree by its URL
+        :param profile_url: URL of the profile to search for
+        :param profile_tree: Profile tree to search in
+        :return: Profile tree entry representing the profile or `None` if no entry matches
+        """
+        if profile_tree.get('url') == profile_url:
+            return profile_tree
+        else:
+            results = [ProfileDetailGenerator.__find_profile_in_tree(profile_url, tree)
+                        for tree in profile_tree.get('children', [])]
+            results = list(filter(lambda t: t is not None, results))
+            return results[0] if len(results) > 0 else None
 
     @staticmethod
     def __is_profile_selectable(profile_url: str, profile_tree: Mapping[str, any]) -> bool:
@@ -573,11 +664,19 @@ class ProfileDetailGenerator:
         :param profile_tree: Profile tree to search
         :return: Boolean indicating whether profile is selectable
         """
-        if profile_tree.get('url') == profile_url:
-            return profile_tree.get('selectable', False)
-        else:
-            return any([ProfileDetailGenerator.__is_profile_selectable(profile_url, tree)
-                        for tree in profile_tree.get('children', [])])
+        profile = ProfileDetailGenerator.__find_profile_in_tree(profile_url, profile_tree)
+        return profile.get('selectable', False) if profile is not None else False
+
+    @staticmethod
+    def __get_fields_for_profile(profile_url: str, profile_tree: Mapping[str, any]) -> BulkTranslationDisplayElement:
+        """
+        Searches for the profile with the given profile URL in the given profile tree and returns its supported fields
+        :param profile_url: URL of the profile to return the supported fields of
+        :param profile_tree: Profile tree to search
+        :return: `BulkTranslationDisplayElement` instances representing the supported fields names
+        """
+        profile = ProfileDetailGenerator.__find_profile_in_tree(profile_url, profile_tree)
+        return profile.get('fields', [])
 
     def generate_profile_details_for_profiles_in_scope(self, scope: str,
                                                        cond: Optional[Callable[[Mapping[str, Any]], bool]] = None,
@@ -608,3 +707,18 @@ class ProfileDetailGenerator:
             else:
                 self.__logger.debug(f"Profile [url={sd.get('url')}] did not match conditions => Skipping")
         return profile_details
+
+    @staticmethod
+    def __get_profile_title_display(profile_snapshot: Mapping[str, any]) -> Optional[TranslationDisplayElement]:
+        title = profile_snapshot.get('title')
+        if title is None:
+            return None
+        else:
+            _title = profile_snapshot.get('_title', {})
+            return TranslationDisplayElement(
+                original=title,
+                translations=[
+                    Translation(language="de-DE", value=get_value_for_lang_code(_title, "de-DE")),
+                    Translation(language="en-US", value=get_value_for_lang_code(_title, "en-US"))
+                ]
+            )

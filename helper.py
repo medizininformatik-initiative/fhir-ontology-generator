@@ -11,7 +11,7 @@ from typing import List, Set, Protocol
 from typing_extensions import deprecated
 
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
-from cohort_selection_ontology.model.ui_data import TermCode, TranslationElementDisplay
+from cohort_selection_ontology.model.ui_data import TermCode, TranslationDisplayElement
 from common.exceptions.translation import MissingTranslationException
 from common.util.log.functions import get_logger
 
@@ -235,7 +235,7 @@ def get_attribute_key(element_id: str) -> str:
 
 
 def get_display_from_element_definition(snapshot_element: dict,
-                                        default: str = None) -> TranslationElementDisplay:
+                                        default: str = None) -> TranslationDisplayElement:
     """
     Extracts the display and translations from the descriptive elements within the ElementDefinition instance. If the
     identified `ElementDefinition` instance in the provided snapshot features translations for the elements short
@@ -282,10 +282,10 @@ def get_display_from_element_definition(snapshot_element: dict,
         logger.warning(f"Something went wrong when trying to extract translations from element '{snapshot_element.get('id')}'. "
                        f"Reason: {exc}", exc_info=exc)
 
-    return TranslationElementDisplay(original=display, translations=list(translations_map.values()))
+    return TranslationDisplayElement(original=display, translations=list(translations_map.values()))
 
 
-def process_element_definition(snapshot_element: dict, default: str = None) -> (TermCode, TranslationElementDisplay):
+def process_element_definition(snapshot_element: dict, default: str = None) -> (TermCode, TranslationDisplayElement):
     """
     Uses the provided ElementDefinition instance to determine the attribute code as well as associated display values
     (primary value and - if present - language variants)
