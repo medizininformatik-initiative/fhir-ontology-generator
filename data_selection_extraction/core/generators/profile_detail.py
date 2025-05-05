@@ -119,19 +119,21 @@ class ProfileDetailGenerator:
         return value_sets
 
     @staticmethod
-    def __find_field(fields: List[FieldDetail], id_end: str) -> Optional[FieldDetail]:
-        for index in range(0, len(fields)):
-            field = fields[index]
-            if field.id.endswith(id_end):
-                return field
-        return None
+    def get_field_in_node(node, id_end):
+        if "children" not in node or node["children"] is None:
+            node["children"] = []
 
-    def __insert_field_into_profile_detail(self, profile_detail: ProfileDetail, field: FieldDetail):
-        match field.type:
-            case FhirComplexDataType.REFERENCE:
-                fields = profile_detail.references
-            case _:
-                fields = profile_detail.fields
+        children = node["children"]
+
+        for index in range(0, len(children)):
+            child = children[index]
+            if child.id.endswith(id_end):
+                return index
+
+        return -1
+
+    def insert_field_to_tree(self, tree: FieldDetail, field: FieldDetail):
+        cur_node = tree
         path = re.split(r"[.:]", field.id)
         path = path[1:]
         parent_recommended = False
@@ -153,20 +155,21 @@ class ProfileDetailGenerator:
 
         for index in range(0, len(path) - 1):
             id_end = path[index]
-            parent_field = self.__find_field(fields, id_end)
+            field_child_index = self.get_field_in_node(cur_node.__dict__, id_end)
 
-            if parent_field is None:
-                continue
-
-            current_field = parent_field
-            fields = current_field.children
+            if field_child_index != -1:
+                cur_node = cur_node.children[field_child_index]
 
             if not parent_recommended:
-                parent_recommended = current_field.recommended
+                parent_recommended = cur_node.recommended
+
             if parent_recommended:
                 field.recommended = False
 
-        fields.append(field)
+        if cur_node.children is None:
+            cur_node.children = []
+
+        cur_node.children.append(field)
 
     def filter_element(self, element: Mapping[str, any]) -> bool:
         # TODO: This is a temporary workaround to allow both the postal code and the country information to be selected
@@ -467,7 +470,7 @@ class ProfileDetailGenerator:
             profile_module = profile.get("module", "")
             profile_detail = ProfileDetail(
                 url=profile_url,
-                display=TranslationDisplayElement(
+                display=TranslationElementDisplay(
                     original=struct_def.get("title", ""),
                     translations=[
                         Translation(
@@ -630,30 +633,19 @@ class ProfileDetailGenerator:
                         )
                     ]
                 )
-                field.recommended = is_recommended_field
-                field.required = is_required_field
 
-                self.__insert_field_into_profile_detail(profile_detail, field)
+                if field_type == "Reference" and len(referenced_mii_profiles) == 0:
+                    self.__logger.warning(f"Element '{element.get('id')}' references profiles that do not match any "
+                                          f"MII profile => Discarding")
+                    continue
+
+                self.insert_field_to_tree(field_tree, field)
+
+            profile_detail.fields = field_tree.children
 
             return profile_detail
         except Exception as exc:
             raise Exception(f"Failed to generate profile details for profile '{profile.get('url')}'") from exc
-
-    @staticmethod
-    def __find_profile_in_tree(profile_url: str, profile_tree: Mapping[str, any]) -> Optional[Mapping[str, any]]:
-        """
-        Searches for a profile in the given profile tree by its URL
-        :param profile_url: URL of the profile to search for
-        :param profile_tree: Profile tree to search in
-        :return: Profile tree entry representing the profile or `None` if no entry matches
-        """
-        if profile_tree.get('url') == profile_url:
-            return profile_tree
-        else:
-            results = [ProfileDetailGenerator.__find_profile_in_tree(profile_url, tree)
-                        for tree in profile_tree.get('children', [])]
-            results = list(filter(lambda t: t is not None, results))
-            return results[0] if len(results) > 0 else None
 
     @staticmethod
     def __is_profile_selectable(profile_url: str, profile_tree: Mapping[str, any]) -> bool:
@@ -664,19 +656,11 @@ class ProfileDetailGenerator:
         :param profile_tree: Profile tree to search
         :return: Boolean indicating whether profile is selectable
         """
-        profile = ProfileDetailGenerator.__find_profile_in_tree(profile_url, profile_tree)
-        return profile.get('selectable', False) if profile is not None else False
-
-    @staticmethod
-    def __get_fields_for_profile(profile_url: str, profile_tree: Mapping[str, any]) -> BulkTranslationDisplayElement:
-        """
-        Searches for the profile with the given profile URL in the given profile tree and returns its supported fields
-        :param profile_url: URL of the profile to return the supported fields of
-        :param profile_tree: Profile tree to search
-        :return: `BulkTranslationDisplayElement` instances representing the supported fields names
-        """
-        profile = ProfileDetailGenerator.__find_profile_in_tree(profile_url, profile_tree)
-        return profile.get('fields', [])
+        if profile_tree.get('url') == profile_url:
+            return profile_tree.get('selectable', False)
+        else:
+            return any([ProfileDetailGenerator.__is_profile_selectable(profile_url, tree)
+                        for tree in profile_tree.get('children', [])])
 
     def generate_profile_details_for_profiles_in_scope(self, scope: str,
                                                        cond: Optional[Callable[[Mapping[str, Any]], bool]] = None,
@@ -707,18 +691,3 @@ class ProfileDetailGenerator:
             else:
                 self.__logger.debug(f"Profile [url={sd.get('url')}] did not match conditions => Skipping")
         return profile_details
-
-    @staticmethod
-    def __get_profile_title_display(profile_snapshot: Mapping[str, any]) -> Optional[TranslationDisplayElement]:
-        title = profile_snapshot.get('title')
-        if title is None:
-            return None
-        else:
-            _title = profile_snapshot.get('_title', {})
-            return TranslationDisplayElement(
-                original=title,
-                translations=[
-                    Translation(language="de-DE", value=get_value_for_lang_code(_title, "de-DE")),
-                    Translation(language="en-US", value=get_value_for_lang_code(_title, "en-US"))
-                ]
-            )
