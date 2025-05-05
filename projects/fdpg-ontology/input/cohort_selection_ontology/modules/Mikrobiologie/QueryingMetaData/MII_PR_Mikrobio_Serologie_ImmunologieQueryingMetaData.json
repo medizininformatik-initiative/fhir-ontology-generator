@@ -1,0 +1,18 @@
+{
+  "context": {
+    "code": "mikrobiologie-serologie-immunologie",
+    "display": "Mikrobiologie Serologie/Immunologie",
+    "system": "fdpg.mii.cds",
+    "version": "1.0.0"
+  },
+  "module": {
+    "code": "mii-cds-mikrobiologie",
+    "display": "Mikrobiologie"
+  },
+  "name": "Serologische/Immunologische Untersuchung",
+  "resource_type": "Observation",
+  "term_code_defining_id": "Observation.code",
+  "time_restriction_defining_id": "Observation.effective[x]",
+  "value_defining_id": "Observation.value[x]",
+  "value_type": "concept"
+}

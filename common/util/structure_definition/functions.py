@@ -654,7 +654,7 @@ def get_element_type(element: ElementDefinition) -> str:
         if "Reference" in types and "CodeableConcept" in types:
             return "CodeableConcept"
         else:
-            raise Exception("Multiple types are currently not supported")
+            raise Exception("Multiple types are currently not supported at element: " + element.id)
     elif not element_types:
         raise Exception(
             "No type found for element "

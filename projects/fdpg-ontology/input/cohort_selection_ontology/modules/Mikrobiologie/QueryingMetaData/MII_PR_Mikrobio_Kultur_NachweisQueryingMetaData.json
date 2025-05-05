@@ -1,0 +1,21 @@
+{
+  "context": {
+    "code": "mikrobiologie-kulturnachweis",
+    "display": "Mikrobiologie Kulturnachweis",
+    "system": "fdpg.mii.cds",
+    "version": "1.0.0"
+  },
+  "module": {
+    "code": "mii-cds-mikrobiologie",
+    "display": "Mikrobiologie"
+  },
+  "name": "Kulturnachweis",
+  "resource_type": "Observation",
+  "term_code_defining_id": "Observation.code",
+  "time_restriction_defining_id": "Observation.effective[x]",
+  "attribute_defining_id_type_map": {
+    "Observation.component.where(Observation.component:NameMikroorganismus.code):NameMikroorganismus.value[x]": {
+      "type": "composite"
+    }
+  }
+}

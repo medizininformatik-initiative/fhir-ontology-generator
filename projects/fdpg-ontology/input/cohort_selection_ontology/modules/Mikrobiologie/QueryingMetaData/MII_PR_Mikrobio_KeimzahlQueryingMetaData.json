@@ -1,0 +1,22 @@
+{
+  "context": {
+    "code": "mikrobiologie-keimzahl",
+    "display": "Mikrobiologie Keimzahl",
+    "system": "fdpg.mii.cds",
+    "version": "1.0.0"
+  },
+  "module": {
+    "code": "mii-cds-mikrobiology",
+    "display": "Mikrobiologie"
+  },
+  "name": "Keimzahl",
+  "resource_type": "Observation",
+  "term_code_defining_id": "Observation.code",
+  "time_restriction_defining_id": "Observation.effective[x]",
+  "attribute_defining_id_type_map": {
+    "Observation.value[x]:valueCodeableConcept": {
+      "type": "concept",
+      "optional": true
+    }
+  }
+}
