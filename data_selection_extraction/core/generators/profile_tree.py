@@ -31,7 +31,7 @@ class ProfileTreeGenerator:
 
     def __init__(self, packages_dir: Path | str, snapshots_dir:  Path | str, exclude_dirs, excluded_profiles,
                  module_order, module_translation, fields_to_exclude, field_trees_to_exclude, profiles_to_process):
-        self.profiles= {scope: dict() for scope in SnapshotPackageScope}
+        self.profiles = {scope: dict() for scope in SnapshotPackageScope}
         self.packages_dir = Path(packages_dir).resolve()
         os.makedirs(self.packages_dir, exist_ok=True)
         self.snapshots_dir = Path(snapshots_dir).resolve()
@@ -342,6 +342,14 @@ class ProfileTreeGenerator:
         tree = {"name": "Root", "module": "no-module", "url": "no-url", "children": [], "selectable": False}
 
         for profile in self.get_suitable_mii_profiles().values():
+            # The Patient resource is selected by default due to its special status and thus there is no need to have
+            # profiles constraining this resource type in the profile tree
+            struct_def = profile.get('structureDefinition', {})
+            if struct_def.get('type') == "Patient":
+                self.__logger.info(f"Profile '{struct_def.get('id')}' will not be present in the profile tree as the "
+                                   f"Patient resource is selected by default => Skipping")
+                continue
+
             self.__logger.info(f"Processing profile {profile.get('name')}")
             try:
                 path = self.build_profile_path([], profile, self.__get_profiles(SnapshotPackageScope.MII))

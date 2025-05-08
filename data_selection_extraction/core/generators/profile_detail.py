@@ -460,10 +460,12 @@ class ProfileDetailGenerator:
             struct_def = profile["structureDefinition"]
             date_param = self.resource_type_to_date_param(struct_def['type'])
 
-            if profile_tree and not self.__is_profile_selectable(profile_url, profile_tree):
-                self.__logger.debug(f"Profile is not selectable according to profile tree [url='{profile_url}'] => "
+            if (struct_def.get('type') != "Patient" and profile_tree
+                    and not self.__is_profile_selectable(profile_url, profile_tree)):
+                self.__logger.info(f"Profile is not selectable according to profile tree [url='{profile_url}'] => "
                                     f"Skipping")
                 return None
+
             profile_module = profile.get("module", "")
             profile_detail = ProfileDetail(
                 url=profile_url,
@@ -578,6 +580,11 @@ class ProfileDetailGenerator:
                     case "Reference":
                         try:
                             referenced_mii_profiles = self.get_referenced_mii_profiles(element, element_type)
+                            # Filter out Patient resource references as they should not be selectable since the Patient
+                            # resource is selected by default
+                            referenced_mii_profiles = [url for url in referenced_mii_profiles
+                                                       if self.__all_profiles.get(url, {}).get('structureDefinition')
+                                                            .get('type') != "Patient"]
                             referenced_mii_profiles = [ProfileReference(url=url,
                                                                         display=self.__get_profile_title_display(
                                                                             self.__all_profiles.get(url)
