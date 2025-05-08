@@ -223,7 +223,6 @@ if __name__ == '__main__':
     module_order = module_config.get("module_order")
     reference_resolve_base_url = module_config.get("reference_resolve_base_url")
 
-
     if args.download_packages:
         with open(dse_input_dir / "required-packages.json", mode='r', encoding='utf-8') as f:
             required_packages = json.load(f)
