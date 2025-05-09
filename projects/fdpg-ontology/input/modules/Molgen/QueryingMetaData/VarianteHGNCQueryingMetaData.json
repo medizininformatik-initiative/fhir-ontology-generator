@@ -1,15 +1,15 @@
 {
   "context": {
-    "code": "Mollekulargenetischer Befund",
-    "display": "Mollekulargenetischer Befund",
+    "code": "Molgen",
+    "display": "Molgen",
     "system": "fdpg.mii.cds",
     "version": "1.0.0"
   },
   "module": {
-    "code": "mii-cds-Molgen",
-    "display": "Mollekulargenetischer Befund"
+    "code": "mii-cds-molgen",
+    "display": "Molgen"
   },
   "name": "MII_PR_MolGen_Variante",
   "resource_type": "Observation",
-  "term_code_defining_id": "Observation.component:gene-studied.value[x]"
+  "term_code_defining_id": "Observation.component:gene-studied.code"
 }

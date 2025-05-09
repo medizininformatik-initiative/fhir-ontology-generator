@@ -1,5 +1,18 @@
 {
   "MII_PR_MolGen_MolekulargenetischerBefundbericht": [
-    "MII_PR_MolGen_MolekulargenetischerBefundbericht"
+    "Bericht"
+  ],
+  "MII_PR_MolGen_Familienanamnese": [
+    "FamilienanamneseLOINC"
+  ],
+  "MII_PR_MolGen_TherapeutischeImplikation": [
+    "TherapeutischeImplikation"
+  ],
+  "MII_PR_MolGen_UntersuchteRegion": [
+    "UntersuchteRegion"
+  ],
+  "MII_PR_MolGen_Variante": [
+    "VarianteLOINC",
+    "VarianteHGNC"
   ]
 }
