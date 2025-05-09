@@ -1,5 +1,13 @@
+import copy
+import json
 from collections.abc import Mapping
 from typing import Any, Optional, Annotated
+
+from common.exceptions.translation import MissingTranslationException
+from common.util.log.functions import get_logger
+
+
+logger = get_logger(__file__)
 
 
 # TODO: Replace these type hints wit proper fhir.resource model classes
@@ -31,3 +39,20 @@ def get_parent_element(element: ElementDefinition, snapshot: Snapshot) -> Option
             return parents[0]
         case _:
             raise Exception(f"More than one parent element was identified [id='{parent_id}']")
+
+
+def is_structure_definition(file: str) -> bool:
+    """
+    Checks if a file is a structured definition
+    :param file: potential structured definition
+    :return: true if the file is a structured definition else false
+    """
+    with open(file, encoding="UTF-8") as json_file:
+        try:
+            json_data = json.load(json_file)
+        except json.decoder.JSONDecodeError:
+            logger.warning(f"Could not decode {file}")
+            return False
+        if json_data.get("resourceType") == "StructureDefinition":
+            return True
+        return False

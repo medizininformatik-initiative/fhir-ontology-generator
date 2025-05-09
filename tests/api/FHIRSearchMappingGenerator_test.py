@@ -134,7 +134,7 @@ class MyTestCase(unittest.TestCase):
                 "context": {
                     "code": "BloodPressure",
                     "display": "Blood Pressure",
-                    "system": "fdpg.mii.test"
+                    "system": "fdpg.mii.tests"
                 },
                 "fhirResourceType": "Observation",
                 "key": {
@@ -184,7 +184,7 @@ class MyTestCase(unittest.TestCase):
                 "context": {
                     "code": "BloodPressure",
                     "display": "Blood Pressure",
-                    "system": "fdpg.mii.test"
+                    "system": "fdpg.mii.tests"
                 },
                 "key": {
                     "code": "85354-9",
@@ -249,7 +249,7 @@ class MyTestCase(unittest.TestCase):
             "context": {
                 "code": "BloodPressure",
                 "display": "Blood Pressure",
-                "system": "fdpg.mii.test"
+                "system": "fdpg.mii.tests"
             },
             "display": "Blood pressure panel with all children optional",
             "id": "0000-0000-0000-0000",

@@ -58,15 +58,15 @@ fi
 # Step 1: Generating cohort selection ontology
 if should_run_step 1; then
     printf "\n#################\nStep 1: Generating cohort selection ontology\n#################\n"
-    cd "$BASE_DIR/projects/${PROJECT}" || exit 1
-    python3 generate_ontology.py --generate_ui_trees --generate_ui_profiles --generate_mapping
+    cd "$BASE_DIR/cohort_selection_ontology" || exit 1
+    python3 scripts/generate_ontology.py --project "${PROJECT}" --generate_ui_trees --generate_ui_profiles --generate_mapping
 fi
 
 # Step 2: Generating DSE ontology
 if should_run_step 2; then
     printf "\n#################\nStep 2: Generating DSE ontology\n#################\n"
     cd "$BASE_DIR/data_selection_extraction" || exit 1
-    python3 scripts/generate_dse_files.py  --project "${PROJECT}" --generate_profile_details --download_value_sets --generate_mapping_trees
+    python3 scripts/generate_dse_files.py --project "${PROJECT}" --generate_profile_details --download_value_sets --generate_mapping_trees
 fi
 
 # Step 3: Merging ontologies for project

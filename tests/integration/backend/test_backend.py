@@ -58,7 +58,7 @@ def get_patient_files(patient_file: str, test_data_folder: str) -> list[str]:
     """
     Collects all FHIR resource files related to a given patient file in correct order.
     :param patient_file: The filename of the patient JSON file
-    :param test_data_folder: The directory containing the test data JSON files
+    :param test_data_folder: The directory containing the tests data JSON files
     :return: Ordered list of file names (dependencies first)
     """
     with open(os.path.join(test_data_folder, patient_file), mode="r", encoding="utf-8") as f:

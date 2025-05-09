@@ -2,13 +2,12 @@ import json
 import os
 import shutil
 from collections import defaultdict
-from email.policy import default
 from os import PathLike
 from typing import Mapping, Union, Iterator, Optional
 
 from _pytest.python import Metafunc
 from pydantic import BaseModel
-from pytest_docker.plugin import Services, get_docker_services, containers_scope
+from pytest_docker.plugin import Services, get_docker_services
 
 from common import util
 import common.util.test.docker
@@ -68,7 +67,7 @@ def docker_compose_file(pytestconfig) -> str:
 
     # Copy and unpack ontology archives
     backend_path = os.path.join(tmp_path, "backend.zip")
-    shutil.copyfile(project.output("merged_ontology") / "backend.zip", backend_path)
+    shutil.copyfile(project.output.mkdirs("merged_ontology") / "backend.zip", backend_path)
     shutil.unpack_archive(backend_path, ontology_dir_path)
 
     migration_path = os.path.join(ontology_dir_path, "migration")
@@ -82,7 +81,7 @@ def docker_compose_file(pytestconfig) -> str:
     shutil.move(os.path.join(ontology_dir_path, "profile_tree.json"), dse_dir_path)
 
     mapping_path = os.path.join(tmp_path, "mapping.zip")
-    shutil.copyfile(project.output("merged_ontology") / "mapping.zip", mapping_path)
+    shutil.copyfile(project.output.mkdirs("merged_ontology") / "mapping.zip", mapping_path)
     unpacked_dir_path = os.path.join(ontology_dir_path, "mapping")
     os.makedirs(unpacked_dir_path, exist_ok=True)
     shutil.unpack_archive(mapping_path, ontology_dir_path)
@@ -98,11 +97,11 @@ def docker_compose_file(pytestconfig) -> str:
     shutil.rmtree(unpacked_dir_path)
 
     # Copy elastic archive
-    shutil.copyfile(project.output("merged_ontology") / "elastic.zip",
+    shutil.copyfile(project.output.mkdirs("merged_ontology") / "elastic.zip",
                     os.path.join(tmp_path, "elastic.zip"))
 
     yield os.path.join(__test_dir(), "docker-compose.yml")
-    #util.test.docker.save_docker_logs(__test_dir(), "integration-test")
+    #util.tests.docker.save_docker_logs(__test_dir(), "integration-tests")
 
 
 @pytest.fixture(scope="session")
@@ -221,7 +220,7 @@ def querying_metadata_schema(test_dir: Union[str, PathLike]) -> Mapping[str, any
 
 
 def __querying_metadata_list(project: Project) -> list[ResourceQueryingMetaData]:
-    modules_dir_path = project.input("modules")
+    modules_dir_path = project.input.cso.mkdirs("modules")
     metadata_list = []
     for module_dir in os.listdir(modules_dir_path): # ../modules/*
         metadata_dir_path = modules_dir_path / module_dir / "QueryingMetaData"
@@ -238,7 +237,7 @@ def querying_metadata_list(project: Project) -> list[ResourceQueryingMetaData]:
 
 def querying_metadata_id_fn(val):
     """
-    Generates test IDs for QueryingMetadata test parameters based on their backend and name
+    Generates tests IDs for QueryingMetadata tests parameters based on their backend and name
     """
     if isinstance(val, ResourceQueryingMetaData):
         return f"{val.module.code}::{val.name}"

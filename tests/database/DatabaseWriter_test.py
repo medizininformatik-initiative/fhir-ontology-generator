@@ -13,7 +13,7 @@ class DataBaseWriterTest(unittest.TestCase):
     container = None
     client = None
 
-    # before each test
+    # before each tests
     @classmethod
     def setUp(cls):
         # start up docker container with database
@@ -35,7 +35,7 @@ class DataBaseWriterTest(unittest.TestCase):
         cls.container.remove()
 
     def test_insert_term_codes(self):
-        term_codes = [TermCode("http://test.com", "test", "test"), TermCode("http://test.com", "test2", "test2")]
+        term_codes = [TermCode("http://test.com", "tests", "test"), TermCode("http://test.com", "test2", "test2")]
         self.dbw.insert_term_codes(term_codes)
         for term_code in term_codes:
             self.assertTrue(self.dbw.termcode_exists(term_code))

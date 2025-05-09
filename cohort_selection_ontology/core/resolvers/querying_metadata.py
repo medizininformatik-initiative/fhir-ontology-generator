@@ -39,7 +39,7 @@ class StandardDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
         :param module_name: Name of the module to load mapping for
         :return: A dictionary mapping profile names to lists of metadata names.
         """
-        mapping_file = self.__project.input("modules", module_name) / "profile_to_query_meta_data_resolver_mapping.json"
+        mapping_file = self.__project.input.cso.mkdirs("modules", module_name) / "profile_to_query_meta_data_resolver_mapping.json"
         with open(mapping_file, mode="r", encoding="utf-8") as f:
             return json.load(f)
 
@@ -58,7 +58,7 @@ class StandardDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
         profile_to_metadata_mapping = self.__load_profile_to_metadata_mapping(module_name)
         if profile_name in profile_to_metadata_mapping:
             for metadata_name in profile_to_metadata_mapping[profile_name]:
-                metadata_file = (self.__project.input("modules", module_name, "QueryingMetaData") /
+                metadata_file = (self.__project.input.cso.mkdirs("modules", module_name, "QueryingMetaData") /
                                  f"{metadata_name}QueryingMetaData.json")
                 with open(metadata_file, "r") as file:
                     result.append(ResourceQueryingMetaData.from_json(file))

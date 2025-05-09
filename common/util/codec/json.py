@@ -1,9 +1,26 @@
 import json
-from typing import Any
+import os
+from typing import Any, Protocol
 
 from pydantic import BaseModel
 
 from common.util.codec.functions import del_none
+
+
+class JSONSerializable(Protocol):
+    def to_json(self) -> str:
+        ...
+
+
+def write_object_as_json(serializable: JSONSerializable, file_name: str):
+    """
+    Writes a list of objects as json to a file
+    :param serializable: object that can be serialized to json
+    :param file_name: name of the file
+    """
+    os.makedirs(os.path.dirname(file_name), exist_ok=True)
+    with open(file_name, mode="w", encoding="utf-8") as f:
+        f.write(serializable.to_json())
 
 
 class JSONFhirOntoEncoder(json.JSONEncoder):
