@@ -13,6 +13,8 @@ from data_selection_extraction.model.detail import FieldDetail, ProfileDetail, F
 from common.util.fhir.enums import FhirPrimitiveDataType, FhirComplexDataType, FhirSearchType
 
 from common.util.log.functions import get_class_logger
+from data_selection_extraction.model.profile_tree import ProfileTreeNode
+from data_selection_extraction.util.fhir.profile import is_profile_selectable
 
 Profile = Mapping[str, any]
 
@@ -281,43 +283,24 @@ class ProfileDetailGenerator:
 
         return matching_mii_references
 
-    def __resolve_selectable_profiles(self, profile_url: str, module: Optional[str]=None) -> List[str]:
+    def __resolve_selectable_profiles(self, profile_url: str) -> List[str]:
         """
         Collects profile URLs of all selectable profiles given a parent profile from which other profiles in the scope
         of this class instance (all profiles in the ProfileDetailGenerator::profiles field) might be derived. If they
         are then they would also be selectable if the parent profile defines the range of a Reference element
         :param profile_url: string representing the URL of the profile from which to start the resolution
-        :param module: Optional module name string from which the profile identified by the `profile_url` parameter
-                       originates
         :return: list of URLs of selectable profiles
         """
         selectable_profiles = []
-        children = filter(lambda t: t[1].get('baseDefinition', None) == profile_url,
-                          map(lambda p: (p.get('module'), p.get('structureDefinition', {})),
-                              self.__all_profiles.values()))
-
-        # FIXME: The logic should only rely on the value of the `abstract` element of a given StructureDefinition
-        #        instance to determine whether it itself is selectable or not. Currently whether other profiles in the
-        #        same module are derived from it is used to determine "abstractness"
-        # Determine whether the parent profile itself should be included
-        if profile_url in self.__all_profiles:
-            parent_profile = self.__all_profiles.get(profile_url, {}).get('structureDefinition', None)
-            if parent_profile:
-                if not parent_profile.get('abstract', False):
-                    if all(m != module for m, _ in children):
-                        selectable_profiles.append(profile_url)
-        elif profile_url not in self.__all_profiles:
-            # TODO: Decide on right log level since this matches every time the FHIR base resource profiles are
-            #       encountered
-            # If the URL does not match any profile in any scope it might be missing
-            self.__logger.debug(f"Provided profile URL '{profile_url}' is not present and cannot be analyzed further. "
-                                f"Consider including it via dependencies if this is not intended.")
+        parent_snapshot = self.__all_profiles.get(profile_url, {}).get("structureDefinition")
+        if parent_snapshot and is_profile_selectable(parent_snapshot, self.__all_profiles):
+            selectable_profiles.append(profile_url)
 
         for child_module, child in map(lambda p: (p.get('module'), p.get('structureDefinition', {})),
                                        self.__all_profiles.values()):
             if child.get('baseDefinition', None) == profile_url:
                 child_profile_url = child.get('url', None)
-                child_selectable_profiles = self.__resolve_selectable_profiles(child_profile_url, child_module)
+                child_selectable_profiles = self.__resolve_selectable_profiles(child_profile_url)
                 selectable_profiles.extend(child_selectable_profiles)
         return selectable_profiles
 
@@ -448,7 +431,7 @@ class ProfileDetailGenerator:
             raise ValueError(f"Element '{element.get('id')}' does not support FHIR data type 'Extension'")
 
     def generate_detail_for_profile(self, profile: Mapping[str, any],
-                                    profile_tree: Optional[Mapping[str, any]]=None) -> Optional[ProfileDetail]:
+                                    profile_tree: Optional[ProfileTreeNode]=None) -> Optional[ProfileDetail]:
         profile_url = profile.get('url')
         self.__logger.info(f"Generating profile detail [url='{profile_url}']")
 
@@ -647,23 +630,23 @@ class ProfileDetailGenerator:
             raise Exception(f"Failed to generate profile details for profile '{profile.get('url')}'") from exc
 
     @staticmethod
-    def __find_profile_in_tree(profile_url: str, profile_tree: Mapping[str, any]) -> Optional[Mapping[str, any]]:
+    def __find_profile_in_tree(profile_url: str, profile_tree: ProfileTreeNode) -> Optional[ProfileTreeNode]:
         """
         Searches for a profile in the given profile tree by its URL
         :param profile_url: URL of the profile to search for
         :param profile_tree: Profile tree to search in
         :return: Profile tree entry representing the profile or `None` if no entry matches
         """
-        if profile_tree.get('url') == profile_url:
+        if profile_tree.url == profile_url:
             return profile_tree
         else:
             results = [ProfileDetailGenerator.__find_profile_in_tree(profile_url, tree)
-                        for tree in profile_tree.get('children', [])]
+                        for tree in profile_tree.children]
             results = list(filter(lambda t: t is not None, results))
             return results[0] if len(results) > 0 else None
 
     @staticmethod
-    def __is_profile_selectable(profile_url: str, profile_tree: Mapping[str, any]) -> bool:
+    def __is_profile_selectable(profile_url: str, profile_tree: ProfileTreeNode) -> bool:
         """
         Searches the profile tree to determine whether a profile (identified by the provided URL) is selectable. Returns
         False if the profile is not present in the tree or has no attribute 'selectable'
@@ -672,10 +655,10 @@ class ProfileDetailGenerator:
         :return: Boolean indicating whether profile is selectable
         """
         profile = ProfileDetailGenerator.__find_profile_in_tree(profile_url, profile_tree)
-        return profile.get('selectable', False) if profile is not None else False
+        return profile.selectable if profile is not None else False
 
     @staticmethod
-    def __get_fields_for_profile(profile_url: str, profile_tree: Mapping[str, any]) -> BulkTranslationDisplayElement:
+    def __get_fields_for_profile(profile_url: str, profile_tree: ProfileTreeNode) -> BulkTranslationDisplayElement:
         """
         Searches for the profile with the given profile URL in the given profile tree and returns its supported fields
         :param profile_url: URL of the profile to return the supported fields of
@@ -683,11 +666,11 @@ class ProfileDetailGenerator:
         :return: `BulkTranslationDisplayElement` instances representing the supported fields names
         """
         profile = ProfileDetailGenerator.__find_profile_in_tree(profile_url, profile_tree)
-        return profile.get('fields', [])
+        return profile.fields
 
     def generate_profile_details_for_profiles_in_scope(self, scope: str,
                                                        cond: Optional[Callable[[Mapping[str, Any]], bool]] = None,
-                                                       profile_tree: Mapping[str, any] = None
+                                                       profile_tree: ProfileTreeNode = None
                                                        ) -> List[ProfileDetail]:
         """
         Generate profile details for all profiles within the given scope
