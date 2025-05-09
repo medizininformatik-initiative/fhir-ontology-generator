@@ -11,12 +11,12 @@ from typing_extensions import LiteralString
 import cohort_selection_ontology.resources.cql as cql_resources
 from cohort_selection_ontology.core.terminology.client import CohortSelectionTerminologyClient
 from cohort_selection_ontology.core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
-from cohort_selection_ontology.util.structure_definition import resolve_defining_id, extract_value_type, \
+from cohort_selection_ontology.util.fhir.structure_definition import resolve_defining_id, extract_value_type, \
     extract_reference_type, \
     CQL_TYPES_TO_VALUE_TYPES, get_element_defining_elements_with_source_snapshots, get_term_code_by_id, \
     get_element_defining_elements, get_fixed_term_codes, get_element_type, translate_element_to_fhir_path_expression
 from common.exceptions.typing import UnsupportedTypingException
-from helper import generate_attribute_key
+from cohort_selection_ontology.util.fhir.structure_definition import generate_attribute_key
 from cohort_selection_ontology.model.mapping import CQLMapping, CQLAttributeSearchParameter, CQLTimeRestrictionParameter, \
     CQLTypeParameter, SimpleCardinality
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
@@ -103,7 +103,7 @@ class CQLMappingGenerator(object):
         :param module_name: Name of the module to generate the mapping for
         :return: normalized term code CQL mapping
         """
-        snapshot_dir = self.__project.input("modules", module_name, "differential", "package")
+        snapshot_dir = self.__project.input.cso.mkdirs("modules", module_name, "differential", "package")
         full_context_term_code_cql_mapping_name_mapping: Dict[Tuple[TermCode, TermCode]] | dict = {}
         full_cql_mapping_name_cql_mapping: Dict[str, CQLMapping] | dict = {}
         files = [file for file in snapshot_dir.rglob("*-snapshot.json") if file.is_file()]
@@ -125,7 +125,7 @@ class CQLMappingGenerator(object):
         :param module_name: name of the module the profile belongs to
         :return: normalized term code to CQL mapping
         """
-        modules_dir = self.__project.input("modules")
+        modules_dir = self.__project.input.cso / "modules"
         querying_meta_data: List[ResourceQueryingMetaData] = \
             self.querying_meta_data_resolver.get_query_meta_data(profile_snapshot, module_name)
         term_code_mapping_name_mapping: Dict[Tuple[TermCode, TermCode], str] | dict = {}
@@ -168,7 +168,7 @@ class CQLMappingGenerator(object):
         :param module_dir_name: Name of the module where the QueryingMetadata file and profiles snapshot are located
         :return: CQL mapping
         """
-        modules_dir = self.__project.input("modules")
+        modules_dir = self.__project.input.cso.mkdirs("modules")
         cql_mapping = CQLMapping(querying_meta_data.name)
         cql_mapping.resourceType = querying_meta_data.resource_type
         if tc_defining_id := querying_meta_data.term_code_defining_id:
@@ -280,7 +280,7 @@ class CQLMappingGenerator(object):
         cql_mapping.add_attribute(attribute)
 
     def get_composite_code(self, attribute, profile_snapshot, module_dir_name):
-        modules_dir = self.__project.input("modules")
+        modules_dir = self.__project.input.cso.mkdirs("modules")
         attribute_parsed = get_element_defining_elements(attribute, profile_snapshot, module_dir_name,
                                                                 modules_dir)
         if len(attribute_parsed) != 2:
@@ -290,7 +290,7 @@ class CQLMappingGenerator(object):
                                            module_dir_name, self.__client)[0]
 
     def get_composite_attribute_type(self, attribute, profile_snapshot, module_dir_name):
-        modules_dir = self.__project.input("modules")
+        modules_dir = self.__project.input.cso.mkdirs("modules")
         attribute_parsed = get_element_defining_elements(attribute, profile_snapshot, module_dir_name,
                                                                 modules_dir)
         if len(attribute_parsed) != 2:
@@ -324,7 +324,7 @@ class CQLMappingGenerator(object):
             return "", ""
 
     def translate_composite_attribute_to_fhir_path_expression(self, attribute, profile_snapshot, module_dir_name: str):
-        modules_dir = self.__project.input("modules")
+        modules_dir = self.__project.input.cso.mkdirs("modules")
         elements = get_element_defining_elements(attribute, profile_snapshot, module_dir_name, modules_dir)
         # first seems to be the value every time
         elements[0], _ = self.__select_element_compatible_with_cql_operations(elements[0], profile_snapshot)
@@ -357,7 +357,7 @@ class CQLMappingGenerator(object):
 
     def translate_term_element_id_to_fhir_path_expression(self, element_id, profile_snapshot,
                                                           module_dir_name: str) -> str:
-        modules_dir = self.__project.input("modules")
+        modules_dir = self.__project.input.cso.mkdirs("modules")
         elements = get_element_defining_elements(element_id, profile_snapshot, module_dir_name,
                                                         modules_dir)
         # TODO: Revisit and evaluate if this really the way to go.
@@ -379,7 +379,7 @@ class CQLMappingGenerator(object):
         :param module_dir_name: Name of the module directory
         :return: fhir search parameter
         """
-        modules_dir = self.__project.input("modules")
+        modules_dir = self.__project.input.cso.mkdirs("modules")
         elements = get_element_defining_elements(element_id, profile_snapshot, module_dir_name, modules_dir)
         expressions = translate_element_to_fhir_path_expression(elements, profile_snapshot)
         return ".".join([self.get_cql_optimized_path_expression(expression) for expression in expressions])
@@ -393,7 +393,7 @@ class CQLMappingGenerator(object):
         :param module_dir_name: Name of the module directory
         :return: fhir search parameter
         """
-        modules_dir = self.__project.input("modules")
+        modules_dir = self.__project.input.cso.mkdirs("modules")
         elements = get_element_defining_elements(element_id, profile_snapshot, module_dir_name, modules_dir)
         expressions = translate_element_to_fhir_path_expression(elements, profile_snapshot)
         return ".".join([self.get_cql_path_time_restriction(expression) for expression in expressions])
@@ -505,7 +505,7 @@ class CQLMappingGenerator(object):
         :param module_dir_name: Name of the module directory
         :return: attribute type
         """
-        modules_dir = self.__project.input("modules")
+        modules_dir = self.__project.input.cso.mkdirs("modules")
         # remove cast expression as it is irrelevant for the type
         if " as ValueSet" in attribute_id:
             attribute_id = attribute_id.replace(" as ValueSet", "")
@@ -523,7 +523,7 @@ class CQLMappingGenerator(object):
         :param module_dir_name: Name of the module directory
         :return: attribute type
         """
-        modules_dir = self.__project.input("modules")
+        modules_dir = self.__project.input.cso.mkdirs("modules")
         elements = get_element_defining_elements(attr_defining_id, profile_snapshot, module_dir_name,
                                                         modules_dir)
         for element in elements:
@@ -625,7 +625,7 @@ class CQLMappingGenerator(object):
 
     def __aggregate_cardinality_using_element_id(self, element_defining_id: str,
                                                  profile_snapshot: Snapshot, module_dir_name: str) -> SimpleCardinality:
-        modules_dir = self.__project.input("modules")
+        modules_dir = self.__project.input.cso.mkdirs("modules")
         element_results = get_element_defining_elements_with_source_snapshots(element_defining_id, profile_snapshot,
                                                                               module_dir_name, modules_dir)
         if element_results is None or len(element_results) == 0:

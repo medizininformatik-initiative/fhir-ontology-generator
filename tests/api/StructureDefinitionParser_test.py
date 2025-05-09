@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from cohort_selection_ontology.util.structure_definition import get_element_defining_elements
+from cohort_selection_ontology.util.fhir.structure_definition import get_element_defining_elements
 
 
 class StructureDefinitionParserTestCase(unittest.TestCase):

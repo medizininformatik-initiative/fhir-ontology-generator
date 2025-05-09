@@ -2,10 +2,10 @@ import json
 import os
 from typing import List
 
-from cohort_selection_ontology.util import structure_definition as sd
+from cohort_selection_ontology.util.fhir import structure_definition as sd
 from cohort_selection_ontology.core.terminology.client import CohortSelectionTerminologyClient
 from cohort_selection_ontology.core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
-from helper import is_structure_definition
+from common.util.fhir.structure_definition import is_structure_definition
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from cohort_selection_ontology.model.tree_map import (ContextualizedTermCodeInfo, ContextualizedTermCodeInfoList, 
                                                       TermEntryNode, TreeMapList, TreeMap)
@@ -29,7 +29,7 @@ class UITreeGenerator:
         self.__project = project
         self.__client = CohortSelectionTerminologyClient(self.__project)
         self.query_meta_data_resolver = querying_meta_data_resolver
-        self.__modules_dir = self.__project.input("modules")
+        self.__modules_dir = self.__project.input.cso.mkdirs("modules")
 
     def generate_ui_subtree(self, fhir_profile_snapshot: dict, module_name) -> List[TreeMap]:
         """

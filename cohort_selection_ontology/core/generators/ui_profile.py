@@ -7,13 +7,14 @@ from typing import Dict, Tuple, List
 
 from cohort_selection_ontology.core.terminology.client import CohortSelectionTerminologyClient
 from cohort_selection_ontology.core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
-from cohort_selection_ontology.util.structure_definition import InvalidValueTypeException, UCUM_SYSTEM, \
+from cohort_selection_ontology.util.fhir.structure_definition import InvalidValueTypeException, UCUM_SYSTEM, \
     get_binding_value_set_url, \
     ProcessedElementResult, get_fixed_term_codes, FHIR_TYPES_TO_VALUE_TYPES, extract_value_type, get_common_ancestor, \
     get_term_code_by_id, get_element_from_snapshot_by_path, get_units, resolve_defining_id, get_selectable_concepts, \
     get_element_defining_elements, get_element_type, get_element_defining_elements_with_source_snapshots
 from common.util.fhir.structure_definition import get_element_from_snapshot
-from helper import process_element_definition, get_display_from_element_definition
+from cohort_selection_ontology.util.fhir.structure_definition import process_element_definition
+from cohort_selection_ontology.util.fhir.structure_definition import get_display_from_element_definition
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from cohort_selection_ontology.model.ui_profile import ValueDefinition, UIProfile, AttributeDefinition, CriteriaSet
 from cohort_selection_ontology.model.ui_data import TermCode
@@ -37,7 +38,7 @@ class UIProfileGenerator:
         self.querying_meta_data_resolver = querying_meta_data_resolver
         self.module_dir: str = ""
         self.__project = project
-        self.data_set_dir: Path = self.__project.input("modules")
+        self.data_set_dir: Path = self.__project.input.cso.mkdirs("modules")
         self.__client = CohortSelectionTerminologyClient(self.__project)
 
     def generate_ui_profiles(self, module_name) -> \
@@ -49,7 +50,7 @@ class UIProfileGenerator:
         :param module_name: Name of the module to generate UI profiles for
         :return: ui profiles for all FHIR profiles in the differential directory
         """
-        modules_dir = self.__project.input("modules")
+        modules_dir = self.__project.input.cso.mkdirs("modules")
         full_context_term_code_ui_profile_name_mapping = {}
         full_ui_profile_name_ui_profile_mapping = {}
         self.module_dir = modules_dir / module_name

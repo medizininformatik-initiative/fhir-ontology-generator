@@ -1,30 +1,34 @@
 from __future__ import annotations
 
+import copy
 import json
 import os
 import re
 from collections import namedtuple
 from pathlib import Path
 from typing import List, Tuple, Optional
+from typing_extensions import deprecated
 
 from cohort_selection_ontology.core.terminology.client import CohortSelectionTerminologyClient as TerminologyClient
+from common.exceptions.translation import MissingTranslationException
+from common.util.collections.functions import flatten
 from common.util.fhir.structure_definition import get_element_from_snapshot, is_element_in_snapshot
-from helper import flatten, get_display_from_element_definition
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS, ValueSet
-from cohort_selection_ontology.model.ui_data import TermCode
+from cohort_selection_ontology.model.ui_data import TermCode, TranslationDisplayElement
 
 from importlib import resources
 from cohort_selection_ontology.resources import cql, fhir
 from common.util.log.functions import get_logger
+
+
+logger = get_logger(__file__)
 
 UCUM_SYSTEM = "http://unitsofmeasure.org"
 FHIR_TYPES_TO_VALUE_TYPES = json.load(fp=(resources.files(fhir) / 'fhir-types-to-value-types.json')
                                       .open('r', encoding='utf-8'))
 CQL_TYPES_TO_VALUE_TYPES = json.load(fp=(resources.files(cql) / 'cql-types-to-value-types.json')
                                       .open('r', encoding='utf-8'))
-
-
-logger = get_logger(__file__)
+translation_map_default = {'de-DE': {'language': "de-DE", 'value': ""}, 'en-US': {'language': "en-US", 'value': ""}}
 
 
 class InvalidValueTypeException(Exception):
@@ -237,10 +241,10 @@ def process_element_id(element_ids, profile_snapshot: dict, module_dir_name: str
         if element_id.startswith("."):
             raise ValueError("Element id must start with a resource type")
         element = get_element_from_snapshot(profile_snapshot, element_id)
-        short_desc = (element_id, get_display_from_element_definition(element)) \
-            if last_desc is None else None
+        #short_desc = (element_id, get_display_from_element_definition(element)) \
+        #    if last_desc is None else None
         result = [ProcessedElementResult(element=element, profile_snapshot=profile_snapshot, module_dir=module_dir_name,
-                                         last_short_desc=short_desc)]
+                                         last_short_desc=None)]
 
         for elem in element.get("type"):
             if elem.get("code") == "Extension":
@@ -639,3 +643,100 @@ def get_fixed_term_codes(element: dict, snapshot: dict, module_dir, data_set_dir
         if tc := try_get_term_code_from_sub_elements(snapshot, element.get("id"), module_dir, data_set_dir, client):
             return [tc]
     return []
+
+
+def get_attribute_key(element_id: str) -> str:
+    """
+    Generates the attribute key from the given element id (`ElementDefinition.id`)
+    :param element_id: Element ID the key will be based on
+    :return: Attribute key
+    """
+    if '(' and ')' in element_id:
+        element_id = element_id[element_id.rfind('(') + 1:element_id.find(')')]
+
+    if ':' in element_id:
+        element_id = element_id.split(':')[-1]
+        key = element_id.split('.')[0]
+    else:
+        key = element_id.split('.')[-1]
+
+    if not key:
+        raise ValueError(f"Could not find key for {element_id}")
+
+    return key
+
+
+@deprecated("Switch over to process_element_definition to obtain better display values")
+def generate_attribute_key(element_id: str) -> TermCode:
+    key = get_attribute_key(element_id)
+    return TermCode("http://hl7.org/fhir/StructureDefinition", key, key)
+
+
+def get_display_from_element_definition(snapshot_element: dict,
+                                        default: str = None) -> TranslationDisplayElement:
+    """
+    Extracts the display and translations from the descriptive elements within the ElementDefinition instance. If the
+    identified `ElementDefinition` instance in the provided snapshot features translations for the elements short
+    description, they will be provided as translations of the display value. The `original` display value is determined
+    as follows:
+
+    If a snapshot element with the provided if exists:
+
+    - Use the `short` element value of the snapshot element if it exists
+    - Otherwise use the `sliceName` element value of the snapshot element if it exists
+
+    Else use the attribute key code
+
+    :param snapshot_element: the element to extract (display) translations from
+    :param default: value used as display if there is no other valid source in the element definition
+    :return: TranslationDisplayElement instance holding the display value and all language variants
+    """
+    translations_map = copy.deepcopy(translation_map_default)
+    display = default
+    try:
+        if snapshot_element is None or len(snapshot_element.keys()) == 0:
+            raise MissingTranslationException(f"No translations can be extracted since an empty element was passed")
+        if snapshot_element.get("short"):
+            display = snapshot_element.get('short')
+        elif snapshot_element.get("sliceName"):
+            logger.info(f"Falling back to value of 'sliceName' for original display value of element. A short "
+                         f"description via 'short' element should be added")
+            display = snapshot_element.get('sliceName')
+
+        for lang_container in snapshot_element.get("_short", {}).get("extension", []):
+            if lang_container.get("url") != "http://hl7.org/fhir/StructureDefinition/translation":
+                continue
+            language = next(filter(lambda x: x.get("url") == "lang", lang_container.get("extension"))).get("valueCode")
+            language_value = next(filter(lambda x: x.get("url") == "content", lang_container.get("extension"))).get("valueString")
+            translations_map[language] = {'language': language, 'value': language_value}
+
+        if translations_map == translation_map_default:
+            logger.warning(f"No translation could be identified for element '{snapshot_element.get('id')}' since no "
+                           f"language extensions are present => Defaulting")
+
+    except MissingTranslationException as exc:
+        logger.warning(exc)
+    except Exception as exc:
+        logger.warning(f"Something went wrong when trying to extract translations from element '{snapshot_element.get('id')}'. "
+                       f"Reason: {exc}", exc_info=exc)
+
+    return TranslationDisplayElement(original=display, translations=list(translations_map.values()))
+
+
+def process_element_definition(snapshot_element: dict, default: str = None) -> (TermCode, TranslationDisplayElement):
+    """
+    Uses the provided ElementDefinition instance to determine the attribute code as well as associated display values
+    (primary value and - if present - language variants)
+
+    :param snapshot_element: ElementDefinition instance to process
+    :param default: value to use as fallback if there is no 'id' in the ElementDefinition
+    :return: the attribute code and suitable display values
+    """
+    if 'id' not in snapshot_element:
+        key = default
+    else:
+        key = get_attribute_key(snapshot_element.get('id'))
+
+    display = get_display_from_element_definition(snapshot_element, default=key)
+
+    return TermCode("http://hl7.org/fhir/StructureDefinition", key, display.original), display

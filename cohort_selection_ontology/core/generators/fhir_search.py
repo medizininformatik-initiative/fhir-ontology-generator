@@ -6,10 +6,10 @@ from typing import Dict, Tuple, List, OrderedDict
 from cohort_selection_ontology.core.terminology.client import CohortSelectionTerminologyClient
 from common.exceptions import NotFoundError
 from cohort_selection_ontology.core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
-from cohort_selection_ontology.util import structure_definition as sd
+from cohort_selection_ontology.util.fhir import structure_definition as sd
 from cohort_selection_ontology.core.resolvers.search_parameter import SearchParameterResolver
-from cohort_selection_ontology.util.structure_definition import extract_value_type, resolve_defining_id, FHIR_TYPES_TO_VALUE_TYPES
-from helper import generate_attribute_key
+from cohort_selection_ontology.util.fhir.structure_definition import extract_value_type, resolve_defining_id, FHIR_TYPES_TO_VALUE_TYPES
+from cohort_selection_ontology.util.fhir.structure_definition import generate_attribute_key
 from cohort_selection_ontology.model.mapping import FhirMapping
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS
@@ -43,7 +43,7 @@ class FHIRSearchMappingGenerator(object):
         self.querying_meta_data_resolver = querying_meta_data_resolver
         self.generated_mappings = []
         self.fhir_search_mapping_resolver = fhir_search_mapping_resolver
-        self.__modules_dir = self.__project.input("modules")
+        self.__modules_dir = self.__project.input.cso.mkdirs("modules")
 
     def generate_mapping(self, module_name: str) \
             -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, FhirMapping]]:
@@ -52,7 +52,7 @@ class FHIRSearchMappingGenerator(object):
         :param module_name: Name of the module
         :return: normalized term code FHIR search mapping
         """
-        snapshot_dir = self.__project.input("modules", module_name, "differential", "package")
+        snapshot_dir = self.__project.input.cso.mkdirs("modules", module_name, "differential", "package")
         full_context_term_code_fhir_search_mapping_name_mapping: Dict[Tuple[TermCode, TermCode]] = {}
         full_fhir_search_mapping_name_fhir_search_mapping: Dict[str, FhirMapping] = {}
         files = [file for file in snapshot_dir.rglob("*-snapshot.json") if file.is_file()]
@@ -84,7 +84,7 @@ class FHIRSearchMappingGenerator(object):
                 return self._resolve_composite_search_parameter(search_parameters)
             return search_parameters
         except NotFoundError as err:
-            location_hint = self.__project.input("modules", module_dir_name, "search_parameters")
+            location_hint = self.__project.input.cso.mkdirs("modules", module_dir_name, "search_parameters")
             self.__logger.error(f"Could not find search parameter for expressions {fhir_path_expressions}. If standard "
                                 f"search parameters do not suffice, consider adding a custom search parameter "
                                 f"definition to {location_hint}")

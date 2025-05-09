@@ -22,7 +22,7 @@ class ElasticSearchGenerator:
         self.__project = project
         self.__designation_resolver = TerminologyDesignationResolver(
             project,
-            project.input("translation") / "base_translations.json"
+            project.input.translation / "base_translations.json"
         )
 
     @staticmethod
@@ -188,7 +188,7 @@ class ElasticSearchGenerator:
         current_file_subindex = 1
         current_file_size = 0
 
-        elastic_dir = self.__project.output("merged_ontology", "elastic")
+        elastic_dir = self.__project.output.mkdirs("merged_ontology", "elastic")
         with (open(current_file_name, mode='a', encoding='UTF-8') as current_file):
             for obj in json_flat:
                 obj_hash = obj['hash']
@@ -253,7 +253,7 @@ class ElasticSearchGenerator:
     def __load_termcode_info(self, tree_file_name, namespace_uuid_str) -> Mapping[str, dict]:
         term_code_info_map = {}
 
-        folder = self.__project.output() / "merged_ontology" / "term-code-info"
+        folder = self.__project.output.mkdirs("merged_ontology", "term-code-info")
         pattern = r'_ui_tree_\d+.json'
         filename_prefix = re.sub(pattern, '', tree_file_name)
 
@@ -270,7 +270,7 @@ class ElasticSearchGenerator:
         return term_code_info_map
 
     def __get_hashed_tree(self) -> Mapping[str, any]:
-        directory = self.__project.input() / "elastic"
+        directory = self.__project.input.elastic
         es_onto_tree = {}
 
         for filename in os.listdir(directory):
@@ -297,12 +297,12 @@ class ElasticSearchGenerator:
     def __update_availability_on_hash_tree(self, avail_hash_tree, namespace_uuid_str):
         hash_set = set()
 
-        availability_input_dir = self.__project.input("availability")
+        availability_input_dir = self.__project.input.availability
 
         with open(availability_input_dir / "stratum-to-context.json") as f:
             stratum_to_context = json.load(f)
 
-        for filename in os.listdir(availability_input_dir):
+        for filename in os.listdir(availability_input_dir.path):
             if 'measure-report' in filename:
                 filepath = availability_input_dir / filename
 
@@ -361,9 +361,9 @@ class ElasticSearchGenerator:
                                      namespace_uuid_str='00000000-0000-0000-0000-000000000000', index_name='ontology',
                                      filename_prefix='onto_es_', max_filesize_mb=10,
                                      update_translation_supplements=False):
-        generated_ontology_dir = self.__project.output("merged_ontology")
-        translations_dir = self.__project.output("translation", "supplements")
-        availability_output_dir = self.__project.output("availability")
+        generated_ontology_dir = self.__project.output.mkdirs("merged_ontology")
+        translations_dir = self.__project.output.translation.mkdirs("supplements")
+        availability_output_dir = self.__project.output.availability
 
         extension = '.json'
         ui_tree_dir = generated_ontology_dir / "ui-trees"

@@ -1,19 +1,19 @@
 import unittest
 
-from core.docker.Images import POSTGRES_IMAGE
-from database.DataBaseWriter import DataBaseWriter
 import docker
 
-from model.MappingDataModel import CQLMapping
-from model.UIProfileModel import UIProfile
-from model.UiDataModel import TermCode
+from cohort_selection_ontology.model.mapping import CQLMapping
+from cohort_selection_ontology.model.ui_data import TermCode
+from cohort_selection_ontology.model.ui_profile import UIProfile
+from cohort_selection_ontology.util.database import DataBaseWriter
+from common.constants.docker import POSTGRES_IMAGE
 
 
 class DataBaseWriterTest(unittest.TestCase):
     container = None
     client = None
 
-    # before each test
+    # before each tests
     @classmethod
     def setUp(cls):
         # start up docker container with database
@@ -35,7 +35,7 @@ class DataBaseWriterTest(unittest.TestCase):
         cls.container.remove()
 
     def test_insert_term_codes(self):
-        term_codes = [TermCode("http://test.com", "test", "test"), TermCode("http://test.com", "test2", "test2")]
+        term_codes = [TermCode("http://test.com", "tests", "test"), TermCode("http://test.com", "test2", "test2")]
         self.dbw.insert_term_codes(term_codes)
         for term_code in term_codes:
             self.assertTrue(self.dbw.termcode_exists(term_code))
