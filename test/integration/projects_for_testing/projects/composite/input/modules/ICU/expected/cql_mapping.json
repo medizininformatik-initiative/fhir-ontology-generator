@@ -7,7 +7,7 @@
         "display": "Systolic blood pressure",
         "system": "http://loinc.org"
       },
-      "path": "Observation.component.where(code.coding.exists(system = http://loinc.org and code = 8480-6)).(Observation.component.value as Quantity)",
+      "path": "component.where(code.coding.exists(system = 'http://loinc.org' and code = '8480-6')).value.ofType(Quantity)",
       "types": [
         "Quantity"
       ]
@@ -19,7 +19,7 @@
         "display": "Diastolic blood pressure",
         "system": "http://loinc.org"
       },
-      "path": "Observation.component.where(code.coding.exists(system = http://loinc.org and code = 8462-4)).(Observation.component.value as Quantity)",
+      "path": "component.where(code.coding.exists(system = 'http://loinc.org' and code = '8462-4')).value.ofType(Quantity)",
       "types": [
         "Quantity"
       ]
