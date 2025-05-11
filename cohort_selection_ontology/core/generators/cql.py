@@ -318,7 +318,7 @@ class CQLMappingGenerator(object):
         if where_clause_match:
             remaining_string = updated_attribute_path[where_clause_match.end() - 1:]
             where_clause = self.find_balanced_parentheses(remaining_string)
-            prefix = updated_attribute_path[:where_clause_match.end() - 1 + len(where_clause)]
+            prefix = updated_attribute_path[:where_clause_match.end() - 1 + len(where_clause)].split(".",1)[-1]
             return where_clause, prefix
         else:
             return "", ""
@@ -326,10 +326,14 @@ class CQLMappingGenerator(object):
     def translate_composite_attribute_to_fhir_path_expression(self, attribute, profile_snapshot, module_dir_name: str):
         modules_dir = self.__project.input("modules")
         elements = get_element_defining_elements(attribute, profile_snapshot, module_dir_name, modules_dir)
-        expressions = translate_element_to_fhir_path_expression(elements, profile_snapshot)
+        # first seems to be the value every time
+        elements[0], _ = self.__select_element_compatible_with_cql_operations(elements[0], profile_snapshot)
+
+        expressions = translate_element_to_fhir_path_expression(elements, profile_snapshot, is_composite=True)
         value_clause = expressions[0]
         composite_code = self.get_composite_code(attribute, profile_snapshot, module_dir_name)
-        updated_where_clause = f".where(code.coding.exists(system = {composite_code.system} and code = {composite_code.code}))"
+        updated_where_clause = f".where(code.coding.exists(system = '{composite_code.system}' and code = '{composite_code.code}'))"
+        # component
         # replace original where clause in attribute using string manipulation and regex
         updated_attribute_path = re.sub(r"\.where\([^)]*\)", f"{updated_where_clause}", attribute)
 

@@ -435,12 +435,13 @@ def fixed_codeable_concept_to_term_code(element, client: TerminologyClient):
     return term_code
 
 
-def translate_element_to_fhir_path_expression(elements: List[dict], profile_snapshot) -> List[str]:
+def translate_element_to_fhir_path_expression(elements: List[dict], profile_snapshot, is_composite: bool = False) -> List[str]:
     """
     Translates an element to a fhir search parameter. Be aware not every element is translated alone to a
     fhir path expression. I.E. Extensions elements are translated together with the prior element.
     :param elements: Elements for which the fhir path expressions should be obtained
     :param profile_snapshot: Snapshot of the profile
+    :is_composite: special case for when its composite attribute.  .value.ofType(<valueType>)
     :return: FHIR path expressions
     """
     element = elements.pop(0)
@@ -458,6 +459,8 @@ def translate_element_to_fhir_path_expression(elements: List[dict], profile_snap
     if '[x]' in element_path and "Extension" not in element_path:
         element_type = get_parent_element_type(element.get("id"), profile_snapshot)
         element_path = replace_x_with_cast_expression(element_path, element_type)
+        if is_composite:
+            element_path = f"value.ofType({element_type})"
     result = [element_path]
     if elements:
         result.extend(translate_element_to_fhir_path_expression(elements, profile_snapshot))
