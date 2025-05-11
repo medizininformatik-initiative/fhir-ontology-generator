@@ -333,7 +333,6 @@ class CQLMappingGenerator(object):
         value_clause = expressions[0]
         composite_code = self.get_composite_code(attribute, profile_snapshot, module_dir_name)
         updated_where_clause = f".where(code.coding.exists(system = '{composite_code.system}' and code = '{composite_code.code}'))"
-        # component
         # replace original where clause in attribute using string manipulation and regex
         updated_attribute_path = re.sub(r"\.where\([^)]*\)", f"{updated_where_clause}", attribute)
 
