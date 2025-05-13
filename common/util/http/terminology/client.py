@@ -22,9 +22,6 @@ class FhirTerminologyClient(BaseClient):
                  timeout: float = 60):
         super().__init__(base_url, auth, cert, timeout)
 
-    def __del__(self):
-        super().__del__()
-
     @staticmethod
     def from_project(project: Project, auth: Optional[type[AuthBase]] = None, timeout: float = 60):
         if 'ONTOLOGY_SERVER_ADDRESS' in project.env:

@@ -255,6 +255,7 @@ class DataBaseWriter:
         Links a list of contextualized term codes to their corresponding ui profiles
         :param contextualized_term_codes: List of tuples each containing a context, a term code, and a UI profile name
         """
+        self.__logger.info("Linking contextualized term codes to UI profiles")
         values = [(self.calculate_context_term_code_hash(context, term_code), context.system, context.code,
                    context.version if context.version else '',
                    term_code.system, term_code.code, term_code.version if term_code.version else '',
