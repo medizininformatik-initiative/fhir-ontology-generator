@@ -316,7 +316,7 @@ def generate_ui_profiles(
     db_writer.write_ui_profiles_to_db(
         contextualized_term_code_ui_profile_mapping, named_ui_profiles_dict
     )
-    logger.info(f"UI profiles: {contextualized_term_code_ui_profile_mapping.values()}")
+    logger.info(f"UI profiles: {set(contextualized_term_code_ui_profile_mapping.values())}")
     db_writer.write_vs_to_db(named_ui_profiles_dict.values())
     write_used_value_sets_to_files(named_ui_profiles_dict.values(), os.path.join(onto_result_dir, 'value-sets'))
     write_used_criteria_sets_to_files(named_ui_profiles_dict.values(), os.path.join(onto_result_dir, 'criteria-sets'))
