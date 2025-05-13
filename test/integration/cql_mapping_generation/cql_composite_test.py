@@ -6,12 +6,16 @@ from cohort_selection_ontology.core.generators.cql import CQLMappingGenerator
 from cohort_selection_ontology.core.resolvers.querying_metadata import StandardDataSetQueryingMetaDataResolver
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from common.util.project import Project
-from test.integration.backend.conftest import test_dir
 
 
-def test_cql_composite_attributes(test_dir):
-    test_project_dir = os.path.join(test_dir, "..", "projects_for_testing", "projects", "composite")
-    test_project = Project("test-cql-mapping-composite", path=test_project_dir)
+def test_cql_composite_attributes():
+    # set path so that generate_cql_mapping works as expected
+    test_dir = os.path.dirname(os.path.realpath(__file__))
+    working_directory = os.path.realpath(os.path.join(test_dir, ".."))
+    os.chdir(working_directory)
+
+    test_project_dir = os.path.join(test_dir, "composite")
+    test_project = Project("composite", path=test_project_dir)
     module_dir = os.path.join(test_project_dir, "input", "modules", "ICU")
 
     with open(os.path.join(module_dir, "expected", "cql_mapping.json")) as f:
@@ -27,10 +31,6 @@ def test_cql_composite_attributes(test_dir):
     with open(os.path.join(module_dir, "differential", "package",
                            "sd-mii-icu-muv-arterieller-blutdruck-snapshot.json"), 'r', encoding="utf-8") as f:
         profile_snapshot = json.load(f)
-
-    # set path so that generate_cql_mapping works as expected
-    working_directory = os.path.realpath(os.path.join(test_dir, ".."))
-    os.chdir(working_directory)
 
     resolver = StandardDataSetQueryingMetaDataResolver(test_project)
     cql_generator = CQLMappingGenerator(test_project, resolver)

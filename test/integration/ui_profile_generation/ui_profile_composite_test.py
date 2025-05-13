@@ -6,12 +6,13 @@ from cohort_selection_ontology.core.resolvers.querying_metadata import StandardD
 from cohort_selection_ontology.core.generators.ui_profile import UIProfileGenerator
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from common.util.project import Project
-from test.integration.backend.conftest import test_dir
 
 
-def test_ui_profile_composite_attributes(test_dir):
-    test_project_dir = os.path.join(test_dir, "..", "projects_for_testing", "projects", "composite")
-    test_project = Project("test-cql-mapping-composite", path=test_project_dir)
+def test_ui_profile_composite_attributes():
+    test_dir = os.path.dirname(os.path.realpath(__file__))
+
+    test_project_dir = os.path.join(test_dir, "composite")
+    test_project = Project("composite", path=test_project_dir)
     module_dir = os.path.join(test_project_dir, "input", "modules", "ICU")
 
     resolver = StandardDataSetQueryingMetaDataResolver(test_project)
