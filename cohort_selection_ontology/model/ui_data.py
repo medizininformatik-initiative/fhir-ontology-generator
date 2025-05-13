@@ -50,6 +50,7 @@ def del_keys(dictionary, keys):
 
 
 class CategoryEntry:
+    # TODO: is this class still in use? else mark as deprecated
     DO_NOT_SERIALIZE = ["path", "DO_NOT_SERIALIZE"]
 
     def __init__(self, entry_id, display, path):
@@ -73,8 +74,7 @@ class CategoryEntry:
                           sort_keys=True, indent=4)
 
 
-@dataclass
-class Module:
+class Module(BaseModel):
     code: str
     display: str
 
@@ -82,16 +82,9 @@ class Module:
         return {"code": self.code,
                 "display": self.display}
 
-@dataclass
-class RelationalTermcode:
+class RelationalTermcode(BaseModel):
     contextualized_termcode_hash: str
     display: str | dict
-
-    def to_dict(self):
-        return {
-            "contextualized_termcode_hash": self.contextualized_termcode_hash,
-            "display": self.display
-        }
 
 
 class Translation(BaseModel):
@@ -113,21 +106,20 @@ class BulkTranslationDisplayElement(BaseModel):
     original: List[str] = []
     translations: List[BulkTranslation] = []
 
-
-@dataclass
-class TermCode:
+class TermCode(BaseModel):
     """
-    A TermCode represents a concept from a terminology system.
-    :system: the terminology system
-    :code: the code for the concept
-    :display: the display for the concept
-    :version: the version of the terminology system
+    A TermCode represents a concept from a terminology system.::
+
+        :system: the terminology system
+        :code: the code for the concept
+        :display: the display for the concept
+        :version: the version of the terminology system
     """
 
     system: str
     code: str
     display: str | TranslationDisplayElement
-    version: str = None
+    version: str | None = None
 
     def __eq__(self, other):
         if isinstance(other, TermCode):
@@ -153,68 +145,45 @@ class TermCode:
             return {"system": self.system, "code": self.code, "display": self.display, "version": self.version}
         if isinstance(self.display, TranslationDisplayElement):
             return {"system": self.system, "code": self.code, "display": self.display.model_dump_json(), "version": self.version}
+        return None
 
 
-class ValueDefinition:
-    """
-    A ValueDefinition defines the value. Contrary to the AttributeDefinition, the ValueDefinition refers to the value
-    defined by the term code of the concept. I.e. the LOINC Code 3137-7 (Body height) defines the value. While the
-    SNOMED CT Code 119361006 (Plasma specimen) does not define the value, but the specimen. To express the extraction
-    location an AttributeDefinition for the body site is used.
-    :param value_type: defines the type of the value
-    :param selectable_concepts: defines the selectable concepts for the value if the type is "concept"
-    :param allowed_units: defines the allowed units for the value if the value type is "quantity"
-    :param precision: defines the precision for the value if the value type is "quantity"
-    :param min_val: defines the minimum value if the value type is "quantity"
-    :param max_val: defines the maximum value if the value type is "quantity"
-    """
-
-    def __init__(self, value_type, selectable_concepts: List[TermCode] | None = None,
-                 allowed_units: List[TermCode] | None = None, precision: int | None = None,
-                 min_val: float | None = None, max_val: float | None = None):
-        self.type = value_type
-        self.referencedValueSet = selectable_concepts if selectable_concepts else []
-        self.allowedUnits = allowed_units if allowed_units else []
-        self.precision = precision if precision else 1
-        self.min: float = min_val
-        self.max: float = max_val
-
-
-class AttributeDefinition(ValueDefinition):
-    """
-    An AttributeDefinition defines an attribute.
-    """
-
-    def __init__(self, attribute_code, value_type, optional: bool = True):
-        super().__init__(value_type)
-        self.attributeCode = attribute_code
-        self.optional = optional
-
-
-class Unit:
+class Unit(BaseModel):
+    # TODO: is this still in use? else mark as deprecated
     """
     Defines a unit from the UCUM code system
     :param display: the display name of the unit
     :param code: the UCUM code of the unit
     """
+    display: str
+    code: str
 
-    def __init__(self, display, code):
-        self.display = display
-        self.code = code
+    # def __init__(self, display, code):
+    #     self.display = display
+    #     self.code = code
 
 
 class TermEntry(object):
-    DO_NOT_SERIALIZE = ["terminologyType", "path", "DO_NOT_SERIALIZE", "fhirMapperType", "termCode", "valueDefinitions",
-                        "root"]
+    # TODO: is this still in use? else mark as deprecated
     """
     A TermEntry represents a medical concept. TermEntries are organized in a tree structure.
-    It's concept is defined by one or more TermCodes in a specific context.
-    :param term_codes: A list of TermCodes that define the concept of this TermEntry
-    :param terminology_type
-    :param leaf: True if this TermEntry has no children
-    :param selectable: True if this TermEntry can be selected by the user
-    :param context: The context of this TermEntry. All children of this TermEntry will have the same context.
+    It's concept is defined by one or more TermCodes in a specific context.::
+
+        :param term_codes: A list of TermCodes that define the concept of this TermEntry
+        :param terminology_type
+        :param leaf: True if this TermEntry has no children
+        :param selectable: True if this TermEntry can be selected by the user
+        :param context: The context of this TermEntry. All children of this TermEntry will have the same context.
     """
+    DO_NOT_SERIALIZE = [
+        "terminologyType",
+        "path",
+        "DO_NOT_SERIALIZE",
+        "fhirMapperType",
+        "termCode",
+        "valueDefinitions",
+        "root",
+    ]
 
     # TODO: context should be after term_codes. This would be a breaking change -> requires updating all uses of this \
     # class
@@ -260,7 +229,7 @@ class TermEntry(object):
         return json.dumps(self, default=lambda o: del_none(
             del_keys(o.__dict__, self.DO_NOT_SERIALIZE)), sort_keys=True, indent=4)
 
-    def get_leaves(self):
+    def get_leaves(self)->List[TermEntry]:
         """
         Returns all leaves of the TermEntry tree
         :return: the leaves of the TermEntry tree
@@ -273,6 +242,6 @@ class TermEntry(object):
                 result += child
         return result
 
-    def to_v1_entry(self, ui_profile):
+    def to_v1_entry(self, ui_profile)->None:
         for key, value in ui_profile.__dict__.items():
             setattr(self, key, value)

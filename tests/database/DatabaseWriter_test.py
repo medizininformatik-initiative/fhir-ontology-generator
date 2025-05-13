@@ -35,14 +35,14 @@ class DataBaseWriterTest(unittest.TestCase):
         cls.container.remove()
 
     def test_insert_term_codes(self):
-        term_codes = [TermCode("http://test.com", "tests", "test"), TermCode("http://test.com", "test2", "test2")]
+        term_codes = [TermCode(system="http://test.com", code="tests", display="test"), TermCode(system="http://test.com", code="test2", display="test2")]
         self.dbw.insert_term_codes(term_codes)
         for term_code in term_codes:
             self.assertTrue(self.dbw.termcode_exists(term_code))
 
     def test_insert_ui_profile(self):
-        term_code = TermCode("http://test.com", "test", "test")
-        context = TermCode("http://test.com", "context", "context")
+        term_code = TermCode(system="http://test.com", code="test", display="test")
+        context = TermCode(system="http://test.com", code="context", display="context")
         ui_profile = UIProfile("test")
         self.dbw.insert_term_codes([term_code])
         self.dbw.insert_context_codes([context])
@@ -50,13 +50,13 @@ class DataBaseWriterTest(unittest.TestCase):
         self.assertTrue(UIProfile(**self.dbw.get_ui_profile(context, term_code)) == ui_profile)
 
     def test_insert_value_set(self):
-        term_codes = [TermCode("http://test.com", "test", "test"), TermCode("http://test.com", "test2", "test2")]
+        term_codes = [TermCode(system="http://test.com", code="test", display="test"), TermCode(system="http://test.com", code="test2", display="test2")]
         self.dbw.add_critieria_set("test", term_codes)
         self.assertTrue(self.dbw.get_term_codes_from_value_set("test") == term_codes)
 
     def test_insert_mapping(self):
-        term_code = TermCode("http://test.com", "test", "test")
-        context = TermCode("http://test.com", "context", "context")
+        term_code = TermCode(system="http://test.com", code="test", display="test")
+        context = TermCode(system="http://test.com", code="context", display="context")
         mapping = CQLMapping("test")
         self.dbw.insert_term_codes([term_code])
         self.dbw.insert_context_codes([context])

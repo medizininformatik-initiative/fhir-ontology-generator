@@ -13,6 +13,7 @@
   },
   "term_code_defining_id": "Observation.code.coding:loinc",
   "value_defining_id": "Observation.value[x].coding:Vitalstatus",
+  "value_type": "code",
   "value_optional": false,
   "time_restriction_defining_id": "Observation.effective[x]"
 }

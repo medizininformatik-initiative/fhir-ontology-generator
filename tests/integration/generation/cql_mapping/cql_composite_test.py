@@ -5,6 +5,7 @@ import pytest
 from cohort_selection_ontology.core.generators.cql import CQLMappingGenerator
 from cohort_selection_ontology.core.resolvers.querying_metadata import StandardDataSetQueryingMetaDataResolver
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
+from common.model.structure_definition import StructureDefinitionSnapshot
 from common.util.project import Project
 
 
@@ -26,7 +27,7 @@ def test_cql_composite_attributes():
 
     with open(module_dir / "differential" / "package" / "sd-mii-icu-muv-arterieller-blutdruck-snapshot.json", 'r',
               encoding="utf-8") as f:
-        profile_snapshot = json.load(f)
+        profile_snapshot = StructureDefinitionSnapshot.model_validate_json(f.read())
 
     resolver = StandardDataSetQueryingMetaDataResolver(test_project)
     cql_generator = CQLMappingGenerator(test_project, resolver)

@@ -145,7 +145,7 @@ def ui_profile_sql_import(docker_services, test_dir: Path) -> Path:
 
 def import_sql_file(file_path: Path, conn: connection, cont: Container):
     logger.debug(f"Importing SQL data from {file_path}")
-    cmd = f"sh -c 'psql -U {conn.info.user} -d {conn.info.dbname} < {file_path}'"
+    cmd = f"sh -c 'psql -U {conn.info.user} -d {conn.info.dbname} < {file_path.as_posix()}'"
     result = cont.exec_run(cmd=cmd)
     if result.exit_code != 0:
         logger.warning(f"Import failed [exit_code={result.exit_code}, output='{result.output}']")
