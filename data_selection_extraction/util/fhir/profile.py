@@ -1,14 +1,14 @@
 from collections.abc import Mapping
 from typing import Any, List
 
-from common.util.fhir.structure_definition import Snapshot
+from common.model.structure_definition import StructureDefinitionSnapshot
 from common.util.log.functions import get_logger
 
 
 logger = get_logger(__file__)
 
 
-def is_profile_selectable(snapshot: Snapshot, profiles: Mapping[str, Mapping[str, Any]]) -> bool:
+def is_profile_selectable(snapshot: StructureDefinitionSnapshot, profiles: Mapping[str, Mapping[str, Any]]) -> bool:
     """
     Determines the profile represented by the provided profile snapshot is selectable
     :param snapshot: Profile snapshot for which to determine whether it can be selected
@@ -20,14 +20,18 @@ def is_profile_selectable(snapshot: Snapshot, profiles: Mapping[str, Mapping[str
     #        same module are derived from it is used to determine "abstractness"
     if snapshot is None:
         return False
-    children = filter(lambda t: t[1].get('baseDefinition', None) == profile_url,
-                      map(lambda p: (p.get('module'), p.get('structureDefinition', {})),
-                          profiles.values()))
+    children = filter(
+        lambda t: t[1].baseDefinition == profile_url,
+        map(
+            lambda p: (p.get("module"), p.get("structureDefinition", {})),
+            profiles.values(),
+        ),
+    )
 
-    profile_url = snapshot.get('url')
+    profile_url = snapshot.url
     if profile_url in profiles:
         module = profiles.get(profile_url).get('module')
-        if not snapshot.get('abstract', False):
+        if not snapshot.abstract:
             return all(m != module for m, _ in children)
     else:
         # TODO: Decide on right log level since this matches every time the FHIR base resource profiles are

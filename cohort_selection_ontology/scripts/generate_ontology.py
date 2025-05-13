@@ -227,16 +227,16 @@ def configure_args_parser() -> argparse.ArgumentParser:
         "--generate_snapshot", action="store_true", help="Generate FHIR snapshots"
     )
     parser.add_argument(
-        "--generate_ui_trees", action="store_true", help="Generate UI trees"
+            "--generate_ui_trees", action="store_true", help="Generate UI trees"
     )
     parser.add_argument(
-        "--generate_ui_profiles", action="store_true", help="Generate UI profiles"
+            "--generate_ui_profiles", action="store_true", help="Generate UI profiles"
     )
     parser.add_argument(
-        "--generate_mapping", action="store_true", help="Generate mappings"
+            "--generate_mapping", action="store_true", help="Generate mappings"
     )
     parser.add_argument(
-        "--module", nargs="+", help="Modules to generate the ontology for"
+            "--module", nargs="+", help="Modules to generate the ontology for"
     )
     return parser
 
@@ -310,7 +310,7 @@ def generate_ui_trees(
     """
     logger.info("Generating UI trees...")
     result_dir = project.output.cso.mkdirs("modules", module_name)
-    tree_generator = UITreeGenerator(project, resolver)
+    tree_generator = UITreeGenerator(project=project, querying_meta_data_resolver=resolver)
     ui_trees = [tree_generator.generate_module_ui_tree(module_name)]
     write_ui_trees_to_files(ui_trees, module_name, result_dir / "ui-trees")
 
@@ -337,7 +337,7 @@ def generate_ui_profiles(
     resolver: ResourceQueryingMetaDataResolver,
     db_writer: DataBaseWriter,
     module_name: str,
-    project: Project,
+    project: Project
 ):
     """
     Generates UI profiles and writes them to files and database
@@ -348,13 +348,13 @@ def generate_ui_profiles(
     """
     logger.info("Generating UI profiles...")
     result_dir = project.output.cso.mkdirs("modules", module_name)
-    profile_generator = UIProfileGenerator(project, resolver)
+    profile_generator = UIProfileGenerator(project, querying_meta_data_resolver=resolver)
     (
         contextualized_term_code_ui_profile_mapping,
         named_ui_profiles_dict,
     ) = profile_generator.generate_ui_profiles(module_name=module_name)
     write_ui_profiles_to_files(
-        named_ui_profiles_dict.values(), result_dir / "ui-profiles"
+        named_ui_profiles_dict.values(), result_dir / 'ui-profiles'
     )
     db_writer.write_ui_profiles_to_db(
         contextualized_term_code_ui_profile_mapping, named_ui_profiles_dict
@@ -392,7 +392,7 @@ def generate_cql_mapping(
     """
     try:
         logger.info("Generating CQL mapping")
-        cql_generator = CQLMappingGenerator(project, resolver)
+        cql_generator = CQLMappingGenerator(project, querying_meta_data_resolver=resolver)
         cql_term_code_mappings, cql_concept_mappings = cql_generator.generate_mapping(
             module_name
         )
@@ -413,7 +413,9 @@ def generate_cql_mapping(
 
 
 def generate_fhir_mapping(
-    resolver: ResourceQueryingMetaDataResolver, module_name: str, project: Project
+    resolver: ResourceQueryingMetaDataResolver,
+    module_name: str,
+    project: Project
 ):
     """
     Generates FHIR mappings and writes them to files.
@@ -423,10 +425,10 @@ def generate_fhir_mapping(
     """
     logger.info("Generating FHIR mapping")
     search_parameter_resolver = StandardSearchParameterResolver(
-        project.input.cso.mkdirs("modules", module_name)
+        module_path=project.input.cso.mkdirs("modules", module_name)
     )
     fhir_search_generator = FHIRSearchMappingGenerator(
-        project, resolver, search_parameter_resolver
+        project=project, querying_meta_data_resolver=resolver, fhir_search_mapping_resolver=search_parameter_resolver
     )
     fhir_search_term_code_mappings, fhir_search_concept_mappings = (
         fhir_search_generator.generate_mapping(module_name)
@@ -487,7 +489,7 @@ def main():
                 if args.generate_snapshot:
                     generate_snapshots(input_modules_dir / module, required_packages)
 
-            resolver = StandardDataSetQueryingMetaDataResolver(project)
+            resolver = StandardDataSetQueryingMetaDataResolver(project=project)
             if args.generate_ui_trees:
                 generate_ui_trees(resolver, module, project)
 
@@ -511,6 +513,7 @@ def main():
             # Stop and remove the container
             container.stop()
             container.remove()
+
 
 
 if __name__ == "__main__":

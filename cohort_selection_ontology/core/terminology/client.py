@@ -38,7 +38,7 @@ def remove_non_direct_ancestors(parents: List[str], input_map: dict):
 
 class CohortSelectionTerminologyClient(FhirTerminologyClient):
     __logger = get_logger("CohortSelectionTerminologyClient")
-    POSSIBLE_CODE_SYSTEMS = frozenset(["http://loinc.org", "http://snomed.info/sct"])
+    POSSIBLE_CODE_SYSTEMS:frozenset[str] = frozenset(["http://loinc.org", "http://snomed.info/sct"])
 
     __project: Project
 
@@ -86,7 +86,7 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
                     version = contains["version"]
                 else:
                     version = global_version
-                term_code = TermCode(system, code, display, version)
+                term_code = TermCode(system=system, code=code, display=display, version=version)
                 term_codes.add(term_code)
         else:
             self.__logger.warning(f"Failed to expand value set '{url}' => Returning empty expansion")
@@ -104,7 +104,7 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         self.create_concept_map()
         vs = self.expand_value_set(canonical_url)
         treemap: TreeMap = TreeMap({}, None, None, None)
-        treemap.entries = {term_code.code: TermEntryNode(term_code) for term_code in vs}
+        treemap.entries = {term_code.code: TermEntryNode(term_code=term_code) for term_code in vs}
         treemap.system = vs[0].system
         treemap.version = vs[0].version
         try:
@@ -195,7 +195,7 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
                     version = None
                     if "version" in contains:
                         version = contains["version"]
-                    term_code = TermCode(system, code, display, version)
+                    term_code = TermCode(system=system, code=code, display=display, version=version)
                     term_codes.add(term_code)
         return term_codes
 
@@ -221,7 +221,7 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         """
         value_set_canonical_url = value_set_canonical_url.replace("|", "&version=")
         term_codes = self.expand_value_set(value_set_canonical_url)
-        return [ContextualizedTermCodeInfo(term_code) for term_code in term_codes]
+        return [ContextualizedTermCodeInfo(term_code=term_code) for term_code in term_codes]
 
     def get_termcodes_for_value_set(self, value_set_canonical_url: str) -> \
             List[TermCode]:
@@ -244,7 +244,7 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         system = contains["system"]
         code = contains["code"]
         display = contains["display"]
-        term_code = TermCode(system, code, display)
+        term_code = TermCode(system=system, code=code, display=display)
         if system == "http://snomed.info/sct":
             if "designation" in contains:
                 for designation in contains["designation"]:
@@ -294,7 +294,7 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         display = self.get_term_code_display(system, code)
         if display.isupper():
             display = display.title()
-        term_code = TermCode(system, code, display)
+        term_code = TermCode(system=system, code=code, display=display)
         return term_code
 
 
@@ -309,7 +309,7 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         display = self.get_term_code_display(system, code)
         if display.isupper():
             display = display.title()
-        term_code = TermCode(system, code, display)
+        term_code = TermCode(system=system, code=code, display=display)
         return term_code
 
     @staticmethod
@@ -330,6 +330,7 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         return value_set
 
     def get_term_codes_by_id_from_term_server(self, element_id: str, profile_data: dict) -> List[TermCode]:
+        # TODO: not used in project. Obsolete?
         """
         Get the term codes from the profile data based on the given id element.
         :param element_id: Value of the id element of the profile
@@ -367,7 +368,7 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
                     code = element["fixedCode"]
             if system and code:
                 display = self.get_term_code_display(system, code)
-                term_code = TermCode(system, code, display)
+                term_code = TermCode(system=system, code=code, display=display)
                 return term_code
         return None
 

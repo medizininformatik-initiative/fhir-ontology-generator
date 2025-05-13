@@ -15,10 +15,7 @@ from cohort_selection_ontology.core.terminology.client import (
 )
 from common.exceptions.translation import MissingTranslationException
 from common.util.collections.functions import flatten
-from common.util.fhir.structure_definition import (
-    get_element_from_snapshot,
-    is_element_in_snapshot,
-)
+from common.model.structure_definition import StructureDefinition
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS, ValueSet
 from cohort_selection_ontology.model.ui_data import TermCode, TranslationDisplayElement
 

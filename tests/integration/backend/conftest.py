@@ -140,10 +140,12 @@ def docker_services(
             docker_cleanup,
         ) as docker_service:
             yield docker_service
-    except:
+    except Exception as e:
+        logger.error(e)
         subprocess.check_output(["docker", "compose", docker_cleanup], cwd=__test_dir())
     finally:
         common.util.test.docker.save_docker_logs(__test_dir(), "integration-test")
+
 
 
 @pytest.fixture(scope="session")
