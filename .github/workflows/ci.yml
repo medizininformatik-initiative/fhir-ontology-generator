@@ -63,6 +63,20 @@ jobs:
         PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
       run: ./generate_full_ontology.sh --project "fdpg-ontology" --all
 
+    - name: Run integration tests
+      env:
+        ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
+        SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
+        PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
+      run: pytest test/integration -v --cov --project "fdpg-ontology"
+
+    - name: Upload Docker logs
+      uses: actions/upload-artifact@v4
+      if: ${{ failure() }}
+      with:
+        name: docker_logs
+        path: test/integration/backend/docker_logs
+
     - name: Release
       uses: softprops/action-gh-release@v2
       with:

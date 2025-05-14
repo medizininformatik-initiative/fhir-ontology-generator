@@ -255,6 +255,7 @@ class DataBaseWriter:
         Links a list of contextualized term codes to their corresponding ui profiles
         :param contextualized_term_codes: List of tuples each containing a context, a term code, and a UI profile name
         """
+        self.__logger.info("Linking contextualized term codes to UI profiles")
         values = [(self.calculate_context_term_code_hash(context, term_code), context.system, context.code,
                    context.version if context.version else '',
                    term_code.system, term_code.code, term_code.version if term_code.version else '',
@@ -461,3 +462,25 @@ class DataBaseWriter:
                     criteria_set = attribute_definition.referencedCriteriaSet
                     # TODO: Maybe better to get them upfront
                     self.add_critieria_set(criteria_set)
+
+    def remove_contextualized_termcodes_without_ui_profiles(self):
+        """
+        Removes any row from the `contextualized_termcode` table where the UI profile references is NULL. This prevents
+        reference attributes where a code from some terminology found in the referenced profile can be selected from
+        leaking into the table and resulting in rows without any UI profile reference. Due to other SQL statements not
+        overwriting existing entries (based on the rows term code hash value), these incomplete entries will persist
+        """
+        self.cursor.execute("""
+            SELECT COUNT(*)
+            FROM contextualized_termcode
+            WHERE ui_profile_id IS NULL;
+        """)
+        row = self.cursor.fetchone()
+        cnt = row[0] if row else 0
+        if cnt > 0:
+            self.__logger.info(f"Removing {cnt} contextualized term code entries without reference to any UI profile")
+            self.cursor.execute("""
+                DELETE FROM contextualized_termcode
+                WHERE ui_profile_id IS NULL;
+            """)
+            self.db_connection.commit()
