@@ -2,13 +2,12 @@ import json
 import os
 import shutil
 from collections import defaultdict
-from email.policy import default
 from os import PathLike
 from typing import Mapping, Union, Iterator, Optional
 
 from _pytest.python import Metafunc
 from pydantic import BaseModel
-from pytest_docker.plugin import Services, get_docker_services, containers_scope
+from pytest_docker.plugin import Services, get_docker_services
 
 from common import util
 import common.util.test.docker
@@ -45,15 +44,6 @@ def __test_dir() -> str:
 @pytest.fixture(scope="session")
 def test_dir() -> str:
     return __test_dir()
-
-
-def __repository_root_dir(request) -> str:
-    return request.config.rootpath
-
-
-@pytest.fixture(scope="session")
-def repository_root_dir(request) -> str:
-    return __repository_root_dir(request)
 
 
 @pytest.fixture(scope="session")

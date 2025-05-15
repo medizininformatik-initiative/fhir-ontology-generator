@@ -2,6 +2,7 @@ import os.path
 from pathlib import Path
 from typing import Optional, Annotated, Any, Mapping
 
+import dotenv
 from pydantic import BaseModel, Field, model_validator, ValidationError
 
 from common.util.log.functions import get_class_logger
@@ -39,6 +40,7 @@ class Project(BaseModel):
             if data.get('path') is None:
                 data['path'] = Path(str(os.path.join(PROJECT_ROOT, "projects", data['name'])))
         # env
+        dotenv.load_dotenv()
         data['env'] = os.environ
         return data
 
