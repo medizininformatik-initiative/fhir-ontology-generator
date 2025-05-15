@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from common.util.project import Project
@@ -15,3 +17,12 @@ def project(request) -> Project:
     if project_name is None:
         raise ValueError("Command line option '--project' has to provided with a proper project name as its value")
     return Project(name=project_name)
+
+
+def __repository_root_dir(request) -> str:
+    return request.config.rootpath
+
+
+@pytest.fixture(scope="session")
+def repository_root_dir(request) -> str:
+    return __repository_root_dir(request)
