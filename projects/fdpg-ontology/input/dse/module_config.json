@@ -21,8 +21,8 @@
       "modul-fall": "Fall",
       "modul-biobank": "Biobank",
       "modul-consent": "Einwilligung",
-      "modul-icu": "Vitaldaten",
-      "modul-molgen": "Mollekulargenetischer Befund",
+      "modul-icu": "Intensivmedizin",
+      "modul-molgen": "Molekulargenetischer Befund",
       "modul-bildgebung": "Befunde bildgebender Verfahren",
       "modul-onko": "Onkologie",
       "modul-patho": "Pathologie",
@@ -38,12 +38,12 @@
       "modul-fall": "Case",
       "modul-biobank": "Biobank",
       "modul-consent": "Consent",
-      "modul-icu": "Vitaldata",
+      "modul-icu": "Intensive Care",
       "modul-molgen": "Molecular genetics",
       "modul-bildgebung": "--",
       "modul-onko": "Oncology",
       "modul-patho": "Pathology",
-      "modul-mikrobio": "Mikrobiology",
+      "modul-mikrobio": "Microbiology",
       "modul-studie": "Study"
     }
   }
