@@ -47,7 +47,7 @@ def write_json_to_file(filepath, object):
 def add_system_urls_to_systems_json(project: Project, system_urls):
     new_terminology_systems = {}
 
-    with (open(project.input("terminology") / "terminology_systems.json", mode='r', encoding='utf-8') as systems_file):
+    with (open(project.input.mkdirs("terminology") / "terminology_systems.json", mode='r', encoding='utf-8') as systems_file):
         terminology_systems = json.load(systems_file)
 
         for terminology_system in terminology_systems:
@@ -68,7 +68,7 @@ def add_system_urls_to_systems_json(project: Project, system_urls):
         #systems_file.truncate(0)
         #systems_file.seek(0)
 
-        with open(project.output("terminology") / os.path.basename(systems_file.name),
+        with open(project.output.mkdirs("terminology") / os.path.basename(systems_file.name),
                   mode='w', encoding='utf-8') as output_file:
             json.dump(terminology_systems, output_file)
 
@@ -113,9 +113,9 @@ if __name__ == '__main__':
     logger.info(f"Merging ontologies for project '{args.project}'")
 
     project = Project(args.project)
-    modules_dir = project.output("modules")
+    modules_dir = project.output.cso.mkdirs("modules")
     module_dirs = list(map(lambda d: d.path, filter(lambda e: e.is_dir(), os.scandir(modules_dir))))
-    output_dir = project.output("merged_ontology")
+    output_dir = project.output.mkdirs("merged_ontology")
 
     if args.merge_mappings:
         logger.info("Merging CCDL mappings")
@@ -191,7 +191,7 @@ if __name__ == '__main__':
 
     if args.merge_dse:
         logger.info("Merging DSE content")
-        dse_output_dir = project.output("dse")
+        dse_output_dir = project.output.dse
 
         dse_value_set_dir = dse_output_dir / "value-sets"
         output_value_set_dir = output_dir / "value-sets"

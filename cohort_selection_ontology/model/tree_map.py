@@ -4,9 +4,9 @@ from typing import List, Dict
 import json
 import logging
 
-from helper import JSONSerializable
 from cohort_selection_ontology.model.ui_profile import del_keys, del_none
 from cohort_selection_ontology.model.ui_data import Module, TermCode
+from common.util.codec.json import JSONSerializable
 
 
 @dataclass

@@ -52,7 +52,7 @@ def download_simplifier_packages(package_names):
 
 
 def download_and_save_value_set(value_set_url, project: Project):
-    value_set_folder = project.output("dse", "value-sets")
+    value_set_folder = project.output.dse.mkdirs("value-sets")
     client = FhirTerminologyClient.from_project(project)
 
     try:
@@ -213,8 +213,8 @@ if __name__ == '__main__':
     logger = get_logger(__file__)
 
     project = Project(args.project)
-    dse_input_dir = project.input("dse")
-    dse_output_dir = project.output("dse")
+    dse_input_dir = project.input.dse
+    dse_output_dir = project.output.dse
 
     with open(dse_input_dir / "module_config.json", "r", encoding="utf-8") as f:
         module_config = json.load(f)

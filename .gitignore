@@ -24,11 +24,12 @@ local-onto-gen.sh
 # JetBrains run config export folder
 /.run
 # Directories holding temporary data which are used for projects CI during runs or when testing locally
+test.py
 /test/elastic_search/tmp/
 /temp/
 **/tmp
 **/temp
-/test/**/testdata
+/tests/**/testdata
 **/.coverage
 # Directories holding docker logs recorded during (intergration) testing
 **/docker_logs/

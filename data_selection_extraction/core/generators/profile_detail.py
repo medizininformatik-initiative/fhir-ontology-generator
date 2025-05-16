@@ -1,5 +1,6 @@
 import re
 from collections.abc import Callable
+from os import mkdir
 from typing import Mapping, List, TypedDict, Any, Optional
 
 from common.exceptions.profile import MissingProfileError
@@ -404,7 +405,7 @@ class ProfileDetailGenerator:
                     profile = self.__all_profiles.get(profile_url, {}).get('structureDefinition')
                     if not profile:
                         self.__logger.warning(f"Extension '{profile_url}' was not found. Consider adding it to "
-                                              f"'{self.__project.input('dse', 'snapshots')}' => "
+                                              f"'{self.__project.input.dse.mkdirs('snapshots')}' => "
                                               f"Ignoring potential references")
                     else:
                         elem = get_element_from_snapshot(profile, "Extension.value[x]")

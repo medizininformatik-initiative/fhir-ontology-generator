@@ -48,7 +48,7 @@ def docker_compose_file(pytestconfig) -> str:
         os.makedirs(tmp_path, exist_ok=True)
 
     # Unpack backend archive and keep SQL dump files
-    backend_archive_path = project.output("merged_ontology") / "backend.zip"
+    backend_archive_path = project.output.generated_ontology / "backend.zip"
     shutil.unpack_archive(backend_archive_path, tmp_path)
     for file_name in os.listdir(tmp_path):
         if not file_name.endswith(".sql"):

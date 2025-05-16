@@ -1,9 +1,18 @@
+import copy
+import json
 from collections.abc import Mapping
 from typing import Any, Optional, Annotated, List
+
+from common.exceptions.translation import MissingTranslationException
+from common.util.log.functions import get_logger
 
 from fhir.resources.R4B.elementdefinition import ElementDefinitionType
 
 from common.util.fhir.enums import FhirDataType
+
+
+logger = get_logger(__file__)
+
 
 # TODO: Replace these type hints wit proper fhir.resource model classes
 ElementDefinitionDict = Annotated[Mapping[str, Any], "Dictionary representing FHIR ElementDefinition instance"]
@@ -77,6 +86,23 @@ def get_parent_element(element: ElementDefinitionDict, snapshot: Snapshot) -> Op
             raise Exception(f"More than one parent element was identified [id='{parent_id}']")
 
 
+def is_structure_definition(file: str) -> bool:
+    """
+    Checks if a file is a structured definition
+    :param file: potential structured definition
+    :return: true if the file is a structured definition else false
+    """
+    with open(file, encoding="UTF-8") as json_file:
+        try:
+            json_data = json.load(json_file)
+        except json.decoder.JSONDecodeError:
+            logger.warning(f"Could not decode {file}")
+            return False
+        if json_data.get("resourceType") == "StructureDefinition":
+            return True
+        return False
+
+
 def get_types_supported_by_element(element: ElementDefinitionDict) -> List[ElementDefinitionType]:
     """
     Retrieves the `type` element of an `ElementDefinition` instance
@@ -97,6 +123,7 @@ def find_type_element(element: ElementDefinitionDict, fhir_type: FhirDataType) -
         if t.code == fhir_type.value:
             return t
     return None
+
 
 def supports_type(element: ElementDefinitionDict, fhir_type: FhirDataType) -> bool:
     """

@@ -5,6 +5,7 @@ import copy
 from importlib.resources import open_text
 import json
 import os
+from pathlib import Path
 from typing import List, ValuesView, Dict, Tuple
 
 import docker
@@ -20,7 +21,8 @@ from cohort_selection_ontology.core.resolvers.search_parameter import StandardSe
 from cohort_selection_ontology.core.generators.ui_profile import UIProfileGenerator
 from cohort_selection_ontology.core.generators.ui_tree import UITreeGenerator
 from cohort_selection_ontology.util.database import DataBaseWriter
-from helper import download_simplifier_packages, generate_snapshots, write_object_as_json, mkdir_if_not_exists
+from common.util.fhir.terminal import generate_snapshots
+from common.util.codec.json import write_object_as_json
 from cohort_selection_ontology.model.mapping import CQLMapping, FhirMapping, MapEntryList
 from cohort_selection_ontology.model.ui_profile import UIProfile
 from cohort_selection_ontology.model.ui_data import TermCode
@@ -31,18 +33,16 @@ from common.util.project import Project
 logger = get_logger(__file__)
 
 WINDOWS_RESERVED_CHARACTERS = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
-PROJECT = Project("fdpg-ontology")
-INPUT_DIR = PROJECT.input()
-OUTPUT_DIR = PROJECT.output()
-MODULES_DIR = PROJECT.input("modules")
 
 
-def validate_fhir_mapping(mapping_name: str):
+def validate_fhir_mapping(module_name: str, mapping_name: str, project: Project):
     """
-    Validates the FHIR mapping against its JSON schema.
-    :param mapping_name: The name of the mapping file (without extension).
+    Validates the FHIR mapping against its JSON schema
+    :param module_name: Name of module to validate FHIR mapping for
+    :param mapping_name: The name of the mapping file (without extension)
+    :param project: Project to generate for
     """
-    mapping_file = OUTPUT_DIR / "generated" / "fhir" / f"{mapping_name}.json"
+    mapping_file = project.output.cso.mkdirs("modules", module_name, "generated", "fhir") / f"{mapping_name}.json"
     with open(mapping_file, mode='r', encoding='utf-8') as f:
         mapping_data = json.load(f)
     with open_text(schema_files, "fhir-mapping-schema.json", encoding='utf-8') as f:
@@ -64,7 +64,7 @@ def validate_mapping_tree(tree_name: str, mapping_tree_folder="mapping-tree"):
     validate(instance=tree_data, schema=schema)
 
 
-def write_ui_trees_to_files(trees: List, module_name: str, directory: str = "ui-trees", ):
+def write_ui_trees_to_files(trees: List, module_name: str, directory: str | Path = "ui-trees", ):
     """
     Writes UI trees to JSON files in the specified directory.
     :param trees: List of UI tree objects
@@ -77,13 +77,13 @@ def write_ui_trees_to_files(trees: List, module_name: str, directory: str = "ui-
         file_path = os.path.join(directory, sanitized_name)
         write_object_as_json(tree, file_path)
 
-def write_term_code_info_to_file(term_code_info_list, directory: str = "term-code-info"):
+def write_term_code_info_to_file(term_code_info_list, directory: str | Path = "term-code-info"):
     """
     Writes the term code information to JSON files.
     :param term_code_info_list: List of term code information objects.
     :param directory: Directory to write the term code info files to.
     """
-    mkdir_if_not_exists(directory)
+    os.makedirs(directory, exist_ok=True)
     for term_code_info in term_code_info_list:
         if term_code_info.entries:
             module_name = term_code_info.entries[0].module.display
@@ -92,13 +92,13 @@ def write_term_code_info_to_file(term_code_info_list, directory: str = "term-cod
             write_object_as_json(term_code_info, file_path)
 
 
-def write_used_value_sets_to_files(ui_profiles: List[UIProfile], directory: str = "value-sets"):
+def write_used_value_sets_to_files(ui_profiles: List[UIProfile], directory: str | Path = "value-sets"):
     """
     Writes the value sets used in the UI profiles to the specified directory.
     :param ui_profiles: UI profiles to extract the value sets from.
     :param directory: Directory to write the value sets to.
     """
-    mkdir_if_not_exists(directory)
+    os.makedirs(directory, exist_ok=True)
     value_sets = []
     for ui_profile in ui_profiles:
         if ui_profile.valueDefinition and ui_profile.valueDefinition.referencedValueSet:
@@ -112,13 +112,13 @@ def write_used_value_sets_to_files(ui_profiles: List[UIProfile], directory: str 
         file_path = os.path.join(directory, file_name)
         write_object_as_json(value_set, file_path)
 
-def write_used_criteria_sets_to_files(ui_profiles: List[UIProfile], directory: str = "criteria-sets"):
+def write_used_criteria_sets_to_files(ui_profiles: List[UIProfile], directory: str | Path = "criteria-sets"):
     """
     Writes the criteria sets used in the UI profiles to the specified directory.
     :param ui_profiles: UI profiles to extract the criteria sets from.
     :param directory: Directory to write the criteria sets to.
     """
-    mkdir_if_not_exists(directory)
+    os.makedirs(directory, exist_ok=True)
     criteria_sets = []
     for ui_profile in ui_profiles:
         if ui_profile.attributeDefinitions:
@@ -141,7 +141,7 @@ def remove_reserved_characters(file_name: str) -> str:
 
 
 def write_ui_profiles_to_files(
-    profiles: List[UIProfile] | ValuesView[UIProfile], folder: str = "ui-profiles"
+    profiles: List[UIProfile] | ValuesView[UIProfile], folder: str | Path = "ui-profiles"
 ):
     """
     Writes UI profiles to JSON files in the specified folder.
@@ -152,6 +152,7 @@ def write_ui_profiles_to_files(
         file_name = f"{profile.name.replace(' ', '_').replace('.', '_')}.json"
         sanitized_name = remove_reserved_characters(file_name)
         file_path = os.path.join(folder, sanitized_name)
+        os.makedirs(folder, exist_ok=True)
         with open(file_path, mode='w', encoding='utf-8') as f:
             f.write(profile.to_json())
 
@@ -184,6 +185,8 @@ def configure_args_parser() -> argparse.ArgumentParser:
     :return: An ArgumentParser object.
     """
     parser = argparse.ArgumentParser(description='Generate the UI-Profile of the core data set')
+    parser.add_argument('--project', required=True,
+                        help='Project to generate cohort selection ontology files for')
     parser.add_argument('--download_packages', action='store_true', help='Download required packages')
     parser.add_argument('--generate_snapshot', action='store_true', help='Generate FHIR snapshots')
     parser.add_argument('--generate_ui_trees', action='store_true', help='Generate UI trees')
@@ -211,7 +214,7 @@ def generate_result_folder(base_dir: str = ""):
     ]
     for path in paths:
         dir_path = os.path.join(base_dir, path)
-        mkdir_if_not_exists(dir_path)
+        os.makedirs(dir_path, exist_ok=True)
 
 
 def manage_docker_container(volume_dir: str, container_name: str) -> docker.models.containers.Container:
@@ -245,37 +248,18 @@ def manage_docker_container(volume_dir: str, container_name: str) -> docker.mode
     return container
 
 
-def download_required_packages(required_packages: List[Dict]):
+def generate_ui_trees(resolver: ResourceQueryingMetaDataResolver, module_name: str, project: Project):
     """
-    Downloads the required FHIR packages.
-    :param required_packages: List of required packages.
-    """
-    logger.info("Downloading required packages...")
-    download_simplifier_packages(required_packages)
-
-
-def generate_fhir_snapshots(differential_folder: str, required_packages: List[Dict]):
-    """
-    Generates FHIR snapshots.
-    :param differential_folder: The folder containing differential profiles.
-    :param required_packages: List of required packages.
-    """
-    logger.info("Generating FHIR snapshots...")
-    generate_snapshots(differential_folder)
-    generate_snapshots(differential_folder, required_packages)
-
-
-def generate_ui_trees(resolver: ResourceQueryingMetaDataResolver, onto_result_dir: str, module_name: str):
-    """
-    Generates UI trees and writes them to files.
-    :param resolver: An instance of ResourceQueryingMetaDataResolver.
-    :param onto_result_dir: The base directory for output files.
+    Generates UI trees and writes them to files
+    :param resolver: An instance of ResourceQueryingMetaDataResolver
     :param module_name: Name of the module to generate UI trees for
+    :param project: Project to generate for
     """
     logger.info("Generating UI trees...")
-    tree_generator = UITreeGenerator(PROJECT, resolver)
+    result_dir = project.output.cso.mkdirs('modules', module_name)
+    tree_generator = UITreeGenerator(project, resolver)
     ui_trees = [tree_generator.generate_module_ui_tree(module_name)]
-    write_ui_trees_to_files(ui_trees, module_name, os.path.join(onto_result_dir, 'ui-trees'))
+    write_ui_trees_to_files(ui_trees, module_name, result_dir / 'ui-trees')
 
     # Generate term code context info list
     term_code_context_infos = tree_generator.generate_contextualized_term_code_info_list(module_name)
@@ -288,41 +272,42 @@ def generate_ui_trees(resolver: ResourceQueryingMetaDataResolver, onto_result_di
                     term_code_context_info.update_children_count(ui_tree)
 
     # Write term code info to files
-    write_term_code_info_to_file(term_code_context_infos, os.path.join(onto_result_dir, 'term-code-info'))
+    write_term_code_info_to_file(term_code_context_infos, result_dir / 'term-code-info')
 
 
 def generate_ui_profiles(
     resolver: ResourceQueryingMetaDataResolver,
-    onto_result_dir: str,
     db_writer: DataBaseWriter,
-    module_name: str
+    module_name: str,
+    project: Project
 ):
     """
-    Generates UI profiles and writes them to files and database.
-    :param resolver: An instance of ResourceQueryingMetaDataResolver.
-    :param onto_result_dir: The base directory for output files.
-    :param db_writer: An instance of DataBaseWriter.
+    Generates UI profiles and writes them to files and database
+    :param resolver: An instance of ResourceQueryingMetaDataResolver
+    :param db_writer: An instance of DataBaseWriter
     :param module_name: Name of the module to generate UI profiles for
+    :param project: Project to generate for
     """
     logger.info("Generating UI profiles...")
-    profile_generator = UIProfileGenerator(PROJECT, resolver)
+    result_dir = project.output.cso.mkdirs('modules', module_name)
+    profile_generator = UIProfileGenerator(project, resolver)
     (
         contextualized_term_code_ui_profile_mapping,
         named_ui_profiles_dict,
     ) = profile_generator.generate_ui_profiles(module_name=module_name)
     write_ui_profiles_to_files(
-        named_ui_profiles_dict.values(), os.path.join(onto_result_dir, 'ui-profiles')
+        named_ui_profiles_dict.values(), result_dir / 'ui-profiles'
     )
     db_writer.write_ui_profiles_to_db(
         contextualized_term_code_ui_profile_mapping, named_ui_profiles_dict
     )
     db_writer.write_vs_to_db(named_ui_profiles_dict.values())
     db_writer.remove_contextualized_termcodes_without_ui_profiles()
-    write_used_value_sets_to_files(named_ui_profiles_dict.values(), os.path.join(onto_result_dir, 'value-sets'))
-    write_used_criteria_sets_to_files(named_ui_profiles_dict.values(), os.path.join(onto_result_dir, 'criteria-sets'))
+    write_used_value_sets_to_files(named_ui_profiles_dict.values(), result_dir / 'value-sets')
+    write_used_criteria_sets_to_files(named_ui_profiles_dict.values(), result_dir / 'criteria-sets')
 
 
-def dump_database(container: docker.models.containers.Container, module_directory: str):
+def dump_database(container: docker.models.containers.Container):
     """
     Dumps the database to a SQL file in the module's directory.
     """
@@ -334,19 +319,19 @@ def dump_database(container: docker.models.containers.Container, module_director
     )
     logger.info("Database dumped to R__Load_latest_ui_profile.sql")
 
-def generate_cql_mapping(resolver: ResourceQueryingMetaDataResolver, onto_result_dir: str, module_name: str):
+def generate_cql_mapping(resolver: ResourceQueryingMetaDataResolver, module_name: str, project: Project):
     """
-    Generates CQL mappings and writes them to files.
-    :param resolver: An instance of ResourceQueryingMetaDataResolver.
-    :param onto_result_dir: The base directory for output files.
+    Generates CQL mappings and writes them to files
+    :param resolver: An instance of ResourceQueryingMetaDataResolver
     :param module_name: Name of the module to generate CQL mapping for
+    :param project: Project to run for
     """
     try:
         logger.info("Generating CQL mapping")
-        cql_generator = CQLMappingGenerator(PROJECT, resolver)
+        cql_generator = CQLMappingGenerator(project, resolver)
         cql_term_code_mappings, cql_concept_mappings = cql_generator.generate_mapping(module_name)
         cql_mappings = denormalize_mapping_to_old_format(cql_term_code_mappings, cql_concept_mappings)
-        cql_mapping_file = os.path.join(onto_result_dir, 'mapping', 'cql', 'mapping_cql.json')
+        cql_mapping_file = project.output.cso.mkdirs('modules', module_name, 'mapping', 'cql') / 'mapping_cql.json'
         os.makedirs(os.path.dirname(cql_mapping_file), exist_ok=True)
         with open(cql_mapping_file, mode='w', encoding='utf-8') as f:
             f.write(cql_mappings.to_json())
@@ -356,25 +341,25 @@ def generate_cql_mapping(resolver: ResourceQueryingMetaDataResolver, onto_result
 
 def generate_fhir_mapping(
     resolver: ResourceQueryingMetaDataResolver,
-    onto_result_dir: str,
-    module_name: str
+    module_name: str,
+    project: Project
 ):
     """
     Generates FHIR mappings and writes them to files.
-    :param resolver: An instance of ResourceQueryingMetaDataResolver.
-    :param onto_result_dir: The base directory for output files.
+    :param resolver: An instance of ResourceQueryingMetaDataResolver
     :param module_name: The name of the module to generate FHIR mapping for
+    :param project: Project to run for
     """
     logger.info("Generating FHIR mapping")
-    search_parameter_resolver = StandardSearchParameterResolver(PROJECT.input("modules", module_name))
-    fhir_search_generator = FHIRSearchMappingGenerator(PROJECT, resolver, search_parameter_resolver)
+    search_parameter_resolver = StandardSearchParameterResolver(project.input.cso.mkdirs("modules", module_name))
+    fhir_search_generator = FHIRSearchMappingGenerator(project, resolver, search_parameter_resolver)
     fhir_search_term_code_mappings, fhir_search_concept_mappings = fhir_search_generator.generate_mapping(
         module_name
     )
     fhir_search_mapping = denormalize_mapping_to_old_format(
         fhir_search_term_code_mappings, fhir_search_concept_mappings
     )
-    fhir_mapping_file = os.path.join(onto_result_dir, 'mapping', 'fhir', 'mapping_fhir.json')
+    fhir_mapping_file = project.output.cso.mkdirs('modules', module_name, 'mapping', 'fhir') / 'mapping_fhir.json'
     os.makedirs(os.path.dirname(fhir_mapping_file), exist_ok=True)
     with open(fhir_mapping_file, mode='w', encoding='utf-8') as f:
         f.write(fhir_search_mapping.to_json())
@@ -386,15 +371,21 @@ def main():
     parser = configure_args_parser()
     args = parser.parse_args()
 
-    logger.info(f"Starting FHIR ontology generator")
+    project = Project(name=args.project)
+    input_dir = project.input
+    output_dir = project.output
+    input_modules_dir = input_dir.cso / "modules"
+    output_modules_dir = output_dir.cso / "modules"
 
-    modules = args.module if args.module else [module for module in os.listdir(MODULES_DIR)]
+    logger.info(f"Starting FHIR ontology generator for project '{project.name}'")
+
+    modules = args.module if args.module else [module for module in os.listdir(input_modules_dir)]
 
     for module in modules:
         try:
             logger.info(f"Generating ontology for module: {module}")
 
-            output_module_directory = str((OUTPUT_DIR / "modules" / module).resolve())
+            output_module_directory = str((output_modules_dir / module).resolve())
 
             generate_result_folder(output_module_directory)
 
@@ -403,22 +394,22 @@ def main():
 
             db_writer = DataBaseWriter(5430)
 
-            with open(os.path.join(MODULES_DIR, module, "required_packages.json"), mode="r", encoding="utf-8") as f:
+            with open(input_modules_dir / module / "required_packages.json", mode="r", encoding="utf-8") as f:
                 required_packages = json.load(f)
                 if args.generate_snapshot:
-                    generate_snapshots(os.path.join(MODULES_DIR, module), required_packages)
+                    generate_snapshots(input_modules_dir / module, required_packages)
 
-            resolver = StandardDataSetQueryingMetaDataResolver(PROJECT)
+            resolver = StandardDataSetQueryingMetaDataResolver(project)
             if args.generate_ui_trees:
-                generate_ui_trees(resolver, output_module_directory, module)
+                generate_ui_trees(resolver, module, project)
 
             if args.generate_ui_profiles:
-                generate_ui_profiles(resolver, output_module_directory, db_writer, module)
+                generate_ui_profiles(resolver, db_writer, module, project)
 
             if args.generate_mapping:
-                generate_cql_mapping(resolver, output_module_directory, module)
+                generate_cql_mapping(resolver, module, project)
                 generate_fhir_mapping(
-                    resolver, output_module_directory, module
+                    resolver, module, project
                 )
 
         except Exception as e:
@@ -426,7 +417,7 @@ def main():
         finally:
             # Dump the database to the module's directory
             if args.generate_ui_profiles:
-                dump_database(container, output_module_directory)
+                dump_database(container)
 
             # Stop and remove the container
             container.stop()
