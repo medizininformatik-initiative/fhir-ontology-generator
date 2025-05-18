@@ -9,10 +9,7 @@ from common.util.project import Project
 
 
 def test_cql_composite_attributes():
-    # set path so that generate_cql_mapping works as expected
     test_dir = os.path.dirname(os.path.realpath(__file__))
-    working_directory = os.path.realpath(os.path.join(test_dir, ".."))
-    os.chdir(working_directory)
 
     test_project_dir = os.path.join(test_dir, "composite")
     test_project = Project("composite", path=test_project_dir)
