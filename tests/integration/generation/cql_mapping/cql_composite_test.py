@@ -18,7 +18,7 @@ def test_cql_composite_attributes():
     with open(os.path.join(module_dir, "expected", "cql_mapping.json")) as f:
         expected = json.load(f)
         if expected.get("key"):
-            # key is optional, compatability with v1
+            # key is optional, compatibility with v1
             del expected["key"]
 
     with open(os.path.join(module_dir, "QueryingMetaData",

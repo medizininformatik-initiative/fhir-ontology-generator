@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import abc
-from typing import Optional, List, Literal
+from typing import Optional, List, Literal, Annotated
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from cohort_selection_ontology.model.ui_data import TranslationDisplayElement, BulkTranslationDisplayElement
 from common.util.fhir.enums import FhirDataType, FhirSearchType, FhirComplexDataType
@@ -30,7 +30,7 @@ class ProfileReference(BaseModel):
 
 class FieldDetail(Detail):
     id: str
-    type: Optional[FhirDataType] = None
+    type: Optional[FhirDataType] = Field(exclude=True, default=None)
     recommended: bool = False
     required: bool = False
     children: List[FieldDetail] = []
@@ -39,7 +39,7 @@ class FieldDetail(Detail):
 
 
 class ReferenceDetail(FieldDetail):
-    type: FhirDataType = FhirComplexDataType.REFERENCE
+    type: Optional[FhirDataType] = Field(exclude=True, init=False, default=FhirComplexDataType.REFERENCE)
     referencedProfiles: List[ProfileReference] = []
 
 

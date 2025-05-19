@@ -237,7 +237,8 @@ if __name__ == '__main__':
 
     packages_dir = dse_input_dir / "dependencies"
     snapshots_dir = dse_input_dir / "snapshots"
-    fields_to_exclude = [".meta", ".id", ".subject", ".modifierExtension", ".extension", ".name", "address"]
+    # .extension cant be removed
+    fields_to_exclude = [".meta", ".id", ".modifierExtension", ".name", "address"]
     field_trees_to_exclude = ["Patient.name", "Patient.location", "Patient.identifier", "Patient.address",
                               "Patient.link"]
 
