@@ -2,7 +2,8 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+<!-- CHANGELOG Editing Guidelines
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [UNRELEASED] - yyyy-mm-dd
 
@@ -12,6 +13,53 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Removed
 ### Fixed
 ### Security
+-->
+
+## [3.7.0] - 2025-05-19
+
+## Changed
+
+- Make (almost) all fields selectable in feature selection by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/280
+- Finish refactoring of project by @paulolaup as specified in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/146
+- Refactor composite tests by @Frontman, @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/273
+
+## Fixed
+
+- Change ICU module name for feature selection by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/279
+- Fix database import generation for feature selection UI profiles by @paulolaup as specified in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/270
+
+## [3.6.0] - 2025-5-12
+
+## Added
+
+- Implement compaction of DSE profile tree by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/265
+
+## Changed
+
+- Change treatment of FHIR Patient resource in DSE by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/264
+- Update test blood pressure with composite to new structure new file structure by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/261
+- Update docs by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/269
+
+## Fixed
+
+- Fix Invalid cql mapping for composite attributes by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/266
+
+## [3.5.0] - 2025-05-05
+
+## Added
+
+- Add module display names and translations by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/251
+- Separate references into distinct field in DSE profiles by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/254
+- Add shortcut for extension fields containing references by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/255
+
+### [3.4.0] - 2025-04-24
+
+## Added
+
+- Refactor module name and files names by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/242
+- Refactor project directory by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/228
+- Add FDPG availability measure generation by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/209
+- Add FDPG availability measure generation output to CI by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/229
 
 ## [3.2.2] - 2025-03-17
 
