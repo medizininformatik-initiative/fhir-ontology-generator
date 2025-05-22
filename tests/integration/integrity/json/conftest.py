@@ -15,6 +15,7 @@ def test_dir() -> Path:
 def schema_store(test_dir) -> dict:
     store = {}
     base_path = os.path.join(test_dir,"schemata","common")
+    print(base_path)
 
     print(os.listdir(base_path))
 
