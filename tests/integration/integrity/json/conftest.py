@@ -1,11 +1,20 @@
 import json
 import os
+from pathlib import Path
+
 import pytest
 
+def __test_dir() -> Path:
+    return Path(os.path.dirname(os.path.realpath(__file__))).resolve()
+
 @pytest.fixture(scope="session")
-def schema_store() -> dict:
+def test_dir() -> Path:
+    return __test_dir()
+
+@pytest.fixture(scope="session")
+def schema_store(test_dir) -> dict:
     store = {}
-    base_path = os.path.abspath("schemata/common")
+    base_path = os.path.join(test_dir,"schemata","common")
 
     print(os.listdir(base_path))
 
