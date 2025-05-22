@@ -12,77 +12,145 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  run_integration_tests:
+
+
+  build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-    - name: Set locale
-      run: |
-        sudo apt-get update
-        sudo apt-get install tzdata locales -y
-        sudo locale-gen de_DE.UTF-8
-        sudo localectl set-locale LANG="de_DE.UTF-8"
-        export LANG="de_DE.UTF-8"
-        sudo update-locale
-        locale -a
-        locale
-        locale -c -k LC_NUMERIC
-        localectl status
+      - name: Set locale
+        run: |
+          sudo apt-get update
+          sudo apt-get install tzdata locales -y
+          sudo locale-gen de_DE.UTF-8
+          sudo localectl set-locale LANG="de_DE.UTF-8"
+          export LANG="de_DE.UTF-8"
+          sudo update-locale
+          locale -a
+          locale
+          locale -c -k LC_NUMERIC
+          localectl status
 
-    - name: Generate_Availability
-      uses: ./.github/actions/availability
+      - name: Setup python 3 environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
 
-    - name: Setup python 3 environment
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.13'
-        cache: 'pip'
+      - name: Install required python modules
+        run: pip3 install -r requirements.txt
 
-    - name: Install required python modules
-      run: pip3 install -r requirements.txt
+      - name: Save secret to file
+        id: certificates
+        run: |
+          echo "$PRIVATE_KEY" > private-key.pem
+          echo "$SERVER_CERTIFICATE" > certificate.pem
+          echo privateKey=$(readlink -f private-key.pem) >> "$GITHUB_OUTPUT"
+          echo certificate=$(readlink -f certificate.pem) >> "$GITHUB_OUTPUT"
+        env:
+          SERVER_CERTIFICATE: ${{ secrets.FDPGPLUS_ONTO_SERVER_CERT }}
+          PRIVATE_KEY: ${{ secrets.FDPGPLUS_ONTO_SERVER_KEY }}
 
-    - name: Save secret to file
-      id: certificates
-      run: |
-        echo "$PRIVATE_KEY" > private-key.pem
-        echo "$SERVER_CERTIFICATE" > certificate.pem
-        echo privateKey=$(readlink -f private-key.pem) >> "$GITHUB_OUTPUT"
-        echo certificate=$(readlink -f certificate.pem) >> "$GITHUB_OUTPUT"
-      env:
-        SERVER_CERTIFICATE: ${{ secrets.FDPGPLUS_ONTO_SERVER_CERT }}
-        PRIVATE_KEY: ${{ secrets.FDPGPLUS_ONTO_SERVER_KEY }}
+      - name: Run ontology generation
+        env:
+          ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
+          SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
+          PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
+        run: ./generate_full_ontology.sh --project "fdpg-ontology" --all
 
-    - name: Run ontology generation
-      env:
-        ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
-        SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
-        PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
-      run: ./generate_full_ontology.sh --project "fdpg-ontology" --all
+      - name: Upload Ontology
+        uses: actions/upload-artifact@v4
+        with:
+          name: packaged ontology
+          path: |
+            projects/fdpg-ontology/output/merged_ontology/elastic.zip
+            projects/fdpg-ontology/output/merged_ontology/backend.zip
+            projects/fdpg-ontology/output/merged_ontology/mapping.zip
 
-    - name: Upload Ontology
-      uses: actions/upload-artifact@v4
-      with:
-        name: packaged ontology
-        path: | 
-          projects/fdpg-ontology/output/merged_ontology/elastic.zip
-          projects/fdpg-ontology/output/merged_ontology/backend.zip
-          projects/fdpg-ontology/output/merged_ontology/mapping.zip
+      - name: Project Output - Ontology
+        uses: actions/upload-artifact@v4
+        with:
+          name: project output
+          path: |
+            projects/fdpg-ontology/output/
 
-    - name: Install testing pytest
-      run: pip3 install pytest pytest-docker pytest-cov
+  generate_availability:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-    - name: Run integration tests
-      env:
-        ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
-        SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
-        PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
-      run: pytest tests/integration -v --cov --project "fdpg-ontology"
+      - name: Generate_Availability
+        uses: ./.github/actions/availability
 
-    - name: Upload Docker logs
-      uses: actions/upload-artifact@v4
-      if: ${{ failure() }}
-      with:
-        name: docker_logs
-        path: tests/integration/backend/docker_logs
+  run_integration_tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download Ontology
+        uses: actions/download-artifact@v4
+        with:
+          name: packaged ontology
+          path: projects/fdpg-ontology/output/merged_ontology
+
+      - name: Install required python modules
+        run: pip3 install -r requirements.txt
+
+      - name: Install testing pytest
+        run: pip3 install pytest pytest-docker pytest-cov
+
+      - name: Save secret to file
+        id: certificates
+        run: |
+          echo "$PRIVATE_KEY" > private-key.pem
+          echo "$SERVER_CERTIFICATE" > certificate.pem
+          echo privateKey=$(readlink -f private-key.pem) >> "$GITHUB_OUTPUT"
+          echo certificate=$(readlink -f certificate.pem) >> "$GITHUB_OUTPUT"
+        env:
+          SERVER_CERTIFICATE: ${{ secrets.FDPGPLUS_ONTO_SERVER_CERT }}
+          PRIVATE_KEY: ${{ secrets.FDPGPLUS_ONTO_SERVER_KEY }}
+
+      - name: Run integration tests
+        env:
+          ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
+          SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
+          PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
+        run: pytest tests/integration -v --cov --project "fdpg-ontology" --ignore=tests/integration/integrity/json
+
+      - name: Upload Docker logs
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: docker_logs_integration_testing
+          path: tests/integration/backend/docker_logs
+
+  run_json_integrity_tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install required python modules
+        run: pip3 install -r requirements.txt
+
+      - name: Download Ontology
+        uses: actions/download-artifact@v4
+        with:
+          name: project output
+          path: projects/fdpg-ontology/output/
+
+      - name: Install testing pytest
+        run: pip3 install pytest pytest-docker pytest-cov pytest-xdist
+
+      - name: Run integration tests
+        env:
+          ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
+          SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
+          PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
+        run: pytest tests/integration/integrity/json -v -n 10 --cov --project "fdpg-ontology"

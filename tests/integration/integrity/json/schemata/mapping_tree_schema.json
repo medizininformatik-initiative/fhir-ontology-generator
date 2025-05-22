@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mapping_tree_schema.json",
+  "titel": "Mapping Tree JSON Schema",
+  "description": "Used for checking integrity of generated mapping tree",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "entries": {"type": "array", "items": { "$ref": "#/definitions/entry" } },
+      "context": {"$ref": "https://fdpg.de/termcode.json" },
+      "system": {"type": "string"},
+      "version": {"type": "string"}
+    },
+    "required": ["entries", "context", "system"],
+    "additionalProperties": false
+  },
+  "definitions": {
+    "entry": {
+      "type": "object",
+      "properties": {
+        "key": {"type": "string"},
+        "parents": {"type": "array", "items": {"type": "string"} },
+        "children": {"type": "array", "items": {"type": "string"} }
+      },
+      "required": ["key", "parents", "children"]
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ui_tree_schema",
+  "titel": "ui-tree JSON Schema",
+  "description": "Used for checking integrity of generated ui_trees",
+  "type": "array",
+  "items": {},
+  "definitions": {
+    "ui_tree_entry":{
+      "type": "object",
+      "properties": {
+        "key": { "type": "string" },
+        "parents": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "children": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      },
+      "required": ["key","parents","children"]
+    },
+    "ui_tree": {
+      "type": "object",
+      "properties": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ui_tree_entry"
+          }
+        },
+        "context": {
+          "$ref": "https://fdpg.de/termcode.json"
+        },
+        "system": { "type": "string" },
+        "version": {"type": "string"}
+      },
+      "required": ["context","system","version"]
+    }
+  }
+}

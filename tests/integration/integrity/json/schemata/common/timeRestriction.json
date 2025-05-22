@@ -1,0 +1,17 @@
+{
+  "$id": "https://fdpg.de/timeRestriction.json",
+
+  "type": "object",
+  "properties": {
+    "cardinality": { "type": "string", "enum": ["single","many"] },
+    "path": { "type": "string" },
+    "types": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["Period", "dateTime"]
+      }
+    }
+  },
+  "required": ["cardinality","path","types"]
+}

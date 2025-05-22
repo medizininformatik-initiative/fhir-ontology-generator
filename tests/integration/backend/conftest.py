@@ -2,7 +2,6 @@ import json
 import os
 import shutil
 from collections import defaultdict
-from os import PathLike
 from typing import Mapping, Union, Iterator, Optional
 
 from _pytest.python import Metafunc
@@ -13,7 +12,6 @@ from common import util
 import common.util.test.docker
 import pytest
 
-from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from common.util.http.auth.credentials import OAuthClientCredentials
 from common.util.http.backend.client import FeasibilityBackendClient
 from common.util.http.functions import is_responsive
@@ -200,38 +198,10 @@ def fhir_testdata(fhir_ip, test_dir, download=True):
     return target_dir_path
 
 
-def __querying_metadata_schema(test_dir: Union[str, PathLike]) -> Mapping[str, any]:
-    with open(file=os.path.join(test_dir, "querying_metadata.schema.json"), mode="r", encoding="utf8") as file:
-        return json.load(file)
 
 
-@pytest.fixture(scope="session")
-def querying_metadata_schema(test_dir: Union[str, PathLike]) -> Mapping[str, any]:
-    return __querying_metadata_schema(test_dir)
 
 
-def __querying_metadata_list(project: Project) -> list[ResourceQueryingMetaData]:
-    modules_dir_path = project.input.cso.mkdirs("modules")
-    metadata_list = []
-    for module_dir in os.listdir(modules_dir_path): # ../modules/*
-        metadata_dir_path = modules_dir_path / module_dir / "QueryingMetaData"
-        for file in os.listdir(metadata_dir_path): # ../modules/*/QueryingMetaData/*.json
-            if file.endswith(".json"):
-                with open(metadata_dir_path / file, mode="r", encoding="utf8") as f:
-                    metadata_list.append(ResourceQueryingMetaData.from_json(f))
-    return metadata_list
-
-
-def querying_metadata_list(project: Project) -> list[ResourceQueryingMetaData]:
-    return __querying_metadata_list(project)
-
-
-def querying_metadata_id_fn(val):
-    """
-    Generates tests IDs for QueryingMetadata tests parameters based on their backend and name
-    """
-    if isinstance(val, ResourceQueryingMetaData):
-        return f"{val.module.code}::{val.name}"
 
 
 def search_response_id_fn(response: Mapping[str, any]) -> str:
@@ -254,7 +224,6 @@ def pytest_generate_tests(metafunc: Metafunc):
     """
     Generates tests dynamically based on the collected querying metadata files within the project directory
     """
-    qm_list = __querying_metadata_list(Project(name=metafunc.config.getoption("--project")))
 
     if "test_ccdl_query" == metafunc.definition.name:
         with open(os.path.join(__test_dir(), "ModuleTestDataConfig.json"), mode="r", encoding="utf-8") as f:
@@ -268,11 +237,7 @@ def pytest_generate_tests(metafunc: Metafunc):
         metafunc.parametrize(argnames=("data_resource_file", "query_resource_path"),
                              argvalues=test_data)
 
-    if "test_criterion_definition_validity" == metafunc.definition.name:
-        schema = __querying_metadata_schema(__test_dir())
-        metafunc.parametrize(argnames=("querying_metadata", "querying_metadata_schema"),
-                             argvalues=[(instance, schema) for instance in qm_list],
-                             ids=[querying_metadata_id_fn(it) for it in qm_list], scope="session")
+
 
     if "test_criterion_term_code_search" == metafunc.definition.name:
         backend_client = __backend_client()

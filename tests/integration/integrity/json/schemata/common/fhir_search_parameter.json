@@ -1,0 +1,10 @@
+{
+  "$id": "https://fdpg.de/fhir_search_parameter.json",
+  "type": "object",
+  "properties": {
+    "attributeKey": {"$ref": "https://fdpg.de/termcode.json"},
+    "attributeSearchParameter": {"type": "string"},
+    "attributeType": {"type": "string"}
+  },
+  "required": ["attributeKey","attributeSearchParameter","attributeType"]
+}

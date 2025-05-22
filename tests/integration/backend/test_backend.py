@@ -113,15 +113,6 @@ def test_ccdl_query(data_resource_file, query_resource_path, backend_client, fhi
         logger.debug("Deleted fhir data")
 
 
-# TODO: Should this be moved to the unit tests?
-def test_criterion_definition_validity(querying_metadata: ResourceQueryingMetaData,
-                                       querying_metadata_schema: Mapping[str, any]):
-    try:
-        jsonschema.validate(instance=json.loads(querying_metadata.to_json()), schema=querying_metadata_schema)
-    except jsonschema.exceptions.ValidationError:
-        pytest.fail(f"JSON schema validation failed for file")
-
-
 def test_criterion_term_code_search(expected_responses: list[Mapping[str, any]],
                                     backend_client: FeasibilityBackendClient, backend_ip, elastic_ip):
     for expected_response in expected_responses:

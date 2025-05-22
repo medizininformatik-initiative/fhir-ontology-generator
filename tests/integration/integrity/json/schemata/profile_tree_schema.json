@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "profile_tree_schema.json",
+  "titel": "Profile-tree JSON Schema",
+  "description": "Used for checking integrity of generated profile_tree",
+  "type": "object",
+
+  "properties": {
+    "id": {"type": "string"},
+    "name": {"type": "string"},
+    "selectable": {"type": "boolean"},
+    "leaf": {"type": "boolean"},
+    "fields": {
+      "$ref": "#/definitions/fields"
+    },
+    "children": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/child" }
+    }
+  },
+  "required": ["id","name","selectable","leaf","fields","children"],
+
+  "definitions": {
+    "child": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string" },
+        "name": { "type":"string" },
+        "display": {"$ref": "https://fdpg.de/display.json"},
+        "url": {"type": "string" },
+        "module": {"type": "string" },
+        "selectable": { "type": "boolean" },
+        "fields": {"$ref": "#/definitions/fields"},
+        "leaf": {"type": "boolean" },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/child"
+          }
+        }
+      },
+      "required": ["id","name","display","url","module","selectable","fields","leaf","children"]
+    },
+    "display" : {
+      "type": "object",
+      "properties": {
+        "original": {"type": "string"},
+        "translations": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "https://fdpg.de/translation.json"
+          }
+        }
+      },
+      "required": ["original", "translations"]
+    },
+    "fields" : {
+      "type": "object",
+      "properties": {
+        "original": {"type": "array"},
+        "translations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/translation_fields"
+          }
+        }
+      },
+      "required": ["original", "translations"]
+    },
+    "translation_fields": {
+      "type": "object",
+      "properties": {
+        "language": {"type": "string"},
+        "value": {"type": "array"}
+      },
+      "required": ["language", "value"]
+    },
+    "translation": {
+      "type": "object",
+      "properties": {
+        "language": {"type": "string"},
+        "value": {"type": "string"}
+      },
+      "required": ["language", "value"]
+    }
+  }
+}
