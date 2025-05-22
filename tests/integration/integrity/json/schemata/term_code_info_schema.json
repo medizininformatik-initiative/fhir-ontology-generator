@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fdpg.de/term_code_info_schema",
+  "titel": "term-code JSON Schema",
+  "description": "Used for checking integrity of generated term code info",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "context": {
+        "$ref": "https://fdpg.de/termcode.json"
+      },
+      "term_code": {
+          "$ref": "https://fdpg.de/termcode.json"
+      },
+      "children_count": {"type": "integer", "minimum": 0},
+      "module": {
+        "type": "object",
+        "properties": {
+          "code": {"type": "string"},
+          "display": {"type": "string"}
+        },
+        "required" : ["code", "display"]
+      },
+      "designations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "language": {"type": "string"},
+            "display": {"type": "string"}
+          }
+        },
+        "required" : ["language", "display"]
+      },
+      "siblings": {"type": "array"}
+    },
+    "required" : ["context", "term_code", "children_count", "module", "designations", "siblings"]
+
+  }
+}
