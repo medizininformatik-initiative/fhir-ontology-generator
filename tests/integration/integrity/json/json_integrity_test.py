@@ -57,23 +57,23 @@ def validate_json_with_file(file: Path, schema: Path, schema_store: dict):
     else:
         return True
 
-def test_json_integrity_profile_tree(project, schema_store):
+def test_json_integrity_profile_tree(test_dir, project, schema_store):
     profile_tree_file = project.output /  "merged_ontology" / "profile_tree.json"
-    profile_tree_schema_file = Path(os.path.join("schemata", "profile_tree_schema.json"))
+    profile_tree_schema_file = Path(os.path.join(test_dir,"schemata", "profile_tree_schema.json"))
 
     assert True == validate_json_with_file(file=profile_tree_file, schema=profile_tree_schema_file, schema_store=schema_store)
 
-def test_json_integrity_term_code_info(project, schema_store):
+def test_json_integrity_term_code_info(test_dir, project, schema_store):
     term_code_info_folder = project.output / "merged_ontology" / "term-code-info"
-    term_code_info_schema_file = Path(os.path.join("schemata", "term_code_info_schema.json"))
+    term_code_info_schema_file = Path(os.path.join(test_dir, "schemata", "term_code_info_schema.json"))
 
     for term_code_file in os.listdir(term_code_info_folder):
         term_code_file = term_code_info_folder / term_code_file
         assert True == validate_json_with_file(file=Path(term_code_file), schema=term_code_info_schema_file, schema_store=schema_store)
 
-def test_json_integrity_ui_trees(project, schema_store):
+def test_json_integrity_ui_trees(test_dir, project, schema_store):
     ui_tree_folder = project.output / "merged_ontology" /"ui-trees"
-    ui_tree_schema_file = Path(os.path.join("schemata", "ui_tree_schema.json"))
+    ui_tree_schema_file = Path(os.path.join(test_dir, "schemata", "ui_tree_schema.json"))
 
     for ui_tree_file in os.listdir(ui_tree_folder):
         ui_tree_file = ui_tree_folder / ui_tree_file
