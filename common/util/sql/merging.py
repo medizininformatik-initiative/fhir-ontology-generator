@@ -254,8 +254,8 @@ class SqlMerger:
 
                 # Import the ui_profile table and write back new foreign keys to import schema
                 query_copy_contextualized_termcodes = """
-                INSERT INTO public.contextualized_termcode (context_termcode_hash, context_id, termcode_id, mapping_id, ui_profile_id)
-                SELECT context_termcode_hash, context_id, termcode_id, mapping_id, ui_profile_id
+                INSERT INTO public.contextualized_termcode (context_termcode_hash, context_id, termcode_id, ui_profile_id)
+                SELECT context_termcode_hash, context_id, termcode_id, ui_profile_id
                 FROM {schema_name}.contextualized_termcode
                 ON CONFLICT DO NOTHING;
                 """.format(schema_name=schema_name)

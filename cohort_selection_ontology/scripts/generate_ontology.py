@@ -302,7 +302,6 @@ def generate_ui_profiles(
         contextualized_term_code_ui_profile_mapping, named_ui_profiles_dict
     )
     db_writer.write_vs_to_db(named_ui_profiles_dict.values())
-    db_writer.remove_contextualized_termcodes_without_ui_profiles()
     write_used_value_sets_to_files(named_ui_profiles_dict.values(), result_dir / 'value-sets')
     write_used_criteria_sets_to_files(named_ui_profiles_dict.values(), result_dir / 'criteria-sets')
 
