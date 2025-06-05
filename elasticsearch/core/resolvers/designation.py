@@ -21,9 +21,11 @@ def extract_designation(parameters: dict, language: str, fuzzy = True) -> str | 
     Helper function for extracting language code specific designation display value from `Parameters` resource
     :param parameters: `Parameters` resource to extract display value from
     :param language: Language code identifying display value to extract
-    :param fuzzy:
+    :param fuzzy: Controls whether fuzzy matching is enabled when matching the languages codes. If `True` matches will
+                  be determined using the regex '`^{language}(-\S+)?$`'
     :return: Either `str` display value or `None` if no designation for language codes exists
     """
+    pass
     for designation in filter(lambda p: p.get("name") == "designation", parameters.get("parameter", [])):
         part = designation.get("part")
         if part:
