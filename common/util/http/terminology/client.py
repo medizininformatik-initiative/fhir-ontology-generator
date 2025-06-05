@@ -1,13 +1,15 @@
+from datetime import datetime
 from pathlib import Path
-from typing import Mapping, Optional, List
+from typing import Mapping, Optional, List, Literal
 
-from fhir.resources.R4B.bundle import Bundle
+from fhir.resources.R4B.bundle import Bundle, BundleEntry, BundleEntryRequest
 from fhir.resources.R4B.codesystem import CodeSystem
 from fhir.resources.R4B.conceptmap import ConceptMap
 from fhir.resources.R4B.parameters import Parameters
 from fhir.resources.R4B.valueset import ValueSet
 from requests.auth import AuthBase
 
+from common.util.fhir.bundle import BundleType
 from common.util.http.client import BaseClient
 from common.util.http.exceptions import ClientError
 from common.util.project import Project
@@ -37,6 +39,15 @@ class FhirTerminologyClient(BaseClient):
         else:
             cert = None
         return FhirTerminologyClient(base_url, auth, cert, timeout)
+
+    @classmethod
+    def __build_bundle(cls, bundle_type: BundleType, bundle_entries: List[BundleEntry]) -> Bundle:
+        return Bundle(
+            type=bundle_type.value,
+            timestamp=datetime.now(),
+            total=len(bundle_entries),
+            entry=bundle_entries
+        )
 
     def search_value_set(self, url: str) -> list[ValueSet]:
         bundle = self.get("/ValueSet", headers=dict([self.__accept_header]),
@@ -72,12 +83,28 @@ class FhirTerminologyClient(BaseClient):
             if err.status_code == 404: return None # Not found
             else: raise
 
-    def code_system_lookup(self, system: str, code: str, properties: Optional[List[str]] = None) -> Parameters:
+    def code_system_lookup(self, system: str, code: str, version: Optional[str] = None,
+                           properties: Optional[List[str]] = None) -> Parameters:
         response = self.get("/CodeSystem/$lookup", headers=self.__headers,
-                            query_params={'system': system, 'code': code, 'property': properties})
+                            query_params={'system': system, 'code': code, 'version': version, 'property': properties})
         return Parameters.model_validate_json(response.text)
 
     def closure(self, parameters: Parameters) -> ConceptMap:
         response = self.post("/$closure", headers=dict([self.__content_type_header]),
                              body=parameters.model_dump_json())
         return ConceptMap(**response.json())
+
+    def bulk_lookup(
+            self, parameters: List[Parameters],
+            mode: Literal[BundleType.BATCH, BundleType.TRANSACTION] = BundleType.TRANSACTION
+    ) -> Bundle:
+        entries = [BundleEntry(
+            resource = p,
+            request = BundleEntryRequest(
+                method = "POST",
+                url = "CodeSystem/$lookup"
+            )
+        ) for p in parameters]
+        bundle = self.__build_bundle(mode, entries)
+        response = self.post(headers=dict([self.__content_type_header]), body=bundle.model_dump_json())
+        return Bundle(**response.json())
