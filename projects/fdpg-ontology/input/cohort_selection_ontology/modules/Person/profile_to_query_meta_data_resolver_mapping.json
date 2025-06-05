@@ -4,5 +4,9 @@
   ],
   "Vitalstatus": [
     "Vitalstatus"
+  ],
+  "Todesursache": [
+    "CauseOfDeathSnomed",
+    "CauseOfDeathLoinc"
   ]
 }
