@@ -409,6 +409,7 @@ class ElasticSearchGenerator:
         self.__logger.info("Generating Elasticsearch term code index documents")
         for filename in os.listdir(ui_tree_dir):
             if filename.endswith(extension):
+                self.__logger.info(f"Processing {filename}")
                 current_file = elastic_dir / f"{filename_prefix}_{index_name}_{current_file_index}{extension}"
 
                 with open(ui_tree_dir / filename, mode='r', encoding='UTF-8') as f:
@@ -425,7 +426,7 @@ class ElasticSearchGenerator:
 
                 current_file_index = current_file_index + 1
 
-        self.__logger.info("Generate Elasticsearch value set index documents")
+        self.__logger.info("Generating Elasticsearch value set index documents")
         index_name = 'codeable_concept'
         termcode_to_valueset = {}
 

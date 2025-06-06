@@ -69,5 +69,11 @@
       "disabled": true,
       "reason": "No test data available"
     }
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Person_Condition_Todesursache_LOINC_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Person_Condition_Todesursache_SNOMED_Patient1_Q1.json"]
   }
 ]
