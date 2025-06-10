@@ -15,6 +15,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+## [3.8.0] - 2025-06-10
+
+## Added
+
+- Add 'Cause of Death' criteria class based on MII CDS Person module by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/49
+
+## Changed
+
+- Update display name determination for criteria classes with fixed concept identifiers such as the patients age by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/217
+
+## Removed
+
+- Cleanup generated SQL import files (removal of unused tables, indices, etc.) by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/62
+
 ## [3.7.0] - 2025-05-19
 
 ## Changed
