@@ -1,0 +1,16 @@
+{
+  "context": {
+    "code": "Molgen",
+    "display": "Molgen",
+    "system": "fdpg.mii.cds",
+    "version": "1.0.0"
+  },
+  "module": {
+    "code": "mii-cds-molgen",
+    "display": "Molgen"
+  },
+  "name": "MII_PR_MolGen_TherapeutischeImplikation",
+  "resource_type": "Observation",
+  "term_code_defining_id": "Observation.code",
+  "time_restriction_defining_id": "Observation.effective[x]"
+}
