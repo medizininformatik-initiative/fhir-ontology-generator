@@ -3,16 +3,13 @@
     "Bericht"
   ],
   "MII_PR_MolGen_Familienanamnese": [
-    "FamilienanamneseLOINC"
-  ],
-  "MII_PR_MolGen_TherapeutischeImplikation": [
-    "TherapeutischeImplikation"
+    "FamilienanamneseLOINC",
+    "FamilienanamneseSNOMED"
   ],
   "MII_PR_MolGen_UntersuchteRegion": [
     "UntersuchteRegion"
   ],
   "MII_PR_MolGen_Variante": [
-    "VarianteLOINC",
     "VarianteHGNC"
   ]
 }

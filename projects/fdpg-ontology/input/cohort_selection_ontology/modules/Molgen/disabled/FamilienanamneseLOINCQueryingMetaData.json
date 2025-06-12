@@ -11,6 +11,5 @@
   },
   "name": "FamilienanamneseLOINC",
   "resource_type": "ServiceRequest",
-  "term_code_defining_id": "FamilyMemberHistory.condition.code.coding:icd10-gm",
-  "time_restriction_defining_id": ""
+  "term_code_defining_id": "FamilyMemberHistory.condition.code.coding:icd10-gm"
 }

@@ -316,17 +316,20 @@ class UIProfileGenerator:
             attribute_definition.type = "quantity"
             return attribute_definition
         elif attribute_type == "CodeableConcept":
-            if binding := predicate.get("binding"):
-                concepts = get_selectable_concepts(predicate, profile_snapshot.get("name"), self.__client)
-                attribute_definition.referencedValueSet = concepts
-            elif binding := element.get("binding"):
+            if binding := element.get("binding"):
                 concepts = get_selectable_concepts(element, profile_snapshot.get("name"), self.__client)
+                attribute_definition.referencedValueSet = concepts
+            elif binding := predicate.get("binding"):
+                concepts = get_selectable_concepts(predicate, profile_snapshot.get("name"), self.__client)
                 attribute_definition.referencedValueSet = concepts
             else:
                 concepts = get_fixed_term_codes(predicate, profile_snapshot, self.module_dir, self.data_set_dir,
                                                    self.__client)
                 attribute_definition.referencedCriteriaSet = self.get_reference_criteria_set_from_fixed_term_codes(
                     concepts, self.get_referenced_context(profile_snapshot, self.module_dir))
+
+            attribute_definition.display = get_display_from_element_definition(get_common_ancestor(profile_snapshot, element.get("id"),predicate.get("id")))
+            attribute_definition.type = "concept"
             return attribute_definition
         else:
             raise InvalidValueTypeException("Invalid value type: " + attribute_type + " for composite attribute " +

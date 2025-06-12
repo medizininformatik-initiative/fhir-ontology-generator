@@ -30,5 +30,13 @@
   {
     "url": "http://fhir.de/CodeSystem/bfarm/atc",
     "name": "atc"
+  },
+  {
+    "url": "http://www.genenames.org/geneId",
+    "name": "GENEID"
+  },
+  {
+    "url": "http://www.genenames.org/genegroup",
+    "name": "GENEGROUP"
   }
 ]

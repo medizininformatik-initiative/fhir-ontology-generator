@@ -9,7 +9,8 @@
     "code": "mii-cds-molgen",
     "display": "Molgen"
   },
-  "name": "MII_PR_MolGen_Variante",
+  "name": "MII_PR_MolGen_TherapeutischeImplikation",
   "resource_type": "Observation",
-  "term_code_defining_id": "Observation.method"
+  "term_code_defining_id": "Observation.code", # hier fehlt das code system
+  "time_restriction_defining_id": "Observation.effective[x]"
 }

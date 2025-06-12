@@ -177,17 +177,14 @@ class FHIRSearchMappingGenerator(object):
     def set_attribute_search_param(self, attribute, fhir_mapping, predefined_type, profile_snapshot,
                                    module_dir_name: str):
         attribute_key = generate_attribute_key(attribute)
-        attribute_type = predefined_type if predefined_type else self.get_attribute_type(profile_snapshot,
-                                                                                         attribute, module_dir_name)
-        attribute_search_params = self.resolve_fhir_search_parameter(attribute, profile_snapshot, module_dir_name,
-                                                                     attribute_type)
+        attribute_type = predefined_type if predefined_type else self.get_attribute_type(profile_snapshot, attribute, module_dir_name)
+        attribute_search_params = self.resolve_fhir_search_parameter(attribute, profile_snapshot, module_dir_name, attribute_type)
         composite_code = None
         if attribute_type == "composite":
             attribute_type = self.get_composite_attribute_type(attribute, profile_snapshot, module_dir_name)
             composite_code = self.get_composite_code(attribute, profile_snapshot, module_dir_name)
             attribute_key = composite_code
-        fhir_mapping.add_attribute(attribute_type, attribute_key,
-                                   self._handle_search_parameter(attribute_type, attribute_search_params),
+        fhir_mapping.add_attribute(attribute_type, attribute_key, self._handle_search_parameter(attribute_type, attribute_search_params),
                                    composite_code)
 
     def get_composite_code(self, attribute, profile_snapshot, module_dir_name):
@@ -203,9 +200,25 @@ class FHIRSearchMappingGenerator(object):
         search_param_components = self.resolve_fhir_search_parameter(attribute, profile_snapshot, module_dir_name,
                                                                      "composite")
         first_search_param = next(iter(search_param_components.values()))
-        if first_search_param.get("type") == "quantity":
-            attribute_type = "quantity"
-        elif first_search_param.get("type") == "token":
+
+        type_of_first_component_url = first_search_param.get("component")[0].get("definition")
+        type_of_first_component = next(filter(lambda x: x["url"] == type_of_first_component_url, self.fhir_search_mapping_resolver.search_parameters), None).get("type")
+
+        type_of_second_component_url = first_search_param.get("component")[1].get("definition")
+        type_of_second_component = next(filter(lambda x: x["url"] == type_of_second_component_url, self.fhir_search_mapping_resolver.search_parameters), None).get("type")
+
+        value_component_type = type_of_first_component
+        if ((type_of_first_component == "token" and type_of_second_component == "quantity") or
+                (type_of_second_component == "token" and type_of_first_component == "quantity")):
+            value_component_type = "quantity"
+        if type_of_first_component == "token" and type_of_second_component == "token":
+            value_component_type = "token"
+        if type_of_first_component == "quantity" and type_of_second_component == "quantity":
+            value_component_type = "quantity"
+
+        if value_component_type == "quantity":
+            attribute_type = "composite-quantity"
+        elif value_component_type == "token":
             attribute_type = "composite-concept"
         else:
             raise ValueError("Composite search parameters must have a quantity or token as the first element")

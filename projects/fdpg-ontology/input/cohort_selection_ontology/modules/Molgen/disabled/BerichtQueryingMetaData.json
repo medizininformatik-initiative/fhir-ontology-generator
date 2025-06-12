@@ -11,6 +11,5 @@
   },
   "name": "Bericht",
   "resource_type": "DiagnosticReport",
-  "term_code_defining_id": "DiagnosticReport.conclusionCode",
-  "time_restriction_defining_id": "DiagnosticReport.effective[x]"
+  "term_code_defining_id": "DiagnosticReport.conclusionCode"
 }
