@@ -820,7 +820,7 @@
         {
           "criteria": {
             "language": "text/fhirpath",
-            "expression": "Encounter.class.coding"
+            "expression": "Encounter.class"
           },
           "code": {
             "coding": [
@@ -2356,5 +2356,5 @@
   "name": "CDSAvailabilityMeasure",
   "experimental": false,
   "publisher": "FDPG-Plus-Availability",
-  "description": "Measure to count the availabilities of different crtieria based on terminology system code counts"
+  "description": "Measure to determine the availability of criteria based on the amount of codings from different terminologies in the dataset"
 }
