@@ -53,25 +53,25 @@
     "display": "Verabreichung von Medikamenten",
     "version": "1.0.0"
   },
-  "medication-statement-medication-code-atc": {
+  "medicationstatement-medication-code-atc": {
     "system": "fdpg.mii.cds",
     "code": "Medikamentenverordnung",
     "display": "Verordnung von Medikamenten",
     "version": "1.0.0"
   },
-  "medication-statement-medication-code-pzn": {
+  "medicationstatement-medication-code-pzn": {
     "system": "fdpg.mii.cds",
     "code": "Medikamentenverordnung",
     "display": "Verordnung von Medikamenten",
     "version": "1.0.0"
   },
-  "medication-request-medication-code-atc": {
+  "medicationrequest-medication-code-atc": {
     "system": "fdpg.mii.cds",
     "code": "Medikamentenandordnung",
     "display": "Anordnung von Medikamenten",
     "version": "1.0.0"
   },
-  "medication-request-medication-code-pzn": {
+  "medicationrequest-medication-code-pzn": {
     "system": "fdpg.mii.cds",
     "code": "Medikamentenandordnung",
     "display": "Anordnung von Medikamenten",
@@ -95,6 +95,12 @@
     "display": "Bioprobe",
     "version": "1.0.0"
   },
+  "encounter-class-coding": {
+    "system": "fdpg.mii.cds",
+    "code": "Fall",
+    "display": "Fall",
+    "version": "1.0.0"
+  },
   "condition-death-reason-icd10-code": {
     "system": "fdpg.mii.cds",
     "code": "Todesursache",
@@ -105,6 +111,12 @@
     "system": "fdpg.mii.cds",
     "code": "Vitalstatus",
     "display": "Einwilligung",
+    "version": "1.0.0"
+  },
+  "patient-birthdate-exists": {
+    "system": "fdpg.mii.cds",
+    "code": "Patient",
+    "display": "Patient",
     "version": "1.0.0"
   },
   "consent-patientendaten-erheben-speichern-nutzen": {
