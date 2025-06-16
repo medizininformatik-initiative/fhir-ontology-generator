@@ -6,7 +6,8 @@
     "system": {"type": "string"},
     "code": {"type": "string"},
     "display": {"type": "string"},
-    "version": {"type":["string", "null"]}
+    "version": {"type":["string", "null", "integer"]}
   },
-  "required": ["system","code","display","version"]
+  "required": ["system","code","display"],
+  "additionalProperties": false
 }

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mapping_fhir_schema.json",
+  "titel": "Mapping FHIR JSON Schema",
+  "description": "Used for checking integrity of generated mapping fhir",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "attributeSearchParameters": {
+        "type": "array",
+        "items": { "$ref": "https://fdpg.de/fhir_search_parameter.json" }
+      },
+      "context": {"$ref": "https://fdpg.de/termcode.json" },
+      "fhirResourceType": {"type": "string"},
+      "fixedCriteria": {"type": "array" },
+      "key": {"$ref": "https://fdpg.de/termcode.json" },
+      "name": {"type": "string"},
+      "termCodeSearchParameter": {"type": "string"},
+      "timeRestrictionParameter": {"type": "string"}
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mapping_cql_schema.json",
+  "titel": "Mapping CQL JSON Schema",
+  "description": "Used for checking integrity of generated mapping_cql.json",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "attributes": {
+        "type": "array",
+        "items": {
+          "$ref": "https://fdpg.de/cql_attribute.json"
+        }
+      },
+      "context": { "$ref": "https://fdpg.de/termcode.json" },
+      "key": { "$ref": "https://fdpg.de/termcode.json" },
+      "name": {"type": "string"},
+      "resourceType": {"type": "string"},
+      "timeRestriction": { "$ref": "https://fdpg.de/timeRestriction.json" }
+    }
+  }
+}
