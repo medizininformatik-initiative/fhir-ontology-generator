@@ -91,6 +91,9 @@ jobs:
           name: packaged ontology
           path: projects/fdpg-ontology/output/merged_ontology
 
+      - name: Install required python modules
+        run: pip3 install -r requirements.txt
+
       - name: Install testing pytest
         run: pip3 install pytest pytest-docker pytest-cov
 
@@ -125,6 +128,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Install required python modules
+        run: pip3 install -r requirements.txt
 
       - name: Download Ontology
         uses: actions/download-artifact@v4
