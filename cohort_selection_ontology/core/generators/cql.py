@@ -72,6 +72,10 @@ class CQLMappingGenerator(object):
         :return: Alternative element and targeted type if a more compatible element could be identified or the given
                  element and its type if not
         """
+        ### Select element were the slicing is defined
+        if 'sliceName' in element:
+            return  cls.__select_element_compatible_with_cql_operations(get_parent_element(element, snapshot), snapshot)
+
         element_types = element.get('type', [])
         element_type_codes = {t['code'] for t in element_types}
         compatible_element = element
@@ -591,18 +595,9 @@ class CQLMappingGenerator(object):
                 # occurrence (e.g. for paths like '<resource-type>')
                 return SimpleCardinality.SINGLE if is_root else card
             case _:
-
-                # TODO: Should check if selection in where clause returns a truly unique element (Slices, composite)
-
-                if element.get("id") == "Encounter.type:Kontaktebene":
-                    return SimpleCardinality.MANY
-
-                if element.get("id") == "Encounter.type:KontaktArt":
-                    return SimpleCardinality.MANY
-
-                if opt_element_path == get_parent_element(opt_element, snapshot).get("id"):
-                    parent_el = get_parent_element(opt_element, snapshot)
-                    opt_parent_el, _ = CQLMappingGenerator.__select_element_compatible_with_cql_operations(parent_el,
+                parent_element = get_parent_element(opt_element, snapshot)
+                if opt_element_path == parent_element.get("id"):
+                    opt_parent_el, _ = CQLMappingGenerator.__select_element_compatible_with_cql_operations(parent_element,
                                                                                                            snapshot)
                     grand_parent_el = get_parent_element(opt_parent_el, snapshot)
                     if grand_parent_el is None and opt_element_path.count(".") == 0:
@@ -611,7 +606,7 @@ class CQLMappingGenerator(object):
                     return CQLMappingGenerator.__aggregate_cardinality_using_element(grand_parent_el, snapshot,
                                                                                      card_type) * card
 
-                match get_parent_element(opt_element, snapshot):
+                match parent_element:
                     case None:
                         if not is_root:
                             raise Exception(f"No parent could be identified for element '{opt_element.get('id')}' with "
