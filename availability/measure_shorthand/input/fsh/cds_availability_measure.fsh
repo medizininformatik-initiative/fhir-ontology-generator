@@ -59,7 +59,7 @@ Description: "Measure to determine the availability of criteria based on the amo
 
 // Encounter
 * insert AddStratifierGroup(8, "Encounter?_profile:below=https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung", Encounter, Encounter.subject.reference)
-* insert AddStratifierToGroup(8, 0, Encounter.class.coding, "encounter-class-coding" , "encounter-class-coding")
+* insert AddStratifierToGroup(8, 0, Encounter.class, "encounter-class-coding" , "encounter-class-coding")
 
 
 // Consent
