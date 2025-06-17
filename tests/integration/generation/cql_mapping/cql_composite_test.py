@@ -13,20 +13,19 @@ def test_cql_composite_attributes():
 
     test_project_dir = os.path.join(test_dir, "composite")
     test_project = Project("composite", path=test_project_dir)
-    module_dir = os.path.join(test_project_dir, "input", "modules", "ICU")
+    module_dir = test_project.input.cso / "modules" / "ICU"
 
-    with open(os.path.join(module_dir, "expected", "cql_mapping.json")) as f:
+    with open(module_dir / "expected" / "cql_mapping.json") as f:
         expected = json.load(f)
         if expected.get("key"):
             # key is optional, compatibility with v1
             del expected["key"]
 
-    with open(os.path.join(module_dir, "QueryingMetaData",
-                           "SD_MII_ICU_Arterieller_BlutdruckQueryingMetaData.json")) as f:
+    with open(module_dir / "QueryingMetaData" / "SD_MII_ICU_Arterieller_BlutdruckQueryingMetaData.json") as f:
         querying_meta_data = ResourceQueryingMetaData.from_json(f)
 
-    with open(os.path.join(module_dir, "differential", "package",
-                           "sd-mii-icu-muv-arterieller-blutdruck-snapshot.json"), 'r', encoding="utf-8") as f:
+    with open(module_dir / "differential" / "package" / "sd-mii-icu-muv-arterieller-blutdruck-snapshot.json", 'r',
+              encoding="utf-8") as f:
         profile_snapshot = json.load(f)
 
     resolver = StandardDataSetQueryingMetaDataResolver(test_project)
@@ -41,4 +40,4 @@ def test_cql_composite_attributes():
     if expected.get("timeRestriction").get("types"):
         expected["timeRestriction"]["types"].sort()
 
-    assert (expected == cql_mapping_json)
+    assert (cql_mapping_json == expected)
