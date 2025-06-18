@@ -424,7 +424,7 @@ class ProfileTreeGenerator:
         :param profile_tree: `ProfileTreeNode` instance representing the root of a profile tree to condense
         :return: Condensed profile tree
         """
-        if len(profile_tree.children) > 1 or profile_tree.selectable or profile_tree.leaf:
+        if len(profile_tree.children) > 1 or profile_tree.selectable or profile_tree.leaf or "modul" in profile_tree.name:
             tree = profile_tree.model_copy()
         else:
             # Exactly one child element should exist at this point since the node has neither more than one child nor is
