@@ -9,7 +9,13 @@
     "modul-fall",
     "modul-biobank",
     "modul-consent",
-    "modul-icu"
+    "modul-icu",
+    "modul-molgen",
+    "modul-bildgebung",
+    "modul-onko",
+    "modul-patho",
+    "modul-mikrobio",
+    "modul-studie"
   ],
   "module_translation": {
     "de-DE": {
@@ -40,7 +46,7 @@
       "modul-consent": "Consent",
       "modul-icu": "Intensive Care",
       "modul-molgen": "Molecular genetics",
-      "modul-bildgebung": "--",
+      "modul-bildgebung": "Findings of Imaging Procedures",
       "modul-onko": "Oncology",
       "modul-patho": "Pathology",
       "modul-mikrobio": "Microbiology",
