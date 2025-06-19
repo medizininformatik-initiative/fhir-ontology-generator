@@ -182,21 +182,22 @@ class ProfileDetailGenerator:
         if element_id in {"Patient.address:Strassenanschrift.postalCode", "Patient.address:Strassenanschrift.country"}:
             return False
 
-        # if not element.get("type"):
-        #     self.__logger.info(f"Excluding: {element['id']} as no type was found")
-        #     return True
+        #if not element.get("type"):
+        #    self.__logger.info(f"Excluding: {element['id']} as no type was found")
+        #    return True
 
         if element.get("subject") or element.get("patient"):
             self.__logger.info(f"Excluding: {element['id']} as having references to patients")
             return True
 
-        # attributes_true_level_two = ["mustSupport", "isModifier"]
-        #
-        # if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
-        #        for attr in attributes_true_level_two) and len(element["id"].split(".")) > 2:
-        #     self.__logger.debug(f"Excluding: {element['id']} as not mustSupport or modifier on level > 2")
+        #attributes_true_level_two = ["mustSupport", "isModifier"]
 
-        if any(element['id'].endswith(field) or f"{field}." in element['id']for field in self.fields_to_exclude):
+        if (len(element["id"].split(".")) > 2
+                and all(t.code in FhirPrimitiveDataType for t in get_types_supported_by_element(element))):
+            self.__logger.debug(f"Excluding: {element['id']} as primitively-typed on level > 2")
+            return True
+
+        if any(element['id'].endswith(field) or f"{field}." in element['id'] for field in self.fields_to_exclude):
             self.__logger.debug(f"Excluding: {element['id']} as excluded field")
             return True
 
