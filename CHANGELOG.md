@@ -15,6 +15,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+## [3.8.1] - 2025-06-23
+
+## Fixed
+
+- Fix CQL mapping cardinality aggregation by ([#295](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/295) @paulolaup)
+- Fix FHIRPath expression for Encounter resource in availability measure ([#292](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/292) @juliangruendner)
+- Reintroduce modules MII CDS Bildgebung, Enwilligung, and Pathologie into DSE ([#296(https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/296) @paulolaup])
+- Remove primitive elements from DSE Profile Details tree ([#299](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/299) @paulolaup)
+- Keep module root node in profile tree ([#298](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/298) @Frontman50)
+
 ## [3.8.0] - 2025-06-10
 
 ## Added
