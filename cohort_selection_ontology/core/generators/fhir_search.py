@@ -5,7 +5,7 @@ from typing import Dict, Tuple, List, OrderedDict
 from cohort_selection_ontology.core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
 from cohort_selection_ontology.core.resolvers.search_parameter import SearchParameterResolver
 from cohort_selection_ontology.core.terminology.client import CohortSelectionTerminologyClient
-from cohort_selection_ontology.model.mapping import FhirMapping
+from cohort_selection_ontology.model.mapping.fhirpath import FhirMapping
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from cohort_selection_ontology.model.ui_data import TermCode
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS
