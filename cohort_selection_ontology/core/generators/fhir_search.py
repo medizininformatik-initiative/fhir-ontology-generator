@@ -10,7 +10,7 @@ from cohort_selection_ontology.util.fhir import structure_definition as sd
 from cohort_selection_ontology.core.resolvers.search_parameter import SearchParameterResolver
 from cohort_selection_ontology.util.fhir.structure_definition import extract_value_type, resolve_defining_id, FHIR_TYPES_TO_VALUE_TYPES
 from cohort_selection_ontology.util.fhir.structure_definition import generate_attribute_key
-from cohort_selection_ontology.model.mapping import FhirMapping
+from cohort_selection_ontology.model.mapping.fhirpath import FhirMapping
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS
 from cohort_selection_ontology.model.ui_data import TermCode

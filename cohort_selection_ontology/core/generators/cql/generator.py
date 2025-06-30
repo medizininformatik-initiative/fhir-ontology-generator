@@ -17,7 +17,8 @@ from cohort_selection_ontology.util.fhir.structure_definition import resolve_def
     get_element_defining_elements, get_fixed_term_codes, get_element_type, translate_element_to_fhir_path_expression
 from common.exceptions.typing import UnsupportedTypingException
 from cohort_selection_ontology.util.fhir.structure_definition import generate_attribute_key
-from cohort_selection_ontology.model.mapping import CQLMapping, CQLAttributeSearchParameter, CQLTimeRestrictionParameter, \
+from cohort_selection_ontology.model.mapping.cql import CQLMapping, CQLAttributeSearchParameter, \
+    CQLTimeRestrictionParameter, \
     CQLTypeParameter, SimpleCardinality
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS
@@ -28,6 +29,87 @@ from common.util.log.functions import get_class_logger
 from common.util.project import Project
 from common.typing.fhir import FHIRPathlike
 from importlib.resources import files
+
+
+def select_element_compatible_with_cql_operations(element: ElementDefinitionDict,
+                                                  snapshot: Snapshot) -> (ElementDefinitionDict, Set[str]):
+    """
+    Uses the given element to determine - if necessary - an element which is more suitable for generating the CQL
+    mapping
+    :param element: ElementDefinition instance to possibly replace
+    :param snapshot: StructureDefinition instance in snapshot form to which the element belongs
+    :return: Alternative element and targeted type if a more compatible element could be identified or the given
+             element and its type if not
+    """
+    ### Select element were the slicing is defined
+    if 'sliceName' in element:
+        return select_element_compatible_with_cql_operations(get_parent_element(element, snapshot), snapshot)
+
+    element_types = element.get('type', [])
+    element_type_codes = {t['code'] for t in element_types}
+    compatible_element = element
+    targeted_types = element_type_codes
+    ### Coding -> CodeableConcept
+    if len(element_types) == 1 and "Coding" in element_type_codes:
+        # If the given element has type Coding which is part of the CodeableConcept type, the parent element is
+        # returned to allow the CQL generation to use this information for query optimization
+        element_base_path = element.get('base', {}).get('path')
+        if element_base_path:
+            targeted_type = element_base_path.split('.')[0]
+            if targeted_type in {"CodeableConcept", "Reference"}:
+                parent_element = get_parent_element(element, snapshot)
+                if parent_element:
+                    # Recurse until the actual ancestor element is reached. Slicing element definitions do not have
+                    # such an element as their parent (direct ancestor)
+                    compatible_element, _ = select_element_compatible_with_cql_operations(parent_element, snapshot)
+                    targeted_types = {targeted_type}
+        else:
+            raise KeyError(f"Element [id='{element.get('id')}'] is missing required 'ElementDefinition.base.path' "
+                           f"element which is required in snapshots")
+    return compatible_element if compatible_element else element, targeted_types
+
+
+def aggregate_cardinality_using_element(element: ElementDefinitionDict, snapshot: Snapshot,
+                                        card_type: LiteralString["min", "max"] = "max") -> SimpleCardinality:
+    """
+    Aggregates the cardinality of an element along its path by collecting the cardinalities of itself and the parent
+    elements and combining them to obtain the aggregated value as viewed from the root of the FHIR Resource
+    :param element: Element to calculate the aggregated cardinality for
+    :param snapshot: Snapshot of profile defining the element
+    :param card_type: Type of cardinality to aggregate (either 'mix' or 'max')
+    :return: Aggregated cardinality stating whether an element can occur multiple times or not
+    """
+    opt_element, _ = select_element_compatible_with_cql_operations(element, snapshot)
+    card = SimpleCardinality.from_fhir_cardinality(opt_element.get(card_type))
+    opt_element_path = opt_element.get('path')
+    is_root = opt_element_path.count(".") == 0
+    match card:
+        case SimpleCardinality.MANY:
+            # End recursion since with the current enum members reaching this state leads to no further changes. An
+            # exception will be made if the element is a root element since at that level we always assume singleton
+            # occurrence (e.g. for paths like '<resource-type>')
+            return SimpleCardinality.SINGLE if is_root else card
+        case _:
+            parent_element = get_parent_element(opt_element, snapshot)
+            if opt_element_path == parent_element.get("id"):
+                opt_parent_el, _ = select_element_compatible_with_cql_operations(parent_element,
+                                                                                                       snapshot)
+                grand_parent_el = get_parent_element(opt_parent_el, snapshot)
+                if grand_parent_el is None and opt_element_path.count(".") == 0:
+                    return SimpleCardinality.SINGLE
+                # skip one parent
+                return aggregate_cardinality_using_element(grand_parent_el, snapshot, card_type) * card
+
+            match parent_element:
+                case None:
+                    if not is_root:
+                        raise Exception(f"No parent could be identified for element '{opt_element.get('id')}' with "
+                                        f"non-root path '{opt_element_path}'")
+                    else:
+                        # The root element is always assumed to have `SINGLE` cardinality
+                        return SimpleCardinality.SINGLE
+                case parent_element:
+                    return aggregate_cardinality_using_element(parent_element, snapshot, card_type) * card
 
 
 class CQLMappingGenerator(object):
@@ -60,45 +142,6 @@ class CQLMappingGenerator(object):
                 if resource_type and primary_path:
                     primary_paths[resource_type] = primary_path
         return primary_paths
-
-    @classmethod
-    def __select_element_compatible_with_cql_operations(cls, element: ElementDefinitionDict,
-                                                        snapshot: Snapshot) -> (ElementDefinitionDict, Set[str]):
-        """
-        Uses the given element to determine - if necessary - an element which is more suitable for generating the CQL
-        mapping
-        :param element: ElementDefinition instance to possibly replace
-        :param snapshot: StructureDefinition instance in snapshot form to which the element belongs
-        :return: Alternative element and targeted type if a more compatible element could be identified or the given
-                 element and its type if not
-        """
-        ### Select element were the slicing is defined
-        if 'sliceName' in element:
-            return  cls.__select_element_compatible_with_cql_operations(get_parent_element(element, snapshot), snapshot)
-
-        element_types = element.get('type', [])
-        element_type_codes = {t['code'] for t in element_types}
-        compatible_element = element
-        targeted_types = element_type_codes
-        ### Coding -> CodeableConcept
-        if len(element_types) == 1 and "Coding" in element_type_codes:
-            # If the given element has type Coding which is part of the CodeableConcept type, the parent element is
-            # returned to allow the CQL generation to use this information for query optimization
-            element_base_path = element.get('base', {}).get('path')
-            if element_base_path:
-                targeted_type = element_base_path.split('.')[0]
-                if targeted_type in {"CodeableConcept", "Reference"}:
-                    parent_element = get_parent_element(element, snapshot)
-                    if parent_element:
-                        # Recurse until the actual ancestor element is reached. Slicing element definitions do not have
-                        # such an element as their parent (direct ancestor)
-                        compatible_element, _ = cls.__select_element_compatible_with_cql_operations(parent_element,
-                                                                                                    snapshot)
-                        targeted_types = {targeted_type}
-            else:
-                raise KeyError(f"Element [id='{element.get('id')}'] is missing required 'ElementDefinition.base.path' "
-                               f"element which is required in snapshots")
-        return compatible_element if compatible_element else element, targeted_types
 
     def generate_mapping(self, module_name: str) \
             -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, CQLMapping]]:
@@ -186,7 +229,7 @@ class CQLMappingGenerator(object):
                 else:
                     element = get_element_defining_elements(tc_defining_id, profile_snapshot,
                                                                    module_dir_name, modules_dir)[-1]
-                element, types = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
+                element, types = select_element_compatible_with_cql_operations(element, profile_snapshot)
                 element_id = element.get('id')
                 if not types:
                     raise KeyError("ElementDefinition.type cannot be empty as at least one type is required for CQL "
@@ -201,12 +244,12 @@ class CQLMappingGenerator(object):
                 term_code_fhir_path = self.translate_term_element_id_to_fhir_path_expression(element_id,
                                                                                              profile_snapshot,
                                                                                              module_dir_name)
-                card = CQLMappingGenerator.__aggregate_cardinality_using_element(element, profile_snapshot)
+                card = aggregate_cardinality_using_element(element, profile_snapshot)
                 cql_mapping.termCode = CQLTypeParameter(term_code_fhir_path, types, card)
 
         if val_defining_id := querying_meta_data.value_defining_id:
             element = get_element_from_snapshot(profile_snapshot, val_defining_id)
-            element, types = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
+            element, types = select_element_compatible_with_cql_operations(element, profile_snapshot)
             element_id = element.get('id')
             if not types:
                 raise KeyError("ElementDefinition.type cannot be empty as at least one type is required for CQL "
@@ -220,12 +263,12 @@ class CQLMappingGenerator(object):
                                                  f"allowed={self.__allowed_defining_value_fhir_types}]")
             value_fhir_path = self.translate_element_id_to_fhir_path_expressions(element_id, profile_snapshot,
                                                                                  module_dir_name)
-            card = CQLMappingGenerator.__aggregate_cardinality_using_element(element, profile_snapshot)
+            card = aggregate_cardinality_using_element(element, profile_snapshot)
             cql_mapping.value = CQLTypeParameter(value_fhir_path, types, card)
 
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
             element = get_element_from_snapshot(profile_snapshot, time_defining_id)
-            element, types = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
+            element, types = select_element_compatible_with_cql_operations(element, profile_snapshot)
             element_id = element.get('id')
             if not types:
                 raise KeyError("ElementDefinition.type cannot be empty as at least one type is required for CQL "
@@ -259,7 +302,7 @@ class CQLMappingGenerator(object):
         attribute_types = None
         if attribute_type == "composite":
             # element = self.parser.get_element_from_snapshot(profile_snapshot, attr_defining_id)
-            # element, _ = self.__select_element_compatible_with_cql_operations(element, profile_snapshot)
+            # element, _ = select_element_compatible_with_cql_operations(element, profile_snapshot)
 
             attribute_fhir_path = self.translate_composite_attribute_to_fhir_path_expression(attr_defining_id,
                                                                                              profile_snapshot,
@@ -269,8 +312,7 @@ class CQLMappingGenerator(object):
         else:
             if attribute_type != "Reference":
                 element = get_element_from_snapshot(profile_snapshot, attr_defining_id)
-                element, attribute_types = self.__select_element_compatible_with_cql_operations(element,
-                                                                                                profile_snapshot)
+                element, attribute_types = select_element_compatible_with_cql_operations(element, profile_snapshot)
                 attr_defining_id = element.get('id')
             attribute_fhir_path = self.translate_term_element_id_to_fhir_path_expression(attr_defining_id,
                                                                                          profile_snapshot,
@@ -573,51 +615,6 @@ class CQLMappingGenerator(object):
                 return True
         return False
 
-    @staticmethod
-    def __aggregate_cardinality_using_element(element: ElementDefinitionDict, snapshot: Snapshot,
-                                              card_type: LiteralString["min", "max"] = "max") -> SimpleCardinality:
-        """
-        Aggregates the cardinality of an element along its path by collecting the cardinalities of itself and the parent
-        elements and combining them to obtain the aggregated value as viewed from the root of the FHIR Resource
-        :param element: Element to calculate the aggregated cardinality for
-        :param snapshot: Snapshot of profile defining the element
-        :param card_type: Type of cardinality to aggregate (either 'mix' or 'max')
-        :return: Aggregated cardinality stating whether an element can occur multiple times or not
-        """
-        opt_element, _ = CQLMappingGenerator.__select_element_compatible_with_cql_operations(element, snapshot)
-        card = SimpleCardinality.from_fhir_cardinality(opt_element.get(card_type))
-        opt_element_path = opt_element.get('path')
-        is_root = opt_element_path.count(".") == 0
-        match card:
-            case SimpleCardinality.MANY:
-                # End recursion since with the current enum members reaching this state leads to no further changes. An
-                # exception will be made if the element is a root element since at that level we always assume singleton
-                # occurrence (e.g. for paths like '<resource-type>')
-                return SimpleCardinality.SINGLE if is_root else card
-            case _:
-                parent_element = get_parent_element(opt_element, snapshot)
-                if opt_element_path == parent_element.get("id"):
-                    opt_parent_el, _ = CQLMappingGenerator.__select_element_compatible_with_cql_operations(parent_element,
-                                                                                                           snapshot)
-                    grand_parent_el = get_parent_element(opt_parent_el, snapshot)
-                    if grand_parent_el is None and opt_element_path.count(".") == 0:
-                        return SimpleCardinality.SINGLE
-                    # skip one parent
-                    return CQLMappingGenerator.__aggregate_cardinality_using_element(grand_parent_el, snapshot,
-                                                                                     card_type) * card
-
-                match parent_element:
-                    case None:
-                        if not is_root:
-                            raise Exception(f"No parent could be identified for element '{opt_element.get('id')}' with "
-                                            f"non-root path '{opt_element_path}'")
-                        else:
-                            # The root element is always assumed to have `SINGLE` cardinality
-                            return SimpleCardinality.SINGLE
-                    case parent_element:
-                        return CQLMappingGenerator.__aggregate_cardinality_using_element(parent_element,
-                                                                                         snapshot, card_type) * card
-
     def __aggregate_cardinality_using_element_id(self, element_defining_id: str,
                                                  profile_snapshot: Snapshot, module_dir_name: str) -> SimpleCardinality:
         modules_dir = self.__project.input.cso.mkdirs("modules")
@@ -630,7 +627,7 @@ class CQLMappingGenerator(object):
         else:
             cards = []
             for result in element_results:
-                opt_element, _ = self.__select_element_compatible_with_cql_operations(
+                opt_element, _ = select_element_compatible_with_cql_operations(
                     result.element, result.profile_snapshot)
-                cards.append(self.__aggregate_cardinality_using_element(opt_element, result.profile_snapshot))
+                cards.append(aggregate_cardinality_using_element(opt_element, result.profile_snapshot))
             return reduce(lambda a, b: a * b, cards)

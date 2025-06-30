@@ -10,7 +10,7 @@ from cohort_selection_ontology.core.resolvers.querying_metadata import ResourceQ
 from cohort_selection_ontology.util.fhir.structure_definition import resolve_defining_id, extract_value_type
 from common.util.project import Project
 from  cohort_selection_ontology.util.fhir.structure_definition import generate_attribute_key
-from cohort_selection_ontology.model.mapping import PathlingMapping, PathlingAttributeSearchParameter
+from cohort_selection_ontology.model.mapping.pathling import PathlingMapping, PathlingAttributeSearchParameter
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS
 from cohort_selection_ontology.model.ui_data import TermCode
