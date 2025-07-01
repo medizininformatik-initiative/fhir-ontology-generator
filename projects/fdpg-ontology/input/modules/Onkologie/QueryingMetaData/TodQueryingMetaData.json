@@ -7,15 +7,19 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Onkologie",
-    "display": "Onkologie",
+    "code": "Tod",
+    "display": "Tod",
     "version": "1.0.0"
   },
-  "term_code_defining_id": "Observation.value[x]",
+  "term_code_defining_id": "Observation.code.coding",
   "time_restriction_defining_id": "Observation.effective[x]",
   "attribute_defining_id_type_map": {
     "(Observation.focus).code.coding:icd10-gm": {
       "type": "reference",
+      "optional": true
+    },
+    "Observation.value[x]": {
+      "type": "",
       "optional": true
     }
   }

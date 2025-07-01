@@ -7,10 +7,16 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Onkologie",
-    "display": "Onkologie",
+    "code": "Diagnose",
+    "display": "Diagnose",
     "version": "1.0.0"
   },
   "term_code_defining_id": "Condition.code.coding:icd10-gm",
-  "time_restriction_defining_id": "Condition.recordedDate"
+  "time_restriction_defining_id": "Condition.recordedDate",
+  "attribute_defining_id_type_map": {
+    "Condition.bodySite.coding:primaertumorSeitenlokalisation": {
+      "type": "",
+      "optional": true
+    }
+  }
 }

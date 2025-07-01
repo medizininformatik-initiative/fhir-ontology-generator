@@ -7,14 +7,15 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Onkologie",
-    "display": "Onkologie",
+    "code": "Nebenwirkung",
+    "display": "Nebenwirkung",
     "version": "1.0.0"
   },
-  "term_code_defining_id": "AdverseEvent.category",
+  "term_code_defining_id": "AdverseEvent.event",
   "time_restriction_defining_id": "AdverseEvent.recordedDate",
   "attribute_defining_id_type_map": {
     "AdverseEvent.seriousness": {
+      "type": "",
       "optional": true
     }
   }

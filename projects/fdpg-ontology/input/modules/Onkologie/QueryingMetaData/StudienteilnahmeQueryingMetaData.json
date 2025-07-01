@@ -7,11 +7,11 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Onkologie",
-    "display": "Onkologie",
+    "code": "Studienteilnahme",
+    "display": "Studienteilnahme",
     "version": "1.0.0"
   },
-  "term_code_defining_id": "Observation.code.coding",
+  "term_code_defining_id": "Observation.value[x]",
   "time_restriction_defining_id": "Observation.effective[x]",
   "attribute_defining_id_type_map": {
     "(Observation.focus).code.coding:icd10-gm": {
