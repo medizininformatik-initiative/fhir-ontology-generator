@@ -7,8 +7,8 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Onkologie",
-    "display": "Onkologie",
+    "code": "Verlauf",
+    "display": "Verlauf",
     "version": "1.0.0"
   },
   "term_code_defining_id": "Observation.code.coding",
@@ -16,6 +16,10 @@
   "attribute_defining_id_type_map": {
     "(Observation.focus).code.coding:icd10-gm": {
       "type": "reference",
+      "optional": true
+    },
+    "Observation.value[x]:valueCodeableConcept": {
+      "type": "",
       "optional": true
     }
   }

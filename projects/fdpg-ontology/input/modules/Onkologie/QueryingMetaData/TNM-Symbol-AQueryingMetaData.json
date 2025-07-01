@@ -1,5 +1,5 @@
 {
-  "name": "Fernmetastasen",
+  "name": "TNM-Symbol-A",
   "resource_type": "Observation",
   "module": {
     "code": "mii-cds-Onkologie",
@@ -7,11 +7,11 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Fernmetastasen",
-    "display": "Fernmetastasen",
+    "code": "TNM",
+    "display": "TNM",
     "version": "1.0.0"
   },
-  "term_code_defining_id": "Observation.value[x].coding",
+  "term_code_defining_id": "Observation.value[x]",
   "time_restriction_defining_id": "Observation.effective[x]",
   "attribute_defining_id_type_map": {
     "(Observation.focus).code.coding:icd10-gm": {
