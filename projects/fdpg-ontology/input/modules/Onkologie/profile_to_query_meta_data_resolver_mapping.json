@@ -29,8 +29,41 @@
   "MII_PR_Onko_Residualstatus": [
     "Residualstatus"
   ],
-  "MII_PR_Onko_TNM_Klassifkiation": [
+  "MII_PR_Onko_TNM_Klassifikation": [
     "TNM-Klassifikation"
+  ],
+  "MII_PR_Onko_TNM_T_Kategorie": [
+    "TNM-Kategorie-T"
+  ],
+  "MII_PR_Onko_TNM_N_Kategorie": [
+    "TNM-Kategorie-N"
+  ],
+  "MII_PR_Onko_TNM_M_Kategorie": [
+    "TNM-Kategorie-M"
+  ],
+  "MII_PR_Onko_TNM_L_Kategorie": [
+    "TNM-Kategorie-L"
+  ],
+  "MII_PR_Onko_TNM_Pn_Kategorie": [
+    "TNM-Kategorie-PN"
+  ],
+  "MII_PR_Onko_TNM_S_Kategorie": [
+    "TNM-Kategorie-S"
+  ],
+  "MII_PR_Onko_TNM_V_Kategorie": [
+    "TNM-Kategorie-V"
+  ],
+  "MII_PR_Onko_TNM_a_Symbol": [
+    "TNM-Symbol-A"
+  ],
+  "MII_PR_Onko_TNM_m_Symbol": [
+    "TNM-Symbol-M"
+  ],
+  "MII_PR_Onko_TNM_r_Symbol": [
+    "TNM-Symbol-R"
+  ],
+  "MII_PR_Onko_TNM_y_Symbol": [
+    "TNM-Symbol-Y"
   ],
   "MII_PR_Onko_Systemische_Therapie": [
     "Systemtherapie"
@@ -39,9 +72,10 @@
     "Systemtherapie-Medikation"
   ],
   "MII_PR_Onko_Operation": [
-    "Operation"
+    "OperationOPS",
+    "OperationSCT"
   ],
-  "MII_PR_Onko_Strahlentherapie_Neu": [
+  "MII_PR_Onko_Strahlentherapie_neu": [
     "Strahlentherapie"
   ],
   "MII_PR_Onko_Strahlentherapie_Bestrahlung_Nuklearmedizin": [

@@ -7,8 +7,8 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Onkologie",
-    "display": "Onkologie",
+    "code": "Histologie",
+    "display": "Histologie",
     "version": "1.0.0"
   },
   "term_code_defining_id": "DiagnosticReport.code.coding:pathology-report",
