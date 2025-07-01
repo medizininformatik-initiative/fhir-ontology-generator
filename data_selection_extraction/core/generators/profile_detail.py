@@ -3,7 +3,7 @@ from collections.abc import Callable
 from os import mkdir
 from typing import Mapping, List, TypedDict, Any, Optional
 
-from common.exceptions.profile import MissingProfileError
+from common.exceptions.profile import MissingProfileError, MissingElementError
 from cohort_selection_ontology.model.ui_data import TranslationDisplayElement, BulkTranslationDisplayElement, \
     Translation
 from common.util.fhir.structure_definition import supports_type, find_type_element, get_element_from_snapshot, \
@@ -52,10 +52,14 @@ class ProfileDetailGenerator:
         elements = struct_def['snapshot']["element"]
 
         for elem in (elem for elem in elements if elem['id'] == path):
-
             elem_type = elem['type']
 
             for type_elem in (elem for elem in elem_type if re.search("Reference", elem['code'])):
+                if (elem_code := type_elem.get("code")) is None:
+                    raise MissingElementError(f"Code property is missing from profile: {struct_def['id']}")
+
+                combined_target_profiles = type_elem['targetProfile']
+                combined_target_profiles += self.get_referenced_mii_profiles(elem, elem_code)
 
                 target_profile_url = next(
                     (url for url in type_elem['targetProfile'] if url.startswith(self.reference_base_url)),
@@ -489,8 +493,7 @@ class ProfileDetailGenerator:
             )
 
             profile_type = profile['structureDefinition']['type']
-            code_search_param = (result := self.mapping_type_code.get(profile_type, None)) and result.get("search_param",
-                                                                                                          None)
+            code_search_param = (result := self.mapping_type_code.get(profile_type, None)) and result.get("search_param", None)
             fhir_path = (result := self.mapping_type_code.get(profile_type, None)) and result.get("fhir_path", None)
             value_set_urls = None
 

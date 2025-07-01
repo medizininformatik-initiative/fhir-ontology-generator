@@ -30,5 +30,9 @@
   "Specimen": {
     "search_param": "type",
     "fhir_path": "Specimen.type.coding"
+  },
+  "DiagnosticReport": {
+    "search_param": "result.code",
+    "fhir_path": "(DiagnosticReport.result).code"
   }
 }
