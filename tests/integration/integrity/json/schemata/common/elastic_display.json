@@ -1,0 +1,11 @@
+{
+  "$id": "https://fdpg.de/elastic_display.json",
+
+  "type": "object",
+  "properties": {
+    "original": {"type": "string"},
+    "de": {"type": "string"},
+    "en": {"type": "string"}
+  },
+  "required": ["original", "de", "en"]
+}

@@ -1,0 +1,13 @@
+{
+  "$id": "https://fdpg.de/termcode.json",
+
+  "type": "object",
+  "properties": {
+    "system": {"type": "string"},
+    "code": {"type": "string"},
+    "display": {"type": "string"},
+    "version": {"type":["string", "null", "integer"]}
+  },
+  "required": ["system","code","display"],
+  "additionalProperties": false
+}

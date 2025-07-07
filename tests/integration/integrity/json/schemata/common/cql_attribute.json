@@ -1,0 +1,12 @@
+{
+  "$id": "https://fdpg.de/cql_attribute.json",
+  "type": "object",
+  "properties": {
+    "cardinality": {"type": "string"},
+    "key": { "$ref": "termcode.json" },
+    "path": {"type": "string"},
+    "referenceTargetType": {"type": "string"},
+    "types": {"type": "array", "items": {"type": "string"} }
+  },
+  "required": ["cardinality","key","path","types"]
+}
