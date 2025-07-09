@@ -1,0 +1,16 @@
+{
+  "name": "Primaerdiagnose",
+  "resource_type": "Condition",
+  "module": {
+    "code": "bzkf-dktk-onkologie",
+    "display": "Onkologie"
+  },
+  "context": {
+    "system": "bzkf.dktk.onkologie",
+    "code": "Primaerdiagnose",
+    "display": "Primaerdiagnose",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "Condition.code.coding:icd10-gm",
+  "time_restriction_defining_id": "Condition.recordedDate"
+}

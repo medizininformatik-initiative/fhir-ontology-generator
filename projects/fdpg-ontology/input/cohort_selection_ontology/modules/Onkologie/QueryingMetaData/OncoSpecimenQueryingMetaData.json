@@ -1,0 +1,16 @@
+{
+  "name": "OncoSpecimen",
+  "resource_type": "Specimen",
+  "module": {
+    "code": "bzkf-dktk-onkologie",
+    "display": "Onkologie"
+  },
+  "context": {
+    "system": "bzkf.dktk.onkologie",
+    "code": "Bioprobe",
+    "display": "Bioprobe",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "Specimen.type",
+  "time_restriction_defining_id": "Specimen.collection.collected[x]"
+}

@@ -1,0 +1,22 @@
+{
+  "name": "Grading",
+  "resource_type": "Observation",
+  "module": {
+    "code": "bzkf-dktk-onkologie",
+    "display": "Onkologie"
+  },
+  "context": {
+    "system": "bzkf.dktk.onkologie",
+    "code": "Grading",
+    "display": "Grading",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "Observation.code.coding",
+  "time_restriction_defining_id": "Observation.effective[x]",
+  "attribute_defining_id_type_map": {
+    "Observation.value[x]": {
+      "type": "",
+      "optional": true
+    }
+  }
+}

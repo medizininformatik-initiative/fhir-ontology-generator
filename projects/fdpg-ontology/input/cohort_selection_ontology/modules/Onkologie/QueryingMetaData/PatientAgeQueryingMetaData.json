@@ -1,0 +1,22 @@
+{
+  "name": "Age",
+  "resource_type": "Patient",
+  "module": {
+    "code": "bzkf-dktk-onkologie",
+    "display": "Onkologie"
+  },
+  "context": {
+    "system": "bzkf.dktk.onkologie",
+    "code": "Person",
+    "display": "Person",
+    "version": "1.0.0"
+  },
+  "value_defining_id": "Patient.birthDate",
+  "value_type": "Age",
+  "value_optional": false,
+  "term_codes": [{
+    "system": "http://snomed.info/sct",
+    "code": "424144002",
+    "display": "Gegenwärtiges chronologisches Alter"
+  }]
+}

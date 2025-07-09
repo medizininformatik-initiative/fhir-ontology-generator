@@ -1,0 +1,42 @@
+{
+  "Primaerdiagnose": [
+    "Primaerdiagnose"
+  ],
+  "Patient": [
+    "PatientAge",
+    "PatientGender"
+  ],
+  "Strahlentherapie": [
+    "Strahlentherapie"
+  ],
+  "Systemtherapie": [
+    "Systemtherapie"
+  ],
+  "Operation": [
+    "Operation"
+  ],
+  "TNMc": [
+    "TNMc"
+  ],
+  "TNMp": [
+    "TNMp"
+  ],
+  "Fernmetastasen": [
+    "Fernmetastasen"
+  ],
+  "GesamtbeurteilungResidualstatus": [
+    "GesamtbeurteilungResidualstatus"
+  ],
+  "GesamtbeurteilungTumorstatus": [
+    "GesamtbeurteilungTumorstatus"
+  ],
+  "Grading": [
+    "Grading"
+  ],
+  "Histologie": [
+    "Histologie"
+  ],
+  "OncoSpecimen": [
+    "OncoSpecimen"
+  ]
+}

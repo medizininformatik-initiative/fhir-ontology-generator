@@ -1,0 +1,16 @@
+{
+  "name": "Strahlentherapie",
+  "resource_type": "Code",
+  "module": {
+    "code": "bzkf-dktk-onkologie",
+    "display": "Onkologie"
+  },
+  "context": {
+    "system": "bzkf.dktk.onkologie",
+    "code": "Strahlentherapie",
+    "display": "Strahlentherapie",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "Procedure.code",
+  "time_restriction_defining_id": "Procedure.performed[x]"
+}

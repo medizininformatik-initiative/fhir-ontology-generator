@@ -1,0 +1,16 @@
+{
+  "name": "Systemtherapie",
+  "resource_type": "MedicationStatement",
+  "module": {
+    "code": "bzkf-dktk-onkologie",
+    "display": "Onkologie"
+  },
+  "context": {
+    "system": "bzkf.dktk.onkologie",
+    "code": "Systemtherapie",
+    "display": "Systemtherapie",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "MedicationStatement.medication[x]",
+  "time_restriction_defining_id": "MedicationStatement.effective[x]"
+}
