@@ -5,7 +5,6 @@ import os
 from pathlib import Path
 from typing import Dict, Tuple, List, Mapping, Set
 
-import pytest
 from fhir.resources.R4B.coding import Coding
 from fhir.resources.R4B.parameters import ParametersParameter, Parameters
 
@@ -15,7 +14,8 @@ from cohort_selection_ontology.util.fhir.structure_definition import InvalidValu
     get_binding_value_set_url, \
     ProcessedElementResult, get_fixed_term_codes, FHIR_TYPES_TO_VALUE_TYPES, extract_value_type, get_common_ancestor, \
     get_term_code_by_id, get_element_from_snapshot_by_path, get_units, resolve_defining_id, get_selectable_concepts, \
-    get_element_defining_elements, get_element_type, get_element_defining_elements_with_source_snapshots
+    get_element_defining_elements, get_element_type, get_element_defining_elements_with_source_snapshots, \
+    is_element_slice_base, get_available_slices, get_slice_owning_element_id
 from common.util.fhir.bundle import BundleType
 from common.util.fhir.structure_definition import get_element_from_snapshot
 from cohort_selection_ontology.util.fhir.structure_definition import process_element_definition
@@ -346,9 +346,23 @@ class UIProfileGenerator:
         attribute_definition = AttributeDefinition(attribute_code, attribute_type, optional)
         attribute_definition.display = attribute_display
         if attribute_type == "concept":
-            attribute_definition.referencedValueSet = get_selectable_concepts(
-                attribute_defining_element, profile_snapshot.get("name"), self.__client
-            )
+            # if slice is specified, generate only for that slice
+            if is_element_slice_base(attribute_defining_element.get("id")):
+                attribute_definition.referencedValueSet.append(
+                    get_selectable_concepts(
+                        attribute_defining_element, profile_snapshot.get("name"), self.__client
+                    )
+                )
+            else:
+                available_slices = get_available_slices(attribute_defining_element.get('id'), profile_snapshot)
+                self.__logger.info(f"Available slices: {available_slices}")
+                for slice_name in available_slices:
+                    att_def_id = get_slice_owning_element_id(attribute_defining_element.get("id")) + ":" + slice_name
+                    att_def_id = get_element_defining_elements(att_def_id, profile_snapshot, self.module_dir, self.data_set_dir)[-1]
+                    concept = get_selectable_concepts(
+                        att_def_id, profile_snapshot.get("name"), self.__client
+                    )
+                    attribute_definition.referencedValueSet.append(concept)
         elif attribute_type == "quantity":
             unit_defining_path = attribute_defining_element.get("path") + ".code"
             unit_defining_elements = get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
@@ -396,10 +410,10 @@ class UIProfileGenerator:
         elif attribute_type == "CodeableConcept":
             if binding := predicate.get("binding"):
                 concepts = get_selectable_concepts(predicate, profile_snapshot.get("name"), self.__client)
-                attribute_definition.referencedValueSet = concepts
+                attribute_definition.referencedValueSet.append(concepts)
             elif binding := element.get("binding"):
                 concepts = get_selectable_concepts(element, profile_snapshot.get("name"), self.__client)
-                attribute_definition.referencedValueSet = concepts
+                attribute_definition.referencedValueSet.append(concepts)
             else:
                 concepts = get_fixed_term_codes(predicate, profile_snapshot, self.module_dir, self.data_set_dir,
                                                    self.__client)
@@ -475,18 +489,29 @@ class UIProfileGenerator:
             attribute_defining_elements_with_source_snapshots)
         return attribute_definition
 
-    def get_reference_criteria_set(self, elements: List[ProcessedElementResult]) -> CriteriaSet:  #
+    def get_reference_criteria_set(self, elements: List[ProcessedElementResult]) -> List[CriteriaSet]:
         element = elements[-1].element
         snapshot = elements[-1].profile_snapshot
         module_dir = elements[-1].module_dir
         context = self.get_referenced_context(snapshot, module_dir)
-        if fixed_term_codes := get_fixed_term_codes(element, snapshot, module_dir, self.data_set_dir, self.__client):
-            return self.get_reference_criteria_set_from_fixed_term_codes(fixed_term_codes, context)
+        referenced_criteria_sets = []
+
+        if is_element_slice_base(element.get("id")) and (fixed_term_codes := get_fixed_term_codes(element, snapshot, module_dir, self.data_set_dir, self.__client)):
+            referenced_criteria_sets.append(self.get_reference_criteria_set_from_fixed_term_codes(fixed_term_codes, context))
         elif url := get_binding_value_set_url(elements[-1].element):
-            return self.get_reference_criteria_set_from_value_set(url, context)
+            referenced_criteria_sets.append(self.get_reference_criteria_set_from_value_set(url, context))
+        elif not is_element_slice_base(element.get("id")):
+            available_slices = get_available_slices(element.get("id"), snapshot)
+            self.__logger.info(f"Found available slices: {available_slices}")
+            for slice_name in available_slices:
+                slice_id = element.get("id") + ":" + slice_name
+                slice_element = get_element_defining_elements(slice_id, snapshot, module_dir, context)[-1]
+                url = get_binding_value_set_url(slice_element)
+                referenced_criteria_sets.append(self.get_reference_criteria_set_from_value_set(url, context))
         else:
             raise Exception("Unable to generate reference criteria set for element: " + element.get("id") +
                             " in profile: " + snapshot.get("name"))
+        return referenced_criteria_sets
 
     def get_referenced_context(self, profile_snapshot, module_dir):
         """

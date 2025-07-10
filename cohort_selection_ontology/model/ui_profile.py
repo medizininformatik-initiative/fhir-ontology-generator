@@ -42,21 +42,21 @@ class ValueSet:
 @dataclass
 class ValueDefinition:
     type: VALUE_TYPE_OPTIONS
-    referencedValueSet: ValueSet = None
+    referencedValueSet: List[ValueSet] = field(default_factory=list)
     allowedUnits: List[TermCode] = field(default_factory=list)
     precision: int = 1
     min: float = None
     max: float = None
-    referencedCriteriaSet: CriteriaSet = None
+    referencedCriteriaSet: List[CriteriaSet] = field(default_factory=list)
     optional: bool = True
     display: TranslationDisplayElement = None
 
     def to_dict(self):
         data = asdict(self)
         if self.referencedCriteriaSet:
-            data['referencedCriteriaSet'] = self.referencedCriteriaSet.url
+            data['referencedCriteriaSet'] = [x.url for x in self.referencedCriteriaSet]
         if self.referencedValueSet:
-            data['referencedValueSet'] = self.referencedValueSet.url
+            data['referencedValueSet'] = [x.url for x in self.referencedValueSet]
         return data
 
 
