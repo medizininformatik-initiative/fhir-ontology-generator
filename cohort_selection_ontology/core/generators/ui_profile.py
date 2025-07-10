@@ -244,9 +244,9 @@ class UIProfileGenerator:
         value_definition = ValueDefinition(value_type)
         value_definition.optional = querying_meta_data.value_optional
         if value_type == "concept":
-            value_definition.referencedValueSet = get_selectable_concepts(value_defining_element,
+            value_definition.referencedValueSet.append(get_selectable_concepts(value_defining_element,
                                                                              profile_snapshot.get("name"),
-                                                                             self.__client)
+                                                                             self.__client))
         elif value_type == "quantity":
             # "Observation.valueQuantity" -> "Observation.valueQuantity.code"
             # unit_defining_path = value_defining_element.get("path") + ".code"
