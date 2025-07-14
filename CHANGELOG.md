@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+## [3.8.2] - 2025-07-14
+
+## Added
+
+- Add result code filter for DiagnosticReport resource profiles in DSE (#310 @Frontman50)
+
 ## [3.8.1] - 2025-06-23
 
 ## Fixed
