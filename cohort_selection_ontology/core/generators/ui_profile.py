@@ -355,14 +355,14 @@ class UIProfileGenerator:
                 )
             else:
                 available_slices = get_available_slices(attribute_defining_element.get('id'), profile_snapshot)
-                self.__logger.info(f"Available slices: {available_slices}")
+                self.__logger.debug(f"Available slices: {available_slices}")
                 for slice_name in available_slices:
                     att_def_id = get_slice_owning_element_id(attribute_defining_element.get("id")) + ":" + slice_name
                     att_def_id = get_element_defining_elements(att_def_id, profile_snapshot, self.module_dir, self.data_set_dir)[-1]
-                    concept = get_selectable_concepts(
+                    selected_valueset = get_selectable_concepts(
                         att_def_id, profile_snapshot.get("name"), self.__client
                     )
-                    attribute_definition.referencedValueSet.append(concept)
+                    attribute_definition.referencedValueSet.append(selected_valueset)
         elif attribute_type == "quantity":
             unit_defining_path = attribute_defining_element.get("path") + ".code"
             unit_defining_elements = get_element_from_snapshot_by_path(profile_snapshot, unit_defining_path)
@@ -495,22 +495,24 @@ class UIProfileGenerator:
         module_dir = elements[-1].module_dir
         context = self.get_referenced_context(snapshot, module_dir)
         referenced_criteria_sets = []
+        is_element_slice = is_element_slice_base(element.get("id"))
 
-        if is_element_slice_base(element.get("id")) and (fixed_term_codes := get_fixed_term_codes(element, snapshot, module_dir, self.data_set_dir, self.__client)):
+        if is_element_slice and (fixed_term_codes := get_fixed_term_codes(element, snapshot, module_dir,
+                                                                          self.data_set_dir, self.__client)):
             referenced_criteria_sets.append(self.get_reference_criteria_set_from_fixed_term_codes(fixed_term_codes, context))
         elif url := get_binding_value_set_url(elements[-1].element):
             referenced_criteria_sets.append(self.get_reference_criteria_set_from_value_set(url, context))
-        elif not is_element_slice_base(element.get("id")):
+        elif not is_element_slice:
             available_slices = get_available_slices(element.get("id"), snapshot)
-            self.__logger.info(f"Found available slices: {available_slices}")
+            self.__logger.debug(f"Found available slices: {available_slices}")
             for slice_name in available_slices:
                 slice_id = element.get("id") + ":" + slice_name
                 slice_element = get_element_defining_elements(slice_id, snapshot, module_dir, context)[-1]
                 url = get_binding_value_set_url(slice_element)
                 referenced_criteria_sets.append(self.get_reference_criteria_set_from_value_set(url, context))
         else:
-            raise Exception("Unable to generate reference criteria set for element: " + element.get("id") +
-                            " in profile: " + snapshot.get("name"))
+            raise Exception(f"Unable to generate reference criteria set for element:"
+                            f" {element.get('id')} in profile: {snapshot.get('name')}")
         return referenced_criteria_sets
 
     def get_referenced_context(self, profile_snapshot, module_dir):

@@ -109,7 +109,6 @@ def write_used_value_sets_to_files(ui_profiles: List[UIProfile], directory: str 
                     all_profile_value_sets.append(attribute_definition.referencedValueSet)
     for one_profile_value_set in all_profile_value_sets:
         for single_value_set in one_profile_value_set:
-            # as os.sep on windows does not generate the desired effect changed split to "/"
             file_name = f"{remove_reserved_characters(single_value_set.url.split('/')[-1])}.json"
             file_path = os.path.join(directory, file_name)
             write_object_as_json(single_value_set, file_path)

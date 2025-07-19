@@ -199,6 +199,8 @@ def is_element_slice_base(element_id: str) -> bool:
 def get_slice_owning_element_id(element_id: str) -> str:
     """
     Returns the parent element id of the provided slice ID
+    :param element_id: the slice id
+    :return: the parent element id of the provided ID
 
     Example:
         get_slice_owning_element_id("Observation.component:Diastolic")  => "Observation.component" \n
@@ -222,25 +224,22 @@ def get_slice_name(element_id: str) -> str|None:
 def get_available_slices(element_id: str, profile_snapshot: dict) -> List[str]:
     """
     Returns a list of available slice ids
-
-    :param element_id:
+    :param element_id: str
     :param profile_snapshot: snapshot which should be scanned for slices
-    :return: bool
+    :return available_slices: List[str]
 
     Example:
+        get_available_slices("Specimen.collection.bodySite.coding") => ["sct", "icd-o-3"]
         get_available_slices("Specimen.collection.bodySite.coding") => ["sct", "icd-o-3"]
     """
     found_slices: Set[str] = set()
 
-    if not is_element_slice_base(element_id):
-        logger.debug("element_id %s needs to be slice base. For example 'Specimen.code.coding:sct'", element_id)
-
     for elem in profile_snapshot.get("snapshot", {}).get("element", []):
-        if ":" in elem.get("id","") and get_slice_owning_element_id(element_id) in get_parent_slice_id(elem.get("id","")):
-            found_slices.add(get_slice_name(elem.get("id","")))
+        snapshot_elem_id = elem.get("id", "")
+        if ":" in snapshot_elem_id and element_id in get_parent_slice_id(snapshot_elem_id):
+            found_slices.add(get_slice_name(snapshot_elem_id))
 
     return list(found_slices)
-
 
 
 def get_common_ancestor_id(element_id_1: str, element_id_2: str) -> str:
