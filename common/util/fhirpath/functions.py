@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Iterable
 
 from antlr4.ParserRuleContext import ParserRuleContext
 from antlr4.tree.Tree import TerminalNode
@@ -73,3 +73,17 @@ def get_path(expr: ParserRuleContext) -> (Optional[ParserRuleContext], Optional[
                 break
     path.reverse()
     return expr, ".".join(path) if path else None
+
+
+def join_fhirpath(*paths: str | None) -> str:
+    """
+    Joins individual FHIRPath expression strings together. `None` values, empty strings, and '$this' valued strings are
+    ignored
+
+    :param paths: List of FHIRPath expression strings
+    :return: String of joined FHIRPath expressions or '$this' if none are provided
+    """
+    string = ".".join(
+        filter(lambda x: x is not None and len(x) > 0 and x != "$this", paths)
+    )
+    return string if len(string) > 0 else "$this"

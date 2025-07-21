@@ -15,6 +15,8 @@ from cohort_selection_ontology.model.mapping import (
     AttributeSearchParameter,
 )
 from cohort_selection_ontology.model.ui_data import TermCode
+from common.model.pydantic import SerializeType
+from common.typing.cql import RetrievableType
 from common.typing.fhir import FHIRPath
 from common.util.codec.json import JSONFhirOntoEncoder
 from common.util.collections.functions import flatten
@@ -129,7 +131,7 @@ class CQLMapping:
         return hash(self.key)
 
 
-class AttributeComponent(BaseModel):
+class AttributeComponent(SerializeType):
     """
     Translates to an expression in a CQL where clause
     """
@@ -152,7 +154,7 @@ class AttributeComponent(BaseModel):
     ]
 
 
-class ContextGroup(BaseModel):
+class ContextGroup(SerializeType):
     """
     Translates to a CQL source clause
     """
@@ -175,14 +177,15 @@ class ContextGroup(BaseModel):
     def model_construct(
         cls, _fields_set: set[str] | None = None, **values: Any
     ) -> Self:
-        # Remove ContextGroup nodes with empty path from tree
+        # Remove ContextGroup nodes with empty or unchanging (e.g. '$this') path from tree
         if "components" in values:
             values["components"] = list(
                 flatten(
                     [
                         (
                             c.components
-                            if isinstance(c, ContextGroup) and not c.path
+                            if isinstance(c, ContextGroup)
+                            and (not c.path or c.path == "$this")
                             else c
                         )
                         for c in values["components"]
@@ -190,6 +193,11 @@ class ContextGroup(BaseModel):
                 )
             )
         return super().model_construct(_fields_set, **values)
+
+
+# TODO: Parsing of `resolve` function invocations
+class ReferenceGroup(ContextGroup):
+    type: RetrievableType
 
 
 Component = ContextGroup | AttributeComponent

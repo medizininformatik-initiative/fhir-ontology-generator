@@ -137,8 +137,9 @@ fragment TIMEZONEOFFSETFORMAT
         : ('Z' | ('+' | '-') [0-9][0-9]':'[0-9][0-9])
         ;
 
+// Modified to support slices names
 IDENTIFIER
-        : ([A-Za-z] | '_')([A-Za-z0-9] | '_')*(':'([A-Za-z] | '_')([A-Za-z0-9] | '_')*)?        // Added _ to support CQL (FHIR could constrain it out)
+        : ([A-Za-z] | '_')([A-Za-z0-9] | '_')*('[x]')?(':'([a-zA-Z0-9] | '/' | '\\' | '-' | '_' | '[' | ']' '@')+)?
         ;
 
 DELIMITEDIDENTIFIER

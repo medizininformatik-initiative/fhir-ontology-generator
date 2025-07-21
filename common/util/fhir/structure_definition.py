@@ -38,11 +38,10 @@ def get_element_from_snapshot(profile_snapshot, element_id) -> dict:
                 return element
         else:
             raise KeyError(
-                f"Could not find element with id: {element_id} in the snapshot: {profile_snapshot.get('name')}")
+                f"Could not find element '{element_id}' in snapshot of profiles '{profile_snapshot.get('name')}'")
     except KeyError:
         raise KeyError(
-            f"KeyError the element id: {element_id} is not in the snapshot or the snapshot has no snapshot "
-            f"elements. The snapshot: {profile_snapshot.get('name')}")
+            f"No element '{element_id}' in snapshot of profile '{profile_snapshot.get('name')}'")
     except TypeError:
         raise TypeError(f"TypeError the snapshot is not a dict {profile_snapshot}")
 

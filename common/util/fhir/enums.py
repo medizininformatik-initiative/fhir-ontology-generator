@@ -1,4 +1,4 @@
-from enum import unique, Enum, EnumMeta
+from enum import unique, Enum, EnumMeta, StrEnum
 
 from typing_extensions import Self
 
@@ -13,7 +13,7 @@ class FhirPrimitiveDataTypeMeta(EnumMeta):
 
 
 @unique
-class FhirPrimitiveDataType(str, Enum, metaclass=FhirPrimitiveDataTypeMeta):
+class FhirPrimitiveDataType(StrEnum, metaclass=FhirPrimitiveDataTypeMeta):
     INSTANT = 'instant'
     TIME = 'time'
     DATE = 'date'
@@ -45,7 +45,7 @@ class FhirComplexDataTypeEnumMeta(EnumMeta):
 
 
 @unique
-class FhirComplexDataType(str, Enum, metaclass=FhirComplexDataTypeEnumMeta):
+class FhirComplexDataType(StrEnum, metaclass=FhirComplexDataTypeEnumMeta):
     ELEMENT = "Element"
     RATIO = "Ratio"
     PERIOD = "Period"
@@ -99,7 +99,7 @@ class FhirSearchTypeMeta(EnumMeta):
 
 
 @unique
-class FhirSearchType(str, Enum, metaclass=FhirSearchTypeMeta):
+class FhirSearchType(StrEnum, metaclass=FhirSearchTypeMeta):
     NUMBER = "number"
     DATE = "date"
     STRING = "string"
