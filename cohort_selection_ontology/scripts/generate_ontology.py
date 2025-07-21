@@ -449,7 +449,11 @@ def main():
             generate_result_folder(output_module_directory)
 
             container_name = f"test_db_{module}"
-            container = manage_docker_container(output_module_directory, container_name=container_name)
+
+            def on_exit(c):
+                # Dump the database to the module's directory
+                if args.generate_ui_profiles:
+                    dump_database(c)
 
             with managed_db_container(output_module_directory, container_name=container_name, on_exit=on_exit) as container:
                 db_writer = DataBaseWriter(5430)

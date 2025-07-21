@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Iterable
 
 from antlr4.ParserRuleContext import ParserRuleContext
 from antlr4.tree.Tree import TerminalNode

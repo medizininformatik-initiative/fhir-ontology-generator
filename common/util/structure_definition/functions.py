@@ -116,15 +116,19 @@ def tokenize(chained_fhir_element_id):
     """
     Tokenizes a chained fhir element id with the given Grammar:
     chained_fhir_element_id ::= "(" chained_fhir_element_id ")" ( "." fhir_element_id )* | fhir_element_id
+    Additionally splits at call of the `resolve` function and `extension` element identifier to separate by profile
+    context
     :param chained_fhir_element_id: the chained fhir element id
     :return: the tokenized fhir element id
     """
-    return (
+    temp = (
         chained_fhir_element_id.replace("(", " ( ")
         .replace(")", " ) ")
         .replace(".where", " .where ")
-        .split()
+        .replace("resolve()", " ")
     )
+    temp = re.sub(r"(extension(:[a-zA-Z0-9/\\-_\[\]@]+)?)\.", r"\g<1> ", temp)
+    return temp.split()
 
 
 def is_structure_definition(file: Path) -> bool:
@@ -302,7 +306,7 @@ def process_element_id(
                 extension: StructureDefinitionSnapshot = get_extension_definition(
                     os.path.join(modules_dir_path, module_dir_name), profile_urls[0]
                 )
-                element_ids.insert(0, f"Extension" + element_ids.pop(0))
+                element_ids.insert(0, f"Extension." + element_ids.pop(0))
                 result.extend(
                     process_element_id(
                         profile_snapshot=extension,
