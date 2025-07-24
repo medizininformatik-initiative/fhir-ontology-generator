@@ -82,10 +82,10 @@ def get_components_from_invocation_expression(
 ) -> ComponentDict:
     pre_expr, path = get_path(expr)
     if component is not None:
-        parent = component.copy()
-        parent.path = join_fhirpath(path, component.path)
+        new_component = component.copy()
+        new_component.path = join_fhirpath(path, component.path)
     elif path is not None:
-        parent = dotdict(
+        new_component = dotdict(
             {
                 "_type": AttributeComponent.__name__,
                 "types": [],  # Will be assigned during post-processing
@@ -95,17 +95,17 @@ def get_components_from_invocation_expression(
             }
         )
     else:
-        parent = None
+        new_component = None
     if pre_expr is None:
-        if parent is None:
+        if new_component is None:
             raise invalid_fhirpath_expr(
                 expr,
                 "Expression contains neither membership expression nor function "
                 "invocation",
             )
-        return parent
+        return new_component
     else:
-        return get_components_from_function(pre_expr, parent)
+        return get_components_from_function(pre_expr, new_component)
 
 
 def get_components_from_equality_expression(
@@ -145,8 +145,10 @@ def get_components_from_and_expression(
 
 
 def get_components_from_function_parameters(
-    expr: fhirpathParser.ParamListContext,
+    expr: fhirpathParser.ParamListContext | None,
 ) -> list[ComponentDict]:
+    if expr is None:
+        return []
     match expr.getChild(0):
         case (
             fhirpathParser.AndExpressionContext() as and_expr
@@ -164,39 +166,6 @@ def get_components_from_function_parameters(
             raise unsupported_fhirpath_expr(
                 c, ["and expression", "equality expression", "invocation expression"]
             )
-
-
-@deprecated("No longer in use due to changes in FHIRPath grammar")
-def get_components_from_indexer_expression(
-    expr: fhirpathParser.IndexerExpressionContext,
-    component: Optional[ComponentDict] = None,
-) -> ComponentDict:
-    symbol = get_symbol(expr.getChild(2))
-    # We exploit the indexer expression to allow names of polymorphic elements (e.g. 'element[x]') to be parsed
-    if symbol != "x":
-        raise invalid_fhirpath_expr(
-            expr,
-            f"Indexing operations are only supported to denote polymorphic element names [expected='x', actual='{symbol}']",
-        )
-    else:
-        prev_path = component.path if component else None
-        match expr.getChild(0):
-            case fhirpathParser.InvocationExpressionContext() as iec:
-                parent = get_components_from_invocation_expression(iec, component)
-            case fhirpathParser.TermExpressionContext() as tec:
-                parent = get_components_from_term_expression(tec, component)
-            case _ as c:
-                raise unsupported_fhirpath_expr(c, ["invocation expression"])
-        parent.path = (
-            (
-                parent.path[: len(parent.path) - len(prev_path) - 1]
-                + "[x]"
-                + parent.path[-len(prev_path) - 1 :]
-            )
-            if prev_path
-            else parent.path + "[x]"
-        )
-        return parent
 
 
 def get_components_from_function(
@@ -217,8 +186,7 @@ def get_components_from_function(
             if component is None:
                 raise invalid_fhirpath_expr(
                     func_expr,
-                    "Function 'where' returns no boolean value and thus cannot "
-                    "terminate expression",
+                    "Function 'where' should not terminate an expression",
                 )
             cs = get_components_from_function_parameters(func_expr.paramList())
             cs.append(component)
@@ -299,9 +267,17 @@ def get_components_from_function(
 
 
 def get_components_from_term_expression(
-    expr: fhirpathParser.TermExpressionContext, component: ComponentDict
+    expr: fhirpathParser.TermExpressionContext, component: Optional[ComponentDict] = None
 ) -> ComponentDict:
     symbol = get_symbol(expr.term().invocation())
+    if component is None:
+        return dotdict({
+            "_type": AttributeComponent.__name__,
+            "types": [],
+            "path": symbol,
+            "cardinality": None,
+            "values": []
+        })
     component["path"] = (
         f"{symbol}.{component.path}" if component.path is not None else symbol
     )
