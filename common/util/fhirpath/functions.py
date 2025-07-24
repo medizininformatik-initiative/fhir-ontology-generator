@@ -1,4 +1,4 @@
-from typing import Optional, Iterable
+from typing import Optional
 
 from antlr4.ParserRuleContext import ParserRuleContext
 from antlr4.tree.Tree import TerminalNode
@@ -12,11 +12,24 @@ def unsupported_fhirpath_expr(
     expected: str | conlist(str, min_length=1),
     cause: Optional[Exception] = None,
 ) -> ValueError:
-    expected = expected if isinstance(expected, list) else [expected]
-    expected = [f"'{s}'" for s in expected]
+    """
+    Builds a `ValueError` instance indicating that a given FHIRPath expression might be valid but is not supported
+
+    :param c: Current parse tree root node, i.e. the parsed expression
+    :param expected: Expected values, types, or properties
+    :param cause: Optional cause to append to the error message
+    :return: `ValueError` instance
+    """
+    match expected:
+        case str():
+            expected_str = f"Expected {expected}."
+        case list():
+            expected_str = "Expected one of {" + ",".join([f"'{s}'" for s in expected]) + "}."
+        case _:
+            expected_str = ""
     err = ValueError(
         f"Unsupported {get_rule_name(c)} expression in FHIRPath expression @ [{c.start.start}, {c.stop.stop}]: "
-        f"Expected one of {{{','.join(expected)}}}. Expression: {c.toStringTree(ruleNames=RULE_NAMES)}"
+        f"{expected_str} Expression: {c.toStringTree(ruleNames=RULE_NAMES)}"
     )
     if cause:
         err.__cause__ = cause
@@ -26,6 +39,15 @@ def unsupported_fhirpath_expr(
 def invalid_fhirpath_expr(
     c: ParserRuleContext, reason: str, cause: Optional[Exception] = None
 ) -> ValueError:
+    """
+    Builds a `ValueError` instance indicating that the provided FHIRPath expression is invalid
+
+    :param c: Current parse tree root node, i.e. the parsed expression
+    :param reason: Reason why the expression is deemed invalid
+    :param cause: Optional, underlying cause (e.g. raised `Exception` instance indicating that the expression is
+                  invalid)
+    :return: `ValueError` instance
+    """
     err = ValueError(
         f"Invalid {get_rule_name(c)} expression in FHIRPath expression @ [{c.start.start}, {c.stop.stop}]: {reason}. "
         f"Expression: {c.toStringTree(ruleNames=RULE_NAMES)}"
@@ -53,6 +75,14 @@ def get_symbol(expr: ParserRuleContext, strip: bool = True) -> Optional[str]:
 
 
 def get_path(expr: ParserRuleContext) -> (Optional[ParserRuleContext], Optional[str]):
+    """
+    Retrieves the largest, uninterrupted subexpression representing pure element navigation starting at the end of the
+    expression without function invocations
+
+    :param expr: Parsed FHIRPath expression
+    :return: Tuple containing the remaining expression after an interruption and the path navigation subexpression. Both
+             can be `None` depending on the structure of the provided expression
+    """
     path = []
     while not isinstance(expr.getChild(2), fhirpathParser.FunctionInvocationContext):
         match expr:
