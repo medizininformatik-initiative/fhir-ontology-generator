@@ -1,5 +1,9 @@
 # Generating an ontology for the dataportal
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/medizininformatik-initiative/fhir-ontology-generator/badge)](https://scorecard.dev/viewer/?uri=github.com/medizininformatik-initiative/fhir-ontology-generator)
+[![python](https://img.shields.io/badge/Python-3.13-3776AB.svg?style=flat&logo=python&logoColor=white)](https://www.python.org)
+
+
 The dataportal currently supports the creation of cohorts and data selections for cohorts.
 
 The aim of the ontology is to provide information needed to search for, display, select and specify criteria for a cohort
