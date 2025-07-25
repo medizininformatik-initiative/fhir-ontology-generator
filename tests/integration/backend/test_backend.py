@@ -9,7 +9,10 @@ from jsonpath_ng import parse
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from common.util.http.backend.client import FeasibilityBackendClient
 from common.util.log.functions import get_logger
-from common.util.test.fhir import load_list_of_resources_onto_fhir_server, delete_list_of_resources_from_fhir_server
+from common.util.test.fhir import (
+    load_list_of_resources_onto_fhir_server,
+    delete_list_of_resources_from_fhir_server,
+)
 from common.util.test.functions import mismatch_str
 
 
@@ -34,7 +37,7 @@ def resolve_ref(ref: str, ensemble=None, resolved=None, resolving=None) -> list[
         return []
 
     resolving.add(ref)
-    jsonpath_expr = parse('$..reference')
+    jsonpath_expr = parse("$..reference")
 
     refs_still_to_resolve = [
         reference.replace("/", "-", 1) + ".json"
@@ -61,7 +64,9 @@ def get_patient_files(patient_file: str, test_data_folder: str) -> list[str]:
     :param test_data_folder: The directory containing the tests data JSON files
     :return: Ordered list of file names (dependencies first)
     """
-    with open(os.path.join(test_data_folder, patient_file), mode="r", encoding="utf-8") as f:
+    with open(
+        os.path.join(test_data_folder, patient_file), mode="r", encoding="utf-8"
+    ) as f:
         patient = json.load(f)
 
     patient_id = patient.get("id")
@@ -70,13 +75,17 @@ def get_patient_files(patient_file: str, test_data_folder: str) -> list[str]:
 
     # Load all JSON files into memory
     ensemble = {
-        file: json.load(open(os.path.join(test_data_folder, file), mode="r", encoding="utf-8"))
-        for file in os.listdir(test_data_folder) if file.endswith(".json")
+        file: json.load(
+            open(os.path.join(test_data_folder, file), mode="r", encoding="utf-8")
+        )
+        for file in os.listdir(test_data_folder)
+        if file.endswith(".json")
     }
 
     # Find files referencing this patient
     patient_referenced_files = [
-        file for file, content in ensemble.items()
+        file
+        for file, content in ensemble.items()
         if content.get("subject", {}).get("reference") == f"Patient/{patient_id}"
         or content.get("patient", {}).get("reference") == f"Patient/{patient_id}"
     ]
@@ -88,20 +97,39 @@ def get_patient_files(patient_file: str, test_data_folder: str) -> list[str]:
     return ordered_fhir_resources
 
 
-#@pytest.mark.parametrize("data_resource_file, query_resource_path", test_data)
-def test_ccdl_query(data_resource_file, query_resource_path, backend_client, fhir_ip, backend_ip, test_dir,
-                    fhir_testdata):
+# @pytest.mark.parametrize("data_resource_file, query_resource_path", test_data)
+def test_ccdl_query(
+    data_resource_file,
+    query_resource_path,
+    backend_client,
+    fhir_ip,
+    backend_ip,
+    test_dir,
+    fhir_testdata,
+):
 
     # create list with all referenced files - recursively?
-    resource_folder = os.path.join(test_dir, "testdata", "kds-testdata-2024.0.1", "resources")
-    fhir_resources = get_patient_files(data_resource_file, test_data_folder=resource_folder)
+    resource_folder = os.path.join(
+        test_dir, "testdata", "kds-testdata-2024.0.1", "resources"
+    )
+    fhir_resources = get_patient_files(
+        data_resource_file, test_data_folder=resource_folder
+    )
 
     # load fhir resource onto fhir server for patient
-    if load_list_of_resources_onto_fhir_server(fhir_api=fhir_ip + "/fhir", files=fhir_resources, testdata_folder=resource_folder):
+    if load_list_of_resources_onto_fhir_server(
+        fhir_api=fhir_ip + "/fhir",
+        files=fhir_resources,
+        testdata_folder=resource_folder,
+    ):
         logger.debug("Uploaded fhir data")
 
     # send ccdl to backend
-    with open(os.path.join(test_dir, "test-queries", query_resource_path), mode="r", encoding="utf-8") as f:
+    with open(
+        os.path.join(test_dir, "test-queries", query_resource_path),
+        mode="r",
+        encoding="utf-8",
+    ) as f:
         query = json.dumps(json.load(f))
     query_id = backend_client.query(query).split("/")[-1]
 
@@ -109,48 +137,70 @@ def test_ccdl_query(data_resource_file, query_resource_path, backend_client, fhi
     query_result = backend_client.get_query_summary_result(query_id)
     assert int(query_result.get("totalNumberOfPatients")) == 1
 
-    if delete_list_of_resources_from_fhir_server(fhir_api=fhir_ip+"/fhir", fhir_resources=list(reversed(fhir_resources))):
+    if delete_list_of_resources_from_fhir_server(
+        fhir_api=fhir_ip + "/fhir", fhir_resources=list(reversed(fhir_resources))
+    ):
         logger.debug("Deleted fhir data")
 
 
-def test_criterion_term_code_search(expected_responses: list[Mapping[str, any]],
-                                    backend_client: FeasibilityBackendClient, backend_ip, elastic_ip):
+@pytest.mark.skip(
+    reason="The tests will fail due to missing resources on the terminology server. Activate once present"
+)
+def test_criterion_term_code_search(
+    expected_responses: list[Mapping[str, any]],
+    backend_client: FeasibilityBackendClient,
+    backend_ip,
+    elastic_ip,
+):
     for expected_response in expected_responses:
-        expected_entry = expected_response['results'][0]
-        response = backend_client.search_terminology_entries(search_term=expected_entry['termcode'],
-                                                             contexts=[expected_entry['context']],
-                                                             terminologies=[expected_entry['terminology']],
-                                                             kds_modules=[expected_entry['kdsModule']])
-        assert len(response.get('results', [])) > 0, "Expected at least one match for the search query"
-        response_entry = response.get('results')[0]
+        expected_entry = expected_response["results"][0]
+        response = backend_client.search_terminology_entries(
+            search_term=expected_entry["termcode"],
+            contexts=[expected_entry["context"]],
+            terminologies=[expected_entry["terminology"]],
+            kds_modules=[expected_entry["kdsModule"]],
+        )
+        assert (
+            len(response.get("results", [])) > 0
+        ), "Expected at least one match for the search query"
+        response_entry = response.get("results")[0]
 
-        actual_id = response_entry.get('id')
-        expected_id = expected_entry.get('id')
+        actual_id = response_entry.get("id")
+        expected_id = expected_entry.get("id")
         assert actual_id == expected_id, mismatch_str("hash ID", actual_id, expected_id)
 
-        actual_display = response_entry.get('display')
-        expected_display = expected_entry.get('display')
-        assert actual_display == expected_display, mismatch_str("display", actual_display, expected_display)
+        actual_display = response_entry.get("display")
+        expected_display = expected_entry.get("display")
+        assert actual_display == expected_display, mismatch_str(
+            "display", actual_display, expected_display
+        )
 
-        actual_context = response_entry.get('context')
-        expected_context = response_entry.get('context')
-        assert actual_context == expected_context, mismatch_str("context", actual_context, expected_context)
+        actual_context = response_entry.get("context")
+        expected_context = response_entry.get("context")
+        assert actual_context == expected_context, mismatch_str(
+            "context", actual_context, expected_context
+        )
 
-        actual_terminology = response_entry.get('terminology')
-        expected_terminology = expected_entry.get('terminology')
-        assert actual_terminology == expected_terminology, mismatch_str("terminology", actual_terminology,
-                                                                        expected_terminology)
+        actual_terminology = response_entry.get("terminology")
+        expected_terminology = expected_entry.get("terminology")
+        assert actual_terminology == expected_terminology, mismatch_str(
+            "terminology", actual_terminology, expected_terminology
+        )
 
-        actual_termcode = response_entry.get('termcode')
-        expected_termcode = expected_entry.get('termcode')
-        assert actual_termcode == expected_termcode, mismatch_str("termcode", actual_termcode, expected_termcode)
+        actual_termcode = response_entry.get("termcode")
+        expected_termcode = expected_entry.get("termcode")
+        assert actual_termcode == expected_termcode, mismatch_str(
+            "termcode", actual_termcode, expected_termcode
+        )
 
-        actual_kds_module = response_entry.get('kdsModule')
-        expected_kds_module = expected_entry.get('kdsModule')
-        assert actual_kds_module == expected_kds_module, mismatch_str("kdsModule", actual_kds_module,
-                                                                      expected_kds_module)
+        actual_kds_module = response_entry.get("kdsModule")
+        expected_kds_module = expected_entry.get("kdsModule")
+        assert actual_kds_module == expected_kds_module, mismatch_str(
+            "kdsModule", actual_kds_module, expected_kds_module
+        )
 
-        actual_selectable = response_entry.get('selectable')
-        expected_selectable = expected_entry.get('selectable')
-        assert actual_selectable == expected_selectable, mismatch_str("selectable", actual_selectable,
-                                                                      expected_selectable)
+        actual_selectable = response_entry.get("selectable")
+        expected_selectable = expected_entry.get("selectable")
+        assert actual_selectable == expected_selectable, mismatch_str(
+            "selectable", actual_selectable, expected_selectable
+        )
