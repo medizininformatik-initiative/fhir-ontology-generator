@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 def del_none(dictionary):
     import cohort_selection_ontology.model.ui_profile
+
     """
     Delete keys with the value ``None`` in a dictionary, recursively.
 
@@ -68,9 +69,12 @@ class CategoryEntry:
         return self.display
 
     def to_json(self):
-        return json.dumps(self, default=lambda o: del_none(
-            del_keys(o.__dict__, self.DO_NOT_SERIALIZE)),
-                          sort_keys=True, indent=4)
+        return json.dumps(
+            self,
+            default=lambda o: del_none(del_keys(o.__dict__, self.DO_NOT_SERIALIZE)),
+            sort_keys=True,
+            indent=4,
+        )
 
 
 @dataclass
@@ -79,8 +83,8 @@ class Module:
     display: str
 
     def to_dict(self):
-        return {"code": self.code,
-                "display": self.display}
+        return {"code": self.code, "display": self.display}
+
 
 @dataclass
 class RelationalTermcode:
@@ -90,7 +94,7 @@ class RelationalTermcode:
     def to_dict(self):
         return {
             "contextualized_termcode_hash": self.contextualized_termcode_hash,
-            "display": self.display
+            "display": self.display,
         }
 
 
@@ -131,7 +135,11 @@ class TermCode:
 
     def __eq__(self, other):
         if isinstance(other, TermCode):
-            return self.system == other.system and self.code == other.code
+            return (
+                self.system == other.system
+                and self.code == other.code
+                and self.version == other.version
+            )
         return False
 
     def __hash__(self):
@@ -139,20 +147,40 @@ class TermCode:
 
     def __lt__(self, other):
         if isinstance(other, TermCode):
-            this_display = self.display.original if isinstance(self.display, TranslationDisplayElement) else self.display
-            other_display = other.display.original if isinstance(other.display, TranslationDisplayElement) else other.display
+            this_display = (
+                self.display.original
+                if isinstance(self.display, TranslationDisplayElement)
+                else self.display
+            )
+            other_display = (
+                other.display.original
+                if isinstance(other.display, TranslationDisplayElement)
+                else other.display
+            )
 
             return this_display.casefold() < other_display.casefold()
         return NotImplemented
 
     def __repr__(self):
-        return self.system + " " + self.code + " " + self.version if self.version else ""
+        return (
+            self.system + " " + self.code + " " + self.version if self.version else ""
+        )
 
     def to_dict(self):
-        if isinstance(self.display,str):
-            return {"system": self.system, "code": self.code, "display": self.display, "version": self.version}
+        if isinstance(self.display, str):
+            return {
+                "system": self.system,
+                "code": self.code,
+                "display": self.display,
+                "version": self.version,
+            }
         if isinstance(self.display, TranslationDisplayElement):
-            return {"system": self.system, "code": self.code, "display": self.display.model_dump_json(), "version": self.version}
+            return {
+                "system": self.system,
+                "code": self.code,
+                "display": self.display.model_dump_json(),
+                "version": self.version,
+            }
 
 
 class ValueDefinition:
@@ -169,9 +197,15 @@ class ValueDefinition:
     :param max_val: defines the maximum value if the value type is "quantity"
     """
 
-    def __init__(self, value_type, selectable_concepts: List[TermCode] | None = None,
-                 allowed_units: List[TermCode] | None = None, precision: int | None = None,
-                 min_val: float | None = None, max_val: float | None = None):
+    def __init__(
+        self,
+        value_type,
+        selectable_concepts: List[TermCode] | None = None,
+        allowed_units: List[TermCode] | None = None,
+        precision: int | None = None,
+        min_val: float | None = None,
+        max_val: float | None = None,
+    ):
         self.type = value_type
         self.referencedValueSet = selectable_concepts if selectable_concepts else []
         self.allowedUnits = allowed_units if allowed_units else []
@@ -204,8 +238,15 @@ class Unit:
 
 
 class TermEntry(object):
-    DO_NOT_SERIALIZE = ["terminologyType", "path", "DO_NOT_SERIALIZE", "fhirMapperType", "termCode", "valueDefinitions",
-                        "root"]
+    DO_NOT_SERIALIZE = [
+        "terminologyType",
+        "path",
+        "DO_NOT_SERIALIZE",
+        "fhirMapperType",
+        "termCode",
+        "valueDefinitions",
+        "root",
+    ]
     """
     A TermEntry represents a medical concept. TermEntries are organized in a tree structure.
     It's concept is defined by one or more TermCodes in a specific context.
@@ -218,8 +259,15 @@ class TermEntry(object):
 
     # TODO: context should be after term_codes. This would be a breaking change -> requires updating all uses of this \
     # class
-    def __init__(self, term_codes: List[TermCode], terminology_type=None, leaf=True,
-                 selectable=True, context: TermCode = None, ui_profile=None):
+    def __init__(
+        self,
+        term_codes: List[TermCode],
+        terminology_type=None,
+        leaf=True,
+        selectable=True,
+        context: TermCode = None,
+        ui_profile=None,
+    ):
         self.id = str(uuid.UUID(int=rd.getrandbits(128)))
         self.termCodes = term_codes
         self.termCode = term_codes[0]
@@ -231,7 +279,7 @@ class TermEntry(object):
         self.children = []
         self.leaf = leaf
         self.selectable = selectable
-        self.display = (self.termCode.display if self.termCode else None)
+        self.display = self.termCode.display if self.termCode else None
         self.root = True
         self.context = context
 
@@ -250,15 +298,24 @@ class TermEntry(object):
         return self.termCode == other.termCode and self.context == other.context
 
     def __hash__(self):
-        return hash(self.termCode.system + self.termCode.code + self.context.system + self.context.code)
+        return hash(
+            self.termCode.system
+            + self.termCode.code
+            + self.context.system
+            + self.context.code
+        )
 
     def to_json(self):
         """
         Serializes the TermEntry to json
         :return: The JSON representation of the TermEntry
         """
-        return json.dumps(self, default=lambda o: del_none(
-            del_keys(o.__dict__, self.DO_NOT_SERIALIZE)), sort_keys=True, indent=4)
+        return json.dumps(
+            self,
+            default=lambda o: del_none(del_keys(o.__dict__, self.DO_NOT_SERIALIZE)),
+            sort_keys=True,
+            indent=4,
+        )
 
     def get_leaves(self):
         """

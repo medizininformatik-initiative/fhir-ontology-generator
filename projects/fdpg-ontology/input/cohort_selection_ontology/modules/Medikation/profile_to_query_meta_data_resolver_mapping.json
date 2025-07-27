@@ -1,11 +1,11 @@
 {
-  "Medikamentenverabreichung": [
+  "MII_PR_Medikation_MedicationAdministration": [
     "MedicationAdministration"
   ],
-  "Medikamentenverordnung": [
+  "MII_PR_Medikation_MedicationStatement": [
     "MedicationStatement"
   ],
-  "Medikamentenanordnung": [
+  "MII_PR_Medikation_MedicationRequest": [
     "MedicationRequest"
   ]
 }
