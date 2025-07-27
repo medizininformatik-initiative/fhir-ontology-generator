@@ -133,13 +133,13 @@ def generate_cs_tree_map(system: str, version: str | None, concepts: set, projec
     logger.debug("Initializing closure table")
     client = CohortSelectionTerminologyClient(project)
 
-    client.create_concept_map(name="dse-closure")
+    client.create_concept_map(name="fdpg-dse-closure")
     term_codes = list(map(lambda t: TermCode(system, t[0], t[1], version), concepts))
     treemap: TreeMap = TreeMap({}, None, system, version)
     treemap.entries = {term_code.code: TermEntryNode(term_code) for term_code in term_codes}
     logger.debug("Building closure table")
     try:
-        closure_map = client.get_closure_map(term_codes, closure_name="dse-closure")
+        closure_map = client.get_closure_map(term_codes, closure_name="fdpg-dse-closure")
         if groups := closure_map.group:
             if len(groups) > 1:
                 raise Exception("Multiple groups in closure map. Currently not supported.")

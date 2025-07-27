@@ -119,14 +119,14 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         :return: TreeMap of the value set hierarchy
         """
         self.__logger.debug(f"Generating tree map for value set '{canonical_url}'")
-        self.create_concept_map()
+        self.create_concept_map("fdpg-cso-closure")
         vs = self.expand_value_set(canonical_url)
         treemap: TreeMap = TreeMap({}, None, None, None)
         treemap.entries = {term_code.code: TermEntryNode(term_code) for term_code in vs}
         treemap.system = vs[0].system
         treemap.version = vs[0].version
         try:
-            closure_map_data = self.get_closure_map(vs)
+            closure_map_data = self.get_closure_map(vs, "fdpg-cso-closure")
             if groups := closure_map_data.group:
                 if len(groups) > 1:
                     raise UnsupportedError(
@@ -185,7 +185,7 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
                 {
                     g2[0]: [t for t in g2[1]]
                     for g2 in groupby(
-                        sorted(g1[1], key=lambda t: t.version), lambda t: t.version
+                        sorted(g1[1], key=lambda t: t.version if t.version else "9999"), lambda t: t.version
                     )
                 },
             )
