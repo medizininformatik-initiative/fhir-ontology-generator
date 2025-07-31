@@ -41,6 +41,7 @@ translation_map_default = {
 
 logger = get_class_logger("structure_definition_functions")
 
+
 def find_polymorphic_value(data: ElementDefinition, polymorphic_elem_prefix: str) -> Optional[Any]:
     """
     Attempts to find the value of a polymorphic element by iterating over all possible data type-specific names
@@ -276,7 +277,6 @@ def process_element_id(
     element_ids,
     module_dir_name: str,
     modules_dir_path: str | Path,
-    last_desc: ShortDesc = None,
 ) -> List[ProcessedElementResult] | None:
     results = []
 
@@ -285,8 +285,6 @@ def process_element_id(
         if element_id.startswith("."):
             raise ValueError("Element id must start with a resource type")
         element: ElementDefinition = profile_snapshot.get_element_by_id(element_id)
-        # short_desc = (element_id, get_display_from_element_definition(element)) \
-        #    if last_desc is None else None
         result = [
             ProcessedElementResult(
                 element=element,

@@ -1,5 +1,11 @@
+from linecache import cache
+
 import pytest
 from fhir.resources.R4B.coding import Coding
+from fhir.resources.R4B.elementdefinition import (
+    ElementDefinitionType,
+    ElementDefinition,
+)
 
 from cohort_selection_ontology.core.generators.cql.attributes import (
     get_components_from_invocation_expression,
@@ -12,6 +18,8 @@ from cohort_selection_ontology.core.generators.cql.attributes import (
     get_components_from_function,
     get_components_from_function_parameters,
     get_components_from_term_expression,
+    get_component_tree,
+    _enrich_reference_typed_tree,
 )
 from cohort_selection_ontology.model.mapping import SimpleCardinality
 from cohort_selection_ontology.model.mapping.cql import (
@@ -20,6 +28,7 @@ from cohort_selection_ontology.model.mapping.cql import (
     ReferenceGroup,
 )
 from common.util.fhirpath import parse_expr, fhirpathParser
+from common.util.project import Project
 from common.util.wrapper import dotdict
 
 
@@ -311,4 +320,71 @@ def test_get_components_from_term_expression():
         "The path of the returned component dict for a term expression with a "
         "trailing expression should the concatenation of the element itself and the "
         "path of the component representing the trailing expression"
+    )
+
+
+def test_get_component_tree():
+    expr_str = "Resource.element1.element2"
+    expr = parse_expr(expr_str)
+    try:
+        get_component_tree(expr)
+    except Exception as exc:
+        pytest.fail(
+            "Entire expression tree should be parsed without raising an exception", exc
+        )
+
+    expr_str = "Resource.element1 = 'abc'"
+    component = {"_type": ContextGroup.__name__, "path": "element2", "components": []}
+    eq_expr = parse_expr(expr_str).expression()
+    with pytest.raises(ValueError) as exc_info:
+        get_component_tree(eq_expr, component)
+    assert "Trailing expressions are not supported for boolean expressions" in str(
+        exc_info.value
+    )
+
+
+def test__enrich_reference_typed_tree(attribute_test_project: Project):
+    edd = ElementDefinition(
+        path="Procedure.element2",
+        type=[
+            ElementDefinitionType(code="Coding"),
+            ElementDefinitionType(
+                code="Reference",
+                targetProfile=[
+                    "http://organization.org/fhir/StructureDefinition/procedure1"
+                ],
+            ),
+        ],
+    ).model_dump()
+    rgd = dotdict(
+        _type=ReferenceGroup.__name__,
+        type=None,
+        path="Condition.element1",
+        components=[
+            dotdict(
+                _type=AttributeComponent.__name__,
+                types=[],
+                path="element2",
+                cardinality=SimpleCardinality.SINGLE,
+                values=[],
+            )
+        ],
+    )
+    rg = _enrich_reference_typed_tree(rgd, edd, attribute_test_project, "module")
+    assert rg.type == "Procedure", "Expected type in this example is 'Procedure'"
+    assert (
+        rg.path == "Condition.element1"
+    ), "The path should be the path to the element of type 'Reference'"
+    assert (
+        len(rg.components) == 1
+    ), "The expected number of contained components in this example is 1"
+
+    ac: AttributeComponent = rg.components[0]
+    assert ac.types == ["Coding"], (
+        "The supported types of the contained component should match the referenced target "
+        "elements supported types"
+    )
+    assert ac.path == "Procedure.element2", (
+        "The path of the contained component should match the path of the "
+        "referenced target element"
     )
