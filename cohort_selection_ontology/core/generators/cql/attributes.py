@@ -289,6 +289,9 @@ def get_component_tree(
 ) -> ComponentDict:
     match expr:
         case fhirpathParser.EntireExpressionContext() as full_expr:
+            if component is not None:
+                _logger.warning("Provided tree already represents entire FHIRPath expression => Ignoring additionally "
+                                "provided components")
             return get_component_tree(full_expr.expression())
         case fhirpathParser.EqualityExpressionContext() as eec:
             if component is not None:
@@ -314,7 +317,6 @@ def get_component_tree(
 
 def _enrich_reference_typed_tree(
     tree: ReferenceGroupDict,
-    profile: Snapshot,
     element: ElementDefinitionDict,
     project: Project,
     module: str,
@@ -620,7 +622,7 @@ def enrich_tree_with_types_and_values(
                     )
             case {"_type": ReferenceGroup.__name__} as rg:
                 return _enrich_reference_typed_tree(
-                    rg, profile_snapshot, element, project, module
+                    rg, element, project, module
                 )
             case _ as x:
                 raise KeyError(

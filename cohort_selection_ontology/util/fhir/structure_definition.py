@@ -51,13 +51,14 @@ class InvalidValueTypeException(Exception):
 
 def get_profiles_with_base_definition(
     modules_dir_path: str | Path, base_definition: str
-) -> Tuple[dict, str]:
+) -> List[Tuple[dict, str]]:
     """
-    Returns the profiles that have the given base definition
-    :param modules_dir_path: path to the modules directory
-    :param base_definition: base definition
-    :return: generator of profiles that have the given base definition
+    Returns the profiles that has the given base definition
+    :param modules_dir_path: Path to the modules directory
+    :param base_definition: URL of thebase definition
+    :return: List of tuples containing the identified profile and the path to the module directory is part of
     """
+    profiles = []
     for module_dir in [
         folder for folder in os.scandir(modules_dir_path) if folder.is_dir()
     ]:
@@ -72,11 +73,12 @@ def get_profiles_with_base_definition(
             with open(file, mode="r", encoding="utf8") as f:
                 profile = json.load(f)
                 if profile.get("baseDefinition") == base_definition:
-                    return profile, module_dir.path
+                    profiles.append((profile, module_dir.path))
                 elif profile.get("type") == base_definition.split("/")[-1]:
-                    return profile, module_dir.path
+                    profiles.append((profile, module_dir.path))
                 elif profile.get("url") == base_definition:
-                    return profile, module_dir.path
+                    profiles.append((profile, module_dir.path))
+    return profiles
 
 
 def get_extension_definition(module_dir: str, extension_profile_url: str) -> dict:
@@ -336,7 +338,7 @@ def process_element_id(
                 target_resource_type = elem.get("targetProfile")[0]
                 referenced_profile, module_dir_name = get_profiles_with_base_definition(
                     modules_dir_path, target_resource_type
-                )
+                )[0]
                 element_ids.insert(
                     0, f"{referenced_profile.get('type') + element_ids.pop(0)}"
                 )
@@ -415,7 +417,7 @@ def extract_reference_type(
     # FIXME This should not be hardcoded to CDS_Module
     referenced_profile, module_dir = get_profiles_with_base_definition(
         modules_dir, target_resource_type
-    )
+    )[0]
     return referenced_profile.get("type")
 
 
