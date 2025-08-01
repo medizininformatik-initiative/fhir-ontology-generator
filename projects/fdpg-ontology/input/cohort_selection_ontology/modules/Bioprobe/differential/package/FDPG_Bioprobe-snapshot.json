@@ -9068,7 +9068,9 @@
         "id": "Specimen.type",
         "path": "Specimen.type",
         "base": {
-          "path": "Specimen.type"
+          "path": "Specimen.type",
+          "min": 0,
+          "max": "1"
         }
       }
     ]
