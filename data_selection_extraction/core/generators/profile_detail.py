@@ -1,12 +1,13 @@
 import re
 from collections.abc import Callable
+from os import mkdir
 from typing import Mapping, List, TypedDict, Any, Optional
 
-from common.exceptions.profile import MissingProfileError
+from common.exceptions.profile import MissingProfileError, MissingElementError
 from cohort_selection_ontology.model.ui_data import TranslationDisplayElement, BulkTranslationDisplayElement, \
     Translation
 from common.util.fhir.structure_definition import supports_type, find_type_element, get_element_from_snapshot, \
-    get_types_supported_by_element, Snapshot
+    get_types_supported_by_element, Snapshot, is_element_in_snapshot
 from common.util.project import Project
 from data_selection_extraction.core.generators.profile_tree import get_value_for_lang_code
 from data_selection_extraction.model.detail import FieldDetail, ProfileDetail, Filter, ProfileReference, ReferenceDetail
@@ -14,7 +15,7 @@ from common.util.fhir.enums import FhirPrimitiveDataType, FhirComplexDataType, F
 
 from common.util.log.functions import get_class_logger
 from data_selection_extraction.model.profile_tree import ProfileTreeNode
-from data_selection_extraction.util.fhir.profile import is_profile_selectable
+from data_selection_extraction.util.fhir.profile import is_profile_selectable, logger
 
 Profile = Mapping[str, any]
 
@@ -51,10 +52,14 @@ class ProfileDetailGenerator:
         elements = struct_def['snapshot']["element"]
 
         for elem in (elem for elem in elements if elem['id'] == path):
-
             elem_type = elem['type']
 
             for type_elem in (elem for elem in elem_type if re.search("Reference", elem['code'])):
+                if (elem_code := type_elem.get("code")) is None:
+                    raise MissingElementError(f"Code property is missing from profile: {struct_def['id']}")
+
+                combined_target_profiles = type_elem['targetProfile']
+                combined_target_profiles += self.get_referenced_mii_profiles(elem, elem_code)
 
                 target_profile_url = next(
                     (url for url in type_elem['targetProfile'] if url.startswith(self.reference_base_url)),
@@ -181,21 +186,22 @@ class ProfileDetailGenerator:
         if element_id in {"Patient.address:Strassenanschrift.postalCode", "Patient.address:Strassenanschrift.country"}:
             return False
 
-        attributes_true_level_one = ["mustSupport", "isModifier", "min"]
+        #if not element.get("type"):
+        #    self.__logger.info(f"Excluding: {element['id']} as no type was found")
+        #    return True
 
-        if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
-               for attr in attributes_true_level_one):
-            self.__logger.debug(f"Excluding: {element['id']} as not mustSupport, modifier or min > 0")
+        if element.get("subject") or element.get("patient"):
+            self.__logger.info(f"Excluding: {element['id']} as having references to patients")
             return True
 
-        attributes_true_level_two = ["mustSupport", "isModifier"]
+        #attributes_true_level_two = ["mustSupport", "isModifier"]
 
-        if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
-               for attr in attributes_true_level_two) and len(element["id"].split(".")) > 2:
-            self.__logger.debug(f"Excluding: {element['id']} as not mustSupport or modifier on level > 2")
+        if (len(element["id"].split(".")) > 2
+                and all(t.code in FhirPrimitiveDataType for t in get_types_supported_by_element(element))):
+            self.__logger.debug(f"Excluding: {element['id']} as primitively-typed on level > 2")
             return True
 
-        if any(element['id'].endswith(field) or f"{field}." in element['id']for field in self.fields_to_exclude):
+        if any(element['id'].endswith(field) or f"{field}." in element['id'] for field in self.fields_to_exclude):
             self.__logger.debug(f"Excluding: {element['id']} as excluded field")
             return True
 
@@ -404,7 +410,7 @@ class ProfileDetailGenerator:
                     profile = self.__all_profiles.get(profile_url, {}).get('structureDefinition')
                     if not profile:
                         self.__logger.warning(f"Extension '{profile_url}' was not found. Consider adding it to "
-                                              f"'{self.__project.input('dse', 'snapshots')}' => "
+                                              f"'{self.__project.input.dse.mkdirs('snapshots')}' => "
                                               f"Ignoring potential references")
                     else:
                         elem = get_element_from_snapshot(profile, "Extension.value[x]")
@@ -420,13 +426,16 @@ class ProfileDetailGenerator:
                     return True
                 else:
                     return False
-            else: # Type element does not contain any Extension profile references
+            elif is_element_in_snapshot(profile, element.get('id') + ".value[x]"): # Type element does not contain any Extension profile references
                 element_id = element.get('id') + ".value[x]"
                 value_elem = get_element_from_snapshot(profile, element_id)
                 if not value_elem:
                     supports_references.append(False)
                 else:
                     supports_references.append(supports_type(value_elem, FhirComplexDataType.REFERENCE))
+            else:
+                # logger.warning(f"Element '{element.get('id')}' Type element does not contain any Extension information")
+                return False
         else:
             raise ValueError(f"Element '{element.get('id')}' does not support FHIR data type 'Extension'")
 
@@ -484,8 +493,7 @@ class ProfileDetailGenerator:
             )
 
             profile_type = profile['structureDefinition']['type']
-            code_search_param = (result := self.mapping_type_code.get(profile_type, None)) and result.get("search_param",
-                                                                                                          None)
+            code_search_param = (result := self.mapping_type_code.get(profile_type, None)) and result.get("search_param", None)
             fhir_path = (result := self.mapping_type_code.get(profile_type, None)) and result.get("fhir_path", None)
             value_set_urls = None
 
@@ -522,11 +530,14 @@ class ProfileDetailGenerator:
                     element = self.get_element_by_content_ref(content_reference, source_elements)
 
                 supported_types = get_types_supported_by_element(element)
+                field_type = None
                 if len(supported_types) > 1:
                     self.__logger.warning(f"Element '{element.get('id')}' supports multiple types but only fixed typed "
                                           f"elements can be represented faithfully at this point => Proceeding with "
                                           f"first type listed")
-                field_type = supported_types[0].code
+                    field_type = supported_types[0].code
+                elif len(supported_types) == 0:
+                    field_type = None
 
                 if supports_type(element, FhirComplexDataType.EXTENSION):
                     supports_reference = self.__determine_if_extension_elem_can_be_treated_as_reference(element,
