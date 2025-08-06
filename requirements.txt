@@ -1,4 +1,4 @@
-requests==2.26.0
+requests==2.31.0
 networkx==2.6.3
 lxml==5.3.0
 psycopg2==2.9.10
@@ -10,13 +10,14 @@ pytest~=8.3.4
 pytest-env==1.1.5
 pytest-docker==3.1.1
 pytest-cov==6.0.0
+pytest-xdist==3.8.0
 attrs~=24.2.0
 jsonschema==4.23.0
 typing-extensions==4.12.2
 jsonpath-ng~=1.7.0
 typing_extensions~=4.12.2
 fhir.resources==8.0.0
-urllib3~=1.26.20
+urllib3~=2.5.0
 python-dotenv==1.1.0
 json_source_map==1.0.5
 fastjsonschema~=2.21.1
