@@ -31,6 +31,7 @@ test.py
 **/temp
 /tests/**/testdata
 **/.coverage
+**/.coverage*
 # Directories holding docker logs recorded during (intergration) testing
 **/docker_logs/
 

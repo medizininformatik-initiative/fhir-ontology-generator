@@ -1,5 +1,6 @@
 import json
 import os
+import warnings
 from typing import Mapping
 
 import jsonschema
@@ -143,9 +144,9 @@ def test_ccdl_query(
         logger.debug("Deleted fhir data")
 
 
-@pytest.mark.skip(
-    reason="The tests will fail due to missing resources on the terminology server. Activate once present"
-)
+# @pytest.mark.skip(
+#    reason="The tests will fail due to missing resources on the terminology server. Activate once present"
+# )
 def test_criterion_term_code_search(
     expected_responses: list[Mapping[str, any]],
     backend_client: FeasibilityBackendClient,

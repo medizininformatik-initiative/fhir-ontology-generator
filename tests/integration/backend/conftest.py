@@ -2,7 +2,8 @@ import json
 import os
 import shutil
 from collections import defaultdict
-from typing import Mapping, Union, Iterator, Optional
+from pathlib import Path
+from typing import Mapping, Union, Iterator, Optional, Any
 
 from _pytest.python import Metafunc
 from pydantic import BaseModel
@@ -21,13 +22,16 @@ from common.util.test.fhir import download_and_unzip_kds_test_data
 
 logger = get_logger(__file__)
 
-#generated_profile_tree_path = os.path.join("projects", "fdpg-ontology", "profile_tree.json")
-#project_path = os.path.join("projects", "mii_core_data_set")
-
 
 class Status(BaseModel):
     disabled: bool = False
     reason: Optional[str] = None
+
+
+class SearchResponseTestdataEntry(BaseModel):
+    id: str
+    data: list[Mapping[str, Any]]
+    status: Status = Status()
 
 
 class CCDLTestdataEntry(BaseModel):
@@ -56,7 +60,9 @@ def docker_compose_file(pytestconfig) -> str:
 
     # Copy and unpack ontology archives
     backend_path = os.path.join(tmp_path, "backend.zip")
-    shutil.copyfile(project.output.mkdirs("merged_ontology") / "backend.zip", backend_path)
+    shutil.copyfile(
+        project.output.mkdirs("merged_ontology") / "backend.zip", backend_path
+    )
     shutil.unpack_archive(backend_path, ontology_dir_path)
 
     migration_path = os.path.join(ontology_dir_path, "migration")
@@ -70,27 +76,39 @@ def docker_compose_file(pytestconfig) -> str:
     shutil.move(os.path.join(ontology_dir_path, "profile_tree.json"), dse_dir_path)
 
     mapping_path = os.path.join(tmp_path, "mapping.zip")
-    shutil.copyfile(project.output.mkdirs("merged_ontology") / "mapping.zip", mapping_path)
+    shutil.copyfile(
+        project.output.mkdirs("merged_ontology") / "mapping.zip", mapping_path
+    )
     unpacked_dir_path = os.path.join(ontology_dir_path, "mapping")
     os.makedirs(unpacked_dir_path, exist_ok=True)
     shutil.unpack_archive(mapping_path, ontology_dir_path)
 
-    shutil.move(os.path.join(unpacked_dir_path, "cql", "mapping_cql.json"),
-                os.path.join(ontology_dir_path, "mapping_cql.json"))
-    shutil.move(os.path.join(unpacked_dir_path, "fhir", "mapping_fhir.json"),
-                os.path.join(ontology_dir_path, "mapping_fhir.json"))
-    shutil.move(os.path.join(unpacked_dir_path, "dse_mapping_tree.json"),
-                os.path.join(ontology_dir_path, "dse_mapping_tree.json"))
-    shutil.move(os.path.join(unpacked_dir_path, "mapping_tree.json"),
-                os.path.join(ontology_dir_path, "mapping_tree.json"))
+    shutil.move(
+        os.path.join(unpacked_dir_path, "cql", "mapping_cql.json"),
+        os.path.join(ontology_dir_path, "mapping_cql.json"),
+    )
+    shutil.move(
+        os.path.join(unpacked_dir_path, "fhir", "mapping_fhir.json"),
+        os.path.join(ontology_dir_path, "mapping_fhir.json"),
+    )
+    shutil.move(
+        os.path.join(unpacked_dir_path, "dse_mapping_tree.json"),
+        os.path.join(ontology_dir_path, "dse_mapping_tree.json"),
+    )
+    shutil.move(
+        os.path.join(unpacked_dir_path, "mapping_tree.json"),
+        os.path.join(ontology_dir_path, "mapping_tree.json"),
+    )
     shutil.rmtree(unpacked_dir_path)
 
     # Copy elastic archive
-    shutil.copyfile(project.output.mkdirs("merged_ontology") / "elastic.zip",
-                    os.path.join(tmp_path, "elastic.zip"))
+    shutil.copyfile(
+        project.output.mkdirs("merged_ontology") / "elastic.zip",
+        os.path.join(tmp_path, "elastic.zip"),
+    )
 
     yield os.path.join(__test_dir(), "docker-compose.yml")
-    #util.tests.docker.save_docker_logs(__test_dir(), "integration-tests")
+    # util.tests.docker.save_docker_logs(__test_dir(), "integration-tests")
 
 
 @pytest.fixture(scope="session")
@@ -128,13 +146,13 @@ def backend_ip(docker_services) -> str:
     dataportal_backend_name = "dataportal-backend"
     port = docker_services.port_for(dataportal_backend_name, 8090)
     url = f"http://127.0.0.1:{port}"
-    url_health_test=url+"/actuator/health"
+    url_health_test = url + "/actuator/health"
 
-    logger.info(f"Waiting for service '{dataportal_backend_name}' to become responsive at {url_health_test}...")
+    logger.info(
+        f"Waiting for service '{dataportal_backend_name}' to become responsive at {url_health_test}..."
+    )
     docker_services.wait_until_responsive(
-        timeout=300.0,
-        pause=5,
-        check=lambda: is_responsive(url_health_test)
+        timeout=300.0, pause=5, check=lambda: is_responsive(url_health_test)
     )
     return url
 
@@ -144,45 +162,40 @@ def fhir_ip(docker_services, test_dir: str) -> str:
     fhir_name = "blaze"
     port = docker_services.port_for(fhir_name, 8080)
     url = f"http://127.0.0.1:{port}"
-    url_health_test = url+"/fhir/metadata"
+    url_health_test = url + "/fhir/metadata"
 
-    logger.info(f"Waiting for service '{fhir_name}' to become responsive at {url_health_test}...")
+    logger.info(
+        f"Waiting for service '{fhir_name}' to become responsive at {url_health_test}..."
+    )
     docker_services.wait_until_responsive(
-        timeout=300.0,
-        pause=5,
-        check=lambda: is_responsive(url_health_test)
+        timeout=300.0, pause=5, check=lambda: is_responsive(url_health_test)
     )
 
     # upload testdata for fhir server for testing
-    #get_and_upload_test_data(url, test_dir)
+    # get_and_upload_test_data(url, test_dir)
     return url
 
 
 @pytest.fixture(scope="session")
 def elastic_ip(docker_services) -> str:
-    elastic_name="dataportal-elastic"
+    elastic_name = "dataportal-elastic"
     port = docker_services.port_for(elastic_name, 9200)
     url = f"http://127.0.0.1:{port}"
 
     logger.info(f"Waiting for service '{elastic_name}' to be responsive at {url}...")
     docker_services.wait_until_responsive(
-        timeout=300.0,
-        pause=5,
-        check=lambda: is_responsive(url)
+        timeout=300.0, pause=5, check=lambda: is_responsive(url)
     )
     return url
 
 
 def __backend_client() -> FeasibilityBackendClient:
     auth = OAuthClientCredentials(
-        client_credentials=(os.environ['CLIENT_ID'], os.environ['CLIENT_SECRET']),
-        user_credentials=(os.environ['USERNAME'], os.environ['PASSWORD']),
-        token_access_url=os.environ['TOKEN_ACCESS_URL']
+        client_credentials=(os.environ["CLIENT_ID"], os.environ["CLIENT_SECRET"]),
+        user_credentials=(os.environ["USERNAME"], os.environ["PASSWORD"]),
+        token_access_url=os.environ["TOKEN_ACCESS_URL"],
     )
-    return FeasibilityBackendClient(
-        base_url="http://localhost:8091/api/v4",
-        auth=auth
-    )
+    return FeasibilityBackendClient(base_url="http://localhost:8091/api/v4", auth=auth)
 
 
 @pytest.fixture(scope="session")
@@ -198,26 +211,18 @@ def fhir_testdata(fhir_ip, test_dir, download=True):
     return target_dir_path
 
 
-
-
-
-
-
-
 def search_response_id_fn(response: Mapping[str, any]) -> str:
-    entry = response['results'][0]
+    entry = response["results"][0]
     return f"{entry['kdsModule']}#{entry['context']}#{entry['terminology']}"
 
 
-def __load_search_responses() -> Mapping[str, list[Mapping[str, any]]]:
-    data_path = os.path.join(__test_dir(), "search-responses")
-    responses = defaultdict(list)
-    for file_name in os.listdir(data_path):
-        if file_name.endswith(".json"):
-            with open(os.path.join(data_path, file_name), mode="r", encoding="utf8") as f:
-                response = json.load(f)
-                responses[search_response_id_fn(response)].append(response)
-    return responses
+def __load_search_responses() -> list[SearchResponseTestdataEntry]:
+    data_file_path = Path(__test_dir(), "search_responses.json")
+    test_data = []
+    with open(data_file_path, mode="r", encoding="utf-8") as data_file:
+        for entry in json.load(data_file):
+            test_data.append(SearchResponseTestdataEntry.model_validate(entry))
+    return test_data
 
 
 def pytest_generate_tests(metafunc: Metafunc):
@@ -226,22 +231,38 @@ def pytest_generate_tests(metafunc: Metafunc):
     """
 
     if "test_ccdl_query" == metafunc.definition.name:
-        with open(os.path.join(__test_dir(), "ModuleTestDataConfig.json"), mode="r", encoding="utf-8") as f:
+        with open(
+            os.path.join(__test_dir(), "ModuleTestDataConfig.json"),
+            mode="r",
+            encoding="utf-8",
+        ) as f:
             test_data_mapping = json.load(f)
         test_data = []
-        for entry in map(lambda e: CCDLTestdataEntry.model_validate(e), test_data_mapping):
+        for entry in map(
+            lambda e: CCDLTestdataEntry.model_validate(e), test_data_mapping
+        ):
             marks = []
             if entry.status.disabled:
                 marks = [pytest.mark.xfail(reason=entry.status.reason)]
             test_data.append(pytest.param(*entry.data, marks=marks))
-        metafunc.parametrize(argnames=("data_resource_file", "query_resource_path"),
-                             argvalues=test_data)
-
-
+        metafunc.parametrize(
+            argnames=("data_resource_file", "query_resource_path"), argvalues=test_data
+        )
 
     if "test_criterion_term_code_search" == metafunc.definition.name:
         backend_client = __backend_client()
-        responses_map = __load_search_responses()
-        metafunc.parametrize(argnames=("expected_responses", "backend_client"),
-                             argvalues=[(responses, backend_client) for responses in responses_map.values()],
-                             ids=[key for key in responses_map.keys()], scope="session")
+        entries = __load_search_responses()
+        test_data = []
+        ids = []
+        for entry in entries:
+            marks = []
+            if entry.status.disabled:
+                marks.append(pytest.mark.xfail(reason=entry.status.reason))
+            test_data.append(pytest.param(entry.data, backend_client, marks=marks))
+            ids.append(entry.id)
+        metafunc.parametrize(
+            argnames=("expected_responses", "backend_client"),
+            argvalues=test_data,
+            ids=ids,
+            scope="session",
+        )

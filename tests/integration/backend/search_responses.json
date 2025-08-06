@@ -1,0 +1,932 @@
+[
+    {
+        "id": "Bioprobe#Specimen#http://snomed.info/sct",
+        "data": [
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "4ad48dff-90c1-3c12-8c11-8846032abfcd",
+                        "display": {
+                            "original": "Plasma specimen",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "Plasmaprobe"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "Plasma specimen"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Specimen",
+                        "terminology": "http://snomed.info/sct",
+                        "termcode": "119361006",
+                        "kdsModule": "Bioprobe",
+                        "selectable": true
+                    }
+                ]
+            },
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "a8d7da24-a369-36f0-b50d-5ffd789b0943",
+                        "display": {
+                            "original": "Blood specimen from blood donor",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "Spenderblutprobe"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "Blood specimen from blood donor"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Specimen",
+                        "terminology": "http://snomed.info/sct",
+                        "termcode": "122560006",
+                        "kdsModule": "Bioprobe",
+                        "selectable": true
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "Diagnose#Diagnose#http://fhir.de/CodeSystem/bfarm/alpha-id",
+        "data": [
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "746ce5fa-1abf-3be0-a666-71b04fea29df",
+                        "display": {
+                            "original": "17-Ketosteroid-Reduktase-Mangel",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "17-Ketosteroid-Reduktase-Mangel"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "17-ketosteroid reductase deficiency"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Diagnose",
+                        "terminology": "http://fhir.de/CodeSystem/bfarm/alpha-id",
+                        "termcode": "I119650",
+                        "kdsModule": "Diagnose",
+                        "selectable": true
+                    }
+                ]
+            },
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "cf51805d-58f6-3219-a180-463fc9bea37a",
+                        "display": {
+                            "original": "2-Hydroxyglutarazid\u00e4mie",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "2-Hydroxyglutarazid\u00e4mie"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "2-Hydroxyglutaric acidemia"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Diagnose",
+                        "terminology": "http://fhir.de/CodeSystem/bfarm/alpha-id",
+                        "termcode": "I118627",
+                        "kdsModule": "Diagnose",
+                        "selectable": true
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "Diagnose#Diagnose#http://fhir.de/CodeSystem/bfarm/icd-10-gm",
+        "data": [
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "69b733e2-99eb-3a12-bcd1-8e7b16c750ae",
+                        "display": {
+                            "original": "Idiopathische Hypotonie",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "Idiopathische Hypotonie"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "Idiopathic hypotension"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Diagnose",
+                        "terminology": "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
+                        "termcode": "I95.0",
+                        "kdsModule": "Diagnose",
+                        "selectable": true
+                    }
+                ]
+            },
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "1a6cb440-eecc-3946-8df1-ba1085358099",
+                        "display": {
+                            "original": "Diabetes mellitus, Typ 2: Ohne Komplikationen: Nicht als entgleist bezeichnet",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "Diabetes mellitus, Typ 2: Ohne Komplikationen: Nicht als entgleist bezeichnet"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "Diabetes mellitus, type 2: Without complications: Not labeled as derailed"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Diagnose",
+                        "terminology": "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
+                        "termcode": "E11.90",
+                        "kdsModule": "Diagnose",
+                        "selectable": true
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "Diagnose#Diagnose#http://www.orpha.net",
+        "data": [
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "2f4e17f9-82c4-3add-8835-616b65ef856b",
+                        "display": {
+                            "original": "22q11.2 duplication syndrome",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "Mikroduplikationssyndrom 22q11.2"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "Microduplication syndrome 22q11.2"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Diagnose",
+                        "terminology": "http://www.orpha.net",
+                        "termcode": "1727",
+                        "kdsModule": "Diagnose",
+                        "selectable": true
+                    }
+                ]
+            },
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "7b96164f-abf0-3075-8027-560d6bd8a5a1",
+                        "display": {
+                            "original": "Anotie",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "Anotie"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "Anotia"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Diagnose",
+                        "terminology": "http://www.orpha.net",
+                        "termcode": "93976",
+                        "kdsModule": "Diagnose",
+                        "selectable": true
+                    }
+                ]
+            }
+        ],
+        "status": {
+            "disabled": true,
+            "reason": "Missing updated translation supplement"
+        }
+    },
+    {
+        "id": "Diagnose#Diagnose#http://snomed.info/sct",
+        "data": [
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "4eeeddc1-b5a3-3d64-9c5e-bf28f39bdefe",
+                        "display": {
+                            "original": "Heat stroke",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "Hitzschlag"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "Heat stroke"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Diagnose",
+                        "terminology": "http://snomed.info/sct",
+                        "termcode": "52072009",
+                        "kdsModule": "Diagnose",
+                        "selectable": true
+                    }
+                ]
+            },
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "b5e06130-84d4-386f-b721-286f7846cb6c",
+                        "display": {
+                            "original": "Diabetes mellitus",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "Diabetes mellitus"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "Diabetes mellitus"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Diagnose",
+                        "terminology": "http://snomed.info/sct",
+                        "termcode": "73211009",
+                        "kdsModule": "Diagnose",
+                        "selectable": true
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "Einwilligung#Einwilligung#urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+        "data": [
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "86c01db6-3121-335b-bf0f-c93b2d27611a",
+                        "display": {
+                            "original": "BIOMAT Analysedaten zusammenfuehren Dritte",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "BIOMAT Analysedaten zusammenfuehren Dritte"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "BIOMAT Combine analysis data Third parties"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Einwilligung",
+                        "terminology": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                        "termcode": "2.16.840.1.113883.3.1937.777.24.5.3.23",
+                        "kdsModule": "Einwilligung",
+                        "selectable": true
+                    }
+                ]
+            },
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "1a98a04c-1fa9-3b90-95f6-b10e17312da9",
+                        "display": {
+                            "original": "KKDAT 5J prospektiv uebertragen",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "KKDAT 5J prospektiv uebertragen"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "KKDAT 5J prospective transfer"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Einwilligung",
+                        "terminology": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+                        "termcode": "2.16.840.1.113883.3.1937.777.24.5.3.15",
+                        "kdsModule": "Einwilligung",
+                        "selectable": true
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "Fall#Fall#http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "data": [
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "4c9a0679-5d40-377d-b2b7-b1c71c12d767",
+                        "display": {
+                            "original": "ambulatory",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "ambulant"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "ambulatory"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Fall",
+                        "terminology": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+                        "termcode": "AMB",
+                        "kdsModule": "Fall",
+                        "selectable": true
+                    }
+                ]
+            },
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "a14c6f57-88d1-3ea8-8b1e-3b86f7d2b4ae",
+                        "display": {
+                            "original": "inpatient encounter",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "station\u00e4re Begegnung"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "inpatient encounter"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Fall",
+                        "terminology": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+                        "termcode": "IMP",
+                        "kdsModule": "Fall",
+                        "selectable": true
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "Labor#Laboruntersuchung#http://loinc.org",
+        "data": [
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "c1812229-9e10-3532-97e0-fea15914dc4f",
+                        "display": {
+                            "original": "Leukocytes other/Leukocytes in Blood",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "Leukozyten andere/Leukozyten in Blut"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "Leukocytes other/Leukocytes in Blood"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Laboruntersuchung",
+                        "terminology": "http://loinc.org",
+                        "termcode": "26471-3",
+                        "kdsModule": "Labor",
+                        "selectable": true
+                    }
+                ]
+            },
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "05d8b345-6db3-36e8-a186-918865fa9a2e",
+                        "display": {
+                            "original": "Platelets given [Type]",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "Thrombozyten verabreicht [Typ]"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "Platelets given [Type]"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Laboruntersuchung",
+                        "terminology": "http://loinc.org",
+                        "termcode": "10412-5",
+                        "kdsModule": "Labor",
+                        "selectable": true
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "Medikation#Medikamentenanordnung#http://fhir.de/CodeSystem/bfarm/atc",
+        "data": [
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "6825edfa-04b7-373a-9856-5e1401d58ef0",
+                        "display": {
+                            "original": "(111In)Indiumpentetreotid",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "(111In)Indiumpentetreotid"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "(111In)indium pentetreotide"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Medikamentenanordnung",
+                        "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+                        "termcode": "V09IB01",
+                        "kdsModule": "Medikation",
+                        "selectable": true
+                    }
+                ]
+            },
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "e53c2e7b-4f7f-30b6-9da4-8bcae5a4d8e6",
+                        "display": {
+                            "original": "(123I)Iodiofetamin",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "(123I)Iodiofetamin"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "(123I)Iodiofetamine"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Medikamentenanordnung",
+                        "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+                        "termcode": "V09AB01",
+                        "kdsModule": "Medikation",
+                        "selectable": true
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "Medikation#Medikamentenverabreichung#http://fhir.de/CodeSystem/bfarm/atc",
+        "data": [
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "0ecfa59f-f48f-34ed-b9b1-dc76bf213621",
+                        "display": {
+                            "original": "(111In)Indiumpentetreotid",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "(111In)Indiumpentetreotid"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "(111In)indium pentetreotide"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Medikamentenverabreichung",
+                        "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+                        "termcode": "V09IB01",
+                        "kdsModule": "Medikation",
+                        "selectable": true
+                    }
+                ]
+            },
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "49ad1a0b-d0c2-3d16-ae3b-2569b70a5d9e",
+                        "display": {
+                            "original": "(123I)Iodiofetamin",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "(123I)Iodiofetamin"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "(123I)Iodiofetamine"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Medikamentenverabreichung",
+                        "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+                        "termcode": "V09AB01",
+                        "kdsModule": "Medikation",
+                        "selectable": true
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "Medikation#Medikamentenverordnung#http://fhir.de/CodeSystem/bfarm/atc",
+        "data": [
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "4b9986d1-8d8b-39e6-918b-fa846e41bc94",
+                        "display": {
+                            "original": "(111In)Indiumpentetreotid",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "(111In)Indiumpentetreotid"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "(111In)indium pentetreotide"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Medikamentenverordnung",
+                        "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+                        "termcode": "V09IB01",
+                        "kdsModule": "Medikation",
+                        "selectable": true
+                    }
+                ]
+            },
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "c9b1f213-c024-3ee4-ac30-6e9b4c5bd18f",
+                        "display": {
+                            "original": "(123I)Iodiofetamin",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "(123I)Iodiofetamin"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "(123I)Iodiofetamine"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Medikamentenverordnung",
+                        "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+                        "termcode": "V09AB01",
+                        "kdsModule": "Medikation",
+                        "selectable": true
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "Person#Patient#http://snomed.info/sct",
+        "data": [
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "c4c47cd1-1707-3e93-bc98-0f28430aa06e",
+                        "display": {
+                            "original": "Gegenw\u00e4rtiges chronologisches Alter",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "Alter"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "Current chronological age"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Patient",
+                        "terminology": "http://snomed.info/sct",
+                        "termcode": "424144002",
+                        "kdsModule": "Person",
+                        "selectable": true
+                    }
+                ]
+            },
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "a36b6ef7-40ce-3148-b815-dc7b13fb9016",
+                        "display": {
+                            "original": "Geschlecht",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "Geschlecht"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "Gender"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Patient",
+                        "terminology": "http://snomed.info/sct",
+                        "termcode": "263495000",
+                        "kdsModule": "Person",
+                        "selectable": true
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "Person#Vitalstatus#http://loinc.org",
+        "data": [
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "ba402553-079e-3030-a6fd-9ef3bae9561f",
+                        "display": {
+                            "original": "Patient Disposition",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": ""
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "Patient Disposition"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Vitalstatus",
+                        "terminology": "http://loinc.org",
+                        "termcode": "67162-8",
+                        "kdsModule": "Person",
+                        "selectable": true
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "Prozedur#Procedure#http://fhir.de/CodeSystem/bfarm/ops",
+        "data": [
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "0d72216b-46b4-31a0-806d-267d9baf56db",
+                        "display": {
+                            "original": "Implantation eines Herzschrittmachers, Defibrillators und Ereignis-Rekorders: Schrittmacher, Zweikammersystem, mit zwei Schrittmachersonden: Ohne antitachykarde Stimulation",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "Implantation eines Herzschrittmachers, Defibrillators und Ereignis-Rekorders: Schrittmacher, Zweikammersystem, mit zwei Schrittmachersonden: Ohne antitachykarde Stimulation"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "Implantation of a pacemaker, defibrillator and event recorder: pacemaker, dual-chamber system, with two pacemaker probes: Without antitachycardic stimulation"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Procedure",
+                        "terminology": "http://fhir.de/CodeSystem/bfarm/ops",
+                        "termcode": "5-377.30",
+                        "kdsModule": "Prozedur",
+                        "selectable": true
+                    }
+                ]
+            },
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "2e2a0198-f503-36b2-b103-c8345345a20d",
+                        "display": {
+                            "original": "Inzision, Embolektomie und Thrombektomie von Blutgef\u00e4\u00dfen: Arterien Unterarm und Hand: A. princeps pollicis",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "Inzision, Embolektomie und Thrombektomie von Blutgef\u00e4\u00dfen: Arterien Unterarm und Hand: A. princeps pollicis"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "Incision, embolectomy and thrombectomy of blood vessels: Arteries forearm and hand: A. princeps pollicis"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Procedure",
+                        "terminology": "http://fhir.de/CodeSystem/bfarm/ops",
+                        "termcode": "5-380.27",
+                        "kdsModule": "Prozedur",
+                        "selectable": true
+                    }
+                ]
+            }
+        ],
+        "status": {
+            "disabled": true,
+            "reason": "Missing updated translation supplement"
+        }
+    },
+    {
+        "id": "Prozedur#Procedure#http://snomed.info/sct",
+        "data": [
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "ff2fd3b2-28f6-3828-b699-db97891ca83f",
+                        "display": {
+                            "original": "\"Section\" examination - approved doctor",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "\"Sektionspr\u00fcfung - zugelassener Arzt"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "\"Section\" examination - approved doctor"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Procedure",
+                        "terminology": "http://snomed.info/sct",
+                        "termcode": "171425002",
+                        "kdsModule": "Prozedur",
+                        "selectable": true
+                    }
+                ]
+            },
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "d282104b-0f5d-3a57-89f4-f9e89be5bb56",
+                        "display": {
+                            "original": "Replacement of cast",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": "Ersatz des Gipses"
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "Replacement of cast"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Procedure",
+                        "terminology": "http://snomed.info/sct",
+                        "termcode": "288142002",
+                        "kdsModule": "Prozedur",
+                        "selectable": true
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "Person#Todesursache#http://loinc.org",
+        "data": [
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "10b9f125-d8ee-31ce-9812-bf91eb5ceafd",
+                        "display": {
+                            "original": "Cause of death",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": ""
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "Cause of death"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Todesursache",
+                        "terminology": "http://loinc.org",
+                        "termcode": "79378-6",
+                        "kdsModule": "Person",
+                        "selectable": true
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "Person#Todesursache#http://snomed.info/sct",
+        "data": [
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "c777eeb9-de4e-301a-81c8-e5bb5f60bfdd",
+                        "display": {
+                            "original": "Death diagnosis",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": ""
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": "Death diagnosis"
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Todesursache",
+                        "terminology": "http://snomed.info/sct",
+                        "termcode": "16100001",
+                        "kdsModule": "Person",
+                        "selectable": true
+                    }
+                ]
+            }
+        ]
+    }
+]

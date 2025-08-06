@@ -15,19 +15,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+
+## [3.8.3] - 2025-06-08
+
+## Fixed
+
+- Fix concepts with fewer descendants than the configured limit not being selectable in the cohort selection ([#317](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/317) @paulolaup)
+
 ## [3.8.2] - 2025-07-14
 
 ## Added
 
-- Add result code filter for DiagnosticReport resource profiles in DSE (#310 @Frontman50)
+- Add result code filter for DiagnosticReport resource profiles in DSE ([#310](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/310) @Frontman50)
 
 ## [3.8.1] - 2025-06-23
 
 ## Fixed
 
-- Fix CQL mapping cardinality aggregation by ([#295](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/295) @paulolaup)
+- Fix CQL mapping cardinality aggregation ([#295](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/295) @paulolaup)
 - Fix FHIRPath expression for Encounter resource in availability measure ([#292](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/292) @juliangruendner)
-- Reintroduce modules MII CDS Bildgebung, Enwilligung, and Pathologie into DSE ([#296(https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/296) @paulolaup])
+- Reintroduce modules MII CDS Bildgebung, Enwilligung, and Pathologie into DSE ([#296](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/296) @paulolaup)
 - Remove primitive elements from DSE Profile Details tree ([#299](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/299) @paulolaup)
 - Keep module root node in profile tree ([#298](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/298) @Frontman50)
 
