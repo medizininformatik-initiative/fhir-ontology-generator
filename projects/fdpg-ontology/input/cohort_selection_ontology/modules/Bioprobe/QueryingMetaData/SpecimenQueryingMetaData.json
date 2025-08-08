@@ -13,7 +13,7 @@
   },
   "term_code_defining_id": "Specimen.type.coding:sct",
   "attribute_defining_id_type_map": {
-    "((Specimen.extension:festgestellteDiagnose).value[x]).code.coding:icd10-gm": {
+    "Specimen.extension:festgestellteDiagnose.value[x].resolve().code.coding:icd10-gm": {
       "type": "reference",
       "optional": true
     },

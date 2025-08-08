@@ -7,7 +7,6 @@ from typing import Tuple, List, Dict, Set
 
 from fhir.resources.R4B.elementdefinition import ElementDefinition
 from lxml import etree
-from typing_extensions import LiteralString
 
 import cohort_selection_ontology.resources.cql as cql_resources
 from cohort_selection_ontology.core.resolvers.querying_metadata import (

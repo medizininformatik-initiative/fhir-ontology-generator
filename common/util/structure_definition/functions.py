@@ -25,12 +25,12 @@ from common.exceptions.typing import InvalidValueTypeException
 from common.model.structure_definition import (
     StructureDefinitionSnapshot,
     ProcessedElementResult,
-    ShortDesc,
 )
 from common.util.collections.functions import flatten
-# from common.model.structure_definition import StructureDefinitionSnapshot
+
 from common.util.fhir.enums import FhirDataType
 from common.util.log.functions import get_class_logger
+from common.util.project import Project
 
 UCUM_SYSTEM = "http://unitsofmeasure.org"
 translation_map_default = {
@@ -42,7 +42,9 @@ translation_map_default = {
 logger = get_class_logger("structure_definition_functions")
 
 
-def find_polymorphic_value(data: ElementDefinition, polymorphic_elem_prefix: str) -> Optional[Any]:
+def find_polymorphic_value(
+    data: ElementDefinition, polymorphic_elem_prefix: str
+) -> Optional[Any]:
     """
     Attempts to find the value of a polymorphic element by iterating over all possible data type-specific names
 
@@ -123,13 +125,13 @@ def tokenize(chained_fhir_element_id):
     :return: the tokenized fhir element id
     """
     temp = (
-        chained_fhir_element_id.replace("(", " ( ")
+        chained_fhir_element_id.replace(".resolve()", " ")
+        .replace("(", " ( ")
         .replace(")", " ) ")
         .replace(".where", " .where ")
-        .replace("resolve()", " ")
     )
     temp = re.sub(r"(extension(:[a-zA-Z0-9/\\-_\[\]@]+)?)\.", r"\g<1> ", temp)
-    return temp.split()
+    return [t.strip(".") for t in temp.split()]
 
 
 def is_structure_definition(file: Path) -> bool:
@@ -294,11 +296,11 @@ def process_element_id(
             )
         ]
 
-        for elem in (
-            element.type if element is not None and element.type is not None else []
-        ):
-            if elem.code == "Extension":
-                profile_urls = elem.profile
+        for elem in element.get("type"):
+            if len(element_ids) == 0:
+                break
+            if elem.get("code") == "Extension":
+                profile_urls = elem.get("profile")
                 if len(profile_urls) > 1:
                     raise Exception("Extension with multiple types not supported")
                 extension: StructureDefinitionSnapshot = get_extension_definition(
@@ -882,7 +884,6 @@ def get_display_from_element_definition(
     :param default: value used as display if there is no other valid source in the element definition
     :return: TranslationDisplayElement instance holding the display value and all language variants
     """
-
     translations_map = copy.deepcopy(translation_map_default)
     display = default
     try:
@@ -1011,8 +1012,11 @@ def translate_element_to_fhir_path_expression(
             element_path = f"value.ofType({element_type})"
     result = [element_path]
     if elements:
-        result.extend(translate_element_to_fhir_path_expression(profile_snapshot, elements))
+        result.extend(
+            translate_element_to_fhir_path_expression(profile_snapshot, elements)
+        )
     return result
+
 
 def get_slice_owning_element_id(element_id: str) -> str:
     """
@@ -1031,6 +1035,7 @@ def get_slice_owning_element_id(element_id: str) -> str:
         else element_id
     )
 
+
 def get_slice_name(element_id: str) -> str | None:
     """
     Return the name of the slice on the lowest level
@@ -1046,7 +1051,9 @@ def get_slice_name(element_id: str) -> str | None:
     )
 
 
-def get_available_slices(element_id: str, profile_snapshot: StructureDefinitionSnapshot) -> List[str]:
+def get_available_slices(
+    element_id: str, profile_snapshot: StructureDefinitionSnapshot
+) -> List[str]:
     """
     Returns a list of available slice ids
     :param element_id: str
@@ -1177,3 +1184,26 @@ def get_parent_slice_id(element_id: str) -> str | None:
     parent_slice_name = element_id.split(":")[-1].split(".")[0]
     parent_slice_id = element_id.rsplit(":", 1)[0] + ":" + parent_slice_name
     return parent_slice_id
+
+
+def get_element_chain(
+    chained_element_id: str,
+    root_snapshot: StructureDefinitionSnapshot,
+    module: str,
+    project: Project,
+) -> List[Tuple[StructureDefinitionSnapshot, ElementDefinition]]:
+    """
+    Returns the element chain of the given chained element ID
+
+    :param chained_element_id: Element ID chained across possibly multiple profile contexts
+    :param root_snapshot: Starting snapshot for resolving the chained element ID
+    :param module: Name of the module to search for the root snapshot for
+    :param project: Project context
+    :return: List of tuples of containing profile snapshot and element
+    """
+    return [
+        (member[1], member[0])
+        for member in get_element_defining_elements_with_source_snapshots(
+            chained_element_id, root_snapshot, module, project.input.cso / "modules"
+        )
+    ]
