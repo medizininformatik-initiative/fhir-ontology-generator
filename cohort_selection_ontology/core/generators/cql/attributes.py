@@ -1,21 +1,14 @@
-from datetime import datetime, date, time
+import datetime
 from decimal import Decimal
 from os import PathLike
-from typing import Optional, Annotated, Union
+from typing import Optional, Annotated, Union, List, Tuple
 
 from antlr4.ParserRuleContext import ParserRuleContext
-from bs4.diagnose import profile
-from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.coding import Coding
 from fhir.resources.R4B.period import Period
 from fhir.resources.R4B.quantity import Quantity
 from fhir.resources.R4B.reference import Reference
-from typing_extensions import deprecated
 
-from cohort_selection_ontology.core.generators.cql.generator import (
-    aggregate_cardinality_using_element,
-    select_element_compatible_with_cql_operations,
-)
 from cohort_selection_ontology.model.mapping.cql import (
     Component,
     ContextGroup,
@@ -25,7 +18,7 @@ from cohort_selection_ontology.model.mapping.cql import (
 from cohort_selection_ontology.util.fhir.structure_definition import (
     get_element_defining_elements,
     get_profiles_with_base_definition,
-    get_element_type,
+    get_element_chain,
 )
 from common.util.collections.functions import flatten
 from common.util.fhir.enums import FhirComplexDataType, FhirPrimitiveDataType
@@ -33,9 +26,8 @@ from common.util.fhir.structure_definition import (
     Snapshot,
     get_types_supported_by_element,
     ElementDefinitionDict,
-    get_element_from_snapshot,
 )
-from common.util.fhirpath import fhirpathParser
+from common.util.fhirpath import fhirpathParser, parse_expr
 from common.util.fhirpath.functions import (
     unsupported_fhirpath_expr,
     invalid_fhirpath_expr,
@@ -48,8 +40,16 @@ from common.util.log.functions import get_logger
 from common.util.model import field_names
 from common.util.project import Project
 from common.util.wrapper import dotdict
+from unit.cohort_selection_ontology.core.generators.cql import (
+    aggregate_cardinality_using_element,
+    select_element_compatible_with_cql_operations,
+    aggregate_cardinality_of_element_chain,
+)
 
 _logger = get_logger(__name__)
+
+
+ElementChain = List[Tuple[Snapshot, ElementDefinitionDict]]
 
 
 ContextGroupDict = Annotated[
@@ -123,18 +123,18 @@ def get_components_from_equality_expression(
             ],
         }
     )
-    return get_component_tree(expr.getChild(0), attr_component)
+    return _get_component_tree(expr.getChild(0), attr_component)
 
 
 def get_components_from_and_expression(
     expr: fhirpathParser.AndExpressionContext,
 ) -> ContextGroupDict:
-    right = get_component_tree(expr.getChild(2))
+    right = _get_component_tree(expr.getChild(2))
     match expr.getChild(0):
         case fhirpathParser.AndExpressionContext() as aec:
             left = get_components_from_and_expression(aec)
         case _ as other:
-            left = get_component_tree(other)
+            left = _get_component_tree(other)
     return dotdict(
         {
             "_type": ContextGroup.__name__,
@@ -235,12 +235,22 @@ def get_components_from_function(
         case "resolve":
             if component is not None:
                 child = component
+                # TODO: For now we will only support references as values of attributes and not their resolution in
+                #       fixed parts of the attribute selection
+                # component = dotdict(
+                #    {
+                #        "_type": ReferenceGroup.__name__,
+                #        "type": None,
+                #        "path": None,
+                #        "components": [child],
+                #    }
+                # )
                 component = dotdict(
                     {
-                        "_type": ReferenceGroup.__name__,
-                        "type": None,
+                        "_type": AttributeComponent.__name__,
+                        "types": ["Reference"],
                         "path": None,
-                        "components": [child],
+                        "values": [child],
                     }
                 )
             else:
@@ -263,56 +273,28 @@ def get_components_from_function(
                 ],
             )
 
-    return get_component_tree(expr.getChild(0), component)
+    return _get_component_tree(expr.getChild(0), component)
 
 
 def get_components_from_term_expression(
-    expr: fhirpathParser.TermExpressionContext, component: Optional[ComponentDict] = None
+    expr: fhirpathParser.TermExpressionContext,
+    component: Optional[ComponentDict] = None,
 ) -> ComponentDict:
     symbol = get_symbol(expr.term().invocation())
     if component is None:
-        return dotdict({
-            "_type": AttributeComponent.__name__,
-            "types": [],
-            "path": symbol,
-            "cardinality": None,
-            "values": []
-        })
+        return dotdict(
+            {
+                "_type": AttributeComponent.__name__,
+                "types": [],
+                "path": symbol,
+                "cardinality": None,
+                "values": [],
+            }
+        )
     component["path"] = (
         f"{symbol}.{component.path}" if component.path is not None else symbol
     )
     return component
-
-
-def get_component_tree(
-    expr: ParserRuleContext, component: Optional[ComponentDict] = None
-) -> ComponentDict:
-    match expr:
-        case fhirpathParser.EntireExpressionContext() as full_expr:
-            if component is not None:
-                _logger.warning("Provided tree already represents entire FHIRPath expression => Ignoring additionally "
-                                "provided components")
-            return get_component_tree(full_expr.expression())
-        case fhirpathParser.EqualityExpressionContext() as eec:
-            if component is not None:
-                raise invalid_fhirpath_expr(
-                    eec,
-                    "Trailing expressions are not supported for boolean expressions",
-                )
-            return get_components_from_equality_expression(eec)
-        case fhirpathParser.InvocationExpressionContext() as iec:
-            return get_components_from_invocation_expression(iec, component)
-        case fhirpathParser.TermExpressionContext() as tec:
-            return get_components_from_term_expression(tec, component)
-        case _ as unexpected:
-            raise unsupported_fhirpath_expr(
-                unexpected,
-                [
-                    "equality expression",
-                    "invocation expression",
-                    "term expression",
-                ],
-            )
 
 
 def _enrich_reference_typed_tree(
@@ -341,7 +323,7 @@ def _enrich_reference_typed_tree(
                 type=res_type,
                 path=tree.path,
                 components=[
-                    enrich_tree_with_types_and_values(
+                    _enrich_tree_with_types_and_values(
                         c, referenced_profile, project, module, res_type
                     )
                     for c in tree.components
@@ -360,7 +342,7 @@ def _enrich_reference_typed_tree(
 
 
 def _enrich_coding_typed_tree(
-    tree: ContextGroupDict, profile: Snapshot, element: ElementDefinitionDict
+    tree: ContextGroupDict, chain: ElementChain
 ) -> AttributeComponent:
     coding = Coding()
     for c in tree.components:
@@ -369,67 +351,44 @@ def _enrich_coding_typed_tree(
                 coding.system = get_symbol(c["values"][0])
             case "code":
                 coding.code = get_symbol(c["values"][0])
+            case "display":
+                coding.display = get_symbol(c["values"][0])
             case _:
-                raise Exception(
-                    f"Element path '{c}' is not supported for FHIR datatype 'Coding'"
+                _logger.warning(
+                    f"Element path '{c.path}' is not supported for FHIR datatype 'Coding' => Skipping"
                 )
     return AttributeComponent(
         types=[FhirComplexDataType.CODING],
         path=tree.path,
-        cardinality=aggregate_cardinality_using_element(element, profile),
+        cardinality=aggregate_cardinality_of_element_chain(chain),
         values=[coding],
     )
 
 
 def _enrich_quantity_tree(
-    tree: ContextGroupDict,
-    profile: Snapshot,
-    element: ElementDefinitionDict,
-    project: Project,
-    module: PathLike[str],
-) -> Component:
-    element_paths = {c.path for c in tree.components}
-    # If all values are present to represent a valid quantity generate Quantity FHIR datatype instance
-    if (
-        "value" in element_paths
-        and "system" in element_paths
-        and "code" in element_paths
-    ):
-        quantity = Quantity()
-        for c in tree.components:
-            assert (
-                field_names(AttributeComponent) == c.keys()
-            ), f"Unexpected fields [expected={field_names(AttributeComponent)}, actual={c.keys()}]"
-            match c.path:
-                case "value":
-                    quantity.value = get_symbol(c.values[0])
-                case "unit":
-                    quantity.unit = get_symbol(c.values[0])
-                case "system":
-                    quantity.system = get_symbol(c.values[0])
-                case "code":
-                    quantity.code = get_symbol(c.values[0])
-        return AttributeComponent(
-            types=[FhirComplexDataType.QUANTITY],
-            path=tree.path,
-            cardinality=aggregate_cardinality_using_element(element, profile),
-            values=[quantity],
-        )
-    # Else treat the components as individual expressions
-    else:
-        return ContextGroup(
-            path=tree.path,
-            components=[
-                enrich_tree_with_types_and_values(
-                    c, profile, project, module, tree.path
-                )
-                for c in tree.components
-            ],
-        )
+    tree: ContextGroupDict, chain: ElementChain
+) -> AttributeComponent:
+    quantity = Quantity()
+    for c in tree.components:
+        match c.path:
+            case "value":
+                quantity.value = get_symbol(c["values"][0])
+            case "unit":
+                quantity.unit = get_symbol(c["values"][0])
+            case "system":
+                quantity.system = get_symbol(c["values"][0])
+            case "code":
+                quantity.code = get_symbol(c["values"][0])
+    return AttributeComponent(
+        types=[FhirComplexDataType.QUANTITY],
+        path=tree.path,
+        cardinality=aggregate_cardinality_of_element_chain(chain),
+        values=[quantity],
+    )
 
 
 def _enrich_literal_quantity_tree(
-    tree: AttributeComponentDict, profile: Snapshot, element: ElementDefinitionDict
+    tree: AttributeComponentDict, chain: ElementChain
 ) -> AttributeComponent:
     if tree["values"]:
         expr: fhirpathParser.LiteralTermContext = tree["values"][0]
@@ -444,21 +403,40 @@ def _enrich_literal_quantity_tree(
     return AttributeComponent(
         types=[FhirComplexDataType.QUANTITY],
         path=tree.path,
-        cardinality=aggregate_cardinality_using_element(element, profile),
+        cardinality=aggregate_cardinality_of_element_chain(chain),
         values=[quantity] if quantity else [],
     )
 
 
+def _parse_temporal_literal(
+    literal: str, fhir_type: FhirPrimitiveDataType
+) -> datetime.time | datetime.datetime | datetime.date:
+    v = literal.lstrip("@")
+    match fhir_type:
+        case FhirPrimitiveDataType.TIME:
+            return datetime.time.fromisoformat(v)
+        case FhirPrimitiveDataType.DATE_TIME | FhirPrimitiveDataType.INSTANT:
+            return datetime.datetime.fromisoformat(v)
+        case FhirPrimitiveDataType.DATE:
+            return datetime.date.fromisoformat(v)
+        case _:
+            raise ValueError(f"Type '{fhir_type}' is not a FHIR temporal type")
+
+
 def _enrich_period_tree(
-    tree: ContextGroupDict, profile: Snapshot, element: ElementDefinitionDict
+    tree: ContextGroupDict, chain: ElementChain
 ) -> AttributeComponent:
     period = Period()
     for c in tree.components:
         match c.path:
             case "start":
-                period.start = get_symbol(c)
+                period.start = _parse_temporal_literal(
+                    get_symbol(c["values"][0]), FhirPrimitiveDataType.DATE_TIME
+                )
             case "end":
-                period.system = get_symbol(c)
+                period.end = _parse_temporal_literal(
+                    get_symbol(c["values"][0]), FhirPrimitiveDataType.DATE_TIME
+                )
             case _:
                 raise Exception(
                     f"Element path '{c}' is not supported for FHIR datatype 'Period'"
@@ -466,31 +444,33 @@ def _enrich_period_tree(
     return AttributeComponent(
         types=[FhirComplexDataType.PERIOD],
         path=tree.path,
-        cardinality=aggregate_cardinality_using_element(element, profile),
+        cardinality=aggregate_cardinality_of_element_chain(chain),
         values=[period],
     )
 
 
 def _enrich_reference_typed_attribute(
     tree: AttributeComponentDict,
-    profile: Snapshot,
-    element: ElementDefinitionDict,
+    chain: ElementChain,
     modules_dir_path: PathLike | str,
 ) -> AttributeComponent:
+    _, element = chain[-1]
     ref_type = first(
         get_types_supported_by_element(element), lambda x: x.code == "Reference"
     )
     target_profiles = ref_type.targetProfile
     if target_profiles and len(target_profiles) >= 1:
-        profiles = [
-            get_profiles_with_base_definition(modules_dir_path, tp)
-            for tp in target_profiles
-        ]
+        profiles = flatten(
+            [
+                get_profiles_with_base_definition(modules_dir_path, tp)
+                for tp in target_profiles
+            ]
+        )
         types = {p.get("type") for p, _ in profiles}
         return AttributeComponent(
             types=["Reference"],
             path=tree.path,
-            cardinality=aggregate_cardinality_using_element(element, profile),
+            cardinality=aggregate_cardinality_of_element_chain(chain),
             values=[Reference(type=t) for t in types] if types else [Reference()],
         )
     else:
@@ -499,24 +479,23 @@ def _enrich_reference_typed_attribute(
         )
 
 
-def _enrich_coding_typed_attribute(
-    profile: Snapshot, element: ElementDefinitionDict
-) -> AttributeComponent:
+def _enrich_coding_typed_attribute(chain: ElementChain) -> AttributeComponent:
+    snapshot, element = chain[-1]
     (compatible_element, _) = select_element_compatible_with_cql_operations(
-        element, profile
+        element, snapshot
     )
     return AttributeComponent(
         types=[t.code for t in get_types_supported_by_element(compatible_element)],
         path=compatible_element.get("path"),
-        cardinality=aggregate_cardinality_using_element(compatible_element, profile),
+        cardinality=aggregate_cardinality_of_element_chain(chain[:-1])
+        * aggregate_cardinality_using_element(element, snapshot),
         values=[],
     )
 
 
 def _enrich_primitive_typed_tree(
     tree: AttributeComponentDict,
-    profile: Snapshot,
-    element: ElementDefinitionDict,
+    chain: ElementChain,
     datatype: FhirPrimitiveDataType,
 ) -> AttributeComponent:
     match datatype:
@@ -530,23 +509,59 @@ def _enrich_primitive_typed_tree(
             values = [int(get_symbol(c)) for c in tree["values"]]
         case FhirPrimitiveDataType.DECIMAL:
             values = [Decimal(get_symbol(c)) for c in tree["values"]]
-        case FhirPrimitiveDataType.Date:
-            values = [date.fromisoformat(get_symbol(c)) for c in tree["values"]]
-        case FhirPrimitiveDataType.TIME:
-            values = [time.fromisoformat(get_symbol(c)) for c in tree["values"]]
-        case FhirPrimitiveDataType.DATE_TIME | FhirPrimitiveDataType.INSTANT:
-            values = [datetime.fromisoformat(get_symbol(c)) for c in tree["values"]]
+        case (
+            FhirPrimitiveDataType.DATE
+            | FhirPrimitiveDataType.TIME
+            | FhirPrimitiveDataType.DATE_TIME
+            | FhirPrimitiveDataType.INSTANT
+        ):
+            values = [
+                _parse_temporal_literal(get_symbol(c), datatype) for c in tree["values"]
+            ]
         case _:
             values = [get_symbol(c) for c in tree["values"]]
     return AttributeComponent(
         types=tree.types,
         path=tree.path,
-        cardinality=aggregate_cardinality_using_element(element, profile),
+        cardinality=aggregate_cardinality_of_element_chain(chain),
         values=values,
     )
 
 
-def enrich_tree_with_types_and_values(
+def _get_component_tree(
+    expr: ParserRuleContext, component: Optional[ComponentDict] = None
+) -> ComponentDict:
+    match expr:
+        case fhirpathParser.EntireExpressionContext() as full_expr:
+            if component is not None:
+                _logger.warning(
+                    "Provided tree already represents entire FHIRPath expression => Ignoring additionally "
+                    "provided components"
+                )
+            return _get_component_tree(full_expr.expression())
+        case fhirpathParser.EqualityExpressionContext() as eec:
+            if component is not None:
+                raise invalid_fhirpath_expr(
+                    eec,
+                    "Trailing expressions are not supported for boolean expressions",
+                )
+            return get_components_from_equality_expression(eec)
+        case fhirpathParser.InvocationExpressionContext() as iec:
+            return get_components_from_invocation_expression(iec, component)
+        case fhirpathParser.TermExpressionContext() as tec:
+            return get_components_from_term_expression(tec, component)
+        case _ as unexpected:
+            raise unsupported_fhirpath_expr(
+                unexpected,
+                [
+                    "equality expression",
+                    "invocation expression",
+                    "term expression",
+                ],
+            )
+
+
+def _enrich_tree_with_types_and_values(
     tree: ComponentDict,
     profile_snapshot: Snapshot,
     project: Project,
@@ -561,7 +576,8 @@ def enrich_tree_with_types_and_values(
     :param profile_snapshot: Profile snapshot on which the attributes are based
     :param project: Project to work with
     :param module: Module to start search for profiles in
-    :param _parent_path: Parent path to the elements of the given tree. Does not have to be provided when passing full tree
+    :param _parent_path: Parent path to the elements of the given tree. Does not have to be provided when passing full
+                         tree
     :return: Enriched profile tree
     """
     base_path = tree.path if not _parent_path else f"{_parent_path}.{tree.path}"
@@ -569,6 +585,7 @@ def enrich_tree_with_types_and_values(
     element = get_element_defining_elements(
         base_path, profile_snapshot, module, modules_dir_path
     )[-1]
+    chain = get_element_chain(base_path, profile_snapshot, module, project)
     types = get_types_supported_by_element(element)
     if len(types) == 1:
         t = types[0]
@@ -576,18 +593,16 @@ def enrich_tree_with_types_and_values(
             case {"_type": ContextGroup.__name__} as cg:
                 match t.code:
                     case "Coding":
-                        return _enrich_coding_typed_tree(cg, profile_snapshot, element)
+                        return _enrich_coding_typed_tree(cg, chain)
                     case "Quantity":
-                        return _enrich_quantity_tree(
-                            cg, profile_snapshot, element, project, module
-                        )
+                        return _enrich_quantity_tree(cg, chain)
                     case "Period":
-                        return _enrich_period_tree(cg, profile_snapshot, element)
+                        return _enrich_period_tree(cg, chain)
                     case _:
                         return ContextGroup(
                             path=cg.path,
                             components=[
-                                enrich_tree_with_types_and_values(
+                                _enrich_tree_with_types_and_values(
                                     c, profile_snapshot, base_path, module
                                 )
                                 for c in cg.components
@@ -595,23 +610,17 @@ def enrich_tree_with_types_and_values(
                         )
             case {"_type": AttributeComponent.__name__} as ac:
                 if t.code in FhirPrimitiveDataType:
-                    return _enrich_primitive_typed_tree(
-                        ac, profile_snapshot, element, t.code
-                    )
+                    return _enrich_primitive_typed_tree(ac, chain, t.code)
                 elif t.code in FhirComplexDataType:
                     match t.code:
                         case "Quantity":
-                            return _enrich_literal_quantity_tree(
-                                ac, profile_snapshot, element
-                            )
+                            return _enrich_literal_quantity_tree(ac, chain)
                         case "Reference":
                             return _enrich_reference_typed_attribute(
-                                ac, profile_snapshot, element, modules_dir_path
+                                ac, chain, modules_dir_path
                             )
                         case "Coding":
-                            return _enrich_coding_typed_attribute(
-                                profile_snapshot, element
-                            )
+                            return _enrich_coding_typed_attribute(chain)
                         case _:
                             raise Exception(
                                 f"Unsupported complex datatype '{t.code}' of element '{element.get('id')}' represented by AttributeComponent instance"
@@ -621,9 +630,7 @@ def enrich_tree_with_types_and_values(
                         f"Unknown datatype '{t.code}' of element '{element.get('id')}' represented by AttributeComponent instance"
                     )
             case {"_type": ReferenceGroup.__name__} as rg:
-                return _enrich_reference_typed_tree(
-                    rg, element, project, module
-                )
+                return _enrich_reference_typed_tree(rg, chain[-1][1], project, module)
             case _ as x:
                 raise KeyError(
                     f"Dictionary has to match either ContextGroup or AttributeComponent structure [actual={field_names(x)}]"
@@ -632,3 +639,26 @@ def enrich_tree_with_types_and_values(
         raise Exception(
             f"Element '{element.get('id')}' supports {'multiple' if types else 'no'} types which is currently not supported"
         )
+
+
+def get_attribute_tree(
+    attribute_defining_id: str,
+    snapshot: Snapshot,
+    module: PathLike[str] | str,
+    project: Project,
+) -> ContextGroup | AttributeComponent:
+    """
+    Parses the provided attribute defining ID and generates its associated component tree representation
+
+    :param attribute_defining_id: FHIRPath-like expression defining the attribute
+    :param snapshot: `StructureDefinition`-typed profile snapshot representing the starting point for the component tree
+                     resolution
+    :param module: Module to which the snapshot belongs
+    :param project: Project context of the generation
+    :return: Component tree of the attribute
+    """
+    parsed_expr = parse_expr(attribute_defining_id)
+    preprocessed_tree = _get_component_tree(parsed_expr)
+    return _enrich_tree_with_types_and_values(
+        preprocessed_tree, snapshot, project, module
+    )

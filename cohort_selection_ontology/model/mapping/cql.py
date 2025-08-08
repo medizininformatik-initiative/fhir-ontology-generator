@@ -195,7 +195,6 @@ class ContextGroup(SerializeType):
         return super().model_construct(_fields_set, **values)
 
 
-# TODO: Parsing of `resolve` function invocations
 class ReferenceGroup(ContextGroup):
     type: RetrievableType
 
@@ -205,16 +204,16 @@ Component = ContextGroup | AttributeComponent
 
 class Attribute(BaseModel):
     key: Annotated[
-        Coding,
+        TermCode,
         Field(
             description="Coded key used to map criterion attributes in a CCDL query to attributes entries in the CQL "
             "mapping"
         ),
     ]
-    components: Annotated[
-        conlist(Union[ContextGroup, AttributeComponent], min_length=1),
+    composition: Annotated[
+        Union[ContextGroup, AttributeComponent],
         Field(
-            description="List of context groups and attribute components evaluated in the context composing the "
-            "attribute"
+            description="Tree of scoped attribute components defining the process of selecting the element to evaluate "
+            "the attribute value"
         ),
     ]

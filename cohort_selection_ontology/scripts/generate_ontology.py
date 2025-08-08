@@ -15,7 +15,7 @@ from jsonschema import validate
 
 import cohort_selection_ontology.resources.schema as schema_files
 
-from cohort_selection_ontology.core.generators.cql import CQLMappingGenerator
+from cohort_selection_ontology.core.generators.cql.generator import CQLMappingGenerator
 from cohort_selection_ontology.core.generators.fhir_search import FHIRSearchMappingGenerator
 from cohort_selection_ontology.core.resolvers.querying_metadata import (ResourceQueryingMetaDataResolver,
                                                                         StandardDataSetQueryingMetaDataResolver)

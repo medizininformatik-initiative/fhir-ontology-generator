@@ -16,7 +16,7 @@ from common.exceptions.translation import MissingTranslationException
 from common.util.collections.functions import flatten
 from common.util.fhir.structure_definition import (
     get_element_from_snapshot,
-    is_element_in_snapshot,
+    is_element_in_snapshot, Snapshot, ElementDefinitionDict,
 )
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS, ValueSet
 from cohort_selection_ontology.model.ui_data import TermCode, TranslationDisplayElement
@@ -24,7 +24,7 @@ from cohort_selection_ontology.model.ui_data import TermCode, TranslationDisplay
 from importlib import resources
 from cohort_selection_ontology.resources import cql, fhir
 from common.util.log.functions import get_logger
-
+from common.util.project import Project
 
 logger = get_logger(__file__)
 
@@ -170,13 +170,13 @@ def tokenize(chained_fhir_element_id):
     :return: the tokenized fhir element id
     """
     temp = (
-        chained_fhir_element_id.replace("(", " ( ")
+        chained_fhir_element_id.replace(".resolve()", " ")
+        .replace("(", " ( ")
         .replace(")", " ) ")
         .replace(".where", " .where ")
-        .replace("resolve()", " ")
     )
     temp = re.sub(r"(extension(:[a-zA-Z0-9/\\-_\[\]@]+)?)\.", r"\g<1> ", temp)
-    return temp.split()
+    return [t.strip(".") for t in temp.split()]
 
 
 def get_element_defining_elements(
@@ -340,7 +340,7 @@ def process_element_id(
                     modules_dir_path, target_resource_type
                 )[0]
                 element_ids.insert(
-                    0, f"{referenced_profile.get('type') + element_ids.pop(0)}"
+                    0, f"{referenced_profile.get('type')}.{element_ids.pop(0)}"
                 )
                 result.extend(
                     process_element_id(
@@ -828,8 +828,8 @@ def get_attribute_key(element_id: str) -> str:
     :param element_id: Element ID the key will be based on
     :return: Attribute key
     """
-    if "(" and ")" in element_id:
-        element_id = element_id[element_id.rfind("(") + 1 : element_id.find(")")]
+    #if "(" in element_id and ")" in element_id:
+    #    element_id = element_id[element_id.rfind("(") + 1 : element_id.find(")")]
 
     if ":" in element_id:
         element_id = element_id.split(":")[-1]
@@ -838,7 +838,7 @@ def get_attribute_key(element_id: str) -> str:
         key = element_id.split(".")[-1]
 
     if not key:
-        raise ValueError(f"Could not find key for {element_id}")
+        raise ValueError(f"Could not find key for '{element_id}'")
 
     return key
 
@@ -945,3 +945,23 @@ def process_element_definition(
         TermCode("http://hl7.org/fhir/StructureDefinition", key, display.original),
         display,
     )
+
+
+def get_element_chain(
+    chained_element_id: str, root_snapshot: Snapshot, module: str, project: Project
+) -> List[Tuple[Snapshot, ElementDefinitionDict]]:
+    """
+    Returns the element chain of the given chained element ID
+
+    :param chained_element_id: Element ID chained across possibly multiple profile contexts
+    :param root_snapshot: Starting snapshot for resolving the chained element ID
+    :param module: Name of the module to search for the root snapshot for
+    :param project: Project context
+    :return: List of tuples of containing profile snapshot and element
+    """
+    return [(member[1], member[0]) for member in get_element_defining_elements_with_source_snapshots(
+        chained_element_id,
+        root_snapshot,
+        module,
+        project.input.cso / "modules"
+    )]
