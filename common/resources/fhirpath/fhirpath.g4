@@ -93,6 +93,7 @@ qualifiedIdentifier
         : identifier ('.' identifier)*
         ;
 
+// If parsing failes due to some literals being incorrectly interpreted, try adding them to this rule
 identifier
         : IDENTIFIER
         | DELIMITEDIDENTIFIER
@@ -100,6 +101,8 @@ identifier
         | 'contains'
         | 'in'
         | 'is'
+        | 'div'
+        | 'mod'
         ;
 
 

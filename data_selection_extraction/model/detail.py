@@ -5,21 +5,25 @@ from typing import Optional, List, Literal, Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from cohort_selection_ontology.model.ui_data import TranslationDisplayElement, BulkTranslationDisplayElement
+from cohort_selection_ontology.model.ui_data import (
+    TranslationDisplayElement,
+    BulkTranslationDisplayElement,
+)
 from common.util.fhir.enums import FhirDataType, FhirSearchType, FhirComplexDataType
+from common.util.http.backend.client import FeasibilityBackendClient
 
 
 class Filter(BaseModel):
     type: FhirSearchType
     name: str
     ui_type: Literal["code", "timeRestriction"]
-    valueSetUrls: Optional[List[str]] = None
+    valueSetUrls: Annotated[Optional[List[str]], Field(default=None)]
 
 
 class Detail(BaseModel, abc.ABC):
-    display: Optional[TranslationDisplayElement] = None
-    description: Optional[TranslationDisplayElement] = None
-    module: Optional[TranslationDisplayElement] = None
+    display: Annotated[Optional[TranslationDisplayElement], Field(default=None)]
+    description: Annotated[Optional[TranslationDisplayElement], Field(default=None)]
+    module: Annotated[Optional[TranslationDisplayElement], Field(default=None)]
 
 
 class ProfileReference(BaseModel):
@@ -30,21 +34,29 @@ class ProfileReference(BaseModel):
 
 class FieldDetail(Detail):
     id: str
-    type: Optional[FhirDataType] = Field(exclude=True, default=None)
-    recommended: bool = False
-    required: bool = False
-    children: List[FieldDetail] = []
+    type: Annotated[Optional[FhirDataType], Field(exclude=True, default=None)]
+    recommended: Annotated[bool, Field(default=False)]
+    required: Annotated[bool, Field(default=False)]
+    children: Annotated[List[FieldDetail], Field(default=[])]
 
     model_config = ConfigDict(use_enum_values=True)
 
 
 class ReferenceDetail(FieldDetail):
-    type: Optional[FhirDataType] = Field(exclude=True, init=False, default=FhirComplexDataType.REFERENCE)
-    referencedProfiles: List[ProfileReference] = []
+    type: Annotated[
+        FhirDataType,
+        Field(exclude=True, init=False, default=FhirComplexDataType.REFERENCE),
+    ]
+    referencedProfiles: Annotated[List[ProfileReference], Field(default=[])]
 
 
 class ProfileDetail(Detail):
     url: str
-    filters: List[Filter] = []
-    fields: List[FieldDetail] = []
-    references: List[ReferenceDetail] = []
+    filters: Annotated[
+        List[Filter],
+        Field(
+            default=[],
+        ),
+    ]
+    fields: Annotated[List[FieldDetail], Field(default=[])]
+    references: Annotated[List[ReferenceDetail], Field(default=[])]
