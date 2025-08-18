@@ -25,11 +25,8 @@ from common.exceptions.typing import InvalidValueTypeException
 from common.model.structure_definition import (
     StructureDefinitionSnapshot,
     ProcessedElementResult,
-    ShortDesc,
 )
 from common.util.collections.functions import flatten
-
-# from common.model.structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.enums import FhirDataType
 from common.util.log.functions import get_class_logger
 
@@ -276,7 +273,6 @@ def process_element_id(
     element_ids,
     module_dir_name: str,
     modules_dir_path: str | Path,
-    last_desc: ShortDesc = None,
 ) -> List[ProcessedElementResult] | None:
     results = []
 
@@ -285,8 +281,6 @@ def process_element_id(
         if element_id.startswith("."):
             raise ValueError("Element id must start with a resource type")
         element: ElementDefinition = profile_snapshot.get_element_by_id(element_id)
-        # short_desc = (element_id, get_display_from_element_definition(element)) \
-        #    if last_desc is None else None
         result = [
             ProcessedElementResult(
                 element=element,

@@ -9,7 +9,11 @@ from fhir.resources.parameters import ParametersParameter
 from requests.auth import AuthBase
 from typing_extensions import override, deprecated
 
-from cohort_selection_ontology.model.tree_map import TermEntryNode, TreeMap, ContextualizedTermCodeInfo
+from cohort_selection_ontology.model.tree_map import (
+    TermEntryNode,
+    TreeMap,
+    ContextualizedTermCodeInfo,
+)
 from sortedcontainers import SortedSet
 from itertools import groupby
 
@@ -55,10 +59,8 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
             if "ONTOLOGY_SERVER_ADDRESS" in project.env:
                 base_url = project.env["ONTOLOGY_SERVER_ADDRESS"]
             else:
-                raise ValueError(
-                    "Server base URL has to be provided either explicitly through the `base_url` parameter"
-                    "or implicitly via environment variable `ONTOLOGY_SERVER_ADDRESS`"
-                )
+                raise ValueError("Server base URL has to be provided either explicitly through the `base_url` parameter"
+                                 "or implicitly via environment variable `ONTOLOGY_SERVER_ADDRESS`")
         if cert is None:
             if "SERVER_CERTIFICATE" in project.env and "PRIVATE_KEY" in project.env:
                 cert = (

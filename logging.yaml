@@ -1,0 +1,43 @@
+# ======================================================================================================================
+#    Logging
+# ======================================================================================================================
+version: 1
+
+root:
+  level: "NOTSET"
+  handlers:
+    - "console"
+    - "file"
+  propagate: 1
+
+filters:
+  className:
+    (): common.util.log.filters.ClassNameFilter
+
+handlers:
+  file:
+    class: "logging.FileHandler"
+    level: "DEBUG"
+    formatter: "file"
+    filters: ["className"]
+    filename: "logs/{log_file_name}"
+    mode: "w"
+  console:
+    class: "logging.StreamHandler"
+    level: "INFO"
+    formatter: "console"
+    filters: ["className"]
+    stream: "ext://sys.stdout"
+
+formatters:
+  file:
+    format: "%(asctime)s [%(levelname)s] %(module)s%(className)s:%(lineno)d - %(message)s"
+    datefmt: "%Y-%m-%dT%H:%M:%S"
+    style: "%"
+    validate: 1
+  console:
+    format: "%(asctime)s [%(levelname)s] %(module)s%(className)s:%(lineno)d - %(message)s"
+    datefmt: "%Y-%m-%dT%H:%M:%S"
+    style: "%"
+    validate: 1
+    class: "common.util.log.formatters.ColorFormatter"
