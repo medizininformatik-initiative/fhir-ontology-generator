@@ -6,7 +6,7 @@ from typing import Any, Optional, Annotated, List
 from common.exceptions.translation import MissingTranslationException
 from common.util.log.functions import get_logger
 
-from fhir.resources.R4B.elementdefinition import ElementDefinitionType
+from fhir.resources.R4B.elementdefinition import ElementDefinitionType, ElementDefinition
 
 from common.util.fhir.enums import FhirDataType
 
@@ -62,6 +62,20 @@ def is_element_in_snapshot(profile_snapshot, element_id) -> bool:
             return False
     except KeyError:
         return False
+
+
+def get_parent_elem_id(elem_def: ElementDefinition) -> str:
+    """
+    Builds the expected element ID of the parent element from the ID of the given child element
+
+    :param elem_def: `ElementDefinition` instance representing the child element
+    :return: ID of the parent element
+    """
+    if elem_def.sliceName:
+        slice_name = elem_def.sliceName
+        return elem_def.id[: -1 * (len(slice_name) + 1)]
+    else:
+        return ".".join(elem_def.id.split(".")[:-1])
 
 
 def get_parent_element(element: ElementDefinitionDict, snapshot: Snapshot) -> Optional[ElementDefinitionDict]:

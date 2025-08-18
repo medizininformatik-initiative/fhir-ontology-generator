@@ -1,12 +1,13 @@
-Instance: CdsAvailabilityMeasure
+Instance: CdsCodingAvailabilityMeasure
 InstanceOf: http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cv-measure-cqfm
 Description: "Measure to determine the availability of criteria based on the amount codings from different terminologies in the dataset"
+* id = "CdsCodingAvailabilityMeasure"
 * status = #active
-* url = "https://medizininformatik-initiative.de/fhir/fdpg/Measure/CdsAvailabilityMeasure"
+* url = "https://medizininformatik-initiative.de/fhir/fdpg/Measure/CdsCodingAvailabilityMeasure"
 * version = "1.0"
-* name = "CDSAvailabilityMeasure"
+* name = "CdsCodingAvailabilityMeasure"
 * experimental = false
-* publisher = "FDPG-Plus-Availability"
+* publisher = "FDPG-Plus"
 * description = "Measure to determine the availability of criteria based on the amount codings from different terminologies in the dataset"
 
 

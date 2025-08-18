@@ -1,6 +1,6 @@
 import json
 import os
-import pytest
+from pathlib import Path
 
 from cohort_selection_ontology.core.resolvers.querying_metadata import StandardDataSetQueryingMetaDataResolver
 from cohort_selection_ontology.core.generators.ui_profile import UIProfileGenerator
@@ -9,11 +9,9 @@ from common.util.project import Project
 
 
 def test_ui_profile_composite_attributes():
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-
-    test_project_dir = os.path.join(test_dir, "composite")
+    test_project_dir = Path(os.path.dirname(os.path.realpath(__file__)), "composite")
     test_project = Project("composite", path=test_project_dir)
-    module_dir = os.path.join(test_project_dir, "input", "modules", "ICU")
+    module_dir = test_project.input / "modules" / "ICU"
 
     resolver = StandardDataSetQueryingMetaDataResolver(test_project)
     generator = UIProfileGenerator(test_project, resolver)
