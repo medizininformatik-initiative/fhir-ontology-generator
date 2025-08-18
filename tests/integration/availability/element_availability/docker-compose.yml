@@ -1,0 +1,32 @@
+services:
+  fhir-server:
+    container_name: integration-test_element-availability_fhir-server
+    image: samply/blaze:1.1.0
+    ports:
+      - "8182:8080"
+    environment:
+      BASE_URL: "http://fhir-server:8080"
+      JAVA_TOOL_OPTIONS: "-Xmx1g"
+      LOG_LEVEL: debug
+#    volumes:
+#      - "integration-test_availability_fhir-server-data:/app/data"
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  fhir-data-evaluator:
+    container_name: integration-test_element-availability_fhir-data-evaluator
+    image: ghcr.io/medizininformatik-initiative/fhir-data-evaluator:1.3.1
+    environment:
+      FHIR_SOURCE_SERVER: "http://fhir-server:8080/fhir"
+      TZ: Europe/Berlin
+    volumes:
+      - ".tmp/input/measure.json:/app/measure.json:ro"
+      - ".tmp/output:/app/output:rw,z"
+    depends_on:
+      fhir-server:
+        condition: service_healthy
+    user: "1000"

@@ -7,6 +7,10 @@ inputs:
     required: false
     description: 'Git tag if present'
     default: ""
+  project:
+    required: false
+    description: 'Name of the project to generate for'
+    default: "fdpg-ontology"
 
 runs:
   using: "composite"
@@ -20,28 +24,63 @@ runs:
 
     - name: Set permissions
       shell: bash
-      run: chmod +x availability/measure_shorthand/generate-availability-measure.sh
+      run: chmod +x availability/scripts/generate-coding-availability-measure.sh
 
-    - name: Run Availability generation
+    - name: Run Coding Availability generation
       shell: bash
-      working-directory: ./availability/measure_shorthand
-      run: ./generate-availability-measure.sh
+      run: availability/scripts/generate-coding-availability-measure.sh --project "${{ inputs.project }}"
 
-    - name: Rename JSON (with tag if available) and zip
+    - name: Install required python modules
+      run: pip3 install -r requirements.txt
       shell: bash
-      working-directory: ./availability/
+
+    - name: Install Firely Terminal
       run: |
-        TAG="${{ inputs.tag }}"
-        if [[ -n "$TAG" ]]; then
-          NEW_NAME="fdpg_availability_measure_${TAG}.json"
+        if command -v fhir >/dev/null 2>&1; then
+          echo "Tool firely.terminal is already installed"
         else
-          NEW_NAME="fdpg_availability_measure.json"
+          echo "Installing tool firely.terminal"
+          sudo apt-get install -y dotnet-sdk-8.0
+          sudo apt-get install -y aspnetcore-runtime-8.0
+          sudo apt-get install -y dotnet-runtime-8.0
+          dotnet tool install -g firely.terminal
         fi
-        mv Measure-CdsAvailabilityMeasure.json "$NEW_NAME"
-        zip availability.zip "$NEW_NAME" stratum-to-context.json
+        fhir --version
+      shell: bash
 
-    - name: Upload ZIP archive
+    - name: Run Element Availability generation
+      run: PYTHONPATH='.' python3 availability/scripts/element_availability.py --project "${{ inputs.project }}"
+      shell: bash
+
+    - name: Upload log files
       uses: actions/upload-artifact@v4
       with:
-        name: availability-zip
-        path: availability/availability.zip
+        name: availability_logs
+        path:
+          logs/
+
+    - name: Add tag-based version (if available) and zip
+      shell: bash
+      working-directory: ./projects/${{ inputs.project }}/output/availability
+      run: |
+        if ! command -v jq >/dev/null 2>&1; then
+          echo "Installing tool jq" 
+          sudo apt-get install -y jq
+        fi
+        TAG="${{ inputs.tag }}"
+        if [[ -n "$TAG" ]]; then
+          for i in *.fhir.json; do
+            [ -f "$i" ] || break;
+            echo "Updating version of FHIR resource @ $i"
+            jq ".version = \"$TAG\"" "$i" > tmp.fhir.json && mv -f tmp.fhir.json "$i"
+          done
+        fi
+        zip availability.zip *.fhir.json stratum-to-context.json
+
+    - name: Upload Availability files
+      uses: actions/upload-artifact@v4
+      with:
+        name: availability_files
+        path: ./projects/${{ inputs.project }}/output/availability/*
+        if-no-files-found: error
+        overwrite: true

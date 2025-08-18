@@ -1,7 +1,8 @@
+from collections.abc import Iterable
 from typing import List, Any
 
 
-def flatten(lst: List[Any]) -> List[Any]:
+def flatten(lst: list[Any]) -> list[Any]:
     """
     Flattens a list of lists with arbitrary depth
     :param lst: List to flatten

@@ -31,19 +31,9 @@ jobs:
         locale -c -k LC_NUMERIC
         localectl status
 
-    - name: Generate Availability
-      uses: ./.github/actions/availability
-      with:
-        tag: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
-
-    - name: Setup python 3 environment
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.13'
-        cache: 'pip'
-
     - name: Install required python modules
       run: pip3 install -r requirements.txt
+      shell: bash
 
     - name: Save secret to file
       id: certificates
@@ -56,12 +46,31 @@ jobs:
         SERVER_CERTIFICATE: ${{ secrets.FDPGPLUS_ONTO_SERVER_CERT }}
         PRIVATE_KEY: ${{ secrets.FDPGPLUS_ONTO_SERVER_KEY }}
 
+    - name: Generate Availability
+      uses: ./.github/actions/availability
+      with:
+        tag: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+        project: fdpg-ontology
+
+    - name: Setup python 3 environment
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+        cache: 'pip'
+
     - name: Run ontology generation
       env:
         ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
         SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
         PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
       run: ./generate_full_ontology.sh --project "fdpg-ontology" --all
+
+    - name: Run unit tests
+      env:
+        ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
+        SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
+        PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
+      run: pytest tests/unit -v --cov --cov-branch --cov-report=xml
 
     - name: Run integration tests
       env:

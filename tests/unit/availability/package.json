@@ -1,0 +1,17 @@
+{
+  "name": "project-availability",
+  "version": "0.1.0",
+  "description": "Put a description here",
+  "fhirVersions": [
+    "4.0.1"
+  ],
+  "dependencies": {
+    "hl7.fhir.r4.core": "4.0.1",
+    "de.basisprofil.r4": "1.5.4",
+    "de.medizininformatikinitiative.kerndatensatz.biobank": "2025.0.4",
+    "de.medizininformatikinitiative.kerndatensatz.person": "2025.0.0",
+    "de.medizininformatikinitiative.kerndatensatz.fall": "2025.0.0",
+    "de.medizininformatikinitiative.kerndatensatz.diagnose": "2025.0.0",
+    "de.medizininformatikinitiative.kerndatensatz.laborbefund": "2025.0.2"
+  }
+}

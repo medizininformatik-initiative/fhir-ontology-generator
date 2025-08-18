@@ -12,8 +12,13 @@ class BaseClient:
     __base_url: str
     __timeout: float
 
-    def __init__(self, base_url: str, auth: Optional[type[AuthBase]] = None, cert: Optional[tuple[str, str]] = None,
-                 timeout: float = 60):
+    def __init__(
+        self,
+        base_url: str,
+        auth: Optional[type[AuthBase]] = None,
+        cert: Optional[tuple[str, str]] = None,
+        timeout: float = 60,
+    ):
         self.__session = Session()
         self.__session.auth = auth
         self.__session.cert = cert
@@ -76,21 +81,43 @@ class BaseClient:
             else:
                 raise_appropriate_exception(response)
 
-    def post(self, context_path: Optional[str] = None, full_url: Optional[str] = None, body: str = None,
-             headers: Mapping[str, str] = None, path_params: Mapping[str, str] = None,
-             query_params: Mapping[str, str | list[str]] = None) -> Response:
+    def post(
+        self,
+        context_path: Optional[str] = None,
+        full_url: Optional[str] = None,
+        body: str = None,
+        headers: Mapping[str, str] = None,
+        path_params: Mapping[str, str] = None,
+        query_params: Mapping[str, str | list[str]] = None,
+    ) -> Response:
         if not body:
             raise ValueError("Body of a POST request cannot be empty")
         request_url = self.__determine_url(context_path, full_url, path_params)
-        response = self.__session.post(request_url, data=body.encode('utf-8'), params=format_query_params(query_params),
-                                       headers=headers, timeout=self.__timeout)
-        if response.ok: return response
-        else: raise_appropriate_exception(response)
+        response = self.__session.post(
+            request_url,
+            data=body.encode("utf-8"),
+            params=format_query_params(query_params),
+            headers=headers,
+            timeout=self.__timeout,
+        )
+        if response.ok:
+            return response
+        else:
+            raise_appropriate_exception(response)
 
-    def delete(self, context_path: Optional[str] = None, full_url: Optional[str] = None,
-               headers: Mapping[str, str] = None, path_params: Mapping[str, str] = Response,
-               query_params: Mapping[str, str | list[str]] = None) -> Response:
+    def delete(
+        self,
+        context_path: Optional[str] = None,
+        full_url: Optional[str] = None,
+        headers: Mapping[str, str] = None,
+        path_params: Mapping[str, str] = Response,
+        query_params: Mapping[str, str | list[str]] = None,
+    ) -> Response:
         request_url = self.__determine_url(context_path, full_url, path_params)
-        response = self.__session.delete(request_url, params=query_params, headers=headers, timeout=self.__timeout)
-        if response.ok: return response
-        else: raise_appropriate_exception(response)
+        response = self.__session.delete(
+            request_url, params=query_params, headers=headers, timeout=self.__timeout
+        )
+        if response.ok:
+            return response
+        else:
+            raise_appropriate_exception(response)
