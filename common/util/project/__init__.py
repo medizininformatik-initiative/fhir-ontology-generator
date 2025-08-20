@@ -1,14 +1,90 @@
+import abc
 import os.path
 from pathlib import Path
-from typing import Optional, Annotated, Any, Mapping
+from typing import Optional, Annotated, Mapping, Type, TypeVar
 
-from pydantic import BaseModel, Field, model_validator, ValidationError
+import dotenv
+from pydantic import BaseModel, Field, ValidationError, computed_field
 
 from common.util.log.functions import get_class_logger
 from common.constants.project import PROJECT_ROOT
 
 
-class Project(BaseModel):
+class ProjectDir(BaseModel):
+    path: Annotated[Path, Field(strict=True, frozen=True, init=True, description="Path object pointing to the root "
+                                                                                 "directory of the project")]
+
+    def __init__(self, path: str | Path, /, **kwargs):
+        _path = Path(path).resolve()
+        _path.mkdir(parents=True, exist_ok=True)
+        super().__init__(path=_path, **kwargs)
+
+    def __truediv__(self, other: str) -> Path:
+        return self.path / other
+
+    def mkdirs(self, *rel_path: str) -> Path:
+        path = self.path / os.sep.join(rel_path)
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+
+D = TypeVar('D', bound='ProjectDir')
+
+
+def _sub_dir(name: str, _path: Path, _cls: Type[D] = ProjectDir) -> D:
+    return _cls(_path / name)
+
+
+class IODir(ProjectDir, abc.ABC):
+    def __init__(self, path: Path, /, **kwargs):
+        super().__init__(path, **kwargs)
+
+    @computed_field
+    @property
+    def availability(self) -> ProjectDir:
+        return _sub_dir('availability', self.path)
+
+    @computed_field
+    @property
+    def dse(self) -> ProjectDir:
+        return _sub_dir('data_selection_extraction', self.path)
+
+    @computed_field
+    @property
+    def cso(self) -> ProjectDir:
+        return _sub_dir('cohort_selection_ontology', self.path)
+
+    @computed_field
+    @property
+    def terminology(self) -> ProjectDir:
+        return _sub_dir('terminology', self.path)
+
+    @computed_field
+    @property
+    def translation(self) -> ProjectDir:
+        return _sub_dir('translation', self.path)
+
+    @computed_field
+    @property
+    def elastic(self) -> ProjectDir:
+        return _sub_dir('elastic', self.path)
+
+
+class InputDir(IODir):
+    pass
+
+
+class OutputDir(IODir):
+    def __init__(self, path: Path, /, **kwargs):
+        super().__init__(path, **kwargs)
+
+    @computed_field
+    @property
+    def generated_ontology(self) -> ProjectDir:
+        return _sub_dir('merged_ontology', self.path)
+
+
+class Project(ProjectDir):
     """
     Utility class representing the project context. Instances provide safe access to the directory structure of a given
     project, its location on the filesystem, and environment variables.
@@ -18,32 +94,46 @@ class Project(BaseModel):
     name: Annotated[str, Field(strict=True, frozen=True, init=False, description="Name of the project, i.e. the name "
                                                                                  "of its root directory in the "
                                                                                  "projects directory")]
-    path: Annotated[Path, Field(strict=True, frozen=True, init=False, description="Path object pointing to the root "
-                                                                                  "directory of the project")]
     env: Annotated[Mapping[str, str], Field(frozen=True, init=False, description="Environment variables"
-                                                                                              "in the scope of the "
-                                                                                              "project")]
+                                                                                 "in the scope of the "
+                                                                                 "project")]
 
     name: Annotated[Optional[str], Field(init_var=True)] = None
     path: Annotated[Optional[str | Path], Field(init_var=True)] = None
 
-    @model_validator(mode='before')
+    #@model_validator(mode='before')
+    #@classmethod
+    #def any_of(cls, data: Any) -> Any:
+    #    if not any(k in cls.model_fields and data[k] is not None for k in data.keys()):
+    #        raise ValidationError("At least one parameter has to be provided with a value other than 'None'")
+    #    # name & path
+    #    if data.get('name') is None:
+    #        data['name'] = os.path.basename(data['path'])
+    #    else:
+    #        if data.get('path') is None:
+    #            data['path'] = Path(str(os.path.join(PROJECT_ROOT, "projects", data['name'])))
+    #    # env
+    #    data['env'] = os.environ
+    #    return data
+
     @classmethod
-    def any_of(cls, data: Any) -> Any:
-        if not any(k in cls.model_fields and data[k] is not None for k in data.keys()):
+    def any_of(cls, name: Optional[str] = None, path: Optional[str | Path] = None) -> (str, Path, Mapping[str, str]):
+        if not name and not path:
             raise ValidationError("At least one parameter has to be provided with a value other than 'None'")
         # name & path
-        if data.get('name') is None:
-            data['name'] = os.path.basename(data['path'])
+        if name is None:
+            name = os.path.basename(path)
         else:
-            if data.get('path') is None:
-                data['path'] = Path(str(os.path.join(PROJECT_ROOT, "projects", data['name'])))
+            if path is None:
+                path = Path(str(os.path.join(PROJECT_ROOT, "projects", name)))
         # env
-        data['env'] = os.environ
-        return data
+        dotenv.load_dotenv()
+        env = os.environ
+        return name, path, env
 
     def __init__(self, name: Optional[str] = None, path: Optional[str | Path] = None):
-        super().__init__(name=name, path=Path(path).resolve() if path is not None else None)
+        _name, _path, _env = self.any_of(name, path)
+        super().__init__(_path, name=_name, env=_env)
         if not os.path.exists(self.path):
             self.__logger.warning(f"No project '{self.name}' exists @ {self.path}. Operating on it will likely result "
                                   f"in failure")
@@ -52,27 +142,12 @@ class Project(BaseModel):
     def __create_dirs(path: Path):
         os.makedirs(path, exist_ok=True)
 
-    def __truediv__(self, other: str) -> Path:
-        return self.path / other
+    @computed_field
+    @property
+    def input(self) -> InputDir:
+        return _sub_dir('input', self.path, InputDir)
 
-    def input(self, *rel_path: str) -> Path:
-        """
-        Returns a Path object representing the absolute path obtained by appending `rel_path` to the absolute path of
-        the projects input directory
-        :param rel_path: List of dir name strings
-        :returns: Path object representing the combined path
-        """
-        path = self / os.path.join("input", *rel_path)
-        self.__create_dirs(path)
-        return path
-
-    def output(self, *rel_path: str) -> Path:
-        """
-        Returns a Path object representing the absolute path obtained by appending `rel_path` to the absolute path of
-        the projects output directory
-        :param rel_path: List of dir name strings
-        :returns: Path object representing the combined path
-        """
-        path = self / os.path.join("output", *rel_path)
-        self.__create_dirs(path)
-        return path
+    @computed_field
+    @property
+    def output(self) -> OutputDir:
+        return _sub_dir('output', self.path, OutputDir)

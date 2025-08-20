@@ -136,9 +136,9 @@ if __name__ == "__main__":
 
     logger.info(f"Running combined consent generation for project '{project.name}'")
 
-    consent_input_dir = project.input("consent")
-    consent_output_dir = project.output("consent")
-    output_dir = project.output("merged_ontology", "mapping")
+    consent_input_dir = project.input / "consent"
+    consent_output_dir = project.output / "consent"
+    output_dir = project.output.mkdirs("merged_ontology", "mapping")
 
     input_file = consent_input_dir / "csv-consent.csv"
     logger.info(f"Processing input data @ {input_file}")

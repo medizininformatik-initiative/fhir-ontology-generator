@@ -1,0 +1,79 @@
+[
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "BioprobeQuery1Patient1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "BioprobeQuery2Patient1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Diagnose_AlphaID_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Diagnose_ICD10_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Diagnose_SCT_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json","Consent_MiiConsent_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json","Encounter_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json","Observation_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json","MedicationAdministration_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json","MedicationRequest_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json","MedicationStatement_Patient1_Q1.json"],
+    "status": {
+      "disabled": true,
+      "reason": "Bug in Blaze FHIR server: Incorrect time interval overlap calculation"
+    }
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json","Person_Gender_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json","Person_Vitalstatus_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Prozedur_OPS_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json","Prozedur_SCT_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json","ICU_ArteriellerBlutdruck_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json","ICU_Atemfrequenz_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json","ICU_Herzfrequenz_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json","ICU_Koerpergroesse_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json","ICU_Koepergewicht_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json","ICU_spo2-pulsoxymetrie_Patient1_Q1.json"],
+    "status": {
+      "disabled": true,
+      "reason": "No test data available"
+    }
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Person_Condition_Todesursache_LOINC_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Person_Condition_Todesursache_SNOMED_Patient1_Q1.json"]
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mapping_cql_schema.json",
+  "titel": "Mapping CQL JSON Schema",
+  "description": "Used for checking integrity of generated mapping_cql.json",
+  "type": "object",
+  "properties": {
+    "name": {"type": "string"},
+    "availability": {"type": "integer"},
+    "terminology": {"type": "string"},
+    "termcode": {"$ref": "https://fdpg.de/termcode.json" },
+    "selectable": {"type": "boolean"},
+    "context": { "$ref": "https://fdpg.de/termcode.json" },
+    "termcodes": {"type": "array", "items": {"$ref": "https://fdpg.de/termcode.json" } },
+    "criteria_sets": {"type": "array"},
+    "display": { "$ref": "https://fdpg.de/elastic_display.json" },
+    "parents": { "$ref": "#/definitions/entry_reference" },
+    "children": { "$ref": "#/definitions/entry_reference" },
+    "related_terms": { "$ref": "#/definitions/entry_reference" },
+    "kds_module": {"type": "string"}
+  },
+  "definitions": {
+    "entry_reference": {
+      "type": "object",
+      "properties": {
+        "contextualized_termcode_hash": {"type": "string"},
+        "display": { "$ref": "https://fdpg.de/elastic_display.json" }
+      }
+    }
+  }
+}

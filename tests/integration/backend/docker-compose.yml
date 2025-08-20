@@ -1,0 +1,203 @@
+services:
+  dataportal-backend:
+    container_name: integration-test_dataportal-backend
+    image: ghcr.io/medizininformatik-initiative/feasibility-backend:6.2.2
+    ports:
+      - "8091:8090"
+    depends_on:
+      dataportal-postgres:
+        condition: service_started
+      elastic-search-init:
+        condition: service_completed_successfully
+    environment:
+      JAVA_OPTS: ""
+      QUERYRESULT_PUBLIC_KEY: "MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEA1lWOfXzE/mUEPitNLxsDMtjERJGVhS8gP1WmuHPvjPxUOQyod4EbJcbJlkBqLqpaIs8Buy3gcbJvIPERdG1N1BSZ8NOKOtRubioKf30JwnLdZAae3vJAzRC3h42OPM3fohZCXMxbrju+KM0ZUIrLEXKEDMHQWfevCQCxeixvXVYpfXlkJIBGaWz4cDgEOiiwhU87AMzGZwjAIHvr4oTF/uHg6+C3Mdx0m8WLtygTiEixJegMb/txR+4gNVYrzpm5BwDUU7Qxy3nTUDYZLlTGeP9MBFWW+W87IHzgP+OFr3ZKMEkAPU0R1lqXFZCYcgZHGA5He2W701isnqkKIQT8ePOH43ZOXo3S34Pqw5oQ4Q2kPubp1wgZWw0VtEiZDtlwqUJ+r3CigU7NAFM5JnC/skiIBKetbWoNm1JPEfGOTrgjHD2uo82jSO8tV45LNH1EaR2+5UWSFZyDvTayLZsxsVlRFXJKgQJDI344R6lhGbLXbhqCuPzeQaHr1XGCKAtdAgMBAAE="
+      # ----- app
+      QUERY_VALIDATION_ENABLED: "true"
+      CQL_TRANSLATE_ENABLED: "true"
+      FHIR_TRANSLATE_ENABLED: "false"
+      API_BASE_URL: "http://localhost:8091/api/"
+      ALLOWED_ORIGINS: "https://localhost"
+      QUERYRESULT_EXPIRY_MINUTES: 5
+      MAX_SAVED_QUERIES_PER_USER: 300
+      ONTOLOGY_ORDER: "Diagnose, Prozedur, Person, Laboruntersuchung, Medikamentenverabreichung, Bioprobe, Einwilligung"
+      # ---- ontology
+      ONTOLOGY_FILES_FOLDER_UI: /opt/dataportal-backend/ontology
+      ONTOLOGY_DB_MIGRATION_FOLDER: /opt/dataportal-backend/ontology/migration
+      MAPPINGS_FILE: /opt/dataportal-backend/ontology/mapping_cql.json
+      CONCEPT_TREE_FILE: /opt/dataportal-backend/ontology/mapping_tree.json
+      # ---- db config
+      DATABASE_HOST: "dataportal-postgres"
+      DATABASE_PORT: 5432
+      DATABASE_USER: "dataportaluser"
+      DATABASE_PASSWORD: "dataportalpw"
+      DATABASE_DBNAME: "dataportal"
+      # ---- auth
+      KEYCLOAK_ENABLED: "false"
+      KEYCLOAK_BASE_URL: http://keycloak:8080
+      KEYCLOAK_CLIENT_ID: "dataportal-gui"
+      KEYCLOAK_ALLOWED_ROLE: "DataportalUser"
+      KEYCLOAK_POWER_ROLE: "DataportalPowerUser"
+      KEYCLOAK_ADMIN_ROLE: "DataportalAdmin"
+      KEYCLOAK_BASE_URL_ISSUER: "http://auth:8080/auth"
+      KEYCLOAK_BASE_URL_JWK: "http://auth:8080/auth"
+      KEYCLOAK_REALM: "dataportal"
+      #---- Mock broker
+      BROKER_CLIENT_MOCK_ENABLED: "false"
+      #---- Direct broker
+      BROKER_CLIENT_DIRECT_ENABLED: "true"
+      BROKER_CLIENT_DIRECT_USE_CQL: "true"
+      BROKER_CLIENT_OBFUSCATE_RESULT_COUNT: "false"
+      FLARE_WEBSERVICE_BASE_URL: "http://flare:8080"
+      CQL_SERVER_BASE_URL: "http://blaze:8080/fhir"
+      # ---- Aktin broker
+      BROKER_CLIENT_AKTIN_ENABLED: "false"
+      AKTIN_BROKER_BASE_URL: "http://aktin-broker:8080/broker/"
+      AKTIN_BROKER_API_KEY: "xxxApiKeyAdmin123"
+      # ---- DSF  broker
+      BROKER_CLIENT_DSF_ENABLED: "false"
+      DSF_SECURITY_CACERT: "/opt/dataportal-security/ca.pem"
+      DSF_SECURITY_KEYSTORE_P12FILE: "/opt/dataportal-security/tests-user.p12"
+      DSF_SECURITY_KEYSTORE_PASSWORD: "password"
+      DSF_WEBSERVICE_BASE_URL: "https://dsf-zars-fhir-proxy/fhir"
+      DSF_WEBSOCKET_URL: "wss://dsf-zars-fhir-proxy:443/fhir/ws"
+      DSF_ORGANIZATION_ID: "Test_ZARS"
+      # ---- privacy
+      PRIVACY_QUOTA_SOFT_CREATE_AMOUNT: 10000
+      PRIVACY_QUOTA_SOFT_CREATE_INTERVALMINUTES: 1
+      PRIVACY_QUOTA_HARD_CREATE_AMOUNT: 10000
+      PRIVACY_QUOTA_HARD_CREATE_INTERVALMINUTES: 10080
+      PRIVACY_QUOTA_READ_SUMMARY_POLLINGINTERVALSECONDS: 1
+      PRIVACY_QUOTA_READ_DETAILED_OBFUSCATED_POLLINGINTERVALSECONDS: 10
+      PRIVACY_QUOTA_READ_DETAILED_OBFUSCATED_AMOUNT: 3
+      PRIVACY_QUOTA_READ_DETAILED_OBFUSCATED_INTERVALSECONDS: 7200
+      PRIVACY_THRESHOLD_RESULTS: 0
+      PRIVACY_THRESHOLD_SITES: 0
+      # ---- Elastic Search
+      ELASTIC_SEARCH_ENABLED: true
+      ELASTIC_SEARCH_HOST: dataportal-elastic:9200
+      ELASTIC_SEARCH_FILTER: context,terminology,kds_module
+      # ---- log
+      LOG_LEVEL_SQL: "warn"
+      LOG_LEVEL: "warn"
+    restart: unless-stopped
+    volumes:
+      #- ./ontology/ui_profile:/opt/dataportal-backend/ontology/ui_profile
+      #- ./ontology/codex-code-tree.json:/opt/dataportal-backend/ontology/codex-code-tree.json
+      #- ./ontology/codex-term-code-generators.json:/opt/dataportal-backend/ontology/codex-term-code-generators.json
+      - ./tmp/ontology:/opt/dataportal-backend/ontology
+      #- ./secrets:/opt/dataportal-security
+      #- ./certs:/opt/dataportal-backend/certs
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent --fail http://localhost:8090/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+
+  dataportal-postgres:
+    image: 'postgres:16-alpine'
+    container_name: integration-test_dataportal-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: "dataportaluser"
+      POSTGRES_PASSWORD: "dataportalpw"
+      POSTGRES_DB: "dataportal"
+
+  dataportal-elastic:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.16.1
+    container_name: integration-test_dataportal-elastic
+    ports:
+      - '9200:9200'
+      - '9300:9300'
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent --fail localhost:9200/_cluster/health || exit 1" ]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: -Xmx512m -Xms512m
+      node.name: es01
+      cluster.name: elasticsearch
+      xpack.security.enabled: false
+
+  elastic-search-init:
+    depends_on:
+      - dataportal-elastic
+    image: ghcr.io/medizininformatik-initiative/dataportal-es-init:1.2
+    container_name: integration-test_elastic-search-init
+    environment:
+      ES_HOST: dataportal-elastic
+      ONTO_GIT_TAG: v3.0.2-alpha
+      MODE: mount # change this to mount when using own generated ontology
+      LOCAL_PATH: /tmp/mounted_onto.zip
+    volumes:
+      - type: bind
+        source: "./tmp/elastic.zip"
+        target: "/tmp/mounted_onto.zip"
+        read_only: true
+
+  blaze:
+    image: "samply/blaze:0.33"
+    container_name: integration-test_blaze
+    environment:
+      BASE_URL: "http://blaze:8080"
+      JAVA_TOOL_OPTIONS: "-Xmx1g"
+      LOG_LEVEL: "debug"
+      ENFORCE_REFERENTIAL_INTEGRITY: "false"
+    ports:
+      - "8082:8080"
+    volumes:
+      - "blaze-data:/app/data"
+
+#  flare:
+#    image: ghcr.io/medizininformatik-initiative/flare:2.3.0
+#    ports:
+#      - "8092:8080"
+#    environment:
+#      FLARE_FHIR_SERVER: "http://blaze:8080/fhir"
+#      JAVA_TOOL_OPTIONS: "-Xmx1g"
+#      LOG_LEVEL: "debug"
+#    restart: unless-stopped
+
+  auth-db:
+    image: postgres:16-alpine
+    container_name: integration-test_auth-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "keycloakdb"
+      POSTGRES_USER: "keycloakdbuser"
+      POSTGRES_PASSWORD: "keycloakdbpw"
+    volumes:
+      - "dataportal-auth-db:/var/lib/postgresql/data"
+
+  auth:
+    image: keycloak/keycloak:21.1
+    container_name: integration-test_auth
+    command: ["start-dev", "--import-realm"]
+    restart: unless-stopped
+    environment:
+      KC_DB: "postgres"
+      KC_DB_URL: "jdbc:postgresql://auth-db:5432/${FEASIBILITY_KC_DB:-keycloakdb}"
+      KC_DB_USERNAME: "keycloakdbuser"
+      KC_DB_PASSWORD: "keycloakdbpw"
+      KEYCLOAK_ADMIN: "keycloakadmin"
+      KEYCLOAK_ADMIN_PASSWORD: "keycloak"
+      KC_HTTP_RELATIVE_PATH: "/auth"
+      KC_HOSTNAME_URL: "http://auth:8080/auth"
+      KC_HOSTNAME_ADMIN_URL: "http://auth:8080/auth/keycloakadmin"
+      KC_LOG_LEVEL: "info"
+      KC_PROXY: "edge"
+    ports:
+      - "8083:8080"
+    volumes:
+      - ./keycloak-init/dataportal-realm.json:/opt/keycloak/data/import/realm.json:ro
+    depends_on:
+      - auth-db
+
+volumes:
+  dataportal-auth-db:
+    name: integration-test_dataportal-auth-db
+  blaze-data:
+    name: integration-test_blaze-data

@@ -1,0 +1,16 @@
+{
+  "$id": "https://fdpg.de/display.json",
+
+  "type": "object",
+  "properties": {
+    "original": {"type": "string"},
+    "translations": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "translation.json"
+      }
+    }
+  },
+  "required": ["original", "translations"]
+}

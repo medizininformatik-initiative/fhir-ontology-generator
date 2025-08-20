@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "elastic_ontology_index_schema.json",
+  "titel": "Elastic Ontology Index JSON Schema",
+  "description": "Used for checking integrity of generated elastic_ontology_index_schema.json",
+  "type": "object",
+  "properties": {
+    "index": {
+      "type": "object",
+      "properties": {
+        "_index": {"type": "string"},
+        "_id": {"type": "string"}
+      }
+    }
+  }
+}

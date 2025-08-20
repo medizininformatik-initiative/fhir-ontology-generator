@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "criteria-sets_schema.json",
+  "titel": "Criteria Sets JSON Schema",
+  "description": "Used for checking integrity of generated criteria-sets.json like icd-10-gm.json",
+  "type": "object",
+  "properties": {
+    "url": { "type": "string" },
+    "contextualized_term_codes": {
+      "type": "array",
+      "item": {
+        "type": "array",
+        "items": { "$ref": "https://fdpg.de/termcode.json" }
+      }
+    }
+  }
+}

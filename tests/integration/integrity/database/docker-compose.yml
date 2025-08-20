@@ -1,0 +1,12 @@
+services:
+  test-postgres:
+    image: 'postgres:16'
+    container_name: integrity-database-test_postgres
+    ports:
+      - "9432:5432"
+    environment:
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "admin"
+      POSTGRES_DB: "database"
+    volumes:
+      - "./tmp/:/tmp/sql:rw"

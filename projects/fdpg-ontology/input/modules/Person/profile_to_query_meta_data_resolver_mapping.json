@@ -1,8 +1,0 @@
-{
-  "Patient": [
-    "Age", "Gender"
-  ],
-  "Vitalstatus": [
-    "Vitalstatus"
-  ]
-}

@@ -5,11 +5,11 @@ import os
 from typing import Tuple, List, Dict
 
 from cohort_selection_ontology.core.terminology.client import CohortSelectionTerminologyClient
-from cohort_selection_ontology.util import structure_definition as sd
+from cohort_selection_ontology.util.fhir import structure_definition as sd
 from cohort_selection_ontology.core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
-from cohort_selection_ontology.util.structure_definition import resolve_defining_id, extract_value_type
+from cohort_selection_ontology.util.fhir.structure_definition import resolve_defining_id, extract_value_type
 from common.util.project import Project
-from helper import generate_attribute_key
+from  cohort_selection_ontology.util.fhir.structure_definition import generate_attribute_key
 from cohort_selection_ontology.model.mapping import PathlingMapping, PathlingAttributeSearchParameter
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS

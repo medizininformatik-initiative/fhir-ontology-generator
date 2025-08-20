@@ -1,0 +1,12 @@
+{
+  "Patient": [
+    "Age", "Gender"
+  ],
+  "Vitalstatus": [
+    "Vitalstatus"
+  ],
+  "Todesursache": [
+    "CauseOfDeathSnomed",
+    "CauseOfDeathLoinc"
+  ]
+}

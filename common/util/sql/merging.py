@@ -142,6 +142,7 @@ class SqlMerger:
         for filename in os.listdir(self.sql_script_dir):
             if os.path.isfile(os.path.join(self.sql_script_dir, filename)):
                 if re.match(self.match_expression, filename):
+                    logger.debug(f"Loading script file '{filename}' into database")
                     db_index = self.pattern.search(filename).group(1)
                     schema_name = f"import_{db_index}"
                     # initialize the db
@@ -152,7 +153,7 @@ class SqlMerger:
                         target.write(template.read())
 
                     cmd = f"sh -c 'psql -U {self.db_user} -d {self.db_name} < {self.sql_mapped_dir}/init_{db_index}.sql'"
-                    time.sleep(5)
+                    #time.sleep(5)
                     logger.debug(f"Executing command {cmd}")
                     self.db_container.exec_run(cmd=cmd)
                     os.remove(os.path.join(self.sql_script_dir, f"init_{db_index}.sql"))
@@ -162,7 +163,7 @@ class SqlMerger:
                             os.path.join(self.sql_script_dir, f"modified_{filename}"), mode='w',encoding="UTF-8") as target:
                         target.write(template.read().replace('public.', f'{schema_name}.'))
                     cmd = f"sh -c 'psql -U {self.db_user} -d {self.db_name} < {self.sql_mapped_dir}/modified_{filename}'"
-                    time.sleep(5)
+                    #time.sleep(5)
                     logger.debug(f"Executing command {cmd}")
                     self.db_container.exec_run(cmd=cmd)
                     os.remove(os.path.join(self.sql_script_dir, filename))
@@ -191,10 +192,12 @@ class SqlMerger:
 
         cur.execute(query_for_schemas)
         schema_result = cur.fetchall()
+
         for schema in schema_result:
             if schema[0].startswith("import_"):
                 schema_name = schema[0]
-                logger.debug(f"Importing schema {schema_name}...to public")
+                logger.info(f"Importing schema {schema_name}...to public")
+
                 # Import the context table and write back new foreign keys to import schema
                 query_copy_context = """
                 WITH source_data AS (
@@ -251,8 +254,8 @@ class SqlMerger:
 
                 # Import the ui_profile table and write back new foreign keys to import schema
                 query_copy_contextualized_termcodes = """
-                INSERT INTO public.contextualized_termcode (context_termcode_hash, context_id, termcode_id, mapping_id, ui_profile_id)
-                SELECT context_termcode_hash, context_id, termcode_id, mapping_id, ui_profile_id
+                INSERT INTO public.contextualized_termcode (context_termcode_hash, context_id, termcode_id, ui_profile_id)
+                SELECT context_termcode_hash, context_id, termcode_id, ui_profile_id
                 FROM {schema_name}.contextualized_termcode
                 ON CONFLICT DO NOTHING;
                 """.format(schema_name=schema_name)

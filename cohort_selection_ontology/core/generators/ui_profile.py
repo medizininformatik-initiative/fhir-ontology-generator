@@ -3,22 +3,30 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Mapping, Set
+
+import pytest
+from fhir.resources.R4B.coding import Coding
+from fhir.resources.R4B.parameters import ParametersParameter, Parameters
 
 from cohort_selection_ontology.core.terminology.client import CohortSelectionTerminologyClient
 from cohort_selection_ontology.core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
-from cohort_selection_ontology.util.structure_definition import InvalidValueTypeException, UCUM_SYSTEM, \
+from cohort_selection_ontology.util.fhir.structure_definition import InvalidValueTypeException, UCUM_SYSTEM, \
     get_binding_value_set_url, \
     ProcessedElementResult, get_fixed_term_codes, FHIR_TYPES_TO_VALUE_TYPES, extract_value_type, get_common_ancestor, \
     get_term_code_by_id, get_element_from_snapshot_by_path, get_units, resolve_defining_id, get_selectable_concepts, \
     get_element_defining_elements, get_element_type, get_element_defining_elements_with_source_snapshots
+from common.util.fhir.bundle import BundleType
 from common.util.fhir.structure_definition import get_element_from_snapshot
-from helper import process_element_definition, get_display_from_element_definition
+from cohort_selection_ontology.util.fhir.structure_definition import process_element_definition
+from cohort_selection_ontology.util.fhir.structure_definition import get_display_from_element_definition
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from cohort_selection_ontology.model.ui_profile import ValueDefinition, UIProfile, AttributeDefinition, CriteriaSet
-from cohort_selection_ontology.model.ui_data import TermCode
+from cohort_selection_ontology.model.ui_data import TermCode, TranslationDisplayElement, Translation
 from common.util.log.functions import get_class_logger
 from common.util.project import Project
+from common.util.test.fhir import check_response_bundle
+from elasticsearch.core.resolvers.designation import extract_designation
 
 AGE_UNIT_VALUE_SET = "http://hl7.org/fhir/ValueSet/age-units"
 
@@ -37,7 +45,7 @@ class UIProfileGenerator:
         self.querying_meta_data_resolver = querying_meta_data_resolver
         self.module_dir: str = ""
         self.__project = project
-        self.data_set_dir: Path = self.__project.input("modules")
+        self.data_set_dir: Path = self.__project.input.cso.mkdirs("modules")
         self.__client = CohortSelectionTerminologyClient(self.__project)
 
     def generate_ui_profiles(self, module_name) -> \
@@ -49,7 +57,7 @@ class UIProfileGenerator:
         :param module_name: Name of the module to generate UI profiles for
         :return: ui profiles for all FHIR profiles in the differential directory
         """
-        modules_dir = self.__project.input("modules")
+        modules_dir = self.__project.input.cso.mkdirs("modules")
         full_context_term_code_ui_profile_name_mapping = {}
         full_ui_profile_name_ui_profile_mapping = {}
         self.module_dir = modules_dir / module_name
@@ -99,7 +107,7 @@ class UIProfileGenerator:
     def generate_ui_profile(self, profile_snapshot: dict, querying_meta_data) -> UIProfile:
         """
         Generates a UI profile for the given FHIR profile snapshot
-        :param querying_meta_data: The querying meta data for the FHIR profile snapshot
+        :param querying_meta_data: The querying metadata for the FHIR profile snapshot
         :param profile_snapshot: FHIR profile snapshot
         :return: UI profile for the given FHIR profile snapshot
         """
@@ -161,6 +169,57 @@ class UIProfileGenerator:
                                      pattern_quantity.get("unit"))]
         raise LookupError(f"Could not determine allowed units for {value_defining_element.get('path')} in {profile_snapshot.get('name')} ")
 
+    def __lookup_designations(self, coding: Coding, languages: Set[str], fuzzy: bool = True) -> Mapping[str, str]:
+        """
+        Looks up all available designations for the given coding matching the provided language codes.
+        If the coding includes no version then all code system versions supported by the server will be retrieved and
+        used to look up the designations.
+
+        **WARNING**: This method should not be called repeatedly for a large number of codings as the requests to the
+        terminology server take a relatively long time
+
+        :param coding: `Coding` instance representing the concept to look up designations for
+        :param languages: Language codes to match designations with. They should represent values set in
+                          `CodeSystem.concept.designation.langauge`
+        :param fuzzy: Controls whether fuzzy matching is enabled when matching the languages codes. If `True` matches
+                      will be determined using the regex '`^{language}(-\S+)?$`'
+        :return: Map containing the language codes mapped to their designations
+        """
+        if coding.system is None:
+            self.__logger.warning("Coding has no system value set by which CodeSystem resources could be searched => "
+                                  "Defaulting to empty map")
+            return {}
+        if coding.code is None:
+            self.__logger.warning("Coding has no code value set by which concept information could be retrieved => "
+                                  "Defaulting to empty map")
+
+        params = {'url': coding.system}
+        if coding.version is None:
+            # Lookup all CodeSystem resources on the server matching the system url to find the supported versions
+            bundle = self.__client.search_code_system(**params)
+            versions = {entry.resource.version for entry in bundle.entry}
+
+            req_parameters = [Parameters(parameter=[
+                    ParametersParameter(name="code", valueCode=coding.code),
+                    ParametersParameter(name="system", valueUri=coding.system),
+                    ParametersParameter(name="version", valueString=v),
+                    ParametersParameter(name="property", valueCode="*")
+            ]) for v in versions]
+            bundle = self.__client.bulk_lookup(req_parameters, mode=BundleType.BATCH)
+            result = check_response_bundle(bundle.model_dump(), {200})
+            if not result[0]:
+                oo_str = result[1].model_dump_json() if result[1] else ""
+                self.__logger.warning(f"CodeSystem lookup request failed (partially) [reason='{oo_str}'] => Continuing")
+
+            mapping = dict()
+            for entry in filter(lambda e: e.response.status == "200", bundle.entry):
+                update = {lang: extract_designation(entry.resource.model_dump(), lang, fuzzy) for lang in languages}
+                mapping = mapping | {k: v for k, v in update.items() if v}
+            return mapping
+        else:
+            # Lookup designations directly since a version was provided
+            result = self.__client.code_system_lookup(coding.system, coding.code, coding.version).model_dump()
+            return {lang: extract_designation(result, lang, fuzzy) for lang in languages}
 
     def get_value_definition(self, profile_snapshot, querying_meta_data) -> ValueDefinition:
         """
@@ -214,7 +273,27 @@ class UIProfileGenerator:
             raise InvalidValueTypeException(
                 f"Invalid value type: {value_type} in profile {profile_snapshot.get('name')}")
 
-        display = process_element_definition(value_defining_element)[1]
+        # Determine display
+        term_codes = querying_meta_data.term_codes
+        match len(term_codes) if term_codes else None:
+            case 0 | None:
+                self.__logger.debug(f"No term code is defined in querying metadata '{querying_meta_data.name}' => "
+                                    f"Defaulting to element definition as display source")
+                display = process_element_definition(value_defining_element)[1]
+            case _:
+                if len(term_codes) > 1:
+                    self.__logger.warning(f"More than one term code is defined in querying metadata "
+                                          f"'{querying_meta_data.name}' => Using first entry as display source")
+                term_code = term_codes[0]
+                coding = Coding(system=term_code.system, code=term_code.code, version=term_code.version)
+                ds = self.__lookup_designations(coding, {"de", "en"}, fuzzy=True)
+                display = TranslationDisplayElement(
+                    original=term_code.display,
+                    translations=[
+                        Translation(language='en-US', value=ds.get('en')),
+                        Translation(language='de-DE', value=ds.get('de'))
+                    ]
+                )
         value_definition.display = display
 
         return value_definition

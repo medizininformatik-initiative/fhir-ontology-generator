@@ -1,12 +1,14 @@
 from dataclasses import dataclass, field
-from typing import List, Dict
+from typing import List, Dict, Set, Mapping
 
 import json
 import logging
 
-from helper import JSONSerializable
+from networkx.algorithms.dag import descendants
+
 from cohort_selection_ontology.model.ui_profile import del_keys, del_none
 from cohort_selection_ontology.model.ui_data import Module, TermCode
+from common.util.codec.json import JSONSerializable
 
 
 @dataclass
@@ -25,7 +27,8 @@ class TermEntryNode:
         return {
             "key": self.term_code.code,
             "parents": self.parents,
-            "children": self.children}
+            "children": self.children,
+        }
 
 
 @dataclass
@@ -41,7 +44,9 @@ class TreeMap(JSONSerializable):
 
     def to_dict(self):
         data = self.__dict__.copy()
-        data["entries"] = list(value.to_ui_tree_entry() for value in self.entries.values())
+        data["entries"] = list(
+            value.to_ui_tree_entry() for value in self.entries.values()
+        )
         if self.context:
             data["context"] = self.context.to_dict()
         return del_none(del_keys(data, self.DO_NOT_SERIALIZE))
@@ -63,8 +68,10 @@ class ContextualizedTermCode:
     term_code: TermCode
 
     def to_dict(self):
-        return {"context": self.context.to_dict(),
-                "term_code": self.term_code.to_dict()}
+        return {
+            "context": self.context.to_dict(),
+            "term_code": self.term_code.to_dict(),
+        }
 
 
 @dataclass
@@ -73,8 +80,7 @@ class Designation:
     display: str
 
     def to_dict(self):
-        return {"language": self.language,
-                "display": self.display}
+        return {"language": self.language, "display": self.display}
 
 
 @dataclass
@@ -88,6 +94,11 @@ class ContextualizedTermCodeInfo:
     recalculated: bool = False
 
     def to_dict(self):
+        """
+        Builds a JSON string representation of this instance
+
+        :return: JSON string
+        """
         if not self.designations:
             self.designations = [Designation("default", self.term_code.display)]
         if not self.context:
@@ -96,40 +107,76 @@ class ContextualizedTermCodeInfo:
             raise ValueError("Module is required.")
         if not self.recalculated:
             logging.warning(
-                f"Ensure you call update_children_count before calling to_dict, otherwise children_count will be incorrect.")
-        return {"context": self.context.to_dict(),
-                "term_code": self.term_code.to_dict(),
-                "children_count": self.children_count,
-                "module": self.module.to_dict(),
-                "designations": [designation.to_dict() for designation in self.designations],
-                "siblings": [sibling.to_dict() for sibling in self.siblings]}
+                f"Ensure you call update_children_count before calling to_dict, otherwise children_count will be incorrect."
+            )
+        return {
+            "context": self.context.to_dict(),
+            "term_code": self.term_code.to_dict(),
+            "children_count": self.children_count,
+            "module": self.module.to_dict(),
+            "designations": [
+                designation.to_dict() for designation in self.designations
+            ],
+            "siblings": [sibling.to_dict() for sibling in self.siblings],
+        }
 
-    def recalculate_children_count(self, tree_map_list: TreeMapList, term_code: TermCode):
-        count = 0
+    def recalculate_descendant_count(
+        self, tree_map_list: TreeMapList, term_code: TermCode
+    ) -> int:
+        """
+        Calculates the number of descendants the concept represented by the `term_code` parameter has in the list of
+        tree maps
+
+        :param tree_map_list: Tree maps to iterate over
+        :param term_code: Concept to count descendants of
+        :return: Number of descendants
+        """
         self.recalculated = True
+        return len(self.__collect_descendants(tree_map_list, term_code))
+
+    def __collect_descendants(
+        self, tree_map_list: TreeMapList, term_code: TermCode
+    ) -> Set[TermCode]:
+        """
+        Collects the descendants the concepts represented by the `term_code` parameter has in the list of tree maps
+
+        :param tree_map_list: Tree maps to iterate over
+        :param term_code: Concept to collect descendants of
+        :return: Set of descendants
+        """
+        descendants = set()
         for tree_map in tree_map_list.entries:
             if term_code.code in tree_map.entries.keys():
-                # traverse and count children
-                count = len(tree_map.entries[term_code.code].children)
+                # traverse and collect children
+                descendants = set(tree_map.entries[term_code.code].children)
                 for child in tree_map.entries[term_code.code].children:
-                    count += self.recalculate_children_count(tree_map_list,
-                                                             TermCode(term_code.system, child, "", term_code.version))
-                return count
+                    descendants = descendants.union(
+                        self.__collect_descendants(
+                            tree_map_list,
+                            TermCode(term_code.system, child, "", term_code.version),
+                        )
+                    )
+        return descendants
 
 
 @dataclass
 class ContextualizedTermCodeInfoList(JSONSerializable):
     entries: List[ContextualizedTermCodeInfo] = field(default_factory=list)
 
-    def update_children_count(self, tree_map_list: TreeMapList):
+    def update_descendant_count(self, tree_map_list: TreeMapList):
+        """
+        Updates the descendant count of entries of this instance
+
+        :param tree_map_list: List of tree maps to aggregate descendants in
+        """
         for entry in self.entries:
-            count = entry.recalculate_children_count(tree_map_list, entry.term_code)
+            count = entry.recalculate_descendant_count(tree_map_list, entry.term_code)
             entry.children_count = count
 
     def to_json(self):
+        """
+        Builds a JSON string representation of this instance
+
+        :return: JSON string
+        """
         return json.dumps([entry.to_dict() for entry in self.entries])
-
-
-
-
-

@@ -1,0 +1,22 @@
+{
+  "name": "CauseOfDeathSnomed",
+  "resource_type": "Condition",
+  "module": {
+    "code": "mii-cds-person",
+    "display": "Person"
+  },
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "Todesursache",
+    "display": "Todesursache",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "Condition.category:todesDiagnose.coding:snomed",
+  "attribute_defining_id_type_map": {
+    "Condition.code.coding:icd10-who": {
+      "type": "",
+      "optional": false
+    }
+  },
+  "time_restriction_defining_id": "Condition.onset[x]"
+}
