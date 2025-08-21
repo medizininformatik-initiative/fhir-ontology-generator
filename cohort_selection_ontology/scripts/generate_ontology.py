@@ -375,7 +375,7 @@ def dump_database(container: docker.models.containers.Container):
     Dumps the database to a SQL file in the module's directory.
     """
     container.exec_run(
-        'pg_dump --dbname="codex_ui" -U codex-postgres -a -O '
+        'pg_dump --format=plain --dbname="codex_ui" -U codex-postgres -a -O '
         "-t termcode -t context -t ui_profile -t mapping "
         "-t contextualized_termcode -t contextualized_termcode_to_criteria_set "
         "-t criteria_set -f /opt/db_data/R__Load_latest_ui_profile.sql"

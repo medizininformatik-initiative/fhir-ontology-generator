@@ -1,4 +1,4 @@
-from typing import Mapping, Optional
+from typing import Mapping, Optional, ContextManager
 
 from requests import Session, Response
 from requests.auth import AuthBase
@@ -32,18 +32,49 @@ class BaseClient:
     def __del__(self):
         self.__session.close()
 
-    def __determine_url(self, context_path: Optional[str] = None, full_url: Optional[str] = None,
-                        path_params: Optional[Mapping[str, str]] = None) -> str:
-        url = full_url if full_url is not None else merge_urls(self.__base_url, context_path)
+    def __determine_url(
+        self,
+        context_path: Optional[str] = None,
+        full_url: Optional[str] = None,
+        path_params: Optional[Mapping[str, str]] = None,
+    ) -> str:
+        url = (
+            full_url
+            if full_url is not None
+            else merge_urls(self.__base_url, context_path)
+        )
         return insert_path_params(url, **(path_params if path_params else {}))
 
-    def get(self, context_path: Optional[str] = None, full_url: Optional[str] = None, headers: Mapping[str, str] = None,
-            path_params: Mapping[str, str] = None, query_params: Mapping[str, str | list[str]] = None) -> Response:
+    def get(
+        self,
+        context_path: Optional[str] = None,
+        full_url: Optional[str] = None,
+        headers: Mapping[str, str] = None,
+        path_params: Mapping[str, str] = None,
+        query_params: Mapping[str, str | list[str]] = None,
+        stream: bool = False,
+    ) -> Response | ContextManager[Response]:
         request_url = self.__determine_url(context_path, full_url, path_params)
-        response = self.__session.get(request_url, params=format_query_params(query_params), headers=headers,
-                                      timeout=self.__timeout)
-        if response.ok: return response
-        else: raise_appropriate_exception(response)
+        if stream:
+            # Return context manager
+            return self.__session.get(
+                request_url,
+                params=format_query_params(query_params),
+                headers=headers,
+                timeout=self.__timeout,
+                stream=stream,
+            )
+        else:
+            response = self.__session.get(
+                request_url,
+                params=format_query_params(query_params),
+                headers=headers,
+                timeout=self.__timeout,
+            )
+            if response.ok:
+                return response
+            else:
+                raise_appropriate_exception(response)
 
     def post(self, context_path: Optional[str] = None, full_url: Optional[str] = None, body: str = None,
              headers: Mapping[str, str] = None, path_params: Mapping[str, str] = None,

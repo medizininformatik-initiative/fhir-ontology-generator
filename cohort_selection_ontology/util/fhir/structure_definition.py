@@ -6,13 +6,18 @@ import os
 import re
 from collections import namedtuple
 from pathlib import Path
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Generator
 from typing_extensions import deprecated
 
-from cohort_selection_ontology.core.terminology.client import CohortSelectionTerminologyClient as TerminologyClient
+from cohort_selection_ontology.core.terminology.client import (
+    CohortSelectionTerminologyClient as TerminologyClient,
+)
 from common.exceptions.translation import MissingTranslationException
 from common.util.collections.functions import flatten
-from common.util.fhir.structure_definition import get_element_from_snapshot, is_element_in_snapshot
+from common.util.fhir.structure_definition import (
+    get_element_from_snapshot,
+    is_element_in_snapshot,
+)
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS, ValueSet
 from cohort_selection_ontology.model.ui_data import TermCode, TranslationDisplayElement
 
@@ -24,37 +29,54 @@ from common.util.log.functions import get_logger
 logger = get_logger(__file__)
 
 UCUM_SYSTEM = "http://unitsofmeasure.org"
-FHIR_TYPES_TO_VALUE_TYPES = json.load(fp=(resources.files(fhir) / 'fhir-types-to-value-types.json')
-                                      .open('r', encoding='utf-8'))
-CQL_TYPES_TO_VALUE_TYPES = json.load(fp=(resources.files(cql) / 'cql-types-to-value-types.json')
-                                      .open('r', encoding='utf-8'))
-translation_map_default = {'de-DE': {'language': "de-DE", 'value': ""}, 'en-US': {'language': "en-US", 'value': ""}}
+FHIR_TYPES_TO_VALUE_TYPES = json.load(
+    fp=(resources.files(fhir) / "fhir-types-to-value-types.json").open(
+        "r", encoding="utf-8"
+    )
+)
+CQL_TYPES_TO_VALUE_TYPES = json.load(
+    fp=(resources.files(cql) / "cql-types-to-value-types.json").open(
+        "r", encoding="utf-8"
+    )
+)
+translation_map_default = {
+    "de-DE": {"language": "de-DE", "value": ""},
+    "en-US": {"language": "en-US", "value": ""},
+}
 
 
 class InvalidValueTypeException(Exception):
     pass
 
 
-def get_profiles_with_base_definition(modules_dir_path: str | Path, base_definition: str) -> Tuple[dict, str]:
+def get_profiles_with_base_definition(
+    modules_dir_path: str | Path, base_definition: str
+) -> Generator[Tuple[dict, str]]:
     """
     Returns the profiles that have the given base definition
-    :param modules_dir_path: path to the modules directory
-    :param base_definition: base definition
-    :return: generator of profiles that have the given base definition
+    :param modules_dir_path: Path to the modules directory
+    :param base_definition: Base definition
+    :return: Generator of profiles that have the given base definition
     """
-    for module_dir in [folder for folder in os.scandir(modules_dir_path) if folder.is_dir()]:
+    for module_dir in [
+        folder for folder in os.scandir(modules_dir_path) if folder.is_dir()
+    ]:
         logger.debug(f"Searching in {module_dir.path}")
-        files = list(Path(module_dir.path, "differential", "package").rglob("*snapshot.json"))
-        logger.debug(f"Found {len(files)} snapshot file(s) in module @ '{module_dir.path}'")
+        files = list(
+            Path(module_dir.path, "differential", "package").rglob("*snapshot.json")
+        )
+        logger.debug(
+            f"Found {len(files)} snapshot file(s) in module @ '{module_dir.path}'"
+        )
         for file in files:
             with open(file, mode="r", encoding="utf8") as f:
                 profile = json.load(f)
                 if profile.get("baseDefinition") == base_definition:
-                    return profile, module_dir.path
+                    yield profile, module_dir.path
                 elif profile.get("type") == base_definition.split("/")[-1]:
-                    return profile, module_dir.path
+                    yield profile, module_dir.path
                 elif profile.get("url") == base_definition:
-                    return profile, module_dir.path
+                    yield profile, module_dir.path
 
 
 def get_extension_definition(module_dir: str, extension_profile_url: str) -> dict:
@@ -65,8 +87,13 @@ def get_extension_definition(module_dir: str, extension_profile_url: str) -> dic
     :param extension_profile_url:  extension profile url
     :return: extension definition
     """
-    files = [file for file in os.scandir(os.path.join(module_dir, "differential", "package", "extension")) if file.is_file()
-             and file.name.endswith("snapshot.json")]
+    files = [
+        file
+        for file in os.scandir(
+            os.path.join(module_dir, "differential", "package", "extension")
+        )
+        if file.is_file() and file.name.endswith("snapshot.json")
+    ]
     for file in files:
         with open(file.path, "r", encoding="utf8") as f:
             profile = json.load(f)
@@ -74,7 +101,8 @@ def get_extension_definition(module_dir: str, extension_profile_url: str) -> dic
                 return profile
     else:
         raise FileNotFoundError(
-            f"Could not find extension definition for extension profile url: {extension_profile_url}")
+            f"Could not find extension definition for extension profile url: {extension_profile_url}"
+        )
 
 
 def parse(chained_fhir_element_id) -> List[str] | str:
@@ -84,12 +112,15 @@ def parse(chained_fhir_element_id) -> List[str] | str:
     :param chained_fhir_element_id: the chained fhir element id
     :return: the parsed fhir element id
     """
-    if '.where' in chained_fhir_element_id:
-        main_part, condition_and_rest = chained_fhir_element_id.split('.where', 1)
-        condition_part, rest_part = condition_and_rest.split(')', 1)
-        condition_part = condition_part.strip('(')
-        rest_part = rest_part.strip(':')
-        return [parse(f"{main_part.strip()}:{rest_part.strip()}"), parse(condition_part.strip())]
+    if ".where" in chained_fhir_element_id:
+        main_part, condition_and_rest = chained_fhir_element_id.split(".where", 1)
+        condition_part, rest_part = condition_and_rest.split(")", 1)
+        condition_part = condition_part.strip("(")
+        rest_part = rest_part.strip(":")
+        return [
+            parse(f"{main_part.strip()}:{rest_part.strip()}"),
+            parse(condition_part.strip()),
+        ]
     tokens = tokenize(chained_fhir_element_id)
     result = parse_tokens(tokens)
     return result
@@ -134,26 +165,46 @@ def tokenize(chained_fhir_element_id):
     :param chained_fhir_element_id: the chained fhir element id
     :return: the tokenized fhir element id
     """
-    return chained_fhir_element_id.replace("(", " ( ").replace(")", " ) ").replace('.where', ' .where ').split()
+    return (
+        chained_fhir_element_id.replace("(", " ( ")
+        .replace(")", " ) ")
+        .replace(".where", " .where ")
+        .split()
+    )
 
 
-def get_element_defining_elements(chained_element_id, profile_snapshot: dict, start_module_dir: str,
-                                  data_set_dir: str | Path) -> List[dict] | None:
-    return [element_with_source_snapshot.element for element_with_source_snapshot in
-            get_element_defining_elements_with_source_snapshots(chained_element_id, profile_snapshot, start_module_dir,
-                                                                data_set_dir)]
+def get_element_defining_elements(
+    chained_element_id,
+    profile_snapshot: dict,
+    start_module_dir: str,
+    data_set_dir: str | Path,
+) -> List[dict] | None:
+    return [
+        element_with_source_snapshot.element
+        for element_with_source_snapshot in get_element_defining_elements_with_source_snapshots(
+            chained_element_id, profile_snapshot, start_module_dir, data_set_dir
+        )
+    ]
 
 
-ProcessedElementResult = namedtuple("ProcessedElementResult", ["element", "profile_snapshot", "module_dir", "last_short_desc"])
+ProcessedElementResult = namedtuple(
+    "ProcessedElementResult",
+    ["element", "profile_snapshot", "module_dir", "last_short_desc"],
+)
 
 ShortDesc = namedtuple("ShortDesc", ["origin", "desc"])
 
 
-def get_element_defining_elements_with_source_snapshots(chained_element_id, profile_snapshot: dict,
-                                                        start_module_dir: str | Path,
-                                                        data_set_dir: str | Path) -> List[ProcessedElementResult]:
+def get_element_defining_elements_with_source_snapshots(
+    chained_element_id,
+    profile_snapshot: dict,
+    start_module_dir: str | Path,
+    data_set_dir: str | Path,
+) -> List[ProcessedElementResult]:
     parsed_list = list(flatten(parse(chained_element_id)))
-    return process_element_id(parsed_list, profile_snapshot, start_module_dir, data_set_dir)
+    return process_element_id(
+        parsed_list, profile_snapshot, start_module_dir, data_set_dir
+    )
 
 
 def get_parent_slice_id(element_id: str) -> str:
@@ -221,7 +272,9 @@ def get_common_ancestor_id(element_id_1: str, element_id_2: str) -> str:
     return "".join(last_common_ancestor)
 
 
-def get_common_ancestor(profile_snapshot: dict, element_id_1: str, element_id_2: str) -> dict:
+def get_common_ancestor(
+    profile_snapshot: dict, element_id_1: str, element_id_2: str
+) -> dict:
     """
     Return the element of the common ancestor of the provided ids
     :param profile_snapshot: snapshot of the profile the element is in
@@ -229,11 +282,17 @@ def get_common_ancestor(profile_snapshot: dict, element_id_1: str, element_id_2:
     :param element_id_2: second element ID
     :return: the element of the common ancestor of the provided ids
     """
-    return get_element_from_snapshot(profile_snapshot, get_common_ancestor_id(element_id_1, element_id_2))
+    return get_element_from_snapshot(
+        profile_snapshot, get_common_ancestor_id(element_id_1, element_id_2)
+    )
 
 
-def process_element_id(element_ids, profile_snapshot: dict, module_dir_name: str, modules_dir_path: str | Path,
-                       last_desc: ShortDesc = None) -> List[ProcessedElementResult] | None:
+def process_element_id(
+    element_ids,
+    profile_snapshot: dict,
+    module_dir_name: str,
+    modules_dir_path: str | Path,
+) -> List[ProcessedElementResult] | None:
     results = []
 
     while element_ids:
@@ -241,30 +300,71 @@ def process_element_id(element_ids, profile_snapshot: dict, module_dir_name: str
         if element_id.startswith("."):
             raise ValueError("Element id must start with a resource type")
         element = get_element_from_snapshot(profile_snapshot, element_id)
-        #short_desc = (element_id, get_display_from_element_definition(element)) \
-        #    if last_desc is None else None
-        result = [ProcessedElementResult(element=element, profile_snapshot=profile_snapshot, module_dir=module_dir_name,
-                                         last_short_desc=None)]
+        result = [
+            ProcessedElementResult(
+                element=element,
+                profile_snapshot=profile_snapshot,
+                module_dir=module_dir_name,
+                last_short_desc=None,
+            )
+        ]
 
         for elem in element.get("type"):
             if elem.get("code") == "Extension":
                 profile_urls = elem.get("profile")
                 if len(profile_urls) > 1:
                     raise Exception("Extension with multiple types not supported")
-                extension = get_extension_definition(os.path.join(modules_dir_path, module_dir_name), profile_urls[0])
+                extension = get_extension_definition(
+                    os.path.join(modules_dir_path, module_dir_name), profile_urls[0]
+                )
                 element_ids.insert(0, f"Extension" + element_ids.pop(0))
-                result.extend(process_element_id(element_ids, extension, module_dir_name, modules_dir_path))
+                result.extend(
+                    process_element_id(
+                        element_ids, extension, module_dir_name, modules_dir_path
+                    )
+                )
             elif elem.get("code") == "Reference":
+                target_profiles = elem.get("targetProfile")
+                if len(target_profiles) > 1:
+                    logger.warning(
+                        f"Reference element '{element_id}' supports multiple profiles => Using first"
+                    )
                 target_resource_type = elem.get("targetProfile")[0]
-                referenced_profile, module_dir_name = get_profiles_with_base_definition(modules_dir_path, target_resource_type)
-                element_ids.insert(0, f"{referenced_profile.get('type') + element_ids.pop(0)}")
-                result.extend(process_element_id(element_ids, referenced_profile, module_dir_name, modules_dir_path))
+                partial_id = element_ids.pop(0)
+                profiles = list(
+                    get_profiles_with_base_definition(
+                        modules_dir_path, target_resource_type
+                    )
+                )
+                if len(profiles) == 0:
+                    raise Exception(
+                        f"No profile could be found that matches target profile '{target_resource_type}' and contains "
+                        f"element with ID '{partial_id}' [ref_element_id='{element_id}']"
+                    )
+                for referenced_profile, ref_module_dir_name in profiles:
+                    new_element_id = referenced_profile.get("type") + partial_id
+                    if not is_element_in_snapshot(referenced_profile, new_element_id):
+                        continue
+                    element_ids.insert(0, new_element_id)
+                    result.extend(
+                        process_element_id(
+                            element_ids,
+                            referenced_profile,
+                            ref_module_dir_name,
+                            modules_dir_path,
+                        )
+                    )
+                    break
         results.extend(result)
     return results
 
 
-def resolve_defining_id(profile_snapshot: dict, defining_id: str, modules_dir_path: str | Path, module_dir_name: str) \
-        -> dict | str:
+def resolve_defining_id(
+    profile_snapshot: dict,
+    defining_id: str,
+    modules_dir_path: str | Path,
+    module_dir_name: str,
+) -> dict | str:
     """
     :param profile_snapshot: FHIR profile snapshot
     :param defining_id: defining id
@@ -272,10 +372,14 @@ def resolve_defining_id(profile_snapshot: dict, defining_id: str, modules_dir_pa
     :param modules_dir_path: path to the FHIR dataset directory
     :return: resolved defining id
     """
-    return get_element_defining_elements(defining_id, profile_snapshot, module_dir_name, modules_dir_path)[-1]
+    return get_element_defining_elements(
+        defining_id, profile_snapshot, module_dir_name, modules_dir_path
+    )[-1]
 
 
-def extract_value_type(value_defining_element: dict, profile_name: str = "") -> VALUE_TYPE_OPTIONS:
+def extract_value_type(
+    value_defining_element: dict, profile_name: str = ""
+) -> VALUE_TYPE_OPTIONS:
     """
     Extracts the value type for the given FHIR profile snapshot at the value defining element id
     :param value_defining_element: element that defines the value
@@ -286,15 +390,21 @@ def extract_value_type(value_defining_element: dict, profile_name: str = "") -> 
         logger.warning(f"Could not find value defining element for {profile_name}")
     fhir_value_types = value_defining_element.get("type")
     if not fhir_value_types:
-        raise InvalidValueTypeException(f"No value type defined in element: {str(value_defining_element)}"
-                                        f" in profile: {profile_name}")
+        raise InvalidValueTypeException(
+            f"No value type defined in element: {str(value_defining_element)}"
+            f" in profile: {profile_name}"
+        )
     if len(fhir_value_types) > 1:
-        raise InvalidValueTypeException(f"More than one value type defined in element: "
-                                        f"{str(value_defining_element)} refine the profile: " + profile_name)
+        raise InvalidValueTypeException(
+            f"More than one value type defined in element: "
+            f"{str(value_defining_element)} refine the profile: " + profile_name
+        )
     return fhir_value_types[0].get("code")
 
 
-def extract_reference_type(value_defining_element: dict, modules_dir: str | Path, profile_name: str = "") -> str:
+def extract_reference_type(
+    value_defining_element: dict, modules_dir: str | Path, profile_name: str = ""
+) -> str:
     """
     Extracts the reference type from the given value defining element
     :param value_defining_element: element that defines the value
@@ -310,12 +420,15 @@ def extract_reference_type(value_defining_element: dict, modules_dir: str | Path
         logger.warning(f"Could not find target profile for {profile_name}")
     target_resource_type = value_defining_element.get("targetProfile")[0]
     # FIXME This should not be hardcoded to CDS_Module
-    referenced_profile, module_dir = get_profiles_with_base_definition(modules_dir, target_resource_type)
+    referenced_profile, module_dir = next(
+        get_profiles_with_base_definition(modules_dir, target_resource_type)
+    )
     return referenced_profile.get("type")
 
 
-def get_selectable_concepts(concept_defining_element, profile_name: str = "",
-                            client: TerminologyClient = None) -> ValueSet:
+def get_selectable_concepts(
+    concept_defining_element, profile_name: str = "", client: TerminologyClient = None
+) -> ValueSet:
     """
     Returns the answer options for the given concept defining element
     :param concept_defining_element:
@@ -326,18 +439,26 @@ def get_selectable_concepts(concept_defining_element, profile_name: str = "",
     """
     if binding := concept_defining_element.get("binding"):
         if value_set_url := binding.get("valueSet"):
-            if '|' in value_set_url:
-                value_set_url = value_set_url.split('|')[0]
-            return ValueSet(value_set_url, client.get_value_set_expansion(value_set_url))
+            if "|" in value_set_url:
+                value_set_url = value_set_url.split("|")[0]
+            return ValueSet(
+                value_set_url, client.get_value_set_expansion(value_set_url)
+            )
         else:
-            raise InvalidValueTypeException(f"No value set defined in element: {str(binding)}"
-                                            f" in profile: {profile_name}")
+            raise InvalidValueTypeException(
+                f"No value set defined in element: {str(binding)}"
+                f" in profile: {profile_name}"
+            )
     else:
-        raise InvalidValueTypeException(f"No binding defined in element: {str(concept_defining_element)}"
-                                        f" in profile: {profile_name}")
+        raise InvalidValueTypeException(
+            f"No binding defined in element: {str(concept_defining_element)}"
+            f" in profile: {profile_name}"
+        )
 
 
-def get_units(unit_defining_element, profile_name: str = "", client: TerminologyClient = None) -> List[TermCode]:
+def get_units(
+    unit_defining_element, profile_name: str = "", client: TerminologyClient = None
+) -> List[TermCode]:
     if unit_code := unit_defining_element.get("fixedCode"):
         return [TermCode(UCUM_SYSTEM, unit_code, unit_code)]
     elif unit_code := unit_defining_element.get("patternCode"):
@@ -346,14 +467,20 @@ def get_units(unit_defining_element, profile_name: str = "", client: Terminology
         if value_set_url := binding.get("valueSet"):
             return client.get_termcodes_for_value_set(value_set_url)
         else:
-            raise InvalidValueTypeException(f"No value set defined in element: {str(binding)}"
-                                            f" in profile: {profile_name}")
+            raise InvalidValueTypeException(
+                f"No value set defined in element: {str(binding)}"
+                f" in profile: {profile_name}"
+            )
     else:
-        raise InvalidValueTypeException(f"No unit defined in element: {str(unit_defining_element)}"
-                                        f" in profile: {profile_name}")
+        raise InvalidValueTypeException(
+            f"No unit defined in element: {str(unit_defining_element)}"
+            f" in profile: {profile_name}"
+        )
 
 
-def get_value_set_defining_url(value_set_defining_element: dict, profile_name: str = "") -> str:
+def get_value_set_defining_url(
+    value_set_defining_element: dict, profile_name: str = ""
+) -> str:
     """
     Returns the value set defining url for the given value set defining element
     :param value_set_defining_element: Element that defines the value set
@@ -364,11 +491,15 @@ def get_value_set_defining_url(value_set_defining_element: dict, profile_name: s
         if value_set_url := binding.get("valueSet"):
             return value_set_url
         else:
-            raise InvalidValueTypeException(f"No value set defined in element: {str(binding)}"
-                                            f" in profile: {profile_name}")
+            raise InvalidValueTypeException(
+                f"No value set defined in element: {str(binding)}"
+                f" in profile: {profile_name}"
+            )
     else:
-        raise InvalidValueTypeException(f"No binding defined in element: {str(value_set_defining_element)}"
-                                        f" in profile: {profile_name}")
+        raise InvalidValueTypeException(
+            f"No binding defined in element: {str(value_set_defining_element)}"
+            f" in profile: {profile_name}"
+        )
 
 
 def pattern_coding_to_term_code(element, client: TerminologyClient):
@@ -439,7 +570,9 @@ def fixed_codeable_concept_to_term_code(element, client: TerminologyClient):
     return term_code
 
 
-def translate_element_to_fhir_path_expression(elements: List[dict], profile_snapshot, is_composite: bool = False) -> List[str]:
+def translate_element_to_fhir_path_expression(
+    elements: List[dict], profile_snapshot, is_composite: bool = False
+) -> List[str]:
     """
     Translates an element to a fhir search parameter. Be aware not every element is translated alone to a
     fhir path expression. I.E. Extensions elements are translated together with the prior element.
@@ -454,36 +587,40 @@ def translate_element_to_fhir_path_expression(elements: List[dict], profile_snap
     if element_type == "Extension":
         if elements[0].get("id") == "Extension.value[x]":
             element_type = get_element_type(elements[0])
-            element_path = f"{element_path}.where(url='{get_extension_url(element)}').value[x]"
+            element_path = (
+                f"{element_path}.where(url='{get_extension_url(element)}').value[x]"
+            )
             element_path = replace_x_with_cast_expression(element_path, element_type)
         # FIXME: Currently hard coded should be generalized
         elif elements[0].get("id") == "Extension.extension:age.value[x]":
             element_path = f"{element_path}.where(url='{get_extension_url(element)}').extension.where(url='age').value[x]"
             element_path = replace_x_with_cast_expression(element_path, element_type)
-    if '[x]' in element_path and "Extension" not in element_path:
+    if "[x]" in element_path and "Extension" not in element_path:
         element_type = get_parent_element_type(element.get("id"), profile_snapshot)
         element_path = replace_x_with_cast_expression(element_path, element_type)
         if is_composite:
             element_path = f"value.ofType({element_type})"
     result = [element_path]
     if elements:
-        result.extend(translate_element_to_fhir_path_expression(elements, profile_snapshot))
+        result.extend(
+            translate_element_to_fhir_path_expression(elements, profile_snapshot)
+        )
     return result
 
 
 def replace_x_with_cast_expression(element_path, element_type):
     # Regular expression to capture [x] and [x]:arbitrary_slicing
-    match = re.search(r'(\[x](?::\w+)?)', element_path)
+    match = re.search(r"(\[x](?::\w+)?)", element_path)
     if match:
-        pre_match = element_path[:match.start()]
-        post_match = element_path[match.end():]
+        pre_match = element_path[: match.start()]
+        post_match = element_path[match.end() :]
         # TODO: Rework handling of FHIRPath-like expressions. We currently only use string manipulation when working
         #       with such expressions which leads to a lot of edge case handling and double checking. Instead strings
         #       should be tokenized somewhat so that information about the expression is readily available throughout
         #       the processing chain
         # Always add parenthesis for now to avoid functions agnostic to the actual structure of the expression to
         # generate invalid FHIRPath expressions accidentally
-        replacement = f'({pre_match} as {element_type}){post_match}'
+        replacement = f"({pre_match} as {element_type}){post_match}"
         return replacement
     return element_path
 
@@ -493,22 +630,22 @@ def get_parent_element_type(element_id, profile_snapshot):
     If the path indicates an arbitrary type [x] the parent element can give insight on its type. This function
     returns the type of the parent element. By searching the element at [x] or at its slicing.
     """
-    if '[x]:' not in element_id:
+    if "[x]:" not in element_id:
         # remove everything after the [x]
-        element_id = re.sub(r'(\[x\]).*', r'\1', element_id)
+        element_id = re.sub(r"(\[x\]).*", r"\1", element_id)
     else:
         # remove everything after the [x] and the slicing -> everything until the next . after [x]:
-        element_id = re.sub(r'(\[x\]).*?(?=\.)', r'\1', element_id)
+        element_id = re.sub(r"(\[x\]).*?(?=\.)", r"\1", element_id)
     try:
         parent_element = get_element_from_snapshot(profile_snapshot, element_id)
     except Exception:
-        element_id = re.sub(r'(\[x\]).*', r'\1', element_id)
+        element_id = re.sub(r"(\[x\]).*", r"\1", element_id)
         parent_element = get_element_from_snapshot(profile_snapshot, element_id)
     return get_element_type(parent_element)
 
 
 def get_extension_url(element):
-    extension_profiles = element.get('type')[0].get('profile')
+    extension_profiles = element.get("type")[0].get("profile")
     if len(extension_profiles) > 1:
         raise Exception("More than one extension found")
     if not extension_profiles:
@@ -533,7 +670,12 @@ def get_element_type(element):
         else:
             raise Exception("Multiple types are currently not supported")
     elif not element_types:
-        raise Exception("No type found for element " + element.get("id") + " in profile element \n" + element)
+        raise Exception(
+            "No type found for element "
+            + element.get("id")
+            + " in profile element \n"
+            + element
+        )
     return element_types[0].get("code")
 
 
@@ -551,16 +693,23 @@ def get_element_from_snapshot_by_path(profile_snapshot, element_path) -> List[di
                 result.append(element)
         if not result:
             raise KeyError(
-                f"Could not find element with id: {element_path} in the snapshot: {profile_snapshot.get('name')}")
+                f"Could not find element with id: {element_path} in the snapshot: {profile_snapshot.get('name')}"
+            )
     except KeyError:
         raise KeyError(
             f"KeyError the element id: {element_path} is not in the snapshot or the snapshot has no snapshot "
-            f"elements")
+            f"elements"
+        )
     return result
 
 
-def get_term_code_by_id(fhir_profile_snapshot, term_code_defining_id, data_set_dir, module_dir,
-                        client: TerminologyClient) -> List[TermCode]:
+def get_term_code_by_id(
+    fhir_profile_snapshot,
+    term_code_defining_id,
+    data_set_dir,
+    module_dir,
+    client: TerminologyClient,
+) -> List[TermCode]:
     """
     Returns the term entries for the given term code defining id
     :param fhir_profile_snapshot: Snapshot of the FHIR profile
@@ -571,47 +720,77 @@ def get_term_code_by_id(fhir_profile_snapshot, term_code_defining_id, data_set_d
     :return: Term entries
     """
     if not term_code_defining_id:
-        raise Exception(f"No term code defining id given print for {fhir_profile_snapshot.get('name')}")
-    term_code_defining_element = resolve_defining_id(fhir_profile_snapshot, term_code_defining_id,
-                                                     data_set_dir, module_dir)
+        raise Exception(
+            f"No term code defining id given print for {fhir_profile_snapshot.get('name')}"
+        )
+    term_code_defining_element = resolve_defining_id(
+        fhir_profile_snapshot, term_code_defining_id, data_set_dir, module_dir
+    )
     if not term_code_defining_element:
-        raise Exception(f"Could not resolve term code defining id {term_code_defining_id} "
-                        f"in {fhir_profile_snapshot.get('name')}")
+        raise Exception(
+            f"Could not resolve term code defining id {term_code_defining_id} "
+            f"in {fhir_profile_snapshot.get('name')}"
+        )
     if "patternCoding" in term_code_defining_element:
         if "code" in term_code_defining_element["patternCoding"]:
             term_code = pattern_coding_to_term_code(term_code_defining_element, client)
             return [term_code]
     if "patternCodeableConcept" in term_code_defining_element:
         if "coding" in term_code_defining_element["patternCodeableConcept"]:
-            term_code = pattern_codeable_concept_to_term_code(term_code_defining_element, client)
+            term_code = pattern_codeable_concept_to_term_code(
+                term_code_defining_element, client
+            )
             return [term_code]
     if "binding" in term_code_defining_element:
         value_set = term_code_defining_element.get("binding").get("valueSet")
         return client.get_termcodes_for_value_set(value_set)
     else:
-        tc = try_get_term_code_from_sub_elements(fhir_profile_snapshot, term_code_defining_id, data_set_dir, module_dir,
-                                                 client)
+        tc = try_get_term_code_from_sub_elements(
+            fhir_profile_snapshot,
+            term_code_defining_id,
+            data_set_dir,
+            module_dir,
+            client,
+        )
         if tc:
             return [tc]
-        raise Exception(f"Could not resolve term code defining element: {term_code_defining_element}")
+        raise Exception(
+            f"Could not resolve term code defining element: {term_code_defining_element}"
+        )
 
 
-def try_get_term_code_from_sub_elements(fhir_profile_snapshot, parent_coding_id, data_set_dir,
-                                        module_dir, client: TerminologyClient) -> Optional[TermCode]:
+def try_get_term_code_from_sub_elements(
+    fhir_profile_snapshot,
+    parent_coding_id,
+    data_set_dir,
+    module_dir,
+    client: TerminologyClient,
+) -> Optional[TermCode]:
     if not is_element_in_snapshot(fhir_profile_snapshot, parent_coding_id + ".code"):
         return None
-    code_element = resolve_defining_id(fhir_profile_snapshot, parent_coding_id + ".code", data_set_dir, module_dir)
-    system_element = resolve_defining_id(fhir_profile_snapshot, parent_coding_id + ".system", data_set_dir,
-                                         module_dir)
+    code_element = resolve_defining_id(
+        fhir_profile_snapshot, parent_coding_id + ".code", data_set_dir, module_dir
+    )
+    system_element = resolve_defining_id(
+        fhir_profile_snapshot, parent_coding_id + ".system", data_set_dir, module_dir
+    )
     if code_element and system_element:
         if "patternCode" in code_element and "patternUri" in system_element:
-            return TermCode(system_element["patternUri"], code_element["patternCode"],
-                            client.get_term_code_display(system_element["patternUri"],
-                                                         code_element["patternCode"]))
+            return TermCode(
+                system_element["patternUri"],
+                code_element["patternCode"],
+                client.get_term_code_display(
+                    system_element["patternUri"], code_element["patternCode"]
+                ),
+            )
         elif "fixedCode" in code_element and "fixedUri" in system_element:
-            return TermCode(system_element["fixedUri"], code_element["fixedCode"],
-                            client.get_term_code_display(system_element["fixedUri"],
-                                                         code_element["fixedCode"]))
+            return TermCode(
+                system_element["fixedUri"],
+                code_element["fixedCode"],
+                client.get_term_code_display(
+                    system_element["fixedUri"], code_element["fixedCode"]
+                ),
+            )
 
     return None
 
@@ -626,8 +805,9 @@ def get_binding_value_set_url(element: dict) -> str | None:
         return element["binding"].get("valueSet")
 
 
-def get_fixed_term_codes(element: dict, snapshot: dict, module_dir, data_set_dir,
-                         client: TerminologyClient) -> List[TermCode]:
+def get_fixed_term_codes(
+    element: dict, snapshot: dict, module_dir, data_set_dir, client: TerminologyClient
+) -> List[TermCode]:
     """
     Returns the fixed term codes of the given element
     """
@@ -640,7 +820,9 @@ def get_fixed_term_codes(element: dict, snapshot: dict, module_dir, data_set_dir
     elif "patternCoding" in element and "code" in element["patternCoding"]:
         return [pattern_coding_to_term_code(element, client)]
     else:
-        if tc := try_get_term_code_from_sub_elements(snapshot, element.get("id"), module_dir, data_set_dir, client):
+        if tc := try_get_term_code_from_sub_elements(
+            snapshot, element.get("id"), module_dir, data_set_dir, client
+        ):
             return [tc]
     return []
 
@@ -651,14 +833,14 @@ def get_attribute_key(element_id: str) -> str:
     :param element_id: Element ID the key will be based on
     :return: Attribute key
     """
-    if '(' and ')' in element_id:
-        element_id = element_id[element_id.rfind('(') + 1:element_id.find(')')]
+    if "(" and ")" in element_id:
+        element_id = element_id[element_id.rfind("(") + 1 : element_id.find(")")]
 
-    if ':' in element_id:
-        element_id = element_id.split(':')[-1]
-        key = element_id.split('.')[0]
+    if ":" in element_id:
+        element_id = element_id.split(":")[-1]
+        key = element_id.split(".")[0]
     else:
-        key = element_id.split('.')[-1]
+        key = element_id.split(".")[-1]
 
     if not key:
         raise ValueError(f"Could not find key for {element_id}")
@@ -672,8 +854,9 @@ def generate_attribute_key(element_id: str) -> TermCode:
     return TermCode("http://hl7.org/fhir/StructureDefinition", key, key)
 
 
-def get_display_from_element_definition(snapshot_element: dict,
-                                        default: str = None) -> TranslationDisplayElement:
+def get_display_from_element_definition(
+    snapshot_element: dict, default: str = None
+) -> TranslationDisplayElement:
     """
     Extracts the display and translations from the descriptive elements within the ElementDefinition instance. If the
     identified `ElementDefinition` instance in the provided snapshot features translations for the elements short
@@ -695,35 +878,59 @@ def get_display_from_element_definition(snapshot_element: dict,
     display = default
     try:
         if snapshot_element is None or len(snapshot_element.keys()) == 0:
-            raise MissingTranslationException(f"No translations can be extracted since an empty element was passed")
+            raise MissingTranslationException(
+                f"No translations can be extracted since an empty element was passed"
+            )
         if snapshot_element.get("short"):
-            display = snapshot_element.get('short')
+            display = snapshot_element.get("short")
         elif snapshot_element.get("sliceName"):
-            logger.info(f"Falling back to value of 'sliceName' for original display value of element. A short "
-                         f"description via 'short' element should be added")
-            display = snapshot_element.get('sliceName')
+            logger.info(
+                f"Falling back to value of 'sliceName' for original display value of element. A short "
+                f"description via 'short' element should be added"
+            )
+            display = snapshot_element.get("sliceName")
 
         for lang_container in snapshot_element.get("_short", {}).get("extension", []):
-            if lang_container.get("url") != "http://hl7.org/fhir/StructureDefinition/translation":
+            if (
+                lang_container.get("url")
+                != "http://hl7.org/fhir/StructureDefinition/translation"
+            ):
                 continue
-            language = next(filter(lambda x: x.get("url") == "lang", lang_container.get("extension"))).get("valueCode")
-            language_value = next(filter(lambda x: x.get("url") == "content", lang_container.get("extension"))).get("valueString")
-            translations_map[language] = {'language': language, 'value': language_value}
+            language = next(
+                filter(
+                    lambda x: x.get("url") == "lang", lang_container.get("extension")
+                )
+            ).get("valueCode")
+            language_value = next(
+                filter(
+                    lambda x: x.get("url") == "content", lang_container.get("extension")
+                )
+            ).get("valueString")
+            translations_map[language] = {"language": language, "value": language_value}
 
         if translations_map == translation_map_default:
-            logger.warning(f"No translation could be identified for element '{snapshot_element.get('id')}' since no "
-                           f"language extensions are present => Defaulting")
+            logger.warning(
+                f"No translation could be identified for element '{snapshot_element.get('id')}' since no "
+                f"language extensions are present => Defaulting"
+            )
 
     except MissingTranslationException as exc:
         logger.warning(exc)
     except Exception as exc:
-        logger.warning(f"Something went wrong when trying to extract translations from element '{snapshot_element.get('id')}'. "
-                       f"Reason: {exc}", exc_info=exc)
+        logger.warning(
+            f"Something went wrong when trying to extract translations from element '{snapshot_element.get('id')}'. "
+            f"Reason: {exc}",
+            exc_info=exc,
+        )
 
-    return TranslationDisplayElement(original=display, translations=list(translations_map.values()))
+    return TranslationDisplayElement(
+        original=display, translations=list(translations_map.values())
+    )
 
 
-def process_element_definition(snapshot_element: dict, default: str = None) -> (TermCode, TranslationDisplayElement):
+def process_element_definition(
+    snapshot_element: dict, default: str = None
+) -> (TermCode, TranslationDisplayElement):
     """
     Uses the provided ElementDefinition instance to determine the attribute code as well as associated display values
     (primary value and - if present - language variants)
@@ -732,11 +939,14 @@ def process_element_definition(snapshot_element: dict, default: str = None) -> (
     :param default: value to use as fallback if there is no 'id' in the ElementDefinition
     :return: the attribute code and suitable display values
     """
-    if 'id' not in snapshot_element:
+    if "id" not in snapshot_element:
         key = default
     else:
-        key = get_attribute_key(snapshot_element.get('id'))
+        key = get_attribute_key(snapshot_element.get("id"))
 
     display = get_display_from_element_definition(snapshot_element, default=key)
 
-    return TermCode("http://hl7.org/fhir/StructureDefinition", key, display.original), display
+    return (
+        TermCode("http://hl7.org/fhir/StructureDefinition", key, display.original),
+        display,
+    )
