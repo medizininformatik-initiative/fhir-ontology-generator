@@ -20,9 +20,11 @@ sql_resources_dir = files(common.resources.sql)
 
 
 def clean_dump(dump_file: Path):
-    with dump_file.open(mode="w+", encoding="utf-8") as f:
+    with dump_file.open(mode="r+", encoding="utf-8") as f:
         data = f.read()
-        data = re.sub(r"^\\restrict .*$", "", data, count=1)
+    data = re.sub(r"\\restrict \S+\n", "", data)
+    data = re.sub(r"\\unrestrict \S+\n", "", data)
+    with dump_file.open(mode="w+", encoding="utf-8") as f:
         f.write(data)
 
 
