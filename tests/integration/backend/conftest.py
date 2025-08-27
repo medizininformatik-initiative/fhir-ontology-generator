@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import subprocess
 from collections import defaultdict
 from pathlib import Path
 from typing import Mapping, Union, Iterator, Optional, Any
@@ -130,14 +131,18 @@ def docker_services(
     docker_cleanup: str,
 ) -> Iterator[Services]:
     # We overwrite this fixture to allow for the Docker container logs to be saved before `pytest-docker` removes them
-    with get_docker_services(
-        docker_compose_command,
-        docker_compose_file,
-        docker_compose_project_name,
-        docker_setup,
-        docker_cleanup,
-    ) as docker_service:
-        yield docker_service
+    try:
+        with get_docker_services(
+            docker_compose_command,
+            docker_compose_file,
+            docker_compose_project_name,
+            docker_setup,
+            docker_cleanup,
+        ) as docker_service:
+            yield docker_service
+    except:
+        subprocess.check_output(["docker", "compose", docker_cleanup], cwd=__test_dir())
+    finally:
         common.util.test.docker.save_docker_logs(__test_dir(), "integration-test")
 
 
