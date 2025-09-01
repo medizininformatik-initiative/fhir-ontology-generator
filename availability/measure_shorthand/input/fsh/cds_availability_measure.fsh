@@ -11,7 +11,7 @@ Description: "Measure to determine the availability of criteria based on the amo
 
 
 // Profil Diagnose
-* insert AddStratifierGroup(0, "Condition?_profile=https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose", Condition, Condition.subject.reference)
+* insert AddStratifierGroup(0, "Condition?_profile:below=https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose", Condition, Condition.subject.reference)
 * insert AddStratifierToGroupWhere(0, 0, Condition.code.coding.where, system='http://fhir.de/CodeSystem/bfarm/icd-10-gm', "condition-icd10-code" , "diag-icd10")
 * insert AddStratifierToGroupWhere(0, 1, Condition.code.coding.where, system='http://snomed.info/sct', "condition-sct-code" , "diag-sct")
 * insert AddStratifierToGroupWhere(0, 2, Condition.code.coding.where, system='http://fhir.de/CodeSystem/bfarm/alpha-id', "condition-alhpaid-code" , "diag-alphaid")
@@ -25,7 +25,7 @@ Description: "Measure to determine the availability of criteria based on the amo
 * insert AddStratifierToGroup(1, 0, Observation.code.coding.where(system='http://loinc.org'\), "observation-lab-loinc-code" , "lab-loinc")
 
 // Profil Patient
-* insert AddStratifierGroup(2, "Patient?_profile:below=https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Patient", Patient, Patient.id.value)
+* insert AddStratifierGroup(2, "Patient", Patient, Patient.id.value)
 * insert AddStratifierToGroup(2, 0, Patient.gender, "patient-gender" , "patient-gender")
 * insert AddStratifierToGroupWhere(2, 1, Patient.birthDate.exists, , "patient-birthdate-exists" , "patient-birthdate-exists")
 
@@ -110,16 +110,16 @@ Description: "Measure to determine the availability of criteria based on the amo
 * insert AddStratifierToGroup(9, 43, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.29'\), "consent-rekontaktierung-weitere-studien" , "consent-rekontaktierung-weitere-studien")
 * insert AddStratifierToGroup(9, 44, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.30'\), "consent-rekontaktierung-zusatzbefund" , "consent-rekontaktierung-zusatzbefund")
 * insert AddStratifierToGroup(9, 45, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.31'\), "consent-rekontaktierung-zusatzbefund" , "consent-rekontaktierung-zusatzbefund")
-* insert AddStratifierToGroup(9, 46, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.32'\), "consent-z1-gecco83-nutzung-num/codex" , "consent-z1-gecco83-nutzung-num/codex")
+* insert AddStratifierToGroup(9, 46, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.32'\), "consent-z1-gecco83-nutzung-num-codex" , "consent-z1-gecco83-nutzung-num-codex")
 * insert AddStratifierToGroup(9, 47, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.40'\), "consent-mdat-gecco83-komplettieren-einmalig" , "consent-mdat-gecco83-komplettieren-einmalig")
 * insert AddStratifierToGroup(9, 48, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.43'\), "consent-mdat-gecco83-erheben" , "consent-mdat-gecco83-erheben")
-* insert AddStratifierToGroup(9, 49, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.33'\), "consent-mdat-gecco83-bereitstellen-num/codex" , "consent-mdat-gecco83-bereitstellen-num/codex")
-* insert AddStratifierToGroup(9, 50, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.34'\), "consent-mdat-gecco83-speichern-verarbeiten-num/codex" , "consent-mdat-gecco83-speichern-verarbeiten-num/codex")
+* insert AddStratifierToGroup(9, 49, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.33'\), "consent-mdat-gecco83-bereitstellen-num-codex" , "consent-mdat-gecco83-bereitstellen-num-codex")
+* insert AddStratifierToGroup(9, 50, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.34'\), "consent-mdat-gecco83-speichern-verarbeiten-num-codex" , "consent-mdat-gecco83-speichern-verarbeiten-num-codex")
 * insert AddStratifierToGroup(9, 51, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.41'\), "consent-mdat-gecco83-wissenschaftlich-nutzen-covid-19-forschung-eu-dsgvo-konform-deprecated" , "consent-mdat-gecco83-wissenschaftlich-nutzen-covid-19-forschung-eu-dsgvo-konform-deprecated")
 * insert AddStratifierToGroup(9, 52, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.42'\), "consent-mdat-gecco83-wissenschaftlich-nutzen-pandemie-forschung-eu-dsgvo-konform-deprecated" , "consent-mdat-gecco83-wissenschaftlich-nutzen-pandemie-forschung-eu-dsgvo-konform-deprecated")
-* insert AddStratifierToGroup(9, 53, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.56'\), "consent-mdat-gecco83-wissenschaftlich-nutzen-num/codex-eu-dsgvo-niveau" , "consent-mdat-gecco83-wissenschaftlich-nutzen-num/codex-eu-dsgvo-niveau")
-* insert AddStratifierToGroup(9, 54, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.35'\), "consent-z1-gecco83-weitergabe-num/codex-non-eu-dsgvo-niveau" , "consent-z1-gecco83-weitergabe-num/codex-non-eu-dsgvo-niveau")
-* insert AddStratifierToGroup(9, 55, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.36'\), "consent-mdat-gecco83-bereitstellen-num/codex-ohne-eu-dsgvo-niveau" , "consent-mdat-gecco83-bereitstellen-num/codex-ohne-eu-dsgvo-niveau")
+* insert AddStratifierToGroup(9, 53, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.56'\), "consent-mdat-gecco83-wissenschaftlich-nutzen-num-codex-eu-dsgvo-niveau" , "consent-mdat-gecco83-wissenschaftlich-nutzen-num-codex-eu-dsgvo-niveau")
+* insert AddStratifierToGroup(9, 54, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.35'\), "consent-z1-gecco83-weitergabe-num-codex-non-eu-dsgvo-niveau" , "consent-z1-gecco83-weitergabe-num-codex-non-eu-dsgvo-niveau")
+* insert AddStratifierToGroup(9, 55, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.36'\), "consent-mdat-gecco83-bereitstellen-num-codex-ohne-eu-dsgvo-niveau" , "consent-mdat-gecco83-bereitstellen-num-codex-ohne-eu-dsgvo-niveau")
 * insert AddStratifierToGroup(9, 56, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.57'\), "consent-z2-patientendaten-erheben-nutzen-kontaktierung-im-acribis-projekt" , "consent-z2-patientendaten-erheben-nutzen-kontaktierung-im-acribis-projekt")
 * insert AddStratifierToGroup(9, 57, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.58'\), "consent-patdat-erheben-nutzen-kontaktierung-im-acribis-projekt" , "consent-patdat-erheben-nutzen-kontaktierung-im-acribis-projekt")
 * insert AddStratifierToGroup(9, 58, Consent.provision.provision.code.coding.where(code='2.16.840.1.113883.3.1937.777.24.5.3.59'\), "consent-z2-idat-melderegister-abfragen-speichern-verarbeiten-im-acribis-projekt" , "consent-z2-idat-melderegister-abfragen-speichern-verarbeiten-im-acribis-projekt")
