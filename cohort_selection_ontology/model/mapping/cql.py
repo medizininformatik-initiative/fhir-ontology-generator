@@ -136,8 +136,8 @@ class AttributeComponent(SerializeType):
     Translates to an expression in a CQL where clause
     """
 
-    types: Annotated[
-        conlist(FhirDataType, min_length=1),
+    type: Annotated[
+        str,
         Field(description="FHIR datatype of the targeted element"),
     ]
     path: Annotated[str, Field(description="Relative path to the targeted element")]

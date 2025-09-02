@@ -276,10 +276,9 @@ def test_get_components_from_function():
         "The generated component dict for an ofType function invocation should "
         "represent an AttributeComponent"
     )
-    assert c.types == ["Quantity"], (
-        "The list of types for an ofType function invocation should only contain the type "
-        "specified via its parameter"
-    )
+    assert (
+        c.type == "Quantity"
+    ), "The type for an ofType function invocation should be specified via its parameter"
 
     expr_str = "Resource.reference.resolve()"
     func_expr: fhirpathParser.FunctionContext = parse_expr(expr_str).expression()
@@ -288,10 +287,9 @@ def test_get_components_from_function():
         "The generated component dict for a resolve function invocation without a trailing expression should "
         "represent an AttributeComponent"
     )
-    assert c.types == ["Reference"], (
-        "The list of types for a resolve function invocation without a trailing "
-        "expression should only contain the data type 'Reference'"
-    )
+    assert (
+        c.type == "Reference"
+    ), "The type for a resolve function invocation without a trailing expression should be the data type 'Reference'"
 
     expr_str = "Resource.reference.resolve()"
     func_expr: fhirpathParser.FunctionContext = parse_expr(expr_str).expression()
@@ -309,10 +307,9 @@ def test_get_components_from_function():
         "The generated component dict for a resolve function invocation with a trailing expression should "
         "represent an AttributeComponent (for now)"
     )
-    assert c.types == ["Reference"], (
-        "The list of types for a resolve function invocation with a trailing "
-        "expression should only contain the data type 'Reference'"
-    )
+    assert (
+        c.type == "Reference"
+    ), "The type for a resolve function invocation with a trailing expression should be the data type 'Reference'"
     assert c["values"] == [component]
 
 
@@ -386,7 +383,7 @@ def test__enrich_reference_typed_tree(attribute_test_project: Project):
         components=[
             dotdict(
                 _type=AttributeComponent.__name__,
-                types=[],
+                type=None,
                 path="element2",
                 cardinality=SimpleCardinality.SINGLE,
                 values=[],
@@ -403,10 +400,9 @@ def test__enrich_reference_typed_tree(attribute_test_project: Project):
     ), "The expected number of contained components in this example is 1"
 
     ac: AttributeComponent = rg.components[0]
-    assert ac.types == ["Coding"], (
-        "The supported types of the contained component should match the referenced target "
-        "elements supported types"
-    )
+    assert (
+        ac.type == "Coding"
+    ), "The supported type of the contained component should match the type supported by the referenced target"
     assert ac.path == "Procedure.element2", (
         "The path of the contained component should match the path of the "
         "referenced target element"
@@ -421,14 +417,14 @@ def test__enrich_coding_typed_tree(chain: ElementChain):
         components=[
             dotdict(
                 _type=AttributeComponent.__name__,
-                types=[],
+                type=None,
                 path="system",
                 cardinality=None,
                 values=[parse_expr("'abc'").expression()],
             ),
             dotdict(
                 _type=AttributeComponent.__name__,
-                types=[],
+                type=None,
                 path="code",
                 cardinality=None,
                 values=[parse_expr("'123'").expression()],
@@ -436,10 +432,9 @@ def test__enrich_coding_typed_tree(chain: ElementChain):
         ],
     )
     ac: AttributeComponent = _enrich_coding_typed_tree(tree, chain)
-    assert ac.types == [FhirComplexDataType.CODING], (
-        "The resulting AttributeComponent should only support the FHIR "
-        "data type 'Coding'"
-    )
+    assert (
+        ac.type == FhirComplexDataType.CODING
+    ), "The resulting AttributeComponent should support the FHIR data type 'Coding'"
     assert ac.path == "Procedure.element2"
     assert ac.cardinality == SimpleCardinality.MANY
     assert ac.values == [Coding(system="abc", code="123")]
@@ -453,21 +448,21 @@ def test__enrich_quantity_typed_tree(chain: ElementChain):
         components=[
             dotdict(
                 _type=AttributeComponent.__name__,
-                types=[],
+                type=None,
                 path="value",
                 cardinality=None,
                 values=[parse_expr("'123.45'").expression()],
             ),
             dotdict(
                 _type=AttributeComponent.__name__,
-                types=[],
+                type=None,
                 path="unit",
                 cardinality=None,
                 values=[parse_expr("'mm[Hg]'").expression()],
             ),
             dotdict(
                 _type=AttributeComponent.__name__,
-                types=[],
+                type=None,
                 path="system",
                 cardinality=None,
                 values=[parse_expr("'http://unitsofmeasure.org'").expression()],
@@ -482,10 +477,9 @@ def test__enrich_quantity_typed_tree(chain: ElementChain):
         ],
     )
     ac: AttributeComponent = _enrich_quantity_tree(tree, chain)
-    assert ac.types == [FhirComplexDataType.QUANTITY], (
-        "The resulting AttributeComponent should only support the FHIR "
-        "data type 'Quantity'"
-    )
+    assert (
+        ac.type == FhirComplexDataType.QUANTITY
+    ), "The resulting AttributeComponent should support the FHIR data type 'Quantity'"
     assert ac.path == "Procedure.element3"
     assert ac.cardinality == SimpleCardinality.MANY
     assert ac.values == [
@@ -502,16 +496,15 @@ def test__enrich_literal_quantity_tree(chain: ElementChain):
     # Procedure.element2 = 123.45 'mm[Hg]'
     tree = dotdict(
         _type=AttributeComponent.__name__,
-        types=[],
+        type=None,
         path="Procedure.element3",
         cardinality=None,
         values=[parse_expr("123.45 'mm[Hg]'").expression().term()],
     )
     ac: AttributeComponent = _enrich_literal_quantity_tree(tree, chain)
-    assert ac.types == [FhirComplexDataType.QUANTITY], (
-        "The resulting AttributeComponent should only support the FHIR "
-        "data type 'Quantity'"
-    )
+    assert (
+        ac.type == FhirComplexDataType.QUANTITY
+    ), "The resulting AttributeComponent should support the FHIR data type 'Quantity'"
     assert ac.path == "Procedure.element3"
     assert ac.cardinality == SimpleCardinality.MANY
     assert ac.values == [
@@ -531,14 +524,14 @@ def test__enrich_period_tree(chain: ElementChain):
         components=[
             dotdict(
                 _type=AttributeComponent.__name__,
-                types=[],
+                type=None,
                 path="start",
                 cardinality=None,
                 values=[parse_expr("'@1970-01-01'").expression()],
             ),
             dotdict(
                 _type=AttributeComponent.__name__,
-                types=[],
+                type=None,
                 path="end",
                 cardinality=None,
                 values=[parse_expr("'@2025-12-31'").expression()],
@@ -546,10 +539,9 @@ def test__enrich_period_tree(chain: ElementChain):
         ],
     )
     ac: AttributeComponent = _enrich_period_tree(tree, chain)
-    assert ac.types == [FhirComplexDataType.PERIOD], (
-        "The resulting AttributeComponent should only support the FHIR "
-        "data type 'Period'"
-    )
+    assert (
+        ac.type == FhirComplexDataType.PERIOD
+    ), "The resulting AttributeComponent should support the FHIR data type 'Period'"
     assert ac.path == "Procedure.element4"
     assert ac.cardinality == SimpleCardinality.MANY
     assert ac.values == [
@@ -565,7 +557,7 @@ def test__enrich_reference_typed_attribute(
 ):
     tree = dotdict(
         _type=AttributeComponent.__name__,
-        types=[],
+        type=None,
         path="Condition.extension:slice1.value[x]",
         cardinality=None,
         values=[],
@@ -580,10 +572,9 @@ def test__enrich_reference_typed_attribute(
     ac: AttributeComponent = _enrich_reference_typed_attribute(
         tree, chain, modules_dir_path
     )
-    assert ac.types == [FhirComplexDataType.REFERENCE], (
-        "The resulting AttributeComponent should only support the FHIR "
-        "data type 'Reference'"
-    )
+    assert (
+        ac.type == FhirComplexDataType.REFERENCE
+    ), "The resulting AttributeComponent should support the FHIR data type 'Reference'"
     assert ac.path == "Condition.extension:slice1.value[x]"
     assert ac.cardinality == SimpleCardinality.MANY
     assert ac.values == [Reference(type="Procedure")]
@@ -591,15 +582,8 @@ def test__enrich_reference_typed_attribute(
 
 def test__enrich_coding_typed_attribute(chain: ElementChain):
     ac: AttributeComponent = _enrich_coding_typed_attribute(chain)
-    assert ac.types == [FhirComplexDataType.CODING], (
-        "The resulting AttributeComponent should only support the FHIR "
-        "data type 'Coding'"
-    )
+    assert (
+        ac.type == FhirComplexDataType.CODING
+    ), "The resulting AttributeComponent should support the FHIR data type 'Coding'"
     assert ac.path == "Procedure.element2"
     assert ac.cardinality == SimpleCardinality.MANY
-
-
-def test__enrich_primitive_typed_tree(
-
-):
-    pass

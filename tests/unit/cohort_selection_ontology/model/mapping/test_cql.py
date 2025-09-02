@@ -14,7 +14,7 @@ class ContextGroupTest(unittest.TestCase):
     @classmethod
     def test_model_construct(cls):
         valid_ac = AttributeComponent(
-            types=["Coding"],
+            type="Coding",
             path="code.coding",
             cardinality=SimpleCardinality.MANY,
             values=[Coding()],
@@ -23,7 +23,7 @@ class ContextGroupTest(unittest.TestCase):
             path="extension",
             components=[
                 AttributeComponent(
-                    types=["Reference"],
+                    type="Reference",
                     path="value",
                     cardinality=SimpleCardinality.SINGLE,
                     values=[Reference()],

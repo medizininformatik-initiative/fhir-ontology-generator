@@ -88,7 +88,7 @@ def get_components_from_invocation_expression(
         new_component = dotdict(
             {
                 "_type": AttributeComponent.__name__,
-                "types": [],  # Will be assigned during post-processing
+                "type": None,  # Will be assigned during post-processing
                 "path": path,  # Will be assigned in when parent elements are processed
                 "cardinality": None,  # Will be assigned during post-processing
                 "values": [],
@@ -115,7 +115,7 @@ def get_components_from_equality_expression(
     attr_component = dotdict(
         {
             "_type": AttributeComponent.__name__,
-            "types": [],  # Will be assigned during post-processing
+            "type": None,  # Will be assigned during post-processing
             "path": None,  # Will be assigned in when parent elements are processed
             "cardinality": None,  # Will be assigned during post-processing
             "values": [  # Will be translated into proper FHIR data type during post-processing
@@ -226,7 +226,7 @@ def get_components_from_function(
                 component = dotdict(
                     {
                         "_type": AttributeComponent.__name__,
-                        "types": [get_symbol(func_expr.paramList())],
+                        "type": get_symbol(func_expr.paramList()),
                         "path": None,  # Will be assigned in when parent elements are processed
                         "cardinality": None,  # Will be assigned during post-processing
                         "values": [],  # Will be translated into proper FHIR data type during post-processing
@@ -248,7 +248,7 @@ def get_components_from_function(
                 component = dotdict(
                     {
                         "_type": AttributeComponent.__name__,
-                        "types": ["Reference"],
+                        "type": "Reference",
                         "path": None,
                         "values": [child],
                     }
@@ -257,7 +257,7 @@ def get_components_from_function(
                 component = dotdict(
                     {
                         "_type": AttributeComponent.__name__,
-                        "types": ["Reference"],
+                        "type": "Reference",
                         "cardinality": None,
                         "values": [],
                     }
@@ -285,7 +285,7 @@ def get_components_from_term_expression(
         return dotdict(
             {
                 "_type": AttributeComponent.__name__,
-                "types": [],
+                "type": None,
                 "path": symbol,
                 "cardinality": None,
                 "values": [],
@@ -358,7 +358,7 @@ def _enrich_coding_typed_tree(
                     f"Element path '{c.path}' is not supported for FHIR datatype 'Coding' => Skipping"
                 )
     return AttributeComponent(
-        types=[FhirComplexDataType.CODING],
+        type=FhirComplexDataType.CODING,
         path=tree.path,
         cardinality=aggregate_cardinality_of_element_chain(chain),
         values=[coding],
@@ -380,7 +380,7 @@ def _enrich_quantity_tree(
             case "code":
                 quantity.code = get_symbol(c["values"][0])
     return AttributeComponent(
-        types=[FhirComplexDataType.QUANTITY],
+        type=FhirComplexDataType.QUANTITY,
         path=tree.path,
         cardinality=aggregate_cardinality_of_element_chain(chain),
         values=[quantity],
@@ -401,7 +401,7 @@ def _enrich_literal_quantity_tree(
     else:
         quantity = None
     return AttributeComponent(
-        types=[FhirComplexDataType.QUANTITY],
+        type=FhirComplexDataType.QUANTITY,
         path=tree.path,
         cardinality=aggregate_cardinality_of_element_chain(chain),
         values=[quantity] if quantity else [],
@@ -442,7 +442,7 @@ def _enrich_period_tree(
                     f"Element path '{c}' is not supported for FHIR datatype 'Period'"
                 )
     return AttributeComponent(
-        types=[FhirComplexDataType.PERIOD],
+        type=FhirComplexDataType.PERIOD,
         path=tree.path,
         cardinality=aggregate_cardinality_of_element_chain(chain),
         values=[period],
@@ -468,7 +468,7 @@ def _enrich_reference_typed_attribute(
         )
         types = {p.get("type") for p, _ in profiles}
         return AttributeComponent(
-            types=["Reference"],
+            type=FhirComplexDataType.REFERENCE,
             path=tree.path,
             cardinality=aggregate_cardinality_of_element_chain(chain),
             values=[Reference(type=t) for t in types] if types else [Reference()],
@@ -485,7 +485,7 @@ def _enrich_coding_typed_attribute(chain: ElementChain) -> AttributeComponent:
         element, snapshot
     )
     return AttributeComponent(
-        types=[t.code for t in get_types_supported_by_element(compatible_element)],
+        type=get_types_supported_by_element(compatible_element)[0].code,
         path=compatible_element.get("path"),
         cardinality=aggregate_cardinality_of_element_chain(chain[:-1])
         * aggregate_cardinality_using_element(element, snapshot),
@@ -521,7 +521,7 @@ def _enrich_primitive_typed_tree(
         case _:
             values = [get_symbol(c) for c in tree["values"]]
     return AttributeComponent(
-        types=tree.types,
+        type=tree.type,
         path=tree.path,
         cardinality=aggregate_cardinality_of_element_chain(chain),
         values=values,
