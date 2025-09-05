@@ -5,7 +5,6 @@ import os
 from pathlib import Path
 from typing import Dict, Tuple, List, Mapping, Set
 
-import pytest
 from fhir.resources.R4B.coding import Coding
 from fhir.resources.R4B.parameters import ParametersParameter, Parameters
 
