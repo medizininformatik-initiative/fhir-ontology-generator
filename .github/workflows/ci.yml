@@ -56,6 +56,10 @@ jobs:
         SERVER_CERTIFICATE: ${{ secrets.FDPGPLUS_ONTO_SERVER_CERT }}
         PRIVATE_KEY: ${{ secrets.FDPGPLUS_ONTO_SERVER_KEY }}
 
+    - name: Collect DSE structure definition snapshots
+      shell: bash
+      run: zip -j dse_structures.zip projects/fdpg-ontology/input/data_selection_extraction/snapshots/mii/*
+
     - name: Run ontology generation
       env:
         ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
@@ -87,3 +91,4 @@ jobs:
           projects/fdpg-ontology/output/merged_ontology/backend.zip
           projects/fdpg-ontology/output/merged_ontology/mapping.zip
           availability/availability.zip
+          dse_structures.zip
