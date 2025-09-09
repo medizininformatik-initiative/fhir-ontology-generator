@@ -11,10 +11,10 @@ logger = get_logger(__file__)
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--project', type=str,
-                        help="Name of the project to generate Elasticsearch file for")
+                        help="Name of the project to generate the Translation Report for")
     args = parser.parse_args()
 
-    logger.info("Generating Elasticsearch files")
+    logger.info("Generating Ontology translation report")
 
     project = Project(name=args.project)
 
