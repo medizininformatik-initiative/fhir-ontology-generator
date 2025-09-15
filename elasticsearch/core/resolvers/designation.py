@@ -7,13 +7,14 @@ from pathlib import Path
 
 from typing import List, TypeVar, Any, Mapping
 
+from common.util.collections.functions import first
 from common.util.fhir.bundle import create_bundle, BundleType
 from common.util.http.terminology.client import FhirTerminologyClient
 from common.util.log.functions import get_class_logger, get_logger
 from common.util.project import Project
 
 
-logger = get_logger(__file__)
+_logger = get_logger(__file__)
 
 
 def extract_designation(parameters: dict, language: str, fuzzy=True) -> str | None:
@@ -25,40 +26,30 @@ def extract_designation(parameters: dict, language: str, fuzzy=True) -> str | No
                   be determined using the regex '`^{language}(-\S+)?$`'
     :return: Either `str` display value or `None` if no designation for language codes exists
     """
-    pass
     for designation in filter(
         lambda p: p.get("name") == "designation", parameters.get("parameter", [])
     ):
         part = designation.get("part")
         if part:
-            try:
-                designation_language = list(
-                    filter(lambda p: p.get("name") == "language", part)
-                )[0].get("valueCode")
-                if len(list(filter(lambda p: p.get("name") == "use", part))) == 0:
+            # Check if language code is present
+            if not (lang := first(lambda p: p.get("name") == "language", part)):
+                continue
+            designation_language = lang.get("valueCode")
+            # Check if usage code is present
+            if not (use := first(lambda p: p.get("name") == "use", part)):
+                continue
+            use_code = use.get("valueCoding", {}).get("code")
+            matches = (
+                re.match(rf"^{language}(-\S+)?$", designation_language)
+                if fuzzy
+                else (language == designation_language)
+            )
+            if matches and (
+                use_code == "display" or use_code == "preferredForLanguage"
+            ):
+                if not (value := first(lambda p: p.get("name") == "value", part)):
                     continue
-                designation_use = (
-                    list(filter(lambda p: p.get("name") == "use", part))[0]
-                    .get("valueCoding")
-                    .get("code")
-                )
-                matches = (
-                    re.match(rf"^{language}(-\S+)?$", designation_language)
-                    if fuzzy
-                    else (language == designation_language)
-                )
-                if matches and (
-                    designation_use == "display"
-                    or designation_use == "preferredForLanguage"
-                ):
-                    return list(filter(lambda p: p.get("name") == "value", part))[
-                        0
-                    ].get("valueString")
-            except IndexError:
-                logger.warning(
-                    f"Designation could not be extracted. Code is probably not present on server."
-                    f" Code:{designation}"
-                )
+                return value.get("valueString")
     return None
 
 
@@ -105,28 +96,29 @@ class TerminologyDesignationResolver:
         """
         Reduces the complexity of the code system concepts, making the
         single concepts accessible with .get(code), optimizing speed.
-        Transforms:
-        "concept": [
-            {
-                  "code": "L",
-                  "designation": [
-                        {
-                            "value": "Patient lebt",
-                            "language": "de"
-                        },
-                        {
-                            "value": "Patient lives",
-                            "language": "en"
-                        }
-                  ]
-            }, ...
-        To:
-        "concept": [
-            "L": {
-                    'de':"Patient lebt",
-                    'en'": "Patient lives"
+        Transforms::
+
+            "concept": [
                 {
-            }, ...
+                      "code": "L",
+                      "designation": [
+                            {
+                                "value": "Patient lebt",
+                                "language": "de"
+                            },
+                            {
+                                "value": "Patient lives",
+                                "language": "en"
+                            }
+                      ]
+                }, ...
+            To:
+            "concept": [
+                "L": {
+                        'de':"Patient lebt",
+                        'en'": "Patient lives"
+                    {
+                }, ...
         """
         temp = {}
         for concept in code_system_content.get("concept"):
@@ -234,6 +226,10 @@ class TerminologyDesignationResolver:
                                 designations = code_system_concepts[code]
                                 if language not in designations:
                                     designations[language] = designation
+                            else:
+                                self.__logger.debug(
+                                    f"Failed to extract designation for language '{language}' [parameter='{json.dumps(resource)}']"
+                                )
                     case "OperationOutcome":
                         failure_cnt += 1
                         self.__logger.debug(f"Operation failed. Details:\n{resource}")
@@ -352,7 +348,7 @@ class TerminologyDesignationResolver:
                 for file_name in os.listdir(ui_tree_dir)
                 if file_name.endswith(".json")
             ]
-        if value_set_dir:
+        if value_set_dir is None:
             value_sets = []
         else:
             value_sets = [
