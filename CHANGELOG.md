@@ -15,6 +15,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+# [3.8.4] - 2025-09-16
+
+## Fixed
+
+- Include profile PatientPseudonymisiert in population definition in coding availability measure ([#339](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/339) @paulolaup)
+- Add `below` modifier to Condition measure group of the coding availability measure ([#338](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/338) @paulolaup)
+- Fix stratifier codes of coding availability measure ([#337](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/337) @paulolaup)
+- Fix OrphaNet and OPS coding missing multilingual designations ([#346](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/346) @Frontman50)
+
+## Changed
+
+- Adjust selectability of BackboneElement typed elements in DSE ([#352](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/352) @paulolaup)
+- Improve consent data readability ([#330](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/330) @SebStaeubert)
+
+## Added
+
+- Include FHIR profiles supported by DSE to release ([#347](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/347) @paulolaup)
 
 ## [3.8.3] - 2025-06-08
 
@@ -22,13 +39,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Fix concepts with fewer descendants than the configured limit not being selectable in the cohort selection ([#317](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/317) @paulolaup)
 
-## [3.8.2] - 2025-07-14
+# [3.8.2] - 2025-07-14
 
 ## Added
 
 - Add result code filter for DiagnosticReport resource profiles in DSE ([#310](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/310) @Frontman50)
 
-## [3.8.1] - 2025-06-23
+# [3.8.1] - 2025-06-23
 
 ## Fixed
 
@@ -38,7 +55,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Remove primitive elements from DSE Profile Details tree ([#299](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/299) @paulolaup)
 - Keep module root node in profile tree ([#298](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/298) @Frontman50)
 
-## [3.8.0] - 2025-06-10
+# [3.8.0] - 2025-06-10
 
 ## Added
 
@@ -52,7 +69,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Cleanup generated SQL import files (removal of unused tables, indices, etc.) by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/62
 
-## [3.7.0] - 2025-05-19
+# [3.7.0] - 2025-05-19
 
 ## Changed
 
@@ -65,7 +82,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Change ICU module name for feature selection by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/279
 - Fix database import generation for feature selection UI profiles by @paulolaup as specified in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/270
 
-## [3.6.0] - 2025-5-12
+# [3.6.0] - 2025-5-12
 
 ## Added
 
@@ -81,7 +98,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Fix Invalid cql mapping for composite attributes by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/266
 
-## [3.5.0] - 2025-05-05
+# [3.5.0] - 2025-05-05
 
 ## Added
 
@@ -89,7 +106,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Separate references into distinct field in DSE profiles by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/254
 - Add shortcut for extension fields containing references by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/255
 
-### [3.4.0] - 2025-04-24
+# [3.4.0] - 2025-04-24
 
 ## Added
 
@@ -98,20 +115,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Add FDPG availability measure generation by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/209
 - Add FDPG availability measure generation output to CI by @Frontman50 in https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/229
 
-## [3.2.2] - 2025-03-17
+# [3.2.2] - 2025-03-17
 
 ### Fixed
 
 - Add temporary fix to address automatic selection of referenced profiles in UI by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/212
 
-## [3.2.1] - 2025-03-17
+# [3.2.1] - 2025-03-17
 
 ### Fix
 
 - Reintroduce missing profile snapshots for DSE gen by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/202
 - Undo changes caused in FHIRSearch mapping by update of CQL mapping by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/205
 
-## [3.2.0] - 2025-03-13
+# [3.2.0] - 2025-03-13
 
 ### Added
 
@@ -133,7 +150,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fix attribute naming in CQL mapping by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/185
 - Fix term code emission for CQL mapping in combined consent generation by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/192
 
-## [3.1.0] - 2025-02-13
+# [3.1.0] - 2025-02-13
 
 | Modul            | Version                                                                    | Changelog    |
 |------------------|----------------------------------------------------------------------------|--------------|
@@ -173,13 +190,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fix usage of wrong hash functions for contextualized termcodes by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/160
 - Fix key error by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/142
 
-## [3.0.1]
+# [3.0.1]
 
 ### Fixed
 
 - Fixed FHIRPath expression to include missing elements currently not generated by `sq2cql` by @paulolaup in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/134
 
-## [3.0.0] - 2024-11-20
+# [3.0.0] - 2024-11-20
 
 | Modul          | Version                                                                    | Changelog                                       |
 |----------------|----------------------------------------------------------------------------|-------------------------------------------------|
@@ -225,7 +242,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 
 
-## [3.0.0-alpha.1] - 2024-11-15
+# [3.0.0-alpha.1] - 2024-11-15
 
 | Modul          | Version                                                               | Changelog                                       |
 |----------------|-----------------------------------------------------------------------|-------------------------------------------------|
@@ -254,7 +271,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Fix composite generation by @BoehmDo in https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/97
 
-## [3.0.0-alpha] - 2024-10-20
+# [3.0.0-alpha] - 2024-10-20
 
 | Modul          | Version | Changelog |
 |----------------| ------------- |-------|
@@ -288,8 +305,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Use a requests session for repeated calls to speed up terminology server access
 
-## [2.0.0] - 2024-06-17
-
+# [2.0.0] - 2024-06-17
 
 Updated FHIR KDS Profiles to match the latest MII Release:
 
@@ -303,6 +319,6 @@ Updated FHIR KDS Profiles to match the latest MII Release:
 | MII_SPECIMEN | "de.medizininformatikinitiative.kerndatensatz.biobank 1.0.1" | Specimen now encompasses all concept referenced (n = 1790) in the valueset binding instead of the most commonly used (n = 50) |
 
 
-## [INIT] - pre 2024-06-17
+# [INIT] - pre 2024-06-17
 
 Previous versions do not have a changelog.
