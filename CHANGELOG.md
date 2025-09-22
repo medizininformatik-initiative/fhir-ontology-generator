@@ -15,6 +15,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+## [3.9.0] - 2025-09-22
+
+### Added
+- Allow multiple value set references in UI profile attributes ([#311](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/311) @Frontman50)
+
 # [3.8.4] - 2025-09-16
 
 ## Fixed
