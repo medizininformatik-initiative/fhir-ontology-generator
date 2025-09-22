@@ -5,6 +5,7 @@ import json
 import os
 import re
 from collections import namedtuple
+from collections.abc import Generator
 from pathlib import Path
 from typing import List, Tuple, Optional, Generator
 from typing_extensions import deprecated
@@ -209,13 +210,13 @@ def get_element_defining_elements_with_source_snapshots(
 
 def get_parent_slice_id(element_id: str) -> str:
     """
-    Extracts the ID of the slice on the highest level
+    Extracts the ID of the slice on the lowest level
     :param element_id: the element id
     :return: the ID of the slice on the highest level
 
     Example:
-        get_parent_slice_id("Observation.component:Diastolic.code.coding:sct") \n
-        => 'Observation.component:Diastolic'
+        get_parent_slice_id("Observation.component:Diastolic.code.coding:sct.code") \n
+        => 'Observation.component:Diastolic.code.coding:sct'
     """
     parent_slice_name = element_id.split(":")[-1].split(".")[0]
     parent_slice_id = element_id.rsplit(":", 1)[0] + ":" + parent_slice_name
@@ -240,11 +241,67 @@ def is_element_slice_base(element_id: str) -> bool:
     Example:
         is_element_slice_base("Observation.component:Diastolic")  => TRUE \n
         is_element_slice_base("Observation.component:Diastolic.code")  => FALSE \n
+        is_element_slice_base("Observation.component:Diastolic.code.coding:sct")  => TRUE \n
 
     :param element_id:
     :return: bool
     """
     return get_parent_slice_id(element_id) == element_id
+
+
+def get_slice_owning_element_id(element_id: str) -> str:
+    """
+    Returns the parent element id of the provided slice ID
+    :param element_id: the slice id
+    :return: the parent element id of the provided ID
+
+    Example:
+        get_slice_owning_element_id("Observation.component:Diastolic")  => "Observation.component" \n
+        get_slice_owning_element_id("Observation.component:Diastolic.code")  => "Observation.component" \n
+        get_slice_owning_element_id("Observation.component:Diastolic.code.coding:sct") => "Observation.component:Diastolic.code.coding" \n
+    """
+    return (
+        get_parent_slice_id(element_id).rsplit(":", 1)[0]
+        if ":" in element_id
+        else element_id
+    )
+
+
+def get_slice_name(element_id: str) -> str | None:
+    """
+    Return the name of the slice on the lowest level
+    :param element_id: the element id
+    :return: the name of the slice on the lowest level
+    Example:
+        get_slice_name("Observation.component:Diastolic")  => "Diastolic" \n
+        get_slice_name("Observation.component:Diastolic.code")  => "Diastolic" \n
+        get_slice_name("Observation.component:Diastolic.code.coding:sct")  => "sct" \n
+    """
+    return (
+        get_parent_slice_id(element_id).rsplit(":")[-1] if ":" in element_id else None
+    )
+
+
+def get_available_slices(element_id: str, profile_snapshot: dict) -> List[str]:
+    """
+    Returns a list of available slice ids
+    :param element_id: str
+    :param profile_snapshot: snapshot which should be scanned for slices
+    :return available_slices: List of available slices for given element
+
+    Example:
+        get_available_slices("Specimen.collection.bodySite.coding") => ["sct", "icd-o-3"]
+    """
+    found_slices: Set[str] = set()
+
+    for elem in profile_snapshot.get("snapshot", {}).get("element", []):
+        snapshot_elem_id = elem.get("id", "")
+        if ":" in snapshot_elem_id and element_id in get_parent_slice_id(
+            snapshot_elem_id
+        ):
+            found_slices.add(get_slice_name(snapshot_elem_id))
+
+    return list(found_slices)
 
 
 def get_common_ancestor_id(element_id_1: str, element_id_2: str) -> str:

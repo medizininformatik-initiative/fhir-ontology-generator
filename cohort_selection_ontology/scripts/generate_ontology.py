@@ -121,20 +121,19 @@ def write_used_value_sets_to_files(
     :param directory: Directory to write the value sets to.
     """
     os.makedirs(directory, exist_ok=True)
-    value_sets = []
+    all_profile_value_sets = []
     for ui_profile in ui_profiles:
         if ui_profile.valueDefinition and ui_profile.valueDefinition.referencedValueSet:
-            value_sets.append(ui_profile.valueDefinition.referencedValueSet)
+            all_profile_value_sets.append(ui_profile.valueDefinition.referencedValueSet)
         if ui_profile.attributeDefinitions:
             for attribute_definition in ui_profile.attributeDefinitions:
                 if attribute_definition.referencedValueSet:
-                    value_sets.append(attribute_definition.referencedValueSet)
-    for value_set in value_sets:
-        file_name = (
-            f"{remove_reserved_characters(value_set.url.split(os.sep)[-1])}.json"
-        )
-        file_path = os.path.join(directory, file_name)
-        write_object_as_json(value_set, file_path)
+                    all_profile_value_sets.append(attribute_definition.referencedValueSet)
+    for one_profile_value_set in all_profile_value_sets:
+        for single_value_set in one_profile_value_set:
+            file_name = f"{remove_reserved_characters(single_value_set.url.split('/')[-1])}.json"
+            file_path = os.path.join(directory, file_name)
+            write_object_as_json(single_value_set, file_path)
 
 
 def write_used_criteria_sets_to_files(
@@ -146,18 +145,17 @@ def write_used_criteria_sets_to_files(
     :param directory: Directory to write the criteria sets to.
     """
     os.makedirs(directory, exist_ok=True)
-    criteria_sets = []
+    all_profile_criteria_sets = []
     for ui_profile in ui_profiles:
         if ui_profile.attributeDefinitions:
             for attribute_definition in ui_profile.attributeDefinitions:
                 if attribute_definition.referencedCriteriaSet:
-                    criteria_sets.append(attribute_definition.referencedCriteriaSet)
-    for criteria_set in criteria_sets:
-        file_name = (
-            f"{remove_reserved_characters(criteria_set.url.split(os.sep)[-1])}.json"
-        )
-        file_path = os.path.join(directory, file_name)
-        write_object_as_json(criteria_set, file_path)
+                    all_profile_criteria_sets.append(attribute_definition.referencedCriteriaSet)
+    for one_profile_criteria_set in all_profile_criteria_sets:
+        for single_criteria_set in one_profile_criteria_set:
+            file_name = f"{remove_reserved_characters(single_criteria_set.url.split('/')[-1])}.json"
+            file_path = os.path.join(directory, file_name)
+            write_object_as_json(single_criteria_set, file_path)
 
 
 def remove_reserved_characters(file_name: str) -> str:

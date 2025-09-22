@@ -390,9 +390,10 @@ class DataBaseWriter:
         for ui_profile in profiles:
             for attribute_definition in ui_profile.attributeDefinitions:
                 if attribute_definition.type == "reference":
-                    criteria_set = attribute_definition.referencedCriteriaSet
+                    profile_criteria_set = attribute_definition.referencedCriteriaSet
                     # TODO: Maybe better to get them upfront
-                    self.add_critieria_set(criteria_set)
+                    for single_criteria_set in profile_criteria_set:
+                        self.add_critieria_set(single_criteria_set)
 
     @deprecated("No longer serves a purpose as its goal is already ensured via NON NULL constraint on the column")
     def remove_contextualized_termcodes_without_ui_profiles(self):
