@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List, Any, Callable, TypeVar, Iterable, Optional
 
 
 def flatten(lst: List[Any]) -> List[Any]:
@@ -15,3 +15,16 @@ def flatten(lst: List[Any]) -> List[Any]:
                 yield from flatten(element)
             else:
                 yield element
+
+
+T = TypeVar("T")
+
+def first(f: Callable[[T], bool], xs: Iterable[T]) -> Optional[T]:
+    """
+    Attempts to find first match in the provided iterable
+
+    :param f: Filter function
+    :param xs: Iterable to find match in
+    :return: First matching element or `None` if no match was found
+    """
+    return next(filter(f, xs), None)

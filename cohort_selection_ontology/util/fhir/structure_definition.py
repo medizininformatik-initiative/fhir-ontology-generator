@@ -7,7 +7,7 @@ import re
 from collections import namedtuple
 from collections.abc import Generator
 from pathlib import Path
-from typing import List, Tuple, Optional, Set
+from typing import List, Tuple, Optional, Generator
 from typing_extensions import deprecated
 
 from cohort_selection_ontology.core.terminology.client import (
@@ -357,8 +357,6 @@ def process_element_id(
         if element_id.startswith("."):
             raise ValueError("Element id must start with a resource type")
         element = get_element_from_snapshot(profile_snapshot, element_id)
-        # short_desc = (element_id, get_display_from_element_definition(element)) \
-        #    if last_desc is None else None
         result = [
             ProcessedElementResult(
                 element=element,
@@ -691,14 +689,14 @@ def get_parent_element_type(element_id, profile_snapshot):
     """
     if "[x]:" not in element_id:
         # remove everything after the [x]
-        element_id = re.sub(r"(\[x]).*", r"\1", element_id)
+        element_id = re.sub(r"(\[x\]).*", r"\1", element_id)
     else:
         # remove everything after the [x] and the slicing -> everything until the next . after [x]:
-        element_id = re.sub(r"(\[x]).*?(?=\.)", r"\1", element_id)
+        element_id = re.sub(r"(\[x\]).*?(?=\.)", r"\1", element_id)
     try:
         parent_element = get_element_from_snapshot(profile_snapshot, element_id)
     except Exception:
-        element_id = re.sub(r"(\[x]).*", r"\1", element_id)
+        element_id = re.sub(r"(\[x\]).*", r"\1", element_id)
         parent_element = get_element_from_snapshot(profile_snapshot, element_id)
     return get_element_type(parent_element)
 

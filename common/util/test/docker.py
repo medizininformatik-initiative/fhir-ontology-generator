@@ -28,32 +28,39 @@ def save_docker_logs(dir_path: str, project_name: Optional[str] = None) -> None:
         if project_name:
             args.extend(["-f", f"name=^{project_name}"])
         result = subprocess.run(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            check=True
+            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True
         )
-        containers = [(s[0], s[1]) for s in [c.split(" ") for c in result.stdout.strip().split("\n")]]
+        stdout = result.stdout.strip()
+        if stdout:
+            containers = [
+                (s[0], s[1])
+                for s in [c.split(" ") for c in result.stdout.strip().split("\n")]
+            ]
 
-        if not containers:
-            logger.warning("Found no running containers found")
-            return
+            if not containers:
+                logger.warning("Found no running containers found")
+                return
 
-        now = datetime.now()
-        current_time = now.strftime('%H_%M_%S')
+            now = datetime.now()
+            current_time = now.strftime("%H_%M_%S")
 
-        # Save logs for each container
-        for container_id, container_name in containers:
-            log_file = os.path.join(output_folder, f"{container_name}_{current_time}_logs.txt")
-            with open(log_file, "w") as f:
-                subprocess.run(
-                    ["docker", "logs", container_id],
-                    stdout=f,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    check=True
+            # Save logs for each container
+            for container_id, container_name in containers:
+                log_file = os.path.join(
+                    output_folder, f"{container_name}_{current_time}_logs.txt"
                 )
-            logger.info(f"Logs saved for container {container_name} [id={container_id}] in {log_file}")
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Error while fetching logs: {e.stderr}")
+                with open(log_file, "w") as f:
+                    subprocess.run(
+                        ["docker", "logs", container_id],
+                        stdout=f,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                        check=True,
+                    )
+                logger.info(
+                    f"Logs saved for container {container_name} [id={container_id}] in {log_file}"
+                )
+    except subprocess.CalledProcessError as err:
+        logger.error(f"Error while fetching logs. Reason: {err.stderr}", exc_info=err)
+    except Exception as exc:
+        logger.error(f"Error while fetching logs. Reason: {exc}", exc_info=exc)
