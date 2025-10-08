@@ -293,18 +293,21 @@ class ProfileDetailGenerator:
             )
             return True
 
-        # Do not allow sub elements of BackboneElement typed elements to be selected
+        # Do not allow sub elements (that are not a reference) of BackboneElement typed elements to be selected
         elem_id_split = element["id"].rsplit(".", maxsplit=1)
         if len(elem_id_split) == 1:
             return False
         parent_elem = element_map.get(elem_id_split[0])
+        elem = element_map.get(element["id"])
         while parent_elem is not None:
-            if supports_type(parent_elem, FhirComplexDataType.BACKBONE_ELEMENT):
+            if supports_type(parent_elem, FhirComplexDataType.BACKBONE_ELEMENT) and not supports_type(elem, FhirComplexDataType.REFERENCE):
                 return True
             elem_id_split = parent_elem["id"].rsplit(".", maxsplit=1)
             if len(elem_id_split) == 1:
                 return False
             parent_elem = element_map.get(elem_id_split[0])
+
+        return False
 
     @staticmethod
     def check_at_least_one_in_elem_and_true(
