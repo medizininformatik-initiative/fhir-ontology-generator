@@ -15,7 +15,8 @@
     "modul-onko",
     "modul-patho",
     "modul-mikrobio",
-    "modul-studie"
+    "modul-studie",
+    "modul-isik-vitalparameter"
   ],
   "module_translation": {
     "de-DE": {
@@ -33,7 +34,8 @@
       "modul-onko": "Onkologie",
       "modul-patho": "Pathologie",
       "modul-mikrobio": "Mikrobiologie",
-      "modul-studie": "Studie"
+      "modul-studie": "Studie",
+      "modul-isik-vitalparameter": "Vitalparameter"
     },
     "en-US": {
       "modul-diagnose": "Diagnosis",
@@ -45,12 +47,13 @@
       "modul-biobank": "Biobank",
       "modul-consent": "Consent",
       "modul-icu": "Intensive Care",
-      "modul-molgen": "Molecular genetics",
+      "modul-molgen": "Molecular Genetics",
       "modul-bildgebung": "Findings of Imaging Procedures",
       "modul-onko": "Oncology",
       "modul-patho": "Pathology",
       "modul-mikrobio": "Microbiology",
-      "modul-studie": "Study"
+      "modul-studie": "Study",
+      "modul-isik-vitalparameter": "Vital Signs"
     }
   }
 }

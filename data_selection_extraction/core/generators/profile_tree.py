@@ -5,8 +5,12 @@ import json
 import shutil
 from pathlib import Path
 
-from cohort_selection_ontology.model.ui_data import BulkTranslationDisplayElement, \
-    BulkTranslation, TranslationDisplayElement, Translation
+from cohort_selection_ontology.model.ui_data import (
+    BulkTranslationDisplayElement,
+    BulkTranslation,
+    TranslationDisplayElement,
+    Translation,
+)
 from common.util.fhir.enums import FhirPrimitiveDataType
 from common.util.log.functions import get_class_logger
 
@@ -23,18 +27,33 @@ class SnapshotPackageScope(str, Enum):
 
 
 def get_value_for_lang_code(data: Mapping[str, Any], lang_code: str) -> Optional[str]:
-    for ext in data.get('extension', []):
-        if any(e.get('url') == 'lang' and e.get('valueCode') == lang_code for e in ext.get('extension', [])):
-            return next(e['valueString'] for e in ext['extension'] if e.get('url') == 'content')
+    for ext in data.get("extension", []):
+        if any(
+            e.get("url") == "lang" and e.get("valueCode") == lang_code
+            for e in ext.get("extension", [])
+        ):
+            return next(
+                e["valueString"] for e in ext["extension"] if e.get("url") == "content"
+            )
     return None
 
 
 class ProfileTreeGenerator:
     __logger = get_class_logger("ProfileTreeGenerator")
 
-    def __init__(self, packages_dir: Path | str, snapshots_dir:  Path | str, exclude_dirs, excluded_profiles,
-                 module_order, module_translation, fields_to_exclude, field_trees_to_exclude, profiles_to_process):
-        self.profiles= {scope: dict() for scope in SnapshotPackageScope}
+    def __init__(
+        self,
+        packages_dir: Path | str,
+        snapshots_dir: Path | str,
+        exclude_dirs,
+        excluded_profiles,
+        module_order,
+        module_translation,
+        fields_to_exclude,
+        field_trees_to_exclude,
+        profiles_to_process,
+    ):
+        self.profiles = {scope: dict() for scope in SnapshotPackageScope}
         self.packages_dir = Path(packages_dir).resolve()
         os.makedirs(self.packages_dir, exist_ok=True)
         self.snapshots_dir = Path(snapshots_dir).resolve()
@@ -47,7 +66,9 @@ class ProfileTreeGenerator:
         self.field_trees_to_exclude = field_trees_to_exclude
         self.profiles_to_process = profiles_to_process
 
-    def __get_profiles(self, scope: Optional[str] = None) -> Mapping[str, Mapping[str, Any]]:
+    def __get_profiles(
+        self, scope: Optional[str] = None
+    ) -> Mapping[str, Mapping[str, Any]]:
         """
         Returns all profile entries in a certain scope or all if none is provided
         :param scope: Scope from which to return the profile entries
@@ -72,8 +93,11 @@ class ProfileTreeGenerator:
         #       Coding.system etc.).
         #       In the future we should switch to a more dynamic solution were the selectable elements can be defined in
         #       externalized config files using a well-defined syntax to prevent such hard-coded solutions.
-        element_id = element.get('id')
-        if element_id in {"Patient.address:Strassenanschrift.postalCode", "Patient.address:Strassenanschrift.country"}:
+        element_id = element.get("id")
+        if element_id in {
+            "Patient.address:Strassenanschrift.postalCode",
+            "Patient.address:Strassenanschrift.country",
+        }:
             return False
 
         attributes_true_level_one = ["mustSupport", "isModifier", "min"]
@@ -81,33 +105,54 @@ class ProfileTreeGenerator:
             path = re.split(r"[.:]", element["id"])
             path = path[1:]
         except KeyError:
-            self.__logger.warning(f"ElementDefinition instance will be rejected since it does not have an 'id' element "
-                                  f"[path='{element.get('path')}']")
+            self.__logger.warning(
+                f"ElementDefinition instance will be rejected since it does not have an 'id' element "
+                f"[path='{element.get('path')}']"
+            )
             return False
 
-        if "type" in element and element["type"][0]["code"] in FhirPrimitiveDataType and len(path) > 1:
+        if (
+            "type" in element
+            and element["type"][0]["code"] in FhirPrimitiveDataType
+            and len(path) > 1
+        ):
             return True
 
-        if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
-               for attr in attributes_true_level_one):
+        if all(
+            element.get(attr) is False or element.get(attr) == 0 or attr not in element
+            for attr in attributes_true_level_one
+        ):
             return True
 
         attributes_true_level_two = ["mustSupport", "isModifier"]
 
-        if all(element.get(attr) is False or element.get(attr) == 0 or attr not in element
-               for attr in attributes_true_level_two) and len(element["id"].split(".")) > 2:
+        if (
+            all(
+                element.get(attr) is False
+                or element.get(attr) == 0
+                or attr not in element
+                for attr in attributes_true_level_two
+            )
+            and len(element["id"].split(".")) > 2
+        ):
             return True
 
-        if any(element['id'].endswith(field) or f"{field}." in element['id'] for field in self.fields_to_exclude):
+        if any(
+            element["id"].endswith(field) or f"{field}." in element["id"]
+            for field in self.fields_to_exclude
+        ):
             return True
 
-        if any(f"{field}" in element['id'] for field in self.field_trees_to_exclude):
+        if any(f"{field}" in element["id"] for field in self.field_trees_to_exclude):
             return True
 
-        if "[x]" in element['id'] and not element['id'].endswith("[x]"):
+        if "[x]" in element["id"] and not element["id"].endswith("[x]"):
             return True
 
-        if element["base"]["path"].split(".")[0] in {"Resource", "DomainResource"} and not "mustSupport" in element:
+        if (
+            element["base"]["path"].split(".")[0] in {"Resource", "DomainResource"}
+            and not "mustSupport" in element
+        ):
             return True
 
     def get_field_names_for_profile(self, struct_def) -> BulkTranslationDisplayElement:
@@ -119,12 +164,12 @@ class ProfileTreeGenerator:
             if self.filter_element(element):
                 continue
 
-            elem_name_de = get_value_for_lang_code(element.get('_short', {}), "de-DE")
-            elem_name_en = get_value_for_lang_code(element.get('_short', {}), "en-US")
+            elem_name_de = get_value_for_lang_code(element.get("_short", {}), "de-DE")
+            elem_name_en = get_value_for_lang_code(element.get("_short", {}), "en-US")
 
             names_original.append(self.get_name_from_id(element["id"]))
 
-            #if elem_name_de == "":
+            # if elem_name_de == "":
             #    continue
 
             names_de.append(elem_name_de)
@@ -133,15 +178,9 @@ class ProfileTreeGenerator:
         return BulkTranslationDisplayElement(
             original=names_original,
             translations=[
-                BulkTranslation(
-                    language="de-DE",
-                    value=names_de
-                ),
-                BulkTranslation(
-                    language="en-US",
-                    value=names_en
-                )
-            ]
+                BulkTranslation(language="de-DE", value=names_de),
+                BulkTranslation(language="en-US", value=names_en),
+            ],
         )
 
     def build_profile_path(self, path, profile, profiles):
@@ -159,17 +198,23 @@ class ProfileTreeGenerator:
                 id=str(uuid.uuid4()),
                 name=profile["name"],
                 display=TranslationDisplayElement(
-                    original=profile_struct.get("title", ""),
+                    original=profile_struct.get(
+                        "title", profile_struct.get("name", "")
+                    ),
                     translations=[
                         Translation(
                             language="de-DE",
-                            value=get_value_for_lang_code(profile_struct.get('_title', {}), "de-DE")
+                            value=get_value_for_lang_code(
+                                profile_struct.get("_title", {}), "de-DE"
+                            ),
                         ),
                         Translation(
                             language="en-US",
-                            value=get_value_for_lang_code(profile_struct.get('_title', {}), "en-US")
-                        )
-                    ]
+                            value=get_value_for_lang_code(
+                                profile_struct.get("_title", {}), "en-US"
+                            ),
+                        ),
+                    ],
                 ),
                 fields=profile_field_names,
                 module=profile["module"],
@@ -198,7 +243,9 @@ class ProfileTreeGenerator:
 
             profile_child_index = self.get_profile_in_node(cur_node, profile.name)
 
-            snapshot = self.__all_profiles.get(profile.url, {}).get('structureDefinition')
+            snapshot = self.__all_profiles.get(profile.url, {}).get(
+                "structureDefinition"
+            )
             profile.selectable = is_profile_selectable(snapshot, self.__all_profiles)
 
             if profile_child_index == -1:
@@ -209,58 +256,77 @@ class ProfileTreeGenerator:
                 cur_node = cur_node.children[profile_child_index]
 
     def module_name_to_display(self, profile_name):
-        parts = profile_name.split('-')
+        parts = profile_name.split("-")
         if len(parts) > 1:
             return parts[1].capitalize()
         return profile_name
 
     def extract_module_string(self, path):
-        match = re.search(r"/(?P<module>modul-[^/]+)/", path)
-        if match:
-            return match.group("module")
+        if path.startswith("https://www.medizininformatik-initiative.de"):
+            match = re.search(r"/(?P<module>modul-[^/]+)/", path)
+            if match:
+                return match.group("module")
+        elif path.startswith("https://gematik.de/fhir/isik"):
+            return "modul-isik-vitalparameter"
         return None
 
     def copy_profile_snapshots(self):
-        #exclude_dirs = set(os.path.abspath(os.path.join(self.packages_dir, d)) for d in self.exclude_dirs)
-        #print(exclude_dirs)
+        # exclude_dirs = set(os.path.abspath(os.path.join(self.packages_dir, d)) for d in self.exclude_dirs)
+        # print(exclude_dirs)
         if not any(self.packages_dir.iterdir()):
-            self.__logger.warning(f"Package directory @ '{self.packages_dir}' is empty => No snapshots can be copied")
+            self.__logger.warning(
+                f"Package directory @ '{self.packages_dir}' is empty => No snapshots can be copied"
+            )
 
-        package_dirs = [os.path.join(self.packages_dir, i) for i in os.listdir(self.packages_dir)
-                        if os.path.isdir(os.path.join(self.packages_dir, i)) and i not in self.exclude_dirs]
+        package_dirs = [
+            os.path.join(self.packages_dir, i)
+            for i in os.listdir(self.packages_dir)
+            if os.path.isdir(os.path.join(self.packages_dir, i))
+            and i not in self.exclude_dirs
+        ]
         os.makedirs(os.path.join(self.snapshots_dir, "mii"), exist_ok=True)
         os.makedirs(os.path.join(self.snapshots_dir, "default"), exist_ok=True)
 
         for package_dir in package_dirs:
             manifest_file_path = os.path.join(package_dir, "package", "package.json")
-            snapshot_scope = self.determine_snapshot_scope_for_package(manifest_file_path)
+            snapshot_scope = self.determine_snapshot_scope_for_package(
+                manifest_file_path
+            )
 
             for file_path in Path(package_dir, "package").resolve().rglob("*.json"):
                 try:
-                    with open(file_path, mode="r", encoding='utf-8-sig') as f:
+                    with open(file_path, mode="r", encoding="utf-8-sig") as f:
                         content = json.load(f)
                         if (
-                                # "https://www.medizininformatik-initiative.de" in content["url"]
-                                # and
-                                "snapshot" in content
-                                and "resourceType" in content
-                                and content["resourceType"] == "StructureDefinition"
-                                # and content["baseDefinition"]
-                                # not in ["http://hl7.org/fhir/StructureDefinition/Extension"]
-                                # and content["status"] == "active"
-                                and content["kind"] == "resource" or content.get("type") == "Extension"
-                                and content["url"] not in self.excluded_profiles
+                            # "https://www.medizininformatik-initiative.de" in content["url"]
+                            # and
+                            "snapshot" in content
+                            and "resourceType" in content
+                            and content["resourceType"] == "StructureDefinition"
+                            # and content["baseDefinition"]
+                            # not in ["http://hl7.org/fhir/StructureDefinition/Extension"]
+                            # and content["status"] == "active"
+                            and content["kind"] == "resource"
+                            or content.get("type") == "Extension"
+                            and content["url"] not in self.excluded_profiles
                         ):
-                            destination = os.path.join(os.path.join(self.snapshots_dir, snapshot_scope),
-                                                       os.path.basename(file_path))
-                            self.__logger.info(f"Copying snapshot file for further processing: {file_path} -> "
-                                               f"{destination}")
+                            destination = os.path.join(
+                                os.path.join(self.snapshots_dir, snapshot_scope),
+                                os.path.basename(file_path),
+                            )
+                            self.__logger.info(
+                                f"Copying snapshot file for further processing: {file_path} -> "
+                                f"{destination}"
+                            )
                             shutil.copy(file_path, destination)
                 except UnicodeDecodeError:
-                    self.__logger.warning(f"File {file_path} is not a text file or cannot be read as text.")
+                    self.__logger.warning(
+                        f"File {file_path} is not a text file or cannot be read as text."
+                    )
                 except Exception as exc:
-                    self.__logger.error(f"Failed to copy file '{file_path}'", exc_info=exc)
-
+                    self.__logger.error(
+                        f"Failed to copy file '{file_path}'", exc_info=exc
+                    )
 
     def get_profile_snapshots(self):
         for root, dirs, files in os.walk(self.snapshots_dir):
@@ -271,18 +337,22 @@ class ProfileTreeGenerator:
                 scope = SnapshotPackageScope(file_path.split(os.sep)[-2]).value
 
                 try:
-                    with open(file_path, mode='r', encoding='utf-8') as f:
+                    with open(file_path, mode="r", encoding="utf-8") as f:
                         content = json.load(f)
 
-                        if self.profiles_to_process and content["url"] not in self.profiles_to_process:
+                        if (
+                            self.profiles_to_process
+                            and content["url"] not in self.profiles_to_process
+                        ):
                             continue
 
                         if (
-                                "resourceType" in content
-                                and content["resourceType"] == "StructureDefinition"
-                                # and content["status"] == "active"
-                                and content["kind"] == "resource" or content.get("type") == "Extension"
-                                and content.get("snapshot")
+                            "resourceType" in content
+                            and content["resourceType"] == "StructureDefinition"
+                            # and content["status"] == "active"
+                            and content["kind"] == "resource"
+                            or content.get("type") == "Extension"
+                            and content.get("snapshot")
                         ):
                             module_extract = self.extract_module_string(content["url"])
                             module = content["url"]
@@ -297,15 +367,24 @@ class ProfileTreeGenerator:
                                 "url": content["url"],
                             }
 
-                            self.__logger.info(f"Adding profile snapshot to tree: {file_path}")
+                            self.__logger.info(
+                                f"Adding profile snapshot to tree: {file_path}"
+                            )
 
                         else:
-                            self.__logger.debug(f"Profile did not match criteria for inclusion: {file_path}")
+                            self.__logger.debug(
+                                f"Profile did not match criteria for inclusion: {file_path}"
+                            )
 
                 except UnicodeDecodeError:
-                    self.__logger.warning(f"File {file_path} is not a text file or cannot be read as text => Skipping")
+                    self.__logger.warning(
+                        f"File {file_path} is not a text file or cannot be read as text => Skipping"
+                    )
                 except Exception as exc:
-                    self.__logger.warning(f"File {file_path} could not be processed. Reason: {exc}", exc_info=exc)
+                    self.__logger.warning(
+                        f"File {file_path} could not be processed. Reason: {exc}",
+                        exc_info=exc,
+                    )
 
         self.__all_profiles = self.__get_profiles()
 
@@ -323,11 +402,15 @@ class ProfileTreeGenerator:
         part of the Medical Informatics Initiative (MII)
         <"""
         profiles = {}
-        for url, profile in self.profiles.get('mii', {}).items():
-            snapshot = profile.get('structureDefinition')
-            if snapshot.get('type') != "Extension" and snapshot.get('kind') == 'resource' and 'snapshot' in snapshot:
+        for url, profile in self.profiles.get("mii", {}).items():
+            snapshot = profile.get("structureDefinition")
+            if (
+                snapshot.get("type") != "Extension"
+                and snapshot.get("kind") == "resource"
+                and "snapshot" in snapshot
+            ):
                 profiles[url] = profile
-        return  profiles
+        return profiles
 
     def generate_profiles_tree(self, condense=True):
         """
@@ -338,61 +421,65 @@ class ProfileTreeGenerator:
         """
         self.__logger.info("Generating profile tree")
 
-        #tree = {"name": "Root", "module": "no-module", "url": "no-url", "children": [], "selectable": False}
-        tree = ProfileTreeNode(
-            id="root",
-            name="Root"
-        )
+        # tree = {"name": "Root", "module": "no-module", "url": "no-url", "children": [], "selectable": False}
+        tree = ProfileTreeNode(id="root", name="Root")
 
         for profile in self.get_suitable_mii_profiles().values():
             # The Patient resource is selected by default due to its special status and thus there is no need to have
             # profiles constraining this resource type in the profile tree
-            struct_def = profile.get('structureDefinition', {})
-            if struct_def.get('type') == "Patient":
-                self.__logger.info(f"Profile '{struct_def.get('id')}' will not be present in the profile tree as the "
-                                   f"Patient resource is selected by default => Skipping")
+            struct_def = profile.get("structureDefinition", {})
+            if struct_def.get("type") == "Patient":
+                self.__logger.info(
+                    f"Profile '{struct_def.get('id')}' will not be present in the profile tree as the "
+                    f"Patient resource is selected by default => Skipping"
+                )
                 continue
 
             self.__logger.info(f"Processing profile {profile.get('name')}")
             try:
-                path = self.build_profile_path([], profile, self.__get_profiles(SnapshotPackageScope.MII))
+                path = self.build_profile_path(
+                    [], profile, self.__get_profiles(SnapshotPackageScope.MII)
+                )
                 module = profile["module"]
-                path.insert(0, ProfileTreeNode(
-                    id=str(uuid.uuid4()),
-                    name=module,
-                    display=TranslationDisplayElement(
-                        original=self.module_translation["de-DE"].get(module, module),
-                        translations=[
-                            Translation(
-                                language="de-DE",
-                                value=self.module_translation["de-DE"].get(module, module)
+                path.insert(
+                    0,
+                    ProfileTreeNode(
+                        id=str(uuid.uuid4()),
+                        name=module,
+                        display=TranslationDisplayElement(
+                            original=self.module_translation["de-DE"].get(
+                                module, module
                             ),
-                            Translation(
-                                language="en-US",
-                                value=self.module_translation["en-US"].get(module, module)
-                            )
-                        ]
+                            translations=[
+                                Translation(
+                                    language="de-DE",
+                                    value=self.module_translation["de-DE"].get(
+                                        module, module
+                                    ),
+                                ),
+                                Translation(
+                                    language="en-US",
+                                    value=self.module_translation["en-US"].get(
+                                        module, module
+                                    ),
+                                ),
+                            ],
+                        ),
+                        url=module,
+                        module=module,
+                        selectable=False,
+                        fields=BulkTranslationDisplayElement(
+                            original=[],
+                            translations=[
+                                BulkTranslation(language="de-DE", value=[]),
+                                BulkTranslation(language="en-US", value=[]),
+                            ],
+                        ),
                     ),
-                    url=module,
-                    module=module,
-                    selectable=False,
-                    fields=BulkTranslationDisplayElement(
-                        original=[],
-                        translations=[
-                            BulkTranslation(
-                                language="de-DE",
-                                value=[]
-                            ),
-                            BulkTranslation(
-                                language="en-US",
-                                value=[]
-                            )
-                        ]
-                    )
-                ))
+                )
                 self.insert_path_to_tree(tree, path)
             except Exception as exc:
-                self.__logger.error(profile.get('name'))
+                self.__logger.error(profile.get("name"))
                 raise exc
 
         if condense:
@@ -400,24 +487,34 @@ class ProfileTreeGenerator:
             tree = self.__condense_profile_tree(tree)
 
         sorted_tree = tree
-        sorted_tree.children = sorted(tree.children, key=lambda item: self.custom_sort(item, self.module_order))
+        sorted_tree.children = sorted(
+            tree.children, key=lambda item: self.custom_sort(item, self.module_order)
+        )
 
         return sorted_tree
 
     @staticmethod
-    def determine_snapshot_scope_for_package(manifest_file_path: Path | str) -> SnapshotPackageScope:
+    def determine_snapshot_scope_for_package(
+        manifest_file_path: Path | str,
+    ) -> SnapshotPackageScope:
         with open(manifest_file_path, encoding="utf8", mode="r") as manifest_file:
             manifest = json.load(manifest_file)
-            package_name =  manifest.get('name', None)
+            package_name = manifest.get("name", None)
             if not package_name:
                 return SnapshotPackageScope.DEFAULT
-            elif package_name.startswith("de.medizininformatikinitiative"):
+            # FIXME: Temporary fix to include ISIK profile in scope. Should be replaced to inclusion based on
+            #        CapabilityStatements in MII packages
+            elif package_name.startswith(
+                "de.medizininformatikinitiative"
+            ) or package_name.startswith("de.gematik.isik"):
                 return SnapshotPackageScope.MII
             else:
                 return SnapshotPackageScope.DEFAULT
 
     @classmethod
-    def __condense_profile_tree(cls, profile_tree: ProfileTreeNode, distance_from_root: int = 0) -> ProfileTreeNode:
+    def __condense_profile_tree(
+        cls, profile_tree: ProfileTreeNode, distance_from_root: int = 0
+    ) -> ProfileTreeNode:
         """
         Condenses a given profile tree by removing intermediate nodes that are not selectable and do not have multiple
         children
@@ -425,14 +522,24 @@ class ProfileTreeGenerator:
         :param distance_from_root: distance from root node to the current `ProfileTreeNode`. For internal use only. Providing a value is discouraged
         :return: Condensed profile tree
         """
-        if len(profile_tree.children) > 1 or profile_tree.selectable or profile_tree.leaf or distance_from_root == 1:
+        if (
+            len(profile_tree.children) > 1
+            or profile_tree.selectable
+            or profile_tree.leaf
+            or distance_from_root == 1
+        ):
             tree = profile_tree.model_copy()
         else:
             # Exactly one child element should exist at this point since the node has neither more than one child nor is
             # a leaf node
             child_names = [f"'{n.name}'" for n in profile_tree.children]
-            cls.__logger.info(f"Removing node [id='{profile_tree.id}', name='{profile_tree.name}'] from tree "
-                              f"[children={child_names}]")
+            cls.__logger.info(
+                f"Removing node [id='{profile_tree.id}', name='{profile_tree.name}'] from tree "
+                f"[children={child_names}]"
+            )
             tree = profile_tree.children[0].model_copy()
-        tree.children = [ProfileTreeGenerator.__condense_profile_tree(n, distance_from_root+1) for n in tree.children]
+        tree.children = [
+            ProfileTreeGenerator.__condense_profile_tree(n, distance_from_root + 1)
+            for n in tree.children
+        ]
         return tree
