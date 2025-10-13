@@ -400,11 +400,10 @@ class UIProfileGenerator:
             # TODO: This could be the better option once the ValueSet is available, but then we might want to limit the
             #  allowed units for security reasons
             # value_definition.allowedUnits = get_termcodes_from_onto_server(AGE_UNIT_VALUE_SET)
+            # FIXME: Constraints should ne expressed by an FDPG+-own value set
             value_definition.allowedUnits = [
                 TermCode(UCUM_SYSTEM, "a", "a"),
-                TermCode(UCUM_SYSTEM, "mo", "mo"),
-                TermCode(UCUM_SYSTEM, "wk", "wk"),
-                TermCode(UCUM_SYSTEM, "d", "d"),
+                TermCode(UCUM_SYSTEM, "mo", "mo")
             ]
         elif value_type == "integer":
             value_definition.type = "quantity"
