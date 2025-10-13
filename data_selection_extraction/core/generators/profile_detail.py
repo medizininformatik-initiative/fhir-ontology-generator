@@ -12,6 +12,7 @@ from common.util.structure_definition.functions import (
     get_types_supported_by_element,
     find_type_element,
     supports_type,
+    find_polymorphic_value,
 )
 from data_selection_extraction.core.generators.profile_tree import get_value_for_lang_code
 from data_selection_extraction.model.detail import FieldDetail, ProfileDetail, Filter, ProfileReference, ReferenceDetail
@@ -127,7 +128,7 @@ class ProfileDetailGenerator:
                 if value_set not in self.blacklisted_value_sets:
                     value_sets.append(value_set)
 
-            elif len(value_sets) == 0 and elem.patternCoding is not None or elem.fixedCoding is not None:
+            elif len(value_sets) == 0 and find_polymorphic_value(elem, "fixed") is not None:
                 return None
 
         if len(value_sets) > 0:
@@ -143,7 +144,7 @@ class ProfileDetailGenerator:
                 if value_set not in self.blacklisted_value_sets:
                     value_sets.append(value_set)
 
-            if elem.patternCoding is not None or elem.fixedCoding is not None:
+            if elem.patternCoding is not None or find_polymorphic_value(elem.fixedCoding, "fixed") is not None:
                 return None
 
         if len(value_sets) == 0:
@@ -227,8 +228,8 @@ class ProfileDetailGenerator:
         #    self.__logger.info(f"Excluding: {element['id']} as no type was found")
         #    return True
 
-        if element.get("subject") or element.get("patient"):
-            self._logger.info(
+        if getattr(element,"subject",None) is not None or getattr(element, "patient", None) is not None:
+            self.__logger.info(
                 f"Excluding: {element['id']} as having references to patients"
             )
             return True
@@ -277,7 +278,7 @@ class ProfileDetailGenerator:
         while parent_elem is not None:
             if supports_type(parent_elem, FhirComplexDataType.BACKBONE_ELEMENT) and not supports_type(elem, FhirComplexDataType.REFERENCE):
                 return True
-            elem_id_split = parent_elem["id"].rsplit(".", maxsplit=1)
+            elem_id_split = parent_elem.id.rsplit(".", maxsplit=1)
             if len(elem_id_split) == 1:
                 return False
             parent_elem = element_map.get(elem_id_split[0])
@@ -621,7 +622,7 @@ class ProfileDetailGenerator:
             profile_detail = ProfileDetail(
                 url=profile_url,
                 display=TranslationDisplayElement(
-                    original=struct_def.title,
+                    original= struct_def.title if struct_def.title is not None else struct_def.name,
                     translations=[
                         Translation(
                             language="de-DE",

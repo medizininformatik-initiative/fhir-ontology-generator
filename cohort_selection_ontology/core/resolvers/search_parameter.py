@@ -2,8 +2,7 @@ import json
 import math
 import os
 import re
-
-from pydantic import BaseModel, PrivateAttr
+from dataclasses import field
 
 import cohort_selection_ontology.resources.fhir as fhir_resource_files
 from abc import ABC, abstractmethod
@@ -24,7 +23,7 @@ class SearchParameterResolver(ABC):
     Abstract class for resolving the search parameters.
     """
     __logger = get_class_logger("SearchParameterResolver")
-    search_parameters: List[dict] | None = None
+    search_parameters: List[dict] | None = field(default_factory=list)
 
     def __init__(self, **data):
         super().__init__(**data)

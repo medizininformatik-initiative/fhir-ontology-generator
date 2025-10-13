@@ -9,5 +9,5 @@ class UnsupportedTypingException(UnsupportedError):
     pass
 
 
-class InvalidValueTypeException(Exception):
+class InvalidValueTypeException(ValueError):
     pass

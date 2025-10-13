@@ -39,6 +39,7 @@ from cohort_selection_ontology.util.fhir.structure_definition import (
 )
 from common.model.structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.bundle import BundleType
+from common.util.fhir.structure_definition import get_element_from_snapshot
 from cohort_selection_ontology.util.fhir.structure_definition import (
     process_element_definition,
 )
@@ -236,7 +237,7 @@ class UIProfileGenerator:
         :raise LookupError: if no units are found
         """
 
-        unit_defining_path = str(value_defining_element.path) + ".code"
+        unit_defining_path = value_defining_element.path + ".code"
         unit_defining_elements = profile_snapshot.get_element_by_path(
             unit_defining_path
         )
@@ -392,11 +393,10 @@ class UIProfileGenerator:
             # TODO: This could be the better option once the ValueSet is available, but then we might want to limit the
             #  allowed units for security reasons
             # value_definition.allowedUnits = get_termcodes_from_onto_server(AGE_UNIT_VALUE_SET)
+            # FIXME: Constraints should ne expressed by an FDPG+-own value set
             value_definition.allowedUnits = [
                 TermCode(system=UCUM_SYSTEM, code="a", display="a"),
-                TermCode(system=UCUM_SYSTEM, code="mo", display="mo"),
-                TermCode(system=UCUM_SYSTEM, code="wk", display="wk"),
-                TermCode(system=UCUM_SYSTEM, code="d", display="d"),
+                TermCode(system=UCUM_SYSTEM, code="mo", display="mo")
             ]
         elif value_type == "integer":
             value_definition.type = "quantity"
@@ -484,9 +484,10 @@ class UIProfileGenerator:
         :return: Attribute definition
         """
         attribute_defining_elements: List[ElementDefinition] = get_element_defining_elements(
-            profile_snapshot, attribute_defining_element_id,
-                                                                    self.module_dir,
-                                                                    self.data_set_dir,
+            profile_snapshot,
+            attribute_defining_element_id,
+            self.module_dir,
+            self.data_set_dir,
         )
         attribute_defining_element = attribute_defining_elements[-1]
 
@@ -587,8 +588,8 @@ class UIProfileGenerator:
         )
         if len(attribute_defining_elements) != 2:
             raise ValueError("composite attributes need to reference 2 elements")
-        element = attribute_defining_elements[0]
-        predicate = attribute_defining_elements[-1]
+        element: ElementDefinition = attribute_defining_elements[0]
+        predicate: ElementDefinition = attribute_defining_elements[-1]
         attribute_code = self.generate_composite_attribute_code(
             profile_snapshot, predicate
         )
@@ -623,21 +624,34 @@ class UIProfileGenerator:
                     unit_defining_elements[0], profile_snapshot.name
                 )
 
-            attribute_definition.display = get_display_from_element_definition(get_common_ancestor(profile_snapshot, element.id, predicate.id))
+            attribute_definition.display = get_display_from_element_definition(
+                get_common_ancestor(
+                    profile_snapshot, element.id, predicate.id
+                )
+            )
             attribute_definition.type = "quantity"
             return attribute_definition
         elif attribute_type == "CodeableConcept":
             if binding := predicate.binding:
                 concepts = get_selectable_concepts(predicate, profile_snapshot.name, self.__client)
-                attribute_definition.referencedValueSet = concepts
+                attribute_definition.referencedValueSet.append(concepts)
             elif binding := element.binding:
                 concepts = get_selectable_concepts(element, profile_snapshot.name, self.__client)
-                attribute_definition.referencedValueSet = concepts
+                attribute_definition.referencedValueSet.append(concepts)
             else:
-                concepts = get_fixed_term_codes(profile_snapshot, predicate, self.module_dir, self.data_set_dir,
-                                                   self.__client)
-                attribute_definition.referencedCriteriaSet = self.get_reference_criteria_set_from_fixed_term_codes(
-                    concepts, self.get_referenced_context(profile_snapshot, self.module_dir))
+                concepts = get_fixed_term_codes(
+                    predicate,
+                    profile_snapshot,
+                    self.module_dir,
+                    self.data_set_dir,
+                    self.__client,
+                )
+                attribute_definition.referencedCriteriaSet = (
+                    self.get_reference_criteria_set_from_fixed_term_codes(
+                        concepts,
+                        self.get_referenced_context(profile_snapshot, self.module_dir),
+                    )
+                )
             return attribute_definition
         else:
             raise InvalidValueTypeException(
@@ -753,10 +767,10 @@ class UIProfileGenerator:
                 self.get_reference_criteria_set_from_value_set(url, context)
             )
         elif not is_element_slice:
-            available_slices = get_available_slices(element.get("id"), snapshot)
+            available_slices = get_available_slices(element.id, snapshot)
             self.__logger.debug(f"Found available slices: {available_slices}")
             for slice_name in available_slices:
-                slice_id = element.get("id") + ":" + slice_name
+                slice_id = element.id + ":" + slice_name
                 slice_element = get_element_defining_elements(
                     slice_id, snapshot, module_dir, context
                 )[-1]

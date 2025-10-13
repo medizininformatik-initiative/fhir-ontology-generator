@@ -460,9 +460,9 @@ class ProfileTreeGenerator:
             # The Patient resource is selected by default due to its special status and thus there is no need to have
             # profiles constraining this resource type in the profile tree
             struct_def = profile.get("structureDefinition", {})
-            if struct_def.get("type") == "Patient":
+            if struct_def.type == "Patient":
                 self.__logger.info(
-                    f"Profile '{struct_def.get('id')}' will not be present in the profile tree as the "
+                    f"Profile '{struct_def.id}' will not be present in the profile tree as the "
                     f"Patient resource is selected by default => Skipping"
                 )
                 continue

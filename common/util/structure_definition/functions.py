@@ -3,7 +3,7 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import List, Optional, Generator, Tuple
+from typing import List, Optional, Generator, Tuple, Any
 from warnings import deprecated
 
 from fhir.resources.R4B.elementdefinition import (
@@ -40,6 +40,23 @@ translation_map_default = {
 
 
 logger = get_class_logger("structure_definition_functions")
+
+def find_polymorphic_value(data: ElementDefinition, polymorphic_elem_prefix: str) -> Optional[Any]:
+    """
+    Attempts to find the value of a polymorphic element by iterating over all possible data type-specific names
+
+    :param data: FHIR structure to find the value of a contained polymorphic element in
+    :param polymorphic_elem_prefix: name of the polymorphic element in the structure
+    :return: Value of the contained element or `None` if no such element exists/it has no value
+    """
+    if data is None:
+        return None
+    for field_name in data.model_fields.keys():
+        if field_name.startswith(polymorphic_elem_prefix):
+            v = getattr(data, field_name)
+            if v:
+                return v
+    return None
 
 
 def parse(chained_fhir_element_id) -> List[str] | str:

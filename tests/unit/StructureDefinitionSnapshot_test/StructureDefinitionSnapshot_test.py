@@ -22,6 +22,7 @@ from common.util.structure_definition.functions import (
     is_element_slice_base,
     structure_definition_from_path,
     translate_element_to_fhir_path_expression,
+    find_polymorphic_value,
 )
 from tests.unit.StructureDefinitionSnapshot_test.conftest import sample_snapshot_bioprobe
 from common.model.structure_definition import (
@@ -201,6 +202,41 @@ def test_get_parent_slice_id():
     )
     assert get_parent_slice_id("Observation.component") is None
 
+
+@pytest.mark.parametrize(
+    "element_id, polymorphic_elem_prefix, expected, sample_snapshot",
+    [
+        (
+            "Condition.code.coding:icd10-gm.system",
+            "fixed",
+            True,
+            lf("sample_snapshot_diagnose"),
+        ),
+        (
+            "Condition.code.coding:icd10-gm",
+            "pattern",
+            True,
+            lf("sample_snapshot_diagnose"),
+        ),
+        (
+            "Observation.code.coding",
+            "fixed",
+            False,
+            lf("sample_snapshot_diagnose"),
+        )
+    ],
+)
+def test_sds_find_polymorphic_value(
+    sample_snapshot: StructureDefinitionSnapshot,
+    element_id: str,
+    polymorphic_elem_prefix: str,
+    expected: bool,
+):
+    elem = sample_snapshot.get_element_by_id(element_id)
+    if expected:
+        assert find_polymorphic_value(elem, polymorphic_elem_prefix) is not None
+    else:
+        assert find_polymorphic_value(elem, polymorphic_elem_prefix) is None
 
 @pytest.mark.parametrize(
     "element_id, expected",

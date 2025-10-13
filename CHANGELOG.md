@@ -15,6 +15,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+# [v3.9.1]
+
+## Added
+
+- Implement new **MII CDS ICU** module version **2025.0.4**: Include profiles from **ISIK Basis** and **ISIK Vitaldaten** modules in DSE ([#356](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/356) @paulolaup)
+
+## Changed
+
+- Restrict allowed time units for **Age** criterion to month and year ([#366](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/366) @paulolaup)
+
+## Fixed
+
+- Update DSE: Ensure that references that are part of (e.g. sub-elements of) `BackboneElement`-typed elements remain selectable even if other sub-elements are excluded ([#360](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/360) @Frontman50)
+
+# [v3.9.0] - 2025-09-22
+
+## Added
+
+- Allow multiple value set references in UI profile attributes ([#314](https://github.com/medizininformatik-initiative/fhir-ontology-generator/pull/314) @Frontman50)
+
 # [3.8.4] - 2025-09-16
 
 ## Fixed
@@ -33,7 +53,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Include FHIR profiles supported by DSE to release ([#347](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/347) @paulolaup)
 
-## [3.8.3] - 2025-06-08
+# [3.8.3] - 2025-06-08
 
 ## Fixed
 
