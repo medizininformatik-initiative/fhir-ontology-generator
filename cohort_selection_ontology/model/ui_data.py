@@ -85,6 +85,8 @@ class Module(BaseModel):
 class RelationalTermcode(BaseModel):
     contextualized_termcode_hash: str
     display: str | dict
+    terminology: str
+    term_code: str
 
 
 class Translation(BaseModel):
