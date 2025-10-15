@@ -3,7 +3,7 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import List, Optional, Generator, Tuple, Any
+from typing import List, Optional, Generator, Tuple, Any, Set
 from warnings import deprecated
 
 from fhir.resources.R4B.elementdefinition import (
@@ -1011,6 +1011,59 @@ def translate_element_to_fhir_path_expression(
     if elements:
         result.extend(translate_element_to_fhir_path_expression(profile_snapshot, elements))
     return result
+
+def get_slice_owning_element_id(element_id: str) -> str:
+    """
+    Returns the parent element id of the provided slice ID
+    :param element_id: the slice id
+    :return: the parent element id of the provided ID
+
+    Example:
+        get_slice_owning_element_id("Observation.component:Diastolic")  => "Observation.component" \n
+        get_slice_owning_element_id("Observation.component:Diastolic.code")  => "Observation.component" \n
+        get_slice_owning_element_id("Observation.component:Diastolic.code.coding:sct") => "Observation.component:Diastolic.code.coding" \n
+    """
+    return (
+        get_parent_slice_id(element_id).rsplit(":", 1)[0]
+        if ":" in element_id
+        else element_id
+    )
+
+def get_slice_name(element_id: str) -> str | None:
+    """
+    Return the name of the slice on the lowest level
+    :param element_id: the element id
+    :return: the name of the slice on the lowest level
+    Example:
+        get_slice_name("Observation.component:Diastolic")  => "Diastolic" \n
+        get_slice_name("Observation.component:Diastolic.code")  => "Diastolic" \n
+        get_slice_name("Observation.component:Diastolic.code.coding:sct")  => "sct" \n
+    """
+    return (
+        get_parent_slice_id(element_id).rsplit(":")[-1] if ":" in element_id else None
+    )
+
+
+def get_available_slices(element_id: str, profile_snapshot: StructureDefinitionSnapshot) -> List[str]:
+    """
+    Returns a list of available slice ids
+    :param element_id: str
+    :param profile_snapshot: snapshot which should be scanned for slices
+    :return available_slices: List of available slices for given element
+
+    Example:
+        get_available_slices("Specimen.collection.bodySite.coding") => ["sct", "icd-o-3"]
+    """
+    found_slices: Set[str] = set()
+
+    for elem in profile_snapshot.snapshot.element:
+        snapshot_elem_id = elem.id
+        if ":" in snapshot_elem_id and element_id in get_parent_slice_id(
+            snapshot_elem_id
+        ):
+            found_slices.add(get_slice_name(snapshot_elem_id))
+
+    return list(found_slices)
 
 
 def get_parent_element(

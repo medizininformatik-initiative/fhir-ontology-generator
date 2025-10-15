@@ -1,14 +1,11 @@
 from __future__ import annotations
-
-import json
 import os
 from pathlib import Path
-from typing import Dict, Tuple, List, Mapping, Set, Optional
+from typing import Dict, Tuple, List, Mapping, Set
 
 from fhir.resources.R4B.coding import Coding
 from fhir.resources.R4B.elementdefinition import ElementDefinition
 from fhir.resources.R4B.parameters import ParametersParameter, Parameters
-from pydantic import BaseModel, ConfigDict, PrivateAttr
 
 from cohort_selection_ontology.core.terminology.client import (
     CohortSelectionTerminologyClient,
@@ -16,36 +13,11 @@ from cohort_selection_ontology.core.terminology.client import (
 from cohort_selection_ontology.core.resolvers.querying_metadata import (
     ResourceQueryingMetaDataResolver,
 )
-from cohort_selection_ontology.util.fhir.structure_definition import (
-    InvalidValueTypeException,
-    UCUM_SYSTEM,
-    get_binding_value_set_url,
-    ProcessedElementResult,
-    get_fixed_term_codes,
+from common.model.structure_definition import (
+    StructureDefinitionSnapshot,
     FHIR_TYPES_TO_VALUE_TYPES,
-    extract_value_type,
-    get_common_ancestor,
-    get_term_code_by_id,
-    get_element_from_snapshot_by_path,
-    get_units,
-    resolve_defining_id,
-    get_selectable_concepts,
-    get_element_defining_elements,
-    get_element_type,
-    get_element_defining_elements_with_source_snapshots,
-    is_element_slice_base,
-    get_available_slices,
-    get_slice_owning_element_id,
 )
-from common.model.structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.bundle import BundleType
-from common.util.fhir.structure_definition import get_element_from_snapshot
-from cohort_selection_ontology.util.fhir.structure_definition import (
-    process_element_definition,
-)
-from cohort_selection_ontology.util.fhir.structure_definition import (
-    get_display_from_element_definition,
-)
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from cohort_selection_ontology.model.ui_profile import (
     ValueDefinition,
@@ -75,6 +47,11 @@ from common.util.structure_definition.functions import (
     get_term_code_by_id,
     get_element_type,
     get_common_ancestor,
+    InvalidValueTypeException,
+    ProcessedElementResult,
+    is_element_slice_base,
+    get_available_slices,
+    get_slice_owning_element_id,
 )
 from common.util.test.fhir import check_response_bundle
 from elasticsearch.core.resolvers.designation import extract_designation
@@ -549,7 +526,7 @@ class UIProfileGenerator:
                         + slice_name
                     )
                     att_def_id = get_element_defining_elements(
-                        att_def_id, profile_snapshot, self.module_dir, self.data_set_dir
+                        profile_snapshot, att_def_id, self.module_dir, self.data_set_dir
                     )[-1]
                     selected_valueset = get_selectable_concepts(
                         att_def_id, profile_snapshot.name, self.__client
@@ -640,8 +617,8 @@ class UIProfileGenerator:
                 attribute_definition.referencedValueSet.append(concepts)
             else:
                 concepts = get_fixed_term_codes(
-                    predicate,
                     profile_snapshot,
+                    predicate,
                     self.module_dir,
                     self.data_set_dir,
                     self.__client,
