@@ -88,12 +88,16 @@ class Module(BaseModel):
 class RelationalTermcode(BaseModel):
     contextualized_termcode_hash: str
     display: str | dict
+    terminology: str
+    term_code: str
     selectable: bool
 
     def to_dict(self):
         return {
             "contextualized_termcode_hash": self.contextualized_termcode_hash,
             "display": self.display,
+            "terminology": self.terminology,
+            "term_code": self.term_code,
             "selectable": self.selectable
         }
 
