@@ -70,6 +70,14 @@
           "name": {
             "type": "text",
             "index": false
+          },
+          "terminology": {
+            "type": "text",
+            "index": false
+          },
+          "term_code": {
+            "type": "text",
+            "index": false
           }
         }
       },
@@ -123,6 +131,14 @@
           "name": {
             "type": "text",
             "index": false
+          },
+          "terminology": {
+            "type": "text",
+            "index": false
+          },
+          "term_code": {
+            "type": "text",
+            "index": false
           }
         }
       },
@@ -133,6 +149,14 @@
             "index": false
           },
           "name": {
+            "type": "text",
+            "index": false
+          },
+          "terminology": {
+            "type": "text",
+            "index": false
+          },
+          "term_code": {
             "type": "text",
             "index": false
           }
