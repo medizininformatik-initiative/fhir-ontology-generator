@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "mapping_cql_schema.json",
   "titel": "Mapping CQL JSON Schema",
-  "description": "Used for checking integrity of generated mapping_cql.json",
+  "description": "Used for checking integrity of generated elastic_search_ontology_files.json",
   "type": "object",
   "properties": {
     "name": {"type": "string"},
@@ -25,6 +25,8 @@
       "properties": {
         "contextualized_termcode_hash": {"type": "string"},
         "display": { "$ref": "https://fdpg.de/elastic_display.json" },
+        "termcode": {"type": "string"},
+        "terminology": {"type": "string"},
         "selectable": {"type": "boolean"}
       }
     }

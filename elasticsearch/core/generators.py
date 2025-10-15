@@ -101,6 +101,8 @@ class ElasticSearchGenerator:
                 parent_context, parent_term_code, namespace_uuid_str=namespace_uuid_str
             ),
             display=self.__designation_resolver.resolve_term(parent_term_code),
+            terminology=system,
+            term_code=code,
             selectable=self.__determine_if_termcode_selectable(parent_term_code_info)
         )
 
