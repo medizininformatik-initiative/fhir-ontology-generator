@@ -504,8 +504,7 @@ class TerminologyDesignationResolver:
         Supported languages: 'en-US', 'de-DE'
 
         :param term_code: term_code object used throughout ElasticSearchGenerator.py
-        :return:
-            A dictionary in the following format:
+        :return: A dictionary in the following format:
             {
                 "original": "<original>",
                 "en": "<language-display>",
