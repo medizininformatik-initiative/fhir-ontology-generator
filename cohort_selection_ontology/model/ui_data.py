@@ -4,7 +4,6 @@ import copy
 import json
 import random as rd
 import uuid
-from dataclasses import dataclass
 from typing import List, Optional
 
 from pydantic import BaseModel
@@ -89,6 +88,14 @@ class Module(BaseModel):
 class RelationalTermcode(BaseModel):
     contextualized_termcode_hash: str
     display: str | dict
+    selectable: bool
+
+    def to_dict(self):
+        return {
+            "contextualized_termcode_hash": self.contextualized_termcode_hash,
+            "display": self.display,
+            "selectable": self.selectable
+        }
 
 
 class Translation(BaseModel):
