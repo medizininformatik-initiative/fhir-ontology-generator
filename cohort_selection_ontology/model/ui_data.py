@@ -87,6 +87,7 @@ class RelationalTermcode(BaseModel):
     display: str | dict
     terminology: str
     term_code: str
+    selectable: bool
 
 
 class Translation(BaseModel):

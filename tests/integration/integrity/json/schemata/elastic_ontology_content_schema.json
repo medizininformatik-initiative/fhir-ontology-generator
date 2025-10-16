@@ -26,7 +26,8 @@
         "contextualized_termcode_hash": {"type": "string"},
         "display": { "$ref": "https://fdpg.de/elastic_display.json" },
         "termcode": {"type": "string"},
-        "terminology": {"type": "string"}
+        "terminology": {"type": "string"},
+        "selectable": {"type": "boolean"}
       }
     }
   },

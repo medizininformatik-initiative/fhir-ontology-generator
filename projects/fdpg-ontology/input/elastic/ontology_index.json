@@ -78,6 +78,10 @@
           "term_code": {
             "type": "text",
             "index": false
+          },
+          "selectable": {
+            "type": "boolean",
+            "index": false
           }
         }
       },
