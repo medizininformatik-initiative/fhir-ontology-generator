@@ -5,45 +5,77 @@ description: 'Generates ontology files'
 inputs:
   project:
     required: false
-    default: "fdpg-ontology"
     description: 'Name of the project to generate the ontology files for. Defaults to "fdpg-ontology"'
-  steps_to_run:
+    default: ""
+  term-server-url:
+    required: true
+    description: 'URL of the FHIR terminology server to use'
+  term-server-cert:
     required: false
-    description: 'Optional non-empty list of steps of the ontology generation to run. If not supplied all steps 
-                  will be run. The steps to run should be supplied as a JSON array of greater than zero integers 
-                  matching the indices of the steps to run.
-                  
-                  Examples: "[1, 3, 5, 6]"; "[2]"; "[4, 3, 2]"'
+    description: '(Optional) certificate to authenticate with the terminology server'
+  term-server-key:
+    required: false
+    description: '(Optional) private key to authenticate with the terminology server'
 
 runs:
   using: "composite"
   steps:
-    - name: Set default
+    - name: Set locale
       shell: bash
-      run: echo "GENERATOR_STEPS=--all" >> $GITHUB_ENV
-    - name: Parsing generator steps to run
-      shell: bash
-      if: ${{ inputs.steps_to_run != '' }}
       run: |
-        echo "GENERATOR_STEPS=--step ${{ join(fromJSON(inputs.steps_to_run), ' --step ') }}" >> $GITHUB_ENV
-        echo "Using generator scripts with arguments $GENERATOR_STEPS"
+        sudo apt-get update
+        sudo apt-get install tzdata locales -y
+        sudo locale-gen de_DE.UTF-8
+        sudo localectl set-locale LANG="de_DE.UTF-8"
+        export LANG="de_DE.UTF-8"
+        sudo update-locale
+        locale -a
+        locale
+        locale -c -k LC_NUMERIC
+        localectl status
+
+    - name: Setup python 3 environment
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+        cache: 'pip'
+
+    - name: Install required python modules
+      shell: bash
+      run: pip3 install -r requirements.txt
 
     - name: Save secret to file
-      shell: bash
       id: certificates
+      env:
+        SERVER_CERTIFICATE: ${{ inputs.term-server-cert }}
+        PRIVATE_KEY: ${{ inputs.term-server-key }}
+      shell: bash
       run: |
         echo "$PRIVATE_KEY" > private-key.pem
         echo "$SERVER_CERTIFICATE" > certificate.pem
         echo privateKey=$(readlink -f private-key.pem) >> "$GITHUB_OUTPUT"
         echo certificate=$(readlink -f certificate.pem) >> "$GITHUB_OUTPUT"
-      env:
-        SERVER_CERTIFICATE: ${{ secrets.FDPGPLUS_ONTO_SERVER_CERT }}
-        PRIVATE_KEY: ${{ secrets.FDPGPLUS_ONTO_SERVER_KEY }}
 
     - name: Run ontology generation
-      shell: bash
       env:
-        ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
+        ONTOLOGY_SERVER_ADDRESS: ${{ inputs.term-server-url }}
         SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
         PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
-      run: ./generate_full_ontology.sh --project ${{ inputs.project }} ${{ GENERATOR_STEPS }}
+      shell: bash
+      run: ./generate_full_ontology.sh --project ${{ inputs.project }} --all
+
+    - name: Upload Ontology
+      uses: actions/upload-artifact@v4
+      with:
+        name: packaged ontology
+        path: |
+          projects/${{ inputs.project }}/output/merged_ontology/elastic.zip
+          projects/${{ inputs.project }}/output/merged_ontology/backend.zip
+          projects/${{ inputs.project }}/output/merged_ontology/mapping.zip
+
+    - name: Project Output - Ontology
+      uses: actions/upload-artifact@v4
+      with:
+        name: project output
+        path: |
+          projects/${{ inputs.project }}/output/
