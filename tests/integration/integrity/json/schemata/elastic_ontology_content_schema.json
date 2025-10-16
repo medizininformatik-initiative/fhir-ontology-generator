@@ -24,7 +24,8 @@
       "type": "object",
       "properties": {
         "contextualized_termcode_hash": {"type": "string"},
-        "display": { "$ref": "https://fdpg.de/elastic_display.json" }
+        "display": { "$ref": "https://fdpg.de/elastic_display.json" },
+        "selectable": {"type": "boolean"}
       }
     }
   }
