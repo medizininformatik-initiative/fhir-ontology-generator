@@ -99,7 +99,11 @@ class UIProfileGenerator:
         full_context_term_code_ui_profile_name_mapping = {}
         full_ui_profile_name_ui_profile_mapping = {}
         self.module_dir = modules_dir / module_name
-        files = self.module_dir.rglob("*snapshot.json")
+        files = [*self.module_dir.rglob("*snapshot.json")]
+        if len(files) == 0:
+            self.__logger.warning(
+                "No snapshots were found => No UI profiles will be generated"
+            )
         for file in files:
             with open(file, mode="r", encoding="utf8") as f:
                 snapshot = json.load(f)
@@ -403,7 +407,7 @@ class UIProfileGenerator:
             # FIXME: Constraints should ne expressed by an FDPG+-own value set
             value_definition.allowedUnits = [
                 TermCode(UCUM_SYSTEM, "a", "a"),
-                TermCode(UCUM_SYSTEM, "mo", "mo")
+                TermCode(UCUM_SYSTEM, "mo", "mo"),
             ]
         elif value_type == "integer":
             value_definition.type = "quantity"

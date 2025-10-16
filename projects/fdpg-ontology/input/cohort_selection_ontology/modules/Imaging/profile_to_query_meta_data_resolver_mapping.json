@@ -1,0 +1,12 @@
+{
+  "MII_PR_Bildgebung_Bildgebungsstudie": [
+    "MII_PR_Bildgebung_Bildgebungsstudie"
+  ],
+  "MII_PR_Bildgebung_Radiologischer_Befund": [
+    "MII_PR_Bildgebung_Radiologischer_Befund_category_diagnostic-service-sections",
+    "MII_PR_Bildgebung_Radiologischer_Befund_category_loinc",
+    "MII_PR_Bildgebung_Radiologischer_Befund_category_sct",
+    "MII_PR_Bildgebung_Radiologischer_Befund_code_loinc",
+    "MII_PR_Bildgebung_Radiologischer_Befund_code_sct"
+  ]
+}
