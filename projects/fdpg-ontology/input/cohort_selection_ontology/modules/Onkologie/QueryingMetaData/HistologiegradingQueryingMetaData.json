@@ -7,8 +7,8 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Histologie",
-    "display": "Histologie",
+    "code": "Histologiegrading",
+    "display": "Histologiegrading",
     "version": "1.0.0"
   },
   "term_code_defining_id": "Observation.value[x]",
