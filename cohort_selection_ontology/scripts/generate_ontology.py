@@ -128,7 +128,9 @@ def write_used_value_sets_to_files(
         if ui_profile.attributeDefinitions:
             for attribute_definition in ui_profile.attributeDefinitions:
                 if attribute_definition.referencedValueSet:
-                    all_profile_value_sets.append(attribute_definition.referencedValueSet)
+                    all_profile_value_sets.append(
+                        attribute_definition.referencedValueSet
+                    )
     for one_profile_value_set in all_profile_value_sets:
         for single_value_set in one_profile_value_set:
             file_name = f"{remove_reserved_characters(single_value_set.url.split('/')[-1])}.json"
@@ -150,7 +152,9 @@ def write_used_criteria_sets_to_files(
         if ui_profile.attributeDefinitions:
             for attribute_definition in ui_profile.attributeDefinitions:
                 if attribute_definition.referencedCriteriaSet:
-                    all_profile_criteria_sets.append(attribute_definition.referencedCriteriaSet)
+                    all_profile_criteria_sets.append(
+                        attribute_definition.referencedCriteriaSet
+                    )
     for one_profile_criteria_set in all_profile_criteria_sets:
         for single_criteria_set in one_profile_criteria_set:
             file_name = f"{remove_reserved_characters(single_criteria_set.url.split('/')[-1])}.json"
