@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
-from typing import List, Dict, Set
+from logging import Logger
+from typing import List, Dict, Set, Mapping, Tuple
 
 import json
 import logging
@@ -9,6 +10,8 @@ from pydantic import BaseModel, Field
 from cohort_selection_ontology.model.ui_profile import del_keys, del_none
 from cohort_selection_ontology.model.ui_data import Module, TermCode
 from common.util.codec.json import JSONSerializable
+from common.util.collections.functions import first
+from common.util.log.functions import get_class_logger
 
 
 class TermEntryNode(BaseModel):
@@ -88,6 +91,7 @@ class ContextualizedTermCodeInfo(BaseModel):
     designations: List[Designation] = Field(default_factory=list)
     siblings: List[ContextualizedTermCode] = Field(default_factory=list)
     recalculated: bool = False
+    __logger: Logger = get_class_logger("ContextualizedTermCodeInfo")
 
     def to_dict(self):
         """
@@ -102,7 +106,7 @@ class ContextualizedTermCodeInfo(BaseModel):
         if not self.module:
             raise ValueError("Module is required.")
         if not self.recalculated:
-            logging.warning(
+            self.__logger.warning(
                 f"Ensure you call update_children_count before calling to_dict, otherwise children_count will be incorrect."
             )
         return {
@@ -116,48 +120,11 @@ class ContextualizedTermCodeInfo(BaseModel):
             "siblings": [sibling.to_dict() for sibling in self.siblings],
         }
 
-    def recalculate_descendant_count(
-        self, tree_map_list: TreeMapList, term_code: TermCode
-    ) -> int:
-        """
-        Calculates the number of descendants the concept represented by the `term_code` parameter has in the list of
-        tree maps
-
-        :param tree_map_list: Tree maps to iterate over
-        :param term_code: Concept to count descendants of
-        :return: Number of descendants
-        """
-        self.recalculated = True
-        return len(self.__collect_descendants(tree_map_list, term_code))
-
-    def __collect_descendants(
-        self, tree_map_list: TreeMapList, term_code: TermCode
-    ) -> Set[TermCode]:
-        """
-        Collects the descendants the concepts represented by the `term_code` parameter has in the list of tree maps
-
-        :param tree_map_list: Tree maps to iterate over
-        :param term_code: Concept to collect descendants of
-        :return: Set of descendants
-        """
-        descendants = set()
-        for tree_map in tree_map_list.entries:
-            if term_code.code in tree_map.entries.keys():
-                # traverse and count children
-                count = len(tree_map.entries[term_code.code].children)
-                for child in tree_map.entries[term_code.code].children:
-                    descendants = descendants.union(
-                        self.__collect_descendants(
-                            tree_map_list,
-                            TermCode(system=term_code.system, code=child, display="", version=term_code.version)
-                        )
-                    )
-        return descendants
-
 
 @dataclass
 class ContextualizedTermCodeInfoList(JSONSerializable):
     entries: List[ContextualizedTermCodeInfo] = field(default_factory=list)
+    __logger: Logger = get_class_logger("ContextualizedTermCodeInfoList")
 
     def update_descendant_count(self, tree_map_list: TreeMapList):
         """
@@ -165,9 +132,77 @@ class ContextualizedTermCodeInfoList(JSONSerializable):
 
         :param tree_map_list: List of tree maps to aggregate descendants in
         """
+        count_maps = {
+            f"{tree_map.system}#{tree_map.version}": self.__get_descendant_or_self_count_map(
+                tree_map
+            )
+            for tree_map in tree_map_list.entries
+        }
         for entry in self.entries:
-            count = entry.recalculate_descendant_count(tree_map_list, entry.term_code)
-            entry.children_count = count
+            term_code = entry.term_code
+            if count_map := count_maps.get(f"{term_code.system}#{term_code.version}"):
+                count = count_map.get(term_code.code, 0)
+                entry.children_count = count
+                entry.recalculated = True
+            else:
+                self.__logger.warning(
+                    f"No tree map for code system '{term_code.system}' and version {term_code.version} => Skipping"
+                )
+                continue
+
+    def __get_descendant_or_self_count_map(
+        self, tree_map: TreeMap
+    ) -> Mapping[str, int]:
+        """
+        Builds up the descendant-or-self count mapping for the given tree map
+
+        :param tree_map: `TreeMap` instance to build up descendant count mapping for
+        :return: Descendant count mapping
+        """
+        m = {}
+        entries = tree_map.entries
+        for k, v in entries.items():
+            if len(v.children) == 0:
+                m[k] = 1
+                for p_key in v.parents:
+                    self.__traverse_parent(p_key, {k}, tree_map, m)
+        return m
+
+    def __traverse_parent(
+        self,
+        parent_key: str,
+        descendants: Set[str],
+        tree_map: TreeMap,
+        count_map: Dict[str, Tuple[int, Set[str]] | int],
+    ):
+        """
+        Internal method for traversing `tree_map` upwards and build up the descendant count map `count_map`. Note that
+        this method is built to handle poly hierarchies (like SNOMED CT) and as such there might be faster algorithms
+        for other types of hierarchies. If the method was called on all parents of all leaf concepts the count map will
+        be complete
+
+        :param parent_key: Key of the parent concept in the tree map
+        :param descendants: Set of descendant concepts of a child concept of the parent concept
+        :param tree_map: Tree map providing information on parents and children of concepts
+        :param count_map: Associates a concept to its currently identified set of descendant concepts and of how many
+                          of its child concepts descendants where already merged into its descendant set. If all
+                          children contributed their descendants than the value will be replaced by the total descendant
+                          count identified
+        """
+        parent = tree_map.entries[parent_key]
+        if parent_key not in count_map:
+            visits = 0
+            p_descendants = {parent_key}
+        else:
+            visits, p_descendants = count_map[parent_key]
+        visits += 1
+        p_descendants.update(descendants)
+        if len(parent.children) == visits:
+            count_map[parent_key] = len(p_descendants)
+            for p_parent_key in parent.parents:
+                self.__traverse_parent(p_parent_key, p_descendants, tree_map, count_map)
+        else:
+            count_map[parent_key] = (visits, p_descendants)
 
     def to_json(self):
         """
