@@ -75,13 +75,15 @@
     "OperationOPS",
     "OperationSCT"
   ],
-  "MII_PR_Onko_Strahlentherapie_neu": [
-    "Strahlentherapie"
+  "MII_PR_Onko_Nebenwirkung_Adverse_Event": [
+    "Nebenwirkung"
   ],
   "MII_PR_Onko_Strahlentherapie_Bestrahlung_Nuklearmedizin": [
     "Bestrahlung-Nuklearmedizin"
   ],
   "MII_PR_Onko_Strahlentherapie_Bestrahlung_Strahlentherapie": [
     "Bestrahlung-Strahlentherapie"
+  "MII_PR_Onko_Tumorkonferenz": [
+    "Tumorkonferenz"
   ]
 }

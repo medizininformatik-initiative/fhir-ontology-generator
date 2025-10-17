@@ -7,15 +7,19 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "TNM",
-    "display": "TNM",
+    "code": "TNM-Klassifikation",
+    "display": "TNM-Klassifikation",
     "version": "1.0.0"
   },
-  "term_code_defining_id": "Observation.value[x]",
+  "term_code_defining_id": "Observation.code",
   "time_restriction_defining_id": "Observation.effective[x]",
   "attribute_defining_id_type_map": {
     "(Observation.focus).code.coding:icd10-gm": {
       "type": "reference",
+      "optional": true
+    },
+    "Observation.value[x]": {
+      "type": "",
       "optional": true
     },
     "(Observation.hasMember).value[x]": {
