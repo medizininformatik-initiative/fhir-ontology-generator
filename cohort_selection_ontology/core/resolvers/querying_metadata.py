@@ -2,19 +2,22 @@ import json
 from abc import ABC, abstractmethod
 from typing import List, Dict
 
+from pydantic import BaseModel, PrivateAttr
+
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from cohort_selection_ontology.model.ui_data import TermCode
+from common.model.structure_definition import StructureDefinitionSnapshot
 from common.util.log.functions import get_class_logger
 from common.util.project import Project
 
 
-class ResourceQueryingMetaDataResolver(ABC):
+class ResourceQueryingMetaDataResolver(BaseModel, ABC):
     """
     Abstract class for resolving querying metadata for a given fhir profile and context
     """
 
     @abstractmethod
-    def get_query_meta_data(self, fhir_profile_snapshot: dict, module_name: str, _context=None) -> List[ResourceQueryingMetaData]:
+    def get_query_meta_data(self, fhir_profile_snapshot: StructureDefinitionSnapshot, module_name: str, _context=None) -> List[ResourceQueryingMetaData]:
         """
         Returns the query metadata for the given FHIR profile snapshot in the specified context
         :param fhir_profile_snapshot: FHIR profile snapshot
@@ -25,11 +28,14 @@ class ResourceQueryingMetaDataResolver(ABC):
 
 
 class StandardDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
-    __logger = get_class_logger("StandardDataSetQueryingMetaDataResolver")
 
-    __project: Project
+    __logger = get_class_logger("StandardDataSetQueryingMetaDataResolver")
+    __project: Project = PrivateAttr()
 
     def __init__(self, project: Project):
+        """
+        :project Project: The Project instance this resolver operates on.
+        """
         super().__init__()
         self.__project = project
 
@@ -44,7 +50,7 @@ class StandardDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
             return json.load(f)
 
     def get_query_meta_data(
-        self, fhir_profile_snapshot: dict, module_name, _context: TermCode = None
+        self, fhir_profile_snapshot: StructureDefinitionSnapshot, module_name, _context: TermCode = None
     ) -> List[ResourceQueryingMetaData]:
         """
         Retrieves query metadata for a given FHIR profile snapshot.
@@ -54,7 +60,7 @@ class StandardDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
         :return: A list of ResourceQueryingMetaData objects.
         """
         result = []
-        profile_name = fhir_profile_snapshot.get("name")
+        profile_name = fhir_profile_snapshot.name
         profile_to_metadata_mapping = self.__load_profile_to_metadata_mapping(module_name)
         if profile_name in profile_to_metadata_mapping:
             for metadata_name in profile_to_metadata_mapping[profile_name]:

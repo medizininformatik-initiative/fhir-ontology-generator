@@ -2,6 +2,8 @@ import json
 import math
 import os
 import re
+from dataclasses import field
+
 import cohort_selection_ontology.resources.fhir as fhir_resource_files
 from abc import ABC, abstractmethod
 from importlib.resources import files
@@ -21,9 +23,11 @@ class SearchParameterResolver(ABC):
     Abstract class for resolving the search parameters.
     """
     __logger = get_class_logger("SearchParameterResolver")
+    search_parameters: List[dict] | None = field(default_factory=list)
 
-    def __init__(self):
-        self.search_parameters: List[dict] = self._load_all_search_parameters()
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.search_parameters = self._load_all_search_parameters()
 
     def find_composite_search_parameter(self, search_parameters: OrderedDict[str, dict]) -> dict:
         """

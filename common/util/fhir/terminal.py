@@ -2,7 +2,8 @@ import os
 from pathlib import Path
 from typing import List
 
-from common.util.fhir.structure_definition import is_structure_definition
+from common.model.structure_definition import StructureDefinitionSnapshot
+from common.util.structure_definition.functions import is_structure_definition
 
 
 def generate_snapshots(package_dir: str, prerequisite_packages: List[str] = None, reinstall: bool = False):

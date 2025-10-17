@@ -351,7 +351,7 @@ class DataBaseWriter:
         self.cursor.execute(
             "SELECT system, code, version FROM VALUE_SET WHERE canonical_url = %s",
             (canonical_url,))
-        return [TermCode(row[0], row[1], row[2]) for row in self.cursor.fetchall()]
+        return [TermCode(system=row[0], code=row[1], display=row[2]) for row in self.cursor.fetchall()]
 
     def does_value_set_contain(self, canonical_url, term_code: TermCode):
         """

@@ -340,9 +340,10 @@ class SqlMerger:
     def dump_merged_schema(self):
         cmd = f"pg_dump --format=plain -U {self.db_user} -d {self.db_name} -a -O -t termcode -t context -t ui_profile -t mapping -t contextualized_termcode -t contextualized_termcode_to_criteria_set -t criteria_set -f {self.sql_mapped_dir}/R__Load_latest_ui_profile.sql"
         self.db_container.exec_run(cmd=cmd)
-        self.db_container.exec_run(
-            cmd=f"chown {os.geteuid()}:{os.getegid()} {self.sql_mapped_dir}/R__Load_latest_ui_profile.sql"
-        )
+        if os.name != "nt":  # only run on Linux/macOS
+            self.db_container.exec_run(
+                cmd=f"chown {os.geteuid()}:{os.getegid()} {self.sql_mapped_dir}/R__Load_latest_ui_profile.sql"
+            )
         dump_file_path = os.path.join(
             self.sql_script_dir, "R__Load_latest_ui_profile.sql"
         )

@@ -1,21 +1,20 @@
 from dataclasses import dataclass, field
-from typing import List, Dict, Set, Mapping
+from typing import List, Dict, Set
 
 import json
 import logging
 
-from networkx.algorithms.dag import descendants
+from pydantic import BaseModel, Field
 
 from cohort_selection_ontology.model.ui_profile import del_keys, del_none
 from cohort_selection_ontology.model.ui_data import Module, TermCode
 from common.util.codec.json import JSONSerializable
 
 
-@dataclass
-class TermEntryNode:
+class TermEntryNode(BaseModel):
     term_code: TermCode
-    parents: List[str] = field(default_factory=list)
-    children: List[str] = field(default_factory=list)
+    parents: List[str] = Field(default_factory=list)
+    children: List[str] = Field(default_factory=list)
 
     def __repr__(self) -> str:
         return f"{self.parents} {self.children}"
@@ -62,8 +61,7 @@ class TreeMapList(JSONSerializable):
         return json.dumps([entry.to_dict() for entry in self.entries])
 
 
-@dataclass
-class ContextualizedTermCode:
+class ContextualizedTermCode(BaseModel):
     context: TermCode
     term_code: TermCode
 
@@ -74,8 +72,7 @@ class ContextualizedTermCode:
         }
 
 
-@dataclass
-class Designation:
+class Designation(BaseModel):
     language: str
     display: str
 
@@ -83,14 +80,13 @@ class Designation:
         return {"language": self.language, "display": self.display}
 
 
-@dataclass
-class ContextualizedTermCodeInfo:
+class ContextualizedTermCodeInfo(BaseModel):
     term_code: TermCode
     context: TermCode = None
     module: Module = None
     children_count: int = 0
-    designations: List[Designation] = field(default_factory=list)
-    siblings: List[ContextualizedTermCode] = field(default_factory=list)
+    designations: List[Designation] = Field(default_factory=list)
+    siblings: List[ContextualizedTermCode] = Field(default_factory=list)
     recalculated: bool = False
 
     def to_dict(self):
@@ -100,7 +96,7 @@ class ContextualizedTermCodeInfo:
         :return: JSON string
         """
         if not self.designations:
-            self.designations = [Designation("default", self.term_code.display)]
+            self.designations = [Designation(language="default", display=self.term_code.display)]
         if not self.context:
             raise ValueError("Context is required.")
         if not self.module:
@@ -147,13 +143,13 @@ class ContextualizedTermCodeInfo:
         descendants = set()
         for tree_map in tree_map_list.entries:
             if term_code.code in tree_map.entries.keys():
-                # traverse and collect children
-                descendants = set(tree_map.entries[term_code.code].children)
+                # traverse and count children
+                count = len(tree_map.entries[term_code.code].children)
                 for child in tree_map.entries[term_code.code].children:
                     descendants = descendants.union(
                         self.__collect_descendants(
                             tree_map_list,
-                            TermCode(term_code.system, child, "", term_code.version),
+                            TermCode(system=term_code.system, code=child, display="", version=term_code.version)
                         )
                     )
         return descendants

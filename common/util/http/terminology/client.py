@@ -22,7 +22,7 @@ class FhirTerminologyClient(BaseClient):
 
     def __init__(self, base_url: str, auth: Optional[type[AuthBase]] = None, cert: Optional[tuple[str, str]] = None,
                  timeout: float = 60):
-        super().__init__(base_url, auth, cert, timeout)
+        super().__init__(base_url=base_url, auth=auth, cert=cert, timeout=timeout)
 
     @staticmethod
     def from_project(project: Project, auth: Optional[type[AuthBase]] = None, timeout: float = 60):

@@ -42,14 +42,15 @@ def convert_bool_analysis_to_code(distributed_analysis, eu_gdpr, insurance_data,
 
 
 def generate_fixed_fhir_criteria(provisions_code, provisions_display) -> list[FixedFHIRCriteria]:
-    return [FixedFHIRCriteria("coding", "mii-provision-provision-code",
-            [{"code": code, "display": display, "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3"}])
+    return [FixedFHIRCriteria(type="coding", searchParameter="mii-provision-provision-code",
+            value=[TermCode(code=code, display=display, system="urn:oid:2.16.840.1.113883.3.1937.777.24.5.3")])
             for code, display in zip(provisions_code, provisions_display)]
 
 
 def generate_fixed_cql_criteria(provisions_code, provisions_display) -> list[FixedCQLCriteria]:
-    return [FixedCQLCriteria({"CodeableConcept"}, "provision.provision.code", SimpleCardinality.MANY,
-            [{"code": code, "display": display, "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3"}])
+    return [FixedCQLCriteria(
+            types={"CodeableConcept"}, path="provision.provision.code", cardinality=SimpleCardinality.MANY,
+            value=[TermCode(code=code, display=display, system="urn:oid:2.16.840.1.113883.3.1937.777.24.5.3")])
             for code, display in zip(provisions_code, provisions_display)]
 
 
@@ -58,7 +59,7 @@ def process_csv(csv_file: str | Path):
     consents_fhir = []
     consents_cql = []
 
-    context = TermCode("fdpg.mii.cds", "Einwilligung", "Einwilligung", "1.0.0")
+    context = TermCode(system="fdpg.mii.cds", code="Einwilligung", display="Einwilligung", version="1.0.0")
     consent_mapping_tree = TreeMap({}, context, "fdpg.consent.combined", "1.0.0")
 
     with open(csv_file, mode='r', newline='', encoding='utf-8') as file:
@@ -80,7 +81,7 @@ def process_csv(csv_file: str | Path):
             fhir_mapping.timeRestrictionParameter = "date"
             cql_mapping.key = term_code
             cql_mapping.context = context
-            cql_mapping.timeRestriction = CQLTimeRestrictionParameter("datetime", {"dateTime"})
+            cql_mapping.timeRestriction = CQLTimeRestrictionParameter(path="datetime", types={"dateTime"}, cardinality=SimpleCardinality.MANY)
             cql_mapping.resourceType = "Consent"
             cql_mapping.primaryCode= {
                             "code": "57016-8",
@@ -104,7 +105,7 @@ def process_csv(csv_file: str | Path):
                 row['contact']
             )
             lookup_table[key] = fhir_mapping.key
-            consent_mapping_tree.entries[consent_code] = TermEntryNode(term_code)
+            consent_mapping_tree.entries[consent_code] = TermEntryNode(term_code=term_code)
 
     return consents_fhir, consents_cql, consent_mapping_tree, lookup_table
 

@@ -1,9 +1,15 @@
+import logging
 import uuid
 import re
 import os
 import json
 import shutil
+from os.path import basename
 from pathlib import Path
+
+import pydantic
+from fhir.resources.R4B.elementdefinition import ElementDefinition
+from pydantic import BaseModel, PrivateAttr
 
 from cohort_selection_ontology.model.ui_data import (
     BulkTranslationDisplayElement,
@@ -11,11 +17,12 @@ from cohort_selection_ontology.model.ui_data import (
     TranslationDisplayElement,
     Translation,
 )
+from common.model.structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.enums import FhirPrimitiveDataType
 from common.util.log.functions import get_class_logger
 
 from enum import Enum
-from typing import Mapping, Optional, Any, List
+from typing import Mapping, Optional, Any, List, Dict, ClassVar
 
 from data_selection_extraction.model.profile_tree import ProfileTreeNode
 from data_selection_extraction.util.fhir.profile import is_profile_selectable
@@ -26,14 +33,13 @@ class SnapshotPackageScope(str, Enum):
     DEFAULT = "default"
 
 
-def get_value_for_lang_code(data: Mapping[str, Any], lang_code: str) -> Optional[str]:
-    for ext in data.get("extension", []):
-        if any(
-            e.get("url") == "lang" and e.get("valueCode") == lang_code
-            for e in ext.get("extension", [])
-        ):
+def get_value_for_lang_code(data: ElementDefinition, lang_code: str) -> Optional[str]:
+    if data is None:
+        return None
+    for ext in data.extension:
+        if any(e.url == "lang" and e.valueCode == lang_code for e in ext.extension):
             return next(
-                e["valueString"] for e in ext["extension"] if e.get("url") == "content"
+                e.valueString for e in ext.extension if e.url == "content"
             )
     return None
 
@@ -45,7 +51,7 @@ class ProfileTreeGenerator:
         self,
         packages_dir: Path | str,
         snapshots_dir: Path | str,
-        exclude_dirs,
+        excluded_dirs,
         excluded_profiles,
         module_order,
         module_translation,
@@ -53,12 +59,26 @@ class ProfileTreeGenerator:
         field_trees_to_exclude,
         profiles_to_process,
     ):
-        self.profiles = {scope: dict() for scope in SnapshotPackageScope}
+        """
+
+        :param packages_dir: dependencies folder
+        :param snapshots_dir: snapshots folder
+        :param excluded_dirs: folders to exclude from the packages_dir
+        :param excluded_profiles: list profile urls to exclude
+        :param module_order: order in which the modules should be computed
+        :param module_translation: mapping containing translation of module names
+        :param fields_to_exclude: fields which should be excluded from DSE per profile
+        :param field_trees_to_exclude: field trees, which should be excluded from DSE per profile
+        :param profiles_to_process: list of profiles to process - if empty, process all
+        """
+        self.profiles = {scope: {} for scope in SnapshotPackageScope}
         self.packages_dir = Path(packages_dir).resolve()
         os.makedirs(self.packages_dir, exist_ok=True)
+
         self.snapshots_dir = Path(snapshots_dir).resolve()
         os.makedirs(self.snapshots_dir, exist_ok=True)
-        self.exclude_dirs = exclude_dirs
+
+        self.exclude_dirs = excluded_dirs
         self.excluded_profiles = excluded_profiles
         self.module_order = module_order
         self.module_translation = module_translation
@@ -68,7 +88,7 @@ class ProfileTreeGenerator:
 
     def __get_profiles(
         self, scope: Optional[str] = None
-    ) -> Mapping[str, Mapping[str, Any]]:
+    ) -> Mapping[str, Mapping[str, Any | StructureDefinitionSnapshot]]:
         """
         Returns all profile entries in a certain scope or all if none is provided
         :param scope: Scope from which to return the profile entries
@@ -86,14 +106,14 @@ class ProfileTreeGenerator:
         name = name.replace("[x]", "")
         return name
 
-    def filter_element(self, element: Mapping[str, any]) -> bool:
+    def filter_element(self, element: ElementDefinition) -> bool:
         # TODO: This is a temporary workaround to allow both the postal code and the country information to be selected
         #       during data selection. To preserve context, selecting elements with simple data types which are not on
         #       the top level of a resource is disabled (e.g. to forbid selecting just Coding.code without
         #       Coding.system etc.).
         #       In the future we should switch to a more dynamic solution were the selectable elements can be defined in
         #       externalized config files using a well-defined syntax to prevent such hard-coded solutions.
-        element_id = element.get("id")
+        element_id = element.id
         if element_id in {
             "Patient.address:Strassenanschrift.postalCode",
             "Patient.address:Strassenanschrift.country",
@@ -102,24 +122,22 @@ class ProfileTreeGenerator:
 
         attributes_true_level_one = ["mustSupport", "isModifier", "min"]
         try:
-            path = re.split(r"[.:]", element["id"])
+            path = re.split(r"[.:]", element.id)
             path = path[1:]
         except KeyError:
             self.__logger.warning(
                 f"ElementDefinition instance will be rejected since it does not have an 'id' element "
-                f"[path='{element.get('path')}']"
+                f"[path='{element.path}']"
             )
             return False
 
-        if (
-            "type" in element
-            and element["type"][0]["code"] in FhirPrimitiveDataType
-            and len(path) > 1
-        ):
+        if element.type is not None and element.type[0].code in FhirPrimitiveDataType and len(path) > 1:
             return True
 
         if all(
-            element.get(attr) is False or element.get(attr) == 0 or attr not in element
+            getattr(element, attr) is False
+            or getattr(element, attr) == 0
+            or getattr(element, attr) is None
             for attr in attributes_true_level_one
         ):
             return True
@@ -128,46 +146,52 @@ class ProfileTreeGenerator:
 
         if (
             all(
-                element.get(attr) is False
-                or element.get(attr) == 0
-                or attr not in element
+                getattr(element, attr) is False
+                or getattr(element, attr) == 0
+                or getattr(element, attr) is None
                 for attr in attributes_true_level_two
             )
-            and len(element["id"].split(".")) > 2
+            and len(element.id.split(".")) > 2
         ):
             return True
 
         if any(
-            element["id"].endswith(field) or f"{field}." in element["id"]
+            element.id.endswith(field) or f"{field}." in element.id
             for field in self.fields_to_exclude
         ):
             return True
 
-        if any(f"{field}" in element["id"] for field in self.field_trees_to_exclude):
-            return True
-
-        if "[x]" in element["id"] and not element["id"].endswith("[x]"):
-            return True
-
-        if (
-            element["base"]["path"].split(".")[0] in {"Resource", "DomainResource"}
-            and not "mustSupport" in element
+        if any(
+                f"{field}" in element.id
+                for field in self.field_trees_to_exclude
         ):
             return True
 
-    def get_field_names_for_profile(self, struct_def) -> BulkTranslationDisplayElement:
+        if "[x]" in element.id and not element.id.endswith("[x]"):
+            return True
+
+        if (
+            element.base.path.split(".")[0] in {"Resource", "DomainResource"}
+            and element.mustSupport is None
+        ):
+            return True
+
+        return False
+
+    def get_field_names_for_profile(self, struct_def: StructureDefinitionSnapshot) -> BulkTranslationDisplayElement:
         names_original = []
         names_en = []
         names_de = []
 
-        for element in struct_def["snapshot"]["element"]:
+        for element in struct_def.snapshot.element:
+            element: ElementDefinition
             if self.filter_element(element):
                 continue
 
-            elem_name_de = get_value_for_lang_code(element.get("_short", {}), "de-DE")
-            elem_name_en = get_value_for_lang_code(element.get("_short", {}), "en-US")
+            elem_name_de = get_value_for_lang_code(element.short__ext, "de-DE")
+            elem_name_en = get_value_for_lang_code(element.short__ext, "en-US")
 
-            names_original.append(self.get_name_from_id(element["id"]))
+            names_original.append(self.get_name_from_id(element.id))
 
             # if elem_name_de == "":
             #    continue
@@ -183,9 +207,9 @@ class ProfileTreeGenerator:
             ],
         )
 
-    def build_profile_path(self, path, profile, profiles):
-        profile_struct = profile["structureDefinition"]
-        parent_profile_url = profile_struct.get("baseDefinition")
+    def build_profile_path(self, path, profile, profiles)->List[ProfileTreeNode]:
+        profile_struct: StructureDefinitionSnapshot = profile["structureDefinition"]
+        parent_profile_url = profile_struct.baseDefinition
 
         try:
             profile_field_names = self.get_field_names_for_profile(profile_struct)
@@ -198,23 +222,21 @@ class ProfileTreeGenerator:
                 id=str(uuid.uuid4()),
                 name=profile["name"],
                 display=TranslationDisplayElement(
-                    original=profile_struct.get(
-                        "title", profile_struct.get("name", "")
+                    original=(
+                        profile_struct.title
+                        if profile_struct.title is not None
+                        else profile_struct.name
                     ),
                     translations=[
                         Translation(
                             language="de-DE",
-                            value=get_value_for_lang_code(
-                                profile_struct.get("_title", {}), "de-DE"
-                            ),
+                            value=get_value_for_lang_code(profile_struct.title__ext, "de-DE")
                         ),
                         Translation(
                             language="en-US",
-                            value=get_value_for_lang_code(
-                                profile_struct.get("_title", {}), "en-US"
-                            ),
-                        ),
-                    ],
+                            value=get_value_for_lang_code(profile_struct.title__ext, "en-US")
+                        )
+                    ]
                 ),
                 fields=profile_field_names,
                 module=profile["module"],
@@ -338,33 +360,42 @@ class ProfileTreeGenerator:
 
                 try:
                     with open(file_path, mode="r", encoding="utf-8") as f:
-                        content = json.load(f)
+                        try:
+                            content = StructureDefinitionSnapshot.model_validate_json(f.read())
+                        except pydantic.ValidationError as e:
+                            error_list = ""
+                            for err in e.errors():
+                                loc = err["loc"]
+                                error_list = f"\n\t\t\t{ '.'.join(map(str, loc))}: {err['msg']}"
+                            self.__logger.error(
+                                f"Failed to parse snapshot {basename(file_path)} at {error_list}"
+                            )
 
                         if (
                             self.profiles_to_process
-                            and content["url"] not in self.profiles_to_process
+                            and content.url not in self.profiles_to_process
                         ):
                             continue
 
                         if (
-                            "resourceType" in content
-                            and content["resourceType"] == "StructureDefinition"
+                            content.get_resource_type() is not None
+                            and content.get_resource_type() == "StructureDefinition"
                             # and content["status"] == "active"
-                            and content["kind"] == "resource"
-                            or content.get("type") == "Extension"
-                            and content.get("snapshot")
+                            and (content.kind == "resource"
+                            or content.type == "Extension")
+                            and content.snapshot
                         ):
-                            module_extract = self.extract_module_string(content["url"])
-                            module = content["url"]
+                            module_extract = self.extract_module_string(content.url)
+                            module = content.url
 
                             if module_extract:
                                 module = module_extract
 
-                            self.profiles[scope][content["url"]] = {
+                            self.profiles[scope][content.url] = {
                                 "structureDefinition": content,
-                                "name": content["name"],
+                                "name": content.name,
                                 "module": module,
-                                "url": content["url"],
+                                "url": content.url,
                             }
 
                             self.__logger.info(
@@ -400,14 +431,15 @@ class ProfileTreeGenerator:
         """
         Returns only those profiles which are snapshots that apply to FHIR resource types excluding Extension and are
         part of the Medical Informatics Initiative (MII)
-        <"""
+        """
         profiles = {}
-        for url, profile in self.profiles.get("mii", {}).items():
-            snapshot = profile.get("structureDefinition")
+        mii_profiles = self.profiles.get('mii', {})
+        for url, profile in mii_profiles.items():
+            snapshot: StructureDefinitionSnapshot = profile.get('structureDefinition')
             if (
-                snapshot.get("type") != "Extension"
-                and snapshot.get("kind") == "resource"
-                and "snapshot" in snapshot
+                snapshot.type != "Extension"
+                and snapshot.kind == 'resource'
+                and snapshot.snapshot is not None
             ):
                 profiles[url] = profile
         return profiles
@@ -416,7 +448,7 @@ class ProfileTreeGenerator:
         """
         Generates a profile tree from the profiles in scope
         :param condense: If set to `True` the tree will be condensed according to
-                         `ProfileTreeGenerator::__condense_profile_tree`
+                `ProfileTreeGenerator::__condense_profile_tree`
         :return: Generated profile tree
         """
         self.__logger.info("Generating profile tree")
@@ -428,9 +460,9 @@ class ProfileTreeGenerator:
             # The Patient resource is selected by default due to its special status and thus there is no need to have
             # profiles constraining this resource type in the profile tree
             struct_def = profile.get("structureDefinition", {})
-            if struct_def.get("type") == "Patient":
+            if struct_def.type == "Patient":
                 self.__logger.info(
-                    f"Profile '{struct_def.get('id')}' will not be present in the profile tree as the "
+                    f"Profile '{struct_def.id}' will not be present in the profile tree as the "
                     f"Patient resource is selected by default => Skipping"
                 )
                 continue
