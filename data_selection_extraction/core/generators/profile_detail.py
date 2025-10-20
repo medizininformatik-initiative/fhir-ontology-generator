@@ -1,7 +1,6 @@
 import re
 from collections import OrderedDict
 from collections.abc import Callable
-from os import mkdir
 from typing import Mapping, List, TypedDict, Any, Optional
 
 from common.exceptions.profile import MissingProfileError, MissingElementError
@@ -10,7 +9,6 @@ from cohort_selection_ontology.model.ui_data import (
     BulkTranslationDisplayElement,
     Translation,
 )
-from common.util.collections.functions import first
 from common.util.fhir.structure_definition import (
     supports_type,
     find_type_element,
@@ -18,7 +16,6 @@ from common.util.fhir.structure_definition import (
     get_types_supported_by_element,
     Snapshot,
     is_element_in_snapshot,
-    get_parent_element,
 )
 from common.util.project import Project
 from data_selection_extraction.core.generators.profile_tree import (
@@ -39,9 +36,14 @@ from common.util.fhir.enums import (
 
 from common.util.log.functions import get_class_logger
 from data_selection_extraction.model.profile_tree import ProfileTreeNode
-from data_selection_extraction.util.fhir.profile import is_profile_selectable, logger
+from data_selection_extraction.util.fhir.profile import is_profile_selectable
+
 
 Profile = Mapping[str, any]
+
+_EXT_ELEM_PATTERN = re.compile(
+    r".*extension(:(?P<slice_name>[a-zA-Z0-9\/\\\-_\[\]\@]+))?"
+)
 
 
 class SearchParamPathMapping(TypedDict):
@@ -241,16 +243,12 @@ class ProfileDetailGenerator:
         #       Coding.system etc.).
         #       In the future we should switch to a more dynamic solution were the selectable elements can be defined in
         #       externalized config files using a well-defined syntax to prevent such hard-coded solutions.
-        element_id = element.get("id")
+        element_id: str = element.get("id")
         if element_id in {
             "Patient.address:Strassenanschrift.postalCode",
             "Patient.address:Strassenanschrift.country",
         }:
             return False
-
-        # if not element.get("type"):
-        #    self.__logger.info(f"Excluding: {element['id']} as no type was found")
-        #    return True
 
         if element.get("subject") or element.get("patient"):
             self.__logger.info(
@@ -280,9 +278,24 @@ class ProfileDetailGenerator:
             self.__logger.debug(f"Excluding: {element['id']} as part of field tree")
             return True
 
-        if "[x]" in element["id"] and not element["id"].endswith("[x]"):
-            self.__logger.debug(f"Excluding: {element['id']} as sub-elements relevant")
-            return True
+        parent_elem = element_map.get(element_id.rsplit(".", maxsplit=1)[0])
+        # Exclude all sub-elements of primitive FHIR data types
+        if not supports_type(element, FhirComplexDataType.EXTENSION) and (
+            types := get_types_supported_by_element(parent_elem)
+        ):
+            if all(map(lambda t: t.code in FhirPrimitiveDataType, types)):
+                return True
+
+        if matches := [*_EXT_ELEM_PATTERN.finditer(element["id"])]:
+            # If the element is itself or a child of an unsliced 'extension' element it will be excluded
+            for m in matches:
+                if not m.group("slice_name"):
+                    return True
+            # All but the sliced extension element itself will be excluded
+            if (m := matches[-1]).group("slice_name") and m.end("slice_name") < len(
+                element["id"]
+            ):
+                return True
 
         if (
             element["base"]["path"].split(".")[0] in {"Resource", "DomainResource"}
