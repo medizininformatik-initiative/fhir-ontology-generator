@@ -3,6 +3,13 @@ import json
 import os
 import shutil
 
+from fhir.resources.R4B.codesystem import CodeSystem
+
+from cohort_selection_ontology.model.ui_data import (
+    TranslationDisplayElement,
+    Translation,
+)
+from common.util.http.terminology.client import FhirTerminologyClient
 from common.util.log.functions import get_logger
 from common.util.project import Project
 from common.util.sql.merging import SqlMerger
@@ -48,8 +55,6 @@ def write_json_to_file(filepath, object):
 
 
 def add_system_urls_to_systems_json(project: Project, system_urls):
-    new_terminology_systems = {}
-
     with open(
         project.input.mkdirs("terminology") / "terminology_systems.json",
         mode="r",
@@ -57,22 +62,35 @@ def add_system_urls_to_systems_json(project: Project, system_urls):
     ) as systems_file:
         terminology_systems = json.load(systems_file)
 
-        for terminology_system in terminology_systems:
-            new_terminology_systems[terminology_system["url"]] = terminology_system[
-                "name"
-            ]
+        for term_system in terminology_systems:
+            if term_system.get("url") in system_urls:
+                system_urls.remove(term_system.get("url"))
 
-        for system_url in list(system_urls):
-            if system_url not in new_terminology_systems:
-                name = system_url.split("/")[-1]
-                new_terminology_systems[system_url] = name
+        client = FhirTerminologyClient.from_project(project)
 
-        terminology_systems = []
-        for key, value in new_terminology_systems.items():
-            terminology_systems.append({"url": key, "name": value})
+        for key in system_urls:
+            cs: CodeSystem = max(
+                client.search_code_system(url=key).entry,
+                key=lambda e: e.resource.version,
+            ).resource
 
-        # systems_file.truncate(0)
-        # systems_file.seek(0)
+            cs_display = TranslationDisplayElement(
+                original=(cs.name if cs.name else cs.title),
+                translations=[
+                    Translation(
+                        language="en", value=(cs.name if cs.name else cs.title)
+                    ),
+                    Translation(
+                        language="de", value=(cs.name if cs.name else cs.title)
+                    ),
+                ],
+            )
+
+            terminology_systems.append(
+                {"url": key, "display": cs_display.model_dump()}
+            )
+
+        terminology_systems = sorted(terminology_systems, key=lambda x: x["url"])
 
         with open(
             project.output.mkdirs("terminology") / os.path.basename(systems_file.name),
