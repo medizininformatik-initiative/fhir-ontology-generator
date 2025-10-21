@@ -1,34 +1,290 @@
 [
   {
+    "url": "http://fhir.de/CodeSystem/Kontaktebene",
+    "display": {
+      "original": "Kontaktebene",
+      "translations": [
+        {
+          "language": "en",
+          "value": "Kontaktebene"
+        },
+        {
+          "language": "de",
+          "value": "Kontaktebene"
+        }
+      ]
+    }
+  },
+  {
     "url": "http://fhir.de/CodeSystem/bfarm/alpha-id",
-    "name": "alpha-id"
-  },
-  {
-    "url": "http://loinc.org",
-    "name": "loinc.org"
-  },
-  {
-    "url": "http://fhir.de/CodeSystem/bfarm/ops",
-    "name": "ops"
-  },
-  {
-    "url": "http://www.orpha.net",
-    "name": "www.orpha.net"
-  },
-  {
-    "url": "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
-    "name": "icd-10-gm"
-  },
-  {
-    "url": "http://hl7.org/fhir/sid/icd-10",
-    "name": "icd-10"
-  },
-  {
-    "url": "http://snomed.info/sct",
-    "name": "sct"
+    "display": {
+      "original": "Alpha-ID",
+      "translations": [
+        {
+          "language": "en",
+          "value": "Alpha-ID"
+        },
+        {
+          "language": "de",
+          "value": "Alpha-ID"
+        }
+      ]
+    }
   },
   {
     "url": "http://fhir.de/CodeSystem/bfarm/atc",
-    "name": "atc"
+    "display": {
+      "original": "ATC",
+      "translations": [
+        {
+          "language": "en",
+          "value": "ATC"
+        },
+        {
+          "language": "de",
+          "value": "ATC"
+        }
+      ]
+    }
+  },
+  {
+    "url": "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
+    "display": {
+      "original": "ICD-10-GM",
+      "translations": [
+        {
+          "language": "en",
+          "value": "ICD-10-GM"
+        },
+        {
+          "language": "de",
+          "value": "ICD-10-GM"
+        }
+      ]
+    }
+  },
+  {
+    "url": "http://fhir.de/CodeSystem/bfarm/ops",
+    "display": {
+      "original": "OPS",
+      "translations": [
+        {
+          "language": "en",
+          "value": "OPS"
+        },
+        {
+          "language": "de",
+          "value": "OPS"
+        }
+      ]
+    }
+  },
+  {
+    "url": "http://fhir.de/CodeSystem/dkgev/Fachabteilungsschluessel",
+    "display": {
+      "original": "Fachabteilungsschluessel",
+      "translations": [
+        {
+          "language": "en",
+          "value": "Fachabteilungsschluessel"
+        },
+        {
+          "language": "de",
+          "value": "Fachabteilungsschluessel"
+        }
+      ]
+    }
+  },
+  {
+    "url": "http://fhir.de/CodeSystem/dkgev/Fachabteilungsschluessel-erweitert",
+    "display": {
+      "original": "Fachabteilungsschluessel-Erweitert",
+      "translations": [
+        {
+          "language": "en",
+          "value": "Fachabteilungsschluessel-Erweitert"
+        },
+        {
+          "language": "de",
+          "value": "Fachabteilungsschluessel-Erweitert"
+        }
+      ]
+    }
+  },
+  {
+    "url": "http://fhir.de/CodeSystem/kontaktart-de",
+    "display": {
+      "original": "Kontaktart",
+      "translations": [
+        {
+          "language": "en",
+          "value": "Kontaktart"
+        },
+        {
+          "language": "de",
+          "value": "Kontaktart"
+        }
+      ]
+    }
+  },
+  {
+    "url": "http://hl7.org/fhir/administrative-gender",
+    "display": {
+      "original": "Administrative-Gender",
+      "translations": [
+        {
+          "language": "en",
+          "value": "Administrative-Gender"
+        },
+        {
+          "language": "de",
+          "value": "Administrative-Gender"
+        }
+      ]
+    }
+  },
+  {
+    "url": "http://hl7.org/fhir/sid/icd-10",
+    "display": {
+      "original": "ICD-10",
+      "translations": [
+        {
+          "language": "en",
+          "value": "ICD-10"
+        },
+        {
+          "language": "de",
+          "value": "ICD-10"
+        }
+      ]
+    }
+  },
+  {
+    "url": "http://loinc.org",
+    "display": {
+      "original": "LOINC",
+      "translations": [
+        {
+          "language": "en",
+          "value": "LOINC"
+        },
+        {
+          "language": "de",
+          "value": "LOINC"
+        }
+      ]
+    }
+  },
+  {
+    "url": "http://snomed.info/sct",
+    "display": {
+      "original": "SNOMED CT",
+      "translations": [
+        {
+          "language": "en",
+          "value": "SNOMED CT"
+        },
+        {
+          "language": "de",
+          "value": "SNOMED CT"
+        }
+      ]
+    }
+  },
+  {
+    "url": "http://terminology.hl7.org/CodeSystem/icd-o-3",
+    "display": {
+      "original": "ICD-O-3",
+      "translations": [
+        {
+          "language": "en",
+          "value": "ICD-O-3"
+        },
+        {
+          "language": "de",
+          "value": "ICD-O-3"
+        }
+      ]
+    }
+  },
+  {
+    "url": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+    "display": {
+      "original": "HL7 v3 Act Codes",
+      "translations": [
+        {
+          "language": "en",
+          "value": "HL7 v3 Act Codes"
+        },
+        {
+          "language": "de",
+          "value": "HL7 v3 Act Codes"
+        }
+      ]
+    }
+  },
+  {
+    "url": "http://www.orpha.net",
+    "display": {
+      "original": "Orphanet",
+      "translations": [
+        {
+          "language": "en",
+          "value": "Orphanet"
+        },
+        {
+          "language": "de",
+          "value": "Orphanet"
+        }
+      ]
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/CodeSystem/Vitalstatus",
+    "display": {
+      "original": "Vitalstatus",
+      "translations": [
+        {
+          "language": "en",
+          "value": "Vitalstatus"
+        },
+        {
+          "language": "de",
+          "value": "Vitalstatus"
+        }
+      ]
+    }
+  },
+  {
+    "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-onko/CodeSystem/mii-cs-onko-therapie-typ",
+    "display": {
+      "original": "MII-Onko-Therapietyp",
+      "translations": [
+        {
+          "language": "en",
+          "value": "MII-Onko-Therapietyp"
+        },
+        {
+          "language": "de",
+          "value": "MII-Onko-Therapietyp"
+        }
+      ]
+    }
+  },
+  {
+    "url": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+    "display": {
+      "original": "MII-Consent-Policy",
+      "translations": [
+        {
+          "language": "en",
+          "value": "MII-Consent-Policy"
+        },
+        {
+          "language": "de",
+          "value": "MII-Consent-Policy"
+        }
+      ]
+    }
   }
 ]
