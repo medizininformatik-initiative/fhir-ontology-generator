@@ -12,68 +12,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
+    concurrency:
+      group: "requires-terminology-server"
+      cancel-in-progress: false
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set locale
-        run: |
-          sudo apt-get update
-          sudo apt-get install tzdata locales -y
-          sudo locale-gen de_DE.UTF-8
-          sudo localectl set-locale LANG="de_DE.UTF-8"
-          export LANG="de_DE.UTF-8"
-          sudo update-locale
-          locale -a
-          locale
-          locale -c -k LC_NUMERIC
-          localectl status
-
-      - name: Setup python 3 environment
-        uses: actions/setup-python@v5
+      - name: Generate ontology files
+        uses: ./.github/actions/generate-ontology
         with:
-          python-version: '3.13'
-          cache: 'pip'
-
-      - name: Install required python modules
-        run: pip3 install -r requirements.txt
-
-      - name: Save secret to file
-        id: certificates
-        run: |
-          echo "$PRIVATE_KEY" > private-key.pem
-          echo "$SERVER_CERTIFICATE" > certificate.pem
-          echo privateKey=$(readlink -f private-key.pem) >> "$GITHUB_OUTPUT"
-          echo certificate=$(readlink -f certificate.pem) >> "$GITHUB_OUTPUT"
-        env:
-          SERVER_CERTIFICATE: ${{ secrets.FDPGPLUS_ONTO_SERVER_CERT }}
-          PRIVATE_KEY: ${{ secrets.FDPGPLUS_ONTO_SERVER_KEY }}
-
-      - name: Run ontology generation
-        env:
-          ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
-          SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
-          PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
-        run: ./generate_full_ontology.sh --project "fdpg-ontology" --all
-
-      - name: Upload Ontology
-        uses: actions/upload-artifact@v4
-        with:
-          name: packaged ontology
-          path: |
-            projects/fdpg-ontology/output/merged_ontology/elastic.zip
-            projects/fdpg-ontology/output/merged_ontology/backend.zip
-            projects/fdpg-ontology/output/merged_ontology/mapping.zip
-
-      - name: Project Output - Ontology
-        uses: actions/upload-artifact@v4
-        with:
-          name: project output
-          path: |
-            projects/fdpg-ontology/output/
+          project: "fdpg-ontology"
+          term-server-url: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
+          term-server-cert: ${{ secrets.FDPGPLUS_ONTO_SERVER_CERT }}
+          term-server-key: ${{ secrets.FDPGPLUS_ONTO_SERVER_KEY }}
 
   generate_availability:
     runs-on: ubuntu-latest

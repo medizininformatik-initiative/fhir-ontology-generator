@@ -10,78 +10,135 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: "requires-terminology-server"
+      cancel-in-progress: false
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-  release:
-    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+      - name: Generate ontology files
+        uses: ./.github/actions/generate-ontology
+        with:
+          project: "fdpg-ontology"
+          term-server-url: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
+          term-server-cert: ${{ secrets.FDPGPLUS_ONTO_SERVER_CERT }}
+          term-server-key: ${{ secrets.FDPGPLUS_ONTO_SERVER_KEY }}
+
+  generate_availability:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-    - name: Set locale
-      run: |
-        sudo apt-get update
-        sudo apt-get install tzdata locales -y
-        sudo locale-gen de_DE.UTF-8
-        sudo localectl set-locale LANG="de_DE.UTF-8"
-        export LANG="de_DE.UTF-8"
-        sudo update-locale
-        locale -a
-        locale
-        locale -c -k LC_NUMERIC
-        localectl status
+      - name: Generate_Availability
+        uses: ./.github/actions/availability
+        with:
+          tag: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
 
-    - name: Generate Availability
-      uses: ./.github/actions/availability
+  run_integration_tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download Ontology
+        uses: actions/download-artifact@v4
+        with:
+          name: packaged ontology
+          path: projects/fdpg-ontology/output/merged_ontology
+
+      - name: Install required python modules
+        run: pip3 install -r requirements.txt
+
+      - name: Install testing pytest
+        run: pip3 install pytest pytest-docker pytest-cov
+
+      - name: Save secret to file
+        id: certificates
+        run: |
+          echo "$PRIVATE_KEY" > private-key.pem
+          echo "$SERVER_CERTIFICATE" > certificate.pem
+          echo privateKey=$(readlink -f private-key.pem) >> "$GITHUB_OUTPUT"
+          echo certificate=$(readlink -f certificate.pem) >> "$GITHUB_OUTPUT"
+        env:
+          SERVER_CERTIFICATE: ${{ secrets.FDPGPLUS_ONTO_SERVER_CERT }}
+          PRIVATE_KEY: ${{ secrets.FDPGPLUS_ONTO_SERVER_KEY }}
+
+      - name: Run integration tests
+        env:
+          ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
+          SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
+          PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
+        run: pytest tests/integration -v --cov --cov-branch --cov-report=xml --project "fdpg-ontology" --ignore=tests/integration/integrity/json
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload Docker logs
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: docker_logs_integration_testing
+          path: tests/integration/backend/docker_logs
+
+  run_json_integrity_tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install required python modules
+        run: pip3 install -r requirements.txt
+
+      - name: Download Ontology
+        uses: actions/download-artifact@v4
+        with:
+          name: project output
+          path: projects/fdpg-ontology/output/
+
+      - name: Install testing pytest
+        run: pip3 install pytest pytest-docker pytest-cov pytest-xdist
+
+      - name: Run integration tests
+        env:
+          ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
+          SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
+          PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
+        run: pytest tests/integration/integrity/json -v -n 10 --cov --cov-branch --cov-report=xml --project "fdpg-ontology"
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  release:
+    needs: [build, generate_availability, run_integration_tests, run_json_integrity_tests]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download Ontology
+      uses: actions/download-artifact@v4
       with:
-        tag: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+        name: project output
+        path: projects/fdpg-ontology/output/
 
-    - name: Setup python 3 environment
-      uses: actions/setup-python@v5
+    - name: Download Availability
+      uses: actions/download-artifact@v4
       with:
-        python-version: '3.13'
-        cache: 'pip'
-
-    - name: Install required python modules
-      run: pip3 install -r requirements.txt
-
-    - name: Save secret to file
-      id: certificates
-      run: |
-        echo "$PRIVATE_KEY" > private-key.pem
-        echo "$SERVER_CERTIFICATE" > certificate.pem
-        echo privateKey=$(readlink -f private-key.pem) >> "$GITHUB_OUTPUT"
-        echo certificate=$(readlink -f certificate.pem) >> "$GITHUB_OUTPUT"
-      env:
-        SERVER_CERTIFICATE: ${{ secrets.FDPGPLUS_ONTO_SERVER_CERT }}
-        PRIVATE_KEY: ${{ secrets.FDPGPLUS_ONTO_SERVER_KEY }}
+        name: availability-zip
+        path: projects/fdpg-ontology/output/availability/availability.zip
 
     - name: Collect DSE structure definition snapshots
       shell: bash
       run: zip -j dse_structures.zip projects/fdpg-ontology/input/data_selection_extraction/snapshots/mii/*
 
-    - name: Run ontology generation
-      env:
-        ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
-        SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
-        PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
-      run: ./generate_full_ontology.sh --project "fdpg-ontology" --all
-
-    - name: Run integration tests
-      env:
-        ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
-        SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
-        PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
-      run: pytest tests/integration -v --cov --project "fdpg-ontology"
-
-    - name: Upload Docker logs
-      uses: actions/upload-artifact@v4
-      if: ${{ failure() }}
-      with:
-        name: docker_logs
-        path: tests/integration/backend/docker_logs
-
-    - name: Release
+    - name: Release Draft
       uses: softprops/action-gh-release@v2
       with:
         draft: true
@@ -90,5 +147,5 @@ jobs:
           projects/fdpg-ontology/output/merged_ontology/elastic.zip
           projects/fdpg-ontology/output/merged_ontology/backend.zip
           projects/fdpg-ontology/output/merged_ontology/mapping.zip
-          availability/availability.zip
+          projects/fdpg-ontology/output/availability/availability.zip
           dse_structures.zip
