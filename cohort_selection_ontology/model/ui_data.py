@@ -86,11 +86,13 @@ class Module:
 class RelationalTermcode:
     contextualized_termcode_hash: str
     display: str | dict
+    selectable: bool
 
     def to_dict(self):
         return {
             "contextualized_termcode_hash": self.contextualized_termcode_hash,
-            "display": self.display
+            "display": self.display,
+            "selectable": self.selectable
         }
 
 
