@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "ui_tree_schema",
-  "titel": "ui-tree JSON Schema",
+  "title": "ui-tree JSON Schema",
   "description": "Used for checking integrity of generated ui_trees",
   "type": "array",
-  "items": {},
+  "items": { "$ref": "#/definitions/ui_tree" },
   "definitions": {
     "ui_tree_entry":{
       "type": "object",
@@ -36,7 +36,7 @@
         "system": { "type": "string" },
         "version": {"type": "string"}
       },
-      "required": ["context","system","version"]
+      "required": ["context","system"]
     }
   },
   "additionalProperties": false

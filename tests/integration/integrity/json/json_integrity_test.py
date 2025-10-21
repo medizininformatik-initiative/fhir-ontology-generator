@@ -127,6 +127,11 @@ def test_json_integrity_mapping_tree_dse(test_dir, project, schema_store):
     assert validate_json_with_file(file=mapping_tree_dse, schema=mapping_tree_dse_schema_file,
                                            schema_store=schema_store)
 
+def test_terminology_systems_output(test_dir, project, schema_store):
+    terminology_systems = project.output / "terminology" / "terminology_systems.json"
+    terminology_systems_schema_file = Path(test_dir, "schemata", "terminology_systems_schema.json")
+    assert validate_json_with_file(file=terminology_systems, schema=terminology_systems_schema_file, schema_store=schema_store)
+
 
 def test_json_integrity_elastic_file(json_file, test_dir, schema_store):
     elastic_ontology_index_schema_file = Path(test_dir, "schemata", "elastic_ontology_index_schema.json")
