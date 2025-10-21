@@ -1,0 +1,26 @@
+{
+  "name": "MII_PR_Bildgebung_Radiologischer_Befund_category_diagnostic-service-sections",
+  "context": {
+    "code": "Bildgebung",
+    "display": "Bildgebung",
+    "system": "fdpg.mii.cds",
+    "version": "1.0.0"
+  },
+  "module": {
+    "code": "mii-cds-Bildgebung",
+    "display": "Bildgebung"
+  },
+  "resource_type": "DiagnosticReport",
+  "term_code_defining_id": "DiagnosticReport.category.coding:diagnostic-service-sections",
+  "time_restriction_defining_id": "DiagnosticReport.effective[x]",
+  "attribute_defining_id_type_map": {
+    "DiagnosticReport.code.coding": {
+      "type": "",
+      "optional": true
+    },
+    "DiagnosticReport.conclusionCode.coding": {
+      "type": "",
+      "optional": true
+    }
+  }
+}
