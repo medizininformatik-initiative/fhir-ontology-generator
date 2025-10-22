@@ -6,7 +6,7 @@
       "translations": [
         {
           "language": "en",
-          "value": "Kontaktebene"
+          "value": "Level of Encounter"
         },
         {
           "language": "de",
@@ -86,7 +86,7 @@
       "translations": [
         {
           "language": "en",
-          "value": "Fachabteilungsschluessel"
+          "value": "Department Code"
         },
         {
           "language": "de",
@@ -102,7 +102,7 @@
       "translations": [
         {
           "language": "en",
-          "value": "Fachabteilungsschluessel-Erweitert"
+          "value": "Department Code (extended)"
         },
         {
           "language": "de",
@@ -118,7 +118,7 @@
       "translations": [
         {
           "language": "en",
-          "value": "Kontaktart"
+          "value": "Type of Encounter"
         },
         {
           "language": "de",
@@ -130,15 +130,15 @@
   {
     "url": "http://hl7.org/fhir/administrative-gender",
     "display": {
-      "original": "Administrative-Gender",
+      "original": "Administrative Gender",
       "translations": [
         {
           "language": "en",
-          "value": "Administrative-Gender"
+          "value": "Administrative Gender"
         },
         {
           "language": "de",
-          "value": "Administrative-Gender"
+          "value": "Administrative Gender"
         }
       ]
     }
@@ -146,15 +146,15 @@
   {
     "url": "http://hl7.org/fhir/sid/icd-10",
     "display": {
-      "original": "ICD-10",
+      "original": "ICD-10-WHO",
       "translations": [
         {
           "language": "en",
-          "value": "ICD-10"
+          "value": "ICD-10-WHO"
         },
         {
           "language": "de",
-          "value": "ICD-10"
+          "value": "ICD-10-WHO"
         }
       ]
     }
@@ -258,15 +258,15 @@
   {
     "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-onko/CodeSystem/mii-cs-onko-therapie-typ",
     "display": {
-      "original": "MII-Onko-Therapietyp",
+      "original": "Onkologie Therapietyp",
       "translations": [
         {
           "language": "en",
-          "value": "MII-Onko-Therapietyp"
+          "value": "Oncology Therapy Type"
         },
         {
           "language": "de",
-          "value": "MII-Onko-Therapietyp"
+          "value": "Onkologie Therapietyp"
         }
       ]
     }
@@ -274,15 +274,15 @@
   {
     "url": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
     "display": {
-      "original": "MII-Consent-Policy",
+      "original": "Consent Policy",
       "translations": [
         {
           "language": "en",
-          "value": "MII-Consent-Policy"
+          "value": "Consent Policy"
         },
         {
           "language": "de",
-          "value": "MII-Consent-Policy"
+          "value": "Consent Policy"
         }
       ]
     }
