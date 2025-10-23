@@ -17,7 +17,8 @@
       "type": "reference",
       "optional": true
     },
-    "Specimen.collection.bodySite.coding": {
+    "Specimen.collection.bodySite.coding:icd-o-3": {
+      "type": "concept",
       "optional": true
     }
   },

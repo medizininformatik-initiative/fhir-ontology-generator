@@ -7,3 +7,7 @@ class UnsupportedTypingException(UnsupportedError):
     objects in general.
     """
     pass
+
+
+class InvalidValueTypeException(ValueError):
+    pass

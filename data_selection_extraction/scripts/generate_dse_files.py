@@ -134,9 +134,9 @@ def generate_cs_tree_map(system: str, version: str | None, concepts: set, projec
     client = CohortSelectionTerminologyClient(project)
 
     client.create_concept_map(name="dse-closure")
-    term_codes = list(map(lambda t: TermCode(system, t[0], t[1], version), concepts))
+    term_codes = list(map(lambda t: TermCode(system=system, code=t[0], display=t[1], version=version), concepts))
     treemap: TreeMap = TreeMap({}, None, system, version)
-    treemap.entries = {term_code.code: TermEntryNode(term_code) for term_code in term_codes}
+    treemap.entries = {term_code.code: TermEntryNode(term_code=term_code) for term_code in term_codes}
     logger.debug("Building closure table")
     try:
         closure_map = client.get_closure_map(term_codes, closure_name="dse-closure")
@@ -242,8 +242,17 @@ if __name__ == '__main__':
     field_trees_to_exclude = ["Patient.name", "Patient.location", "Patient.identifier", "Patient.address",
                               "Patient.link"]
 
-    tree_generator = ProfileTreeGenerator(packages_dir, snapshots_dir, excluded_dirs, excluded_profiles, module_order,
-                                          module_translation, fields_to_exclude, field_trees_to_exclude, args.profiles)
+    tree_generator = ProfileTreeGenerator(
+        packages_dir=packages_dir,
+        snapshots_dir=snapshots_dir,
+        excluded_dirs=excluded_dirs,
+        excluded_profiles=excluded_profiles,
+        module_order=module_order,
+        module_translation=module_translation,
+        fields_to_exclude=fields_to_exclude,
+        field_trees_to_exclude=field_trees_to_exclude,
+        profiles_to_process=args.profiles
+    )
 
     if args.copy_snapshots:
         tree_generator.copy_profile_snapshots()
@@ -261,13 +270,20 @@ if __name__ == '__main__':
 
     if args.generate_profile_details:
         profiles = tree_generator.profiles
-        profile_detail_generator = ProfileDetailGenerator(project, profiles, mapping_type_code, blacklisted_value_sets,
-                                                          fields_to_exclude, field_trees_to_exclude,
-                                                          reference_resolve_base_url, module_translation)
+        profile_detail_generator = ProfileDetailGenerator(
+            project=project,
+            profiles=profiles,
+            mapping_type_code=mapping_type_code,
+            blacklisted_value_sets=blacklisted_value_sets,
+            fields_to_exclude=fields_to_exclude,
+            field_trees_to_exclude=field_trees_to_exclude,
+            reference_base_url=reference_resolve_base_url,
+            module_translation=module_translation,
+        )
 
         profile_details = profile_detail_generator.generate_profile_details_for_profiles_in_scope(
             SnapshotPackageScope.MII,
-            cond=lambda p: p.get('kind') == 'resource',
+            cond=lambda p: p.kind == 'resource',
             profile_tree=profile_tree
         )
 

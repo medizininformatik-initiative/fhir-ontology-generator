@@ -12,6 +12,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+
+  run_unit_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup python 3 environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install required python modules
+        run: pip3 install -r requirements.txt
+
+      - name: Install testing pytest
+        run: pip3 install pytest pytest-docker pytest-cov pytest-xdist
+
+      - name: Run integration tests
+        run: pytest tests/unit -v --cov --cov-branch --cov-report=xml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+
+
   build:
     runs-on: ubuntu-latest
     concurrency:
@@ -44,6 +73,12 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Setup python 3 environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
 
       - name: Download Ontology
         uses: actions/download-artifact@v4
