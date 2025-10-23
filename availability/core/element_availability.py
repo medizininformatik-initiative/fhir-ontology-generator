@@ -5,6 +5,7 @@ from itertools import groupby
 from typing import List, Dict, Optional, Any, Tuple
 
 from antlr4.ParserRuleContext import ParserRuleContext
+from fhir.resources.R4B import get_fhir_model_class
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.coding import Coding
 from fhir.resources.R4B.element import Element
@@ -32,6 +33,7 @@ from availability.constants.measure import (
 )
 from common.constants.fhir import EXT_DATA_ABSENT_REASON_URL
 from common.exceptions import NotFoundError, UnsupportedError
+from common.model.fhir.functions import get_reference_fields
 from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot,
     IndexedStructureDefinition,
@@ -48,6 +50,40 @@ _logger = get_logger(__file__)
 
 _REGEX_MATCH_TRAILING_WHERE_FUNC = re.compile(r"where\((.*)\)$")
 _REGEX_MATCH_TRAILING_EXISTS_FUNC = re.compile(r"exists\((.*)\)$")
+
+
+def _find_subject_reference_elem_def(
+    profile: IndexedStructureDefinition,
+) -> Optional[ElementDefinition]:
+    """
+    Tries to find the first-level element holding the reference to the Patient resource (that represent the patient to
+    which this type of clinical data applies)
+
+    :param profile: `StructureDefinition` constraining a resource type
+    :return: `ElementDefinition` defining a suitable element or `None` if no such element could be identified
+    """
+    res_type = profile.type
+    if model_cls := get_fhir_model_class(res_type):
+        ref_fields = get_reference_fields(model_cls, {"Patient"})
+        match ref_fields:
+            case []:
+                return None
+            case [f]:
+                elem_path = f"{res_type}.{f.alias}"
+            case _:
+                # Try common names for such an element if there are multiple candidates
+                f_names = [f.alias for f in ref_fields]
+                if "subject" in f_names:
+                    elem_path = f"{res_type}.subject"
+                elif "patient" in f_names:
+                    elem_path = f"{res_type}.patient"
+                else:
+                    return None
+        return profile.get_element_by_id(elem_path)
+    else:
+        raise ValueError(
+            f"Unknown FHIR resource type '{res_type}' constrained by profile '{profile}'"
+        )
 
 
 def _add_data_absent_reason_clause(expr: Optional[ParserRuleContext] = None) -> str:
@@ -117,7 +153,11 @@ def _ensure_trailing_existence_check(expr_str: str, is_primitive: bool = False) 
 
 
 def _add_populations(
-    group: MeasureGroup, resource_type: str, profile_url: str, id_num: int
+    group: MeasureGroup,
+    resource_type: str,
+    profile_url: str,
+    subject_ref_elem_name: str,
+    id_num: int,
 ) -> MeasureGroup:
     """
     Populates the given measure group with initial populations required by the
@@ -126,6 +166,7 @@ def _add_populations(
     :param group: `MeasureGroup` instance to update
     :param resource_type: Targeted FHIR resource type
     :param profile_url: URL of the constraining profile
+    :param subject_ref_elem_name: Name of the element holding a reference to the subject
     :param id_num: Sequential ID number to generate unique set of ID values for each population entry
     :return: Passed `MeasureGroup` instance
     """
@@ -151,7 +192,8 @@ def _add_populations(
         MeasureGroupPopulation(
             code=CC_MEASURE_OBSERVATION,
             criteria=Expression(
-                language="text/fhirpath", expression=f"{resource_type}.id.value"
+                language="text/fhirpath",
+                expression=f"{resource_type}.{subject_ref_elem_name}.reference",
             ),
             extension=[
                 Extension(
@@ -887,6 +929,13 @@ def _generate_measure_group_for_profile(
     :param id_num: Unique ID for the measure group
     :return: `MeasureGroup` instance representing the profile
     """
+    subject_ref_elem_def = _find_subject_reference_elem_def(snapshot)
+    if not subject_ref_elem_def:
+        raise ValueError(
+            f"Profile '{snapshot.url}' has no suitable subject reference element and is thus no measure group can be "
+            f"generated"
+        )
+    subject_ref_name = subject_ref_elem_def.path.split(".")[-1]
     measure_group = MeasureGroup(
         extension=[
             Extension(
@@ -898,7 +947,9 @@ def _generate_measure_group_for_profile(
         stratifier=[],
         id=f"grp_{snapshot.name.replace('-', '_').lower()}",
     )
-    _add_populations(measure_group, snapshot.type, snapshot.url, id_num)
+    _add_populations(
+        measure_group, snapshot.type, snapshot.url, subject_ref_name, id_num
+    )
     # Used to store expression for every element ID encountered such that known expressions can be used to generate
     # expressions for new element IDs due to the hierarchical nature of the FHIR data model
     elem_id_expr_map = dict()

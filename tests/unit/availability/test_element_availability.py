@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 from typing import Any, List, Optional
 
 import fhir.resources.R4B.structuredefinition
@@ -43,10 +44,44 @@ from availability.core.element_availability import (
     _add_data_absent_reason_clause,
     _ensure_trailing_existence_check,
     generate_measure,
+    _find_subject_reference_elem_def,
 )
 from common.model.fhir.structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.package.manager import FhirPackageManager
 from common.util.fhirpath import parse_expr, fhirpathParser
+
+
+@pytest.mark.parametrize(
+    argnames="profile, expected",
+    argvalues=[
+        (
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/Medication",
+            None,
+        ),
+        (
+            "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
+            "Specimen.subject",
+        ),
+        (
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose",
+            "Condition.subject",
+        ),
+        (
+            "http://hl7.org/fhir/StructureDefinition/AllergyIntolerance",
+            "AllergyIntolerance.patient",
+        ),
+    ],
+    ids=[
+        "no-patient-ref-elem",
+        "single-pat-ref-elem",
+        "many-pat-ref-elem-subject",
+        "many-pat-ref-elem-patient",
+    ],
+    indirect=["profile"],
+)
+def test_find_subject_reference_elem_def(profile, expected):
+    result = _find_subject_reference_elem_def(profile)
+    assert (result.id if result else None) == expected
 
 
 def test__add_data_absent_reason_clause():
@@ -988,7 +1023,7 @@ def test__generate_stratifiers_for_elem_def(
     "profile, id_num, expected",
     [
         (
-            StructureDefinition(
+            StructureDefinitionSnapshot(
                 url="http://organization.org/fhir/StructureDefinition/profile1",
                 version="1.0.0",
                 name="profile1",
@@ -1001,6 +1036,15 @@ def test__generate_stratifiers_for_elem_def(
                         ElementDefinition(
                             id="Condition",
                             path="Condition",
+                        ),
+                        ElementDefinition(
+                            id="Condition.subject",
+                            path="Condition.subject",
+                            type=[
+                                ElementDefinitionType(
+                                    code="Reference",
+                                ),
+                            ],
                         ),
                         ElementDefinition(
                             id="Condition.element1[x]",
@@ -1018,122 +1062,146 @@ def test__generate_stratifiers_for_elem_def(
                 ),
             ),
             0,
-            MeasureGroup(
-                id="grp_profile1",
-                extension=[
-                    Extension(
-                        url="http://hl7.org/fhir/StructureDefinition/elementSource",
-                        valueUri="http://organization.org/fhir/StructureDefinition/profile1#1.0.0",
-                    )
-                ],
-                population=[
-                    MeasureGroupPopulation(
-                        id="initial-population-identifier-0",
-                        code=CodeableConcept(
-                            coding=[
-                                Coding(
-                                    system="http://terminology.hl7.org/CodeSystem/measure-population",
-                                    code="initial-population",
-                                    display="Initial Population",
-                                )
-                            ]
-                        ),
-                        criteria=Expression(
-                            language="text/x-fhir-query",
-                            expression="Condition?_profile:below=http://organization.org/fhir/StructureDefinition/profile1",
-                        ),
-                    ),
-                    MeasureGroupPopulation(
-                        id="measure-population-identifier-0",
-                        code=CodeableConcept(
-                            coding=[
-                                Coding(
-                                    system="http://terminology.hl7.org/CodeSystem/measure-population",
-                                    code="measure-population",
-                                    display="Measure Population",
-                                )
-                            ]
-                        ),
-                        criteria=Expression(
-                            language="text/fhirpath",
-                            expression="Condition",
-                        ),
-                    ),
-                    MeasureGroupPopulation(
-                        id="measure-observation-identifier-0",
-                        extension=[
-                            Extension(
-                                url="http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-aggregateMethod",
-                                valueCode="unique-count",
+            nullcontext(
+                MeasureGroup(
+                    id="grp_profile1",
+                    extension=[
+                        Extension(
+                            url="http://hl7.org/fhir/StructureDefinition/elementSource",
+                            valueUri="http://organization.org/fhir/StructureDefinition/profile1#1.0.0",
+                        )
+                    ],
+                    population=[
+                        MeasureGroupPopulation(
+                            id="initial-population-identifier-0",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://terminology.hl7.org/CodeSystem/measure-population",
+                                        code="initial-population",
+                                        display="Initial Population",
+                                    )
+                                ]
                             ),
-                            Extension(
-                                url="http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-criteriaReference",
-                                valueString="measure-population-identifier-0",
+                            criteria=Expression(
+                                language="text/x-fhir-query",
+                                expression="Condition?_profile:below=http://organization.org/fhir/StructureDefinition/profile1",
                             ),
-                        ],
-                        code=CodeableConcept(
-                            coding=[
-                                Coding(
-                                    system="http://terminology.hl7.org/CodeSystem/measure-population",
-                                    code="measure-observation",
-                                    display="Measure Observation",
-                                )
-                            ]
                         ),
-                        criteria=Expression(
-                            language="text/fhirpath",
-                            expression="Condition.id.value",
+                        MeasureGroupPopulation(
+                            id="measure-population-identifier-0",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://terminology.hl7.org/CodeSystem/measure-population",
+                                        code="measure-population",
+                                        display="Measure Population",
+                                    )
+                                ]
+                            ),
+                            criteria=Expression(
+                                language="text/fhirpath",
+                                expression="Condition",
+                            ),
                         ),
-                    ),
-                ],
-                stratifier=[
-                    MeasureGroupStratifier(
-                        code=CodeableConcept(
-                            coding=[
-                                Coding(
-                                    system="http://fhir-data-evaluator/strat/system",
-                                    code="Condition.element1[x]",
-                                )
-                            ]
+                        MeasureGroupPopulation(
+                            id="measure-observation-identifier-0",
+                            extension=[
+                                Extension(
+                                    url="http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-aggregateMethod",
+                                    valueCode="unique-count",
+                                ),
+                                Extension(
+                                    url="http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-criteriaReference",
+                                    valueString="measure-population-identifier-0",
+                                ),
+                            ],
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://terminology.hl7.org/CodeSystem/measure-population",
+                                        code="measure-observation",
+                                        display="Measure Observation",
+                                    )
+                                ]
+                            ),
+                            criteria=Expression(
+                                language="text/fhirpath",
+                                expression="Condition.subject.reference",
+                            ),
                         ),
-                        criteria=Expression(
-                            language="text/fhirpath",
-                            expression="Condition.element1.exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
+                    ],
+                    stratifier=[
+                        MeasureGroupStratifier(
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://fhir-data-evaluator/strat/system",
+                                        code="Condition.element1[x]",
+                                    )
+                                ]
+                            ),
+                            criteria=Expression(
+                                language="text/fhirpath",
+                                expression="Condition.element1.exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
+                            ),
                         ),
-                    ),
-                    MeasureGroupStratifier(
-                        code=CodeableConcept(
-                            coding=[
-                                Coding(
-                                    system="http://fhir-data-evaluator/strat/system",
-                                    code="Condition.element1String",
-                                )
-                            ]
+                        MeasureGroupStratifier(
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://fhir-data-evaluator/strat/system",
+                                        code="Condition.element1String",
+                                    )
+                                ]
+                            ),
+                            criteria=Expression(
+                                language="text/fhirpath",
+                                expression="Condition.element1.ofType(string).hasValue()",
+                            ),
                         ),
-                        criteria=Expression(
-                            language="text/fhirpath",
-                            expression="Condition.element1.ofType(string).hasValue()",
+                        MeasureGroupStratifier(
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://fhir-data-evaluator/strat/system",
+                                        code="Condition.element1Boolean",
+                                    )
+                                ]
+                            ),
+                            criteria=Expression(
+                                language="text/fhirpath",
+                                expression="Condition.element1.ofType(boolean).hasValue()",
+                            ),
                         ),
-                    ),
-                    MeasureGroupStratifier(
-                        code=CodeableConcept(
-                            coding=[
-                                Coding(
-                                    system="http://fhir-data-evaluator/strat/system",
-                                    code="Condition.element1Boolean",
-                                )
-                            ]
+                        MeasureGroupStratifier(
+                            criteria=Expression(
+                                language="text/fhirpath",
+                                expression="Condition.subject.reference.hasValue()",
+                            ),
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://fhir-data-evaluator/strat/system",
+                                        code="Condition.subject",
+                                    )
+                                ]
+                            ),
                         ),
-                        criteria=Expression(
-                            language="text/fhirpath",
-                            expression="Condition.element1.ofType(boolean).hasValue()",
-                        ),
-                    ),
-                ],
+                    ],
+                )
             ),
-        )
+        ),
+        (
+            "http://hl7.org/fhir/StructureDefinition/Parameters",
+            0,
+            pytest.raises(
+                ValueError,
+                match="no suitable subject reference element and is thus no measure group can be generated",
+            ),
+        ),
     ],
-    ids=["basic"],
+    ids=["basic", "profile-without-subject-ref-elem"],
     indirect=["profile"],
 )
 def test__generate_measure_group_for_profile(
@@ -1142,8 +1210,9 @@ def test__generate_measure_group_for_profile(
     expected,
     package_manager: FhirPackageManager,
 ):
-    value = _generate_measure_group_for_profile(profile, package_manager, id_num)
-    assert value.model_dump_json() == expected.model_dump_json()
+    with expected as e:
+        value = _generate_measure_group_for_profile(profile, package_manager, id_num)
+        assert value.model_dump_json() == e.model_dump_json()
 
 
 @pytest.mark.parametrize(
