@@ -3,14 +3,12 @@ from logging import Logger
 from typing import List, Dict, Set, Mapping, Tuple
 
 import json
-import logging
 
 from pydantic import BaseModel, Field
 
 from cohort_selection_ontology.model.ui_profile import del_keys, del_none
 from cohort_selection_ontology.model.ui_data import Module, TermCode
 from common.util.codec.json import JSONSerializable
-from common.util.collections.functions import first
 from common.util.log.functions import get_class_logger
 
 

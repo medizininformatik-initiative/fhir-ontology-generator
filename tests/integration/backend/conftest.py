@@ -150,6 +150,7 @@ def docker_services(
             )
 
 
+
 @pytest.fixture(scope="session")
 def backend_ip(docker_services) -> str:
     dataportal_backend_name = "dataportal-backend"
