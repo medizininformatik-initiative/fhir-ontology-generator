@@ -1,32 +1,28 @@
 import datetime
 from decimal import Decimal
 from os import PathLike
-from typing import Optional, Annotated, Union, List, Tuple
+from typing import Optional, Annotated, Union, Tuple, List
 
 from antlr4.ParserRuleContext import ParserRuleContext
 from fhir.resources.R4B.coding import Coding
+from fhir.resources.R4B.elementdefinition import ElementDefinition
 from fhir.resources.R4B.period import Period
 from fhir.resources.R4B.quantity import Quantity
 from fhir.resources.R4B.reference import Reference
 
+from cohort_selection_ontology.core.generators.cql import (
+    aggregate_cardinality_of_element_chain,
+    select_element_compatible_with_cql_operations,
+    aggregate_cardinality_using_element,
+)
 from cohort_selection_ontology.model.mapping.cql import (
     Component,
     ContextGroup,
     AttributeComponent,
     ReferenceGroup,
 )
-from cohort_selection_ontology.util.fhir.structure_definition import (
-    get_element_defining_elements,
-    get_profiles_with_base_definition,
-    get_element_chain,
-)
-from common.util.collections.functions import flatten
+from common.model.structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.enums import FhirComplexDataType, FhirPrimitiveDataType
-from common.util.fhir.structure_definition import (
-    Snapshot,
-    get_types_supported_by_element,
-    ElementDefinitionDict,
-)
 from common.util.fhirpath import fhirpathParser, parse_expr
 from common.util.fhirpath.functions import (
     unsupported_fhirpath_expr,
@@ -39,17 +35,18 @@ from common.util.functions import first
 from common.util.log.functions import get_logger
 from common.util.model import field_names
 from common.util.project import Project
-from common.util.wrapper import dotdict
-from unit.cohort_selection_ontology.core.generators.cql import (
-    aggregate_cardinality_using_element,
-    select_element_compatible_with_cql_operations,
-    aggregate_cardinality_of_element_chain,
+from common.util.structure_definition.functions import (
+    get_types_supported_by_element,
+    get_profiles_with_base_definition,
+    get_element_defining_elements,
+    get_element_chain,
 )
+from common.util.wrapper import dotdict
 
 _logger = get_logger(__name__)
 
 
-ElementChain = List[Tuple[Snapshot, ElementDefinitionDict]]
+ElementChain = List[Tuple[StructureDefinitionSnapshot, ElementDefinition]]
 
 
 ContextGroupDict = Annotated[
@@ -299,7 +296,7 @@ def get_components_from_term_expression(
 
 def _enrich_reference_typed_tree(
     tree: ReferenceGroupDict,
-    element: ElementDefinitionDict,
+    element: ElementDefinition,
     project: Project,
     module: str,
 ) -> ReferenceGroup:
@@ -308,17 +305,16 @@ def _enrich_reference_typed_tree(
     )
     target_profiles = ref_type.targetProfile
     if target_profiles and len(target_profiles) == 1:
-        profiles = list(
-            flatten(
-                [
-                    get_profiles_with_base_definition(project.input.cso / "modules", tp)
-                    for tp in target_profiles
-                ]
+        profiles = [
+            t
+            for tp in target_profiles
+            for t in get_profiles_with_base_definition(
+                project.input.cso / "modules", tp
             )
-        )
+        ]
         if len(profiles) == 1:
             (referenced_profile, _) = profiles[0]
-            res_type = referenced_profile.get("type")
+            res_type = referenced_profile.type
             return ReferenceGroup(
                 type=res_type,
                 path=tree.path,
@@ -331,12 +327,12 @@ def _enrich_reference_typed_tree(
             )
         else:
             raise Exception(
-                f"Unsupported number of resolved target profiles in referencing element '{element.get('id')}' "
+                f"Unsupported number of resolved target profiles in referencing element '{element.id}' "
                 f"[expected=1, actual={len(profiles)}, profiles={profiles}]"
             )
     else:
         raise Exception(
-            f"Unsupported number of target profiles in referencing element '{element.get('id')}' "
+            f"Unsupported number of target profiles in referencing element '{element.id}' "
             f"[expected=1, actual={len(target_profiles)}]"
         )
 
@@ -460,13 +456,12 @@ def _enrich_reference_typed_attribute(
     )
     target_profiles = ref_type.targetProfile
     if target_profiles and len(target_profiles) >= 1:
-        profiles = flatten(
-            [
-                get_profiles_with_base_definition(modules_dir_path, tp)
-                for tp in target_profiles
-            ]
-        )
-        types = {p.get("type") for p, _ in profiles}
+        profiles = [
+            t
+            for tp in target_profiles
+            for t in get_profiles_with_base_definition(modules_dir_path, tp)
+        ]
+        types = {p.type for p, _ in profiles}
         return AttributeComponent(
             type=FhirComplexDataType.REFERENCE,
             path=tree.path,
@@ -486,7 +481,7 @@ def _enrich_coding_typed_attribute(chain: ElementChain) -> AttributeComponent:
     )
     return AttributeComponent(
         type=get_types_supported_by_element(compatible_element)[0].code,
-        path=compatible_element.get("path"),
+        path=compatible_element.path,
         cardinality=aggregate_cardinality_of_element_chain(chain[:-1])
         * aggregate_cardinality_using_element(element, snapshot),
         values=[],
@@ -563,7 +558,7 @@ def _get_component_tree(
 
 def _enrich_tree_with_types_and_values(
     tree: ComponentDict,
-    profile_snapshot: Snapshot,
+    profile_snapshot: StructureDefinitionSnapshot,
     project: Project,
     module: PathLike[str] | str,
     _parent_path: Optional[str] = None,
@@ -583,7 +578,7 @@ def _enrich_tree_with_types_and_values(
     base_path = tree.path if not _parent_path else f"{_parent_path}.{tree.path}"
     modules_dir_path = project.input.cso / "modules"
     element = get_element_defining_elements(
-        base_path, profile_snapshot, module, modules_dir_path
+        profile_snapshot, base_path, module, modules_dir_path
     )[-1]
     chain = get_element_chain(base_path, profile_snapshot, module, project)
     types = get_types_supported_by_element(element)
@@ -623,11 +618,11 @@ def _enrich_tree_with_types_and_values(
                             return _enrich_coding_typed_attribute(chain)
                         case _:
                             raise Exception(
-                                f"Unsupported complex datatype '{t.code}' of element '{element.get('id')}' represented by AttributeComponent instance"
+                                f"Unsupported complex datatype '{t.code}' of element '{element.id}' represented by AttributeComponent instance"
                             )
                 else:
                     raise Exception(
-                        f"Unknown datatype '{t.code}' of element '{element.get('id')}' represented by AttributeComponent instance"
+                        f"Unknown datatype '{t.code}' of element '{element.id}' represented by AttributeComponent instance"
                     )
             case {"_type": ReferenceGroup.__name__} as rg:
                 return _enrich_reference_typed_tree(rg, chain[-1][1], project, module)
@@ -637,13 +632,13 @@ def _enrich_tree_with_types_and_values(
                 )
     else:
         raise Exception(
-            f"Element '{element.get('id')}' supports {'multiple' if types else 'no'} types which is currently not supported"
+            f"Element '{element.id}' supports {'multiple' if types else 'no'} types which is currently not supported"
         )
 
 
 def get_attribute_tree(
     attribute_defining_id: str,
-    snapshot: Snapshot,
+    snapshot: StructureDefinitionSnapshot,
     module: PathLike[str] | str,
     project: Project,
 ) -> ContextGroup | AttributeComponent:

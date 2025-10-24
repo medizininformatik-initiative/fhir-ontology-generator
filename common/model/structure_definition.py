@@ -1,39 +1,18 @@
 import abc
-import json
-from collections import namedtuple
 from functools import cached_property, reduce
-from importlib import resources
 from itertools import groupby
-from typing import Mapping, List, Optional, ClassVar
+from typing import Mapping, List, Optional, ClassVar, Annotated, Union
 
 from fhir.resources.R4B.elementdefinition import (
     ElementDefinition,
 )
 from fhir.resources.R4B.structuredefinition import StructureDefinition
-from pydantic import computed_field, PrivateAttr
+from pydantic import computed_field, PrivateAttr, TypeAdapter, Tag, Field, Discriminator
 
-from cohort_selection_ontology.resources import cql, fhir
 from common.util.log.functions import get_class_logger
 
-ProcessedElementResult = namedtuple(
-    "ProcessedElementResult",
-    ["element", "profile_snapshot", "module_dir", "last_short_desc"],
-)
-ShortDesc = namedtuple("ShortDesc", ["origin", "desc"])
-FHIR_TYPES_TO_VALUE_TYPES = json.load(
-    fp=(resources.files(fhir) / "fhir-types-to-value-types.json").open(
-        "r", encoding="utf-8"
-    )
-)
 
-CQL_TYPES_TO_VALUE_TYPES = json.load(
-    fp=(resources.files(cql) / "cql-types-to-value-types.json").open(
-        "r", encoding="utf-8"
-    )
-)
-
-
-class IndexedStructureDefinition(abc.ABC, StructureDefinition):
+class AbstractIndexedStructureDefinition(abc.ABC, StructureDefinition):
     __indexed_field_path = str
     __indexed_field = List[ElementDefinition]
 
@@ -84,13 +63,14 @@ class IndexedStructureDefinition(abc.ABC, StructureDefinition):
         """
         return self.__elements_by_path.get(path)
 
-class StructureDefinitionDifferential(IndexedStructureDefinition):
+
+class StructureDefinitionDifferential(AbstractIndexedStructureDefinition):
     def __init__(self, /, **kwargs):
         kwargs.update({"__indexed_field_path": "differential.element"})
         super().__init__(**kwargs)
 
 
-class StructureDefinitionSnapshot(IndexedStructureDefinition):
+class StructureDefinitionSnapshot(AbstractIndexedStructureDefinition):
     __logger: ClassVar = PrivateAttr(
         default=get_class_logger("StructureDefinitionSnapshot")
     )
@@ -102,5 +82,26 @@ class StructureDefinitionSnapshot(IndexedStructureDefinition):
     def get_element_by_id(self, element_id: str) -> Optional[ElementDefinition]:
         element = super().get_element_by_id(element_id)
         if element is None:
-            self.__logger.debug(f"Element {element_id} not found in snapshot: {self.name}")
+            self.__logger.debug(
+                f"Element {element_id} not found in snapshot: {self.name}"
+            )
         return element
+
+
+def _idx_struct_def_discriminator_value(v):
+    if isinstance(v, dict):
+        is_snapshot = len(v.get("snapshot", {}).get("element", [])) > 0
+    else:
+        is_snapshot = len(getattr(getattr(v, "snapshot", {}), "element", [])) > 0
+    return "snapshot" if is_snapshot else "differential"
+
+
+IndexedStructureDefinition = TypeAdapter(
+    Annotated[
+        Union[
+            Annotated[StructureDefinitionDifferential, Tag("differential")],
+            Annotated[StructureDefinitionSnapshot, Tag("snapshot")],
+        ],
+        Field(discriminator=Discriminator(_idx_struct_def_discriminator_value)),
+    ]
+)

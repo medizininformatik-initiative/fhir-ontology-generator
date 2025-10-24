@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 from typing import Set, Optional, List, Annotated, Union, Any
 from typing_extensions import Self
 
-from fhir.resources.R4B.coding import Coding
 from fhir.resources.R4B.element import Element
 from pydantic import BaseModel, Field, conlist
 
@@ -20,7 +19,6 @@ from common.typing.cql import RetrievableType
 from common.typing.fhir import FHIRPath
 from common.util.codec.json import JSONFhirOntoEncoder
 from common.util.collections.functions import flatten
-from common.util.fhir.enums import FhirDataType
 
 
 class FixedCQLCriteria(HasSimpleCardinality):

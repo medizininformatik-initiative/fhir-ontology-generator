@@ -21,6 +21,9 @@ def modules_dir(tmp_path_factory) -> Path:
                 status="draft",
                 abstract=False,
                 baseDefinition="http://organization.org/fhir/StructureDefinition/Condition",
+                kind="resource",
+                type="Condition",
+                snapshot={"element": [{"path": "Condition"}]},
             ),
             f,
         )
@@ -33,7 +36,9 @@ def modules_dir(tmp_path_factory) -> Path:
                 name="specimen1",
                 status="draft",
                 abstract=False,
+                kind="resource",
                 type="Specimen",
+                snapshot={"element": [{"path": "Condition"}]},
             ),
             f,
         )
@@ -48,7 +53,9 @@ def modules_dir(tmp_path_factory) -> Path:
                 name="condition2",
                 status="draft",
                 abstract=False,
+                kind="resource",
                 type="Condition",
+                snapshot={"element": [{"path": "Condition"}]},
             ),
             f,
         )
@@ -62,7 +69,10 @@ def modules_dir(tmp_path_factory) -> Path:
                 url="http://organization.org/fhir/StructureDefinition/Condition",
                 name="Condition",
                 status="draft",
-                abstract=False
+                abstract=False,
+                kind="resource",
+                type="Condition",
+                snapshot={"element": [{"path": "Condition"}]},
             ),
             f,
         )

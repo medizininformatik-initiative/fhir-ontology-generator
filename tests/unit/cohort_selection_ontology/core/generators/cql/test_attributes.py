@@ -9,6 +9,7 @@ from fhir.resources.R4B.elementdefinition import (
 from fhir.resources.R4B.period import Period
 from fhir.resources.R4B.quantity import Quantity
 from fhir.resources.R4B.reference import Reference
+from fhir.resources.R4B.structuredefinition import StructureDefinitionSnapshot
 
 from cohort_selection_ontology.core.generators.cql.attributes import (
     get_components_from_invocation_expression,
@@ -37,13 +38,11 @@ from cohort_selection_ontology.model.mapping.cql import (
     ContextGroup,
     ReferenceGroup,
 )
-from cohort_selection_ontology.util.fhir.structure_definition import get_element_chain
 from common.util.fhir.enums import FhirComplexDataType
-from common.util.fhir.structure_definition import Snapshot
 from common.util.fhirpath import parse_expr, fhirpathParser
 from common.util.project import Project
+from common.util.structure_definition.functions import get_element_chain
 from common.util.wrapper import dotdict
-from integration.conftest import project
 
 
 def get_leaf(
@@ -375,7 +374,7 @@ def test__enrich_reference_typed_tree(attribute_test_project: Project):
                 ],
             ),
         ],
-    ).model_dump()
+    )
     rgd = dotdict(
         _type=ReferenceGroup.__name__,
         type=None,
@@ -553,7 +552,7 @@ def test__enrich_period_tree(chain: ElementChain):
 
 
 def test__enrich_reference_typed_attribute(
-    root_snapshot: Snapshot, attribute_test_project: Project
+    root_snapshot: StructureDefinitionSnapshot, attribute_test_project: Project
 ):
     tree = dotdict(
         _type=AttributeComponent.__name__,

@@ -2,9 +2,10 @@ import copy
 import json
 import os
 import re
+from collections import namedtuple
 from pathlib import Path
 from typing import List, Optional, Generator, Tuple, Any, Set
-from warnings import deprecated
+from typing_extensions import deprecated
 
 from fhir.resources.R4B.elementdefinition import (
     ElementDefinition,
@@ -24,7 +25,7 @@ from common.exceptions.translation import MissingTranslationException
 from common.exceptions.typing import InvalidValueTypeException
 from common.model.structure_definition import (
     StructureDefinitionSnapshot,
-    ProcessedElementResult,
+    IndexedStructureDefinition,
 )
 from common.util.collections.functions import flatten
 
@@ -40,6 +41,12 @@ translation_map_default = {
 
 
 logger = get_class_logger("structure_definition_functions")
+
+
+ProcessedElementResult = namedtuple(
+    "ProcessedElementResult",
+    ["element", "profile_snapshot", "module_dir", "last_short_desc"],
+)
 
 
 def find_polymorphic_value(
@@ -173,7 +180,7 @@ def structure_definition_from_path(path: Path) -> StructureDefinitionSnapshot:
 
 def get_profiles_with_base_definition(
     modules_dir_path: str | Path, base_definition: str
-) -> Generator[Tuple[StructureDefinitionSnapshot, str]]:
+) -> Generator[Tuple[IndexedStructureDefinition, str], None, None]:
     """
     Returns the profiles that have the given base definition
     :param modules_dir_path: Path to the modules directory
@@ -192,7 +199,7 @@ def get_profiles_with_base_definition(
         )
         for file in files:
             with open(file, mode="r", encoding="utf8") as f:
-                profile = StructureDefinitionSnapshot.model_validate_json(f.read())
+                profile = IndexedStructureDefinition.validate_json(f.read())
                 if profile.baseDefinition == base_definition:
                     yield profile, module_dir.path
                 elif profile.type == base_definition.split("/")[-1]:
@@ -296,11 +303,11 @@ def process_element_id(
             )
         ]
 
-        for elem in element.get("type"):
+        for elem in element.type:
             if len(element_ids) == 0:
                 break
-            if elem.get("code") == "Extension":
-                profile_urls = elem.get("profile")
+            if elem.code == "Extension":
+                profile_urls = elem.profile
                 if len(profile_urls) > 1:
                     raise Exception("Extension with multiple types not supported")
                 extension: StructureDefinitionSnapshot = get_extension_definition(
@@ -334,7 +341,7 @@ def process_element_id(
                         f"element with ID '{partial_id}' [ref_element_id='{element_id}']"
                     )
                 for referenced_profile, ref_module_dir_name in profiles:
-                    new_element_id = referenced_profile.type + partial_id
+                    new_element_id = referenced_profile.type + "." + partial_id
                     if not is_element_in_snapshot(referenced_profile, new_element_id):
                         continue
                     element_ids.insert(0, new_element_id)
@@ -1204,6 +1211,6 @@ def get_element_chain(
     return [
         (member[1], member[0])
         for member in get_element_defining_elements_with_source_snapshots(
-            chained_element_id, root_snapshot, module, project.input.cso / "modules"
+            root_snapshot, chained_element_id, module, project.input.cso / "modules"
         )
     ]

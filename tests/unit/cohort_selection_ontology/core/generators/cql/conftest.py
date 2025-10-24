@@ -1,5 +1,4 @@
-import json
-
+import fhir
 import pytest
 from fhir.resources.R4B.elementdefinition import (
     ElementDefinition,
@@ -8,17 +7,12 @@ from fhir.resources.R4B.elementdefinition import (
     ElementDefinitionSlicing,
     ElementDefinitionSlicingDiscriminator,
 )
-from fhir.resources.R4B.fhirtypes import ElementDefinitionSlicingDiscriminatorType
-from fhir.resources.R4B.structuredefinition import (
-    StructureDefinition,
-    StructureDefinitionSnapshot,
-)
+from fhir.resources.R4B.structuredefinition import StructureDefinition
 
 from cohort_selection_ontology.core.generators.cql.attributes import ElementChain
-from cohort_selection_ontology.util.fhir.structure_definition import get_element_chain
-from common.util.fhir.structure_definition import Snapshot
+from common.model.structure_definition import StructureDefinitionSnapshot
 from common.util.project import Project
-from integration.conftest import project
+from common.util.structure_definition.functions import get_element_chain
 
 
 @pytest.fixture(scope="session")
@@ -41,7 +35,7 @@ def attribute_test_project(tmp_path_factory) -> Project:
                 kind="resource",
                 abstract=False,
                 type="Condition",
-                snapshot=StructureDefinitionSnapshot(
+                snapshot=fhir.resources.R4B.structuredefinition.StructureDefinitionSnapshot(
                     element=[
                         ElementDefinition(id="Resource", path="Resource"),
                         ElementDefinition(
@@ -100,7 +94,7 @@ def attribute_test_project(tmp_path_factory) -> Project:
                 kind="resource",
                 abstract=False,
                 type="Procedure",
-                snapshot=StructureDefinitionSnapshot(
+                snapshot=fhir.resources.R4B.structuredefinition.StructureDefinitionSnapshot(
                     element=[
                         ElementDefinition(id="Resource", path="Resource"),
                         ElementDefinition(
@@ -120,7 +114,7 @@ def attribute_test_project(tmp_path_factory) -> Project:
                             path="Procedure.element4",
                             base=ElementDefinitionBase(path="Period", min=0, max="1"),
                             type=[ElementDefinitionType(code="Period")],
-                        )
+                        ),
                     ]
                 ),
             ).model_dump_json()
@@ -143,7 +137,7 @@ def attribute_test_project(tmp_path_factory) -> Project:
                 type="Extension",
                 baseDefinition="http://hl7.org/fhir/StructureDefinition/Extension",
                 derivation="constraint",
-                snapshot=StructureDefinitionSnapshot(
+                snapshot=fhir.resources.R4B.structuredefinition.StructureDefinitionSnapshot(
                     element=[
                         ElementDefinition(
                             id="Extension", path="Extension", min=0, max="*"
@@ -172,21 +166,23 @@ def attribute_test_project(tmp_path_factory) -> Project:
 
 
 @pytest.fixture(scope="session")
-def root_snapshot(attribute_test_project: Project) -> Snapshot:
+def root_snapshot(attribute_test_project: Project) -> StructureDefinitionSnapshot:
     path = (
-            attribute_test_project.input.cso
-            / "modules"
-            / "module"
-            / "differential"
-            / "package"
-            / "condition1-snapshot.json"
+        attribute_test_project.input.cso
+        / "modules"
+        / "module"
+        / "differential"
+        / "package"
+        / "condition1-snapshot.json"
     )
     with path.open(mode="r", encoding="utf-8") as f:
-        return json.load(f)
+        return StructureDefinitionSnapshot.model_validate_json(f.read())
 
 
 @pytest.fixture(scope="session")
-def chain(root_snapshot: Snapshot, attribute_test_project: Project) -> ElementChain:
+def chain(
+    root_snapshot: StructureDefinitionSnapshot, attribute_test_project: Project
+) -> ElementChain:
     return get_element_chain(
         "Condition.extension:slice1.value[x].resolve().element2",
         root_snapshot,
