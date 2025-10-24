@@ -30,7 +30,7 @@ class BaseClient:
         self.__session.auth = auth
         self.__session.cert = cert
         self.__base_url = base_url
-        self.__timeout = timeout
+        self.__timeout = timeout if not http_config else http_config.timeout
         self.__retries = (
             CustomRetry(
                 total=http_config.retries,
