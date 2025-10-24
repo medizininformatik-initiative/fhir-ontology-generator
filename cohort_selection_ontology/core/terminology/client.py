@@ -42,24 +42,34 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
 
     __project: Project
 
-    def __init__(self, project: Project, base_url: Optional[str] = None, auth: Optional[type[AuthBase]] = None,
-                 cert: Optional[tuple[str, str]] = None, timeout: float = 60):
+    def __init__(
+        self,
+        project: Project,
+        base_url: Optional[str] = None,
+        auth: Optional[type[AuthBase]] = None,
+        cert: Optional[tuple[str, str]] = None,
+        timeout: float = 60,
+    ):
         if base_url is None:
-            if 'ONTOLOGY_SERVER_ADDRESS' in project.env:
-                base_url = project.env['ONTOLOGY_SERVER_ADDRESS']
+            if "ONTOLOGY_SERVER_ADDRESS" in project.env:
+                base_url = project.env["ONTOLOGY_SERVER_ADDRESS"]
             else:
-                raise ValueError("Server base URL has to be provided either explicitly through the `base_url` parameter"
-                                 "or implicitly via environment variable `ONTOLOGY_SERVER_ADDRESS`")
-        if cert is None:
-            if 'SERVER_CERTIFICATE' in project.env and 'PRIVATE_KEY' in project.env:
-                cert = (
-                    Path(project.env['SERVER_CERTIFICATE']),
-                    Path(project.env['PRIVATE_KEY'])
+                raise ValueError(
+                    "Server base URL has to be provided either explicitly through the `base_url` parameter"
+                    "or implicitly via environment variable `ONTOLOGY_SERVER_ADDRESS`"
                 )
-        super().__init__(base_url, auth, cert, timeout)
+        if cert is None:
+            if "SERVER_CERTIFICATE" in project.env and "PRIVATE_KEY" in project.env:
+                cert = (
+                    Path(project.env["SERVER_CERTIFICATE"]),
+                    Path(project.env["PRIVATE_KEY"]),
+                )
+        super().__init__(base_url, auth, cert, timeout, project.config.http)
 
     @override
-    def expand_value_set(self, url: str, version: Optional[str] = None) -> SortedSet[TermCode]:
+    def expand_value_set(
+        self, url: str, version: Optional[str] = None
+    ) -> SortedSet[TermCode]:
         """
         Expands a value set and returns a set of term codes contained in the value set.
         :param url: Canonical url of the value set
@@ -74,7 +84,9 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
                 if parameter["name"] == "version":
                     global_version = parameter["valueUri"].split("|")[-1]
             if "contains" not in value_set_data["expansion"]:
-                self.__logger.debug(f"Value set '{url}' is either not expanded or has an empty expansion")
+                self.__logger.debug(
+                    f"Value set '{url}' is either not expanded or has an empty expansion"
+                )
                 return term_codes
             for contains in value_set_data["expansion"]["contains"]:
                 system = contains["system"]
@@ -89,10 +101,11 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
                 term_code = TermCode(system=system, code=code, display=display, version=version)
                 term_codes.add(term_code)
         else:
-            self.__logger.warning(f"Failed to expand value set '{url}' => Returning empty expansion")
+            self.__logger.warning(
+                f"Failed to expand value set '{url}' => Returning empty expansion"
+            )
             return SortedSet()
         return term_codes
-
 
     def create_vs_tree_map(self, canonical_url: str) -> TreeMap:
         """
@@ -101,52 +114,63 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         :return: TreeMap of the value set hierarchy
         """
         self.__logger.debug(f"Generating tree map for value set '{canonical_url}'")
-        self.create_concept_map()
+        closure_name = self.create_concept_map()
         vs = self.expand_value_set(canonical_url)
         treemap: TreeMap = TreeMap({}, None, None, None)
         treemap.entries = {term_code.code: TermEntryNode(term_code=term_code) for term_code in vs}
         treemap.system = vs[0].system
         treemap.version = vs[0].version
         try:
-            closure_map_data = self.get_closure_map(vs)
+            closure_map_data = self.get_closure_map(vs, closure_name)
             if groups := closure_map_data.group:
                 if len(groups) > 1:
-                    raise UnsupportedError("Multiple groups in closure map are currently not supported")
+                    raise UnsupportedError(
+                        "Multiple groups in closure map are currently not supported"
+                    )
                 for group in groups:
                     treemap.system = group.source
                     treemap.version = group.sourceVersion
                     subsumption_map = group.element
-                    subsumption_map = {item.code: [target.code for target in item.target] for item in subsumption_map}
+                    subsumption_map = {
+                        item.code: [target.code for target in item.target]
+                        for item in subsumption_map
+                    }
                     for code, parents in subsumption_map.items():
                         remove_non_direct_ancestors(parents, subsumption_map)
-                    for node, parents, in subsumption_map.items():
+                    for (
+                        node,
+                        parents,
+                    ) in subsumption_map.items():
                         treemap.entries[node].parents += parents
                         for parent in parents:
                             treemap.entries[parent].children.append(node)
         except Exception as e:
-            self.__logger.error(f"Failed to generate tree map from value set '{canonical_url}' => Returning empty "
-                                f"tree map", exc_info=e, stack_info=True)
+            self.__logger.error(
+                f"Failed to generate tree map from value set '{canonical_url}' => Returning empty "
+                f"tree map",
+                exc_info=e,
+                stack_info=True,
+            )
 
         return treemap
 
-
-    def create_concept_map(self, name: str = "closure-test"):
+    def create_concept_map(self, name: Optional[str] = None):
         """
         Creates an empty concept map for closure operation on the ontology server.
-        :param name: Identifier of the concept map for closure invocation
+        :param name: (Optional) identifier of the concept map for closure invocation. Defaults to a randomly generated
+                     UUID
+        :return: Identifier of the created closure
         """
+        name = name if name else str(uuid.uuid4())
         parameters = Parameters(
-            parameter=[
-                ParametersParameter(
-                    name="name",
-                    valueString=name
-                )
-            ]
+            parameter=[ParametersParameter(name="name", valueString=name)]
         )
         self.closure(parameters)
+        return name
 
-
-    def get_closure_map(self, term_codes: Iterable[TermCode], closure_name: str = "closure-test") -> ConceptMap:
+    def get_closure_map(
+        self, term_codes: Iterable[TermCode], closure_name: str
+    ) -> ConceptMap:
         """
         Returns the closure map of a set of term codes.
         :param term_codes: Set of term codes with potential hierarchical relations among them
@@ -157,24 +181,30 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         #  Maybe split by version? Or change Profile to reference ValueSet with single version?
         # Check if concepts from multiple versions of the same code system are present and fail if so since value sets with
         # multiple versions are not supported for now
-        for system, versions in map(lambda entry: (entry[0], set(map(lambda t: t.version, entry[1]))),
-                                    groupby(term_codes, lambda t: t.system)):
+        for system, versions in map(
+            lambda entry: (entry[0], set(map(lambda t: t.version, entry[1]))),
+            groupby(term_codes, lambda t: t.system),
+        ):
             if len(versions) > 1:
-                raise UnsupportedError(f"Concepts from multiple code system versions are currently not supported "
-                                       f"[url={system}, versions={versions}]")
+                raise UnsupportedError(
+                    f"Concepts from multiple code system versions are currently not supported "
+                    f"[url={system}, versions={versions}]"
+                )
 
-        parameters = Parameters(parameter=[
-            ParametersParameter(name="name", valueString=closure_name)
-        ])
+        parameters = Parameters(
+            parameter=[ParametersParameter(name="name", valueString=closure_name)]
+        )
         for term_code in term_codes:
             value_coding = Coding(
                 system=term_code.system,
                 code=term_code.code,
-                display=str(term_code.display)
+                display=str(term_code.display),
             )
             if term_code.version:
                 value_coding.version = term_code.version
-            parameters.parameter.append(ParametersParameter(name="concept", valueCoding=value_coding))
+            parameters.parameter.append(
+                ParametersParameter(name="concept", valueCoding=value_coding)
+            )
         return self.closure(parameters)
 
     @deprecated("No longer in use. Consider removing")
@@ -187,7 +217,10 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         term_codes = SortedSet()
         if response.status_code == 200:
             value_set_data = response.json()
-            if "expansion" in value_set_data and "contains" in value_set_data["expansion"]:
+            if (
+                "expansion" in value_set_data
+                and "contains" in value_set_data["expansion"]
+            ):
                 for contains in value_set_data["expansion"]["contains"]:
                     system = contains["system"]
                     code = contains["code"]
@@ -212,8 +245,9 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
             raise Exception("ERROR", value_set_canonical_url)
         return result
 
-
-    def get_term_info(self, value_set_canonical_url: str) -> List[ContextualizedTermCodeInfo]:
+    def get_term_info(
+        self, value_set_canonical_url: str
+    ) -> List[ContextualizedTermCodeInfo]:
         """
         Get the term info for a given value set canonical url
         :param value_set_canonical_url: The canonical url of the valueSet
@@ -223,15 +257,18 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         term_codes = self.expand_value_set(value_set_canonical_url)
         return [ContextualizedTermCodeInfo(term_code=term_code) for term_code in term_codes]
 
-    def get_termcodes_for_value_set(self, value_set_canonical_url: str) -> \
-            List[TermCode]:
+    def get_termcodes_for_value_set(
+        self, value_set_canonical_url: str
+    ) -> List[TermCode]:
         """
         Get the term codes from the terminology server based on the given value set canonical url.
         :param value_set_canonical_url: Canonical url of the value set
         :return: Sorted list of term codes of the value set prioritized by the coding system:
         ICD10 > SNOMED CT
         """
-        self.__logger.debug(f"Retrieving term codes for value set '{value_set_canonical_url}'")
+        self.__logger.debug(
+            f"Retrieving term codes for value set '{value_set_canonical_url}'"
+        )
         return list(self.expand_value_set(value_set_canonical_url))
 
     @staticmethod
@@ -276,11 +313,12 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         :param loinc_code: LOINC code to get the answer list for
         :return: URL of the answer list value set or None if no answer list is available
         """
-        parameters = self.code_system_lookup("http://loinc.org", loinc_code.code, properties=["answer-list"])
+        parameters = self.code_system_lookup(
+            "http://loinc.org", loinc_code.code, properties=["answer-list"]
+        )
         if answer_list_code := self.get_answer_list_code(parameters):
             return "http://loinc.org/vs/" + answer_list_code
         return None
-
 
     # TODO: Refactor should only need the 2nd function
     def pattern_coding_to_termcode(self, element):
@@ -296,7 +334,6 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
             display = display.title()
         term_code = TermCode(system=system, code=code, display=display)
         return term_code
-
 
     def pattern_codeable_concept_to_termcode(self, element):
         """
@@ -322,14 +359,20 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         """
         value_set = []
         for element in profile_data["snapshot"]["element"]:
-            if "id" in element and element["path"] == element_path and "binding" in element:
+            if (
+                "id" in element
+                and element["path"] == element_path
+                and "binding" in element
+            ):
                 vs_url = element["binding"]["valueSet"]
-                if vs_url in ['http://hl7.org/fhir/ValueSet/observation-codes']:
+                if vs_url in ["http://hl7.org/fhir/ValueSet/observation-codes"]:
                     continue
                 value_set.append(vs_url)
         return value_set
 
-    def get_term_codes_by_id_from_term_server(self, element_id: str, profile_data: dict) -> List[TermCode]:
+    def get_term_codes_by_id_from_term_server(
+        self, element_id: str, profile_data: dict
+    ) -> List[TermCode]:
         # TODO: not used in project. Obsolete?
         """
         Get the term codes from the profile data based on the given id element.
@@ -339,7 +382,11 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         """
         value_set = ""
         for element in profile_data["snapshot"]["element"]:
-            if "id" in element and element["id"] == element_id and "patternCoding" in element:
+            if (
+                "id" in element
+                and element["id"] == element_id
+                and "patternCoding" in element
+            ):
                 if "code" in element["patternCoding"]:
                     term_code = self.pattern_coding_to_termcode(element)
                     return [term_code]
@@ -349,8 +396,9 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
             return self.get_termcodes_for_value_set(value_set)
         return []
 
-
-    def try_get_fixed_code(self, element_path: str, profile_data: dict) -> Optional[TermCode]:
+    def try_get_fixed_code(
+        self, element_path: str, profile_data: dict
+    ) -> Optional[TermCode]:
         """
         Get the fixed code from the profile data based on the given path element if available.
         :param element_path: Value of the path element of the profile
@@ -372,8 +420,9 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
                 return term_code
         return None
 
-
-    def get_term_codes_by_path(self, element_path: str, profile_data: dict) -> List[TermCode]:
+    def get_term_codes_by_path(
+        self, element_path: str, profile_data: dict
+    ) -> List[TermCode]:
         """
         Get the term codes from the profile data based on the given path element.
         :param element_path: Value of the path element of the profile
@@ -395,15 +444,20 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
                 elif "patternCodeableConcept" in element:
                     for coding in element["patternCodeableConcept"]["coding"]:
                         if "code" in coding:
-                            term_code = self.pattern_codeable_concept_to_termcode(coding)
+                            term_code = self.pattern_codeable_concept_to_termcode(
+                                coding
+                            )
                             return [term_code]
-            if "path" in element and element["path"] == element_path and "binding" in element:
+            if (
+                "path" in element
+                and element["path"] == element_path
+                and "binding" in element
+            ):
                 value_set = element["binding"]["valueSet"]
         if value_set:
             result = self.get_termcodes_for_value_set(value_set)
             return result
         return []
-
 
     # TODO duplicated code in valueSetToRoots
     def get_term_code_display(self, system: str, code: str) -> str:
@@ -443,7 +497,9 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         for vs in value_sets:
             if vs.id is not None:
                 return self.get_value_set(vs.id).model_dump()
-        self.__logger.warning(f"Failed to retrieve value set '{canonical_url}' => Returning empty definition")
+        self.__logger.warning(
+            f"Failed to retrieve value set '{canonical_url}' => Returning empty definition"
+        )
         return {}
 
     # TODO: Replace usages
@@ -458,7 +514,9 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
 
     # TODO: Check if we can use that for any resource type
     @deprecated("Use `CohortSelectionTerminologyClient::get_value_set` instead")
-    def get_value_set_definition_by_id(self, value_set_id: str) -> Optional[Mapping[str, Any]]:
+    def get_value_set_definition_by_id(
+        self, value_set_id: str
+    ) -> Optional[Mapping[str, Any]]:
         """
         Get the value set definition from the terminology server based on the id.
         :param value_set_id: ID of the value set
