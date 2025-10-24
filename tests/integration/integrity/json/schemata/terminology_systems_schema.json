@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "terminology_systems_schema.json",
+  "titel": "Terminology Systems JSON Schema",
+  "description": "Used for checking integrity of generated terminology_systems.json",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "url": {"type": "string"},
+      "display": { "$ref": "https://fdpg.de/display.json" }
+    }
+  }
+}
