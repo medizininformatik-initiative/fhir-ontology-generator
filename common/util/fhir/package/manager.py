@@ -14,12 +14,14 @@ from pathlib import Path
 from subprocess import CalledProcessError
 from typing import Iterator, Mapping, Any, Optional, Literal, List, ContextManager
 
+import fhir
 from fhir.resources.R4B.resource import Resource
 from fhir.resources.R4B.structuredefinition import StructureDefinition
 from requests import Request
 from requests.auth import AuthBase
 
 from common.exceptions import UnsupportedError
+from common.model.structure_definition import IndexedStructureDefinition
 from common.util.codec.json import load_json
 from common.util.http.client import BaseClient
 from common.util.log.decorators import inject_logger
@@ -198,7 +200,14 @@ class FhirPackageManager(abc.ABC):
                             yield res
                             continue
                         json_data = load_json(file_path, fail=True)
-                        res = Resource.model_validate(json_data)
+                        res_type = json_data.get("resourceType")
+                        if res_type == "StructureDefinition":
+                            res = IndexedStructureDefinition.validate_python(json_data)
+                        else:
+                            model_class = fhir.resources.R4B.get_fhir_model_class(
+                                res_type
+                            )
+                            res = model_class.model_validate(json_data)
                         self.__add_to_cache(rel_file_path, res)
                         yield res
                     except Exception as exc:

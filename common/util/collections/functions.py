@@ -1,11 +1,11 @@
-from typing import List, Any, Callable, TypeVar, Iterable, Optional
+from typing import List, Any, Callable, TypeVar, Iterable, Optional, Generator
 
 
-def flatten(lst: List[Any]) -> List[Any]:
+def flatten(lst: List[Any]) -> Iterable[Any]:
     """
     Flattens a list of lists with arbitrary depth
     :param lst: List to flatten
-    :return: Flattened list
+    :return: Iterator of flattened list
     """
     if not isinstance(lst, list):
         yield lst

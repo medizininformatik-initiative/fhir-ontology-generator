@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+from collections.abc import Callable
 from importlib.resources import open_text
 import json
 import os
@@ -9,11 +10,12 @@ from pathlib import Path
 from typing import List, ValuesView, Dict, Tuple
 
 import docker
+from docker.models.containers import Container
 from jsonschema import validate
 
 import cohort_selection_ontology.resources.schema as schema_files
 
-from cohort_selection_ontology.core.generators.cql import CQLMappingGenerator
+from cohort_selection_ontology.core.generators.cql.generator import CQLMappingGenerator
 from cohort_selection_ontology.core.generators.fhir_search import (
     FHIRSearchMappingGenerator,
 )
@@ -27,16 +29,14 @@ from cohort_selection_ontology.core.resolvers.search_parameter import (
 from cohort_selection_ontology.core.generators.ui_profile import UIProfileGenerator
 from cohort_selection_ontology.core.generators.ui_tree import UITreeGenerator
 from cohort_selection_ontology.util.database import DataBaseWriter
+from common.util.docker.container import PostgresContainer
 from common.util.fhir.terminal import generate_snapshots
 from common.util.codec.json import write_object_as_json
-from cohort_selection_ontology.model.mapping import (
-    CQLMapping,
-    FhirMapping,
-    MapEntryList,
-)
+from cohort_selection_ontology.model.mapping import MapEntryList
+from cohort_selection_ontology.model.mapping.fhirpath import FhirMapping
+from cohort_selection_ontology.model.mapping.cql import CQLMapping
 from cohort_selection_ontology.model.ui_profile import UIProfile
 from cohort_selection_ontology.model.ui_data import TermCode
-from common.constants.docker import POSTGRES_IMAGE
 from common.util.log.functions import get_logger
 from common.util.project import Project
 
@@ -128,7 +128,9 @@ def write_used_value_sets_to_files(
         if ui_profile.attributeDefinitions:
             for attribute_definition in ui_profile.attributeDefinitions:
                 if attribute_definition.referencedValueSet:
-                    all_profile_value_sets.append(attribute_definition.referencedValueSet)
+                    all_profile_value_sets.append(
+                        attribute_definition.referencedValueSet
+                    )
     for one_profile_value_set in all_profile_value_sets:
         for single_value_set in one_profile_value_set:
             file_name = f"{remove_reserved_characters(single_value_set.url.split('/')[-1])}.json"
@@ -150,7 +152,9 @@ def write_used_criteria_sets_to_files(
         if ui_profile.attributeDefinitions:
             for attribute_definition in ui_profile.attributeDefinitions:
                 if attribute_definition.referencedCriteriaSet:
-                    all_profile_criteria_sets.append(attribute_definition.referencedCriteriaSet)
+                    all_profile_criteria_sets.append(
+                        attribute_definition.referencedCriteriaSet
+                    )
     for one_profile_criteria_set in all_profile_criteria_sets:
         for single_criteria_set in one_profile_criteria_set:
             file_name = f"{remove_reserved_characters(single_criteria_set.url.split('/')[-1])}.json"
@@ -227,16 +231,16 @@ def configure_args_parser() -> argparse.ArgumentParser:
         "--generate_snapshot", action="store_true", help="Generate FHIR snapshots"
     )
     parser.add_argument(
-            "--generate_ui_trees", action="store_true", help="Generate UI trees"
+        "--generate_ui_trees", action="store_true", help="Generate UI trees"
     )
     parser.add_argument(
-            "--generate_ui_profiles", action="store_true", help="Generate UI profiles"
+        "--generate_ui_profiles", action="store_true", help="Generate UI profiles"
     )
     parser.add_argument(
-            "--generate_mapping", action="store_true", help="Generate mappings"
+        "--generate_mapping", action="store_true", help="Generate mappings"
     )
     parser.add_argument(
-            "--module", nargs="+", help="Modules to generate the ontology for"
+        "--module", nargs="+", help="Modules to generate the ontology for"
     )
     return parser
 
@@ -262,41 +266,25 @@ def generate_result_folder(base_dir: str = ""):
         os.makedirs(dir_path, exist_ok=True)
 
 
-def manage_docker_container(
-    volume_dir: str, container_name: str
-) -> docker.models.containers.Container:
+def managed_db_container(
+    volume_dir: str, container_name: str, on_exit: Callable[[Container], None]
+) -> PostgresContainer:
     """
     Manages the lifecycle of the Docker container for a module.
     :param volume_dir: The directory to mount in the Docker container.
     :param container_name: The name of the Docker container.
-    :return: The running Docker container.
+    :param on_exit: Action to execute before container shutdown
+    :return: Postgres Docker container context manager instance
     """
-    client = docker.from_env()
-    existing_containers = client.containers.list(
-        all=True, filters={"name": container_name}
-    )
-
-    for container in existing_containers:
-        logger.debug(
-            f"Stopping and removing existing container named '{container_name}'..."
-        )
-        container.stop()
-        container.remove()
-
-    container = client.containers.run(
-        POSTGRES_IMAGE,
-        detach=True,
-        ports={"5432/tcp": 5430},
+    return PostgresContainer(
         name=container_name,
-        volumes={volume_dir: {"bind": "/opt/db_data", "mode": "rw"}},
-        environment={
-            "POSTGRES_USER": "codex-postgres",
-            "POSTGRES_PASSWORD": "codex-password",
-            "POSTGRES_DB": "codex_ui",
-        },
+        host_port=5430,
+        volume_dir=volume_dir,
+        pg_user="codex-postgres",
+        pg_pw="codex-password",
+        pg_db="codex_ui",
+        on_exit=on_exit,
     )
-    logger.debug(f"Docker container '{container_name}' started.")
-    return container
 
 
 def generate_ui_trees(
@@ -337,7 +325,7 @@ def generate_ui_profiles(
     resolver: ResourceQueryingMetaDataResolver,
     db_writer: DataBaseWriter,
     module_name: str,
-    project: Project
+    project: Project,
 ):
     """
     Generates UI profiles and writes them to files and database
@@ -474,46 +462,43 @@ def main():
             generate_result_folder(output_module_directory)
 
             container_name = f"test_db_{module}"
-            container = manage_docker_container(
-                output_module_directory, container_name=container_name
-            )
 
-            db_writer = DataBaseWriter(5430)
+            def on_exit(c):
+                # Dump the database to the module's directory
+                if args.generate_ui_profiles:
+                    dump_database(c)
 
-            with open(
-                input_modules_dir / module / "required_packages.json",
-                mode="r",
-                encoding="utf-8",
-            ) as f:
-                required_packages = json.load(f)
-                if args.generate_snapshot:
-                    generate_snapshots(input_modules_dir / module, required_packages)
+            with managed_db_container(
+                output_module_directory, container_name=container_name, on_exit=on_exit
+            ) as container:
+                db_writer = DataBaseWriter(5430)
 
-            resolver = StandardDataSetQueryingMetaDataResolver(project=project)
-            if args.generate_ui_trees:
-                generate_ui_trees(resolver, module, project)
+                with open(
+                    input_modules_dir / module / "required_packages.json",
+                    mode="r",
+                    encoding="utf-8",
+                ) as f:
+                    required_packages = json.load(f)
+                    if args.generate_snapshot:
+                        generate_snapshots(
+                            input_modules_dir / module, required_packages
+                        )
 
-            if args.generate_ui_profiles:
-                generate_ui_profiles(resolver, db_writer, module, project)
+                resolver = StandardDataSetQueryingMetaDataResolver(project=project)
+                if args.generate_ui_trees:
+                    generate_ui_trees(resolver, module, project)
 
-            if args.generate_mapping:
-                generate_cql_mapping(resolver, module, project)
-                generate_fhir_mapping(resolver, module, project)
+                if args.generate_ui_profiles:
+                    generate_ui_profiles(resolver, db_writer, module, project)
 
+                if args.generate_mapping:
+                    generate_cql_mapping(resolver, module, project)
+                    generate_fhir_mapping(resolver, module, project)
         except Exception as e:
             logger.error(
                 f"An error occurred while running generator for module '{module}': {e}",
                 exc_info=True,
             )
-        finally:
-            # Dump the database to the module's directory
-            if args.generate_ui_profiles:
-                dump_database(container)
-
-            # Stop and remove the container
-            container.stop()
-            container.remove()
-
 
 
 if __name__ == "__main__":

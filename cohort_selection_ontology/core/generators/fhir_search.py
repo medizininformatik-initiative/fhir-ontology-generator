@@ -1,16 +1,20 @@
 import collections
 import functools
+import json
+from importlib import resources
 from typing import Dict, Tuple, List, OrderedDict
+
+import fhir
 
 from cohort_selection_ontology.core.resolvers.querying_metadata import ResourceQueryingMetaDataResolver
 from cohort_selection_ontology.core.resolvers.search_parameter import SearchParameterResolver
 from cohort_selection_ontology.core.terminology.client import CohortSelectionTerminologyClient
-from cohort_selection_ontology.model.mapping import FhirMapping
+from cohort_selection_ontology.model.mapping.fhirpath import FhirMapping
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from cohort_selection_ontology.model.ui_data import TermCode
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS
 from common.exceptions import NotFoundError
-from common.model.structure_definition import StructureDefinitionSnapshot, FHIR_TYPES_TO_VALUE_TYPES
+from common.model.structure_definition import StructureDefinitionSnapshot
 from common.util.log.functions import get_class_logger
 from common.util.project import Project
 from common.util.structure_definition.functions import (
@@ -18,12 +22,18 @@ from common.util.structure_definition.functions import (
     get_element_defining_elements,
     resolve_defining_id,
     translate_element_to_fhir_path_expression,
-    generate_attribute_key,
     get_term_code_by_id,
+    process_element_definition,
 )
 
 SUPPORTED_TYPES = ['date', 'dateTime', 'decimal', 'integer', 'Age', 'CodeableConcept', 'Coding', 'Quantity',
                    'Reference', 'code', 'Extension']
+
+FHIR_TYPES_TO_VALUE_TYPES = json.load(
+    fp=(resources.files(fhir) / "fhir-types-to-value-types.json").open(
+        "r", encoding="utf-8"
+    )
+)
 
 
 class InvalidElementTypeException(Exception):
@@ -185,7 +195,14 @@ class FHIRSearchMappingGenerator(object):
 
     def set_attribute_search_param(self, attribute, fhir_mapping, predefined_type, profile_snapshot,
                                    module_dir_name: str):
-        attribute_key = generate_attribute_key(attribute)
+        elem_defs = get_element_defining_elements(
+            attribute,
+            profile_snapshot,
+            module_dir_name,
+            self.__project.input.cso / "modules",
+        )
+        # attribute_key = generate_attribute_key(attribute)
+        attribute_key = process_element_definition(elem_defs[0])[0]
         attribute_type = predefined_type if predefined_type else self.get_attribute_type(profile_snapshot,
                                                                                          attribute, module_dir_name)
         attribute_search_params = self.resolve_fhir_search_parameter(attribute, profile_snapshot, module_dir_name,
@@ -208,7 +225,7 @@ class FHIRSearchMappingGenerator(object):
         return profile_snapshot.get_fixed_term_codes(where_clause_element, self.__modules_dir,
                                        module_dir_name, self.__client)[0]
 
-    def get_composite_attribute_type(self, attribute, profile_snapshot: StructureDefinitionSnapshot, module_dir_name: str):
+    def get_composite_attribute_type(self, attribute, profile_snapshot, module_dir_name: str):
         search_param_components = self.resolve_fhir_search_parameter(attribute, profile_snapshot, module_dir_name,
                                                                      "composite")
         first_search_param = next(iter(search_param_components.values()))

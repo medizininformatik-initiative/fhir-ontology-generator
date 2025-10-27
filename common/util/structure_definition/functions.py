@@ -2,9 +2,10 @@ import copy
 import json
 import os
 import re
+from collections import namedtuple
 from pathlib import Path
 from typing import List, Optional, Generator, Tuple, Any, Set
-from warnings import deprecated
+from typing_extensions import deprecated
 
 from fhir.resources.R4B.elementdefinition import (
     ElementDefinition,
@@ -15,22 +16,21 @@ from cohort_selection_ontology.core.terminology.client import (
     CohortSelectionTerminologyClient as TerminologyClient,
 )
 from cohort_selection_ontology.model.ui_data import (
-    TermCode,
-    TranslationDisplayElement,
     Translation,
 )
-from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS, ValueSet
 from common.exceptions.translation import MissingTranslationException
 from common.exceptions.typing import InvalidValueTypeException
 from common.model.structure_definition import (
     StructureDefinitionSnapshot,
-    ProcessedElementResult,
-    ShortDesc,
+    IndexedStructureDefinition,
 )
 from common.util.collections.functions import flatten
-# from common.model.structure_definition import StructureDefinitionSnapshot
+from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS, ValueSet
+from cohort_selection_ontology.model.ui_data import TermCode, TranslationDisplayElement
+
 from common.util.fhir.enums import FhirDataType
 from common.util.log.functions import get_class_logger
+from common.util.project import Project
 
 UCUM_SYSTEM = "http://unitsofmeasure.org"
 translation_map_default = {
@@ -41,7 +41,16 @@ translation_map_default = {
 
 logger = get_class_logger("structure_definition_functions")
 
-def find_polymorphic_value(data: ElementDefinition, polymorphic_elem_prefix: str) -> Optional[Any]:
+
+ProcessedElementResult = namedtuple(
+    "ProcessedElementResult",
+    ["element", "profile_snapshot", "module_dir", "last_short_desc"],
+)
+
+
+def find_polymorphic_value(
+    data: ElementDefinition, polymorphic_elem_prefix: str
+) -> Optional[Any]:
     """
     Attempts to find the value of a polymorphic element by iterating over all possible data type-specific names
 
@@ -116,15 +125,19 @@ def tokenize(chained_fhir_element_id):
     """
     Tokenizes a chained fhir element id with the given Grammar:
     chained_fhir_element_id ::= "(" chained_fhir_element_id ")" ( "." fhir_element_id )* | fhir_element_id
+    Additionally splits at call of the `resolve` function and `extension` element identifier to separate by profile
+    context
     :param chained_fhir_element_id: the chained fhir element id
     :return: the tokenized fhir element id
     """
-    return (
-        chained_fhir_element_id.replace("(", " ( ")
+    temp = (
+        chained_fhir_element_id.replace(".resolve()", " ")
+        .replace("(", " ( ")
         .replace(")", " ) ")
         .replace(".where", " .where ")
-        .split()
     )
+    temp = re.sub(r"(extension(:[a-zA-Z0-9/\\-_\[\]@]+)?)\.", r"\g<1> ", temp)
+    return [t.strip(".") for t in temp.split()]
 
 
 def is_structure_definition(file: Path) -> bool:
@@ -166,7 +179,7 @@ def structure_definition_from_path(path: Path) -> StructureDefinitionSnapshot:
 
 def get_profiles_with_base_definition(
     modules_dir_path: str | Path, base_definition: str
-) -> Generator[Tuple[StructureDefinitionSnapshot, str]]:
+) -> Generator[Tuple[IndexedStructureDefinition, str], None, None]:
     """
     Returns the profiles that have the given base definition
     :param modules_dir_path: Path to the modules directory
@@ -185,7 +198,7 @@ def get_profiles_with_base_definition(
         )
         for file in files:
             with open(file, mode="r", encoding="utf8") as f:
-                profile = StructureDefinitionSnapshot.model_validate_json(f.read())
+                profile = IndexedStructureDefinition.validate_json(f.read())
                 if profile.baseDefinition == base_definition:
                     yield profile, module_dir.path
                 elif profile.type == base_definition.split("/")[-1]:
@@ -237,24 +250,6 @@ def get_element_defining_elements(
     ]
 
 
-def resolve_defining_id(
-    profile_snapshot: StructureDefinitionSnapshot,
-    defining_id: str,
-    modules_dir_path: str | Path,
-    module_dir_name: str,
-) -> ElementDefinition | None:
-    """
-    :param profile_snapshot: StructureDefinition which the defining id belongs to
-    :param defining_id: defining id
-    :param module_dir_name: name of the module directory like 'Bioprobe' or 'Diagnose'
-    :param modules_dir_path: path to the FHIR dataset directory
-    :return: resolved defining id
-    """
-    return get_element_defining_elements(
-        profile_snapshot, defining_id, module_dir_name, modules_dir_path
-    )[-1]
-
-
 def get_element_defining_elements_with_source_snapshots(
     profile_snapshot: StructureDefinitionSnapshot,
     chained_element_id,
@@ -272,7 +267,6 @@ def process_element_id(
     element_ids,
     module_dir_name: str,
     modules_dir_path: str | Path,
-    last_desc: ShortDesc = None,
 ) -> List[ProcessedElementResult] | None:
     results = []
 
@@ -281,8 +275,6 @@ def process_element_id(
         if element_id.startswith("."):
             raise ValueError("Element id must start with a resource type")
         element: ElementDefinition = profile_snapshot.get_element_by_id(element_id)
-        # short_desc = (element_id, get_display_from_element_definition(element)) \
-        #    if last_desc is None else None
         result = [
             ProcessedElementResult(
                 element=element,
@@ -292,9 +284,9 @@ def process_element_id(
             )
         ]
 
-        for elem in (
-            element.type if element is not None and element.type is not None else []
-        ):
+        for elem in element.type:
+            if len(element_ids) == 0:
+                break
             if elem.code == "Extension":
                 profile_urls = elem.profile
                 if len(profile_urls) > 1:
@@ -302,7 +294,7 @@ def process_element_id(
                 extension: StructureDefinitionSnapshot = get_extension_definition(
                     os.path.join(modules_dir_path, module_dir_name), profile_urls[0]
                 )
-                element_ids.insert(0, f"Extension" + element_ids.pop(0))
+                element_ids.insert(0, f"Extension." + element_ids.pop(0))
                 result.extend(
                     process_element_id(
                         profile_snapshot=extension,
@@ -330,7 +322,7 @@ def process_element_id(
                         f"element with ID '{partial_id}' [ref_element_id='{element_id}']"
                     )
                 for referenced_profile, ref_module_dir_name in profiles:
-                    new_element_id = referenced_profile.type + partial_id
+                    new_element_id = referenced_profile.type + "." + partial_id
                     if not is_element_in_snapshot(referenced_profile, new_element_id):
                         continue
                     element_ids.insert(0, new_element_id)
@@ -345,6 +337,24 @@ def process_element_id(
                     break
         results.extend(result)
     return results
+
+
+def resolve_defining_id(
+    profile_snapshot: StructureDefinitionSnapshot,
+    defining_id: str,
+    modules_dir_path: str | Path,
+    module_dir_name: str,
+) -> ElementDefinition | None:
+    """
+    :param profile_snapshot: StructureDefinition which the defining id belongs to
+    :param defining_id: defining id
+    :param module_dir_name: name of the module directory like 'Bioprobe' or 'Diagnose'
+    :param modules_dir_path: path to the FHIR dataset directory
+    :return: resolved defining id
+    """
+    return get_element_defining_elements(
+        profile_snapshot, defining_id, module_dir_name, modules_dir_path
+    )[-1]
 
 
 def process_element_definition(
@@ -503,7 +513,7 @@ def get_units(
             )
     else:
         raise InvalidValueTypeException(
-            f"No unit defined in element: {str(unit_defining_element.id)}"
+            f"No unit defined in element: {str(unit_defining_element)}"
             f" in profile: {profile_name}"
         )
 
@@ -880,7 +890,6 @@ def get_display_from_element_definition(
     :param default: value used as display if there is no other valid source in the element definition
     :return: TranslationDisplayElement instance holding the display value and all language variants
     """
-
     translations_map = copy.deepcopy(translation_map_default)
     display = default
     try:
@@ -1009,8 +1018,11 @@ def translate_element_to_fhir_path_expression(
             element_path = f"value.ofType({element_type})"
     result = [element_path]
     if elements:
-        result.extend(translate_element_to_fhir_path_expression(profile_snapshot, elements))
+        result.extend(
+            translate_element_to_fhir_path_expression(profile_snapshot, elements)
+        )
     return result
+
 
 def get_slice_owning_element_id(element_id: str) -> str:
     """
@@ -1029,6 +1041,7 @@ def get_slice_owning_element_id(element_id: str) -> str:
         else element_id
     )
 
+
 def get_slice_name(element_id: str) -> str | None:
     """
     Return the name of the slice on the lowest level
@@ -1044,7 +1057,9 @@ def get_slice_name(element_id: str) -> str | None:
     )
 
 
-def get_available_slices(element_id: str, profile_snapshot: StructureDefinitionSnapshot) -> List[str]:
+def get_available_slices(
+    element_id: str, profile_snapshot: StructureDefinitionSnapshot
+) -> List[str]:
     """
     Returns a list of available slice ids
     :param element_id: str
@@ -1175,3 +1190,26 @@ def get_parent_slice_id(element_id: str) -> str | None:
     parent_slice_name = element_id.split(":")[-1].split(".")[0]
     parent_slice_id = element_id.rsplit(":", 1)[0] + ":" + parent_slice_name
     return parent_slice_id
+
+
+def get_element_chain(
+    chained_element_id: str,
+    root_snapshot: StructureDefinitionSnapshot,
+    module: str,
+    project: Project,
+) -> List[Tuple[StructureDefinitionSnapshot, ElementDefinition]]:
+    """
+    Returns the element chain of the given chained element ID
+
+    :param chained_element_id: Element ID chained across possibly multiple profile contexts
+    :param root_snapshot: Starting snapshot for resolving the chained element ID
+    :param module: Name of the module to search for the root snapshot for
+    :param project: Project context
+    :return: List of tuples of containing profile snapshot and element
+    """
+    return [
+        (member[1], member[0])
+        for member in get_element_defining_elements_with_source_snapshots(
+            root_snapshot, chained_element_id, module, project.input.cso / "modules"
+        )
+    ]

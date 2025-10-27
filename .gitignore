@@ -32,9 +32,16 @@ test.py
 /tests/**/testdata
 **/.coverage
 **/.coverage*
+/logs/
 # Directories holding docker logs recorded during (intergration) testing
 **/docker_logs/
+
+# FHIR packages caches
+**/.fhir-package-cache
 
 # Project output files
 /projects/*/output
 /projects/*/input/**/dependencies
+
+# Test project output files
+/tests/**/output

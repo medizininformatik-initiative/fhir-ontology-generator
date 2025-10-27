@@ -22,12 +22,11 @@ from common.util.structure_definition.functions import (
     is_element_slice_base,
     structure_definition_from_path,
     translate_element_to_fhir_path_expression,
-    find_polymorphic_value,
+    find_polymorphic_value, ProcessedElementResult,
 )
 from tests.unit.StructureDefinitionSnapshot_test.conftest import sample_snapshot_bioprobe
 from common.model.structure_definition import (
     StructureDefinitionSnapshot,
-    ProcessedElementResult,
 )
 from common.util.project import Project
 
