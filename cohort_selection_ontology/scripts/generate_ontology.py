@@ -128,7 +128,9 @@ def write_used_value_sets_to_files(
         if ui_profile.attributeDefinitions:
             for attribute_definition in ui_profile.attributeDefinitions:
                 if attribute_definition.referencedValueSet:
-                    all_profile_value_sets.append(attribute_definition.referencedValueSet)
+                    all_profile_value_sets.append(
+                        attribute_definition.referencedValueSet
+                    )
     for one_profile_value_set in all_profile_value_sets:
         for single_value_set in one_profile_value_set:
             file_name = f"{remove_reserved_characters(single_value_set.url.split('/')[-1])}.json"
@@ -150,7 +152,9 @@ def write_used_criteria_sets_to_files(
         if ui_profile.attributeDefinitions:
             for attribute_definition in ui_profile.attributeDefinitions:
                 if attribute_definition.referencedCriteriaSet:
-                    all_profile_criteria_sets.append(attribute_definition.referencedCriteriaSet)
+                    all_profile_criteria_sets.append(
+                        attribute_definition.referencedCriteriaSet
+                    )
     for one_profile_criteria_set in all_profile_criteria_sets:
         for single_criteria_set in one_profile_criteria_set:
             file_name = f"{remove_reserved_characters(single_criteria_set.url.split('/')[-1])}.json"
@@ -262,7 +266,9 @@ def generate_result_folder(base_dir: str = ""):
         os.makedirs(dir_path, exist_ok=True)
 
 
-def managed_db_container(volume_dir: str, container_name: str, on_exit: Callable[[Container], None]) -> PostgresContainer:
+def managed_db_container(
+    volume_dir: str, container_name: str, on_exit: Callable[[Container], None]
+) -> PostgresContainer:
     """
     Manages the lifecycle of the Docker container for a module.
     :param volume_dir: The directory to mount in the Docker container.
@@ -270,8 +276,15 @@ def managed_db_container(volume_dir: str, container_name: str, on_exit: Callable
     :param on_exit: Action to execute before container shutdown
     :return: Postgres Docker container context manager instance
     """
-    return PostgresContainer(name=container_name, host_port=5430, volume_dir=volume_dir, pg_user='codex-postgres',
-                             pg_pw='codex-password', pg_db='codex_ui', on_exit=on_exit)
+    return PostgresContainer(
+        name=container_name,
+        host_port=5430,
+        volume_dir=volume_dir,
+        pg_user="codex-postgres",
+        pg_pw="codex-password",
+        pg_db="codex_ui",
+        on_exit=on_exit,
+    )
 
 
 def generate_ui_trees(
@@ -455,28 +468,37 @@ def main():
                 if args.generate_ui_profiles:
                     dump_database(c)
 
-            with managed_db_container(output_module_directory, container_name=container_name, on_exit=on_exit) as container:
+            with managed_db_container(
+                output_module_directory, container_name=container_name, on_exit=on_exit
+            ) as container:
                 db_writer = DataBaseWriter(5430)
 
-                with open(input_modules_dir / module / "required_packages.json", mode="r", encoding="utf-8") as f:
+                with open(
+                    input_modules_dir / module / "required_packages.json",
+                    mode="r",
+                    encoding="utf-8",
+                ) as f:
                     required_packages = json.load(f)
                     if args.generate_snapshot:
-                        generate_snapshots(input_modules_dir / module, required_packages)
+                        generate_snapshots(
+                            input_modules_dir / module, required_packages
+                        )
 
-            resolver = StandardDataSetQueryingMetaDataResolver(project=project)
-            if args.generate_ui_trees:
-                generate_ui_trees(resolver, module, project)
+                resolver = StandardDataSetQueryingMetaDataResolver(project=project)
+                if args.generate_ui_trees:
+                    generate_ui_trees(resolver, module, project)
 
                 if args.generate_ui_profiles:
                     generate_ui_profiles(resolver, db_writer, module, project)
 
                 if args.generate_mapping:
                     generate_cql_mapping(resolver, module, project)
-                    generate_fhir_mapping(
-                        resolver, module, project
-                    )
+                    generate_fhir_mapping(resolver, module, project)
         except Exception as e:
-            logger.error(f"An error occurred while running generator for module '{module}': {e}", exc_info=True)
+            logger.error(
+                f"An error occurred while running generator for module '{module}': {e}",
+                exc_info=True,
+            )
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-from typing import List, Any, Callable, TypeVar, Iterable, Optional
+from typing import List, Any, Callable, TypeVar, Iterable, Optional, Generator
 
 
 def flatten(lst: List[Any]) -> Iterable[Any]:

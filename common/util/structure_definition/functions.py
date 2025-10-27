@@ -16,11 +16,8 @@ from cohort_selection_ontology.core.terminology.client import (
     CohortSelectionTerminologyClient as TerminologyClient,
 )
 from cohort_selection_ontology.model.ui_data import (
-    TermCode,
-    TranslationDisplayElement,
     Translation,
 )
-from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS, ValueSet
 from common.exceptions.translation import MissingTranslationException
 from common.exceptions.typing import InvalidValueTypeException
 from common.model.structure_definition import (
@@ -28,6 +25,8 @@ from common.model.structure_definition import (
     IndexedStructureDefinition,
 )
 from common.util.collections.functions import flatten
+from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS, ValueSet
+from cohort_selection_ontology.model.ui_data import TermCode, TranslationDisplayElement
 
 from common.util.fhir.enums import FhirDataType
 from common.util.log.functions import get_class_logger
@@ -251,24 +250,6 @@ def get_element_defining_elements(
     ]
 
 
-def resolve_defining_id(
-    profile_snapshot: StructureDefinitionSnapshot,
-    defining_id: str,
-    modules_dir_path: str | Path,
-    module_dir_name: str,
-) -> ElementDefinition | None:
-    """
-    :param profile_snapshot: StructureDefinition which the defining id belongs to
-    :param defining_id: defining id
-    :param module_dir_name: name of the module directory like 'Bioprobe' or 'Diagnose'
-    :param modules_dir_path: path to the FHIR dataset directory
-    :return: resolved defining id
-    """
-    return get_element_defining_elements(
-        profile_snapshot, defining_id, module_dir_name, modules_dir_path
-    )[-1]
-
-
 def get_element_defining_elements_with_source_snapshots(
     profile_snapshot: StructureDefinitionSnapshot,
     chained_element_id,
@@ -356,6 +337,24 @@ def process_element_id(
                     break
         results.extend(result)
     return results
+
+
+def resolve_defining_id(
+    profile_snapshot: StructureDefinitionSnapshot,
+    defining_id: str,
+    modules_dir_path: str | Path,
+    module_dir_name: str,
+) -> ElementDefinition | None:
+    """
+    :param profile_snapshot: StructureDefinition which the defining id belongs to
+    :param defining_id: defining id
+    :param module_dir_name: name of the module directory like 'Bioprobe' or 'Diagnose'
+    :param modules_dir_path: path to the FHIR dataset directory
+    :return: resolved defining id
+    """
+    return get_element_defining_elements(
+        profile_snapshot, defining_id, module_dir_name, modules_dir_path
+    )[-1]
 
 
 def process_element_definition(
@@ -514,7 +513,7 @@ def get_units(
             )
     else:
         raise InvalidValueTypeException(
-            f"No unit defined in element: {str(unit_defining_element.id)}"
+            f"No unit defined in element: {str(unit_defining_element)}"
             f" in profile: {profile_name}"
         )
 

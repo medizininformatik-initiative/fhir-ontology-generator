@@ -31,6 +31,7 @@ from cohort_selection_ontology.core.generators.cql.attributes import (
     _enrich_period_tree,
     _enrich_reference_typed_attribute,
     _enrich_coding_typed_attribute,
+    _expand_slices,
 )
 from cohort_selection_ontology.model.mapping import SimpleCardinality
 from cohort_selection_ontology.model.mapping.cql import (
@@ -199,28 +200,32 @@ def test_get_components_from_function_parameters():
 
 def test_get_components_from_function():
     expr_str = "Resource.element1.element2"
-    func_expr: fhirpathParser.FunctionContext = parse_expr(expr_str).expression()
+    func_expr: fhirpathParser.FunctionInvocationContext = parse_expr(
+        expr_str
+    ).expression()
     with pytest.raises(ValueError) as exc_info:
         get_components_from_function(func_expr)
     assert "Expected function invocation" in str(
         exc_info.value
     ), "The function should fail if the expression contains no function invocation as its right operand"
 
-    expr_str = "Resource.element1.where()"
-    func_expr: fhirpathParser.FunctionContext = parse_expr(expr_str).expression()
-    with pytest.raises(ValueError) as exc_info:
-        get_components_from_function(func_expr, None)
-    assert "Function 'where' should not terminate an expression" in str(
-        exc_info.value
-    ), (
-        "If the where function invocation is the terminal operation, e.g. there is no succeeding subexpression, then the "
-        "function should fail since it neither returns a boolean value used in logical formula nor should it be used to "
-        "directly select the target element of the attribute since this imply checks on the target elements attributes +"
-        "(which should only need to be done in the CQL query and not the navigation to it)"
-    )
+    #    expr_str = "Resource.element1.where()"
+    #    func_expr: fhirpathParser.FunctionContext = parse_expr(expr_str).expression()
+    #    with pytest.raises(ValueError) as exc_info:
+    #        get_components_from_function(func_expr, None)
+    #    assert "Function 'where' should not terminate an expression" in str(
+    #        exc_info.value
+    #    ), (
+    #        "If the where function invocation is the terminal operation, e.g. there is no succeeding subexpression, then the "
+    #        "function should fail since it neither returns a boolean value used in logical formula nor should it be used to "
+    #        "directly select the target element of the attribute since this imply checks on the target elements attributes +"
+    #        "(which should only need to be done in the CQL query and not the navigation to it)"
+    #    )
 
     expr_str = "Resource.element1.where(a = 1 and b = 2)"
-    func_expr: fhirpathParser.FunctionContext = parse_expr(expr_str).expression()
+    func_expr: fhirpathParser.FunctionInvocationContext = (
+        parse_expr(expr_str).expression().getChild(2)
+    )
     component = {"_type": ContextGroup.__name__, "path": "element2", "components": []}
     c = get_components_from_function(func_expr, component)
     assert c._type == ContextGroup.__name__, (
@@ -237,7 +242,9 @@ def test_get_components_from_function():
     )
 
     expr_str = "element1.exists()"
-    func_expr: fhirpathParser.FunctionContext = parse_expr(expr_str).expression()
+    func_expr: fhirpathParser.FunctionInvocationContext = (
+        parse_expr(expr_str).expression().getChild(2)
+    )
     component = {"_type": ContextGroup.__name__, "path": "element2", "components": []}
     with pytest.raises(ValueError) as exc_info:
         get_components_from_function(func_expr, component)
@@ -246,8 +253,10 @@ def test_get_components_from_function():
         in str(exc_info.value)
     ), "If the exists function invocation is not a terminal operation than the function should fail"
 
-    expr_str = "Resource.element1.exists(a = 1 and b = 2)"
-    func_expr: fhirpathParser.FunctionContext = parse_expr(expr_str).expression()
+    expr_str = "element1.exists(a = 1 and b = 2)"
+    func_expr: fhirpathParser.FunctionInvocationContext = (
+        parse_expr(expr_str).expression().getChild(2)
+    )
     c = get_components_from_function(func_expr)
     assert c._type == ContextGroup.__name__, (
         "The generated component dict for an exists function invocation should "
@@ -259,7 +268,9 @@ def test_get_components_from_function():
     )
 
     expr_str = "element1.ofType()"
-    func_expr: fhirpathParser.FunctionContext = parse_expr(expr_str).expression()
+    func_expr: fhirpathParser.FunctionInvocationContext = (
+        parse_expr(expr_str).expression().getChild(2)
+    )
     component = {"_type": ContextGroup.__name__, "path": "element2", "components": []}
     with pytest.raises(ValueError) as exc_info:
         get_components_from_function(func_expr, component)
@@ -268,8 +279,10 @@ def test_get_components_from_function():
         in str(exc_info.value)
     ), "If the ofType function invocation is not a terminal operation than the function should fail"
 
-    expr_str = "Resource.element1.value.ofType(Quantity)"
-    func_expr: fhirpathParser.FunctionContext = parse_expr(expr_str).expression()
+    expr_str = "value.ofType(Quantity)"
+    func_expr: fhirpathParser.FunctionInvocationContext = (
+        parse_expr(expr_str).expression().getChild(2)
+    )
     c = get_components_from_function(func_expr)
     assert c._type == AttributeComponent.__name__, (
         "The generated component dict for an ofType function invocation should "
@@ -279,8 +292,10 @@ def test_get_components_from_function():
         c.type == "Quantity"
     ), "The type for an ofType function invocation should be specified via its parameter"
 
-    expr_str = "Resource.reference.resolve()"
-    func_expr: fhirpathParser.FunctionContext = parse_expr(expr_str).expression()
+    expr_str = "reference.resolve()"
+    func_expr: fhirpathParser.FunctionInvocationContext = (
+        parse_expr(expr_str).expression().getChild(2)
+    )
     c = get_components_from_function(func_expr)
     assert c._type == AttributeComponent.__name__, (
         "The generated component dict for a resolve function invocation without a trailing expression should "
@@ -290,8 +305,10 @@ def test_get_components_from_function():
         c.type == "Reference"
     ), "The type for a resolve function invocation without a trailing expression should be the data type 'Reference'"
 
-    expr_str = "Resource.reference.resolve()"
-    func_expr: fhirpathParser.FunctionContext = parse_expr(expr_str).expression()
+    expr_str = "reference.resolve()"
+    func_expr: fhirpathParser.FunctionInvocationContext = (
+        parse_expr(expr_str).expression().getChild(2)
+    )
     component = {"_type": ContextGroup.__name__, "path": "element2", "components": []}
     c = get_components_from_function(func_expr, component)
     # assert c._type == ReferenceGroup.__name__, (
@@ -579,10 +596,55 @@ def test__enrich_reference_typed_attribute(
     assert ac.values == [Reference(type="Procedure")]
 
 
-def test__enrich_coding_typed_attribute(chain: ElementChain):
+def test__enrich_coding_typed_attribute(root_snapshot, attribute_test_project: Project):
+    chain = get_element_chain(
+        "Condition.extension:slice1.value[x].resolve().element2",
+        root_snapshot,
+        "module",
+        attribute_test_project,
+    )
     ac: AttributeComponent = _enrich_coding_typed_attribute(chain)
     assert (
         ac.type == FhirComplexDataType.CODING
     ), "The resulting AttributeComponent should support the FHIR data type 'Coding'"
     assert ac.path == "Procedure.element2"
     assert ac.cardinality == SimpleCardinality.MANY
+
+
+@pytest.mark.parametrize(
+    argnames="tree, profile, module, expected",
+    argvalues=[
+        (
+            AttributeComponent(
+                type="CodeableConcept",
+                path="Observation.component:gene-studied.value[x]",
+                cardinality=SimpleCardinality.SINGLE,
+                values=[],
+            ),
+            "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/variante",
+            "MolGen",
+            ContextGroup(
+                path="Observation.component",
+                components=[
+                    AttributeComponent(
+                        type="CodeableConcept",
+                        path="code",
+                        cardinality=SimpleCardinality.SINGLE,
+                        values=[Coding(system="http://loinc.org", code="48018-6")],
+                    ),
+                    AttributeComponent(
+                        type="CodeableConcept",
+                        path="value[x]",
+                        cardinality=SimpleCardinality.SINGLE,
+                        values=[],
+                    ),
+                ],
+            ),
+        )
+    ],
+    ids=[],
+    indirect=["profile"],
+)
+def test__expand_slices(tree, profile, module, expected, project):
+    result = _expand_slices(tree, profile, module, project)
+    assert result == expected

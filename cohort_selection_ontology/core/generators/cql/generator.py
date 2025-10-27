@@ -1,14 +1,20 @@
 from __future__ import annotations
 
+import json
 import re
 from functools import reduce
+from importlib import resources
 from importlib.resources import files
 from typing import Tuple, List, Dict
 
 from lxml import etree
 
 import cohort_selection_ontology.resources.cql as cql_resources
-from cohort_selection_ontology.core.generators.cql import select_element_compatible_with_cql_operations
+from cohort_selection_ontology.core.generators.cql import (
+    select_element_compatible_with_cql_operations,
+    aggregate_cardinality_using_element,
+)
+from cohort_selection_ontology.core.generators.cql.attributes import get_attribute_tree
 from cohort_selection_ontology.core.resolvers.querying_metadata import (
     ResourceQueryingMetaDataResolver,
 )
@@ -17,18 +23,18 @@ from cohort_selection_ontology.core.terminology.client import (
 )
 from cohort_selection_ontology.model.mapping.cql import (
     CQLMapping,
-    CQLAttributeSearchParameter,
     CQLTimeRestrictionParameter,
     CQLTypeParameter,
     SimpleCardinality,
+    Attribute,
 )
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from cohort_selection_ontology.model.ui_data import TermCode
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS
+from cohort_selection_ontology.resources import cql
 from common.exceptions.typing import UnsupportedTypingException
 from common.model.structure_definition import (
     StructureDefinitionSnapshot,
-    CQL_TYPES_TO_VALUE_TYPES,
 )
 from common.typing.fhir import FHIRPathlike
 from common.util.log.functions import get_class_logger
@@ -41,12 +47,18 @@ from common.util.structure_definition.functions import (
     get_element_defining_elements_with_source_snapshots,
     resolve_defining_id,
     translate_element_to_fhir_path_expression,
-    generate_attribute_key,
     get_term_code_by_id,
     is_element_in_snapshot,
     get_fixed_term_codes,
+    process_element_definition,
 )
-from unit.cohort_selection_ontology.core.generators.cql import aggregate_cardinality_using_element
+
+
+CQL_TYPES_TO_VALUE_TYPES = json.load(
+    fp=(resources.files(cql) / "cql-types-to-value-types.json").open(
+        "r", encoding="utf-8"
+    )
+)
 
 
 class CQLMappingGenerator(object):
@@ -301,8 +313,6 @@ class CQLMappingGenerator(object):
                     element_id, profile_snapshot, module_dir_name
                 )
             )
-
-            card = aggregate_cardinality_using_element(element, profile_snapshot)
             cql_mapping.timeRestriction = CQLTimeRestrictionParameter(
                 types=types, path=FHIRPathlike(fhir_path)
             )
@@ -310,11 +320,9 @@ class CQLMappingGenerator(object):
             attr_defining_id,
             attr_attributes,
         ) in querying_meta_data.attribute_defining_id_type_map.items():
-            attr_type = attr_attributes.type
             self.set_attribute_search_param(
                 attr_defining_id,
                 cql_mapping,
-                attr_type,
                 profile_snapshot,
                 module_dir_name,
             )
@@ -325,67 +333,22 @@ class CQLMappingGenerator(object):
         self,
         attr_defining_id: str,
         cql_mapping,
-        attr_type: str,
         profile_snapshot: StructureDefinitionSnapshot,
         module_dir_name: str,
     ):
-        attribute_key = generate_attribute_key(attr_defining_id)
-        attribute_type = (
-            attr_type
-            if attr_type
-            else self.get_attribute_type(
-                profile_snapshot, attr_defining_id, module_dir_name
-            )
+        elem_defs = get_element_defining_elements(
+            profile_snapshot,
+            attr_defining_id,
+            module_dir_name,
+            self.__project.input.cso / "modules",
         )
-        # FIXME:
-        # This is a hack to change the attribute_type to upper-case Reference to match the FHIR Type while
-        # Fhir Search does not use the FHIR types...
-        attribute_type = "Reference" if attr_type == "reference" else attribute_type
-        attribute_types = None
-        if attribute_type == "composite":
-            # element = self.parser.get_element_from_snapshot(profile_snapshot, attr_defining_id)
-            # element, _ = select_element_compatible_with_cql_operations(element, profile_snapshot)
-
-            attribute_fhir_path = (
-                self.translate_composite_attribute_to_fhir_path_expression(
-                    attr_defining_id, profile_snapshot, module_dir_name
-                )
-            )
-            attribute_key = self.get_composite_code(
-                attr_defining_id, profile_snapshot, module_dir_name
-            )
-            attribute_type = self.get_composite_attribute_type(
-                attr_defining_id, profile_snapshot, module_dir_name
-            )
-        else:
-            if attribute_type != "Reference":
-                element = profile_snapshot.get_element_by_id(attr_defining_id)
-                element, attribute_types = (
-                    select_element_compatible_with_cql_operations(
-                        element, profile_snapshot
-                    )
-                )
-                attr_defining_id = element.id
-            attribute_fhir_path = (
-                self.translate_term_element_id_to_fhir_path_expression(
-                    attr_defining_id, profile_snapshot, module_dir_name
-                )
-            )
-        attribute_types = attribute_types if attribute_types else {attribute_type}
-        cards = self.__aggregate_cardinality_using_element_id(
-            attr_defining_id, profile_snapshot, module_dir_name
+        attribute = Attribute(
+            # key=generate_attribute_key(attr_defining_id),
+            key=process_element_definition(elem_defs[0])[0],
+            composition=get_attribute_tree(
+                attr_defining_id, profile_snapshot, module_dir_name, self.__project
+            ),
         )
-        attribute = CQLAttributeSearchParameter(
-            types=attribute_types,
-            attribute_code=attribute_key,
-            path=attribute_fhir_path,
-            cardinality=cards,
-        )
-        if attribute_type == "Reference":
-            attribute.referenceTargetType = self.get_reference_type(
-                profile_snapshot, attr_defining_id, module_dir_name
-            )
-
         cql_mapping.add_attribute(attribute)
 
     def get_composite_code(
