@@ -88,7 +88,6 @@ class BaseClient:
         stream: bool = False,
     ) -> Response | ContextManager[Response]:
         request_url = self.__determine_url(context_path, full_url, path_params)
-        logging.info(f"request_url: {request_url}")
         if stream:
             # Return context manager
             return self.__session.get(

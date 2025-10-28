@@ -145,6 +145,8 @@ class Project(ProjectDir):
         else:
             if path is None:
                 path = Path(str(os.path.join(PROJECT_ROOT, "projects", name)))
+        if isinstance(path, str):
+            path = Path(path)
         # env
         dotenv.load_dotenv()
         env = os.environ
