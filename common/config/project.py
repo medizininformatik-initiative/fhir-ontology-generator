@@ -47,8 +47,8 @@ class HTTPConfig(BaseModel):
         Field(frozen=True, default=5, description="Number of retries, None => infinity"),
     ]
     backoff_factor: Annotated[
-        int,
-        Field(frozen=True, default=60, description="Retry backoff factor in seconds"),
+        float,
+        Field(frozen=True, default=2, description="Retry backoff factor in seconds"),
     ]
 
 

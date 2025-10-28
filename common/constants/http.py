@@ -1,4 +1,4 @@
-RETRYABLE_STATUS_CODES = [
+RETRYABLE_STATUS_CODES: list[int] = [
     408,  # Request Timeout
     429,  # Too Many Requests (after backoff)
     500,  # Internal Server Error

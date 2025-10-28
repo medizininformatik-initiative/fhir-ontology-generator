@@ -1,5 +1,7 @@
+import logging
+from typing import Self
+
 from urllib3 import Retry, HTTPResponse
-from common.util.log.functions import get_logger
 
 
 class CustomRetry(Retry):
@@ -12,16 +14,15 @@ class CustomRetry(Retry):
         :param status_forcelist: list of status codes to retry on
         :param allowed_methods: list of allowed methods. ["GET", "POST"]
         """
-        logger = get_logger("Retry")
-        logger.info("Init CustomRetry")
         super().__init__(*args, **kwargs)
 
-    def increment(self, *args, **kwargs)->Retry:
-        logger = get_logger("Retry")
+    def increment(self, *args, **kwargs)->Self:
         response: HTTPResponse = kwargs.get('response')
         status_code = response.status if response is not None else "N/A"
-        attempt_nr = self.total - self.remaining if self.total is not None else 0
-        logger.info(f"Retrying {kwargs.get('url', '')} due to {status_code} (attempt {attempt_nr} of {self.total if self.total is not None else "∞"})")
-        return super().increment(*args, **kwargs)
+        # attempt_nr = self.total
+        logging.info(f"Retrying {kwargs.get('url', '')} due to {status_code} (attempts remaining: {self.total if self.total is not None else "∞"})")
+        new_entry = super().increment(*args, **kwargs)
 
-
+        if response is not None:
+            new_entry.last_response = response
+        return new_entry

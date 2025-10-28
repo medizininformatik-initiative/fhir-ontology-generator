@@ -2,6 +2,7 @@ from typing import Optional
 
 from pydantic import conint
 from requests import Response
+from requests.exceptions import RetryError
 
 
 class ClientError(Exception):
@@ -36,7 +37,6 @@ class ServerError(Exception):
             else "" + f"\nAdditional:\n{text}" if text is not None else ""
         )
         self.status_code = status_code
-
 
 def raise_appropriate_exception(response: Response) -> None:
     try:

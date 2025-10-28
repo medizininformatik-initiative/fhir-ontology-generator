@@ -1,3 +1,4 @@
+import logging
 from typing import Mapping, Optional, ContextManager
 
 from requests import Session, Response
@@ -7,7 +8,9 @@ from urllib3 import Retry
 
 from common.config.project import HTTPConfig
 from common.constants.http import RETRYABLE_STATUS_CODES
-from common.util.http.exceptions import raise_appropriate_exception
+from common.util.http.exceptions import (
+    raise_appropriate_exception,
+)
 from common.util.http.retries import CustomRetry
 from common.util.http.url import insert_path_params, format_query_params, merge_urls
 
@@ -30,6 +33,7 @@ class BaseClient:
         self.__session.auth = auth
         self.__session.cert = cert
         self.__base_url = base_url
+
         self.__timeout = timeout if not http_config else http_config.timeout
         self.__retries = (
             CustomRetry(
@@ -84,6 +88,7 @@ class BaseClient:
         stream: bool = False,
     ) -> Response | ContextManager[Response]:
         request_url = self.__determine_url(context_path, full_url, path_params)
+        logging.info(f"request_url: {request_url}")
         if stream:
             # Return context manager
             return self.__session.get(
