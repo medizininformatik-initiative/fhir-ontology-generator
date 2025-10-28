@@ -13,31 +13,35 @@ from common.util.http.exceptions import ClientError
     "http_config,method,expected_error,status_code",
     [
         # should not
-        (HTTPConfig(timeout=5, retries=2, backoff_factor=1),"POST", True, 200),
-        (HTTPConfig(timeout=5, retries=2, backoff_factor=1),"GET", True, 200),
+        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "POST", True, 200),
+        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "GET", True, 200),
         # should not repeat on 404
-        (HTTPConfig(timeout=5, retries=2, backoff_factor=1),"POST",ClientError, 404),
-        (HTTPConfig(timeout=5, retries=2, backoff_factor=1),"GET",ClientError, 404),
-
+        (
+            HTTPConfig(timeout="PT5S", retries=2, backoff_factor=1),
+            "POST",
+            ClientError,
+            404,
+        ),
+        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "GET", ClientError, 404),
         # tests for status codes from RETRYABLE_STATUS_CODES
         # Request Timeout
-        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "POST",RetryError, 408),
-        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "GET",RetryError, 408),
+        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "POST", RetryError, 408),
+        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "GET", RetryError, 408),
         # Too Many Requests (after backoff)
-        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "POST",RetryError, 429),
-        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "GET",RetryError, 429),
+        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "POST", RetryError, 429),
+        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "GET", RetryError, 429),
         # Internal Server Error
-        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "POST",RetryError, 500),
-        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "GET",RetryError, 500),
+        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "POST", RetryError, 500),
+        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "GET", RetryError, 500),
         # Bad Gateway
-        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "POST",RetryError, 502),
-        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "GET",RetryError, 502),
+        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "POST", RetryError, 502),
+        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "GET", RetryError, 502),
         # Service Unavailable
-        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "POST",RetryError, 503),
-        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "GET",RetryError, 503),
+        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "POST", RetryError, 503),
+        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "GET", RetryError, 503),
         # Gateway Timeout
-        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "POST",RetryError, 504),
-        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "GET",RetryError, 504),
+        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "POST", RetryError, 504),
+        (HTTPConfig(timeout=5, retries=2, backoff_factor=1), "GET", RetryError, 504),
     ],
 )
 def test_base_client_get(
@@ -71,22 +75,22 @@ def test_base_client_get(
     elif method == "POST":
         if isinstance(expected_error, type) and issubclass(expected_error, Exception):
             with pytest.raises(expected_error):
-                client.post("fhir/",body="{}")
+                client.post("fhir/", body="{}")
         else:
-            assert client.post("fhir/",body="{}") is not None
+            assert client.post("fhir/", body="{}") is not None
 
 
 @pytest.mark.parametrize(
     "http_config,method,status_code",
     [
-        (HTTPConfig(timeout=5, retries=None, backoff_factor=1), "POST" ,500),
-        (HTTPConfig(timeout=5, retries=None, backoff_factor=1), "GET" ,500),
+        (HTTPConfig(timeout=5, retries=None, backoff_factor=1), "POST", 500),
+        (HTTPConfig(timeout=5, retries=None, backoff_factor=1), "GET", 500),
     ],
 )
 def test_infinite_base_client(
     httpserver: HTTPServer,
     http_config: HTTPConfig,
-        method: str,
+    method: str,
     status_code: int,
 ):
     """
@@ -108,7 +112,9 @@ def test_infinite_base_client(
     if method == "GET":
         p = multiprocessing.Process(target=client.get, args=["fhir/"])
     elif method == "POST":
-        p = multiprocessing.Process(target=client.post, kwargs={"context_path": "fhir/","body":"{}"})
+        p = multiprocessing.Process(
+            target=client.post, kwargs={"context_path": "fhir/", "body": "{}"}
+        )
 
     if p is not None:
         p.start()

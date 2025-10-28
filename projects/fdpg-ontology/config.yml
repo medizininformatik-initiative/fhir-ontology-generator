@@ -7,6 +7,6 @@ fhir-packages:
       branch: "main"
       path: "package-tarballs"
 http:
-  timeout: 30
+  timeout: "PT30S"
   retries: null
   backoff_factor: 1

@@ -1,7 +1,8 @@
-from pydantic import Field
 from typing import Annotated, Any, Dict
 
+import isodate
 from pydantic import BaseModel
+from pydantic import Field, field_validator
 
 
 class FhirPackageManagerConfig(BaseModel):
@@ -37,7 +38,7 @@ class FhirPackagesConfig(BaseModel):
 
 class HTTPConfig(BaseModel):
     timeout: Annotated[
-        int,
+        int | str,
         Field(
             frozen=True, default=30, description="Time after which to retry in seconds"
         ),
@@ -51,6 +52,13 @@ class HTTPConfig(BaseModel):
         Field(frozen=True, default=2, description="Retry backoff factor in seconds"),
     ]
 
+    @field_validator('timeout', mode='before')
+    @classmethod
+    def parse_iso_if_str(cls, value: Any) -> Any:
+        if isinstance(value, str):
+            return isodate.parse_duration(value).seconds
+        return value
+
 
 class ProjectConfig(BaseModel):
     fhir_packages: Annotated[
@@ -62,11 +70,11 @@ class ProjectConfig(BaseModel):
             description="Configuration options related to FHIR packages",
         ),
     ]
-    http: Annotated[
+    http: (Annotated[
         HTTPConfig,
         Field(
             frozen=True,
             default=HTTPConfig(),
             description="Configuration options related to HTTP clients",
         ),
-    ]
+    ])
