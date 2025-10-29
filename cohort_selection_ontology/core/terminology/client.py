@@ -65,7 +65,7 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
                     Path(project.env["SERVER_CERTIFICATE"]),
                     Path(project.env["PRIVATE_KEY"]),
                 )
-        super().__init__(base_url, auth, cert, timeout)
+        super().__init__(base_url, auth, cert, timeout, project.config.http)
 
     @override
     def expand_value_set(
