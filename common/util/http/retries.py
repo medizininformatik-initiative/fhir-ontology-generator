@@ -16,11 +16,16 @@ class CustomRetry(Retry):
         """
         super().__init__(*args, **kwargs)
 
-    def increment(self, *args, **kwargs)->Self:
-        response: HTTPResponse = kwargs.get('response')
+    def increment(self, *args, **kwargs) -> Self:
+        response: HTTPResponse = kwargs.get("response")
         status_code = response.status if response is not None else "N/A"
         # attempt_nr = self.total
-        logging.info(f"Retrying {kwargs.get('url', '')} due to {status_code} (attempts remaining: {self.total if self.total is not None else "∞"})")
+        backoff = self.get_backoff_time()
+        delay_text = f" in {backoff:.2f}s" if backoff and backoff > 0 else ""
+        logging.info(
+            f"Retrying {kwargs.get('url', '')} due to {status_code} "
+            f"(attempts remaining: {self.total if self.total is not None else '∞'}){delay_text}"
+        )
         new_entry = super().increment(*args, **kwargs)
 
         if response is not None:
