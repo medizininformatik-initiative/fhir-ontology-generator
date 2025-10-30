@@ -22,8 +22,8 @@ class CustomRetry(Retry):
         # attempt_nr = self.total
         backoff = self.get_backoff_time()
         delay_text = f" in {backoff:.2f}s" if backoff and backoff > 0 else ""
-        logging.info(
-            f"Retrying {kwargs.get('url', '')} due to {status_code} "
+        logging.debug(
+            f"Retrying due to {status_code} "
             f"(attempts remaining: {self.total if self.total is not None else '∞'}){delay_text}"
         )
         new_entry = super().increment(*args, **kwargs)

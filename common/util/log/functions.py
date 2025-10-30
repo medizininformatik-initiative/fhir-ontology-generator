@@ -9,15 +9,6 @@ logging.config.fileConfig(GLOBAL_LOGGING_CONFIG_FILE)
 logging.info(f"Logging using configuration options defined @ {GLOBAL_LOGGING_CONFIG_FILE}",
              extra={'className': ""})
 
-# after fileConfig(...)
-class SafeExtraFilter(logging.Filter):
-    def filter(self, record):
-        if not hasattr(record, "className"):
-            record.className = ""
-        return True
-
-logging.getLogger().addFilter(SafeExtraFilter())
-
 
 def get_logger(name: Optional[str] = None) -> logging.LoggerAdapter:
     """
