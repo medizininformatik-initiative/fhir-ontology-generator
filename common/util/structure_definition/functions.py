@@ -4,7 +4,7 @@ import os
 import re
 from pathlib import Path
 from typing import List, Optional, Generator, Tuple, Any, Set
-from warnings import deprecated
+from typing_extensions import deprecated
 
 from fhir.resources.R4B.elementdefinition import (
     ElementDefinition,
@@ -25,10 +25,8 @@ from common.exceptions.typing import InvalidValueTypeException
 from common.model.structure_definition import (
     StructureDefinitionSnapshot,
     ProcessedElementResult,
-    ShortDesc,
 )
 from common.util.collections.functions import flatten
-# from common.model.structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.enums import FhirDataType
 from common.util.log.functions import get_class_logger
 
@@ -41,7 +39,10 @@ translation_map_default = {
 
 logger = get_class_logger("structure_definition_functions")
 
-def find_polymorphic_value(data: ElementDefinition, polymorphic_elem_prefix: str) -> Optional[Any]:
+
+def find_polymorphic_value(
+    data: ElementDefinition, polymorphic_elem_prefix: str
+) -> Optional[Any]:
     """
     Attempts to find the value of a polymorphic element by iterating over all possible data type-specific names
 
@@ -166,7 +167,7 @@ def structure_definition_from_path(path: Path) -> StructureDefinitionSnapshot:
 
 def get_profiles_with_base_definition(
     modules_dir_path: str | Path, base_definition: str
-) -> Generator[Tuple[StructureDefinitionSnapshot, str]]:
+) -> Generator[Tuple[StructureDefinitionSnapshot, str], None, None]:
     """
     Returns the profiles that have the given base definition
     :param modules_dir_path: Path to the modules directory
@@ -272,7 +273,6 @@ def process_element_id(
     element_ids,
     module_dir_name: str,
     modules_dir_path: str | Path,
-    last_desc: ShortDesc = None,
 ) -> List[ProcessedElementResult] | None:
     results = []
 
@@ -281,8 +281,6 @@ def process_element_id(
         if element_id.startswith("."):
             raise ValueError("Element id must start with a resource type")
         element: ElementDefinition = profile_snapshot.get_element_by_id(element_id)
-        # short_desc = (element_id, get_display_from_element_definition(element)) \
-        #    if last_desc is None else None
         result = [
             ProcessedElementResult(
                 element=element,
@@ -1009,8 +1007,11 @@ def translate_element_to_fhir_path_expression(
             element_path = f"value.ofType({element_type})"
     result = [element_path]
     if elements:
-        result.extend(translate_element_to_fhir_path_expression(profile_snapshot, elements))
+        result.extend(
+            translate_element_to_fhir_path_expression(profile_snapshot, elements)
+        )
     return result
+
 
 def get_slice_owning_element_id(element_id: str) -> str:
     """
@@ -1029,6 +1030,7 @@ def get_slice_owning_element_id(element_id: str) -> str:
         else element_id
     )
 
+
 def get_slice_name(element_id: str) -> str | None:
     """
     Return the name of the slice on the lowest level
@@ -1044,7 +1046,9 @@ def get_slice_name(element_id: str) -> str | None:
     )
 
 
-def get_available_slices(element_id: str, profile_snapshot: StructureDefinitionSnapshot) -> List[str]:
+def get_available_slices(
+    element_id: str, profile_snapshot: StructureDefinitionSnapshot
+) -> List[str]:
     """
     Returns a list of available slice ids
     :param element_id: str

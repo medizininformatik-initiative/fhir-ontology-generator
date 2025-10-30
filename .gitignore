@@ -9,7 +9,7 @@ dependencies
 /.vscode/
 /.git/
 availability/*.json
-!availability/stratum-to-context.json
+!availability/resources/stratum-to-context.json
 
 # FSH
 /fsh/*
@@ -28,12 +28,16 @@ test.py
 /test/elastic_search/tmp/
 /temp/
 **/tmp
+**/.tmp
 **/temp
 /tests/**/testdata
 **/.coverage
-**/.coverage*
+/logs/
 # Directories holding docker logs recorded during (intergration) testing
 **/docker_logs/
+
+# FHIR packages caches
+**/.fhir-package-cache
 
 # Project output files
 /projects/*/output

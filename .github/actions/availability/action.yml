@@ -1,12 +1,23 @@
 name: Generate Availability Measure
 
-description: 'Generates availability measure'
+description: 'Generates availability measures'
 
 inputs:
   tag:
     required: false
     description: 'Git tag if present'
-    default: ""
+    default: ''
+  project:
+    required: false
+    description: 'Name of the project to generate for'
+    default: 'fdpg-ontology'
+  project-output:
+    required: false
+    description: 'Name of the project output artifact. Can be left empty if the output is already present in the repository'
+  upload-artifacts:
+    required: true
+    description: 'Whether generated artifacts should be uploaded'
+    default: 'true'
 
 runs:
   using: "composite"
@@ -20,28 +31,75 @@ runs:
 
     - name: Set permissions
       shell: bash
-      run: chmod +x availability/measure_shorthand/generate-availability-measure.sh
+      run: chmod +x availability/scripts/generate-coding-availability-measure.sh
 
-    - name: Run Availability generation
-      shell: bash
-      working-directory: ./availability/measure_shorthand
-      run: ./generate-availability-measure.sh
+    - name: Fetch project output
+      uses: actions/download-artifact@v5
+      if: ${{ inputs.project-output != '' }}
+      with:
+        name: ${{ inputs.project-output }}
+        path: projects/${{ inputs.project }}/output
 
-    - name: Rename JSON (with tag if available) and zip
+    - name: Run Coding Availability generation
       shell: bash
-      working-directory: ./availability/
+      run: availability/scripts/generate-coding-availability-measure.sh --project "${{ inputs.project }}"
+
+    - name: Install required python modules
+      run: pip3 install -r requirements.txt
+      shell: bash
+
+    - name: Install Firely Terminal
       run: |
-        TAG="${{ inputs.tag }}"
-        if [[ -n "$TAG" ]]; then
-          NEW_NAME="fdpg_availability_measure_${TAG}.json"
+        if command -v fhir >/dev/null 2>&1; then
+          echo "Tool firely.terminal is already installed"
         else
-          NEW_NAME="fdpg_availability_measure.json"
+          echo "Installing tool firely.terminal"
+          sudo apt-get update
+          sudo apt-get install -y dotnet-sdk-8.0
+          sudo apt-get install -y aspnetcore-runtime-8.0
+          sudo apt-get install -y dotnet-runtime-8.0
+          dotnet tool install -g firely.terminal
         fi
-        mv Measure-CdsAvailabilityMeasure.json "$NEW_NAME"
-        zip availability.zip "$NEW_NAME" stratum-to-context.json
+        fhir --version
+      shell: bash
 
-    - name: Upload ZIP archive
+    - name: Run DSE Element Availability generation
+      run: PYTHONPATH='.' python3 availability/scripts/generate_dse_element_availability.py --project "${{ inputs.project }}"
+      shell: bash
+
+    - name: Upload log files
       uses: actions/upload-artifact@v4
       with:
-        name: availability-zip
-        path: availability/availability.zip
+        name: availability_logs
+        path:
+          logs/generate_dse_element_availability.log
+
+    - name: Add tag-based version (if available) and zip
+      shell: bash
+      working-directory: ./projects/${{ inputs.project }}/output/availability
+      run: |
+        echo "Setting tag-based version and generating archive"
+        TAG="${{ inputs.tag }}"
+        if [[ -n "$TAG" ]]; then
+          if ! command -v jq >/dev/null 2>&1; then
+            echo "Installing tool jq" 
+            sudo apt-get install -y jq
+          fi
+          echo "Using tag name '$TAG' as resource version"
+          for i in *.fhir.json; do
+            [ -f "$i" ] || break;
+            echo "Updating version of FHIR resource @ $i"
+            jq ".version = \"$TAG\"" "$i" > tmp.fhir.json && mv -f tmp.fhir.json "$i"
+          done
+        fi
+        echo "Collecting and archiving generated files"
+        zip availability.zip stratum-to-context.json Measure-CdsCodingAvailability.fhir.json Measure-DseElementAvailability.fhir.json
+
+    - name: Upload Availability files
+      uses: actions/upload-artifact@v4
+      if: ${{ inputs.upload-artifacts == true || inputs.upload-artifacts == 'true' }}
+      with:
+        name: availability_files
+        path: ./projects/${{ inputs.project }}/output/availability/*
+        if-no-files-found: error
+        overwrite: true

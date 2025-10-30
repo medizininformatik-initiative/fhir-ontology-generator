@@ -51,8 +51,6 @@ class JSONFhirOntoEncoder(json.JSONEncoder):
             json.JSONEncoder.default(self, o)
 
 
-
-
 def load_json(json_file: Path, encoding: str | list[str] = None, fail: bool = False) -> Optional[Any]:
     """
     Attempts to parse the content of a JSON file using the provided encodings, returning the value obtained during the
