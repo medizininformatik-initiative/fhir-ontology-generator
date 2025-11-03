@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Mapping, Dict
+from typing import Mapping, Dict, Tuple
 
 import pandas
 from pydantic import BaseModel, Field
@@ -98,7 +98,7 @@ class CodeSystemTranslationReport(BaseModel):
 
 def determine_translation_missing_severity(
     codesystem: str, translation_percent: int | float = 0
-) -> str:
+) -> str | None:
     """
     Returns a str representing the severity of the translation percent.:
         ❌ : <25%
@@ -138,35 +138,43 @@ class OntologyHealthReportGenerator:
         self,
         elastic_translation_codeable_concept: bool = True,
         elastic_translation_terminology: bool = True,
-    ) -> str:
+        json_format: bool = True,
+    ) -> Tuple[str, dict|None]:
         """
         Generates the ontology health report as a str.
         Current output format: MD using pandas python module.
+        :param json_format: if True this function will return the report as json
         :param elastic_translation_codeable_concept: Include Elastic Search codeable concept files if TRUE
         :param elastic_translation_terminology: Include Elastic Search terminology files if TRUE
         :return: str ontology health report
         """
 
-        report = "# Ontology Health Report\n"
+        report: str = "# Ontology Health Report\n"
+        json_report = {} if json_format else None
 
         if elastic_translation_codeable_concept:
+            estcc = self.generate_es_codeable_concept_translations_health_report()
+            if json_format:
+                json_report["estcc"] = estcc
             report += "## Missing translations for elastic search codeable concepts\n"
-            report += pandas.DataFrame(
-                self.generate_es_codeable_concept_translations_health_report()
-            ).T.to_markdown()
+            report += pandas.DataFrame(estcc).T.to_markdown()
 
             report += "\n"
 
         if elastic_translation_terminology:
+            estt = self.generate_es_terminology_translations_health_report()
+            if json_format:
+                json_report["estt"] = estt
+
             report += "## Missing translations for elastic search terminology\n"
-            report += pandas.DataFrame(
-                self.generate_es_terminology_translations_health_report()
-            ).T.to_markdown()
+            report += pandas.DataFrame(estt).T.to_markdown()
             report += "\n"
 
-        return report
+        return report,json_report
 
-    def generate_es_codeable_concept_translations_health_report(self) -> dict:
+    def generate_es_codeable_concept_translations_health_report(
+        self,
+    ) -> dict[str, CodeSystemTranslationReport]:
         """
         Generates the codeable concept translation report as a dict.
         :return: dictionary mapping **codesystem name** -> CodeSystemTranslationReport.to_dict()

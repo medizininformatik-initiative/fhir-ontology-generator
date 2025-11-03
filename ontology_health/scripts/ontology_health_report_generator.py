@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 
 from common.util.log.functions import get_logger
@@ -20,7 +21,7 @@ if __name__ == '__main__':
 
     onto_reporter = OntologyHealthReportGenerator(project=project)
 
-    report = onto_reporter.generate_report()
+    report,json_report = onto_reporter.generate_report()
 
     output_folder = project.output.generated_ontology / "ontology_report"
     os.makedirs(output_folder, exist_ok=True)
@@ -28,3 +29,10 @@ if __name__ == '__main__':
     with open(os.path.join(output_folder, "ontology_health_report.md"), "w", encoding="utf-8") as outfile:
         outfile.write(report)
 
+    if json_report is not None:
+        with open(
+            os.path.join(output_folder, "ontology_health_report.json"),
+            "w",
+            encoding="utf-8",
+        ) as outfile:
+            json.dump(json_report, outfile, ensure_ascii=False)
