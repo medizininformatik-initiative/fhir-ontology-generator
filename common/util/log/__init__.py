@@ -41,16 +41,5 @@ class ColorFormatter(logging.Formatter):
                 return Colors.DEFAULT
 
     def format(self, record: logging.LogRecord):
-
-        safe_defaults = {
-            "className": "",
-            "funcName": "",
-            "lineno": 0,
-            "module": "",
-        }
-        for key, default in safe_defaults.items():
-            if not hasattr(record, key) or getattr(record, key) is None:
-                setattr(record, key, default)
-
         fmt = f"{self.__get_color(record.levelno).value}{self._fmt}{Colors.RESET.value}"
         return logging.Formatter(fmt).format(record)
