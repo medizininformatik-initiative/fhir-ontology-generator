@@ -666,7 +666,9 @@ class UIProfileGenerator:
                 "Unable to generate composite attribute code for element: "
                 + element.id
                 + "in profile: "
-                + profile_snapshot.name)
+                + profile_snapshot.name
+                + "\n\t\t No fixed criterion could be found."
+            )
 
     def get_referenced_profile_data(
         self, profile_snapshot, reference_defining_element_id

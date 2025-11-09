@@ -9,16 +9,10 @@
     "code": "mii-cds-ICU",
     "display": "Mikrobio"
   },
-  "name": "MII_PR_Mikrobio_Empfindlichkeit",
+  "name": "MII_PR_Mikrobio_Serologie_Immunologie",
   "resource_type": "Observation",
   "term_code_defining_id": "Observation.code",
   "time_restriction_defining_id": "Observation.effective[x]",
-  "value_defining_id": "Observation.value[x].code",
-  "value_type": "concept",
-  "attribute_defining_id_type_map": {
-    "Observation.interpretation": {
-      "type": "concept",
-      "optional": true
-    }
-  }
+  "value_defining_id": "Observation.value[x]",
+  "value_type": "concept"
 }
