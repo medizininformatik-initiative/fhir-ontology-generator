@@ -7,8 +7,8 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Diagnose",
-    "display": "Diagnose",
+    "code": "MII_Onkologie_Diagnose",
+    "display": "MII Onkologie Diagnose",
     "version": "1.0.0"
   },
   "term_code_defining_id": "Condition.code.coding:icd10-gm",

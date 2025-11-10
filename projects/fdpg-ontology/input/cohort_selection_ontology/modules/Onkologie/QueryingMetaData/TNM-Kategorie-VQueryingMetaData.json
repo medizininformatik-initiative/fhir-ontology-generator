@@ -7,8 +7,8 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "TNM",
-    "display": "TNM",
+    "code": "MII_Onkologie_TNM",
+    "display": "MII Onkologie TNM",
     "version": "1.0.0"
   },
   "term_code_defining_id": "Observation.code",

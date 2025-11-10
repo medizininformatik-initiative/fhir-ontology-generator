@@ -7,8 +7,8 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Studienteilnahme",
-    "display": "Studienteilnahme",
+    "code": "MII_Onkologie_Studienteilnahme",
+    "display": "MII Onkologie Studienteilnahme",
     "version": "1.0.0"
   },
   "term_code_defining_id": "Observation.value[x]",

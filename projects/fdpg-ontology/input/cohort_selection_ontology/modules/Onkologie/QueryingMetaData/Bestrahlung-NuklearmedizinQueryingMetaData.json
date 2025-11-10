@@ -7,8 +7,8 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Bestrahlung",
-    "display": "Bestrahlung",
+    "code": "MII_Onkologie_Bestrahlung",
+    "display": "MII Onkologie Bestrahlung",
     "version": "1.0.0"
   },
   "term_code_defining_id": "Procedure.code.coding:sct",

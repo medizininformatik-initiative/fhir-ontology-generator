@@ -7,8 +7,8 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Systemtherapie",
-    "display": "Systemtherapie",
+    "code": "MII_Onkologie_Systemtherapie",
+    "display": "MII Onkologie Systemtherapie",
     "version": "1.0.0"
   },
   "term_code_defining_id": "Procedure.code.coding:systemische_therapie_art",

@@ -7,8 +7,8 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Tod",
-    "display": "Tod",
+    "code": "MII_Onkologie_Tod",
+    "display": "MII Onkologie Tod",
     "version": "1.0.0"
   },
   "term_code_defining_id": "Observation.code.coding",
