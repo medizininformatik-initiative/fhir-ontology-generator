@@ -7,8 +7,8 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "TNM-Klassifikation",
-    "display": "TNM-Klassifikation",
+    "code": "MII_Onkologie_TNM_Klassifikation",
+    "display": "MII Onkologie TNM-Klassifikation",
     "version": "1.0.0"
   },
   "term_code_defining_id": "Observation.code",
@@ -20,11 +20,7 @@
     },
     "Observation.value[x]": {
       "type": "",
-      "optional": true
-    },
-    "(Observation.hasMember).value[x]": {
-      "type": "reference",
-      "optional": true
+      "optional": false
     },
     "Observation.method": {
       "optional": true

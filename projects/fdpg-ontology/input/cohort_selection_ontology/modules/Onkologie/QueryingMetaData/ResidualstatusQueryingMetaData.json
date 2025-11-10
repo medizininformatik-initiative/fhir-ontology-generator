@@ -7,8 +7,8 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Residualstatus",
-    "display": "Residualstatus",
+    "code": "MII_Onkologie_Residualstatus",
+    "display": "MII Onkologie Residualstatus",
     "version": "1.0.0"
   },
   "term_code_defining_id": "Observation.value[x]",

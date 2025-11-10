@@ -7,8 +7,8 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Fernmetastasen",
-    "display": "Fernmetastasen",
+    "code": "MII_Onkologie_Fernmetastasen",
+    "display": "MII Onkologie Fernmetastasen",
     "version": "1.0.0"
   },
   "term_code_defining_id": "Observation.value[x].coding",

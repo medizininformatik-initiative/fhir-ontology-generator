@@ -7,8 +7,8 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Operation",
-    "display": "Operation",
+    "code": "MII_Onkologie_Operation",
+    "display": "MII Onkologie Operation",
     "version": "1.0.0"
   },
   "term_code_defining_id": "Procedure.code.coding:ops",

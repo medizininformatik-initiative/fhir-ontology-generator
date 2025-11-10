@@ -7,8 +7,8 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Histologiegrading",
-    "display": "Histologiegrading",
+    "code": "MII_Onkologie_Histologiegrading",
+    "display": "MII Onkologie Histologiegrading",
     "version": "1.0.0"
   },
   "term_code_defining_id": "Observation.value[x]",

@@ -7,10 +7,16 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Systemtherapie",
-    "display": "Systemtherapie",
+    "code": "MII_Onkologie_Systemtherapie",
+    "display": "MII Onkologie Systemtherapie",
     "version": "1.0.0"
   },
-  "term_code_defining_id": "MedicationStatement.category",
-  "time_restriction_defining_id": "MedicationStatement.effective[x]"
+  "term_code_defining_id": "(MedicationStatement.medication[x]:medicationCodeableConcept).coding:atcClassDe",
+  "time_restriction_defining_id": "MedicationStatement.effective[x]",
+  "attribute_defining_id_type_map": {
+    "(MedicationStatement.partOf:systemischeTherapie).code.coding:systemische_therapie_art": {
+      "type": "reference",
+      "optional": true
+    }
+  }
 }
