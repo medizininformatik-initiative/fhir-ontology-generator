@@ -549,19 +549,25 @@ class UIProfileGenerator:
                     attribute_defining_element.get("id"), profile_snapshot
                 )
                 self.__logger.debug(f"Available slices: {available_slices}")
-                for slice_name in available_slices:
-                    att_def_id = (
-                        get_slice_owning_element_id(
-                            attribute_defining_element.get("id")
+                if(len(available_slices) > 0):
+                    for slice_name in available_slices:
+                        att_def_id = (
+                            get_slice_owning_element_id(
+                                attribute_defining_element.get("id")
+                            )
+                            + ":"
+                            + slice_name
                         )
-                        + ":"
-                        + slice_name
-                    )
-                    att_def_id = get_element_defining_elements(
-                        att_def_id, profile_snapshot, self.module_dir, self.data_set_dir
-                    )[-1]
+                        att_def_id = get_element_defining_elements(
+                            att_def_id, profile_snapshot, self.module_dir, self.data_set_dir
+                        )[-1]
+                        selected_valueset = get_selectable_concepts(
+                            att_def_id, profile_snapshot.get("name"), self.__client
+                        )
+                        attribute_definition.referencedValueSet.append(selected_valueset)
+                else:
                     selected_valueset = get_selectable_concepts(
-                        att_def_id, profile_snapshot.get("name"), self.__client
+                        attribute_defining_element, profile_snapshot.get("name"), self.__client
                     )
                     attribute_definition.referencedValueSet.append(selected_valueset)
         elif attribute_type == "quantity":
