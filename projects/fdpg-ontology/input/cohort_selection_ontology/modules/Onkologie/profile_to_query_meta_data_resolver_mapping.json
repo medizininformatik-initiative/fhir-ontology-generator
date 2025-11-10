@@ -68,9 +68,6 @@
   "MII_PR_Onko_Systemische_Therapie": [
     "Systemtherapie"
   ],
-  "MII_PR_Onko_Systemische_Therapie_Medikation": [
-    "Systemtherapie-Medikation"
-  ],
   "MII_PR_Onko_Operation": [
     "OperationOPS",
     "OperationSCT"
@@ -83,7 +80,26 @@
   ],
   "MII_PR_Onko_Strahlentherapie_Bestrahlung_Strahlentherapie": [
     "Bestrahlung-Strahlentherapie"
+  ],
   "MII_PR_Onko_Tumorkonferenz": [
     "Tumorkonferenz"
+  ],
+  "MII_PR_Onko_Anzahl_Befallene_Lymphknoten": [
+    "BefalleneLymphknoten"
+  ],
+  "MII_PR_Onko_Anzahl_Befallene_Sentinel_Lymphknoten": [
+    "BefalleneSentinelLymphknoten"
+  ],
+  "MII_PR_Onko_Anzahl_Untersuchte_Lymphknoten": [
+    "UntersuchteLymphknoten"
+  ],
+  "MII_PR_Onko_Anzahl_Untersuchte_Sentinel_Lymphknoten": [
+    "UntersuchteSentinelLymphknoten"
+  ],
+  "MII_PR_Onko_Allgemeiner_Leistungszustand_ECOG": [
+    "ECOG"
+  ],
+  "MII_PR_Onko_Allgemeiner_Leistungszustand_Karnofsky": [
+    "Karnofsky"
   ]
 }
