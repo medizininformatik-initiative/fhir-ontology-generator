@@ -1,5 +1,5 @@
 {
-  "name": "Varianten Assessment",
+  "name": "Untersuchte Sentinel Lymphknoten",
   "resource_type": "Observation",
   "module": {
     "code": "mii-cds-Onkologie",
@@ -7,11 +7,11 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "MII_Onkologie_Variantenassessment",
-    "display": "MII Onkologie Variantenassessment",
+    "code": "MII_Onkologie_Lymphknoten_Assessment",
+    "display": "MII Onkologie Lymphknoten Assessment",
     "version": "1.0.0"
   },
-  "term_code_defining_id": "Observation.code",
+  "term_code_defining_id": "Observation.code.coding:loinc",
   "time_restriction_defining_id": "Observation.effective[x]",
   "attribute_defining_id_type_map": {
     "(Observation.focus).code.coding:icd10-gm": {

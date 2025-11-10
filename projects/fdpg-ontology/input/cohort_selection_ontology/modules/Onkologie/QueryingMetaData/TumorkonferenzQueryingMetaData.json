@@ -7,8 +7,8 @@
   },
   "context": {
     "system": "fdpg.mii.cds",
-    "code": "Tumorkonferenz",
-    "display": "Tumorkonferenz",
+    "code": "MII_Onkologie_Tumorkonferenz",
+    "display": "MII Onkologie Tumorkonferenz",
     "version": "1.0.0"
   },
   "term_code_defining_id": "CarePlan.category.coding",
