@@ -17,7 +17,11 @@ class ClientError(Exception):
         super().__init__(
             f"Request failed with status code {status_code}"
             + (f". Reason: {reason}" if reason is not None else "")
-            + (f"\nAdditional:\n{text}" if text is not None else "")
+            + (
+                f"\nAdditional:\n{text.decode(encoding='utf-8')}"
+                if text is not None
+                else ""
+            )
         )
         self.status_code = status_code
 
@@ -32,9 +36,13 @@ class ServerError(Exception):
         text: Optional[str] = None,
     ):
         super().__init__(
-            f"Request failed with status code {status_code}" + f". Reason: {reason}"
-            if reason is not None
-            else "" + f"\nAdditional:\n{text}" if text is not None else ""
+            f"Request failed with status code {status_code}"
+            + (f". Reason: {reason}" if reason is not None else "")
+            + (
+                f"\nAdditional:\n{text.decode(encoding='utf-8')}"
+                if text is not None
+                else ""
+            )
         )
         self.status_code = status_code
 
