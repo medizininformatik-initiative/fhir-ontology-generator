@@ -27,5 +27,6 @@
         "display": { "$ref": "https://fdpg.de/elastic_display.json" }
       }
     }
-  }
+  },
+  "additionalProperties": false
 }

@@ -6,5 +6,6 @@
     "attributeSearchParameter": {"type": "string"},
     "attributeType": {"type": "string"}
   },
-  "required": ["attributeKey","attributeSearchParameter","attributeType"]
+  "required": ["attributeKey","attributeSearchParameter","attributeType"],
+  "additionalProperties": false
 }

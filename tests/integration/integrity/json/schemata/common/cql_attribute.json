@@ -8,5 +8,6 @@
     "referenceTargetType": {"type": "string"},
     "types": {"type": "array", "items": {"type": "string"} }
   },
-  "required": ["cardinality","key","path","types"]
+  "required": ["cardinality","key","path","types"],
+  "additionalProperties": false
 }

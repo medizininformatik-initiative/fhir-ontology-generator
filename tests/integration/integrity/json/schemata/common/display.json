@@ -12,5 +12,6 @@
       }
     }
   },
-  "required": ["original", "translations"]
+  "required": ["original", "translations"],
+  "additionalProperties": false
 }

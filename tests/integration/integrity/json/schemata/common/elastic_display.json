@@ -7,5 +7,6 @@
     "de": {"type": "string"},
     "en": {"type": "string"}
   },
-  "required": ["original", "de", "en"]
+  "required": ["original", "de", "en"],
+  "additionalProperties": false
 }

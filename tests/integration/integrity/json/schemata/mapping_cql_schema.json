@@ -19,5 +19,6 @@
       "resourceType": {"type": "string"},
       "timeRestriction": { "$ref": "https://fdpg.de/timeRestriction.json" }
     }
-  }
+  },
+  "additionalProperties": false
 }

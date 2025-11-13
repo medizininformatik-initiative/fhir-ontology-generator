@@ -19,5 +19,6 @@
       "termCodeSearchParameter": {"type": "string"},
       "timeRestrictionParameter": {"type": "string"}
     }
-  }
+  },
+  "additionalProperties": false
 }

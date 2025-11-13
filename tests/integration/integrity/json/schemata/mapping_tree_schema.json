@@ -25,5 +25,6 @@
       },
       "required": ["key", "parents", "children"]
     }
-  }
+  },
+  "additionalProperties": false
 }

@@ -13,5 +13,6 @@
       }
     }
   },
-  "required": ["cardinality","path","types"]
+  "required": ["cardinality","path","types"],
+  "additionalProperties": false
 }

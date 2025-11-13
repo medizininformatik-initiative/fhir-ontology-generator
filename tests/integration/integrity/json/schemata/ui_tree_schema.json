@@ -38,5 +38,6 @@
       },
       "required": ["context","system","version"]
     }
-  }
+  },
+  "additionalProperties": false
 }
