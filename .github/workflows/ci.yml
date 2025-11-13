@@ -12,9 +12,6 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    concurrency:
-      group: "requires-terminology-server"
-      cancel-in-progress: false
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -29,14 +26,17 @@ jobs:
 
   generate_availability:
     runs-on: ubuntu-latest
+    needs:
+      - build
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Generate_Availability
+      - name: Generate availability measures
         uses: ./.github/actions/availability
         with:
-          tag: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+          project: fdpg-ontology
+          project-output: 'project-output'
 
   run_unit_tests:
     runs-on: ubuntu-latest
@@ -89,23 +89,44 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   run_integration_tests:
-    needs: build
+    needs: [ build, generate_availability ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Download Ontology
+      - name: Download availability files
         uses: actions/download-artifact@v4
         with:
-          name: packaged ontology
+          name: availability_files
+          path: projects/fdpg-ontology/output/availability
+
+      - name: Download project files
+        uses: actions/download-artifact@v4
+        with:
+          name: ontology_files
           path: projects/fdpg-ontology/output/merged_ontology
 
       - name: Install required python modules
         run: pip3 install -r requirements.txt
 
-      - name: Install testing pytest
+      - name: Install pytest
         run: pip3 install pytest pytest-docker pytest-cov
+
+      - name: Install Firely Terminal
+        run: |
+          if command -v fhir >/dev/null 2>&1; then
+            echo "Tool firely.terminal is already installed"
+          else
+            echo "Installing tool firely.terminal"
+            sudo apt-get update
+            sudo apt-get install -y dotnet-sdk-8.0
+            sudo apt-get install -y aspnetcore-runtime-8.0
+            sudo apt-get install -y dotnet-runtime-8.0
+            dotnet tool install -g firely.terminal
+          fi
+          fhir --version
+        shell: bash
 
       - name: Save secret to file
         id: certificates
@@ -147,10 +168,10 @@ jobs:
       - name: Install required python modules
         run: pip3 install -r requirements.txt
 
-      - name: Download Ontology
+      - name: Download project output
         uses: actions/download-artifact@v4
         with:
-          name: project output
+          name: project-output
           path: projects/fdpg-ontology/output/
 
       - name: Install testing pytest
@@ -169,33 +190,36 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   release:
-    needs: [build, generate_availability, run_integration_tests, run_json_integrity_tests]
+    needs: [build, generate_availability, run_unit_tests, run_integration_tests, run_json_integrity_tests]
     runs-on: ubuntu-latest
     steps:
-    - name: Download Ontology
-      uses: actions/download-artifact@v4
-      with:
-        name: project output
-        path: projects/fdpg-ontology/output/
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-    - name: Download Availability
-      uses: actions/download-artifact@v4
-      with:
-        name: availability-zip
-        path: projects/fdpg-ontology/output/availability/availability.zip
+      - name: Download project output
+        uses: actions/download-artifact@v4
+        with:
+          name: project-output
+          path: projects/fdpg-ontology/output/
 
-    - name: Collect DSE structure definition snapshots
-      shell: bash
-      run: zip -j dse_structures.zip projects/fdpg-ontology/input/data_selection_extraction/snapshots/mii/*
+      - name: Download availability files
+        uses: actions/download-artifact@v4
+        with:
+          name: availability_files
+          path: projects/fdpg-ontology/output/availability
 
-    - name: Release Draft
-      uses: softprops/action-gh-release@v2
-      with:
-        draft: true
-        generate_release_notes: true
-        files: |
-          projects/fdpg-ontology/output/merged_ontology/elastic.zip
-          projects/fdpg-ontology/output/merged_ontology/backend.zip
-          projects/fdpg-ontology/output/merged_ontology/mapping.zip
-          projects/fdpg-ontology/output/availability/availability.zip
-          dse_structures.zip
+      - name: Collect DSE structure definition snapshots
+        shell: bash
+        run: zip -j projects/fdpg-ontology/output/data_selection_extraction/dse_structures.zip projects/fdpg-ontology/input/data_selection_extraction/snapshots/mii/*
+
+      - name: Draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          generate_release_notes: true
+          files: |
+            projects/fdpg-ontology/output/merged_ontology/elastic.zip
+            projects/fdpg-ontology/output/merged_ontology/backend.zip
+            projects/fdpg-ontology/output/merged_ontology/mapping.zip
+            projects/fdpg-ontology/output/availability/availability.zip
+            projects/fdpg-ontology/output/data_selection_extraction/dse_structures.zip

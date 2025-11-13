@@ -1,0 +1,2 @@
+class MissingSubjectRefError(ValueError):
+    pass

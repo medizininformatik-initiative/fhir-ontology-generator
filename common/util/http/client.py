@@ -1,4 +1,3 @@
-import logging
 from typing import Mapping, Optional, ContextManager
 
 from requests import Session, Response
