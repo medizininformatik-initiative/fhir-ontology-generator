@@ -20,6 +20,7 @@ from common.util.structure_definition.functions import (
     translate_element_to_fhir_path_expression,
     generate_attribute_key,
     get_term_code_by_id,
+    get_fixed_term_codes
 )
 
 SUPPORTED_TYPES = ['date', 'dateTime', 'decimal', 'integer', 'Age', 'CodeableConcept', 'Coding', 'Quantity',
@@ -97,6 +98,7 @@ class FHIRSearchMappingGenerator(object):
             return collections.OrderedDict.fromkeys([])
 
     def _resolve_composite_search_parameter(self, search_parameters: OrderedDict[str, dict]):
+        # how could this have ever worked. TODO: leo. The
         if len(search_parameters) != 2:
             raise InvalidElementTypeException("Composite search parameter must have 2 elements")
         search_parameter = self.fhir_search_mapping_resolver.find_composite_search_parameter(search_parameters)
@@ -205,17 +207,17 @@ class FHIRSearchMappingGenerator(object):
         if len(attribute_parsed) != 2:
             raise ValueError("Composite search parameters must have exactly two elements")
         where_clause_element = attribute_parsed[-1]
-        return profile_snapshot.get_fixed_term_codes(where_clause_element, self.__modules_dir,
+        return get_fixed_term_codes(profile_snapshot, where_clause_element, self.__modules_dir,
                                        module_dir_name, self.__client)[0]
 
     def get_composite_attribute_type(self, attribute, profile_snapshot: StructureDefinitionSnapshot, module_dir_name: str):
-        search_param_components = self.resolve_fhir_search_parameter(attribute, profile_snapshot, module_dir_name,
-                                                                     "composite")
+        search_param_components = self.resolve_fhir_search_parameter(attribute, profile_snapshot, module_dir_name)
         first_search_param = next(iter(search_param_components.values()))
+        # the components are not resolved. They should be resolved and then checked on type. Now the type is composite all the time and this fails. I dont know how this could have ever worked before. Maybe with other search params
         if first_search_param.get("type") == "quantity":
             attribute_type = "quantity"
         elif first_search_param.get("type") == "token":
-            attribute_type = "composite-concept"
+            attribute_type = "concept"
         else:
             raise ValueError("Composite search parameters must have a quantity or token as the first element")
         return attribute_type

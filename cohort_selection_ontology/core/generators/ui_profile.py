@@ -629,6 +629,10 @@ class UIProfileGenerator:
                         self.get_referenced_context(profile_snapshot, self.module_dir),
                     )
                 )
+            attribute_definition.display = get_display_from_element_definition(
+                get_common_ancestor(profile_snapshot, element.id, predicate.id)
+            )
+            attribute_definition.type = "concept"
             return attribute_definition
         else:
             raise InvalidValueTypeException(
@@ -796,18 +800,18 @@ class UIProfileGenerator:
 
     def get_reference_criteria_set_from_fixed_term_codes(
         self, fixed_term_codes: List[TermCode], context: TermCode
-    ) -> CriteriaSet:
+    ) -> List[CriteriaSet]:
         """
         Returns the criteria set for the given fixed term codes
         :param fixed_term_codes: Fixed term codes
         :param context: Context of the criteria set
         :return: Criteria set
         """
-        criteria_set = CriteriaSet(
+        criteria_set = [CriteriaSet(
             url=self.create_criteria_set_url_from_tc(fixed_term_codes[0], context)
-        )
+        )]
         for term_code in fixed_term_codes:
-            criteria_set.contextualized_term_codes.append((context, term_code))
+            criteria_set[0].contextualized_term_codes.append((context, term_code))
         return criteria_set
 
     @staticmethod
