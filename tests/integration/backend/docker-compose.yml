@@ -89,7 +89,7 @@ services:
       #- ./secrets:/opt/dataportal-security
       #- ./certs:/opt/dataportal-backend/certs
     healthcheck:
-      test: [ "CMD-SHELL", "curl --silent --fail http://localhost:8090/actuator/health || exit 1" ]
+      test: [ "CMD-SHELL", "curl --silent --fail http://localhost:8090/api/v5/actuator/health || exit 1" ]
       interval: 10s
       timeout: 10s
       retries: 30
