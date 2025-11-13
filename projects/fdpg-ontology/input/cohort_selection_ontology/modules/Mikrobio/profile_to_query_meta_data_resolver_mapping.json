@@ -1,0 +1,20 @@
+{
+  "MII_PR_Mikrobio_Empfindlichkeit": [
+    "MII_PR_Mikrobio_Empfindlichkeit"
+  ],
+  "MII_PR_Mikrobio_Molekulare_Diagnostik": [
+    "MII_PR_Mikrobio_Molekulare_Diagnostik"
+  ],
+  "MII_PR_Mikrobio_Serologie_Immunologie": [
+    "MII_PR_Mikrobio_Serologie_Immunologie"
+  ],
+  "MII_PR_Mikrobio_Keimzahl": [
+    "MII_PR_Mikrobio_Keimzahl"
+  ],
+  "MII_PR_Mikrobio_Kultur_Nachweis": [
+    "MII_PR_Mikrobio_Kultur_Nachweis"
+  ],
+  "MII_PR_Mikrobio_Mikroskopie": [
+    "MII_PR_Mikrobio_Mikroskopie"
+  ]
+}
