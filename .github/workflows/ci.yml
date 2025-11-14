@@ -1,4 +1,8 @@
 name: Build and run tests
+permissions:
+  contents: write
+  pull-requests: read
+
 
 on:
   push:
@@ -49,9 +53,6 @@ jobs:
 
       - name: Install required python modules
         run: pip3 install -r requirements.txt
-
-      - name: Install pytest
-        run: pip3 install pytest pytest-docker pytest-cov
 
       - name: Install Firely Terminal
         run: |
