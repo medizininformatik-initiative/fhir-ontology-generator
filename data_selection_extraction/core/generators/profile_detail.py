@@ -1,6 +1,8 @@
 import re
+from collections import OrderedDict
 from collections.abc import Callable
-from typing import Mapping, List, TypedDict, Any, Optional, OrderedDict
+from functools import cmp_to_key
+from typing import Mapping, List, TypedDict, Any, Optional
 from fhir.resources.R4B.elementdefinition import ElementDefinition
 
 from common.exceptions.profile import MissingProfileError, MissingElementError
@@ -314,10 +316,9 @@ class ProfileDetailGenerator:
                 if not m.group("slice_name"):
                     return True
             # All but the sliced extension element itself will be excluded
-            if (m := matches[-1]).group("slice_name") and m.end("slice_name") < len(
+            return (m := matches[-1]).group("slice_name") and m.end("slice_name") < len(
                 element.id
-            ):
-                return True
+            )
 
         if (
             element.base.path.split(".")[0] in {"Resource", "DomainResource"}
@@ -609,7 +610,7 @@ class ProfileDetailGenerator:
                         )
                     else:
                         elem = profile.get_element_by_id("Extension.value[x]")
-                        if not elem:
+                        if not elem or elem.max == "0":
                             supports_references.append(False)
                         else:
                             supports_references.append(
@@ -753,10 +754,19 @@ class ProfileDetailGenerator:
             # processed before their children and thus generated FieldDetail instances will be inserted as children of
             # their parent into the ProfileDetail instance by the `__insert_field_into_profile_detail` method since
             # their parent was already inserted when they will be
+            def elem_sort(a: ElementDefinition, b: ElementDefinition) -> int:
+                match (a.path > b.path) - (a.path < b.path):
+                    case 0:
+                        a_slice = a.sliceName is not None
+                        b_slice = b.sliceName is not None
+                        return (a_slice > b_slice) - (a_slice < b_slice)
+                    case _ as c:
+                        return c
+
             source_elements_map = OrderedDict(
                 [
                     (elem.id, elem)
-                    for elem in sorted(source_elements, key=lambda e: len(e.id))
+                    for elem in sorted(source_elements, key=cmp_to_key(elem_sort))
                 ]
             )
             for element in source_elements_map.values():
