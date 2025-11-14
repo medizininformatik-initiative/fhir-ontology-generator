@@ -100,7 +100,9 @@ class ContextualizedTermCodeInfo(BaseModel):
         :return: JSON string
         """
         if not self.designations:
-            self.designations = [Designation(language="default", display=self.term_code.display)]
+            self.designations = [
+                Designation(language="default", display=self.term_code.display)
+            ]
         if not self.context:
             raise ValueError("Context is required.")
         if not self.module:

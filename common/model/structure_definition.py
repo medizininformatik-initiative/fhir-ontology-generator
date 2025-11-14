@@ -84,6 +84,7 @@ class IndexedStructureDefinition(abc.ABC, StructureDefinition):
         """
         return self.__elements_by_path.get(path)
 
+
 class StructureDefinitionDifferential(IndexedStructureDefinition):
     def __init__(self, /, **kwargs):
         kwargs.update({"__indexed_field_path": "differential.element"})
@@ -102,5 +103,7 @@ class StructureDefinitionSnapshot(IndexedStructureDefinition):
     def get_element_by_id(self, element_id: str) -> Optional[ElementDefinition]:
         element = super().get_element_by_id(element_id)
         if element is None:
-            self.__logger.debug(f"Element {element_id} not found in snapshot: {self.name}")
+            self.__logger.debug(
+                f"Element {element_id} not found in snapshot: {self.name}"
+            )
         return element

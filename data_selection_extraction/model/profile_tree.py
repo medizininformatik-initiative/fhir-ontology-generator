@@ -4,8 +4,11 @@ from uuid import uuid4
 from pydantic import BaseModel, computed_field
 from typing_extensions import Optional, Self
 
-from cohort_selection_ontology.model.ui_data import BulkTranslationDisplayElement, BulkTranslation, \
-    TranslationDisplayElement
+from cohort_selection_ontology.model.ui_data import (
+    BulkTranslationDisplayElement,
+    BulkTranslation,
+    TranslationDisplayElement,
+)
 
 
 class ProfileTreeNode(BaseModel):

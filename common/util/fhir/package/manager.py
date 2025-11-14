@@ -200,7 +200,9 @@ class FhirPackageManager(abc.ABC):
                             yield res
                             continue
                         json_data = load_json(file_path, fail=True)
-                        if (res_type := json_data.get("resourceType")) == "StructureDefinition":
+                        if (
+                            res_type := json_data.get("resourceType")
+                        ) == "StructureDefinition":
                             res = IndexedStructureDefinition.validate_python(json_data)
                         else:
                             model_class = fhir.resources.get_fhir_model_class(res_type)

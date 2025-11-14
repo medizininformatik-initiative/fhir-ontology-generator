@@ -29,7 +29,13 @@ class FhirTerminologyClient(BaseClient):
         timeout: float = 60,
         http_config: HTTPConfig = None,
     ):
-        super().__init__(base_url=base_url, auth=auth, cert=cert, timeout=timeout, http_config=http_config)
+        super().__init__(
+            base_url=base_url,
+            auth=auth,
+            cert=cert,
+            timeout=timeout,
+            http_config=http_config,
+        )
 
     @staticmethod
     def from_project(

@@ -18,13 +18,17 @@ class DataBaseWriterTest(unittest.TestCase):
     def setUp(cls):
         # start up docker container with database
         cls.client = docker.from_env()
-        cls.container = cls.client.containers.run(POSTGRES_IMAGE, detach=True, ports={'5432/tcp': 5432},
-                                                  name="test_db",
-                                                  environment={
-                                                      'POSTGRES_USER': 'codex-postgres',
-                                                      'POSTGRES_PASSWORD': 'codex-password',
-                                                      'POSTGRES_DB': 'codex_ui'
-                                                  })
+        cls.container = cls.client.containers.run(
+            POSTGRES_IMAGE,
+            detach=True,
+            ports={"5432/tcp": 5432},
+            name="test_db",
+            environment={
+                "POSTGRES_USER": "codex-postgres",
+                "POSTGRES_PASSWORD": "codex-password",
+                "POSTGRES_DB": "codex_ui",
+            },
+        )
 
         cls.dbw = DataBaseWriter()
 
@@ -35,7 +39,10 @@ class DataBaseWriterTest(unittest.TestCase):
         cls.container.remove()
 
     def test_insert_term_codes(self):
-        term_codes = [TermCode(system="http://test.com", code="tests", display="test"), TermCode(system="http://test.com", code="test2", display="test2")]
+        term_codes = [
+            TermCode(system="http://test.com", code="tests", display="test"),
+            TermCode(system="http://test.com", code="test2", display="test2"),
+        ]
         self.dbw.insert_term_codes(term_codes)
         for term_code in term_codes:
             self.assertTrue(self.dbw.termcode_exists(term_code))
@@ -47,10 +54,15 @@ class DataBaseWriterTest(unittest.TestCase):
         self.dbw.insert_term_codes([term_code])
         self.dbw.insert_context_codes([context])
         self.dbw.insert_ui_profile(context, term_code, ui_profile)
-        self.assertTrue(UIProfile(**self.dbw.get_ui_profile(context, term_code)) == ui_profile)
+        self.assertTrue(
+            UIProfile(**self.dbw.get_ui_profile(context, term_code)) == ui_profile
+        )
 
     def test_insert_value_set(self):
-        term_codes = [TermCode(system="http://test.com", code="test", display="test"), TermCode(system="http://test.com", code="test2", display="test2")]
+        term_codes = [
+            TermCode(system="http://test.com", code="test", display="test"),
+            TermCode(system="http://test.com", code="test2", display="test2"),
+        ]
         self.dbw.add_critieria_set("test", term_codes)
         self.assertTrue(self.dbw.get_term_codes_from_value_set("test") == term_codes)
 
@@ -60,4 +72,7 @@ class DataBaseWriterTest(unittest.TestCase):
         mapping = CQLMapping("test")
         self.dbw.insert_term_codes([term_code])
         self.dbw.insert_context_codes([context])
-        self.assertTrue(CQLMapping.from_json(self.dbw.get_mapping(context, term_code, "CQL")) == mapping)
+        self.assertTrue(
+            CQLMapping.from_json(self.dbw.get_mapping(context, term_code, "CQL"))
+            == mapping
+        )

@@ -11,12 +11,16 @@ from common.util.codec.json import JSONFhirOntoEncoder
 
 UI_PROFILES = set()
 
-VALUE_TYPE_OPTIONS = Literal["concept", "quantity", "reference", "date", "composite", "Age"]
+VALUE_TYPE_OPTIONS = Literal[
+    "concept", "quantity", "reference", "date", "composite", "Age"
+]
 
 
 class CriteriaSet(BaseModel):
     url: str
-    contextualized_term_codes: List[Tuple[TermCode, TermCode]] = Field(default_factory=list)
+    contextualized_term_codes: List[Tuple[TermCode, TermCode]] = Field(
+        default_factory=list
+    )
 
     def to_json(self):
         def custom_serializer(obj):
@@ -36,7 +40,6 @@ class ValueSet(BaseModel):
         return json.dumps(self, default=lambda o: del_none(self.valueSet), indent=4)
 
 
-
 class ValueDefinition(BaseModel):
     type: VALUE_TYPE_OPTIONS
     referencedValueSet: List[ValueSet] = Field(default_factory=list)
@@ -48,14 +51,12 @@ class ValueDefinition(BaseModel):
     optional: bool = True
     display: TranslationDisplayElement = None
 
-
-
     def to_dict(self):
         data = self.model_dump()
         if self.referencedCriteriaSet:
-            data['referencedCriteriaSet'] = [x.url for x in self.referencedCriteriaSet]
+            data["referencedCriteriaSet"] = [x.url for x in self.referencedCriteriaSet]
         if self.referencedValueSet:
-            data['referencedValueSet'] = [x.url for x in self.referencedValueSet]
+            data["referencedValueSet"] = [x.url for x in self.referencedValueSet]
         return data
 
 
@@ -82,27 +83,32 @@ def del_keys(dictionary, keys):
     return result
 
 
-
 class UIProfile(BaseModel):
     name: str
     timeRestrictionAllowed: bool = True
     valueDefinition: ValueDefinition = None
     attributeDefinitions: List[AttributeDefinition] = Field(default_factory=list)
-    DO_NOT_SERIALIZE: ClassVar[List[str]] = []  # ClassVar indicates that it's a class-level variable
+    DO_NOT_SERIALIZE: ClassVar[List[str]] = (
+        []
+    )  # ClassVar indicates that it's a class-level variable
 
     @classmethod
     def from_json(cls, json_string):
         return cls(**json.loads(json_string))
 
     def to_json(self):
-        return json.dumps(self.to_dict(), sort_keys=True, indent=4, cls=JSONFhirOntoEncoder)
+        return json.dumps(
+            self.to_dict(), sort_keys=True, indent=4, cls=JSONFhirOntoEncoder
+        )
 
     def to_dict(self):
         data = self.model_dump()
         if self.valueDefinition:
             data["valueDefinition"] = self.valueDefinition.to_dict()
         if self.attributeDefinitions:
-            data["attributeDefinitions"] = [attr.to_dict() for attr in self.attributeDefinitions]
+            data["attributeDefinitions"] = [
+                attr.to_dict() for attr in self.attributeDefinitions
+            ]
         return data
 
     def __eq__(self, other):

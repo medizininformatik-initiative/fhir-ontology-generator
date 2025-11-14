@@ -24,7 +24,9 @@ from common.util.structure_definition.functions import (
     translate_element_to_fhir_path_expression,
     find_polymorphic_value,
 )
-from tests.unit.StructureDefinitionSnapshot_test.conftest import sample_snapshot_bioprobe
+from tests.unit.StructureDefinitionSnapshot_test.conftest import (
+    sample_snapshot_bioprobe,
+)
 from common.model.structure_definition import (
     StructureDefinitionSnapshot,
     ProcessedElementResult,
@@ -80,6 +82,7 @@ def test_sds_get_element_by_id(
 
     assert found_in_class == found_in_snapshot
 
+
 @pytest.mark.parametrize(
     "search_term",
     [
@@ -133,13 +136,11 @@ def test_sds_get_multiple_elements(
     chained_element_id = (
         "((Specimen.extension:festgestellteDiagnose).value[x]).code.coding:icd10-gm"
     )
-    actual_result = (
-        get_element_defining_elements_with_source_snapshots(
-            sample_snapshot_bioprobe,
-            chained_element_id,
-            "Bioprobe",
-            project.input.cso.path / "modules",
-        )
+    actual_result = get_element_defining_elements_with_source_snapshots(
+        sample_snapshot_bioprobe,
+        chained_element_id,
+        "Bioprobe",
+        project.input.cso.path / "modules",
     )
 
     p1 = ProcessedElementResult(
@@ -189,15 +190,11 @@ def test_sds_get_multiple_elements(
 def test_get_parent_slice_id():
 
     assert (
-        get_parent_slice_id(
-            "Observation.component:Diastolic.code.coding:sct"
-        )
+        get_parent_slice_id("Observation.component:Diastolic.code.coding:sct")
         == "Observation.component:Diastolic.code.coding:sct"
     )
     assert (
-        get_parent_slice_id(
-            "Observation.component:Diastolic.code.coding"
-        )
+        get_parent_slice_id("Observation.component:Diastolic.code.coding")
         == "Observation.component:Diastolic"
     )
     assert get_parent_slice_id("Observation.component") is None
@@ -223,7 +220,7 @@ def test_get_parent_slice_id():
             "fixed",
             False,
             lf("sample_snapshot_diagnose"),
-        )
+        ),
     ],
 )
 def test_sds_find_polymorphic_value(
@@ -237,6 +234,7 @@ def test_sds_find_polymorphic_value(
         assert find_polymorphic_value(elem, polymorphic_elem_prefix) is not None
     else:
         assert find_polymorphic_value(elem, polymorphic_elem_prefix) is None
+
 
 @pytest.mark.parametrize(
     "element_id, expected",
@@ -284,10 +282,7 @@ def test_common_ancestor_id(
     element_id2: str,
     expected: str,
 ):
-    assert (
-        get_common_ancestor_id(element_id1, element_id2)
-        == expected
-    )
+    assert get_common_ancestor_id(element_id1, element_id2) == expected
 
 
 @pytest.mark.parametrize(
@@ -317,10 +312,7 @@ def test_extract_value_type(
         sample_snapshot_bioprobe, attribute_id, str(modules_dir), module_dir_name
     )
     assert (
-        extract_value_type(
-            attribute_element, sample_snapshot_bioprobe.name
-        )
-        == expected
+        extract_value_type(attribute_element, sample_snapshot_bioprobe.name) == expected
     )
 
 
@@ -396,10 +388,7 @@ def test_get_display_from_element_definition(
 
     element = sample_snapshot.get_element_by_id(element_id)
 
-    assert (
-        get_display_from_element_definition(element, default)
-        == expected_display
-    )
+    assert get_display_from_element_definition(element, default) == expected_display
 
 
 @pytest.mark.parametrize(
@@ -410,7 +399,7 @@ def test_get_display_from_element_definition(
             lf("sample_snapshot_bioprobe"),
             "Bioprobe",
             ["(Specimen.collection.collected as dateTime)"],
-            False
+            False,
         ),
         (
             "((Specimen.extension:festgestellteDiagnose).value[x]).code.coding:icd10-gm",
@@ -419,37 +408,33 @@ def test_get_display_from_element_definition(
             [
                 "(Specimen.extension.where(url='https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Diagnose').value as Reference)",
                 "Extension.value[x]",
-                "Condition.code.coding"
+                "Condition.code.coding",
             ],
-            False
+            False,
         ),
         (
             "Specimen.collection.bodySite",
             lf("sample_snapshot_bioprobe"),
             "Bioprobe",
-            [
-                'Specimen.collection.bodySite'
-            ],
-            False
+            ["Specimen.collection.bodySite"],
+            False,
         ),
         (
             "Specimen.type.coding:sct",
             lf("sample_snapshot_bioprobe"),
             "Bioprobe",
-            [
-                'Specimen.type.coding'
-            ],
-            False
-        )
+            ["Specimen.type.coding"],
+            False,
+        ),
     ],
 )
-def test_translate_element_to_fhir_path_expression (
+def test_translate_element_to_fhir_path_expression(
     element_id: str,
     sample_snapshot: StructureDefinitionSnapshot,
     module_dir_name: str,
     expected: List[str],
     is_composite: bool,
-    project: Project
+    project: Project,
 ):
 
     modules_dir = project.input.cso.mkdirs("modules")
@@ -457,6 +442,8 @@ def test_translate_element_to_fhir_path_expression (
         sample_snapshot, element_id, module_dir_name, modules_dir
     )
 
-    result = translate_element_to_fhir_path_expression(sample_snapshot, elements, is_composite)
+    result = translate_element_to_fhir_path_expression(
+        sample_snapshot, elements, is_composite
+    )
 
     assert result == expected

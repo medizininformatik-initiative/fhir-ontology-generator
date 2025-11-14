@@ -24,7 +24,9 @@ def unsupported_fhirpath_expr(
         case str():
             expected_str = f"Expected {expected}."
         case list():
-            expected_str = "Expected one of {" + ",".join([f"'{s}'" for s in expected]) + "}."
+            expected_str = (
+                "Expected one of {" + ",".join([f"'{s}'" for s in expected]) + "}."
+            )
         case _:
             expected_str = ""
     err = ValueError(

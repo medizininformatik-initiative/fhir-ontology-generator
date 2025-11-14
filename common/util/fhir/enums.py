@@ -14,25 +14,25 @@ class FhirPrimitiveDataTypeMeta(EnumMeta):
 
 @unique
 class FhirPrimitiveDataType(str, Enum, metaclass=FhirPrimitiveDataTypeMeta):
-    INSTANT = 'instant'
-    TIME = 'time'
-    DATE = 'date'
-    DATE_TIME = 'dateTime'
-    BASE_64_BINARY = 'base64Binary'
-    DECIMAL = 'decimal'
-    BOOLEAN = 'boolean'
-    URI = 'uri'
-    URL = 'url'
-    CANONICAL = 'canonical'
-    CODE = 'code'
-    STRING = 'string'
-    INTEGER = 'integer'
-    MARKDOWN = 'markdown'
-    ID = 'id'
-    OID = 'oid'
-    UUID = 'uuid'
-    UNSIGNED_INT = 'unsignedInt'
-    POSITIVE_INT = 'positiveInt'
+    INSTANT = "instant"
+    TIME = "time"
+    DATE = "date"
+    DATE_TIME = "dateTime"
+    BASE_64_BINARY = "base64Binary"
+    DECIMAL = "decimal"
+    BOOLEAN = "boolean"
+    URI = "uri"
+    URL = "url"
+    CANONICAL = "canonical"
+    CODE = "code"
+    STRING = "string"
+    INTEGER = "integer"
+    MARKDOWN = "markdown"
+    ID = "id"
+    OID = "oid"
+    UUID = "uuid"
+    UNSIGNED_INT = "unsignedInt"
+    POSITIVE_INT = "positiveInt"
 
 
 class FhirComplexDataTypeEnumMeta(EnumMeta):

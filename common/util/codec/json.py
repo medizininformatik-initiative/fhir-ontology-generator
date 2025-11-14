@@ -10,8 +10,7 @@ from common.util.codec.functions import del_none
 
 
 class JSONSerializable(Protocol):
-    def to_json(self) -> str:
-        ...
+    def to_json(self) -> str: ...
 
 
 def write_object_as_json(serializable: JSONSerializable, file_name: str):
@@ -30,6 +29,7 @@ class JSONFhirOntoEncoder(json.JSONEncoder):
     Custom JSON encoder for the project which has some additional capabilities such as set encoding and deleting keys
     without values
     """
+
     def default(self, o: Any):
         """
         Provides a fallback for instances of the set class and those who have the __dict__ attribute
@@ -51,7 +51,9 @@ class JSONFhirOntoEncoder(json.JSONEncoder):
             json.JSONEncoder.default(self, o)
 
 
-def load_json(json_file: Path, encoding: str | list[str] = None, fail: bool = False) -> Optional[Any]:
+def load_json(
+    json_file: Path, encoding: str | list[str] = None, fail: bool = False
+) -> Optional[Any]:
     """
     Attempts to parse the content of a JSON file using the provided encodings, returning the value obtained during the
     first successful attempt or `None` if all fail
@@ -71,5 +73,7 @@ def load_json(json_file: Path, encoding: str | list[str] = None, fail: bool = Fa
         except JSONDecodeError:
             pass
     if fail:
-        raise ValueError(f"Failed to parse JSON file content @ {json_file} for encodings {encodings}")
+        raise ValueError(
+            f"Failed to parse JSON file content @ {json_file} for encodings {encodings}"
+        )
     return None

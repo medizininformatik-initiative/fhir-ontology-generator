@@ -19,6 +19,7 @@ def flatten(lst: List[Any]) -> List[Any]:
 
 T = TypeVar("T")
 
+
 def first(f: Callable[[T], bool], xs: Iterable[T]) -> Optional[T]:
     """
     Attempts to find first match in the provided iterable

@@ -163,7 +163,12 @@ def generate_cs_tree_map(
 
     closure_name = client.create_concept_map()
     _logger.debug(f"Created closure table [name='{closure_name}']")
-    term_codes = list(map(lambda t: TermCode(system=system, code=t[0], display=t[1], version=version), concepts))
+    term_codes = list(
+        map(
+            lambda t: TermCode(system=system, code=t[0], display=t[1], version=version),
+            concepts,
+        )
+    )
     treemap: TreeMap = TreeMap({}, None, system, version)
     treemap.entries = {
         term_code.code: TermEntryNode(term_code=term_code) for term_code in term_codes
@@ -317,7 +322,7 @@ if __name__ == "__main__":
         module_translation=module_translation,
         fields_to_exclude=fields_to_exclude,
         field_trees_to_exclude=field_trees_to_exclude,
-        profiles_to_process=args.profiles
+        profiles_to_process=args.profiles,
     )
 
     if args.copy_snapshots:
@@ -349,10 +354,12 @@ if __name__ == "__main__":
             module_translation=module_translation,
         )
 
-        profile_details = profile_detail_generator.generate_profile_details_for_profiles_in_scope(
-            SnapshotPackageScope.MII,
-            cond=lambda p: p.kind == 'resource',
-            profile_tree=profile_tree
+        profile_details = (
+            profile_detail_generator.generate_profile_details_for_profiles_in_scope(
+                SnapshotPackageScope.MII,
+                cond=lambda p: p.kind == "resource",
+                profile_tree=profile_tree,
+            )
         )
 
         with open(
