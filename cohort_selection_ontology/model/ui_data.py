@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 def del_none(dictionary):
     import cohort_selection_ontology.model.ui_profile
+
     """
     Delete keys with the value ``None`` in a dictionary, recursively.
 
@@ -69,9 +70,12 @@ class CategoryEntry:
         return self.display
 
     def to_json(self):
-        return json.dumps(self, default=lambda o: del_none(
-            del_keys(o.__dict__, self.DO_NOT_SERIALIZE)),
-                          sort_keys=True, indent=4)
+        return json.dumps(
+            self,
+            default=lambda o: del_none(del_keys(o.__dict__, self.DO_NOT_SERIALIZE)),
+            sort_keys=True,
+            indent=4,
+        )
 
 
 class Module(BaseModel):
@@ -79,8 +83,8 @@ class Module(BaseModel):
     display: str
 
     def to_dict(self):
-        return {"code": self.code,
-                "display": self.display}
+        return {"code": self.code, "display": self.display}
+
 
 class RelationalTermcode(BaseModel):
     contextualized_termcode_hash: str
@@ -105,6 +109,7 @@ class TranslationDisplayElement(BaseModel):
 class BulkTranslationDisplayElement(BaseModel):
     original: List[str] = []
     translations: List[BulkTranslation] = []
+
 
 class TermCode(BaseModel):
     """
@@ -131,20 +136,40 @@ class TermCode(BaseModel):
 
     def __lt__(self, other):
         if isinstance(other, TermCode):
-            this_display = self.display.original if isinstance(self.display, TranslationDisplayElement) else self.display
-            other_display = other.display.original if isinstance(other.display, TranslationDisplayElement) else other.display
+            this_display = (
+                self.display.original
+                if isinstance(self.display, TranslationDisplayElement)
+                else self.display
+            )
+            other_display = (
+                other.display.original
+                if isinstance(other.display, TranslationDisplayElement)
+                else other.display
+            )
 
             return this_display.casefold() < other_display.casefold()
         return NotImplemented
 
     def __repr__(self):
-        return self.system + " " + self.code + " " + self.version if self.version else ""
+        return (
+            self.system + " " + self.code + " " + self.version if self.version else ""
+        )
 
     def to_dict(self):
-        if isinstance(self.display,str):
-            return {"system": self.system, "code": self.code, "display": self.display, "version": self.version}
+        if isinstance(self.display, str):
+            return {
+                "system": self.system,
+                "code": self.code,
+                "display": self.display,
+                "version": self.version,
+            }
         if isinstance(self.display, TranslationDisplayElement):
-            return {"system": self.system, "code": self.code, "display": self.display.model_dump_json(), "version": self.version}
+            return {
+                "system": self.system,
+                "code": self.code,
+                "display": self.display.model_dump_json(),
+                "version": self.version,
+            }
         return None
 
 
@@ -187,8 +212,15 @@ class TermEntry(object):
 
     # TODO: context should be after term_codes. This would be a breaking change -> requires updating all uses of this \
     # class
-    def __init__(self, term_codes: List[TermCode], terminology_type=None, leaf=True,
-                 selectable=True, context: TermCode = None, ui_profile=None):
+    def __init__(
+        self,
+        term_codes: List[TermCode],
+        terminology_type=None,
+        leaf=True,
+        selectable=True,
+        context: TermCode = None,
+        ui_profile=None,
+    ):
         self.id = str(uuid.UUID(int=rd.getrandbits(128)))
         self.termCodes = term_codes
         self.termCode = term_codes[0]
@@ -200,7 +232,7 @@ class TermEntry(object):
         self.children = []
         self.leaf = leaf
         self.selectable = selectable
-        self.display = (self.termCode.display if self.termCode else None)
+        self.display = self.termCode.display if self.termCode else None
         self.root = True
         self.context = context
 
@@ -219,17 +251,26 @@ class TermEntry(object):
         return self.termCode == other.termCode and self.context == other.context
 
     def __hash__(self):
-        return hash(self.termCode.system + self.termCode.code + self.context.system + self.context.code)
+        return hash(
+            self.termCode.system
+            + self.termCode.code
+            + self.context.system
+            + self.context.code
+        )
 
     def to_json(self):
         """
         Serializes the TermEntry to json
         :return: The JSON representation of the TermEntry
         """
-        return json.dumps(self, default=lambda o: del_none(
-            del_keys(o.__dict__, self.DO_NOT_SERIALIZE)), sort_keys=True, indent=4)
+        return json.dumps(
+            self,
+            default=lambda o: del_none(del_keys(o.__dict__, self.DO_NOT_SERIALIZE)),
+            sort_keys=True,
+            indent=4,
+        )
 
-    def get_leaves(self)->List[TermEntry]:
+    def get_leaves(self) -> List[TermEntry]:
         """
         Returns all leaves of the TermEntry tree
         :return: the leaves of the TermEntry tree
@@ -242,6 +283,6 @@ class TermEntry(object):
                 result += child
         return result
 
-    def to_v1_entry(self, ui_profile)->None:
+    def to_v1_entry(self, ui_profile) -> None:
         for key, value in ui_profile.__dict__.items():
             setattr(self, key, value)

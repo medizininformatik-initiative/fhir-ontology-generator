@@ -28,8 +28,14 @@ def test_cql_composite_attributes():
     ) as f:
         querying_meta_data = ResourceQueryingMetaData.from_json(f)
 
-    with open(module_dir / "differential" / "package" / "sd-mii-icu-muv-arterieller-blutdruck-snapshot.json", 'r',
-              encoding="utf-8") as f:
+    with open(
+        module_dir
+        / "differential"
+        / "package"
+        / "sd-mii-icu-muv-arterieller-blutdruck-snapshot.json",
+        "r",
+        encoding="utf-8",
+    ) as f:
         profile_snapshot = StructureDefinitionSnapshot.model_validate_json(f.read())
 
     resolver = StandardDataSetQueryingMetaDataResolver(test_project)

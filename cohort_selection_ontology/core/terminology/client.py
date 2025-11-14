@@ -43,7 +43,9 @@ def remove_non_direct_ancestors(parents: List[str], input_map: dict):
 
 class CohortSelectionTerminologyClient(FhirTerminologyClient):
     __logger = get_logger("CohortSelectionTerminologyClient")
-    POSSIBLE_CODE_SYSTEMS:frozenset[str] = frozenset(["http://loinc.org", "http://snomed.info/sct"])
+    POSSIBLE_CODE_SYSTEMS: frozenset[str] = frozenset(
+        ["http://loinc.org", "http://snomed.info/sct"]
+    )
 
     __project: Project
 
@@ -59,8 +61,10 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
             if "ONTOLOGY_SERVER_ADDRESS" in project.env:
                 base_url = project.env["ONTOLOGY_SERVER_ADDRESS"]
             else:
-                raise ValueError("Server base URL has to be provided either explicitly through the `base_url` parameter"
-                                 "or implicitly via environment variable `ONTOLOGY_SERVER_ADDRESS`")
+                raise ValueError(
+                    "Server base URL has to be provided either explicitly through the `base_url` parameter"
+                    "or implicitly via environment variable `ONTOLOGY_SERVER_ADDRESS`"
+                )
         if cert is None:
             if "SERVER_CERTIFICATE" in project.env and "PRIVATE_KEY" in project.env:
                 cert = (
@@ -101,7 +105,9 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
                     version = contains["version"]
                 else:
                     version = global_version
-                term_code = TermCode(system=system, code=code, display=display, version=version)
+                term_code = TermCode(
+                    system=system, code=code, display=display, version=version
+                )
                 term_codes.add(term_code)
         else:
             self.__logger.warning(
@@ -120,7 +126,9 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         closure_name = self.create_concept_map()
         vs = self.expand_value_set(canonical_url)
         treemap: TreeMap = TreeMap({}, None, None, None)
-        treemap.entries = {term_code.code: TermEntryNode(term_code=term_code) for term_code in vs}
+        treemap.entries = {
+            term_code.code: TermEntryNode(term_code=term_code) for term_code in vs
+        }
         treemap.system = vs[0].system
         treemap.version = vs[0].version
         try:
@@ -231,7 +239,9 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
                     version = None
                     if "version" in contains:
                         version = contains["version"]
-                    term_code = TermCode(system=system, code=code, display=display, version=version)
+                    term_code = TermCode(
+                        system=system, code=code, display=display, version=version
+                    )
                     term_codes.add(term_code)
         return term_codes
 
@@ -258,7 +268,9 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         """
         value_set_canonical_url = value_set_canonical_url.replace("|", "&version=")
         term_codes = self.expand_value_set(value_set_canonical_url)
-        return [ContextualizedTermCodeInfo(term_code=term_code) for term_code in term_codes]
+        return [
+            ContextualizedTermCodeInfo(term_code=term_code) for term_code in term_codes
+        ]
 
     def get_termcodes_for_value_set(
         self, value_set_canonical_url: str

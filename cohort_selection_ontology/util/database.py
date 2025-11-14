@@ -11,7 +11,7 @@ from cohort_selection_ontology.model.ui_data import TermCode
 
 from common.util.log.functions import get_class_logger
 
-NAMESPACE_UUID = uuid.UUID('00000000-0000-0000-0000-000000000000')
+NAMESPACE_UUID = uuid.UUID("00000000-0000-0000-0000-000000000000")
 
 """
 creates the table TermCode:
@@ -90,6 +90,7 @@ class DataBaseWriter:
     DataBaseWriter is a class that handles the connection to the database and the insertion of data into the database
     for the feasibility tool ontology.
     """
+
     __logger = get_class_logger("DataBaseWriter")
 
     def __init__(self, port=5432):
@@ -97,12 +98,11 @@ class DataBaseWriter:
         for _ in range(30):  # retry for 30 times
             try:
                 self.db_connection = psycopg2.connect(
-                    database='codex_ui',
-                    user='codex-postgres',
-                    host='localhost',
-                    password='codex-password',
-                    port=port
-
+                    database="codex_ui",
+                    user="codex-postgres",
+                    host="localhost",
+                    password="codex-password",
+                    port=port,
                 )
                 # if connection is established, break the loop
                 break
@@ -137,9 +137,13 @@ class DataBaseWriter:
         :param term_code: the term code
         :return: the hash
         """
-        return str(uuid.uuid3(NAMESPACE_UUID,
-                              f"{context.system}{context.code}{context.version if context.version else ''}"
-                              f"{term_code.system}{term_code.code}"))
+        return str(
+            uuid.uuid3(
+                NAMESPACE_UUID,
+                f"{context.system}{context.code}{context.version if context.version else ''}"
+                f"{term_code.system}{term_code.code}",
+            )
+        )
 
     def insert_term_codes(self, term_codes: List[TermCode]):
         """
@@ -147,12 +151,20 @@ class DataBaseWriter:
         :param term_codes: the term codes to be inserted
         """
         values = set(
-            (term_code.system, term_code.code, term_code.version if term_code.version else "", term_code.display)
-            for term_code in term_codes)
-        psycopg2.extras.execute_batch(self.cursor,
-                                      "INSERT INTO termcode (system, code, version, display) VALUES (%s, %s, %s, %s)"
-                                      "ON CONFLICT DO NOTHING",
-                                      values)
+            (
+                term_code.system,
+                term_code.code,
+                term_code.version if term_code.version else "",
+                term_code.display,
+            )
+            for term_code in term_codes
+        )
+        psycopg2.extras.execute_batch(
+            self.cursor,
+            "INSERT INTO termcode (system, code, version, display) VALUES (%s, %s, %s, %s)"
+            "ON CONFLICT DO NOTHING",
+            values,
+        )
         self.db_connection.commit()
 
     def insert_context_codes(self, context_codes: List[TermCode]):
@@ -160,13 +172,21 @@ class DataBaseWriter:
         Inserts the context codes into the database
         :param context_codes: the context codes to be inserted
         """
-        values = set((context_code.system, context_code.code, context_code.version if context_code.version else "",
-                      context_code.display)
-                     for context_code in context_codes)
-        psycopg2.extras.execute_batch(self.cursor,
-                                      "INSERT INTO context (system, code, version, display) VALUES (%s, %s, %s, %s)"
-                                      "ON CONFLICT DO NOTHING",
-                                      values)
+        values = set(
+            (
+                context_code.system,
+                context_code.code,
+                context_code.version if context_code.version else "",
+                context_code.display,
+            )
+            for context_code in context_codes
+        )
+        psycopg2.extras.execute_batch(
+            self.cursor,
+            "INSERT INTO context (system, code, version, display) VALUES (%s, %s, %s, %s)"
+            "ON CONFLICT DO NOTHING",
+            values,
+        )
         self.db_connection.commit()
 
     def context_exists(self, context: TermCode):
@@ -175,8 +195,10 @@ class DataBaseWriter:
         :param context: the context to be checked
         :return: True if exists, False otherwise
         """
-        self.cursor.execute("SELECT 1 FROM context WHERE system = %s AND code = %s AND version = %s",
-                            (context.system, context.code, context.version if context.version else ''))
+        self.cursor.execute(
+            "SELECT 1 FROM context WHERE system = %s AND code = %s AND version = %s",
+            (context.system, context.code, context.version if context.version else ""),
+        )
         return bool(self.cursor.fetchone())
 
     def termcode_exists(self, term_code: TermCode):
@@ -185,8 +207,14 @@ class DataBaseWriter:
         :param term_code: the termcode to be checked
         :return: True if exists, False otherwise
         """
-        self.cursor.execute("SELECT 1 FROM termcode WHERE system = %s AND code = %s AND version = %s",
-                            (term_code.system, term_code.code, term_code.version if term_code.version else ''))
+        self.cursor.execute(
+            "SELECT 1 FROM termcode WHERE system = %s AND code = %s AND version = %s",
+            (
+                term_code.system,
+                term_code.code,
+                term_code.version if term_code.version else "",
+            ),
+        )
         result = self.cursor.fetchone()
         return bool(result)
 
@@ -196,23 +224,36 @@ class DataBaseWriter:
         :param ui_profile_name: the ui profile name to be checked
         :return: True if exists, False otherwise
         """
-        self.cursor.execute("SELECT 1 FROM ui_profile WHERE id = %s", (ui_profile_name,))
+        self.cursor.execute(
+            "SELECT 1 FROM ui_profile WHERE id = %s", (ui_profile_name,)
+        )
         return bool(self.cursor.fetchone())
 
-    def link_contextualized_term_code_to_ui_profile(self,
-                                                    contextualized_term_codes: List[Tuple[TermCode, TermCode, str]]):
+    def link_contextualized_term_code_to_ui_profile(
+        self, contextualized_term_codes: List[Tuple[TermCode, TermCode, str]]
+    ):
         """
         Links a list of contextualized term codes to their corresponding ui profiles
         :param contextualized_term_codes: List of tuples each containing a context, a term code, and a UI profile name
         """
         self.__logger.info("Linking contextualized term codes to UI profiles")
-        values = [(self.calculate_context_term_code_hash(context, term_code), context.system, context.code,
-                   context.version if context.version else '',
-                   term_code.system, term_code.code, term_code.version if term_code.version else '',
-                   ui_profile_name)
-                  for context, term_code, ui_profile_name in contextualized_term_codes]
+        values = [
+            (
+                self.calculate_context_term_code_hash(context, term_code),
+                context.system,
+                context.code,
+                context.version if context.version else "",
+                term_code.system,
+                term_code.code,
+                term_code.version if term_code.version else "",
+                ui_profile_name,
+            )
+            for context, term_code, ui_profile_name in contextualized_term_codes
+        ]
 
-        psycopg2.extras.execute_batch(self.cursor, """
+        psycopg2.extras.execute_batch(
+            self.cursor,
+            """
             INSERT INTO contextualized_termcode (context_termcode_hash, context_id, termcode_id, ui_profile_id) 
             SELECT %s, C.id, T.id, U.id
             FROM 
@@ -221,18 +262,32 @@ class DataBaseWriter:
                 (SELECT id FROM ui_profile WHERE name = %s) U
             ON CONFLICT (context_termcode_hash)
             DO UPDATE SET ui_profile_id = EXCLUDED.ui_profile_id;
-            """, values)
+            """,
+            values,
+        )
         self.db_connection.commit()
 
-    def link_contextualized_term_code_to_mapping(self,
-                                                 contextualized_term_codes: List[Tuple[TermCode, TermCode, str, str]]):
-        values = [(self.calculate_context_term_code_hash(context, term_code), context.system, context.code,
-                   context.version if context.version else '',
-                   term_code.system, term_code.code, term_code.version if term_code.version else '',
-                   mapping_name, mapping_type)
-                  for context, term_code, mapping_name, mapping_type in contextualized_term_codes]
+    def link_contextualized_term_code_to_mapping(
+        self, contextualized_term_codes: List[Tuple[TermCode, TermCode, str, str]]
+    ):
+        values = [
+            (
+                self.calculate_context_term_code_hash(context, term_code),
+                context.system,
+                context.code,
+                context.version if context.version else "",
+                term_code.system,
+                term_code.code,
+                term_code.version if term_code.version else "",
+                mapping_name,
+                mapping_type,
+            )
+            for context, term_code, mapping_name, mapping_type in contextualized_term_codes
+        ]
 
-        psycopg2.extras.execute_batch(self.cursor, """
+        psycopg2.extras.execute_batch(
+            self.cursor,
+            """
             INSERT INTO contextualized_termcode (context_termcode_hash , context_id, termcode_id) 
             SELECT %s, C.id, T.id
             FROM 
@@ -240,7 +295,9 @@ class DataBaseWriter:
                 (SELECT id FROM termcode WHERE system = %s AND code = %s AND version = %s) T
             ON CONFLICT (context_termcode_hash)
             DO UPDATE;
-            """, values)
+            """,
+            values,
+        )
         self.db_connection.commit()
 
     def insert_ui_profiles(self, named_ui_profile: Dict[str, UIProfile]):
@@ -249,9 +306,14 @@ class DataBaseWriter:
         :param named_ui_profile: the ui profile to be inserted
         """
         # Insert the UI profile
-        values = [(name, profile.to_json()) for name, profile in named_ui_profile.items()]
-        psycopg2.extras.execute_batch(self.cursor,
-                                      "INSERT INTO ui_profile (name , ui_profile) VALUES (%s, %s)", values)
+        values = [
+            (name, profile.to_json()) for name, profile in named_ui_profile.items()
+        ]
+        psycopg2.extras.execute_batch(
+            self.cursor,
+            "INSERT INTO ui_profile (name , ui_profile) VALUES (%s, %s)",
+            values,
+        )
         self.db_connection.commit()
 
     def insert_mappings(self, named_mappings: Dict, mapping_type):
@@ -261,9 +323,15 @@ class DataBaseWriter:
         :param mapping_type: the type of the mappings
         """
         # Insert the Mapping
-        values = [(name, mapping_type, mapping.to_json()) for name, mapping in named_mappings.items()]
-        psycopg2.extras.execute_batch(self.cursor,
-                                      "INSERT INTO generators (name, type, content) VALUES (%s, %s, %s)", values)
+        values = [
+            (name, mapping_type, mapping.to_json())
+            for name, mapping in named_mappings.items()
+        ]
+        psycopg2.extras.execute_batch(
+            self.cursor,
+            "INSERT INTO generators (name, type, content) VALUES (%s, %s, %s)",
+            values,
+        )
         self.db_connection.commit()
 
     def drop_tables(self, table_name: str):
@@ -281,7 +349,8 @@ class DataBaseWriter:
         :param term_code: term code to get the ui profile for
         :return: the ui profile for the given term code
         """
-        self.cursor.execute("""
+        self.cursor.execute(
+            """
             SELECT UP.UI_Profile
             FROM CONTEXTUALIZED_CONCEPT_TO_UI_PROFILE AS CCTUP
             INNER JOIN CONTEXT AS C ON CCTUP.context_id = C.id
@@ -289,8 +358,16 @@ class DataBaseWriter:
             INNER JOIN UI_PROFILE AS UP ON CCTUP.ui_profile_id = UP.id
             WHERE C.system = %s AND C.code = %s AND C.version = %s
             AND T.system = %s AND T.code = %s AND T.version = %s;
-            """, (context.system, context.code, context.version if context.version else '', term_code.system,
-                  term_code.code, term_code.version if term_code.version else ''))
+            """,
+            (
+                context.system,
+                context.code,
+                context.version if context.version else "",
+                term_code.system,
+                term_code.code,
+                term_code.version if term_code.version else "",
+            ),
+        )
         result = self.cursor.fetchall()
         return result[0][0] if result else None
 
@@ -302,7 +379,8 @@ class DataBaseWriter:
         :param mapping_type: type of the generators [CQL, FHIR_SERACH, FHIR_PATH, AQL]
         :return: the generators for the given term code
         """
-        self.cursor.execute("""
+        self.cursor.execute(
+            """
             SELECT M.content
             FROM CONTEXTUALIZED_CONCEPT_TO_MAPPING AS CCTM
             INNER JOIN context AS C ON CCTM.context_id = C.id
@@ -311,8 +389,17 @@ class DataBaseWriter:
             WHERE C.system = %s AND C.code = %s AND (C.version = %s OR C.version IS NULL)
             AND T.system = %s AND T.code = %s AND (T.version = %s OR T.version IS NULL)
             AND M.type = %s;
-            """, (context.system, context.code, context.version if context.version else '', term_code.system,
-                  term_code.code, term_code.version if term_code.version else '', mapping_type))
+            """,
+            (
+                context.system,
+                context.code,
+                context.version if context.version else "",
+                term_code.system,
+                term_code.code,
+                term_code.version if term_code.version else "",
+                mapping_type,
+            ),
+        )
         result = self.cursor.fetchall()
         self.__logger.debug(result)
         return result[0][0] if result else None
@@ -328,12 +415,12 @@ class DataBaseWriter:
 
         self.insert_term_codes(list(entry[1] for entry in entries))
 
-        #contextualized_termcode_values = [
+        # contextualized_termcode_values = [
         #    (self.calculate_context_term_code_hash(context, term_code), context.system, context.code,
         #     context.version if context.version else '',
         #     term_code.system, term_code.code, term_code.version if term_code.version else '') for context, term_code in
         #    entries]
-        #psycopg2.extras.execute_batch(self.cursor,
+        # psycopg2.extras.execute_batch(self.cursor,
         #                              """INSERT INTO contextualized_termcode (context_termcode_hash, context_id, termcode_id)
         #                                 SELECT %s, C.id, T.id
         #                                 FROM
@@ -350,8 +437,12 @@ class DataBaseWriter:
         """
         self.cursor.execute(
             "SELECT system, code, version FROM VALUE_SET WHERE canonical_url = %s",
-            (canonical_url,))
-        return [TermCode(system=row[0], code=row[1], display=row[2]) for row in self.cursor.fetchall()]
+            (canonical_url,),
+        )
+        return [
+            TermCode(system=row[0], code=row[1], display=row[2])
+            for row in self.cursor.fetchall()
+        ]
 
     def does_value_set_contain(self, canonical_url, term_code: TermCode):
         """
@@ -359,31 +450,67 @@ class DataBaseWriter:
         """
         self.cursor.execute(
             "SELECT 1 FROM VALUE_SET WHERE canonical_url = %s AND system = %s AND code = %s AND version = %s",
-            (canonical_url, term_code.system, term_code.code, term_code.version if term_code.version else ''))
+            (
+                canonical_url,
+                term_code.system,
+                term_code.code,
+                term_code.version if term_code.version else "",
+            ),
+        )
         return bool(self.cursor.fetchone())
 
-    def write_ui_profiles_to_db(self, contextualized_term_code_to_ui_profile, named_ui_profiles,
-                                contextualized_codes_exist: bool = False):
-        context_codes = [context_code for (context_code, _) in contextualized_term_code_to_ui_profile.keys()]
-        term_codes = [term_code for (_, term_code) in contextualized_term_code_to_ui_profile.keys()]
+    def write_ui_profiles_to_db(
+        self,
+        contextualized_term_code_to_ui_profile,
+        named_ui_profiles,
+        contextualized_codes_exist: bool = False,
+    ):
+        context_codes = [
+            context_code
+            for (context_code, _) in contextualized_term_code_to_ui_profile.keys()
+        ]
+        term_codes = [
+            term_code
+            for (_, term_code) in contextualized_term_code_to_ui_profile.keys()
+        ]
         if not contextualized_codes_exist:
             self.insert_context_codes(context_codes)
             self.insert_term_codes(term_codes)
         self.insert_ui_profiles(named_ui_profiles)
-        values = [(context_code, term_code, ui_profile_name) for (context_code, term_code), ui_profile_name in
-                  contextualized_term_code_to_ui_profile.items()]
+        values = [
+            (context_code, term_code, ui_profile_name)
+            for (
+                context_code,
+                term_code,
+            ), ui_profile_name in contextualized_term_code_to_ui_profile.items()
+        ]
         self.link_contextualized_term_code_to_ui_profile(values)
 
-    def write_mapping_to_db(self, contextualized_term_code_to_mapping, named_mappings, mapping_type,
-                            contextualized_codes_exist: bool = False):
-        context_codes = [context_code for (context_code, _) in contextualized_term_code_to_mapping.keys()]
-        term_codes = [term_code for (_, term_code) in contextualized_term_code_to_mapping.keys()]
+    def write_mapping_to_db(
+        self,
+        contextualized_term_code_to_mapping,
+        named_mappings,
+        mapping_type,
+        contextualized_codes_exist: bool = False,
+    ):
+        context_codes = [
+            context_code
+            for (context_code, _) in contextualized_term_code_to_mapping.keys()
+        ]
+        term_codes = [
+            term_code for (_, term_code) in contextualized_term_code_to_mapping.keys()
+        ]
         if not contextualized_codes_exist:
             self.insert_context_codes(context_codes)
             self.insert_term_codes(term_codes)
         self.insert_mappings(named_mappings, mapping_type)
-        values = [(context_code, term_code, mapping_name, mapping_type) for (context_code, term_code), mapping_name in
-                  contextualized_term_code_to_mapping.items()]
+        values = [
+            (context_code, term_code, mapping_name, mapping_type)
+            for (
+                context_code,
+                term_code,
+            ), mapping_name in contextualized_term_code_to_mapping.items()
+        ]
         self.link_contextualized_term_code_to_mapping(values)
 
     def write_vs_to_db(self, profiles: List[UIProfile]):
@@ -395,7 +522,9 @@ class DataBaseWriter:
                     for single_criteria_set in profile_criteria_set:
                         self.add_critieria_set(single_criteria_set)
 
-    @deprecated("No longer serves a purpose as its goal is already ensured via NON NULL constraint on the column")
+    @deprecated(
+        "No longer serves a purpose as its goal is already ensured via NON NULL constraint on the column"
+    )
     def remove_contextualized_termcodes_without_ui_profiles(self):
         """
         Removes any row from the `contextualized_termcode` table where the UI profile references is NULL. This prevents
@@ -403,17 +532,23 @@ class DataBaseWriter:
         leaking into the table and resulting in rows without any UI profile reference. Due to other SQL statements not
         overwriting existing entries (based on the rows term code hash value), these incomplete entries will persist
         """
-        self.cursor.execute("""
+        self.cursor.execute(
+            """
             SELECT COUNT(*)
             FROM contextualized_termcode
             WHERE ui_profile_id IS NULL;
-        """)
+        """
+        )
         row = self.cursor.fetchone()
         cnt = row[0] if row else 0
         if cnt > 0:
-            self.__logger.info(f"Removing {cnt} contextualized term code entries without reference to any UI profile")
-            self.cursor.execute("""
+            self.__logger.info(
+                f"Removing {cnt} contextualized term code entries without reference to any UI profile"
+            )
+            self.cursor.execute(
+                """
                 DELETE FROM contextualized_termcode
                 WHERE ui_profile_id IS NULL;
-            """)
+            """
+            )
             self.db_connection.commit()

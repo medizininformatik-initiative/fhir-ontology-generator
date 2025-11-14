@@ -45,14 +45,16 @@ class HTTPConfig(BaseModel):
     ]
     retries: Annotated[
         int | None,
-        Field(frozen=True, default=5, description="Number of retries, None => infinity"),
+        Field(
+            frozen=True, default=5, description="Number of retries, None => infinity"
+        ),
     ]
     backoff_factor: Annotated[
         float,
         Field(frozen=True, default=2, description="Retry backoff factor in seconds"),
     ]
 
-    @field_validator('timeout', mode='before')
+    @field_validator("timeout", mode="before")
     @classmethod
     def parse_iso_if_str(cls, value: Any) -> Any:
         if isinstance(value, str):
@@ -70,11 +72,11 @@ class ProjectConfig(BaseModel):
             description="Configuration options related to FHIR packages",
         ),
     ]
-    http: (Annotated[
+    http: Annotated[
         HTTPConfig,
         Field(
             frozen=True,
             default=HTTPConfig(),
             description="Configuration options related to HTTP clients",
         ),
-    ])
+    ]

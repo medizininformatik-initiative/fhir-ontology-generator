@@ -14,8 +14,4 @@ class BundleType(Enum):
 
 
 def create_bundle(bundle_type: BundleType):
-    return {
-        "resourceType": "Bundle",
-        "type": bundle_type.value,
-        "entry": []
-    }
+    return {"resourceType": "Bundle", "type": bundle_type.value, "entry": []}

@@ -12,15 +12,18 @@ logger = get_logger(__file__)
 
 
 def configure_args_parser():
-    arg_parser = argparse.ArgumentParser(description='Generate the UI-Profile of the core data set for the MII-FDPG')
-    arg_parser.add_argument('--merge_mappings', action='store_true')
-    arg_parser.add_argument('--merge_uitrees', action='store_true')
-    arg_parser.add_argument('--merge_sqldump', action='store_true')
-    arg_parser.add_argument('--merge_dse', action='store_true')
+    arg_parser = argparse.ArgumentParser(
+        description="Generate the UI-Profile of the core data set for the MII-FDPG"
+    )
+    arg_parser.add_argument("--merge_mappings", action="store_true")
+    arg_parser.add_argument("--merge_uitrees", action="store_true")
+    arg_parser.add_argument("--merge_sqldump", action="store_true")
+    arg_parser.add_argument("--merge_dse", action="store_true")
     arg_parser.add_argument(
-        '-dp', '--project',
+        "-dp",
+        "--project",
         required=True,  # Makes this argument required
-        help="Project to merge ontology files for"
+        help="Project to merge ontology files for",
     )
     return arg_parser
 
@@ -47,11 +50,17 @@ def write_json_to_file(filepath, object):
 def add_system_urls_to_systems_json(project: Project, system_urls):
     new_terminology_systems = {}
 
-    with (open(project.input.mkdirs("terminology") / "terminology_systems.json", mode='r', encoding='utf-8') as systems_file):
+    with open(
+        project.input.mkdirs("terminology") / "terminology_systems.json",
+        mode="r",
+        encoding="utf-8",
+    ) as systems_file:
         terminology_systems = json.load(systems_file)
 
         for terminology_system in terminology_systems:
-            new_terminology_systems[terminology_system['url']] = terminology_system['name']
+            new_terminology_systems[terminology_system["url"]] = terminology_system[
+                "name"
+            ]
 
         for system_url in list(system_urls):
             if system_url not in new_terminology_systems:
@@ -60,16 +69,16 @@ def add_system_urls_to_systems_json(project: Project, system_urls):
 
         terminology_systems = []
         for key, value in new_terminology_systems.items():
-            terminology_systems.append({
-                "url": key,
-                "name": value
-            })
+            terminology_systems.append({"url": key, "name": value})
 
-        #systems_file.truncate(0)
-        #systems_file.seek(0)
+        # systems_file.truncate(0)
+        # systems_file.seek(0)
 
-        with open(project.output.mkdirs("terminology") / os.path.basename(systems_file.name),
-                  mode='w', encoding='utf-8') as output_file:
+        with open(
+            project.output.mkdirs("terminology") / os.path.basename(systems_file.name),
+            mode="w",
+            encoding="utf-8",
+        ) as output_file:
             json.dump(terminology_systems, output_file)
 
 
@@ -78,7 +87,11 @@ def collect_all_terminology_systems(merged_ontology_dir):
 
     cur_ui_termcode_info_dir = os.path.join(merged_ontology_dir, "term-code-info")
     for file_name in os.listdir(cur_ui_termcode_info_dir):
-        with open(os.path.join(cur_ui_termcode_info_dir, file_name), mode="r", encoding="utf-8") as termcode_info_file:
+        with open(
+            os.path.join(cur_ui_termcode_info_dir, file_name),
+            mode="r",
+            encoding="utf-8",
+        ) as termcode_info_file:
             termcode_infos = json.load(termcode_info_file)
 
             for termcode_info in termcode_infos:
@@ -91,7 +104,9 @@ def collect_all_terminology_systems(merged_ontology_dir):
         if not file_name.endswith(".json"):
             continue
 
-        with open(os.path.join(cur_ui_value_set_dir, file_name), mode="r", encoding="utf-8") as value_set_file:
+        with open(
+            os.path.join(cur_ui_value_set_dir, file_name), mode="r", encoding="utf-8"
+        ) as value_set_file:
 
             value_set = json.load(value_set_file)
 
@@ -105,7 +120,7 @@ def collect_all_terminology_systems(merged_ontology_dir):
     return system_urls
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = configure_args_parser()
     args = parser.parse_args()
 
@@ -114,7 +129,9 @@ if __name__ == '__main__':
 
     project = Project(args.project)
     modules_dir = project.output.cso.mkdirs("modules")
-    module_dirs = list(map(lambda d: d.path, filter(lambda e: e.is_dir(), os.scandir(modules_dir))))
+    module_dirs = list(
+        map(lambda d: d.path, filter(lambda e: e.is_dir(), os.scandir(modules_dir)))
+    )
     output_dir = project.output.mkdirs("merged_ontology")
 
     if args.merge_mappings:
@@ -125,7 +142,9 @@ if __name__ == '__main__':
 
         for module in module_dirs:
             mapping_cql = mapping_cql + load_ontology_file(module, "mapping_cql.json")
-            mapping_fhir = mapping_fhir + load_ontology_file(module, "mapping_fhir.json")
+            mapping_fhir = mapping_fhir + load_ontology_file(
+                module, "mapping_fhir.json"
+            )
 
             cur_ui_tree_dir = modules_dir / module / "ui-trees"
             for filename in os.listdir(cur_ui_tree_dir):
@@ -162,8 +181,10 @@ if __name__ == '__main__':
 
             cur_ui_termcode_info_dir = modules_dir / module / "term-code-info"
             for filename in os.listdir(cur_ui_termcode_info_dir):
-                shutil.copy(cur_ui_termcode_info_dir / filename,
-                            output_ui_termcode_info_dir / filename)
+                shutil.copy(
+                    cur_ui_termcode_info_dir / filename,
+                    output_ui_termcode_info_dir / filename,
+                )
 
             cur_crit_set_dir = modules_dir / module / "criteria-sets"
             for filename in os.listdir(cur_crit_set_dir):
@@ -171,7 +192,9 @@ if __name__ == '__main__':
 
             cur_value_set_dir = modules_dir / module / "value-sets"
             for filename in os.listdir(cur_value_set_dir):
-                shutil.copy(cur_value_set_dir / filename, output_value_set_dir / filename)
+                shutil.copy(
+                    cur_value_set_dir / filename, output_value_set_dir / filename
+                )
 
     if args.merge_sqldump:
         logger.info("Merging SQL dumps")
@@ -180,8 +203,11 @@ if __name__ == '__main__':
         os.makedirs(output_sql_script_dir, exist_ok=True)
 
         for module in module_dirs:
-            shutil.copy(modules_dir / module / "R__Load_latest_ui_profile.sql",
-                        output_sql_script_dir / f"R__Load_latest_ui_profile_{str(sql_script_index)}.sql")
+            shutil.copy(
+                modules_dir / module / "R__Load_latest_ui_profile.sql",
+                output_sql_script_dir
+                / f"R__Load_latest_ui_profile_{str(sql_script_index)}.sql",
+            )
 
             sql_script_index += 1
 
@@ -201,14 +227,19 @@ if __name__ == '__main__':
 
         output_sql_script_dir = output_dir / "sql_scripts"
         os.makedirs(output_sql_script_dir, exist_ok=True)
-        shutil.copy(dse_output_dir / "R__load_latest_dse_profiles.sql",
-                    output_sql_script_dir / "R__load_latest_dse_profiles.sql")
+        shutil.copy(
+            dse_output_dir / "R__load_latest_dse_profiles.sql",
+            output_sql_script_dir / "R__load_latest_dse_profiles.sql",
+        )
 
-        shutil.copy(dse_output_dir / "profile_tree.json",
-                    output_dir / "profile_tree.json")
+        shutil.copy(
+            dse_output_dir / "profile_tree.json", output_dir / "profile_tree.json"
+        )
 
-        shutil.copy(dse_output_dir / "dse_mapping_tree.json",
-                    output_dir / "mapping" / "dse_mapping_tree.json")
+        shutil.copy(
+            dse_output_dir / "dse_mapping_tree.json",
+            output_dir / "mapping" / "dse_mapping_tree.json",
+        )
 
     system_urls = collect_all_terminology_systems(output_dir)
 

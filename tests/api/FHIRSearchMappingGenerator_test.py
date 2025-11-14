@@ -22,7 +22,9 @@ class TestQueryMetaDataResolver(ResourceQueryingMetaDataResolver):
     def __init__(self):
         super().__init__()
 
-    def get_query_meta_data(self, fhir_profile_snapshot: dict, _context: TermCode) -> List[ResourceQueryingMetaData]:
+    def get_query_meta_data(
+        self, fhir_profile_snapshot: dict, _context: TermCode
+    ) -> List[ResourceQueryingMetaData]:
         """
         Implementation as simple look up table.
         :param fhir_profile_snapshot:
@@ -34,7 +36,9 @@ class TestQueryMetaDataResolver(ResourceQueryingMetaDataResolver):
         mapping = self._get_query_meta_data_mapping()
         for value in mapping[key]:
             try:
-                with open(f"../resources/QueryingMetaData/{value}QueryingMetaData.json", "r") as file:
+                with open(
+                    f"../resources/QueryingMetaData/{value}QueryingMetaData.json", "r"
+                ) as file:
                     result.append(ResourceQueryingMetaData.from_json(file))
             except FileNotFoundError:
                 raise FileNotFoundError(f"{value}QueryingMetaData.json is missing!")
@@ -47,7 +51,9 @@ class TestQueryMetaDataResolver(ResourceQueryingMetaDataResolver):
 
 
 def denormalize_mapping(mapping):
-    def denormalize_mapping_to_old_format(term_code_to_mapping_name, mapping_name_to_mapping):
+    def denormalize_mapping_to_old_format(
+        term_code_to_mapping_name, mapping_name_to_mapping
+    ):
         """
         Denormalizes the generators to the old format
 
@@ -63,15 +69,22 @@ def denormalize_mapping(mapping):
                 mapping.context = context_and_term_code[0]
                 result.entries.append(mapping)
             except KeyError:
-                print("No generators found for term code " + context_and_term_code[1].code)
+                print(
+                    "No generators found for term code " + context_and_term_code[1].code
+                )
         return result
 
     return denormalize_mapping_to_old_format(mapping[0], mapping[1])
 
 
 def denormalize_ui_profile(ui_profile_mapping):
-    def denormalize_ui_profile(contextualized_term_code_to_ui_profile_name, ui_profile_name_to_ui_profile):
-        for context_and_term_code, ui_profile_name in contextualized_term_code_to_ui_profile_name.items():
+    def denormalize_ui_profile(
+        contextualized_term_code_to_ui_profile_name, ui_profile_name_to_ui_profile
+    ):
+        for (
+            context_and_term_code,
+            ui_profile_name,
+        ) in contextualized_term_code_to_ui_profile_name.items():
             try:
                 context, term_code = context_and_term_code
                 ui_profile = copy.copy(ui_profile_name_to_ui_profile[ui_profile_name])
@@ -80,26 +93,36 @@ def denormalize_ui_profile(ui_profile_mapping):
                 term_entry.to_v1_entry(ui_profile)
                 return term_entry
 
-
             except KeyError:
-                print("No generators found for term code " + context_and_term_code[1].code)
-    return denormalize_ui_profile(ui_profile_mapping[0], ui_profile_mapping[1])
+                print(
+                    "No generators found for term code " + context_and_term_code[1].code
+                )
 
+    return denormalize_ui_profile(ui_profile_mapping[0], ui_profile_mapping[1])
 
 
 class MyTestCase(unittest.TestCase):
     def test_composite_fhir_mapping(self):
         resolver = TestQueryMetaDataResolver()
         search_mapping_resolver = TestSearchParameterResolver()
-        mapping_generator = FHIRSearchMappingGenerator(resolver, search_mapping_resolver)
+        mapping_generator = FHIRSearchMappingGenerator(
+            resolver, search_mapping_resolver
+        )
         mapping_generator.module = "../resources/Profiles"
         mapping_generator.data_set_dir = "../resources/Profiles"
-        with open("../resources/Profiles/Profile-Observation-BloodPressure-snapshot.json") as f:
+        with open(
+            "../resources/Profiles/Profile-Observation-BloodPressure-snapshot.json"
+        ) as f:
             profile_snapshot = json.load(f)
-            mapping = mapping_generator.generate_normalized_term_code_fhir_search_mapping(profile_snapshot, "Test")
+            mapping = (
+                mapping_generator.generate_normalized_term_code_fhir_search_mapping(
+                    profile_snapshot, "Test"
+                )
+            )
             result_mapping = denormalize_mapping(mapping)
             actual = json.loads(result_mapping.to_json())
-            expected = json.loads("""[
+            expected = json.loads(
+                """[
             {
                 "attributeSearchParameters": [
                     {
@@ -146,7 +169,8 @@ class MyTestCase(unittest.TestCase):
                 "termCodeSearchParameter": "code"
             }
         ]
-        """)
+        """
+            )
         self.assertEqual(expected, actual)
 
     def test_composite_cql_mapping(self):
@@ -154,12 +178,17 @@ class MyTestCase(unittest.TestCase):
         mapping_generator = CQLMappingGenerator(resolver)
         mapping_generator.module = "../resources/Profiles"
         mapping_generator.modules_dir = "../resources/Profiles"
-        with open("../resources/Profiles/Profile-Observation-BloodPressure-snapshot.json") as f:
+        with open(
+            "../resources/Profiles/Profile-Observation-BloodPressure-snapshot.json"
+        ) as f:
             profile_snapshot = json.load(f)
-            mapping = mapping_generator.generate_normalized_term_code_cql_mapping(profile_snapshot, "Test")
+            mapping = mapping_generator.generate_normalized_term_code_cql_mapping(
+                profile_snapshot, "Test"
+            )
             result_mapping = denormalize_mapping(mapping)
             actual = json.loads(result_mapping.to_json())
-            expected = json.loads("""[
+            expected = json.loads(
+                """[
             {
                 "attributeFhirPaths": [
                     {
@@ -195,7 +224,8 @@ class MyTestCase(unittest.TestCase):
                 "resourceType": "Observation"
             }
         ]
-        """)
+        """
+            )
         self.assertEqual(expected, actual)
 
     def test_composite_ui_profile(self):
@@ -203,12 +233,19 @@ class MyTestCase(unittest.TestCase):
         ui_profile_generator = UIProfileGenerator(query_meta_data_resolver)
         ui_profile_generator.module = "../resources/Profiles"
         ui_profile_generator.data_set_dir = "../resources/Profiles"
-        with open("../resources/Profiles/Profile-Observation-BloodPressure-snapshot.json") as f:
+        with open(
+            "../resources/Profiles/Profile-Observation-BloodPressure-snapshot.json"
+        ) as f:
             profile_snapshot = json.load(f)
-            ui_profile = ui_profile_generator.generate_normalized_term_code_ui_profile_mapping(profile_snapshot, "Test")
+            ui_profile = (
+                ui_profile_generator.generate_normalized_term_code_ui_profile_mapping(
+                    profile_snapshot, "Test"
+                )
+            )
             result_ui_profile = denormalize_ui_profile(ui_profile)
             actual = json.loads(result_ui_profile.to_json())
-            expected = json.loads("""
+            expected = json.loads(
+                """
             {
             "attributeDefinitions": [
                 {
@@ -265,10 +302,10 @@ class MyTestCase(unittest.TestCase):
             ],
             "timeRestrictionAllowed": false
         }
-        """)
+        """
+            )
 
         self.assertEqual(actual, expected)
-
 
     # def test_complex_specimen_id_to_path_translation(self):
     #     resolver = MIICoreDataSetQueryingMetaDataResolver()
@@ -360,5 +397,5 @@ class MyTestCase(unittest.TestCase):
     #         self.assertEqual(expected_search_parameter, actual_search_parameter)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

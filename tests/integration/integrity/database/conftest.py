@@ -53,12 +53,14 @@ def docker_compose_file(pytestconfig) -> str:
     for file_name in os.listdir(tmp_path):
         if not file_name.endswith(".sql"):
             path = Path(tmp_path, file_name)
-            if path.is_dir(): path.rmdir()
-            else: path.unlink(missing_ok=True)
+            if path.is_dir():
+                path.rmdir()
+            else:
+                path.unlink(missing_ok=True)
 
     # Copy database init file
-    with importlib.resources.path(sql_resources, 'init.sql') as init_script_path:
-        shutil.copyfile(init_script_path, tmp_path / 'init.sql')
+    with importlib.resources.path(sql_resources, "init.sql") as init_script_path:
+        shutil.copyfile(init_script_path, tmp_path / "init.sql")
 
     yield os.path.join(__test_dir(), "docker-compose.yml")
 
@@ -118,11 +120,11 @@ def database_conn(docker_services) -> connection:
             logger.debug(f"Connection failed. Reason: {err}")
             return False
 
-    logger.info(f"Waiting for service '{dataportal_backend_name}' to become responsive at localhost:{port} ...")
+    logger.info(
+        f"Waiting for service '{dataportal_backend_name}' to become responsive at localhost:{port} ..."
+    )
     docker_services.wait_until_responsive(
-        timeout=300.0,
-        pause=5,
-        check=lambda: healthcheck()
+        timeout=300.0, pause=5, check=lambda: healthcheck()
     )
     return psycopg2.connect(
         dbname="database",
@@ -148,19 +150,30 @@ def import_sql_file(file_path: Path, conn: connection, cont: Container):
     cmd = f"sh -c 'psql -U {conn.info.user} -d {conn.info.dbname} < {file_path.as_posix()}'"
     result = cont.exec_run(cmd=cmd)
     if result.exit_code != 0:
-        logger.warning(f"Import failed [exit_code={result.exit_code}, output='{result.output}']")
+        logger.warning(
+            f"Import failed [exit_code={result.exit_code}, output='{result.output}']"
+        )
     else:
         logger.debug(f"Import completed [output='{str(result.output)}']")
+
 
 @pytest.fixture(scope="session")
 def database(database_conn, database_container) -> connection:
     logger.info("Initializing database")
-    import_sql_file(Path('/tmp', 'sql', 'init.sql'), database_conn, database_container)
+    import_sql_file(Path("/tmp", "sql", "init.sql"), database_conn, database_container)
 
     logger.info("Importing DSE profile data")
-    import_sql_file(Path('/tmp', 'sql', 'R__load_latest_dse_profiles.sql'), database_conn, database_container)
+    import_sql_file(
+        Path("/tmp", "sql", "R__load_latest_dse_profiles.sql"),
+        database_conn,
+        database_container,
+    )
 
     logger.info("Importing UI profile data")
-    import_sql_file(Path('/tmp', 'sql', 'R__Load_latest_ui_profile.sql'), database_conn, database_container)
+    import_sql_file(
+        Path("/tmp", "sql", "R__Load_latest_ui_profile.sql"),
+        database_conn,
+        database_container,
+    )
 
     return database_conn

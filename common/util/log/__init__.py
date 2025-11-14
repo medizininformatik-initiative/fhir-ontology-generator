@@ -25,7 +25,7 @@ class ColorFormatter(logging.Formatter):
         logging.WARN: Colors.YELLOW,
         logging.WARNING: Colors.YELLOW,
         logging.ERROR: Colors.RED,
-        logging.CRITICAL: Colors.BOLD_RED
+        logging.CRITICAL: Colors.BOLD_RED,
     }
 
     @staticmethod

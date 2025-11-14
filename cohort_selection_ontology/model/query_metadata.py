@@ -6,7 +6,16 @@ from common.util.codec.functions import del_none
 from cohort_selection_ontology.model.ui_data import TermCode, Module
 from pydantic import BaseModel, model_validator, field_validator
 
-ALLOWED_VALUE_TYPE_OPTIONS = ["code", "concept", "quantity", "Age", "reference", "integer", "calculated", "reference"]
+ALLOWED_VALUE_TYPE_OPTIONS = [
+    "code",
+    "concept",
+    "quantity",
+    "Age",
+    "reference",
+    "integer",
+    "calculated",
+    "reference",
+]
 
 # TODO: we want to combine all value_types and their casting to a new class below. The class should support casting
 # TODO: code -> concept, Age->Quantity with a set allowed units, ... Specified in cso/core/generators/ui_profile
@@ -30,11 +39,12 @@ ALLOWED_VALUE_TYPE_OPTIONS = ["code", "concept", "quantity", "Age", "reference",
 #             value_definition.allowedUnits = [TermCode(system=UCUM_SYSTEM, code="a", display="a"), TermCode(system=UCUM_SYSTEM, code="mo", display="mo"),
 #                                              TermCode(system=UCUM_SYSTEM, code="wk", display="wk"), TermCode(system=UCUM_SYSTEM, code="d", display="d")]
 
+
 class ResourceQueryingMetaData(BaseModel):
     """
     ResourceQueryingMetaData stores all necessary information to extract the queryable data from a FHIR resource.
     Care the combination of resource_type and context has to be unique::
-    
+
         :param name: Name of the QueryingMetaData
         :param resource_type: is taken from the FHIR resource type. (Required)
         :param context: defines the context of the resource. (Required)
@@ -65,19 +75,27 @@ class ResourceQueryingMetaData(BaseModel):
     attribute_defining_id_type_map: Dict[str, Attribute] = {}
     time_restriction_defining_id: str | None = None
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate(self):
         if self.value_defining_id is not None:
             if self.value_type is None:
-                raise ValueError(f"{self.name}: If value_defining_id is provided, value_type shall be set")
+                raise ValueError(
+                    f"{self.name}: If value_defining_id is provided, value_type shall be set"
+                )
             if self.value_type not in ALLOWED_VALUE_TYPE_OPTIONS:
-                raise ValueError(f"{self.name}: Value type {self.value_type} is not supported. Expected one of {{{', '.join(ALLOWED_VALUE_TYPE_OPTIONS)}}}")
+                raise ValueError(
+                    f"{self.name}: Value type {self.value_type} is not supported. Expected one of {{{', '.join(ALLOWED_VALUE_TYPE_OPTIONS)}}}"
+                )
 
         for attribute_id, attribute in self.attribute_defining_id_type_map.items():
             if attribute.type is None:
-                raise ValueError(f"{self.name}: Every Attribute must have a type set. Missing attribute type for {attribute_id}")
+                raise ValueError(
+                    f"{self.name}: Every Attribute must have a type set. Missing attribute type for {attribute_id}"
+                )
         if self.term_code_defining_id is None and self.term_codes is None:
-            raise ValueError(f"{self.name}: Either term_code_defining_id or term_codes must be provided")
+            raise ValueError(
+                f"{self.name}: Either term_code_defining_id or term_codes must be provided"
+            )
         return self
 
     class Attribute(BaseModel):
@@ -90,7 +108,9 @@ class ResourceQueryingMetaData(BaseModel):
         Convert the object to a JSON string
         :return: JSON representation of the object, without None values
         """
-        return json.dumps(self, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)
+        return json.dumps(
+            self, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4
+        )
 
     @staticmethod
     def from_json(json_data):

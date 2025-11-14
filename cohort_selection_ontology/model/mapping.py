@@ -23,6 +23,7 @@ class AttributeSearchParameter(BaseModel):
                            (Required)
     :param types: Set of types the attribute supports
     """
+
     key: TermCode
     types: Set[str]
 
@@ -37,15 +38,18 @@ class FhirSearchAttributeSearchParameter(BaseModel):
         :param attributeSearchParameter: Defines the FHIR search parameter for the attribute
         :param compositeCode: Defines the composite code for the attribute
     """
+
     attributeType: VALUE_TYPE_OPTIONS
     attributeKey: TermCode
     attributeSearchParameter: str
     compositeCode: TermCode | None = None
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate(self, value: Any):
-        if self.attributeType == 'composite' and self.compositeCode is None:
-            raise ValueError("Attributes of type 'composite' must have compositeCode not None")
+        if self.attributeType == "composite" and self.compositeCode is None:
+            raise ValueError(
+                "Attributes of type 'composite' must have compositeCode not None"
+            )
 
         return self
 
@@ -97,6 +101,7 @@ class CQLAttributeSearchParameter(AttributeSearchParameter):
         :param path: FHIRPath expression used in CQL to address the location the value
         :param cardinality: Aggregated cardinality of the target element
     """
+
     path: FHIRPath
     referenceTargetType: str | None = None
     cardinality: SimpleCardinality
@@ -109,6 +114,7 @@ class FhirMapping(BaseModel):
         :param name: name of the mapping acting as primary key
         :param termCodeSearchParameter: FHIR search parameter that is used to identify the criteria in the structured
     """
+
     name: str
     termCodeSearchParameter: Optional[str] = None
     valueSearchParameter: Optional[str] = None
@@ -122,15 +128,23 @@ class FhirMapping(BaseModel):
     fixedCriteria: List[FixedFHIRCriteria] = []
 
     def to_json(self):
-        return json.dumps(self, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4)
+        return json.dumps(
+            self, default=lambda o: del_none(o.__dict__), sort_keys=True, indent=4
+        )
 
-    def add_attribute(self, attribute_type, attribute_key: TermCode, attribute_search_parameter: str, composite_code=None):
+    def add_attribute(
+        self,
+        attribute_type,
+        attribute_key: TermCode,
+        attribute_search_parameter: str,
+        composite_code=None,
+    ):
         self.attributeSearchParameters.append(
             FhirSearchAttributeSearchParameter(
-                attributeType = attribute_type,
-                attributeKey = attribute_key,
-                attributeSearchParameter = attribute_search_parameter,
-                compositeCode = composite_code
+                attributeType=attribute_type,
+                attributeKey=attribute_key,
+                attributeSearchParameter=attribute_search_parameter,
+                compositeCode=composite_code,
             )
         )
 
@@ -155,6 +169,7 @@ class CQLTypeParameter(BaseModel):
         :param path: Path to the targeted element as a FHIRPath expression
         :param types: Set of types supported by this element which can be multiple if the element is polymorphic
     """
+
     path: FHIRPath
     types: Set[str]
     cardinality: SimpleCardinality
@@ -165,6 +180,7 @@ class CQLTimeRestrictionParameter(CQLTypeParameter):
     Represents a time restriction element in a CQL mapping entry. Since we expect the corresponding element in the
     instance data to never repeat (i.e. be a list of date/time values) its cardinality is fixed to `SINGLE`
     """
+
     # def __init__(self, path: FHIRPath, types: Set[str]):
     #     CQLTypeParameter.__init__(self, path, types, SimpleCardinality.SINGLE)
 
@@ -175,6 +191,7 @@ class CQLMapping:
     CQLMapping stores all necessary information to translate a structured query to a CQL query.
     :param name: name of the mapping acting as primary key
     """
+
     name: str
     resourceType: str | None = None
     termCode: Optional[CQLTypeParameter] = None
@@ -183,7 +200,6 @@ class CQLMapping:
     attributes: List[CQLAttributeSearchParameter] = field(default_factory=list)
     # only required for version 1 support
     key: Optional[str] = None
-
 
     def add_attribute(self, attribute_search_parameter: CQLAttributeSearchParameter):
         self.attributes.append(attribute_search_parameter)
@@ -214,8 +230,8 @@ class PathlingAttributeSearchParameter(AttributeSearchParameter):
     ``PathlingAttributeSearchParameter`` stores the information how to translate the attribute part of a criteria to a
     Pathling query snippet
     """
-    attributePath: str
 
+    attributePath: str
 
 
 @dataclass
@@ -224,16 +240,21 @@ class PathlingMapping:
     PathlingMapping stores all necessary information to translate a structured query to a Pathling query.
     :param name: name of the mapping acting as primary key
     """
+
     name: str
     termCodeFhirPath: Optional[str] = None
     valueFhirPath: Optional[str] = None
     valueType = None
     timeRestrictionFhirPath: Optional[str] = None
-    attributeFhirPaths: List[PathlingAttributeSearchParameter] = field(default_factory=list)
+    attributeFhirPaths: List[PathlingAttributeSearchParameter] = field(
+        default_factory=list
+    )
     # only required for version 1 support
     key: Optional[str] = None
 
-    def add_attribute(self, attribute_search_parameter: PathlingAttributeSearchParameter):
+    def add_attribute(
+        self, attribute_search_parameter: PathlingAttributeSearchParameter
+    ):
         self.attributeFhirPaths.append(attribute_search_parameter)
 
     @classmethod
@@ -263,7 +284,9 @@ class MapEntryList:
 
     def to_json(self):
         self.entries = list(self.entries)
-        return json.dumps(self.entries, cls=JSONFhirOntoEncoder, sort_keys=True, indent=4)
+        return json.dumps(
+            self.entries, cls=JSONFhirOntoEncoder, sort_keys=True, indent=4
+        )
 
     def get_code_systems(self):
         code_systems = SortedSet()

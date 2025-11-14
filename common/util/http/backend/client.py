@@ -22,6 +22,7 @@ class QuerySlots(TypedDict):
     used: int
     total: int
 
+
 class QueryListEntry(TypedDict):
     id: int
     label: str
@@ -29,6 +30,7 @@ class QueryListEntry(TypedDict):
     createdAt: str
     totalNumberOfPatients: int
     isValid: bool
+
 
 class SearchFilter(TypedDict):
     name: str
@@ -157,36 +159,50 @@ class ProfileData(TypedDict):
 
 class FeasibilityBackendClient(BaseClient):
 
-    def __init__(self, base_url: str, auth: Optional[type[AuthBase]] = None, cert: Optional[tuple[str, str]] = None,
-                 timeout: float = 60):
+    def __init__(
+        self,
+        base_url: str,
+        auth: Optional[type[AuthBase]] = None,
+        cert: Optional[tuple[str, str]] = None,
+        timeout: float = 60,
+    ):
         super().__init__(base_url, auth, cert, timeout)
 
     def __del__(self):
         super().__del__()
 
     def query(self, query: str) -> str:
-        headers = {'Content-Type': "application/json"}
-        location = (self.post("/query", headers=headers, body=query)
-                    .headers.get('Location'))
-        if location is None: raise Exception("No Location header in response")
-        else: return location
+        headers = {"Content-Type": "application/json"}
+        location = self.post("/query", headers=headers, body=query).headers.get(
+            "Location"
+        )
+        if location is None:
+            raise Exception("No Location header in response")
+        else:
+            return location
 
     def validate_query(self, query: str) -> tuple[bool, Optional[dict]]:
         try:
-            headers = {'Content-Type': "application/json"}
+            headers = {"Content-Type": "application/json"}
             response = self.post("/query/validate", headers=headers, body=query)
             return True, response.json()
         except ClientError as err:
-            if err.status_code == 400: return False, None # Invalid SQ
-            else: raise
+            if err.status_code == 400:
+                return False, None  # Invalid SQ
+            else:
+                raise
 
     def get_query_summary_result(self, query_id: str) -> QueryStatus:
-        return self.get("/query/{query_id}/summary-result", path_params={'query_id': query_id}).json()
+        return self.get(
+            "/query/{query_id}/summary-result", path_params={"query_id": query_id}
+        ).json()
 
     def delete_saved_query(self, query_id: str) -> QuerySlots:
-        return self.delete("/query/{query_id}/saved", path_params={'query_id': query_id}).json()
+        return self.delete(
+            "/query/{query_id}/saved", path_params={"query_id": query_id}
+        ).json()
 
-    def get_current_querys(self)-> list[QueryListEntry]:
+    def get_current_querys(self) -> list[QueryListEntry]:
         return self.get("/query").json()
 
     # NOTE: It is likely that a username has to be supplied via the Authorization header for this request to work
@@ -199,34 +215,73 @@ class FeasibilityBackendClient(BaseClient):
     def get_terminology_systems(self) -> list[TerminologySystem]:
         return self.get("terminology/systems").json()
 
-    def search_terminology_entries(self, search_term: str, contexts: Optional[list[str]] = None,
-                                   terminologies: Optional[list[str]] = None, kds_modules: Optional[list[str]] = None,
-                                   criteria_sets: Optional[list[str]] = None, availability: bool = False,
-                                   page_size: int = 20, page: int = 0) -> ElasticSearchResult:
-        query_params = {'searchterm': search_term, 'contexts': contexts, 'terminologies': terminologies,
-                        'kds_modules': kds_modules, 'criteria_sets': criteria_sets, 'availability': availability,
-                        'page_size': page_size, 'page': page}
+    def search_terminology_entries(
+        self,
+        search_term: str,
+        contexts: Optional[list[str]] = None,
+        terminologies: Optional[list[str]] = None,
+        kds_modules: Optional[list[str]] = None,
+        criteria_sets: Optional[list[str]] = None,
+        availability: bool = False,
+        page_size: int = 20,
+        page: int = 0,
+    ) -> ElasticSearchResult:
+        query_params = {
+            "searchterm": search_term,
+            "contexts": contexts,
+            "terminologies": terminologies,
+            "kds_modules": kds_modules,
+            "criteria_sets": criteria_sets,
+            "availability": availability,
+            "page_size": page_size,
+            "page": page,
+        }
         return self.get("/terminology/entry/search", query_params=query_params).json()
 
     def get_criterion_relations(self, criterion_id: str) -> RelationEntry:
-        return self.get("/terminology/entry/{id}/relations", path_params={'id': criterion_id}).json()
+        return self.get(
+            "/terminology/entry/{id}/relations", path_params={"id": criterion_id}
+        ).json()
 
     def get_criterion(self, criterion_id: str) -> ElasticSearchResult:
-        return self.get("/terminology/entry/{id}", path_params={'id': criterion_id}).json()
+        return self.get(
+            "/terminology/entry/{id}", path_params={"id": criterion_id}
+        ).json()
 
-    def get_criteria_profile_data(self, criteria_ids: list[str]) -> list[CriteriaProfileData]:
-        return self.get("/terminology/criteria-profile-data", query_params={'ids': ','.join(criteria_ids)}).json()
+    def get_criteria_profile_data(
+        self, criteria_ids: list[str]
+    ) -> list[CriteriaProfileData]:
+        return self.get(
+            "/terminology/criteria-profile-data",
+            query_params={"ids": ",".join(criteria_ids)},
+        ).json()
 
-    def search_codeable_concepts(self, search_term: str, value_sets: list[str] = None, page_size: int = 20,
-                                 page: int = 0) -> CodeableConceptSearchResult:
-        query_params = {'searchterm': search_term, 'value_sets': value_sets, 'page_size': page_size, 'page': page}
-        return self.get("/codeable-concept/entry/search", query_params=query_params).json()
+    def search_codeable_concepts(
+        self,
+        search_term: str,
+        value_sets: list[str] = None,
+        page_size: int = 20,
+        page: int = 0,
+    ) -> CodeableConceptSearchResult:
+        query_params = {
+            "searchterm": search_term,
+            "value_sets": value_sets,
+            "page_size": page_size,
+            "page": page,
+        }
+        return self.get(
+            "/codeable-concept/entry/search", query_params=query_params
+        ).json()
 
     def get_codeable_concept(self, concept_id: str) -> CodeableConceptSearchResultItem:
-        return self.get("/codeable-concept/entry/{id}", path_params={'id': concept_id}).json()
+        return self.get(
+            "/codeable-concept/entry/{id}", path_params={"id": concept_id}
+        ).json()
 
     def get_dse_profile_tree(self) -> ProfileTreeNode:
         return self.get("/dse/profile-tree").json()
 
     def get_dse_profile_data(self, profile_ids: list[str]) -> ProfileData:
-        return self.get("/dse/profile-data", query_params={'profile_ids': ','.join(profile_ids)}).json()
+        return self.get(
+            "/dse/profile-data", query_params={"profile_ids": ",".join(profile_ids)}
+        ).json()

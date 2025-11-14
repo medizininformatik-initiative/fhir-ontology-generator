@@ -36,9 +36,14 @@ class UITreeGenerator:
     """
     Generates the ui tree for the given FHIR profiles
     """
+
     __logger = get_class_logger("UITreeGenerator")
 
-    def __init__(self, project: Project, querying_meta_data_resolver: ResourceQueryingMetaDataResolver):
+    def __init__(
+        self,
+        project: Project,
+        querying_meta_data_resolver: ResourceQueryingMetaDataResolver,
+    ):
         """
         :param project: Project to generate UI Tree for
         :param querying_meta_data_resolver: resolves the for the query relevant metadata for a given FHIR profile
@@ -157,10 +162,11 @@ class UITreeGenerator:
         :param module_dir_name: Name of the module directory
         :return: term entries
         """
-        term_code_defining_element: ElementDefinition = (
-            resolve_defining_id(
-                fhir_profile_snapshot, term_code_defining_id, self.__modules_dir, module_dir_name
-            )
+        term_code_defining_element: ElementDefinition = resolve_defining_id(
+            fhir_profile_snapshot,
+            term_code_defining_id,
+            self.__modules_dir,
+            module_dir_name,
         )
         if not term_code_defining_element:
             raise Exception(
@@ -198,7 +204,10 @@ class UITreeGenerator:
             return [self.__client.get_term_map(value_set)]
         else:
             term_code = fhir_profile_snapshot.try_get_term_code_from_sub_elements(
-                term_code_defining_id, self.__modules_dir, module_dir_name, self.__client
+                term_code_defining_id,
+                self.__modules_dir,
+                module_dir_name,
+                self.__client,
             )
             if term_code:
                 return [
@@ -331,7 +340,10 @@ class UITreeGenerator:
         module_dir_name: str,
     ) -> List[ContextualizedTermCodeInfo]:
         term_code_defining_element = resolve_defining_id(
-            fhir_profile_snapshot, term_code_defining_id, self.__modules_dir, module_dir_name
+            fhir_profile_snapshot,
+            term_code_defining_id,
+            self.__modules_dir,
+            module_dir_name,
         )
         if not term_code_defining_element:
             raise Exception(

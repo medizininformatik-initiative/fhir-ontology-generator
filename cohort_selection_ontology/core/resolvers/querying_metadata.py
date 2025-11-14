@@ -17,7 +17,12 @@ class ResourceQueryingMetaDataResolver(BaseModel, ABC):
     """
 
     @abstractmethod
-    def get_query_meta_data(self, fhir_profile_snapshot: StructureDefinitionSnapshot, module_name: str, _context=None) -> List[ResourceQueryingMetaData]:
+    def get_query_meta_data(
+        self,
+        fhir_profile_snapshot: StructureDefinitionSnapshot,
+        module_name: str,
+        _context=None,
+    ) -> List[ResourceQueryingMetaData]:
         """
         Returns the query metadata for the given FHIR profile snapshot in the specified context
         :param fhir_profile_snapshot: FHIR profile snapshot
@@ -45,12 +50,18 @@ class StandardDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
         :param module_name: Name of the module to load mapping for
         :return: A dictionary mapping profile names to lists of metadata names.
         """
-        mapping_file = self.__project.input.cso.mkdirs("modules", module_name) / "profile_to_query_meta_data_resolver_mapping.json"
+        mapping_file = (
+            self.__project.input.cso.mkdirs("modules", module_name)
+            / "profile_to_query_meta_data_resolver_mapping.json"
+        )
         with open(mapping_file, mode="r", encoding="utf-8") as f:
             return json.load(f)
 
     def get_query_meta_data(
-        self, fhir_profile_snapshot: StructureDefinitionSnapshot, module_name, _context: TermCode = None
+        self,
+        fhir_profile_snapshot: StructureDefinitionSnapshot,
+        module_name,
+        _context: TermCode = None,
     ) -> List[ResourceQueryingMetaData]:
         """
         Retrieves query metadata for a given FHIR profile snapshot.
@@ -61,13 +72,21 @@ class StandardDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
         """
         result = []
         profile_name = fhir_profile_snapshot.name
-        profile_to_metadata_mapping = self.__load_profile_to_metadata_mapping(module_name)
+        profile_to_metadata_mapping = self.__load_profile_to_metadata_mapping(
+            module_name
+        )
         if profile_name in profile_to_metadata_mapping:
             for metadata_name in profile_to_metadata_mapping[profile_name]:
-                metadata_file = (self.__project.input.cso.mkdirs("modules", module_name, "QueryingMetaData") /
-                                 f"{metadata_name}QueryingMetaData.json")
+                metadata_file = (
+                    self.__project.input.cso.mkdirs(
+                        "modules", module_name, "QueryingMetaData"
+                    )
+                    / f"{metadata_name}QueryingMetaData.json"
+                )
                 with open(metadata_file, "r") as file:
                     result.append(ResourceQueryingMetaData.from_json(file))
         else:
-            self.__logger.warning(f"No query metadata mapping found for profile: {profile_name}")
+            self.__logger.warning(
+                f"No query metadata mapping found for profile: {profile_name}"
+            )
         return result

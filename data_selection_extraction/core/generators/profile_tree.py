@@ -38,9 +38,7 @@ def get_value_for_lang_code(data: ElementDefinition, lang_code: str) -> Optional
         return None
     for ext in data.extension:
         if any(e.url == "lang" and e.valueCode == lang_code for e in ext.extension):
-            return next(
-                e.valueString for e in ext.extension if e.url == "content"
-            )
+            return next(e.valueString for e in ext.extension if e.url == "content")
     return None
 
 
@@ -131,7 +129,11 @@ class ProfileTreeGenerator:
             )
             return False
 
-        if element.type is not None and element.type[0].code in FhirPrimitiveDataType and len(path) > 1:
+        if (
+            element.type is not None
+            and element.type[0].code in FhirPrimitiveDataType
+            and len(path) > 1
+        ):
             return True
 
         if all(
@@ -161,10 +163,7 @@ class ProfileTreeGenerator:
         ):
             return True
 
-        if any(
-                f"{field}" in element.id
-                for field in self.field_trees_to_exclude
-        ):
+        if any(f"{field}" in element.id for field in self.field_trees_to_exclude):
             return True
 
         if "[x]" in element.id and not element.id.endswith("[x]"):
@@ -178,7 +177,9 @@ class ProfileTreeGenerator:
 
         return False
 
-    def get_field_names_for_profile(self, struct_def: StructureDefinitionSnapshot) -> BulkTranslationDisplayElement:
+    def get_field_names_for_profile(
+        self, struct_def: StructureDefinitionSnapshot
+    ) -> BulkTranslationDisplayElement:
         names_original = []
         names_en = []
         names_de = []
@@ -207,7 +208,7 @@ class ProfileTreeGenerator:
             ],
         )
 
-    def build_profile_path(self, path, profile, profiles)->List[ProfileTreeNode]:
+    def build_profile_path(self, path, profile, profiles) -> List[ProfileTreeNode]:
         profile_struct: StructureDefinitionSnapshot = profile["structureDefinition"]
         parent_profile_url = profile_struct.baseDefinition
 
@@ -230,13 +231,17 @@ class ProfileTreeGenerator:
                     translations=[
                         Translation(
                             language="de-DE",
-                            value=get_value_for_lang_code(profile_struct.title__ext, "de-DE")
+                            value=get_value_for_lang_code(
+                                profile_struct.title__ext, "de-DE"
+                            ),
                         ),
                         Translation(
                             language="en-US",
-                            value=get_value_for_lang_code(profile_struct.title__ext, "en-US")
-                        )
-                    ]
+                            value=get_value_for_lang_code(
+                                profile_struct.title__ext, "en-US"
+                            ),
+                        ),
+                    ],
                 ),
                 fields=profile_field_names,
                 module=profile["module"],
@@ -361,12 +366,16 @@ class ProfileTreeGenerator:
                 try:
                     with open(file_path, mode="r", encoding="utf-8") as f:
                         try:
-                            content = StructureDefinitionSnapshot.model_validate_json(f.read())
+                            content = StructureDefinitionSnapshot.model_validate_json(
+                                f.read()
+                            )
                         except pydantic.ValidationError as e:
                             error_list = ""
                             for err in e.errors():
                                 loc = err["loc"]
-                                error_list = f"\n\t\t\t{ '.'.join(map(str, loc))}: {err['msg']}"
+                                error_list = (
+                                    f"\n\t\t\t{ '.'.join(map(str, loc))}: {err['msg']}"
+                                )
                             self.__logger.error(
                                 f"Failed to parse snapshot {basename(file_path)} at {error_list}"
                             )
@@ -381,8 +390,10 @@ class ProfileTreeGenerator:
                             content.get_resource_type() is not None
                             and content.get_resource_type() == "StructureDefinition"
                             # and content["status"] == "active"
-                            and (content.kind == "resource"
-                            or content.type == "Extension")
+                            and (
+                                content.kind == "resource"
+                                or content.type == "Extension"
+                            )
                             and content.snapshot
                         ):
                             module_extract = self.extract_module_string(content.url)
@@ -433,12 +444,12 @@ class ProfileTreeGenerator:
         part of the Medical Informatics Initiative (MII)
         """
         profiles = {}
-        mii_profiles = self.profiles.get('mii', {})
+        mii_profiles = self.profiles.get("mii", {})
         for url, profile in mii_profiles.items():
-            snapshot: StructureDefinitionSnapshot = profile.get('structureDefinition')
+            snapshot: StructureDefinitionSnapshot = profile.get("structureDefinition")
             if (
                 snapshot.type != "Extension"
-                and snapshot.kind == 'resource'
+                and snapshot.kind == "resource"
                 and snapshot.snapshot is not None
             ):
                 profiles[url] = profile

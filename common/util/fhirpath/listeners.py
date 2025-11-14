@@ -15,4 +15,4 @@ class FHIRPathLoggingErrorListener(LoggingErrorListener[fhirpathParser]):
         e: RecognitionException,
     ):
         expr_str = str(recognizer.getTokenStream().tokenSource.inputStream)
-        super().logger().warning(f"{msg}. Expression: \"{expr_str}\"")
+        super().logger().warning(f'{msg}. Expression: "{expr_str}"')

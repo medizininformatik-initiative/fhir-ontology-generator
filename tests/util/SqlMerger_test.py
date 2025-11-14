@@ -8,10 +8,11 @@ class SqlMergerTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.sql_merger = SqlMerger(
-            sql_init_script_dir='../../common/resources/sql',
-            sql_script_dir='./scripts'
+            sql_init_script_dir="../../common/resources/sql", sql_script_dir="./scripts"
         )
-        cls.merged_script_targetfile = os.path.abspath(f'{cls.sql_merger.sql_script_dir}/R__Load_latest_ui_profile.sql')
+        cls.merged_script_targetfile = os.path.abspath(
+            f"{cls.sql_merger.sql_script_dir}/R__Load_latest_ui_profile.sql"
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -23,5 +24,5 @@ class SqlMergerTest(unittest.TestCase):
         self.assertTrue(os.path.exists(self.merged_script_targetfile))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

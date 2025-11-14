@@ -1,1 +1,3 @@
-EXT_DATA_ABSENT_REASON_URL = "http://hl7.org/fhir/StructureDefinition/data-absent-reason"
+EXT_DATA_ABSENT_REASON_URL = (
+    "http://hl7.org/fhir/StructureDefinition/data-absent-reason"
+)
