@@ -173,7 +173,7 @@ class FeasibilityBackendClient(BaseClient):
 
     def query(self, query: str) -> str:
         headers = {"Content-Type": "application/json"}
-        location = self.post("/query", headers=headers, body=query).headers.get(
+        location = self.post("/query/feasibility", headers=headers, body=query).headers.get(
             "Location"
         )
         if location is None:
@@ -194,20 +194,20 @@ class FeasibilityBackendClient(BaseClient):
 
     def get_query_summary_result(self, query_id: str) -> QueryStatus:
         return self.get(
-            "/query/{query_id}/summary-result", path_params={"query_id": query_id}
+            "/query/feasibility/{query_id}/summary-result", path_params={"query_id": query_id}
         ).json()
 
     def delete_saved_query(self, query_id: str) -> QuerySlots:
         return self.delete(
-            "/query/{query_id}/saved", path_params={"query_id": query_id}
+            "/query/data/{query_id}/saved", path_params={"query_id": query_id}
         ).json()
 
     def get_current_querys(self) -> list[QueryListEntry]:
-        return self.get("/query").json()
+        return self.get("/query/data").json()
 
     # NOTE: It is likely that a username has to be supplied via the Authorization header for this request to work
     def get_saved_query_slots(self) -> QuerySlots:
-        return self.get("query/saved-query-slots").json()
+        return self.get("query/data/query-slots").json()
 
     def get_terminology_search_filter(self) -> list[SearchFilter]:
         return self.get("terminology/search/filter").json()

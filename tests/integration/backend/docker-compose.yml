@@ -1,7 +1,7 @@
 services:
   dataportal-backend:
     container_name: integration-test_dataportal-backend
-    image: ghcr.io/medizininformatik-initiative/feasibility-backend:6.2.2
+    image: ghcr.io/medizininformatik-initiative/feasibility-backend:7.5.1
     ports:
       - "8091:8090"
     depends_on:
@@ -89,7 +89,7 @@ services:
       #- ./secrets:/opt/dataportal-security
       #- ./certs:/opt/dataportal-backend/certs
     healthcheck:
-      test: [ "CMD-SHELL", "curl --silent --fail http://localhost:8090/actuator/health || exit 1" ]
+      test: [ "CMD-SHELL", "curl --silent --fail http://localhost:8090/api/v5/actuator/health || exit 1" ]
       interval: 10s
       timeout: 10s
       retries: 30
