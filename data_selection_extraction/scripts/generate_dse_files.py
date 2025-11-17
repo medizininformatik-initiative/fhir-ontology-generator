@@ -214,7 +214,8 @@ def generate_cs_tree_map(
                     for parent in parents:
                         treemap.entries[parent].children.append(node)
     except Exception as e:
-        _logger.error(e, exc_info=e)
+        _logger.error(e)
+        _logger.debug("Traceback:\n", exc_info=e)
 
     return treemap
 

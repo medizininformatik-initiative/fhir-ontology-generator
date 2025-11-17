@@ -10,7 +10,6 @@ from cohort_selection_ontology.model.ui_data import (
     BulkTranslationDisplayElement,
 )
 from common.util.fhir.enums import FhirDataType, FhirSearchType, FhirComplexDataType
-from common.util.http.backend.client import FeasibilityBackendClient
 
 
 class Filter(BaseModel):
