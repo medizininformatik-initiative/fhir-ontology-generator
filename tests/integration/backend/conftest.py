@@ -155,7 +155,7 @@ def backend_ip(docker_services) -> str:
     dataportal_backend_name = "dataportal-backend"
     port = docker_services.port_for(dataportal_backend_name, 8090)
     url = f"http://127.0.0.1:{port}"
-    url_health_test = url + "/actuator/health"
+    url_health_test = url + "/api/v5/actuator/health"
 
     logger.info(
         f"Waiting for service '{dataportal_backend_name}' to become responsive at {url_health_test}..."
@@ -204,7 +204,7 @@ def __backend_client() -> FeasibilityBackendClient:
         user_credentials=(os.environ["USERNAME"], os.environ["PASSWORD"]),
         token_access_url=os.environ["TOKEN_ACCESS_URL"],
     )
-    return FeasibilityBackendClient(base_url="http://localhost:8091/api/v4", auth=auth)
+    return FeasibilityBackendClient(base_url="http://localhost:8091/api/v5", auth=auth)
 
 
 @pytest.fixture(scope="session")
