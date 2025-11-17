@@ -1,13 +1,9 @@
 import json
 import os
-import warnings
 from typing import Mapping
 
-import jsonschema
-import pytest
 from jsonpath_ng import parse
 
-from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from common.util.http.backend.client import FeasibilityBackendClient
 from common.util.log.functions import get_logger
 from common.util.test.fhir import (
