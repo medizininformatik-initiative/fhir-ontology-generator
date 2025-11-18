@@ -70,6 +70,18 @@
           "name": {
             "type": "text",
             "index": false
+          },
+          "terminology": {
+            "type": "text",
+            "index": false
+          },
+          "term_code": {
+            "type": "text",
+            "index": false
+          },
+          "selectable": {
+            "type": "boolean",
+            "index": false
           }
         }
       },
@@ -123,6 +135,18 @@
           "name": {
             "type": "text",
             "index": false
+          },
+          "terminology": {
+            "type": "text",
+            "index": false
+          },
+          "term_code": {
+            "type": "text",
+            "index": false
+          },
+          "selectable": {
+            "type": "boolean",
+            "index": false
           }
         }
       },
@@ -134,6 +158,18 @@
           },
           "name": {
             "type": "text",
+            "index": false
+          },
+          "terminology": {
+            "type": "text",
+            "index": false
+          },
+          "term_code": {
+            "type": "text",
+            "index": false
+          },
+          "selectable": {
+            "type": "boolean",
             "index": false
           }
         }

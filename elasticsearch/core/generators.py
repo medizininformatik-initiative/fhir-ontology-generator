@@ -101,9 +101,17 @@ class ElasticSearchGenerator:
                 parent_context, parent_term_code, namespace_uuid_str=namespace_uuid_str
             ),
             display=self.__designation_resolver.resolve_term(parent_term_code),
+            terminology=system,
+            term_code=code,
+            selectable=self.__determine_if_termcode_selectable(parent_term_code_info)
         )
 
         return parent_relational_termcode
+
+    def __determine_if_termcode_selectable(self, term_code_info: dict) -> bool:
+        # For now, we agreed upon just using the first termcode if there are more than one
+        children_cut_off = 400
+        return term_code_info["children_count"] < children_cut_off
 
     def __iterate_tree(
         self,
@@ -116,9 +124,6 @@ class ElasticSearchGenerator:
         """
         Iterates ui tree and complements information about each node
         """
-        # For now, we agreed upon just using the first termcode if there are more than one
-        children_cut_off = 400
-
         for ui_tree in ui_tree_list:
             if not self.__designation_resolver.has_designations_for(
                 ui_tree.get("system")
@@ -140,11 +145,7 @@ class ElasticSearchGenerator:
 
                 term_code = term_code_info["term_code"]
                 context = term_code_info["context"]
-                selectable = (
-                    True
-                    if term_code_info["children_count"] < children_cut_off
-                    else False
-                )
+                selectable = self.__determine_if_termcode_selectable(term_code_info)
                 obj = {
                     "hash": context_termcode_hash,
                     "name": term_code["display"],

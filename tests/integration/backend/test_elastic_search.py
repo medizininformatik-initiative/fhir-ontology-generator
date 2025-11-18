@@ -2,7 +2,7 @@ import requests
 
 
 def test_backend_connection(backend_ip):
-    health_endpoint = backend_ip + "/actuator/health"
+    health_endpoint = backend_ip + "/api/v5/actuator/health"
     response = requests.get(health_endpoint, timeout=5)
     assert response.status_code == 200
     assert response.text == '{"status":"UP"}'
