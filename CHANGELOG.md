@@ -15,7 +15,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
-# [v3.9.1]
+# [v3.9.2] - 2025-11-18
+
+## Added
+
+- Create JSON schemata for output files (#282 @Frontman50)
+- Add keyword indexing to termcode fields for Elasticsearch documents (#380 @michael-82)
+- Add HTTP request resilience to improve CI resilience (#383 @Frontman50)
+- Add additional fields to Elasticsearch index definitions (#357 @Frontman50, #358 @Frontman50)
+
+## Changed
+
+- Improve display of extensions in profile details (#359 @paulolaup)
+- Improve performance of descendant count determination (#378 @paulolaup)
+- Improve displayed terminology titles (#344 @Frontman50)
+
+## Fixed
+
+- Fix Extension slices-containing Extension slices not appearing as intermediate nodes in field tree (#393 @paulolaup)
+
+# [v3.9.1] - 2025-10-13
 
 ## Added
 
