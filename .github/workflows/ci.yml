@@ -101,11 +101,11 @@ jobs:
           name: availability_files
           path: projects/fdpg-ontology/output/availability
 
-      - name: Download project files
+      - name: Download Ontology files
         uses: actions/download-artifact@v4
         with:
-          name: ontology_files
-          path: projects/fdpg-ontology/output/merged_ontology
+          name: project-output
+          path: projects/fdpg-ontology/output
 
       - name: Install required python modules
         run: pip3 install -r requirements.txt
