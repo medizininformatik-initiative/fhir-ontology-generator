@@ -10,6 +10,7 @@ from fhir.resources.R4B.elementdefinition import (
     ElementDefinition,
     ElementDefinitionBinding,
     ElementDefinitionSlicingDiscriminator,
+    ElementDefinitionMapping,
 )
 from fhir.resources.R4B.expression import Expression
 from fhir.resources.R4B.elementdefinition import ElementDefinitionType
@@ -1046,6 +1047,11 @@ def test__generate_stratifiers_for_elem_def(
                                 ElementDefinitionType(
                                     code="Reference",
                                 ),
+                            ],
+                            mapping=[
+                                ElementDefinitionMapping(
+                                    identity="w5", map="FiveWs.subject"
+                                )
                             ],
                         ),
                         ElementDefinition(
