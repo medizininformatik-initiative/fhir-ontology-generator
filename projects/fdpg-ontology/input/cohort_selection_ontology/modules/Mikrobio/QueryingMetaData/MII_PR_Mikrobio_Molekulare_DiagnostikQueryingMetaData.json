@@ -1,7 +1,7 @@
 {
   "context": {
-    "code": "Mikrobio",
-    "display": "Mikrobio",
+    "code": "Mikrobio-Molekulare-Diagnostik",
+    "display": "Mikrobio-Molekulare-Diagnostik",
     "system": "fdpg.mii.cds",
     "version": "1.0.0"
   },
@@ -12,5 +12,10 @@
   "name": "MII_PR_Mikrobio_Molekulare_Diagnostik",
   "resource_type": "Observation",
   "term_code_defining_id": "Observation.code",
-  "time_restriction_defining_id": "Observation.effective[x]"
+  "time_restriction_defining_id": "Observation.effective[x]",
+  "attribute_defining_id_type_map": {
+    "Observation.component.where(Observation.component:NameMikroorganismus.code):NameMikroorganismus.value[x]": {
+      "type": "composite"
+    }
+  }
 }

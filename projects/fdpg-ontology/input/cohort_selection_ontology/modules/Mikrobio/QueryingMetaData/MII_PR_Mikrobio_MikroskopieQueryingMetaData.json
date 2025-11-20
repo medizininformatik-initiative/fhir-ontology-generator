@@ -1,7 +1,7 @@
 {
   "context": {
-    "code": "Mikrobio",
-    "display": "Mikrobio",
+    "code": "Mikrobio-Mikroskopie",
+    "display": "Mikrobio-Mikroskopie",
     "system": "fdpg.mii.cds",
     "version": "1.0.0"
   },
@@ -14,7 +14,7 @@
   "term_code_defining_id": "Observation.code",
   "time_restriction_defining_id": "Observation.effective[x]",
   "attribute_defining_id_type_map": {
-    "Observation.component.where(Observation.component:Morphologie.code)::Morphologie.value[x]": {
+    "Observation.component.where(Observation.component:Morphologie.code):Morphologie.value[x]": {
       "type": "composite"
     },
     "Observation.component.where(Observation.component:BarlettScore.code):BarlettScore.value[x]": {

@@ -609,11 +609,11 @@ class UIProfileGenerator:
             attribute_definition.type = "quantity"
             return attribute_definition
         elif attribute_type == "CodeableConcept":
-            if binding := predicate.binding:
-                concepts = get_selectable_concepts(predicate, profile_snapshot.name, self.__client)
-                attribute_definition.referencedValueSet.append(concepts)
-            elif binding := element.binding:
+            if binding := element.binding:
                 concepts = get_selectable_concepts(element, profile_snapshot.name, self.__client)
+                attribute_definition.referencedValueSet.append(concepts)
+            elif binding := predicate.binding:
+                concepts = get_selectable_concepts(predicate, profile_snapshot.name, self.__client)
                 attribute_definition.referencedValueSet.append(concepts)
             else:
                 concepts = get_fixed_term_codes(
@@ -630,7 +630,7 @@ class UIProfileGenerator:
                     )
                 )
             attribute_definition.display = get_display_from_element_definition(
-                get_common_ancestor(profile_snapshot, element.id, predicate.id)
+                predicate
             )
             attribute_definition.type = "concept"
             return attribute_definition
