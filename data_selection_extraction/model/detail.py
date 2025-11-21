@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import abc
-from typing import Optional, List, Literal, Annotated
+from typing import Optional, List, Literal, Annotated, TypeAlias
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 from cohort_selection_ontology.model.ui_data import (
     TranslationDisplayElement,
@@ -59,3 +59,7 @@ class ProfileDetail(Detail):
     ]
     fields: Annotated[List[FieldDetail], Field(default=[])]
     references: Annotated[List[ReferenceDetail], Field(default=[])]
+
+
+ProfileDetailList: TypeAlias = List[ProfileDetail]
+ProfileDetailListTA = TypeAdapter(ProfileDetailList)

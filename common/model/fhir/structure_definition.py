@@ -5,14 +5,14 @@ from collections import namedtuple
 from functools import cached_property, reduce
 from importlib import resources
 from itertools import groupby
-from typing import Mapping, List, Optional, Annotated, Union, Literal, Tuple
+from typing import Mapping, List, Optional, Annotated, Union, Literal, Tuple, Any
 
 import cachetools
 from fhir.resources.R4B.elementdefinition import (
     ElementDefinition,
 )
 from fhir.resources.R4B.structuredefinition import StructureDefinition
-from pydantic import computed_field, TypeAdapter, Field, Discriminator, Tag
+from pydantic import computed_field, TypeAdapter, Discriminator, Tag
 
 from cohort_selection_ontology.resources import cql, fhir
 
@@ -55,9 +55,6 @@ class AbstractIndexedStructureDefinition(abc.ABC, StructureDefinition):
         self.__indexed_field_path = indexed_field_path
         self.__check_indexed_field_type()
 
-        self.__min_card_cache = {}
-        self.__max_card_cache = {}
-
     @computed_field
     @cached_property
     def __element_by_id(self) -> Mapping[str, ElementDefinition]:
@@ -90,7 +87,7 @@ class AbstractIndexedStructureDefinition(abc.ABC, StructureDefinition):
         :param path: Path value to search with
         :return: List of `ElementDefinition` instances matching the path
         """
-        return self.__elements_by_path.get(path)
+        return self.__elements_by_path.get(path, [])
 
     # @cachetools.cachedmethod(cache=lambda self: self.__max_card_cache)
     @cachetools.cached(cache={}, key=_elem_def_key)
@@ -179,6 +176,16 @@ IndexedStructureDefinition = TypeAdapter(
             Annotated[StructureDefinitionDifferential, Tag("differential")],
             Annotated[StructureDefinitionSnapshot, Tag("snapshot")],
         ],
-        Field(discriminator=Discriminator(_idx_struct_def_discriminator_value)),
+        Discriminator(_idx_struct_def_discriminator_value),
     ]
 )
+
+
+def model_construct(data: Any) -> AbstractIndexedStructureDefinition:
+    match _idx_struct_def_discriminator_value(data):
+        case "differential":
+            return StructureDefinitionDifferential.model_construct(data)
+        case "snapshot":
+            return StructureDefinitionSnapshot.model_construct(data)
+        case _ as t:
+            raise ValueError(f"Unknown structure definition type '{t}'. Cannot determine target model class")
