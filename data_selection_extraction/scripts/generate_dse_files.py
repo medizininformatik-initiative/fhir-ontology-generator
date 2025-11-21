@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Union, Literal
 from urllib.parse import urlparse
 
+import pydantic_core
+
 from common.util.codec.json import JSONFhirOntoEncoder
 from common.util.fhir.package.manager import FirelyPackageManager
 from common.util.http.exceptions import ClientError
@@ -27,7 +29,7 @@ from cohort_selection_ontology.core.terminology.client import (
 from cohort_selection_ontology.model.tree_map import TreeMap, TermEntryNode
 from cohort_selection_ontology.model.ui_data import TermCode
 from common.util.log.functions import get_logger
-
+from data_selection_extraction.model.detail import ProfileDetail, ProfileDetailListTA
 
 _logger = get_logger(__file__)
 
@@ -371,9 +373,12 @@ if __name__ == "__main__":
         )
 
         with open(
-            dse_output_dir / "profile_details_all.json", mode="w+", encoding="utf-8"
+            dse_output_dir / "profile_details_all.json", mode="wb+"
         ) as p_details_f:
-            json.dump(profile_details, p_details_f, cls=JSONFhirOntoEncoder)
+            p_details_f.write(ProfileDetailListTA.dump_json(profile_details))
+            # json.dump(
+            #    profile_details, p_details_f, default=pydantic_core.to_jsonable_python()
+            # )
 
         generate_r_load_sql(profile_details)
 

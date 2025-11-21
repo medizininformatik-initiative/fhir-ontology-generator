@@ -1,8 +1,8 @@
 #!/bin/bash
 
-export ONTOLOGY_SERVER_ADDRESS=${ONTOLOGY_SERVER_ADDRESS:-http://my-onto-server-address/fhir/}
-export PRIVATE_KEY=${PRIVATE_KEY:-path-to-key-file}
-export SERVER_CERTIFICATE=${SERVER_CERTIFICATE:-path-to-cert-file}
+export ONTOLOGY_SERVER_ADDRESS=${ONTOLOGY_SERVER_ADDRESS:-https://ontoserver.mii-termserv.de/fhir/}
+export PRIVATE_KEY=${PRIVATE_KEY:-/mnt/d/projects/code/FDPGplus/fhir-ontology-generator/certs/fdpg-key.pem}
+export SERVER_CERTIFICATE=${SERVER_CERTIFICATE:-/mnt/d/projects/code/FDPGplus/fhir-ontology-generator/certs/fdpg-cert.pem}
 export POSTGRES_VERSION=${POSTGRES_VERSION:-16}
 
 BASE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 || exit 1 ; pwd -P )"
