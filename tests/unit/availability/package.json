@@ -27,6 +27,7 @@
     "de.medizininformatikinitiative.kerndatensatz.person": "2025.0.0",
     "de.medizininformatikinitiative.kerndatensatz.prozedur": "2025.0.0",
     "de.medizininformatikinitiative.kerndatensatz.studie": "2025.0.0",
+    "de.medizininformatikinitiative.kerndatensatz.onkologie": "2025.1.0",
     "fhir.dicom": "2022.4.20221006",
     "hl7.fhir.us.core": "4.0.0",
     "hl7.fhir.us.mcode": "2.1.0",
