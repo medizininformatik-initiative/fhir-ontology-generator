@@ -12,7 +12,7 @@ from cohort_selection_ontology.model.ui_data import (
     BulkTranslationDisplayElement,
     Translation,
 )
-from common.model.structure_definition import (
+from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot,
     IndexedStructureDefinition,
 )
