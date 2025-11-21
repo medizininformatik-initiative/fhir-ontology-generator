@@ -553,12 +553,12 @@ class UIProfileGenerator:
                             att_def_id, profile_snapshot, self.module_dir, self.data_set_dir
                         )[-1]
                         selected_valueset = get_selectable_concepts(
-                            att_def_id, profile_snapshot.get("name"), self.__client
+                            att_def_id, profile_snapshot.name, self.__client
                         )
                         attribute_definition.referencedValueSet.append(selected_valueset)
                 else:
                     selected_valueset = get_selectable_concepts(
-                        attribute_defining_element, profile_snapshot.get("name"), self.__client
+                        attribute_defining_element, profile_snapshot.name, self.__client
                     )
                     attribute_definition.referencedValueSet.append(selected_valueset)
         elif attribute_type == "quantity":
