@@ -107,8 +107,8 @@ class CQLMappingGenerator(object):
         :return: Alternative element and targeted type if a more compatible element could be identified or the given
                  element and its type if not
         """
-        ### Select element were the slicing is defined
-        if element.sliceName is not None:
+        ### Select element were the slicing is defined and is not of type Coding
+        if element.sliceName is not None and "Coding" in {t.code for t in element.type}:
             return cls.__select_element_compatible_with_cql_operations(
                 get_parent_element(snapshot, element), snapshot
             )

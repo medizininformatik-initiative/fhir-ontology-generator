@@ -963,9 +963,7 @@ def get_parent_element_type(
     else:
         # remove everything after the [x] and the slicing -> everything until the next . after [x]:
         element_id = re.sub(r"(\[x\]).*?(?=\.)", r"\1", element_id)
-    try:
-        parent_element = profile_snapshot.get_element_by_id(element_id)
-    except Exception:
+    if (parent_element:= profile_snapshot.get_element_by_id(element_id)) is None:
         element_id = re.sub(r"(\[x\]).*", r"\1", element_id)
         parent_element = profile_snapshot.get_element_by_id(element_id)
     return get_element_type(parent_element)
