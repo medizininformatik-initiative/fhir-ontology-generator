@@ -877,6 +877,7 @@ class CQLMappingGenerator(object):
                             parent_element, snapshot
                         )
                     )
+                    # Enounter.type:KontaktEbene     type is skipped here. Why do we need to skip?
                     grand_parent_el = get_parent_element(snapshot, opt_parent_el)
                     if grand_parent_el is None and opt_element_path.count(".") == 0:
                         return SimpleCardinality.SINGLE
