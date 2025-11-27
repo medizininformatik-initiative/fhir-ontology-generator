@@ -47,6 +47,7 @@ from common.util.structure_definition.functions import (
     get_term_code_by_id,
     is_element_in_snapshot,
     get_fixed_term_codes,
+    select_element_compatible_with_cql_operations
 )
 
 
@@ -95,52 +96,55 @@ class CQLMappingGenerator(object):
                     primary_paths[resource_type] = primary_path
         return primary_paths
 
-    @classmethod
-    def __select_element_compatible_with_cql_operations(
-        cls, element: ElementDefinition, snapshot: StructureDefinitionSnapshot
-    ) -> (ElementDefinition, Set[str]):
-        """
-        Uses the given element to determine - if necessary - an element which is more suitable for generating the CQL
-        mapping
-        :param element: ElementDefinition instance to possibly replace
-        :param snapshot: StructureDefinition instance in snapshot form to which the element belongs
-        :return: Alternative element and targeted type if a more compatible element could be identified or the given
-                 element and its type if not
-        """
-        ### Select element were the slicing is defined and is not of type Coding
-        if element.sliceName is not None and "Coding" in {t.code for t in element.type}:
-            return cls.__select_element_compatible_with_cql_operations(
-                get_parent_element(snapshot, element), snapshot
-            )
-
-        element_types = element.type if element.type else []
-        element_type_codes = {t.code for t in element_types}
-        compatible_element = element
-        targeted_types = element_type_codes
-        ### Coding -> CodeableConcept
-        if len(element_types) == 1 and "Coding" in element_type_codes:
-            # If the given element has type Coding which is part of the CodeableConcept type, the parent element is
-            # returned to allow the CQL generation to use this information for query optimization
-            # element_base_path = element.base.path
-            if element.base and (element_base_path := element.base.path):
-                targeted_type = element_base_path.split(".")[0]
-                if targeted_type in {"CodeableConcept", "Reference"}:
-                    parent_element = get_parent_element(snapshot, element)
-                    if parent_element:
-                        # Recurse until the actual ancestor element is reached. Slicing element definitions do not have
-                        # such an element as their parent (direct ancestor)
-                        compatible_element, _ = (
-                            cls.__select_element_compatible_with_cql_operations(
-                                parent_element, snapshot
-                            )
-                        )
-                        targeted_types = {targeted_type}
-            else:
-                raise KeyError(
-                    f"Element [id='{element.id}'] is missing required 'ElementDefinition.base.path' "
-                    f"element which is required in snapshots"
-                )
-        return compatible_element if compatible_element else element, targeted_types
+    # @classmethod
+    # def __select_element_compatible_with_cql_operations(
+    #     cls, element: ElementDefinition, snapshot: StructureDefinitionSnapshot
+    # ) -> (ElementDefinition, Set[str]):
+    #     """
+    #     Uses the given element to determine - if necessary - an element which is more suitable for generating the CQL
+    #     mapping
+    #     :param element: ElementDefinition instance to possibly replace
+    #     :param snapshot: StructureDefinition instance in snapshot form to which the element belongs
+    #     :return: Alternative element and targeted type if a more compatible element could be identified or the given
+    #              element and its type if not
+    #     """
+    #     ### Select element were the slicing is defined and is not of type Coding
+    #     # es macht manchmal keine sinn das element auszuwählen wo das slice defined ist
+    #     # weil es mehrere typen haben kann
+    #     # TODO: Rausziehen und testen
+    #     if element.sliceName is not None and "Coding" in {t.code for t in element.type}:
+    #         return cls.__select_element_compatible_with_cql_operations(
+    #             get_parent_element(snapshot, element), snapshot
+    #         )
+    #
+    #     element_types = element.type if element.type else []
+    #     element_type_codes = {t.code for t in element_types}
+    #     compatible_element = element
+    #     targeted_types = element_type_codes
+    #     ### Coding -> CodeableConcept
+    #     if len(element_types) == 1 and "Coding" in element_type_codes:
+    #         # If the given element has type Coding which is part of the CodeableConcept type, the parent element is
+    #         # returned to allow the CQL generation to use this information for query optimization
+    #         # element_base_path = element.base.path
+    #         if element.base and (element_base_path := element.base.path):
+    #             targeted_type = element_base_path.split(".")[0]
+    #             if targeted_type in {"CodeableConcept", "Reference"}:
+    #                 parent_element = get_parent_element(snapshot, element)
+    #                 if parent_element:
+    #                     # Recurse until the actual ancestor element is reached. Slicing element definitions do not have
+    #                     # such an element as their parent (direct ancestor)
+    #                     compatible_element, _ = (
+    #                         cls.__select_element_compatible_with_cql_operations(
+    #                             parent_element, snapshot
+    #                         )
+    #                     )
+    #                     targeted_types = {targeted_type}
+    #         else:
+    #             raise KeyError(
+    #                 f"Element [id='{element.id}'] is missing required 'ElementDefinition.base.path' "
+    #                 f"element which is required in snapshots"
+    #             )
+    #     return compatible_element if compatible_element else element, targeted_types
 
     def generate_mapping(
         self, module_name: str
@@ -268,7 +272,7 @@ class CQLMappingGenerator(object):
                     element = get_element_defining_elements(
                         profile_snapshot, tc_defining_id, module_dir_name, modules_dir
                     )[-1]
-                element, types = self.__select_element_compatible_with_cql_operations(
+                element, types = select_element_compatible_with_cql_operations(
                     element, profile_snapshot
                 )
                 element_id = element.id
@@ -300,7 +304,7 @@ class CQLMappingGenerator(object):
 
         if val_defining_id := querying_meta_data.value_defining_id:
             element = profile_snapshot.get_element_by_id(val_defining_id)
-            element, types = self.__select_element_compatible_with_cql_operations(
+            element, types = select_element_compatible_with_cql_operations(
                 element, profile_snapshot
             )
             element_id = element.id
@@ -330,7 +334,7 @@ class CQLMappingGenerator(object):
 
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
             element = profile_snapshot.get_element_by_id(time_defining_id)
-            element, types = self.__select_element_compatible_with_cql_operations(
+            element, types = select_element_compatible_with_cql_operations(
                 element, profile_snapshot
             )
             element_id = element.id
@@ -415,7 +419,7 @@ class CQLMappingGenerator(object):
             if attribute_type != "Reference":
                 element = profile_snapshot.get_element_by_id(attr_defining_id)
                 element, attribute_types = (
-                    self.__select_element_compatible_with_cql_operations(
+                    select_element_compatible_with_cql_operations(
                         element, profile_snapshot
                     )
                 )
@@ -526,7 +530,7 @@ class CQLMappingGenerator(object):
             profile_snapshot, attribute, module_dir_name, modules_dir
         )
         # first seems to be the value every time
-        elements[0], _ = self.__select_element_compatible_with_cql_operations(
+        elements[0], _ = select_element_compatible_with_cql_operations(
             elements[0], profile_snapshot
         )
 
@@ -578,7 +582,7 @@ class CQLMappingGenerator(object):
         )
         # TODO: Revisit and evaluate if this really the way to go.
         for element in elements:
-            element, types = self.__select_element_compatible_with_cql_operations(
+            element, types = select_element_compatible_with_cql_operations(
                 element, profile_snapshot
             )
             for element_type in types:
@@ -842,6 +846,14 @@ class CQLMappingGenerator(object):
         return False
 
     @staticmethod
+    def aggregate_cardinality_using_element(
+        element: ElementDefinition,
+        snapshot: StructureDefinitionSnapshot,
+        card_type: LiteralString["min", "max"] = "max",
+    ) -> SimpleCardinality:
+        return CQLMappingGenerator.__aggregate_cardinality_using_element(element, snapshot, card_type)
+
+    @staticmethod
     def __aggregate_cardinality_using_element(
         element: ElementDefinition,
         snapshot: StructureDefinitionSnapshot,
@@ -856,7 +868,7 @@ class CQLMappingGenerator(object):
         :return: Aggregated cardinality stating whether an element can occur multiple times or not
         """
         opt_element, _ = (
-            CQLMappingGenerator.__select_element_compatible_with_cql_operations(
+            select_element_compatible_with_cql_operations(
                 element, snapshot
             )
         )
@@ -873,11 +885,11 @@ class CQLMappingGenerator(object):
                 parent_element = get_parent_element(snapshot, opt_element)
                 if opt_element_path == parent_element.id:
                     opt_parent_el, _ = (
-                        CQLMappingGenerator.__select_element_compatible_with_cql_operations(
+                        select_element_compatible_with_cql_operations(
                             parent_element, snapshot
                         )
                     )
-                    # Enounter.type:KontaktEbene     type is skipped here. Why do we need to skip?
+                    # Enounter.type:KontaktEbene     type is skipped here. Why do we need to skipy?
                     grand_parent_el = get_parent_element(snapshot, opt_parent_el)
                     if grand_parent_el is None and opt_element_path.count(".") == 0:
                         return SimpleCardinality.SINGLE
@@ -926,11 +938,11 @@ class CQLMappingGenerator(object):
         else:
             cards = []
             for result in element_results:
-                opt_element, _ = self.__select_element_compatible_with_cql_operations(
+                opt_element, _ = select_element_compatible_with_cql_operations(
                     result.element, result.profile_snapshot
                 )
                 cards.append(
-                    self.__aggregate_cardinality_using_element(
+                    CQLMappingGenerator.__aggregate_cardinality_using_element(
                         opt_element, result.profile_snapshot
                     )
                 )

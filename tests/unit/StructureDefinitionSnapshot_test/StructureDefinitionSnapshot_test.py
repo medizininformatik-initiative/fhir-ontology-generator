@@ -4,8 +4,11 @@ from typing import List
 
 import pytest
 from fhir.resources.R4B.elementdefinition import ElementDefinition
+from fhir.resources.R4B.observation import Observation
 from pytest_lazy_fixtures import lf
 
+from cohort_selection_ontology.core.generators.cql import CQLMappingGenerator
+from cohort_selection_ontology.model.mapping import SimpleCardinality
 from cohort_selection_ontology.model.ui_data import (
     TranslationDisplayElement,
     Translation,
@@ -23,6 +26,7 @@ from common.util.structure_definition.functions import (
     structure_definition_from_path,
     translate_element_to_fhir_path_expression,
     find_polymorphic_value,
+    select_element_compatible_with_cql_operations,
 )
 from tests.unit.StructureDefinitionSnapshot_test.conftest import (
     sample_snapshot_bioprobe,
@@ -447,3 +451,142 @@ def test_translate_element_to_fhir_path_expression(
     )
 
     assert result == expected
+
+
+# @pytest.mark.parametrize(
+#     argnames="elem_def, profile, expected_el, expected_type, expected_card",
+#     argvalues=[
+#         (
+#             "Specimen.type.coding:sct",
+#             "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
+#             "Specimen.type",
+#             "CodeableConcept",
+#             SimpleCardinality.MANY,
+#         ),
+#         (
+#             "Encounter.type:Kontaktebene",
+#             "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
+#             "Specimen.type",
+#             "CodeableConcept",
+#             SimpleCardinality.MANY,
+#         ),
+#     ],
+#     ids=[
+#         "Specimen.type.coding:sct -> Specimen.type",
+#         "Encounter.type:Kontaktebene -> Encounter.type"
+#     ],
+#     indirect=["elem_def", "profile"],
+# )
+# def test_select_element_compatible_with_cql_operations(
+#     project: Project,
+#     elem_def: ElementDefinition,
+#     profile: StructureDefinitionSnapshot,
+#     expected_el: str,
+#     expected_type: str,
+#     expected_card: SimpleCardinality,
+# ):
+#
+#     assert expected_card == CQLMappingGenerator.aggregate_cardinality_using_element(
+#         element=elem_def, snapshot=profile
+#     )
+#     assert profile.get_element_by_id(expected_el), expected_type == select_element_compatible_with_cql_operations(elem_def, profile)
+
+
+@pytest.mark.parametrize(
+    argnames="element_id, snapshot, expected_el, expected_type, expected_card",
+    argvalues=[
+        (
+            "Specimen.type.coding:sct",
+            lf("sample_snapshot_bioprobe"),
+            "Specimen.type",
+            "CodeableConcept",
+            SimpleCardinality.SINGLE
+        ),
+        (
+            "Specimen.extension:festgestellteDiagnose",
+            lf("sample_snapshot_bioprobe"),
+            "Specimen.extension",
+            "Reference",
+            SimpleCardinality.SINGLE  # now single
+        ),
+        (
+            "Encounter.type:Kontaktebene",
+            lf("sample_snapshot_fall"),
+            "Specimen.type",
+            "CodeableConcept",
+            SimpleCardinality.MANY # now single -> error: should be MANY
+        ),
+        (
+            "Encounter.type:KontaktArt",
+            lf("sample_snapshot_fall"),
+            "Encounter.type",
+            "CodeableConcept",
+            SimpleCardinality.MANY # now single -> error: should be MANY
+        ),
+        (
+            "Encounter.serviceType.coding:Fachabteilungsschluessel",
+            lf("sample_snapshot_fall"),
+            "Encounter.serviceType",
+            "CodeableConcept",
+            SimpleCardinality.SINGLE
+        ),
+        (
+            "Encounter.serviceType.coding:ErweiterterFachabteilungsschluessel",
+            lf("sample_snapshot_fall"),
+            "Encounter.serviceType",
+            "CodeableConcept",
+            SimpleCardinality.SINGLE
+        ),
+        (
+            "Observation.component:SystolicBP.code",
+            lf("sample_snapshot_icu_art"),
+            "Observation.component",
+            "CodeableConcept",
+            SimpleCardinality.SINGLE
+        ),
+        (
+            "MedicationStatement.medication[x]:medicationCodeableConcept.coding:atcClassDe",
+            lf("sample_snapshot_onko_sys_tera"),
+            "MedicationStatement.medication[x]:medicationCodeableConcept",
+            "CodeableConcept",
+            SimpleCardinality.SINGLE
+        ),
+        (
+            "Condition.category:todesDiagnose.coding:loinc",
+            lf("sample_snapshot_person_tod"),
+            "Condition.category:todesDiagnose",
+            "CodeableConcept",
+            SimpleCardinality.SINGLE # now single
+        )
+    ],
+    ids=[
+        "Specimen.type.coding:sct -> Specimen.type",
+        "Specimen.extension:festgestellteDiagnose -> Specimen.extension",
+        "Encounter.type:Kontaktebene -> Encounter.type",
+        "Encounter.type:KontaktArt -> Encounter.type",
+        "Encounter.serviceType.coding:Fachabteilungsschluessel -> Encounter.serviceType",
+        "Encounter.serviceType.coding:ErweiterterFachabteilungsschluessel -> Encounter.serviceType",
+        "Observation.component:SystolicBP.code -> Observation.component",
+        "MedicationStatement.medication[x]:medicationCodeableConcept.coding:atcClassDe -> MedicationStatement.medication[x]:medicationCodeableConcept",
+        "Condition.category:todesDiagnose.coding:loinc -> Condition.category:todesDiagnose"
+    ],
+)
+def test_select_element_compatible_with_cql_operations(
+    project: Project,
+    element_id: str,
+    snapshot: StructureDefinitionSnapshot,
+    expected_el: str,
+    expected_type: str,
+    expected_card: SimpleCardinality,
+):
+    if snapshot.get_element_by_id(element_id) is None:
+        pytest.fail(f"No element with id: {element_id} in snapshot {snapshot.name}")
+
+    assert expected_card == CQLMappingGenerator.aggregate_cardinality_using_element(
+        element=snapshot.get_element_by_id(element_id), snapshot=snapshot
+    )
+    assert (
+        snapshot.get_element_by_id(expected_el), expected_type == select_element_compatible_with_cql_operations(
+            snapshot.get_element_by_id(element_id), snapshot
+        )
+    )
