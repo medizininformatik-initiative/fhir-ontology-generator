@@ -582,11 +582,11 @@ def test_select_element_compatible_with_cql_operations(
     if snapshot.get_element_by_id(element_id) is None:
         pytest.fail(f"No element with id: {element_id} in snapshot {snapshot.name}")
 
-    assert expected_card == CQLMappingGenerator.aggregate_cardinality_using_element(
+    assert CQLMappingGenerator.aggregate_cardinality_using_element(
         element=snapshot.get_element_by_id(element_id), snapshot=snapshot
-    )
+    ) == expected_card
     assert (
-        snapshot.get_element_by_id(expected_el), expected_type == select_element_compatible_with_cql_operations(
+        select_element_compatible_with_cql_operations(
             snapshot.get_element_by_id(element_id), snapshot
-        )
+        ) == snapshot.get_element_by_id(expected_el), expected_type
     )
