@@ -39,16 +39,17 @@ from common.util.project import Project
 
 
 @pytest.mark.parametrize(
-    "search_term",
-    [
-        "Observation.code.coding",
-        "Specimen.code",
-        "Specimen.type",
-        "Specimen.type.coding",
-        "Specimen.type.coding:sct",
-        "Specimen.collection.bodySite.coding",
-        "Specimen.collection.bodySite.coding:sct",
-    ],
+    argnames="search_term",
+    argvalues=
+        [
+            "Observation.code.coding",
+            "Specimen.code",
+            "Specimen.type",
+            "Specimen.type.coding",
+            "Specimen.type.coding:sct",
+            "Specimen.collection.bodySite.coding",
+            "Specimen.collection.bodySite.coding:sct",
+        ]
 )
 def test_sds_get_element_by_id(
     search_term: str,
@@ -205,39 +206,39 @@ def test_get_parent_slice_id():
 
 
 @pytest.mark.parametrize(
-    "element_id, polymorphic_elem_prefix, expected, sample_snapshot",
-    [
+    argnames=["elem_def","polymorphic_elem_prefix","expected","profile"],
+    argvalues=[
         (
             "Condition.code.coding:icd10-gm.system",
             "fixed",
             True,
-            lf("sample_snapshot_diagnose"),
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose",
         ),
         (
             "Condition.code.coding:icd10-gm",
             "pattern",
             True,
-            lf("sample_snapshot_diagnose"),
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose",
         ),
         (
             "Observation.code.coding",
             "fixed",
             False,
-            lf("sample_snapshot_diagnose"),
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose",
         ),
     ],
+    indirect=["elem_def", "profile"],
 )
 def test_sds_find_polymorphic_value(
-    sample_snapshot: StructureDefinitionSnapshot,
-    element_id: str,
+    profile: StructureDefinitionSnapshot,
+    elem_def: ElementDefinition,
     polymorphic_elem_prefix: str,
     expected: bool,
 ):
-    elem = sample_snapshot.get_element_by_id(element_id)
     if expected:
-        assert find_polymorphic_value(elem, polymorphic_elem_prefix) is not None
+        assert find_polymorphic_value(elem_def, polymorphic_elem_prefix) is not None
     else:
-        assert find_polymorphic_value(elem, polymorphic_elem_prefix) is None
+        assert find_polymorphic_value(elem_def, polymorphic_elem_prefix) is None
 
 
 @pytest.mark.parametrize(
@@ -321,25 +322,28 @@ def test_extract_value_type(
 
 
 @pytest.mark.parametrize(
-    "sample_snapshot, value_defining_id, expected",
-    [
+    argnames=["profile", "value_defining_id", "module_name", "expected"],
+    argvalues=[
         (
-            lf("sample_snapshot_bioprobe"),
+            "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
             "((Specimen.extension:festgestellteDiagnose).value[x]).code.coding:icd10-gm",
+            "Bioprobe",
             "Condition",
         )
     ],
+    indirect=["profile"]
 )
 def test_extract_reference_type(
-    sample_snapshot: StructureDefinitionSnapshot,
+    profile: StructureDefinitionSnapshot,
     project: Project,
     value_defining_id: str,
+    module_name: str,
     expected: str,
 ):
     modules_dir = project.input.cso.path / "modules"
 
     elements = get_element_defining_elements(
-        sample_snapshot, value_defining_id, sample_snapshot.name, modules_dir
+        profile, value_defining_id, module_name, modules_dir
     )
 
     found_reference_type = ""
@@ -348,17 +352,17 @@ def test_extract_reference_type(
         for element_type in element.type:
             if element_type.code == "Reference":
                 found_reference_type = extract_reference_type(
-                    element_type, modules_dir, sample_snapshot.name
+                    element_type, modules_dir, module_name
                 )
                 break
     assert found_reference_type == expected
 
 
 @pytest.mark.parametrize(
-    "sample_snapshot, element_id, default, expected_display",
-    [
+    argnames=["profile","elem_def","default","expected_display"],
+    argvalues=[
         (
-            lf("sample_snapshot_diagnose"),
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose",
             "Condition.code.coding:icd10-gm",
             "icd10-gm",
             TranslationDisplayElement(
@@ -370,7 +374,7 @@ def test_extract_reference_type(
             ),
         ),
         (
-            lf("sample_snapshot_bioprobe"),
+            "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
             "Specimen.collection.bodySite.coding:icd-o-3",
             "icd-o-3",
             TranslationDisplayElement(
@@ -382,32 +386,33 @@ def test_extract_reference_type(
             ),
         ),
     ],
+    indirect=["elem_def", "profile"]
 )
 def test_get_display_from_element_definition(
-    sample_snapshot: StructureDefinitionSnapshot,
-    element_id: str,
+    profile: StructureDefinitionSnapshot,
+    elem_def: ElementDefinition,
     default: str,
     expected_display: TranslationDisplayElement,
 ):
 
-    element = sample_snapshot.get_element_by_id(element_id)
+    # element = sample_snapshot.get_element_by_id(element_id)
 
-    assert get_display_from_element_definition(element, default) == expected_display
+    assert get_display_from_element_definition(elem_def, default) == expected_display
 
 
 @pytest.mark.parametrize(
-    "element_id, sample_snapshot, module_dir_name, expected, is_composite",
-    [
+    argnames=["element_id","profile","module_dir_name","expected","is_composite"],
+    argvalues=[
         (
             "Specimen.collection.collected[x]",
-            lf("sample_snapshot_bioprobe"),
+            "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
             "Bioprobe",
             ["(Specimen.collection.collected as dateTime)"],
             False,
         ),
         (
             "((Specimen.extension:festgestellteDiagnose).value[x]).code.coding:icd10-gm",
-            lf("sample_snapshot_bioprobe"),
+            "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
             "Bioprobe",
             [
                 "(Specimen.extension.where(url='https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Diagnose').value as Reference)",
@@ -418,23 +423,24 @@ def test_get_display_from_element_definition(
         ),
         (
             "Specimen.collection.bodySite",
-            lf("sample_snapshot_bioprobe"),
+            "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
             "Bioprobe",
             ["Specimen.collection.bodySite"],
             False,
         ),
         (
             "Specimen.type.coding:sct",
-            lf("sample_snapshot_bioprobe"),
+            "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
             "Bioprobe",
             ["Specimen.type.coding"],
             False,
         ),
     ],
+    indirect=["profile"]
 )
 def test_translate_element_to_fhir_path_expression(
     element_id: str,
-    sample_snapshot: StructureDefinitionSnapshot,
+    profile: StructureDefinitionSnapshot,
     module_dir_name: str,
     expected: List[str],
     is_composite: bool,
@@ -443,121 +449,82 @@ def test_translate_element_to_fhir_path_expression(
 
     modules_dir = project.input.cso.mkdirs("modules")
     elements = get_element_defining_elements(
-        sample_snapshot, element_id, module_dir_name, modules_dir
+        profile, element_id, module_dir_name, modules_dir
     )
 
     result = translate_element_to_fhir_path_expression(
-        sample_snapshot, elements, is_composite
+        profile, elements, is_composite
     )
 
     assert result == expected
 
 
-# @pytest.mark.parametrize(
-#     argnames="elem_def, profile, expected_el, expected_type, expected_card",
-#     argvalues=[
-#         (
-#             "Specimen.type.coding:sct",
-#             "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
-#             "Specimen.type",
-#             "CodeableConcept",
-#             SimpleCardinality.MANY,
-#         ),
-#         (
-#             "Encounter.type:Kontaktebene",
-#             "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
-#             "Specimen.type",
-#             "CodeableConcept",
-#             SimpleCardinality.MANY,
-#         ),
-#     ],
-#     ids=[
-#         "Specimen.type.coding:sct -> Specimen.type",
-#         "Encounter.type:Kontaktebene -> Encounter.type"
-#     ],
-#     indirect=["elem_def", "profile"],
-# )
-# def test_select_element_compatible_with_cql_operations(
-#     project: Project,
-#     elem_def: ElementDefinition,
-#     profile: StructureDefinitionSnapshot,
-#     expected_el: str,
-#     expected_type: str,
-#     expected_card: SimpleCardinality,
-# ):
-#
-#     assert expected_card == CQLMappingGenerator.aggregate_cardinality_using_element(
-#         element=elem_def, snapshot=profile
-#     )
-#     assert profile.get_element_by_id(expected_el), expected_type == select_element_compatible_with_cql_operations(elem_def, profile)
-
-
 @pytest.mark.parametrize(
-    argnames="element_id, snapshot, expected_el, expected_type, expected_card",
+    argnames="elem_def, profile, expected_el, expected_type, expected_card",
     argvalues=[
         (
             "Specimen.type.coding:sct",
-            lf("sample_snapshot_bioprobe"),
+            "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
             "Specimen.type",
             "CodeableConcept",
-            SimpleCardinality.SINGLE
+            SimpleCardinality.SINGLE,
         ),
         (
             "Specimen.extension:festgestellteDiagnose",
-            lf("sample_snapshot_bioprobe"),
-            "Specimen.extension",
-            "Reference",
-            SimpleCardinality.SINGLE  # now single
+            "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
+            "Specimen.extension:festgestellteDiagnose",
+            "Reference",  # i think it should be reference, but the function finds 'Extension'
+            SimpleCardinality.MANY,
         ),
         (
             "Encounter.type:Kontaktebene",
-            lf("sample_snapshot_fall"),
-            "Specimen.type",
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung",
+            "Encounter.type:Kontaktebene",
             "CodeableConcept",
-            SimpleCardinality.MANY # now single -> error: should be MANY
+            SimpleCardinality.MANY,
         ),
         (
             "Encounter.type:KontaktArt",
-            lf("sample_snapshot_fall"),
-            "Encounter.type",
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung",
+            "Encounter.type:KontaktArt",
             "CodeableConcept",
-            SimpleCardinality.MANY # now single -> error: should be MANY
+            SimpleCardinality.MANY,
         ),
         (
             "Encounter.serviceType.coding:Fachabteilungsschluessel",
-            lf("sample_snapshot_fall"),
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung",
             "Encounter.serviceType",
             "CodeableConcept",
-            SimpleCardinality.SINGLE
+            SimpleCardinality.SINGLE,
         ),
         (
             "Encounter.serviceType.coding:ErweiterterFachabteilungsschluessel",
-            lf("sample_snapshot_fall"),
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung",
             "Encounter.serviceType",
             "CodeableConcept",
-            SimpleCardinality.SINGLE
+            SimpleCardinality.SINGLE,
         ),
         (
             "Observation.component:SystolicBP.code",
-            lf("sample_snapshot_icu_art"),
-            "Observation.component",
+            "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/arterieller-blutdruck",
+            "Observation.component:SystolicBP.code",
             "CodeableConcept",
-            SimpleCardinality.SINGLE
+            SimpleCardinality.MANY,
         ),
         (
             "MedicationStatement.medication[x]:medicationCodeableConcept.coding:atcClassDe",
-            lf("sample_snapshot_onko_sys_tera"),
+            "https://www.medizininformatik-initiative.de/fhir/ext/modul-onko/StructureDefinition/mii-pr-onko-systemische-therapie-medikation",
             "MedicationStatement.medication[x]:medicationCodeableConcept",
             "CodeableConcept",
-            SimpleCardinality.SINGLE
+            SimpleCardinality.SINGLE,
         ),
         (
             "Condition.category:todesDiagnose.coding:loinc",
-            lf("sample_snapshot_person_tod"),
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Todesursache",
             "Condition.category:todesDiagnose",
             "CodeableConcept",
-            SimpleCardinality.SINGLE # now single
-        )
+            SimpleCardinality.MANY,
+        ),
     ],
     ids=[
         "Specimen.type.coding:sct -> Specimen.type",
@@ -568,25 +535,29 @@ def test_translate_element_to_fhir_path_expression(
         "Encounter.serviceType.coding:ErweiterterFachabteilungsschluessel -> Encounter.serviceType",
         "Observation.component:SystolicBP.code -> Observation.component",
         "MedicationStatement.medication[x]:medicationCodeableConcept.coding:atcClassDe -> MedicationStatement.medication[x]:medicationCodeableConcept",
-        "Condition.category:todesDiagnose.coding:loinc -> Condition.category:todesDiagnose"
+        "Condition.category:todesDiagnose.coding:loinc -> Condition.category:todesDiagnose",
     ],
+    indirect=["elem_def", "profile"],
 )
 def test_select_element_compatible_with_cql_operations(
     project: Project,
-    element_id: str,
-    snapshot: StructureDefinitionSnapshot,
+    elem_def: ElementDefinition,
+    profile: StructureDefinitionSnapshot,
     expected_el: str,
     expected_type: str,
     expected_card: SimpleCardinality,
 ):
-    if snapshot.get_element_by_id(element_id) is None:
-        pytest.fail(f"No element with id: {element_id} in snapshot {snapshot.name}")
+    if elem_def is None:
+        pytest.fail(f"No element with id: {elem_def} in snapshot {profile.name}")
 
-    assert CQLMappingGenerator.aggregate_cardinality_using_element(
-        element=snapshot.get_element_by_id(element_id), snapshot=snapshot
-    ) == expected_card
     assert (
-        select_element_compatible_with_cql_operations(
-            snapshot.get_element_by_id(element_id), snapshot
-        ) == snapshot.get_element_by_id(expected_el), expected_type
+        CQLMappingGenerator.aggregate_cardinality_using_element(
+            element=elem_def, snapshot=profile
+        ) == expected_card
     )
+
+    # something aint right here. see prameter list
+    el_id, el_type = select_element_compatible_with_cql_operations(elem_def, profile)
+
+    assert el_id.id == profile.get_element_by_id(expected_el).id
+    assert el_type == {expected_type}

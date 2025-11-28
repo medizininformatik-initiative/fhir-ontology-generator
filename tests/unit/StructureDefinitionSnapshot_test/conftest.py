@@ -118,56 +118,6 @@ def __sample_snapshot_fall_str() -> str:
         return f.read()
 
 
-@pytest.fixture(scope="session")
-def sample_snapshot_fall() -> StructureDefinitionSnapshot:
-    return StructureDefinitionSnapshot.model_validate_json(__sample_snapshot_fall_str())
-
-
-def __sample_snapshot_icu_art_str() -> str:
-    rel_path = os.path.join(
-        __test_dir(), "testdata", "ICU-Arterieller-Blutdruck-snapshot.json"
-    )
-    with open(rel_path, "r", encoding="UTF-8") as f:
-        return f.read()
-
-
-@pytest.fixture(scope="session")
-def sample_snapshot_icu_art() -> StructureDefinitionSnapshot:
-    return StructureDefinitionSnapshot.model_validate_json(
-        __sample_snapshot_icu_art_str()
-    )
-
-
-def __sample_snapshot_onko_sys_tera_str() -> str:
-    rel_path = os.path.join(
-        __test_dir(), "testdata", "Onko_Systemische_Therapie_Medikation-snapshot.json"
-    )
-    with open(rel_path, "r", encoding="UTF-8") as f:
-        return f.read()
-
-
-@pytest.fixture(scope="session")
-def sample_snapshot_onko_sys_tera() -> StructureDefinitionSnapshot:
-    return StructureDefinitionSnapshot.model_validate_json(
-        __sample_snapshot_onko_sys_tera_str()
-    )
-
-
-def __sample_snapshot_person_tod_str() -> str:
-    rel_path = os.path.join(
-        __test_dir(), "testdata", "Person_Todesursache-snapshot.json"
-    )
-    with open(rel_path, "r", encoding="UTF-8") as f:
-        return f.read()
-
-
-@pytest.fixture(scope="session")
-def sample_snapshot_person_tod() -> StructureDefinitionSnapshot:
-    return StructureDefinitionSnapshot.model_validate_json(
-        __sample_snapshot_person_tod_str()
-    )
-
-
 @pytest.fixture
 def project() -> Project:
     # project_name = request.config.getoption("-p")
