@@ -1192,9 +1192,6 @@ def select_element_compatible_with_cql_operations(
              element and its type if not
     """
     ### Select element were the slicing is defined and is not of type Coding
-    # es macht manchmal keine sinn das element auszuwählen wo das slice defined ist
-    # weil es mehrere typen haben kann
-    # TODO: Rausziehen und testen
     if element.sliceName is not None and "Coding" in {t.code for t in element.type}:
         return select_element_compatible_with_cql_operations(
             get_parent_element(snapshot, element), snapshot
