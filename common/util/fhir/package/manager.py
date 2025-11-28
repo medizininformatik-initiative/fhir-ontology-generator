@@ -12,7 +12,16 @@ from contextlib import contextmanager
 from logging import Logger
 from pathlib import Path
 from subprocess import CalledProcessError
-from typing import Iterator, Mapping, Any, Optional, Literal, List, ContextManager
+from typing import (
+    Iterator,
+    Mapping,
+    Any,
+    Optional,
+    Literal,
+    List,
+    ContextManager,
+    Annotated,
+)
 
 import fhir.resources
 from fhir.resources.R4B.resource import Resource
@@ -99,7 +108,7 @@ class FhirPackageManager(abc.ABC):
 
     def __init__(self, package_cache_dir: Path):
         self.__package_cache_dir = package_cache_dir
-        self.__index = defaultdict(dict)
+        self._index = defaultdict(dict)
         self.__cache = OrderedDict()
 
         if not self.__package_cache_dir.exists():
@@ -121,12 +130,14 @@ class FhirPackageManager(abc.ABC):
     def _update_index(self):
         cache_path = self.cache_location()
         for package_path in cache_path.iterdir():
+            if not package_path.is_dir():
+                continue
             with open(
                 package_path / "package" / "package.json", mode="r", encoding="utf-8"
             ) as f:
                 package_info = json.load(f)
                 name = package_info.get("name")
-                name_entry = self.__index[name]
+                name_entry = self._index[name]
                 version = package_info.get("version")
                 if version not in name_entry:
                     idx_path = package_path / "package" / ".index.json"
@@ -148,9 +159,9 @@ class FhirPackageManager(abc.ABC):
         :return: Boolean indicating presence of package
         """
         if version:
-            return self.__index.get(name, {}).get(version) is not None
+            return self._index.get(name, {}).get(version) is not None
         else:
-            return self.__index.get(name) is not None
+            return self._index.get(name) is not None
 
     def iterate_cache(
         self,
@@ -176,7 +187,7 @@ class FhirPackageManager(abc.ABC):
             lambda t: _contained_in(package_pattern, t[0]),
             [
                 package
-                for entry in self.__index.values()
+                for entry in self._index.values()
                 for _, package in (
                     sorted(entry.items(), key=lambda p: p[0], reverse=True)[:1]
                     if latest_only
@@ -464,20 +475,45 @@ class RepositoryPackageManager(FhirPackageManager):
         self.__package_dir = package_dir
         self.__repo_url = repo_url
         self.__client = BaseClient(repo_url, auth)
+        self.__inflated = set()
+        self.__inflated_file_path = package_cache_dir / ".inflated"
         super().__init__(package_cache_dir)
 
-    def inflate_cache(self):
-        self._logger.info("Inflating package cache")
-        subprocess.check_output(["fhir", "inflate-cache"], cwd=self.__package_dir)
+    def inflate_cache(self, force: bool = False):
+        if not force and not self.__inflated:
+            if self.__inflated_file_path.exists():
+                with self.__inflated_file_path.open(mode="r", encoding="utf-8") as f:
+                    self.__inflated = set(json.load(f))
+
+        packages = {
+            f"{name}#{version}"
+            for name, versions in self._index.items()
+            for version in versions.keys()
+        }
+        if force or self.__inflated != packages:
+            self._logger.info("Inflating package cache")
+            subprocess.check_output(["fhir", "inflate-cache"], cwd=self.__package_dir)
+
+            with self.__inflated_file_path.open(mode="w", encoding="utf-8") as f:
+                self.__inflated = packages
+                json.dump(list(packages), f)
 
     def _request_package(
-        self, package_name: str, client: BaseClient
+        self,
+        package_name: Optional[str] = None,
+        package_path: Optional[str] = None,
+        full_url: Optional[str] = None,
     ) -> ContextManager[Request]:
         """
         Overwrite if special handling is required
         """
-        return client.get(
-            f"{package_name}.tgz",
+        package_path = package_path if package_path else ""
+        package_path = (
+            f"{package_path}/{package_name}.tgz" if package_name else package_path
+        )
+        return self.__client.get(
+            context_path=package_path if package_path else None,
+            full_url=full_url if full_url else None,
             headers={
                 "Accept": "*/*",
                 "Accept-Encoding": "gzip, deflate, br",
@@ -503,9 +539,7 @@ class RepositoryPackageManager(FhirPackageManager):
                         )
                 try:
                     self._logger.info(f"Installing package {name_and_version}")
-                    with self._request_package(
-                        name_and_version, self.__client
-                    ) as response:
+                    with self._request_package(name_and_version) as response:
                         package_tgz = tmp_dir / "package.tgz"
                         package_tgz.touch(mode=0o666)
                         with package_tgz.open(mode="wb") as tgz_file:
@@ -513,7 +547,7 @@ class RepositoryPackageManager(FhirPackageManager):
                                 tgz_file.write(chunk)
                         tmp_package_dir = tmp_dir / f"{p[0]}#{p[1]}"
                         tmp_package_dir.mkdir(exist_ok=True)
-                        with tarfile.open(package_tgz, mode="r:gz") as tgz_file:
+                        with tarfile.open(package_tgz, mode="r:*") as tgz_file:
                             tgz_file.extractall(tmp_package_dir)
                         package_tgz.unlink(missing_ok=True)
                         pkg_info = load_json(
@@ -566,66 +600,66 @@ class GitHubPackageManager(RepositoryPackageManager):
         package_dir: Path,
         org: str,
         repo: str,
-        branch: str = "main",
+        ref: Optional[str] = None,
         path: str = "package-tarballs",
         auth: Optional[AuthBase] = None,
         reinit: bool = False,
     ):
         super().__init__(
             package_dir,
-            f"https://github.com/{org}/{repo}/raw/refs/heads/{branch}/{path}",
+            f"https://github.com/{org}/{repo}/contents/{path}",
             auth=auth,
             reinit=reinit,
         )
-        self.__branch = branch
+        self.__org = org
+        self.__repo = repo
+        self.__ref = ref
         self.__path = path
-        self.__tree_client = BaseClient(
-            f"https://api.github.com/repos/{org}/{repo}/git/trees", auth
+        self.__contents_client = BaseClient(
+            f"https://api.github.com/repos/{org}/{repo}/contents", auth
         )
 
     @functools.cached_property
-    def __cache_sha(self) -> str:
-        path_nodes = [self.__branch, *self.__path.split("/")]
-        sha = self.__branch
-        while len(path_nodes) > 1:
-            data = self.__tree_client.get(
-                path_nodes.pop(0), headers={"Accept": "application/json"}
+    def __package_files(
+        self,
+    ) -> Mapping[
+        Annotated[str, "Package archive name"], Annotated[str, "Download URL"]
+    ]:
+        try:
+            data = self.__contents_client.get(
+                self.__path,
+                headers={"Accept": "application/json"},
+                query_params={"ref": self.__ref} if self.__ref else None,
             ).json()
-            matches = filter(
-                lambda e: e.get("path") == path_nodes[0] and e.get("type") == "tree",
-                data.get("tree", []),
-            )
-            sha = next(matches)["sha"]
-        return sha
+            return {e["name"]: e["download_url"] for e in data}
+        except Exception as exc:
+            raise Exception(
+                f"Failed to retrieve information about FHIR packages hosted in the repository "
+                f"[repo='{self.__org}/{self.__repo}', ref={self.__ref}, path={self.__path}]",
+            ) from exc
 
-    @functools.cached_property
-    def __package_files(self) -> List[str]:
-        data = self.__tree_client.get(
-            self.__cache_sha, headers={"Accept": "application/json"}
-        ).json()
-        return [e["path"] for e in data.get("tree", [])]
-
-    def _request_package(
-        self, package_name: str, client: BaseClient
-    ) -> ContextManager[Request]:
+    def _request_package(self, package_name: str = None, *_) -> ContextManager[Request]:
         fuzzy_matches = list(
             filter(
-                lambda pn: pn.startswith(package_name),
-                [os.path.splitext(p)[0] for p in self.__package_files],
+                lambda e: e[0].startswith(package_name),
+                [
+                    (os.path.splitext(p)[0], l)
+                    for (p, l) in self.__package_files.items()
+                ],
             )
         )
         exact_match = next(
             filter(
-                lambda pn: pn == package_name,
+                lambda e: e[0] == package_name,
                 fuzzy_matches,
             ),
             None,
         )
         if exact_match:
-            return super()._request_package(package_name, client)
+            return super()._request_package(full_url=exact_match[1])
         else:
             closest_match = sorted(fuzzy_matches, reverse=True)[0]
             self._logger.debug(
-                f"Failed to find exact match => Requesting closest match '{closest_match}'"
+                f"Failed to find exact match => Requesting closest match '{closest_match[0]}'"
             )
-            return super()._request_package(closest_match, client)
+            return super()._request_package(full_url=closest_match[1])

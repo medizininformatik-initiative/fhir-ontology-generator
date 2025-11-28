@@ -4,7 +4,7 @@ fhir-packages:
     params:
       org: "medizininformatik-initiative"
       repo: "fhir-package-store"
-      branch: "main"
+      ref: "main"
       path: "package-tarballs"
 http:
   timeout: "PT30S"
