@@ -4,8 +4,6 @@ from typing import List
 
 import pytest
 from fhir.resources.R4B.elementdefinition import ElementDefinition
-from fhir.resources.R4B.observation import Observation
-from pytest_lazy_fixtures import lf
 
 from cohort_selection_ontology.core.generators.cql import CQLMappingGenerator
 from cohort_selection_ontology.model.mapping import SimpleCardinality
@@ -28,9 +26,9 @@ from common.util.structure_definition.functions import (
     find_polymorphic_value,
     select_element_compatible_with_cql_operations,
 )
-from tests.unit.StructureDefinitionSnapshot_test.conftest import (
-    sample_snapshot_bioprobe,
-)
+# from tests.unit.StructureDefinitionSnapshot_test.conftest import (
+#     sample_snapshot_bioprobe,
+# )
 from common.model.structure_definition import (
     StructureDefinitionSnapshot,
     ProcessedElementResult,
@@ -473,7 +471,7 @@ def test_translate_element_to_fhir_path_expression(
             "Specimen.extension:festgestellteDiagnose",
             "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
             "Specimen.extension:festgestellteDiagnose",
-            "Reference",  # i think it should be reference, but the function finds 'Extension'
+            "Extension",
             SimpleCardinality.MANY,
         ),
         (
@@ -528,12 +526,12 @@ def test_translate_element_to_fhir_path_expression(
     ],
     ids=[
         "Specimen.type.coding:sct -> Specimen.type",
-        "Specimen.extension:festgestellteDiagnose -> Specimen.extension",
-        "Encounter.type:Kontaktebene -> Encounter.type",
-        "Encounter.type:KontaktArt -> Encounter.type",
+        "Specimen.extension:festgestellteDiagnose -> Specimen.extension:festgestellteDiagnose",
+        "Encounter.type:Kontaktebene -> Encounter.type:Kontaktebene",
+        "Encounter.type:KontaktArt -> Encounter.type:KontaktArt",
         "Encounter.serviceType.coding:Fachabteilungsschluessel -> Encounter.serviceType",
         "Encounter.serviceType.coding:ErweiterterFachabteilungsschluessel -> Encounter.serviceType",
-        "Observation.component:SystolicBP.code -> Observation.component",
+        "Observation.component:SystolicBP.code -> Observation.component:SystolicBP.code",
         "MedicationStatement.medication[x]:medicationCodeableConcept.coding:atcClassDe -> MedicationStatement.medication[x]:medicationCodeableConcept",
         "Condition.category:todesDiagnose.coding:loinc -> Condition.category:todesDiagnose",
     ],

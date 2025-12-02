@@ -95,27 +95,27 @@ def sample_snapshot_bioprobe() -> StructureDefinitionSnapshot:
     return StructureDefinitionSnapshot.model_validate_json(
         __sample_snapshot_bioprobe_str()
     )
-
-
-def __sample_snapshot_diagnose_str() -> str:
-    rel_path = os.path.join(__test_dir(), "testdata", "FDPG_Diagnose-snapshot.json")
-    print(os.scandir("."))
-
-    with open(rel_path, "r", encoding="UTF-8") as f:
-        return f.read()
-
-
-@pytest.fixture(scope="session")
-def sample_snapshot_diagnose() -> StructureDefinitionSnapshot:
-    return StructureDefinitionSnapshot.model_validate_json(
-        __sample_snapshot_diagnose_str()
-    )
-
-
-def __sample_snapshot_fall_str() -> str:
-    rel_path = os.path.join(__test_dir(), "testdata", "FDPG_Fall-snapshot.json")
-    with open(rel_path, "r", encoding="UTF-8") as f:
-        return f.read()
+#
+#
+# def __sample_snapshot_diagnose_str() -> str:
+#     rel_path = os.path.join(__test_dir(), "testdata", "FDPG_Diagnose-snapshot.json")
+#     print(os.scandir("."))
+#
+#     with open(rel_path, "r", encoding="UTF-8") as f:
+#         return f.read()
+#
+#
+# @pytest.fixture(scope="session")
+# def sample_snapshot_diagnose() -> StructureDefinitionSnapshot:
+#     return StructureDefinitionSnapshot.model_validate_json(
+#         __sample_snapshot_diagnose_str()
+#     )
+#
+#
+# def __sample_snapshot_fall_str() -> str:
+#     rel_path = os.path.join(__test_dir(), "testdata", "FDPG_Fall-snapshot.json")
+#     with open(rel_path, "r", encoding="UTF-8") as f:
+#         return f.read()
 
 
 @pytest.fixture
