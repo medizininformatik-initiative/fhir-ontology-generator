@@ -1,0 +1,31 @@
+{
+    "type": "concept",
+    "referencedValueSet": [
+        "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/ValueSet/icd-o-3-topography"
+    ],
+    "allowedUnits": [],
+    "precision": 1,
+    "min": null,
+    "max": null,
+    "referencedCriteriaSet": [],
+    "optional": true,
+    "display": {
+        "original": "Code defined by a terminology system",
+        "translations": [
+            {
+                "language": "de-DE",
+                "value": ""
+            },
+            {
+                "language": "en-US",
+                "value": ""
+            }
+        ]
+    },
+    "attributeCode": {
+        "system": "http://hl7.org/fhir/StructureDefinition",
+        "code": "icd-o-3",
+        "display": "Code defined by a terminology system",
+        "version": null
+    }
+}
