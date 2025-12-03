@@ -552,7 +552,7 @@ def test__resolve_polymorphism_in_expr(
                 MeasureGroupStratifier(
                     criteria=Expression(
                         language="text/fhirpath",
-                        expression="Specimen.extension('https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Diagnose').value.ofType(Reference).resolve().ofType(Condition).meta.profile.exists($this = 'http://hl7.org/fhir/StructureDefinition/Condition' or $this = 'https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose' or $this = 'https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Todesursache' or $this = 'https://www.medizininformatik-initiative.de/fhir/ext/modul-patho/StructureDefinition/mii-pr-patho-problem-list-item')",
+                        expression="Specimen.extension('https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Diagnose').value.ofType(Reference).resolve().ofType(Condition).meta.profile.exists($this = 'http://hl7.org/fhir/StructureDefinition/Condition' or $this = 'https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose' or $this = 'https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Todesursache' or $this = 'https://www.medizininformatik-initiative.de/fhir/ext/modul-onko/StructureDefinition/mii-pr-onko-diagnose-primaertumor' or $this = 'https://www.medizininformatik-initiative.de/fhir/ext/modul-patho/StructureDefinition/mii-pr-patho-problem-list-item')",
                     ),
                     code=CodeableConcept(
                         coding=[
@@ -990,7 +990,21 @@ def test__resolve_supported_types(
                 MeasureGroupStratifier(
                     criteria=Expression(
                         language="text/fhirpath",
-                        expression="Condition.onset.ofType(Period).exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
+                        expression="Condition.onset.ofType(Age).exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())"
+                    ),
+                    code=CodeableConcept(
+                        coding=[
+                            Coding(
+                                system="http://fhir-data-evaluator/strat/system",
+                                code="Condition.onsetAge",
+                            )
+                        ]
+                    ),
+                ),
+                MeasureGroupStratifier(
+                    criteria=Expression(
+                        language="text/fhirpath",
+                        expression="Condition.onset.ofType(Period).exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())"
                     ),
                     code=CodeableConcept(
                         coding=[
