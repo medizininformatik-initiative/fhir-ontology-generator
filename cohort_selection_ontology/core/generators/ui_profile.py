@@ -537,7 +537,7 @@ class UIProfileGenerator:
                     )
                 )
             else:
-                selected_valueset: ValueSet | List[ValueSet]
+                selected_valuesets = []
                 available_slices = get_available_slices(
                     attribute_defining_element.id, profile_snapshot
                 )
@@ -555,15 +555,15 @@ class UIProfileGenerator:
                             self.module_dir,
                             self.data_set_dir,
                         )[-1]
-                        selected_valueset = get_selectable_concepts(
+                        selected_valuesets.append(get_selectable_concepts(
                             att_def_id, profile_snapshot.name, self.__client
-                        )
+                        ))
                 else:
                     # when no available sliced were found just
-                    selected_valueset = get_selectable_concepts(
+                    selected_valuesets.append(get_selectable_concepts(
                         attribute_defining_element, profile_snapshot.name, self.__client
-                    )
-                attribute_definition.referencedValueSet.append(selected_valueset)
+                    ))
+                attribute_definition.referencedValueSet = selected_valuesets
         elif attribute_type == "quantity":
             unit_defining_path = attribute_defining_element.path + ".code"
             unit_defining_elements = profile_snapshot.get_element_by_path(

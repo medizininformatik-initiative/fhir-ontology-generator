@@ -1,0 +1,13 @@
+fhir-packages:
+  manager:
+    type: "github"
+    params:
+      org: "medizininformatik-initiative"
+      repo: "fhir-package-store"
+      branch: "main"
+      path: "package-tarballs"
+      reinit: false
+http:
+  timeout: "PT30S"
+  retries: null
+  backoff_factor: 1
