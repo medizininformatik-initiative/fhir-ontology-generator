@@ -442,7 +442,7 @@ def get_selectable_concepts(
     profile_name: str = "",
     client: TerminologyClient = None,
 ) -> ValueSet:
-    # TODO: still needs test. Not yet tested because of internet shortage
+    # TODO: still needs test
     """
     Returns the answer options for the given concept defining element
     :param concept_defining_element: ``ElementDefinition`` that defines the concept
@@ -486,7 +486,7 @@ def get_units(
     Returns:
 
     """
-    # TODO: still needs test. Not yet tested because of internet shortage
+    # TODO: still needs test
     if unit_code := unit_defining_element.fixedCode:
         return [TermCode(system=UCUM_SYSTEM, code=unit_code, display=unit_code)]
     elif unit_code := unit_defining_element.patternCode:
