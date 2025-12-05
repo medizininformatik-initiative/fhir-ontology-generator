@@ -24,7 +24,7 @@ from common.util.project import Project
             "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
             "Specimen.collection.bodySite.coding",
             "concept",
-            "attr_slice_specified.json",
+            "attr_slice_not_specified.json",
         ),
         (
             "https://www.medizininformatik-initiative.de/fhir/ext/modul-onko/StructureDefinition/mii-pr-onko-tnm-t-kategorie",
