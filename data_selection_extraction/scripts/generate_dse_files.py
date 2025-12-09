@@ -12,6 +12,7 @@ from common.util.fhir.package.manager import FirelyPackageManager
 from common.util.http.exceptions import ClientError
 from common.util.http.terminology.client import FhirTerminologyClient
 from common.util.project import Project
+from data_selection_extraction.config.profile_detail import FieldsConfig
 from data_selection_extraction.core.generators.profile_detail import (
     ProfileDetailGenerator,
 )
@@ -278,6 +279,7 @@ if __name__ == "__main__":
     project = Project(args.project)
     dse_input_dir = project.input.dse
     dse_output_dir = project.output.dse
+    project.package_manager.restore(inflate=True)
 
     with open(dse_input_dir / "module_config.json", "r", encoding="utf-8") as f:
         module_config = json.load(f)
@@ -305,7 +307,11 @@ if __name__ == "__main__":
     packages_dir = dse_input_dir / "dependencies"
     snapshots_dir = dse_input_dir / "snapshots"
     # .extension cant be removed
-    fields_to_exclude = [".meta", ".id", ".modifierExtension", ".name", "address"]
+    with (project.input.dse / "field_config.json").open(
+        mode="r", encoding="utf-8"
+    ) as f:
+        fields_config = FieldsConfig.model_validate_json(f.read())
+    fields_to_exclude = ["meta", "id", "modifierExtension", "name", "address"]
     field_trees_to_exclude = [
         "Patient.name",
         "Patient.location",
@@ -321,9 +327,9 @@ if __name__ == "__main__":
         excluded_profiles=excluded_profiles,
         module_order=module_order,
         module_translation=module_translation,
-        fields_to_exclude=fields_to_exclude,
-        field_trees_to_exclude=field_trees_to_exclude,
+        fields_config=fields_config,
         profiles_to_process=args.profiles,
+        project=project,
     )
 
     if args.copy_snapshots:
@@ -343,14 +349,15 @@ if __name__ == "__main__":
     blacklisted_value_sets = ["http://hl7.org/fhir/ValueSet/observation-codes"]
 
     if args.generate_profile_details:
+        _logger.info("Loading fields config")
+
         profiles = tree_generator.profiles
         profile_detail_generator = ProfileDetailGenerator(
             project=project,
             profiles=profiles,
             mapping_type_code=mapping_type_code,
             blacklisted_value_sets=blacklisted_value_sets,
-            fields_to_exclude=fields_to_exclude,
-            field_trees_to_exclude=field_trees_to_exclude,
+            fields_config=fields_config,
             reference_base_url=reference_resolve_base_url,
             module_translation=module_translation,
         )

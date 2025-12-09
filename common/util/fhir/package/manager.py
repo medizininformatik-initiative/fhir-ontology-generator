@@ -20,20 +20,32 @@ from typing import (
     Literal,
     List,
     ContextManager,
-    Annotated,
+    Annotated, Union,
 )
 
+import cachetools
 import fhir.resources
 from fhir.resources.R4B.resource import Resource
 from fhir.resources.R4B.structuredefinition import StructureDefinition
 from requests import Request
 from requests.auth import AuthBase
 
-from common.exceptions import UnsupportedError
+from common.exceptions import UnsupportedError, NotFoundError
 from common.model.fhir.structure_definition import IndexedStructureDefinition
 from common.util.codec.json import load_json
 from common.util.http.client import BaseClient
 from common.util.log.decorators import inject_logger
+
+
+def _profile_cache_key(*args, **kwargs) -> str:
+    if args:
+        param = args[1]
+    else:
+        param = kwargs["profile"]
+    if isinstance(param, str):
+        return param
+    else:
+        return param.url
 
 
 def build_package_index(package_dir: Path) -> Mapping[str, Any]:
@@ -248,9 +260,10 @@ class FhirPackageManager(abc.ABC):
             self.iterate_cache(package_pattern, index_pattern, latest_only), None
         )
 
+    @cachetools.cached(cache={}, key=_profile_cache_key)
     def dependents_of(
         self,
-        profile_url: str,
+        profile: str,
         package_pattern: Optional[Mapping[str, Any]] = None,
         direct_only: bool = False,
         latest_only: bool = True,
@@ -259,7 +272,7 @@ class FhirPackageManager(abc.ABC):
         Searches for profiles that are based on the profile identified by the provided URL and are present in the
         packages manages by the manager instance
 
-        :param profile_url: URL of the profile to find dependents of
+        :param profile: URL of the profile to find dependents of
         :param package_pattern: (Optional) pattern to select only packages with matching `package.json` file content
         :param direct_only: If 'True' only direct dependents are returned
         :param latest_only: If `True` only content of the latest version of a package is considered
@@ -267,7 +280,7 @@ class FhirPackageManager(abc.ABC):
         """
         index_pattern = {
             "resourceType": "StructureDefinition",
-            "baseDefinition": profile_url,
+            "baseDefinition": profile,
         }
         if direct_only:
             return [
@@ -279,6 +292,52 @@ class FhirPackageManager(abc.ABC):
             for p in self.iterate_cache(package_pattern, index_pattern, latest_only)
             for p1 in [p, *self.dependents_of(p.url, package_pattern, latest_only)]
         ]
+
+    @cachetools.cached(cache={}, key=_profile_cache_key)
+    def dependencies_of(
+        self,
+        profile: Union[str, StructureDefinition],
+        package_pattern: Optional[Mapping[str, Any]] = None,
+        latest_only: bool = True,
+    ) -> List[StructureDefinition]:
+        """
+        Searches profiles on which the provided one is based on
+
+        :param profile: URL of the profile or `StructureDefinition` instance to find dependencies of
+        :param package_pattern: (Optional) pattern to select only packages with matching `package.json` file content
+        :param latest_only: If `True` only content of the latest version of a package is considered
+        :return: List of parent `StructureDefinition` instances
+        """
+        match profile:
+            case str():
+                index_pattern = {
+                    "resourceType": "StructureDefinition",
+                    "url": profile,
+                }
+                if struct_def := self.find(index_pattern, package_pattern, latest_only):
+                    base_def = struct_def.baseDefinition
+                else:
+                    raise NotFoundError(f"Failed to find profile '{profile}' in index")
+            case StructureDefinition():
+                base_def = profile.baseDefinition
+            case _:
+                raise ValueError(
+                    f"Unsupported type '{type(profile)}' for value of parameter 'profile'"
+                )
+        if base_def is None:
+            # Base profile has been reached
+            return []
+        index_pattern = {
+            "resourceType": "StructureDefinition",
+            "url": base_def,
+        }
+        if struct_def := self.find(index_pattern, package_pattern, latest_only):
+            return [
+                struct_def,
+                *self.dependencies_of(struct_def, package_pattern, latest_only),
+            ]
+        else:
+            raise NotFoundError(f"Failed to find profile '{base_def}' in index")
 
     def install(self, *packages: str | tuple[str, str], inflate: bool = False):
         """
