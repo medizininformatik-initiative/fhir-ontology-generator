@@ -59,7 +59,7 @@ fi
 if should_run_step 1; then
     printf "\n#################\nStep 1: Generating cohort selection ontology\n#################\n"
     cd "$BASE_DIR/cohort_selection_ontology" || exit 1
-    python3 scripts/generate_ontology.py --project "${PROJECT}" --generate_ui_trees --generate_ui_profiles --generate_mapping
+    python3 scripts/generate_ontology.py --project "${PROJECT}" --generate_ui_trees --generate_ui_profiles --generate_mapping --module=Onkologie
 fi
 
 # Step 2: Generating DSE ontology
