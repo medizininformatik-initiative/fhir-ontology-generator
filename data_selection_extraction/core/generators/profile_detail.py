@@ -4,6 +4,7 @@ from collections.abc import Callable
 from functools import cmp_to_key
 from typing import Mapping, List, TypedDict, Any, Optional
 from fhir.resources.R4B.elementdefinition import ElementDefinition
+from fhir.resources.R4B.structuredefinition import StructureDefinition
 
 from common.exceptions.profile import MissingProfileError, MissingElementError
 from cohort_selection_ontology.model.ui_data import (
@@ -11,14 +12,19 @@ from cohort_selection_ontology.model.ui_data import (
     BulkTranslationDisplayElement,
     Translation,
 )
-from common.model.structure_definition import StructureDefinitionSnapshot
+from common.model.structure_definition import (
+    StructureDefinitionSnapshot,
+    IndexedStructureDefinition,
+)
 from common.util.project import Project
 from common.util.structure_definition.functions import (
     get_types_supported_by_element,
     find_type_element,
     supports_type,
     find_polymorphic_value,
+    get_parent_element,
 )
+from data_selection_extraction.config.profile_detail import FieldsConfig
 from data_selection_extraction.core.generators.profile_tree import (
     get_value_for_lang_code,
 )
@@ -58,8 +64,9 @@ class ProfileDetailGenerator:
     blacklisted_values_sets: List[str]
     profiles: Mapping[str, Mapping[str, Mapping[str, Any]]]
     mapping_type_code: Mapping[str, SearchParamPathMapping]
-    fields_to_exclude: List[str]
-    fields_trees_to_exclude: List[str]
+    # fields_to_exclude: List[str]
+    # fields_trees_to_exclude: List[str]
+    fields_config: FieldsConfig
     reference_base_url: str
 
     def __init__(
@@ -68,8 +75,7 @@ class ProfileDetailGenerator:
         profiles,
         mapping_type_code,
         blacklisted_value_sets,
-        fields_to_exclude,
-        field_trees_to_exclude,
+        fields_config: FieldsConfig,
         reference_base_url,
         module_translation,
     ):
@@ -80,8 +86,7 @@ class ProfileDetailGenerator:
             It should receive tree_generator.profiles
         :param mapping_type_code: ???
         :param blacklisted_value_sets: list of valueSet-urls which should not be used
-        :param fields_to_exclude: fields which should be excluded from DSE per profile
-        :param field_trees_to_exclude: field trees, which should be excluded from DSE per profile
+        :param fields_config: `FieldsConfig` object describing what fields
         :param reference_base_url: base url for resolving references for non fhir packages
         :param module_translation: mapping containing translation of module names
         """
@@ -91,10 +96,38 @@ class ProfileDetailGenerator:
         # Prevents having to generate the mapping over and over again
         self.__all_profiles = self.__get_profiles()
         self.mapping_type_code = mapping_type_code
-        self.fields_to_exclude = fields_to_exclude
-        self.field_trees_to_exclude = field_trees_to_exclude
+        # self.fields_to_exclude = fields_to_exclude
+        # self.field_trees_to_exclude = field_trees_to_exclude
+        self.fields_config = fields_config
         self.reference_base_url = reference_base_url
         self.module_translation = module_translation
+
+    def is_field_included(
+        self, elem_def: ElementDefinition, profile: IndexedStructureDefinition
+    ) -> bool:
+        is_included = self.fields_config.is_included(
+            elem_def, profile, self.__project.package_manager
+        )
+        if is_included is None:
+            return not self.filter_element(elem_def, profile)
+        else:
+            return is_included
+
+    def is_field_recommended(
+        self, elem_def: ElementDefinition, profile: IndexedStructureDefinition
+    ) -> bool:
+        is_recommended = self.fields_config.is_recommended(
+            elem_def, profile, self.__project.package_manager
+        )
+        if is_recommended is None:
+            # Field is only recommended if it is required and its parent element definition is recommended as well
+            if parent_elem_def := get_parent_element(profile, elem_def):
+                parent_recommended = self.is_field_recommended(parent_elem_def, profile)
+            else:
+                parent_recommended = True
+            return parent_recommended and elem_def.min == 1
+        else:
+            return is_recommended
 
     def find_and_load_struct_def_from_path(
         self, struct_def: StructureDefinitionSnapshot, path: str
@@ -256,7 +289,7 @@ class ProfileDetailGenerator:
         fields.append(field)
 
     def filter_element(
-        self, element: ElementDefinition, element_map: Mapping[str, ElementDefinition]
+        self, element: ElementDefinition, profile: IndexedStructureDefinition
     ) -> bool:
         # TODO: This is a temporary workaround to allow both the postal code and the country information to be selected
         #       during data selection. To preserve context, selecting elements with simple data types which are not on
@@ -291,18 +324,7 @@ class ProfileDetailGenerator:
             )
             return True
 
-        if any(
-            element.id.endswith(field) or f"{field}." in element.id
-            for field in self.fields_to_exclude
-        ):
-            self.__logger.debug(f"Excluding: {element.id} as excluded field")
-            return True
-
-        if any(f"{field}" in element.id for field in self.field_trees_to_exclude):
-            self.__logger.debug(f"Excluding: {element.id} as part of field tree")
-            return True
-
-        parent_elem = element_map.get(element_id.rsplit(".", maxsplit=1)[0])
+        parent_elem = profile.get_element_by_id(element_id.rsplit(".", maxsplit=1)[0])
         # Exclude all sub-elements of primitive FHIR data types
         if not supports_type(element, FhirComplexDataType.EXTENSION) and (
             types := get_types_supported_by_element(parent_elem)
@@ -320,21 +342,12 @@ class ProfileDetailGenerator:
                 element.id
             )
 
-        if (
-            element.base.path.split(".")[0] in {"Resource", "DomainResource"}
-            and element.mustSupport is not None
-        ):
-            self.__logger.debug(
-                f"Excluding: {element.id} as base is Resource or DomainResource and not mustSupport"
-            )
-            return True
-
         # Do not allow sub elements (that are not a reference) of BackboneElement typed elements to be selected
         elem_id_split = element.id.rsplit(".", maxsplit=1)
         if len(elem_id_split) == 1:
             return False
-        parent_elem = element_map.get(elem_id_split[0])
-        elem = element_map.get(element.id)
+        parent_elem = profile.get_element_by_id(elem_id_split[0])
+        elem = profile.get_element_by_id(element.id)
         while parent_elem is not None:
             if supports_type(
                 parent_elem, FhirComplexDataType.BACKBONE_ELEMENT
@@ -343,7 +356,7 @@ class ProfileDetailGenerator:
             elem_id_split = parent_elem.id.rsplit(".", maxsplit=1)
             if len(elem_id_split) == 1:
                 return False
-            parent_elem = element_map.get(elem_id_split[0])
+            parent_elem = profile.get_element_by_id(elem_id_split[0])
 
         return False
 
@@ -773,7 +786,7 @@ class ProfileDetailGenerator:
                 element: ElementDefinition
                 field_id = element.id
 
-                if self.filter_element(element, source_elements_map):
+                if not self.is_field_included(element, struct_def):
                     continue
 
                 if "contentReference" in element:
@@ -812,15 +825,15 @@ class ProfileDetailGenerator:
                     )
                     element_type = "Reference" if supports_reference else field_type
 
-                is_recommended_field = self.check_at_least_one_in_elem_and_true(
-                    element, ["min"]
-                ) or self.check_at_least_one_in_elem_and_true(element, ["isModifier"])
+                # is_recommended_field = self.check_at_least_one_in_elem_and_true(
+                #    element, ["min"]
+                # ) or self.check_at_least_one_in_elem_and_true(element, ["isModifier"])
                 # FIXME: Temporary fix to make elements of type 'Reference' not recommended due to issues in the UI
                 #        except for references to the MII Medication profile
                 if supports_reference:
                     field_type = "Reference"
-                    if not ".medication" in field_id:
-                        is_recommended_field = False
+                #   if not ".medication" in field_id:
+                #        is_recommended_field = False
 
                 # FIXME: Currently this value will be hard-coded to `False` since requiring researchers to include some
                 #        fields that might not have some value to their research can unnecessarily complicate access to
@@ -831,8 +844,10 @@ class ProfileDetailGenerator:
 
                 # FIXME: Temporary fix to make elements of type 'Reference' not recommended due to issues in the UI
                 #        except for references to the MII Medication profile
-                if field_type == "Reference" and not ".medication" in field_id:
-                    is_recommended_field = False
+                # if field_type == "Reference" and not ".medication" in field_id:
+                #    is_recommended_field = False
+
+                is_recommended_field = self.is_field_recommended(element, struct_def)
 
                 name = self.get_name_from_id(element.id)
 
