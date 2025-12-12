@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+# [v3.9.3] - 2025-12-11
+
+## Changed
+
+- Change DSE field recommendation and filtering logic and make it configurable (#385 @paulolaup)
+
 # [v3.9.2] - 2025-11-18
 
 ## Added
