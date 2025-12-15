@@ -4,8 +4,10 @@ import os
 import json
 from pathlib import Path
 
-from typing import Union, Literal
+from typing import Union, Literal, Mapping, List, Any, Optional
 from urllib.parse import urlparse
+
+from fhir.resources.R4B.valueset import ValueSet
 
 from common.util.codec.json import JSONFhirOntoEncoder
 from common.util.fhir.package.manager import FirelyPackageManager
@@ -25,7 +27,7 @@ from cohort_selection_ontology.core.terminology.client import (
     remove_non_direct_ancestors,
 )
 from cohort_selection_ontology.model.tree_map import TreeMap, TermEntryNode
-from cohort_selection_ontology.model.ui_data import TermCode
+from cohort_selection_ontology.model.ui_data import TermCode, TranslationDisplayElement
 from common.util.log.functions import get_logger
 
 
@@ -64,7 +66,42 @@ def download_simplifier_packages(
     return manager
 
 
-def download_and_save_value_set(value_set_url, project: Project):
+def extend_terminology_display_mapping(
+    value_sets: List[Mapping[str, Any]], project: Project
+):
+    with (project.input.terminology / "terminology_systems.json").open(
+        mode="r", encoding="utf-8"
+    ) as f:
+        term_mapping_list = json.load(f)
+    term_mapping = {e.get("url"): e for e in term_mapping_list}
+    for vs in value_sets:
+        vs_url = vs.get("url")
+        if title := vs.get("title"):
+            original = title
+        elif name := vs.get("name"):
+            _logger.warning(
+                f"No title found for value set '{vs_url}' => Using name instead"
+            )
+            original = name
+        else:
+            _logger.warning(
+                f"No suitable display value found for value set '{vs_url}' => Skipping"
+            )
+            original = None
+        if original:
+            if entry := term_mapping.get(vs_url):
+               entry.get("display", {})["original"] = original
+            else:
+                term_mapping[vs_url] = {"url": vs_url, "display": {"original": original}}
+    with (project.output.terminology / "terminology_systems.json").open(
+        mode="w", encoding="utf-8"
+    ) as f:
+        json.dump(list(term_mapping.values()), f)
+
+
+def download_and_save_value_set(
+    value_set_url, project: Project
+) -> Optional[Mapping[str, Any]]:
     value_set_folder = project.output.dse.mkdirs("value-sets")
     client = FhirTerminologyClient.from_project(project)
 
@@ -81,8 +118,11 @@ def download_and_save_value_set(value_set_url, project: Project):
             value_set_folder / f"{value_set_name}.json", mode="w+", encoding="utf-8"
         ) as value_set_file:
             json.dump(value_set, value_set_file)
+
+        return value_set
     except ClientError as ce:
         _logger.warning(f"Failed to download value set '{value_set_url}' <- {ce}")
+        return None
 
 
 def download_all_value_sets(profile_details, project: Project):
@@ -93,8 +133,13 @@ def download_all_value_sets(profile_details, project: Project):
             for value_set_url in filter.valueSetUrls:
                 value_set_urls.add(value_set_url)
 
+    value_sets = []
     for value_set_url in list(value_set_urls):
-        download_and_save_value_set(value_set_url, project)
+        vs = download_and_save_value_set(value_set_url, project)
+        if vs:
+            value_sets.append(vs)
+
+    extend_terminology_display_mapping(value_sets, project)
 
 
 def generate_r_load_sql(profile_details):
