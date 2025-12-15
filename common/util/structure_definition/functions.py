@@ -22,7 +22,7 @@ from cohort_selection_ontology.model.ui_data import (
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS, ValueSet
 from common.exceptions.translation import MissingTranslationException
 from common.exceptions.typing import InvalidValueTypeException
-from common.model.structure_definition import (
+from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot,
     ProcessedElementResult,
 )

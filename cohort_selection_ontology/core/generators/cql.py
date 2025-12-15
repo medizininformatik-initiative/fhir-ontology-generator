@@ -27,7 +27,7 @@ from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaD
 from cohort_selection_ontology.model.ui_data import TermCode
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS
 from common.exceptions.typing import UnsupportedTypingException
-from common.model.structure_definition import (
+from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot,
     CQL_TYPES_TO_VALUE_TYPES,
 )
@@ -47,7 +47,7 @@ from common.util.structure_definition.functions import (
     get_term_code_by_id,
     is_element_in_snapshot,
     get_fixed_term_codes,
-    select_element_compatible_with_cql_operations
+    select_element_compatible_with_cql_operations,
 )
 
 
@@ -801,7 +801,9 @@ class CQLMappingGenerator(object):
         snapshot: StructureDefinitionSnapshot,
         card_type: LiteralString["min", "max"] = "max",
     ) -> SimpleCardinality:
-        return CQLMappingGenerator.__aggregate_cardinality_using_element(element, snapshot, card_type)
+        return CQLMappingGenerator.__aggregate_cardinality_using_element(
+            element, snapshot, card_type
+        )
 
     @staticmethod
     def __aggregate_cardinality_using_element(
@@ -817,10 +819,8 @@ class CQLMappingGenerator(object):
         :param card_type: Type of cardinality to aggregate (either 'mix' or 'max')
         :return: Aggregated cardinality stating whether an element can occur multiple times or not
         """
-        opt_element, _ = (
-            select_element_compatible_with_cql_operations(
-                element, snapshot
-            )
+        opt_element, _ = select_element_compatible_with_cql_operations(
+            element, snapshot
         )
         card = SimpleCardinality.from_fhir_cardinality(getattr(opt_element, card_type))
         opt_element_path = opt_element.path
@@ -830,16 +830,16 @@ class CQLMappingGenerator(object):
                 # End recursion since with the current enum members reaching this state leads to no further changes. An
                 # exception will be made if the element is a root element since at that level we always assume singleton
                 # occurrence (e.g. for paths like '<resource-type>')
-                print(f"{SimpleCardinality.SINGLE if is_root else card} at el: {element.id}")
+                print(
+                    f"{SimpleCardinality.SINGLE if is_root else card} at el: {element.id}"
+                )
                 return SimpleCardinality.SINGLE if is_root else card
             case _:
                 parent_element = get_parent_element(snapshot, element)
                 # when no slice
                 if opt_element_path == parent_element.id:
-                    opt_parent_el, _ = (
-                        select_element_compatible_with_cql_operations(
-                            parent_element, snapshot
-                        )
+                    opt_parent_el, _ = select_element_compatible_with_cql_operations(
+                        parent_element, snapshot
                     )
                     grand_parent_el = get_parent_element(snapshot, opt_parent_el)
                     if grand_parent_el is None and opt_element_path.count(".") == 0:

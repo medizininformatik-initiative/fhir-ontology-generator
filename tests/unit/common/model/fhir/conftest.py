@@ -1,5 +1,4 @@
 import functools
-import json
 import os.path
 from pathlib import Path
 
@@ -7,7 +6,8 @@ import pytest
 from fhir.resources.R4B.elementdefinition import ElementDefinition
 from fhir.resources.R4B.structuredefinition import StructureDefinition
 
-from common.model.structure_definition import StructureDefinitionSnapshot
+from common.exceptions import NotFoundError
+from common.model.fhir.structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.package.manager import FhirPackageManager
 from common.util.project import Project
 
@@ -22,7 +22,7 @@ def test_dir() -> Path:
 
 
 def _project() -> Project:
-    return Project(path=Path(os.path.dirname(__file__)))
+    return Project(path=Path(os.path.dirname(__file__)) / "test-project")
 
 
 @pytest.fixture(scope="session")
@@ -76,33 +76,32 @@ def elem_def(request, profile):
             )
 
 
-def __sample_snapshot_bioprobe_str() -> str:
-    with open(
-        os.path.join(__test_dir(), "testdata", "FDPG_Bioprobe-snapshot.json"),
-        "r",
-        encoding="UTF-8",
-    ) as f:
-        return f.read()
-
-
 @pytest.fixture(scope="session")
-def sample_snapshot_bioprobe_json() -> StructureDefinitionSnapshot:
-    return json.loads(__sample_snapshot_bioprobe_str())
-
-
-@pytest.fixture(scope="session")
-def sample_snapshot_bioprobe() -> StructureDefinitionSnapshot:
-    return StructureDefinitionSnapshot.model_validate_json(
-        __sample_snapshot_bioprobe_str()
-    )
-
-
-@pytest.fixture
-def project() -> Project:
-    # project_name = request.config.getoption("-p")
-    project_name = "fdpg-ontology"
-    if project_name is None:
-        raise ValueError(
-            "Command line option '--project' has to provided with a proper project name as its value"
+def sample_specimen_snapshot(
+    package_manager: FhirPackageManager,
+) -> StructureDefinitionSnapshot:
+    package_name = "de.medizininformatikinitiative.kerndatensatz.biobank"
+    profile_url = "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen"
+    if profile := package_manager.find(
+        package_pattern={"name": package_name},
+        index_pattern={"url": profile_url},
+    ):
+        return profile
+    else:
+        raise NotFoundError(
+            f"Could not find profile '{profile_url}' in package '{package_name}'"
         )
-    return Project(name=project_name)
+
+
+@pytest.fixture(scope="session")
+def sample_specimen_snapshot_json(
+    sample_specimen_snapshot: StructureDefinitionSnapshot,
+) -> dict:
+    return sample_specimen_snapshot.model_dump()
+
+
+@pytest.fixture(scope="session")
+def sample_specimen_snapshot_str(
+    sample_specimen_snapshot: StructureDefinitionSnapshot,
+) -> str:
+    return sample_specimen_snapshot.model_dump_json()

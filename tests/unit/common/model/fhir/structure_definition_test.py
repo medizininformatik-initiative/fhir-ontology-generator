@@ -11,7 +11,7 @@ from cohort_selection_ontology.model.ui_data import (
     TranslationDisplayElement,
     Translation,
 )
-from common.model.structure_definition import (
+from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot,
     ProcessedElementResult,
 )
@@ -47,39 +47,20 @@ from common.util.structure_definition.functions import (
 )
 def test_sds_get_element_by_id(
     search_term: str,
-    sample_snapshot_bioprobe: StructureDefinitionSnapshot,
-    sample_snapshot_bioprobe_json: dict,
+    sample_specimen_snapshot: StructureDefinitionSnapshot,
+    sample_specimen_snapshot_json: dict,
 ):
-    start = time.perf_counter_ns()
-    found_in_class: ElementDefinition | None = (
-        sample_snapshot_bioprobe.get_element_by_id(search_term)
+    found_in_model: ElementDefinition | None = (
+        sample_specimen_snapshot.get_element_by_id(search_term)
     )
-    result_class = time.perf_counter_ns() - start
 
-    found_in_snapshot: ElementDefinition | None = None
-
-    start = time.perf_counter_ns()
-    for element in sample_snapshot_bioprobe_json.get("snapshot").get("element"):
+    found_in_dict: ElementDefinition | None = None
+    for element in sample_specimen_snapshot_json.get("snapshot", {}).get("element", {}):
         if element.get("id") == search_term:
-            found_in_snapshot = ElementDefinition.model_validate_json(
-                json.dumps(element)
-            )
+            found_in_dict = ElementDefinition.model_validate_json(json.dumps(element))
             break
-    result_snapshot = time.perf_counter_ns() - start
 
-    print(f"\nSearchTerm: {search_term}")
-    print(
-        f"Found iterative: "
-        f"{found_in_snapshot.id if found_in_snapshot else found_in_snapshot }"
-        f"\t\t\t in {result_snapshot} ns"
-    )
-    print(
-        f"Found   indexed: "
-        f"{found_in_class.id if found_in_class else found_in_class}"
-        f"\t\t\t in {result_class} ns"
-    )
-
-    assert found_in_class == found_in_snapshot
+    assert found_in_model == found_in_dict
 
 
 @pytest.mark.parametrize(
@@ -93,60 +74,39 @@ def test_sds_get_element_by_id(
 )
 def test_sds_get_elements_by_path(
     search_term: str,
-    sample_snapshot_bioprobe: StructureDefinitionSnapshot,
-    sample_snapshot_bioprobe_json: dict,
+    sample_specimen_snapshot: StructureDefinitionSnapshot,
+    sample_specimen_snapshot_json: dict,
 ):
-    start = time.perf_counter_ns()
-    found_in_class: List[ElementDefinition] | None = (
-        sample_snapshot_bioprobe.get_element_by_path(search_term)
+    found_in_model: List[ElementDefinition] | None = (
+        sample_specimen_snapshot.get_element_by_path(search_term)
     )
-    result_class = time.perf_counter_ns() - start
 
-    found_in_snapshot: List[ElementDefinition] | None = None
-
-    start = time.perf_counter_ns()
-    for element in sample_snapshot_bioprobe_json.get("snapshot").get("element"):
+    found_in_dict: List[ElementDefinition] = []
+    for element in sample_specimen_snapshot_json.get("snapshot", {}).get("element", {}):
         if element.get("path") == search_term:
-            if found_in_snapshot is None:
-                found_in_snapshot = []
-            found_in_snapshot.append(
-                ElementDefinition.model_validate_json(json.dumps(element))
-            )
-    result_snapshot = time.perf_counter_ns() - start
+            found_in_dict.append(ElementDefinition.model_validate(element))
 
-    print(f"\nSearchTerm: {search_term}")
-    print(
-        f"Found iterative: "
-        f"{len(found_in_snapshot) if found_in_snapshot else found_in_snapshot}"
-        f"\t\t\t in {result_snapshot} ns"
-    )
-    print(
-        f"Found   indexed: "
-        f"{len(found_in_class) if found_in_class else found_in_class}"
-        f"\t\t\t in {result_class} ns"
-    )
-
-    assert found_in_class == found_in_snapshot
+    assert found_in_model == found_in_dict
 
 
 def test_sds_get_multiple_elements(
-    sample_snapshot_bioprobe: StructureDefinitionSnapshot, project: Project
+    sample_specimen_snapshot: StructureDefinitionSnapshot, project: Project
 ):
     chained_element_id = (
         "((Specimen.extension:festgestellteDiagnose).value[x]).code.coding:icd10-gm"
     )
     actual_result = get_element_defining_elements_with_source_snapshots(
-        sample_snapshot_bioprobe,
+        sample_specimen_snapshot,
         chained_element_id,
         "Bioprobe",
         project.input.cso.path / "modules",
     )
 
     p1 = ProcessedElementResult(
-        element=sample_snapshot_bioprobe.get_element_by_id(
+        element=sample_specimen_snapshot.get_element_by_id(
             "Specimen.extension:festgestellteDiagnose"
         ),
-        profile_snapshot=sample_snapshot_bioprobe,
+        profile_snapshot=sample_specimen_snapshot,
         module_dir=project.input.cso.path / "modules" / "Bioprobe",
         last_short_desc=None,
     )
@@ -187,7 +147,6 @@ def test_sds_get_multiple_elements(
 
 
 def test_get_parent_slice_id():
-
     assert (
         get_parent_slice_id("Observation.component:Diastolic.code.coding:sct")
         == "Observation.component:Diastolic.code.coding:sct"
@@ -300,7 +259,7 @@ def test_common_ancestor_id(
     ],
 )
 def test_extract_value_type(
-    sample_snapshot_bioprobe: StructureDefinitionSnapshot,
+    sample_specimen_snapshot: StructureDefinitionSnapshot,
     project: Project,
     attribute_id: str,
     module_dir_name: str,
@@ -308,10 +267,10 @@ def test_extract_value_type(
 ):
     modules_dir = project.input.cso.path / "modules"
     attribute_element = resolve_defining_id(
-        sample_snapshot_bioprobe, attribute_id, str(modules_dir), module_dir_name
+        sample_specimen_snapshot, attribute_id, str(modules_dir), module_dir_name
     )
     assert (
-        extract_value_type(attribute_element, sample_snapshot_bioprobe.name) == expected
+        extract_value_type(attribute_element, sample_specimen_snapshot.name) == expected
     )
 
 
@@ -388,9 +347,6 @@ def test_get_display_from_element_definition(
     default: str,
     expected_display: TranslationDisplayElement,
 ):
-
-    # element = sample_snapshot.get_element_by_id(element_id)
-
     assert get_display_from_element_definition(elem_def, default) == expected_display
 
 
@@ -440,7 +396,6 @@ def test_translate_element_to_fhir_path_expression(
     is_composite: bool,
     project: Project,
 ):
-
     modules_dir = project.input.cso.mkdirs("modules")
     elements = get_element_defining_elements(
         profile, element_id, module_dir_name, modules_dir
@@ -549,7 +504,7 @@ def test_select_element_compatible_with_cql_operations(
         == expected_card
     )
 
-    # something aint right here. see prameter list
+    # something ain't right here. see parameter list
     el_id, el_type = select_element_compatible_with_cql_operations(elem_def, profile)
 
     assert el_id.id == profile.get_element_by_id(expected_el).id
