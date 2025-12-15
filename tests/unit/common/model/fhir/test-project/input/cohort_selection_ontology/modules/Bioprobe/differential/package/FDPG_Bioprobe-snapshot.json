@@ -9063,6 +9063,15 @@
             "map": ".inboundRelationship[typeCode=SUBJ].source[classCode=OBS, moodCode=EVN, code=\"annotation\"].value"
           }
         ]
+      },
+      {
+        "id": "Specimen.type",
+        "path": "Specimen.type",
+        "base": {
+          "path": "Specimen.type",
+          "min": 0,
+          "max": "1"
+        }
       }
     ]
   },
