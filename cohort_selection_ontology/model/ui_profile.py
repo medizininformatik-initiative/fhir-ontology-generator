@@ -54,9 +54,9 @@ class ValueDefinition(BaseModel):
     def to_dict(self):
         data = self.model_dump()
         if self.referencedCriteriaSet:
-            data["referencedCriteriaSet"] = [x.url for x in self.referencedCriteriaSet]
+            data["referencedCriteriaSet"] = sorted([x.url for x in self.referencedCriteriaSet])
         if self.referencedValueSet:
-            data["referencedValueSet"] = [x.url for x in self.referencedValueSet]
+            data["referencedValueSet"] = sorted([x.url for x in self.referencedValueSet])
         return data
 
 

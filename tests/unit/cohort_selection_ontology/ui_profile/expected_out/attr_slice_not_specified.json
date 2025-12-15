@@ -1,0 +1,32 @@
+{
+    "type": "concept",
+    "referencedValueSet": [
+        "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/ValueSet/icd-o-3-topography",
+        "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/ValueSet/sct-body-structures"
+    ],
+    "allowedUnits": [],
+    "precision": 1,
+    "min": null,
+    "max": null,
+    "referencedCriteriaSet": [],
+    "optional": true,
+    "display": {
+        "original": "Code defined by a terminology system",
+        "translations": [
+            {
+                "language": "de-DE",
+                "value": ""
+            },
+            {
+                "language": "en-US",
+                "value": ""
+            }
+        ]
+    },
+    "attributeCode": {
+        "system": "http://hl7.org/fhir/StructureDefinition",
+        "code": "coding",
+        "display": "Code defined by a terminology system",
+        "version": null
+    }
+}
