@@ -18,7 +18,7 @@ from cohort_selection_ontology.model.tree_map import (
     TreeMap,
 )
 from cohort_selection_ontology.model.ui_data import TermCode
-from common.model.structure_definition import (
+from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot as StructureDefinition,
     StructureDefinitionSnapshot,
 )
