@@ -21,7 +21,7 @@ from requests import Request
 from requests.auth import AuthBase
 
 from common.exceptions import UnsupportedError
-from common.model.structure_definition import IndexedStructureDefinition
+from common.model.structure_definition import IndexedStructureDefinitionTA
 from common.util.codec.json import load_json
 from common.util.http.client import BaseClient
 from common.util.log.decorators import inject_logger
@@ -202,7 +202,9 @@ class FhirPackageManager(abc.ABC):
                         json_data = load_json(file_path, fail=True)
                         res_type = json_data.get("resourceType")
                         if res_type == "StructureDefinition":
-                            res = IndexedStructureDefinition.validate_python(json_data)
+                            res = IndexedStructureDefinitionTA.validate_python(
+                                json_data
+                            )
                         else:
                             model_class = fhir.resources.R4B.get_fhir_model_class(
                                 res_type

@@ -94,14 +94,13 @@ qualifiedIdentifier
         ;
 
 identifier
-        : IDENTIFIER
-        | DELIMITEDIDENTIFIER
-        | 'as'
-        | 'contains'
-        | 'in'
-        | 'is'
+        : IDENTIFIER                                //#unsliced
+        | DELIMITEDIDENTIFIER                       //#delimited
+        | 'as'                                      //#as
+        | 'contains'                                //#contains
+        | 'in'                                      //#in
+        | 'is'                                      //#is
         ;
-
 
 /****************************************************************
     Lexical rules
@@ -139,7 +138,7 @@ fragment TIMEZONEOFFSETFORMAT
 
 // Modified to support slices names
 IDENTIFIER
-        : ([A-Za-z] | '_')([A-Za-z0-9] | '_')*('[x]')?(':'([a-zA-Z0-9] | '/' | '\\' | '-' | '_' | '[' | ']' '@')+)?
+        : ([A-Za-z] | '_')([A-Za-z0-9] | '_')*('[x]')? (':'([a-zA-Z0-9] | '/' | '\\' | '-' | '_' | '[' | ']' '@')+)?
         ;
 
 DELIMITEDIDENTIFIER

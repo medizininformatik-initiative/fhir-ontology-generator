@@ -1,3 +1,5 @@
+from itertools import takewhile
+from operator import eq
 from typing import Optional
 
 from antlr4.ParserRuleContext import ParserRuleContext
@@ -5,6 +7,7 @@ from antlr4.tree.Tree import TerminalNode
 from pydantic import conlist
 
 from common.util.fhirpath import fhirpathParser, RULE_NAMES, get_rule_name
+from common.util.functions import first
 
 
 def unsupported_fhirpath_expr(
@@ -117,3 +120,15 @@ def join_fhirpath(*paths: str | None) -> str:
         filter(lambda x: x is not None and len(x) > 0 and x != "$this", paths)
     )
     return string if len(string) > 0 else "$this"
+
+
+def find_common_root(a: str, b: str) -> Optional[str]:
+    """
+    Returns the common root path of the given FHIRPath string parameters `a` and `b`
+
+    :param a: FHIRPath string
+    :param b: FHIRPath string
+    :return: String representing common root or `None` if there is none
+    """
+    root = list(map(first, takewhile(eq, zip(a.split("."), b.split(".")))))
+    return ".".join(root) if root else None

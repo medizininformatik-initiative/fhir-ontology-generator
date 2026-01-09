@@ -22,7 +22,7 @@ from common.exceptions.translation import MissingTranslationException
 from common.exceptions.typing import InvalidValueTypeException
 from common.model.structure_definition import (
     StructureDefinitionSnapshot,
-    IndexedStructureDefinition,
+    IndexedStructureDefinitionTA,
 )
 from common.util.collections.functions import flatten
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS, ValueSet
@@ -179,7 +179,7 @@ def structure_definition_from_path(path: Path) -> StructureDefinitionSnapshot:
 
 def get_profiles_with_base_definition(
     modules_dir_path: str | Path, base_definition: str
-) -> Generator[Tuple[IndexedStructureDefinition, str], None, None]:
+) -> Generator[Tuple[IndexedStructureDefinitionTA, str], None, None]:
     """
     Returns the profiles that have the given base definition
     :param modules_dir_path: Path to the modules directory
@@ -198,7 +198,7 @@ def get_profiles_with_base_definition(
         )
         for file in files:
             with open(file, mode="r", encoding="utf8") as f:
-                profile = IndexedStructureDefinition.validate_json(f.read())
+                profile = IndexedStructureDefinitionTA.validate_json(f.read())
                 if profile.baseDefinition == base_definition:
                     yield profile, module_dir.path
                 elif profile.type == base_definition.split("/")[-1]:

@@ -7,7 +7,7 @@ from pathlib import Path
 
 from typing import List, TypeVar, Any, Mapping
 
-from common.util.collections.functions import first
+from common.util.functions import first
 from common.util.fhir.bundle import create_bundle, BundleType
 from common.util.http.terminology.client import FhirTerminologyClient
 from common.util.log.functions import get_class_logger, get_logger
@@ -32,11 +32,11 @@ def extract_designation(parameters: dict, language: str, fuzzy=True) -> str | No
         part = designation.get("part")
         if part:
             # Check if language code is present
-            if not (lang := first(lambda p: p.get("name") == "language", part)):
+            if not (lang := first(part, lambda p: p.get("name") == "language")):
                 continue
             designation_language = lang.get("valueCode")
             # Check if usage code is present
-            if not (use := first(lambda p: p.get("name") == "use", part)):
+            if not (use := first(part, lambda p: p.get("name") == "use")):
                 continue
             use_code = use.get("valueCoding", {}).get("code")
             matches = (
@@ -47,7 +47,7 @@ def extract_designation(parameters: dict, language: str, fuzzy=True) -> str | No
             if matches and (
                 use_code == "display" or use_code == "preferredForLanguage"
             ):
-                if not (value := first(lambda p: p.get("name") == "value", part)):
+                if not (value := first(part, lambda p: p.get("name") == "value")):
                     continue
                 return value.get("valueString")
     return None

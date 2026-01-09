@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 import json
+import re
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Set, Optional, List, Annotated, Union, Any
-from typing_extensions import Self
+from functools import cached_property
+from typing import Set, Optional, List, Annotated, Union, Any, Callable
+
+from typing_extensions import Self, Literal
 
 from fhir.resources.R4B.element import Element
-from pydantic import BaseModel, Field, conlist
+from pydantic import BaseModel, Field, conlist, field_validator, model_validator
+from urllib3.util.ssl_match_hostname import match_hostname
 
 from cohort_selection_ontology.model.mapping import (
     HasSimpleCardinality,
@@ -19,6 +24,7 @@ from common.typing.cql import RetrievableType
 from common.typing.fhir import FHIRPath
 from common.util.codec.json import JSONFhirOntoEncoder
 from common.util.collections.functions import flatten
+from common.util.fhirpath.functions import find_common_root
 
 
 class FixedCQLCriteria(HasSimpleCardinality):
@@ -129,7 +135,27 @@ class CQLMapping:
         return hash(self.key)
 
 
-class AttributeComponent(SerializeType):
+_THIS_PATH_REGEX = re.compile(r"\.?\$this\.?")
+
+
+class Component(BaseModel, ABC):
+    path: Annotated[str, Field(default="$this", min_length=1)]
+
+    @field_validator("path", mode="after")
+    @classmethod
+    def condense_path(cls, value: str):
+        return value if value == "$this" else _THIS_PATH_REGEX.sub("", value)
+
+    @cached_property
+    def abs_path(self):
+        return (f"{self.parent.abs_path}." if self.parent else "") + self.path
+
+    @abstractmethod
+    def __add__(self, other: Component) -> Component:
+        pass
+
+
+class AttributeComponent(Component):
     """
     Translates to an expression in a CQL where clause
     """
@@ -138,10 +164,15 @@ class AttributeComponent(SerializeType):
         str,
         Field(description="FHIR datatype of the targeted element"),
     ]
-    path: Annotated[str, Field(description="Relative path to the targeted element")]
     cardinality: Annotated[
         SimpleCardinality,
         Field(description="Aggregated cardinality of the targeted element"),
+    ]
+    operator: Annotated[
+        Literal["=", "!=", "~", "!~"],
+        Field(
+            description="Comparison operator used to compare values with", default="eq"
+        ),
     ]
     values: Annotated[
         list[Union[str, bool, int, float, Element]],
@@ -151,53 +182,130 @@ class AttributeComponent(SerializeType):
         ),
     ]
 
+    def merge(self, c: Component):
+        match c:
+            case AttributeComponent() as ac:
+                root = find_common_root(self.path, ac.path)
+                prefix = root + "."
+                return ContextGroup(
+                    path=root if root else "$this",
+                    components=[
+                        self.model_copy(
+                            update={"path": self.path.removeprefix(prefix)}
+                        ),
+                        c.model_copy(update={"path": self.path.removeprefix(prefix)}),
+                    ],
+                )
+            case ContextGroup() as cg:
+                return cg.merge(self)
+            case _:
+                raise ValueError(f"Cannot handle parameters of type '{type(c)}'")
 
-class ContextGroup(SerializeType):
+    def __add__(self, other: Component) -> Component:
+        match other:
+            case ContextGroup() as cg:
+                return ContextGroup(
+                    path="$this",
+                    components=[self, *(cg.components if cg.path == "$this" else cg)],
+                )
+            case _:
+                return ContextGroup(path="$this", components=[self, other])
+
+
+class ContextGroup(Component):
     """
     Translates to a CQL source clause
     """
 
-    path: Annotated[
-        str,
-        Field(
-            description="Relative path to the target element selected in an CQL source clause"
-        ),
-    ]
     components: Annotated[
-        conlist(Union[ContextGroup, AttributeComponent], min_length=1),
+        List[Component],
         Field(
             description="List of additional context groups and attribute components evaluated in the context of the "
             "selected element"
         ),
     ]
 
+    @field_validator("components", mode="after")
     @classmethod
-    def model_construct(
-        cls, _fields_set: set[str] | None = None, **values: Any
-    ) -> Self:
+    def condense_components(cls, value: List[Component]):
         # Remove ContextGroup nodes with empty or unchanging (e.g. '$this') path from tree
-        if "components" in values:
-            values["components"] = list(
-                flatten(
-                    [
-                        (
-                            c.components
-                            if isinstance(c, ContextGroup)
-                            and (not c.path or c.path == "$this")
-                            else c
-                        )
-                        for c in values["components"]
-                    ]
-                )
+        # The parent references will be updated later by the corresponding validator that is run after as it is a model
+        # validator and has mode 'after'
+        value = list(
+            flatten(
+                [
+                    (
+                        c.components
+                        if isinstance(c, ContextGroup)
+                        and (not c.path or c.path == "$this")
+                        else c
+                    )
+                    for c in value
+                ]
             )
-        return super().model_construct(_fields_set, **values)
+        )
+        return value
+
+    @model_validator(mode="after")
+    def update_parents(self) -> Self:
+        for c in self.components:
+            c.parent = self
+        return self
+
+    def map(self, f: Callable[[Component], Component]) -> Self:
+        components = []
+        for c in self.components:
+            r = f(c)
+            r.parent = self
+            components.append(r)
+        self.components = components
+        return self
+
+    def merge(self, c: Component) -> Self:
+        for idx, contained in enumerate(self.components):
+            if root := find_common_root(c.path, contained.path):
+                self.components[idx] = contained.merge(
+                    c.model_copy(update={"path": c.path.removeprefix(root + ".")})
+                )
+                return self
+        self.components.append(c)
+        return self
+
+    def append(self, c: Component) -> Self:
+        if isinstance(c, ContextGroup) and c.path == "$this":
+            for cc in c.componets:
+                cc.parent = self
+            self.components.extend(c.componets)
+        else:
+            c.parent = self
+            self.components.append(c)
+        return self
+
+    def and_then(self, *cs: Component) -> Component:
+        match cs:
+            case []:
+                return self
+            case [x]:
+                if self.path == "$this":
+                    return x
+                else:
+                    x.path = f"{self.path}.{x.path}"
+            case _:
+                self.components.extend(cs)
+                return self
+
+    def __add__(self, other: Component) -> Component:
+        components = [*self.components] if self.path == "$this" else [self]
+        if isinstance(other, ContextGroup) and other.path == "$this":
+            components.extend(other.components)
+        return ContextGroup(
+            path="$this",
+            components=components
+        )
 
 
 class ReferenceGroup(ContextGroup):
     type: RetrievableType
-
-
-Component = ContextGroup | AttributeComponent
 
 
 class Attribute(BaseModel):

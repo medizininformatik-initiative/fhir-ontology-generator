@@ -5,6 +5,7 @@ from os import PathLike
 from typing import Optional, Annotated, Union, Tuple, List
 
 from antlr4.ParserRuleContext import ParserRuleContext
+from antlr4.tree.Tree import ParseTreeVisitor
 from fhir.resources.R4B.coding import Coding
 from fhir.resources.R4B.elementdefinition import ElementDefinition
 from fhir.resources.R4B.period import Period
@@ -27,6 +28,7 @@ from common.model.structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.enums import FhirComplexDataType, FhirPrimitiveDataType
 from common.util.fhir.fhirpath import fhirpath_filter_for_slice
 from common.util.fhirpath import fhirpathParser, parse_expr
+from common.util.fhirpath.fhirpathVisitor import fhirpathVisitor
 from common.util.fhirpath.functions import (
     unsupported_fhirpath_expr,
     invalid_fhirpath_expr,
@@ -41,7 +43,8 @@ from common.util.project import Project
 from common.util.structure_definition.functions import (
     get_types_supported_by_element,
     get_profiles_with_base_definition,
-    get_element_chain, get_slice_name,
+    get_element_chain,
+    get_slice_name,
 )
 from common.util.wrapper import dotdict
 
@@ -100,7 +103,12 @@ class AttributeResolutionContext:
     def __init__(self, project: Project):
         self.__project = project
 
-    def resolve(self, attr_defining_expr: str, profile: str | StructureDefinitionSnapshot, module: str) -> Component:
+    def resolve(
+        self,
+        attr_defining_expr: str,
+        profile: str | StructureDefinitionSnapshot,
+        module: str,
+    ) -> Component:
         """
         Resolves the provided attribute defining (FHIRPath) expression into an attribute component tree
 
@@ -110,11 +118,13 @@ class AttributeResolutionContext:
         :return: Attribute component tree
         """
         if isinstance(profile, str):
-            profile = self.__project.package_manager.find(index_pattern={"url": profile})
+            profile = self.__project.package_manager.find(
+                index_pattern={"url": profile}
+            )
         return self._get_attribute_tree(attr_defining_expr, profile, module)
 
     def _get_components_from_invocation_expression(
-            self,
+        self,
         expr: fhirpathParser.InvocationExpressionContext,
         component: Optional[ComponentDict] = None,
     ) -> ComponentDict:
@@ -149,7 +159,8 @@ class AttributeResolutionContext:
             )
 
     def _get_components_from_equality_expression(
-        self, expr: fhirpathParser.EqualityExpressionContext,
+        self,
+        expr: fhirpathParser.EqualityExpressionContext,
     ) -> ComponentDict:
         term_expr: fhirpathParser.TermExpressionContext = expr.getChild(2)
         attr_component = dotdict(
@@ -166,7 +177,7 @@ class AttributeResolutionContext:
         return self._get_component_tree(expr.getChild(0), attr_component)
 
     def _get_components_from_and_expression(
-            self,
+        self,
         expr: fhirpathParser.AndExpressionContext,
     ) -> ContextGroupDict:
         right = self._get_component_tree(expr.getChild(2))
@@ -183,9 +194,9 @@ class AttributeResolutionContext:
             }
         )
 
-
     def _get_components_from_function_parameters(
-        self, expr: fhirpathParser.ParamListContext | None,
+        self,
+        expr: fhirpathParser.ParamListContext | None,
     ) -> list[ComponentDict]:
         if expr is None:
             return []
@@ -204,12 +215,12 @@ class AttributeResolutionContext:
                 return [self._get_components_from_invocation_expression(inv_expr)]
             case _ as c:
                 raise unsupported_fhirpath_expr(
-                    c, ["and expression", "equality expression", "invocation expression"]
+                    c,
+                    ["and expression", "equality expression", "invocation expression"],
                 )
 
-
     def _get_components_from_function(
-            self,
+        self,
         expr: fhirpathParser.FunctionInvocationContext,
         component: Optional[ComponentDict] = None,
     ) -> ComponentDict:
@@ -229,7 +240,9 @@ class AttributeResolutionContext:
                 #        func_expr,
                 #        "Function 'where' should not terminate an expression",
                 #    )
-                cs = self._get_components_from_function_parameters(func_expr.paramList())
+                cs = self._get_components_from_function_parameters(
+                    func_expr.paramList()
+                )
                 cs.append(component)
                 component = dotdict(
                     {
@@ -245,7 +258,9 @@ class AttributeResolutionContext:
                         "Function 'exists' returns a boolean value and thus should "
                         "terminate the expression",
                     )
-                match self._get_components_from_function_parameters(func_expr.paramList()):
+                match self._get_components_from_function_parameters(
+                    func_expr.paramList()
+                ):
                     case [c]:
                         component = c
                     case _ as cs:
@@ -317,7 +332,6 @@ class AttributeResolutionContext:
         # return _get_component_tree(expr.getChild(0), component)
         return component
 
-
     def _get_components_from_term_expression(
         self,
         expr: fhirpathParser.TermExpressionContext,
@@ -340,13 +354,14 @@ class AttributeResolutionContext:
                         }
                     )
                 component["path"] = (
-                    f"{symbol}.{component.path}" if component.path is not None else symbol
+                    f"{symbol}.{component.path}"
+                    if component.path is not None
+                    else symbol
                 )
         return component
 
-
     def _enrich_reference_typed_tree(
-            self,
+        self,
         tree: ReferenceGroupDict,
         element: ElementDefinition,
         module: str,
@@ -387,7 +402,6 @@ class AttributeResolutionContext:
                 f"[expected=1, actual={len(target_profiles)}]"
             )
 
-
     def _enrich_coding_typed_tree(
         self, tree: ContextGroupDict, chain: ElementChain
     ) -> AttributeComponent:
@@ -411,7 +425,6 @@ class AttributeResolutionContext:
             values=[coding],
         )
 
-
     def _enrich_quantity_tree(
         self, tree: ContextGroupDict, chain: ElementChain
     ) -> AttributeComponent:
@@ -433,7 +446,6 @@ class AttributeResolutionContext:
             values=[quantity],
         )
 
-
     def _enrich_literal_quantity_tree(
         self, tree: AttributeComponentDict, chain: ElementChain
     ) -> AttributeComponent:
@@ -454,7 +466,6 @@ class AttributeResolutionContext:
             values=[quantity] if quantity else [],
         )
 
-
     def _parse_temporal_literal(
         self, literal: str, fhir_type: FhirPrimitiveDataType
     ) -> datetime.time | datetime.datetime | datetime.date:
@@ -468,7 +479,6 @@ class AttributeResolutionContext:
                 return datetime.date.fromisoformat(v)
             case _:
                 raise ValueError(f"Type '{fhir_type}' is not a FHIR temporal type")
-
 
     def _enrich_period_tree(
         self, tree: ContextGroupDict, chain: ElementChain
@@ -495,9 +505,8 @@ class AttributeResolutionContext:
             values=[period],
         )
 
-
     def _enrich_reference_typed_attribute(
-            self,
+        self,
         tree: AttributeComponentDict,
         chain: ElementChain,
         module: str,
@@ -526,7 +535,6 @@ class AttributeResolutionContext:
                 f"Element '{element.get('id')}' does not support type 'Reference' or target profiles"
             )
 
-
     def _enrich_coding_typed_attribute(self, chain: ElementChain) -> AttributeComponent:
         snapshot, element = chain[-1]
         (compatible_element, _) = select_element_compatible_with_cql_operations(
@@ -540,9 +548,8 @@ class AttributeResolutionContext:
             values=[],
         )
 
-
     def _enrich_primitive_typed_tree(
-            self,
+        self,
         tree: AttributeComponentDict,
         chain: ElementChain,
         datatype: FhirPrimitiveDataType,
@@ -565,7 +572,8 @@ class AttributeResolutionContext:
                 | FhirPrimitiveDataType.INSTANT
             ):
                 values = [
-                    self._parse_temporal_literal(get_symbol(c), datatype) for c in tree["values"]
+                    self._parse_temporal_literal(get_symbol(c), datatype)
+                    for c in tree["values"]
                 ]
             case _:
                 values = [get_symbol(c) for c in tree["values"]]
@@ -575,7 +583,6 @@ class AttributeResolutionContext:
             cardinality=aggregate_cardinality_of_element_chain(chain),
             values=values,
         )
-
 
     def _get_component_tree(
         self, expr: ParserRuleContext, component: Optional[ComponentDict] = None
@@ -609,9 +616,8 @@ class AttributeResolutionContext:
                     ],
                 )
 
-
     def _expand_slices(
-            self,
+        self,
         tree: Component,
         snapshot: StructureDefinitionSnapshot,
         module: str,
@@ -639,7 +645,6 @@ class AttributeResolutionContext:
                     )
         return leaf
 
-
     def _enrich_tree_with_types_and_values(
         self,
         tree: ComponentDict,
@@ -659,10 +664,10 @@ class AttributeResolutionContext:
         :return: Enriched profile tree
         """
         base_path = tree.path if not _parent_path else f"{_parent_path}.{tree.path}"
-        #modules_dir_path = project.input.cso / "modules"
-        #element = get_element_defining_elements(
+        # modules_dir_path = project.input.cso / "modules"
+        # element = get_element_defining_elements(
         #    profile_snapshot, base_path, module, modules_dir_path
-        #)[-1]
+        # )[-1]
         element = profile_snapshot.get_element_by_id(base_path)
         chain = get_element_chain(base_path, profile_snapshot, module, self.__project)
         types = get_types_supported_by_element(element)
@@ -719,12 +724,11 @@ class AttributeResolutionContext:
                 f"Element '{element.id}' supports {'multiple' if types else 'no'} types which is currently not supported"
             )
 
-
     def _get_attribute_tree(
-            self,
+        self,
         attribute_defining_id: str,
         snapshot: StructureDefinitionSnapshot,
-        module: PathLike[str] | str
+        module: PathLike[str] | str,
     ) -> ContextGroup | AttributeComponent:
         """
         Parses the provided attribute defining ID and generates its associated component tree representation

@@ -1,7 +1,7 @@
 import abc
 from functools import cached_property, reduce
 from itertools import groupby
-from typing import Mapping, List, Optional, ClassVar, Annotated, Union
+from typing import Mapping, List, Optional, ClassVar, Annotated, Union, Literal
 
 from fhir.resources.R4B.elementdefinition import (
     ElementDefinition,
@@ -10,6 +10,7 @@ from fhir.resources.R4B.structuredefinition import StructureDefinition
 from pydantic import computed_field, PrivateAttr, TypeAdapter, Tag, Field, Discriminator
 
 from common.util.log.functions import get_class_logger
+from common.util.structure_definition.functions import get_parent_element
 
 
 class AbstractIndexedStructureDefinition(abc.ABC, StructureDefinition):
@@ -21,7 +22,7 @@ class AbstractIndexedStructureDefinition(abc.ABC, StructureDefinition):
         idx_field_value = reduce(
             lambda acc, field_name: getattr(acc, field_name), path_components, self
         )
-        self.__indexed_field = idx_field_value
+        self.__indexed_field: List[ElementDefinition] = idx_field_value
 
     def __init__(self, **kwargs):
         indexed_field_path = kwargs.pop("__indexed_field_path")
@@ -63,6 +64,50 @@ class AbstractIndexedStructureDefinition(abc.ABC, StructureDefinition):
         """
         return self.__elements_by_path.get(path)
 
+    def get_aggregated_max_cardinality(self, element_id: str) -> int | Literal["*"]:
+        """
+        Finds the aggregated max cardinality of an element (element definition) matching the ID
+
+        :param element_id: ID of the element definition
+        :return: Aggregated max cardinality
+        """
+        elem_def = self.get_element_by_id(element_id)
+        if not elem_def:
+            return 0
+        elif elem_def.max == "*":
+            return "*"
+        else:
+            p_max = self.get_aggregated_max_cardinality(elem_def.path.rsplit(".", 1)[0])
+            return "*" if p_max == "*" else int(elem_def.max) * p_max
+
+    def get_aggregated_min_cardinality(self, element_id: str) -> int:
+        """
+        Finds the aggregated min cardinality of an element (element definition) matching the ID
+
+        :param element_id: ID of the element definition
+        :return: Aggregated min cardinality
+        """
+        elem_def = self.get_element_by_id(element_id)
+        if not elem_def:
+            return 0
+        elif elem_def.min == 0:
+            return 0
+        else:
+            p_min = self.get_aggregated_min_cardinality(elem_def.path.rsplit(".", 1)[0])
+            return 0 if p_min == 0 else elem_def.min * p_min
+
+    def get_aggregated_cardinality(self, element_id: str) -> (int, str):
+        """
+        Finds the aggregated cardinality of an element (element definition) matching the ID
+
+        :param element_id: ID of the element definition
+        :return: Tuple containing the aggregated min and max cardinalities
+        """
+        return (
+            self.get_aggregated_min_cardinality(element_id),
+            str(self.get_aggregated_max_cardinality(element_id)),
+        )
+
 
 class StructureDefinitionDifferential(AbstractIndexedStructureDefinition):
     def __init__(self, /, **kwargs):
@@ -96,7 +141,7 @@ def _idx_struct_def_discriminator_value(v):
     return "snapshot" if is_snapshot else "differential"
 
 
-IndexedStructureDefinition = TypeAdapter(
+IndexedStructureDefinitionTA = TypeAdapter(
     Annotated[
         Union[
             Annotated[StructureDefinitionDifferential, Tag("differential")],
@@ -105,3 +150,11 @@ IndexedStructureDefinition = TypeAdapter(
         Field(discriminator=Discriminator(_idx_struct_def_discriminator_value)),
     ]
 )
+
+IndexedStructureDefinition = Annotated[
+    Union[
+        Annotated[StructureDefinitionDifferential, Tag("differential")],
+        Annotated[StructureDefinitionSnapshot, Tag("snapshot")],
+    ],
+    Field(discriminator=Discriminator(_idx_struct_def_discriminator_value)),
+]
