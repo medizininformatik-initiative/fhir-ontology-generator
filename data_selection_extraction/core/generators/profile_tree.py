@@ -17,7 +17,7 @@ from cohort_selection_ontology.model.ui_data import (
     Translation,
 )
 from common.model.fhir.structure_definition import IndexedStructureDefinition
-from common.model.structure_definition import StructureDefinitionSnapshot
+from common.model.fhir.structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.enums import FhirPrimitiveDataType, FhirComplexDataType
 from common.util.log.functions import get_class_logger
 

@@ -4,17 +4,18 @@ from typing import List
 
 import pytest
 from fhir.resources.R4B.elementdefinition import ElementDefinition
+from fhir.resources.R4B.structuredefinition import StructureDefinition
 from pytest_lazy_fixtures import lf
 
 from cohort_selection_ontology.model.ui_data import (
     TranslationDisplayElement,
     Translation,
 )
+from common.util.log.functions import get_logger
 from common.util.structure_definition.functions import (
     extract_reference_type,
     get_element_defining_elements,
     get_element_defining_elements_with_source_snapshots,
-    resolve_defining_id,
     extract_value_type,
     get_display_from_element_definition,
     get_common_ancestor_id,
@@ -24,14 +25,14 @@ from common.util.structure_definition.functions import (
     translate_element_to_fhir_path_expression,
     find_polymorphic_value,
 )
-from tests.unit.StructureDefinitionSnapshot_test.conftest import (
-    sample_snapshot_bioprobe,
-)
-from common.model.structure_definition import (
+from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot,
     ProcessedElementResult,
 )
 from common.util.project import Project
+
+
+_logger = get_logger(__name__)
 
 
 @pytest.mark.parametrize(
@@ -68,13 +69,11 @@ def test_sds_get_element_by_id(
             break
     result_snapshot = time.perf_counter_ns() - start
 
-    print(f"\nSearchTerm: {search_term}")
-    print(
+    _logger.info(
+        f"\nSearchTerm: {search_term}\n"
         f"Found iterative: "
         f"{found_in_snapshot.id if found_in_snapshot else found_in_snapshot }"
         f"\t\t\t in {result_snapshot} ns"
-    )
-    print(
         f"Found   indexed: "
         f"{found_in_class.id if found_in_class else found_in_class}"
         f"\t\t\t in {result_class} ns"
@@ -115,13 +114,11 @@ def test_sds_get_elements_by_path(
             )
     result_snapshot = time.perf_counter_ns() - start
 
-    print(f"\nSearchTerm: {search_term}")
-    print(
+    _logger.info(
+        f"\nSearchTerm: {search_term}\n"
         f"Found iterative: "
         f"{len(found_in_snapshot) if found_in_snapshot else found_in_snapshot}"
         f"\t\t\t in {result_snapshot} ns"
-    )
-    print(
         f"Found   indexed: "
         f"{len(found_in_class) if found_in_class else found_in_class}"
         f"\t\t\t in {result_class} ns"
@@ -131,7 +128,7 @@ def test_sds_get_elements_by_path(
 
 
 def test_sds_get_multiple_elements(
-    sample_snapshot_bioprobe: StructureDefinitionSnapshot, project: Project
+    sample_snapshot_bioprobe: StructureDefinitionSnapshot, fdpg_project: Project
 ):
     chained_element_id = (
         "((Specimen.extension:festgestellteDiagnose).value[x]).code.coding:icd10-gm"
@@ -140,7 +137,7 @@ def test_sds_get_multiple_elements(
         sample_snapshot_bioprobe,
         chained_element_id,
         "Bioprobe",
-        project.input.cso.path / "modules",
+        fdpg_project.input.cso.path / "modules",
     )
 
     p1 = ProcessedElementResult(
@@ -148,12 +145,12 @@ def test_sds_get_multiple_elements(
             "Specimen.extension:festgestellteDiagnose"
         ),
         profile_snapshot=sample_snapshot_bioprobe,
-        module_dir=project.input.cso.path / "modules" / "Bioprobe",
+        module_dir=fdpg_project.input.cso.path / "modules" / "Bioprobe",
         last_short_desc=None,
     )
 
     p2_snap = structure_definition_from_path(
-        project.input.cso.path
+        fdpg_project.input.cso.path
         / "modules"
         / "Bioprobe"
         / "differential"
@@ -164,11 +161,11 @@ def test_sds_get_multiple_elements(
     p2 = ProcessedElementResult(
         element=p2_snap.get_element_by_id("Extension.value[x]"),
         profile_snapshot=p2_snap,
-        module_dir=project.input.cso.path / "modules" / "Bioprobe",
+        module_dir=fdpg_project.input.cso.path / "modules" / "Bioprobe",
         last_short_desc=None,
     )
     p3_snap = structure_definition_from_path(
-        project.input.cso.path
+        fdpg_project.input.cso.path
         / "modules"
         / "Diagnose"
         / "differential"
@@ -178,7 +175,7 @@ def test_sds_get_multiple_elements(
     p3 = ProcessedElementResult(
         element=p3_snap.get_element_by_id("Condition.code.coding:icd10-gm"),
         profile_snapshot=p3_snap,
-        module_dir=project.input.cso.path / "modules" / "Diagnose",
+        module_dir=fdpg_project.input.cso.path / "modules" / "Diagnose",
         last_short_desc=None,
     )
 
@@ -286,34 +283,28 @@ def test_common_ancestor_id(
 
 
 @pytest.mark.parametrize(
-    "attribute_id, module_dir_name, expected",
+    "profile, elem_def, expected",
     [
         (
+            "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
             "Specimen.collection.bodySite.coding:icd-o-3",
-            "Bioprobe",
             "Coding",
         ),
         (
-            "((Specimen.extension:festgestellteDiagnose).value[x]).code.coding:icd10-gm",
-            "Bioprobe",
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose",
+            "Condition.code.coding:icd10-gm",
             "Coding",
         ),
     ],
+    indirect=["profile", "elem_def"],
 )
 def test_extract_value_type(
-    sample_snapshot_bioprobe: StructureDefinitionSnapshot,
-    project: Project,
-    attribute_id: str,
-    module_dir_name: str,
+    profile: StructureDefinition,
+    elem_def: ElementDefinition,
     expected: str,
+    fdpg_project: Project,
 ):
-    modules_dir = project.input.cso.path / "modules"
-    attribute_element = resolve_defining_id(
-        sample_snapshot_bioprobe, attribute_id, str(modules_dir), module_dir_name
-    )
-    assert (
-        extract_value_type(attribute_element, sample_snapshot_bioprobe.name) == expected
-    )
+    assert extract_value_type(elem_def, profile.name) == expected
 
 
 @pytest.mark.parametrize(
@@ -328,14 +319,14 @@ def test_extract_value_type(
 )
 def test_extract_reference_type(
     sample_snapshot: StructureDefinitionSnapshot,
-    project: Project,
+    fdpg_project: Project,
     value_defining_id: str,
     expected: str,
 ):
-    modules_dir = project.input.cso.path / "modules"
+    modules_dir = fdpg_project.input.cso.path / "modules"
 
     elements = get_element_defining_elements(
-        sample_snapshot, value_defining_id, sample_snapshot.name, modules_dir
+        sample_snapshot, value_defining_id, "Bioprobe", modules_dir
     )
 
     found_reference_type = ""
@@ -434,10 +425,10 @@ def test_translate_element_to_fhir_path_expression(
     module_dir_name: str,
     expected: List[str],
     is_composite: bool,
-    project: Project,
+    fdpg_project: Project,
 ):
 
-    modules_dir = project.input.cso.mkdirs("modules")
+    modules_dir = fdpg_project.input.cso.mkdirs("modules")
     elements = get_element_defining_elements(
         sample_snapshot, element_id, module_dir_name, modules_dir
     )

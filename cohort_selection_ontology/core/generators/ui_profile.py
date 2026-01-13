@@ -13,7 +13,7 @@ from cohort_selection_ontology.core.terminology.client import (
 from cohort_selection_ontology.core.resolvers.querying_metadata import (
     ResourceQueryingMetaDataResolver,
 )
-from common.model.structure_definition import (
+from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot,
     FHIR_TYPES_TO_VALUE_TYPES,
 )

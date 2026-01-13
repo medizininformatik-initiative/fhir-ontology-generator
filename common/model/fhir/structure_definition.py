@@ -1,11 +1,37 @@
 import abc
-from functools import reduce, cached_property
+import functools
+import json
+from collections import namedtuple
+from functools import cached_property, reduce
+from importlib import resources
 from itertools import groupby
-from typing import List, Mapping, Optional, Annotated, Union
+from typing import Mapping, List, Optional, Annotated, Union, Literal, Tuple
 
-from fhir.resources.R4B.elementdefinition import ElementDefinition
+import cachetools
+from fhir.resources.R4B.elementdefinition import (
+    ElementDefinition,
+)
 from fhir.resources.R4B.structuredefinition import StructureDefinition
-from pydantic import computed_field, Field, Discriminator, Tag, TypeAdapter
+from pydantic import computed_field, TypeAdapter, Field, Discriminator, Tag
+
+from cohort_selection_ontology.resources import cql, fhir
+
+ProcessedElementResult = namedtuple(
+    "ProcessedElementResult",
+    ["element", "profile_snapshot", "module_dir", "last_short_desc"],
+)
+ShortDesc = namedtuple("ShortDesc", ["origin", "desc"])
+FHIR_TYPES_TO_VALUE_TYPES = json.load(
+    fp=(resources.files(fhir) / "fhir-types-to-value-types.json").open(
+        "r", encoding="utf-8"
+    )
+)
+
+CQL_TYPES_TO_VALUE_TYPES = json.load(
+    fp=(resources.files(cql) / "cql-types-to-value-types.json").open(
+        "r", encoding="utf-8"
+    )
+)
 
 
 class AbstractIndexedStructureDefinition(abc.ABC, StructureDefinition):
@@ -14,7 +40,7 @@ class AbstractIndexedStructureDefinition(abc.ABC, StructureDefinition):
 
     def __check_indexed_field_type(self):
         path_components = self.__indexed_field_path.split(".")
-        idx_field_value = reduce(
+        idx_field_value: List[ElementDefinition] = reduce(
             lambda acc, field_name: getattr(acc, field_name), path_components, self
         )
         self.__indexed_field = idx_field_value
@@ -25,6 +51,9 @@ class AbstractIndexedStructureDefinition(abc.ABC, StructureDefinition):
         self.__indexed_field_path = indexed_field_path
         self.__check_indexed_field_type()
 
+        self.__min_card_cache = {}
+        self.__max_card_cache = {}
+
     @computed_field
     @cached_property
     def __element_by_id(self) -> Mapping[str, ElementDefinition]:
@@ -33,7 +62,7 @@ class AbstractIndexedStructureDefinition(abc.ABC, StructureDefinition):
     @computed_field
     @cached_property
     def __elements_by_path(self) -> Mapping[str, List[ElementDefinition]]:
-        key_func = lambda ed: ed.id
+        key_func = lambda ed: ed.path
         return {
             k: list(vs)
             for k, vs in groupby(
@@ -58,6 +87,64 @@ class AbstractIndexedStructureDefinition(abc.ABC, StructureDefinition):
         :return: List of `ElementDefinition` instances matching the path
         """
         return self.__elements_by_path.get(path)
+
+    @cachetools.cachedmethod(cache=lambda self: self.__max_card_cache)
+    def get_aggregated_max_cardinality(self, element_id: str) -> int | Literal["*"]:
+        """
+        Finds the aggregated max cardinality of an element (element definition) matching the ID
+
+        :param element_id: ID of the element definition
+        :return: Aggregated max cardinality
+        """
+        elem_def = self.get_element_by_id(element_id)
+        if not elem_def:
+            return 0
+        elif elem_def.max == "0":
+            return 0
+        else:
+            p_elem_id = elem_def.id.rsplit(".", 1)[0]
+            if p_elem_id == self.type:
+                return "*" if elem_def.max == "*" else int(elem_def.max)
+            else:
+                p_max = self.get_aggregated_max_cardinality(p_elem_id)
+                return (
+                    "*"
+                    if p_max == "*" or elem_def.max == "*"
+                    else int(elem_def.max) * p_max
+                )
+
+    @cachetools.cachedmethod(cache=lambda self: self.__min_card_cache)
+    def get_aggregated_min_cardinality(self, element_id: str) -> int:
+        """
+        Finds the aggregated min cardinality of an element (element definition) matching the ID
+
+        :param element_id: ID of the element definition
+        :return: Aggregated min cardinality
+        """
+        elem_def = self.get_element_by_id(element_id)
+        if not elem_def:
+            return 0
+        elif elem_def.min == 0:
+            return 0
+        p_elem_id = elem_def.id.rsplit(".", 1)[0]
+        if p_elem_id == self.type:
+            return elem_def.min
+        else:
+            p_min = self.get_aggregated_min_cardinality(p_elem_id)
+            return 0 if p_min == 0 else elem_def.min * p_min
+
+    @functools.cache
+    def get_aggregated_cardinality(self, element_id: str) -> Tuple[int, str]:
+        """
+        Finds the aggregated cardinality of an element (element definition) matching the ID
+
+        :param element_id: ID of the element definition
+        :return: Tuple containing the aggregated min and max cardinalities
+        """
+        return (
+            self.get_aggregated_min_cardinality(element_id),
+            str(self.get_aggregated_max_cardinality(element_id)),
+        )
 
 
 class StructureDefinitionDifferential(AbstractIndexedStructureDefinition):

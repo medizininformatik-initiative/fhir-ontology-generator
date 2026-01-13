@@ -1,10 +1,11 @@
 import re
 from collections import OrderedDict
 from collections.abc import Callable
-from functools import cmp_to_key
+from functools import cmp_to_key, cache
 from typing import Mapping, List, TypedDict, Any, Optional
+
+import cachetools
 from fhir.resources.R4B.elementdefinition import ElementDefinition
-from fhir.resources.R4B.structuredefinition import StructureDefinition
 
 from common.exceptions.profile import MissingProfileError, MissingElementError
 from cohort_selection_ontology.model.ui_data import (
@@ -12,7 +13,7 @@ from cohort_selection_ontology.model.ui_data import (
     BulkTranslationDisplayElement,
     Translation,
 )
-from common.model.structure_definition import (
+from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot,
     IndexedStructureDefinition,
 )
@@ -102,9 +103,18 @@ class ProfileDetailGenerator:
         self.reference_base_url = reference_base_url
         self.module_translation = module_translation
 
+        self.__is_included_cache = {}
+        self.__is_recommended_cache = {}
+
+    @cachetools.cachedmethod(
+        cache=lambda self: self.__is_included_cache,
+        key=lambda _, ed, pr: pr.url + "#" + ed.id,
+    )
     def is_field_included(
         self, elem_def: ElementDefinition, profile: IndexedStructureDefinition
     ) -> bool:
+        if profile.get_aggregated_max_cardinality(elem_def.id) == 0:
+            return False
         is_included = self.fields_config.is_included(
             elem_def, profile, self.__project.package_manager
         )
@@ -113,9 +123,15 @@ class ProfileDetailGenerator:
         else:
             return is_included
 
+    @cachetools.cachedmethod(
+        cache=lambda self: self.__is_recommended_cache,
+        key=lambda _, ed, pr: pr.url + "#" + ed.id,
+    )
     def is_field_recommended(
         self, elem_def: ElementDefinition, profile: IndexedStructureDefinition
     ) -> bool:
+        if profile.get_aggregated_max_cardinality(elem_def.id) == "0":
+            return False
         is_recommended = self.fields_config.is_recommended(
             elem_def, profile, self.__project.package_manager
         )
