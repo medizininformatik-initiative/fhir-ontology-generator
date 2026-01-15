@@ -1,6 +1,7 @@
 {
   "Prozedur": [
     "SnomedProcedure",
-    "OpsProcedure"
+    "OpsProcedure",
+    "SnomedCtCategoryProcedure"
   ]
 }

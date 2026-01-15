@@ -43,6 +43,9 @@
     "data": ["Patient-mii-exa-test-data-patient-1.json","Person_Vitalstatus_Patient1_Q1.json"]
   },
   {
+    "data": ["Patient-mii-exa-test-data-patient-1.json","Prozedur_CategorySCT_Patient1_Q1.json"]
+  },
+  {
     "data": ["Patient-mii-exa-test-data-patient-1.json", "Prozedur_OPS_Patient1_Q1.json"]
   },
   {
