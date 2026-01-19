@@ -1069,10 +1069,9 @@ def get_available_slices(
 
     return list(found_slices)
 
-
-def get_parent_element(
-    profile_snapshot: StructureDefinitionSnapshot, element: ElementDefinition
-) -> Optional[ElementDefinition]:
+def get_parent_element_id(
+    element: ElementDefinition
+) -> str:
     element_id = element.id
     if not element_id:
         raise KeyError(
@@ -1086,8 +1085,13 @@ def get_parent_element(
     # Handle slices
     if ":" in element_name:
         parent_id += "." + element_name.split(":")[0]
+    return parent_id
 
-    return profile_snapshot.get_element_by_id(parent_id)
+def get_parent_element(
+    profile_snapshot: StructureDefinitionSnapshot, element: ElementDefinition
+) -> Optional[ElementDefinition]:
+    return profile_snapshot.get_element_by_id(get_parent_element_id(element))
+
 
 
 def get_common_ancestor_id(element_id_1: str, element_id_2: str) -> str:
