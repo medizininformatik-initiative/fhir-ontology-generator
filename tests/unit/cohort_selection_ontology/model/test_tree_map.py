@@ -27,6 +27,146 @@ _TEST_MODULE = Module(code="test", display="Test")
                 entries=[
                     ContextualizedTermCodeInfo(
                         term_code=TermCode(
+                            system="http://snomed.info/sct",
+                            code="165197003",
+                            display="Diagnostic assessment",
+                            version="http://snomed.info/sct/900000000000207008/version/20240701",
+                        ),
+                        context=_TEST_CONTEXT,
+                        module=_TEST_MODULE,
+                    ),
+                    ContextualizedTermCodeInfo(
+                        term_code=TermCode(
+                            system="http://snomed.info/sct",
+                            code="363679005",
+                            display="Imaging",
+                            version="http://snomed.info/sct/900000000000207008/version/20240701",
+                        ),
+                        context=_TEST_CONTEXT,
+                        module=_TEST_MODULE,
+                    ),
+                    ContextualizedTermCodeInfo(
+                        term_code=TermCode(
+                            system="http://snomed.info/sct",
+                            code="387713003",
+                            display="Surgical procedure",
+                            version="http://snomed.info/sct/900000000000207008/version/20240701",
+                        ),
+                        context=_TEST_CONTEXT,
+                        module=_TEST_MODULE,
+                    ),
+                    ContextualizedTermCodeInfo(
+                        term_code=TermCode(
+                            system="http://snomed.info/sct",
+                            code="18629005",
+                            display="Administration of drug or medicament",
+                            version="http://snomed.info/sct/900000000000207008/version/20240701",
+                        ),
+                        context=_TEST_CONTEXT,
+                        module=_TEST_MODULE,
+                    ),
+                    ContextualizedTermCodeInfo(
+                        term_code=TermCode(
+                            system="http://snomed.info/sct",
+                            code="277132007",
+                            display="Therapeutic procedure",
+                            version="http://snomed.info/sct/900000000000207008/version/20240701",
+                        ),
+                        context=_TEST_CONTEXT,
+                        module=_TEST_MODULE,
+                    ),
+                    ContextualizedTermCodeInfo(
+                        term_code=TermCode(
+                            system="http://snomed.info/sct",
+                            code="394841004",
+                            display="Other category",
+                            version="http://snomed.info/sct/900000000000207008/version/20240701",
+                        ),
+                        context=_TEST_CONTEXT,
+                        module=_TEST_MODULE,
+                    ),
+                ]
+            ),
+            TreeMapList(
+                module_name=_TEST_MODULE.code,
+                entries=[
+                    TreeMap(
+                        context=_TEST_CONTEXT,
+                        system="http://snomed.info/sct",
+                        version="http://snomed.info/sct/900000000000207008/version/20240701",
+                        entries={
+                            "165197003": TermEntryNode(
+                                term_code=TermCode(
+                                    system="http://snomed.info/sct",
+                                    code="165197003",
+                                    display="Diagnostic assessment",
+                                ),
+                                parents=[],
+                                children=[],
+                            ),
+                            "363679005": TermEntryNode(
+                                term_code=TermCode(
+                                    system="http://snomed.info/sct",
+                                    code="363679005",
+                                    display="Imaging",
+                                ),
+                                parents=[],
+                                children=[],
+                            ),
+                            "387713003": TermEntryNode(
+                                term_code=TermCode(
+                                    system="http://snomed.info/sct",
+                                    code="387713003",
+                                    display="Surgical procedure",
+                                ),
+                                parents=[],
+                                children=[],
+                            ),
+                            "18629005": TermEntryNode(
+                                term_code=TermCode(
+                                    system="http://snomed.info/sct",
+                                    code="18629005",
+                                    display="Administration of drug or medicament",
+                                ),
+                                parents=[],
+                                children=[],
+                            ),
+                            "277132007": TermEntryNode(
+                                term_code=TermCode(
+                                    system="http://snomed.info/sct",
+                                    code="277132007",
+                                    display="Therapeutic procedure",
+                                ),
+                                parents=[],
+                                children=[],
+                            ),
+                            "394841004": TermEntryNode(
+                                term_code=TermCode(
+                                    system="http://snomed.info/sct",
+                                    code="394841004",
+                                    display="Other category",
+                                ),
+                                parents=[],
+                                children=[],
+                            ),
+                        },
+                    )
+                ],
+            ),
+            {
+                "165197003": 1,
+                "363679005": 1,
+                "387713003": 1,
+                "18629005": 1,
+                "277132007": 1,
+                "394841004": 1,
+            },
+        ),
+        (
+            ContextualizedTermCodeInfoList(
+                entries=[
+                    ContextualizedTermCodeInfo(
+                        term_code=TermCode(
                             system="http://codesystem.org",
                             code="a",
                             display="A",
@@ -209,7 +349,27 @@ _TEST_MODULE = Module(code="test", display="Test")
                         term_code=TermCode(
                             system="http://codesystem.org",
                             code="s",
+                            display="S",
+                            version="1.0.0",
+                        ),
+                        context=_TEST_CONTEXT,
+                        module=_TEST_MODULE,
+                    ),
+                    ContextualizedTermCodeInfo(
+                        term_code=TermCode(
+                            system="http://codesystem.org",
+                            code="t",
                             display="T",
+                            version="1.0.0",
+                        ),
+                        context=_TEST_CONTEXT,
+                        module=_TEST_MODULE,
+                    ),
+                    ContextualizedTermCodeInfo(
+                        term_code=TermCode(
+                            system="http://codesystem.org",
+                            code="u",
+                            display="U",
                             version="1.0.0",
                         ),
                         context=_TEST_CONTEXT,
@@ -398,6 +558,14 @@ _TEST_MODULE = Module(code="test", display="Test")
                                 ),
                                 parents=["f", "m"],
                             ),
+                            "u": TermEntryNode(
+                                term_code=TermCode(
+                                    system="http://codesystem.org",
+                                    code="u",
+                                    display="U",
+                                ),
+                                parents=[],
+                            ),
                         },
                     )
                 ],
@@ -423,11 +591,12 @@ _TEST_MODULE = Module(code="test", display="Test")
                 "r": 1,
                 "s": 1,
                 "t": 1,
+                "u": 1,
             },
-        )
+        ),
     ],
-    ids=["poly-hierarchy"],
-    scope="session",
+    ids=["flat-hierarchy-between-concepts", "poly-hierarchy"],
+    scope="module",
 )
 def test_update_descendant_count(
     instance: ContextualizedTermCodeInfoList,

@@ -1,0 +1,16 @@
+{
+  "name": "SnomedCtCategoryProcedure",
+  "resource_type": "Procedure",
+  "module": {
+    "code": "mii-cds-prozedur",
+    "display": "Prozedur"
+  },
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "Procedure Category",
+    "display": "Prozedurenkategorie",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "Procedure.category.coding:sct",
+  "time_restriction_defining_id": "Procedure.performed[x]"
+}
