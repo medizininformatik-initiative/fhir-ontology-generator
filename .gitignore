@@ -39,6 +39,9 @@ test.py
 # FHIR packages caches
 **/.fhir-package-cache
 
+# Firely Terminal
+/tests/**/fhirpkg.lock.json
+
 # Project output files
 /projects/*/output
 /projects/*/input/**/dependencies

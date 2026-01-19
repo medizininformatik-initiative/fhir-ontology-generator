@@ -16,7 +16,7 @@ from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaD
 from cohort_selection_ontology.model.ui_data import TermCode
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS
 from common.exceptions import NotFoundError
-from common.model.structure_definition import (
+from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot,
     FHIR_TYPES_TO_VALUE_TYPES,
 )

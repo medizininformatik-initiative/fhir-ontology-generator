@@ -1,7 +1,7 @@
 from collections.abc import Mapping
-from typing import Any, List
+from typing import Any
 
-from common.model.structure_definition import StructureDefinitionSnapshot
+from common.model.fhir.structure_definition import StructureDefinitionSnapshot
 from common.util.log.functions import get_logger
 
 
