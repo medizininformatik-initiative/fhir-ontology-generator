@@ -29,13 +29,14 @@
       "modul-biobank": "Biobank",
       "modul-consent": "Einwilligung",
       "modul-icu": "Intensivmedizin",
-      "modul-molgen": "Molekulargenetischer Befund",
-      "modul-bildgebung": "Befunde bildgebender Verfahren",
       "modul-onko": "Onkologie",
+      "modul-molgen": "Mollekulargenetischer Befund",
+      "modul-bildgebung": "Befunde bildgebender Verfahren",
       "modul-patho": "Pathologie",
       "modul-mikrobio": "Mikrobiologie",
       "modul-studie": "Studie",
-      "modul-isik-vitalparameter": "Vitalparameter"
+      "modul-isik-vitalparameter": "Vitalparameter",
+      "modul-onkologie": "Onkologie"
     },
     "en-US": {
       "modul-diagnose": "Diagnosis",
@@ -47,7 +48,8 @@
       "modul-biobank": "Biobank",
       "modul-consent": "Consent",
       "modul-icu": "Intensive Care",
-      "modul-molgen": "Molecular Genetics",
+      "modul-onkologie": "Oncology",
+      "modul-molgen": "Molecular genetics",
       "modul-bildgebung": "Findings of Imaging Procedures",
       "modul-onko": "Oncology",
       "modul-patho": "Pathology",

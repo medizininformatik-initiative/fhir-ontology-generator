@@ -1,0 +1,21 @@
+{
+  "name": "Tumorkonferenz",
+  "resource_type": "CarePlan",
+  "module": {
+    "code": "mii-cds-Onkologie",
+    "display": "Onkologie"
+  },
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "MII_Onkologie_Tumorkonferenz",
+    "display": "MII Onkologie Tumorkonferenz",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "CarePlan.category.coding",
+  "attribute_defining_id_type_map": {
+    "(CarePlan.addresses).code.coding:icd10-gm": {
+      "type": "reference",
+      "optional": true
+    }
+  }
+}
