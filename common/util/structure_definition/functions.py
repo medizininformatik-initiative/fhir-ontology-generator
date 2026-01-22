@@ -1048,6 +1048,32 @@ def get_slice_name(element_id: str) -> str | None:
 
 def get_available_slices(
     element_id: str, profile_snapshot: StructureDefinitionSnapshot
+) -> List[ElementDefinition]:
+    """
+    Returns a list of available slice elements
+    :param element_id: str
+    :param profile_snapshot: snapshot which should be scanned for slices
+    :return available_slices: List of available slice elements for given element
+
+    Example:
+        get_available_slices("Specimen.collection.bodySite.coding", profile)
+            => [
+                ElementDefinition(id="Specimen.collection.bodySite.coding:sct"),
+                ElementDefinition(id="Specimen.collection.bodySite.coding:icd-o-3")
+            ]
+    """
+    found_slices: List[ElementDefinition] = []
+
+    for elem in profile_snapshot.snapshot.element:
+        if ":" in elem.id and element_id in get_parent_slice_id(
+            elem.id
+        ):
+            found_slices.append(elem)
+
+    return list(found_slices)
+
+def get_available_slice_names(
+    element_id: str, profile_snapshot: StructureDefinitionSnapshot
 ) -> List[str]:
     """
     Returns a list of available slice ids
@@ -1056,18 +1082,14 @@ def get_available_slices(
     :return available_slices: List of available slices for given element
 
     Example:
-        get_available_slices("Specimen.collection.bodySite.coding") => ["sct", "icd-o-3"]
+        get_available_slice_names("Specimen.collection.bodySite.coding", profile) => ["sct", "icd-o-3"]
     """
-    found_slices: Set[str] = set()
-
-    for elem in profile_snapshot.snapshot.element:
-        snapshot_elem_id = elem.id
-        if ":" in snapshot_elem_id and element_id in get_parent_slice_id(
-            snapshot_elem_id
-        ):
-            found_slices.add(get_slice_name(snapshot_elem_id))
-
-    return list(found_slices)
+    return [
+        get_slice_name(element.id)
+        for element in get_available_slices(
+            element_id, profile_snapshot
+        )
+    ]
 
 def get_parent_element_id(
     element: ElementDefinition
@@ -1091,7 +1113,6 @@ def get_parent_element(
     profile_snapshot: StructureDefinitionSnapshot, element: ElementDefinition
 ) -> Optional[ElementDefinition]:
     return profile_snapshot.get_element_by_id(get_parent_element_id(element))
-
 
 
 def get_common_ancestor_id(element_id_1: str, element_id_2: str) -> str:

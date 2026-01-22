@@ -1,5 +1,5 @@
 import json
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 from fhir.resources.R4B.elementdefinition import ElementDefinition
 from fhir.resources.R4B.structuredefinition import StructureDefinition
@@ -14,6 +14,9 @@ from common.util.log.functions import get_logger
 from common.util.structure_definition.functions import (
     get_parent_element_id,
     get_available_slices,
+    get_slice_name,
+    get_parent_slice_id,
+    get_parent_element,
 )
 
 _logger = get_logger(__file__)
@@ -43,17 +46,76 @@ def id_to_column_name(element) -> str:
     return id
 
 
+def get_child_coding_slices(
+    element: ElementDefinition, profile: StructureDefinitionSnapshot
+) -> List[ElementDefinition]:
+    found_codings_slices: Set[ElementDefinition] = set()
+
+    for el in profile.snapshot.element:
+        if ":" in el.id and element.id in get_parent_slice_id(el.id):
+            found_codings_slices.add(el)
+
+    return list(found_codings_slices)
+
+
 def flatten_Coding(
     element: ElementDefinition,
     profile: StructureDefinitionSnapshot,
     elements_to_flatten: List[str],
 ) -> FlatteningLookupElement | None:
+    """
+    This function creates the lookup for coding elements. There are two types of codings:
+        1. **codings without a sliceName** : These elements will be ignored
+        2. **codings with a sliceName** : These are children of the codings of type 1.
+            When these are processed the ``path`` of the ``ForEachOrNull`` should include the
+            parent ``coding`` (See example below). This is done to ensure that the resulting
+            viewDefinition has the right interation scope.
+
+            **Important**: skipping the parent coding (type 1) means no parent viewDefinition to insert into
+             => Use the ``codeableConcept`` these codings are wrapped in:
+                Example: parent for (Condition.code.coding:sct) -> "Condition.code" (codeableConcept)
+            **Note**: Keep in mind that these, when selected by CRTDL, need to be inserted into the element the parent attribute
+            points to. This will cause these lookups to not work when inserted into to viewDefinition plainly.
+    Example lookup for coding-children (type 2)::
+
+        "Condition.code.coding:sct": {
+          "parent": "Condition.code",
+          "viewDefinition": {
+            "forEachOrNull": "coding.where(system = 'http://snomed.info/sct')",
+            -------------------^^^
+            "select": [
+              {
+                "column": [
+                  {
+                    "name": "sct",
+                    "path": "code"
+                  }
+                ]
+              }
+            ]
+          },
+          "children": []
+        },
+
+    :param element:
+    :param profile:
+    :param elements_to_flatten:
+    :return:
+    """
     code_system_url: str
     # value_set_url: str
 
-    fle = FlatteningLookupElement(parent=get_parent_element_id(element))
+    # parent codings are handled implicitly by the flatten_CodeableConcept
+    if element.sliceName is None:
+        return None
 
-    # TODO: use elements_to_flatten to delete all children of codings from queue
+    # parent CodeableConcept is used as parent for slices. Its two levels above
+    # example: Condition.code.coding:sct -> Condition.code
+    parent_codeableConcept: ElementDefinition = get_parent_element(profile,get_parent_element(profile,element))
+    if len(parent_codeableConcept.type) == 0 or "CodeableConcept" not in parent_codeableConcept.type[0].code:
+        _logger.warning("Undefined behaviour: Slice.parent reference does not point to a codeableConcept")
+        return None
+    fle = FlatteningLookupElement(parent=parent_codeableConcept.id)
 
     # check pattern
     code_system_el = profile.get_element_by_id(f"{element.id}.system")
@@ -69,38 +131,53 @@ def flatten_Coding(
             "column": [{"name": id_to_column_name(element), "path": "code"}],
         }
 
-    # check binding
+    # TODO: check binding
     # if "binding" in element.__dict__.keys():
     #     value_set_url = element.binding.valueSet
 
-    # check fixed
+    # TODO: check fixed
 
-    # or if parent coding, check if it has coding children (slices). If no => create 2 columns
-    if fle.viewDefinition is None or element.sliceName is None:
-        _logger.warning("found coding without a slice name")
+    return fle
 
-        # get all slices of type Codings
-        list_of_children_codings = [
-            slice
-            for slice in get_available_slices(element.id, profile)
-            if (slice_el := profile.get_element_by_id(f"{element.id}:{slice}"))
-               and len(slice_el.type) > 0
-               and "Coding" in slice_el.type[0].code
-        ]
-        if len(list_of_children_codings) > 0:
-            _logger.warning("found coding without a slice name => skipping")
-            # TODO: maybe do children mode? if needed
-            return None
+def flatten_CodeableConcept(element: ElementDefinition, profile: StructureDefinitionSnapshot)->FlatteningLookupElement|None:
+    """
+    This function flattens a element of type CodeableConcept. If the child coding has any slices defined their ids saved as children.
+        The children slices will be processed in the flatten_Coding function.
+        Else this function creates two columns: el_system, el_code. When evaluating the viewDefinition all code which are found, will
+        be listed in rows.
+    :param element: codeableConcept to be flattened
+    :param profile: snapshot of codeableConcept
+    :return:
+    """
 
-        _logger.error(f"creating two columns for {element.id}. Make sure this is right")
-        fle.viewDefinition = {
-            "forEachOrNull": f"{element.path}",
-            "column": [
-                {"name": f"{id_to_column_name(element)}_system", "path": "system"},
-                {"name": f"{id_to_column_name(element)}_code", "path": "code"},
-            ],
-        }
+    # check if the defined coding has any defined slices -> else col_sys + col_code
+    child_coding_element = profile.get_element_by_id(f"{element.id}.coding")
 
+    # I'm pretty sure that this is the 'parent' of the slices. Future tests will tell
+    _logger.info("found CodeableConcept")
+
+    fle = FlatteningLookupElement(parent=get_parent_element_id(element))
+    fle.viewDefinition = {"forEach": element.id.split(".")[-1], "select": []}
+
+    # get all slices of type Codings
+    list_of_children_slices = [
+        slice.id
+        for slice in get_available_slices(child_coding_element.id, profile)
+        if len(slice.type) > 0 and "Coding" in slice.type[0].code
+    ]
+    if len(list_of_children_slices) > 0:
+        _logger.warning("found coding without a slice name => skipping")
+        fle.children = list_of_children_slices
+        return fle
+
+    _logger.warning(f"creating two columns for {element.id} through coding: {child_coding_element.id}. Make sure this is right")
+    fle.viewDefinition = {
+        "forEachOrNull": f"{element.path}",
+        "column": [
+            {"name": f"{id_to_column_name(element)}_system", "path": "system"},
+            {"name": f"{id_to_column_name(element)}_code", "path": "code"},
+        ],
+    }
     return fle
 
 
@@ -157,7 +234,7 @@ def generate_flattening_lookup_for_profile(
         _logger.info(f"{element.id}")
 
         if (fle := flatten_element(element, profile, elements_to_flatten)) is not None:
-            fl.elements[id_to_column_name(element)] = fle
+            fl.elements[element.id] = fle
 
     return fl
 
