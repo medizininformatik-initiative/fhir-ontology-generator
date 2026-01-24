@@ -1,3 +1,4 @@
+from common.util.http.terminology.client import FhirTerminologyClient
 from common.util.log.functions import get_logger
 from common.util.project import Project
 from flattening.core.flattening import generate_flattening_lookup
@@ -18,5 +19,7 @@ def _setup_project(project_name: str) -> Project:
 
 if __name__ == '__main__':
     project = _setup_project("fdpg-ontology")
-    generate_flattening_lookup(project.package_manager)
-
+    generate_flattening_lookup(
+        project.package_manager,
+        FhirTerminologyClient.from_project(project)
+    )

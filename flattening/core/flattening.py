@@ -1,5 +1,5 @@
 import json
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Literal
 
 from fhir.resources.R4B.elementdefinition import ElementDefinition
 from fhir.resources.R4B.structuredefinition import StructureDefinition
@@ -10,6 +10,7 @@ from common.model.structure_definition import (
     StructureDefinitionSnapshot,
 )
 from common.util.fhir.package.manager import FhirPackageManager
+from common.util.http.terminology.client import FhirTerminologyClient
 from common.util.log.functions import get_logger
 from common.util.structure_definition.functions import (
     get_parent_element_id,
@@ -30,20 +31,46 @@ class FlatteningLookupElement(BaseModel):
 
 class FlatteningLookup(BaseModel):
     url: str
+    resource_type: str
     elements: Dict[str, FlatteningLookupElement] = Field(default={})
 
 
-class ProfileFlattener:
-    def __init__(self, profile: StructureDefinitionSnapshot):
-        self.elements = [el.id for el in profile.snapshot.element]
-
-
 def id_to_column_name(element) -> str:
-    id: str = element.id
+    el_id: str = element.id
     # ':' and '.' are not allowed by pathling in column names, using '#' and '_' instead
-    id = id.replace(":", "#")
-    id = id.replace(".", "_")
-    return id
+    el_id = el_id.replace(":", "")
+    el_id = el_id.replace(".", "_")
+    el_id = el_id.replace("-", "")
+    el_id = el_id.replace("[x]", "_X_")
+    return el_id
+
+
+def get_element_type(
+    element,
+) -> (
+    Literal[
+        "CodeableConcept",
+        "Coding",
+        "BackboneElement",
+        "dateTime",
+        "Period",
+        "Reference",
+        "Polymorphic",
+    ]
+    | None
+):
+
+    if element.type is not None and "[x]" in element.id and len(element.type) > 1:
+        return "Polymorphic"
+
+    if element.type is not None and len(element.type) == 1:
+        type = element.type[0].code
+        if type == "Meta":
+            return "BackboneElement"
+        return type
+
+    _logger.warning(f"No type found for element {element.id} => Skipping")
+    return None
 
 
 def get_child_coding_slices(
@@ -61,7 +88,7 @@ def get_child_coding_slices(
 def flatten_Coding(
     element: ElementDefinition,
     profile: StructureDefinitionSnapshot,
-    elements_to_flatten: List[str],
+    client: FhirTerminologyClient,
 ) -> FlatteningLookupElement | None:
     """
     This function creates the lookup for coding elements. There are two types of codings:
@@ -105,18 +132,54 @@ def flatten_Coding(
     code_system_url: str
     # value_set_url: str
 
-    # parent codings are handled implicitly by the flatten_CodeableConcept
+    # Handling of parent codings | not a slice
     if element.sliceName is None:
-        return None
+        parent = get_parent_element(profile, element)
+
+        # Case 1: Coding inside CodeableConcept.coding → ignore
+        if parent and get_element_type(parent) == "CodeableConcept":
+            _logger.warning("Is CodeableConcept.coding parent => Ignoring")
+            return None
+
+        # Case 2: Standalone Coding (e.g. meta.security) → flatten normally
+        # if element.binding is None:
+        _logger.warning("Standalone Coding => creating columns")
+        fle = FlatteningLookupElement(parent=get_parent_element_id(element))
+        fle.viewDefinition = {
+            "forEachOrNull": element.id.split(".")[-1],
+            "column": [
+                {"name": f"{id_to_column_name(element)}_system", "path": "system"},
+                {"name": f"{id_to_column_name(element)}_code", "path": "code"},
+            ],
+        }
+        return fle
+        # else: TODO: diskus if this is even necessary, or smart (extract codesystems from valueSet)
+        #     systems = set()
+        #     valueSet = client.expand_value_set(element.binding.valueSet)
+        #     if valueSet:
+        #         for entry in valueSet.get("expansion").get("parameter"):
+        #             if entry.get("name") == "used-codesystem":
+        #                 uri = entry.get("valueUri")
+        #                 if uri:
+        #                     system = uri.split("|", 1)[0]
+        #                     systems.add(system)
+        #     _logger.info(f"found following codesystems for binding of {element.id}: \n "
+        #                  f"{systems.__str__()}")
+
+        # for generate all codesystem posibilities
 
     # parent CodeableConcept is used as parent for slices. Its two levels above
     # example: Condition.code.coding:sct -> Condition.code
-    parent_codeableConcept: ElementDefinition = get_parent_element(profile,get_parent_element(profile,element))
-    if len(parent_codeableConcept.type) == 0 or "CodeableConcept" not in parent_codeableConcept.type[0].code:
-        _logger.warning("Undefined behaviour: Slice.parent reference does not point to a codeableConcept")
+    parent_codeableConcept: ElementDefinition = get_parent_element(
+        profile, get_parent_element(profile, element)
+    )
+    if get_element_type(parent_codeableConcept) != "CodeableConcept":
+        _logger.warning(
+            "Undefined behaviour: Slice.parent reference does not point to a codeableConcept"
+        )
         return None
-    fle = FlatteningLookupElement(parent=parent_codeableConcept.id)
 
+    fle = FlatteningLookupElement(parent=parent_codeableConcept.id)
     # check pattern
     code_system_el = profile.get_element_by_id(f"{element.id}.system")
     if element.patternCoding or (code_system_el and code_system_el.patternUri):
@@ -127,7 +190,7 @@ def flatten_Coding(
             else element.patternCoding.system
         )
         fle.viewDefinition = {
-            "forEachOrNull": f"{element.path}.where(system = '{code_system_url}')",
+            "forEachOrNull": f"{element.path.split(".")[-1]}.where(system = '{code_system_url}')",
             "column": [{"name": id_to_column_name(element), "path": "code"}],
         }
 
@@ -139,7 +202,10 @@ def flatten_Coding(
 
     return fle
 
-def flatten_CodeableConcept(element: ElementDefinition, profile: StructureDefinitionSnapshot)->FlatteningLookupElement|None:
+
+def flatten_CodeableConcept(
+    element: ElementDefinition, profile: StructureDefinitionSnapshot
+) -> FlatteningLookupElement | None:
     """
     This function flattens a element of type CodeableConcept. If the child coding has any slices defined their ids saved as children.
         The children slices will be processed in the flatten_Coding function.
@@ -150,29 +216,37 @@ def flatten_CodeableConcept(element: ElementDefinition, profile: StructureDefini
     :return:
     """
 
-    # check if the defined coding has any defined slices -> else col_sys + col_code
-    child_coding_element = profile.get_element_by_id(f"{element.id}.coding")
+    # part of polymorphic element
+    if element.sliceName is not None or "[x]" in element.path.split(".")[-1]:
+        _logger.warning("Child of polymorphic element. Not yet implemented => Skipping")
+        # TODO: implement later
+        return None
 
     # I'm pretty sure that this is the 'parent' of the slices. Future tests will tell
-    _logger.info("found CodeableConcept")
-
     fle = FlatteningLookupElement(parent=get_parent_element_id(element))
-    fle.viewDefinition = {"forEach": element.id.split(".")[-1], "select": []}
+    fle.viewDefinition = {"forEachOrNull": element.id.split(".")[-1], "select": []}
 
-    # get all slices of type Codings
-    list_of_children_slices = [
-        slice.id
-        for slice in get_available_slices(child_coding_element.id, profile)
-        if len(slice.type) > 0 and "Coding" in slice.type[0].code
-    ]
-    if len(list_of_children_slices) > 0:
-        _logger.warning("found coding without a slice name => skipping")
-        fle.children = list_of_children_slices
-        return fle
+    # check if a conding is defined and the defined coding has any defined slices -> else col_sys + col_code
+    child_coding_element = profile.get_element_by_id(f"{element.id}.coding")
+    if child_coding_element is not None:
+        list_of_children_slices = [
+            slice.id
+            for slice in get_available_slices(child_coding_element.id, profile)
+            if len(slice.type) > 0 and "Coding" in slice.type[0].code
+        ]
+        if len(list_of_children_slices) > 0:
+            _logger.warning(f"found slices: {list_of_children_slices.__str__()}")
+            fle.children = list_of_children_slices
+            return fle
 
-    _logger.warning(f"creating two columns for {element.id} through coding: {child_coding_element.id}. Make sure this is right")
+    _logger.warning(
+        f"creating two columns for {element.id} "
+        f"through coding: {child_coding_element.id if child_coding_element else ''}. "
+        f"Make sure this is right"
+    )
     fle.viewDefinition = {
-        "forEachOrNull": f"{element.path}",
+        # TODO: check this
+        "forEachOrNull": f"{element.id.split('.')[-1]}.coding",
         "column": [
             {"name": f"{id_to_column_name(element)}_system", "path": "system"},
             {"name": f"{id_to_column_name(element)}_code", "path": "code"},
@@ -192,54 +266,149 @@ def flatten_BackboneElement(
         for el in profile.snapshot.element
         if get_parent_element_id(el) == element.id
     ]
-    fle.viewDefinition = {"forEach": element.id.split(".")[-1], "select": []}
+    fle.viewDefinition = {"forEachOrNull": element.id.split(".")[-1], "select": []}
 
     print([el for el in fle.children])
     return fle
 
 
+def flatten_Reference(
+    element: ElementDefinition, profile: StructureDefinitionSnapshot
+) -> FlatteningLookupElement | None:
+
+    fle = FlatteningLookupElement(parent=get_parent_element(profile, element).id)
+    fle.viewDefinition = {
+        "column": [
+            {
+                "name": f"{id_to_column_name(element)}",
+                "path": f"{element.id.split('.')[-1]}.reference",
+            }
+        ]
+    }
+
+    return fle
+
+
+def flatten_dateTime(
+    element: ElementDefinition, profile: StructureDefinitionSnapshot
+) -> FlatteningLookupElement | None:
+
+    # is it part of polymorphic element
+    if element.sliceName is not None and "[x]" in element.path.split(".")[-1]:
+        # Condition.onset[x]:onsetDateTime -> grandparent: Condition
+        parent_element = get_parent_element(profile, element)
+        grand_parent_element = get_parent_element(profile, parent_element)
+        fle = FlatteningLookupElement(parent=grand_parent_element.id)
+        fle.viewDefinition = {
+            "forEachOrNull": f"{element.sliceName.replace('DateTime','')}.ofType(dateTime)",
+            "column": [
+                {
+                    "name": f"{id_to_column_name(element)}",
+                    "path": f"$this",
+                }
+            ],
+        }
+        return fle
+
+    fle = FlatteningLookupElement(parent=get_parent_element(profile, element).id)
+    fle.viewDefinition = {
+        "column": [
+            {
+                "name": f"{id_to_column_name(element)}",
+                "path": f"{element.id.split('.')[-1]}",
+            }
+        ]
+    }
+
+    return fle
+
+
+def flatten_Period(
+    element: ElementDefinition, profile: StructureDefinitionSnapshot
+) -> FlatteningLookupElement | None:
+
+    # is it part of polymorphic element
+    if element.sliceName is not None and "[x]" in element.path.split(".")[-1]:
+        # Condition.onset[x]:onsetPeriod -> grandparent: Condition
+        parent_element = get_parent_element(profile, element)
+        grand_parent_element = get_parent_element(profile, parent_element)
+        fle = FlatteningLookupElement(parent=grand_parent_element.id)
+        fle.viewDefinition = {
+            "forEachOrNull": f"{element.sliceName.replace('Period','')}.ofType(Period)"
+        }
+        fle.children = [
+            el.id for el in profile.snapshot.element if element.id in el.id and get_parent_element(profile,el).id == element.id
+        ]
+        _logger.info(f"found children for Period: {fle.children.__str__()}")
+        return fle
+
+    # TODO: handle simple case
+    # fle = FlatteningLookupElement(parent=get_parent_element(profile, element).id)
+    # fle.viewDefinition = {"forEachOrNull": element.id.split(".")[-1], "select": []}
+    #
+    # fle.children = [
+    #     el.id for el in profile.snapshot.element if element.id in el.id and get_parent_element(profile,el).id == element.id
+    # ]
+
+    return None
+
+
+def flatten_polymorphic_element(
+    element: ElementDefinition, profile: StructureDefinitionSnapshot
+) -> FlatteningLookupElement | None:
+
+    pass
+
+
 def flatten_element(
     element: ElementDefinition,
     profile: StructureDefinitionSnapshot,
-    elements_to_flatten: List[str],
+    client: FhirTerminologyClient,
 ) -> FlatteningLookupElement | None:
 
-    if element.type is None or len(element.type) < 1:
-        _logger.warning(f"No type found for element {element.id}")
-        return None
-
-    types = [element_type.code for element_type in element.type]
-    match types[0]:
+    match get_element_type(element):
         case "Coding":
             _logger.warning("Found coding ^^")
-            return flatten_Coding(element, profile, elements_to_flatten)
+            return flatten_Coding(element, profile, client)
+        case "CodeableConcept":
+            _logger.warning("Found codeableConcept ^^")
+            return flatten_CodeableConcept(element, profile)
         case "BackboneElement":
             _logger.warning("Found backbone ^^")
             return flatten_BackboneElement(element, profile)
+        case "Reference":
+            _logger.warning("Found reference ^^")
+            return flatten_Reference(element, profile)
+        case "dateTime":
+            _logger.warning("Found dateTime ^^")
+            return flatten_dateTime(element, profile)
+        case "Period":
+            _logger.warning("Found Period ^^")
+            return flatten_Period(element, profile)
+        case "Polymorphic":
+            _logger.warning("Found dateTime ^^")
+            return flatten_polymorphic_element(element, profile)
 
     return None
 
 
 def generate_flattening_lookup_for_profile(
-    profile: StructureDefinitionSnapshot,
+    profile: StructureDefinitionSnapshot, client: FhirTerminologyClient
 ) -> FlatteningLookup:
     _logger.info(f"Generating flattening lookup for {profile.name}")
 
-    fl = FlatteningLookup(url=profile.url)
-
-    elements_to_flatten = [el.id for el in profile.snapshot.element]
-
-    for element_id in elements_to_flatten:
-        element: ElementDefinition = profile.get_element_by_id(element_id)
+    fl = FlatteningLookup(url=profile.url, resource_type=profile.type)
+    for element in profile.snapshot.element:
         _logger.info(f"{element.id}")
-
-        if (fle := flatten_element(element, profile, elements_to_flatten)) is not None:
+        if (fle := flatten_element(element, profile, client)) is not None:
             fl.elements[element.id] = fle
 
     return fl
 
 
-def generate_flattening_lookup(manager: FhirPackageManager):
+def generate_flattening_lookup(
+    manager: FhirPackageManager, client: FhirTerminologyClient
+):
 
     # read all profiles from DSE
     _logger.info("Generating flattening lookup files")
@@ -262,5 +431,5 @@ def generate_flattening_lookup(manager: FhirPackageManager):
             continue
 
         profile: StructureDefinitionSnapshot
-        lookup = generate_flattening_lookup_for_profile(profile)
+        lookup = generate_flattening_lookup_for_profile(profile, client)
         print(lookup.model_dump_json(exclude_none=True, indent=4))
