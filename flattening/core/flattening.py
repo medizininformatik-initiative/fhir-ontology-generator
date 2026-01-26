@@ -245,7 +245,6 @@ def flatten_CodeableConcept(
         f"Make sure this is right"
     )
     fle.viewDefinition = {
-        # TODO: check this
         "forEachOrNull": f"{element.id.split('.')[-1]}.coding",
         "column": [
             {"name": f"{id_to_column_name(element)}_system", "path": "system"},
@@ -278,10 +277,11 @@ def flatten_Reference(
 
     fle = FlatteningLookupElement(parent=get_parent_element(profile, element).id)
     fle.viewDefinition = {
+        "forEachOrNull": f"{element.id.split('.')[-1]}",
         "column": [
             {
                 "name": f"{id_to_column_name(element)}",
-                "path": f"{element.id.split('.')[-1]}.reference",
+                "path": f"reference",
             }
         ]
     }
