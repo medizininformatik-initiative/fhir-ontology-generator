@@ -15,13 +15,31 @@ from common.util.log.functions import get_logger
 from common.util.structure_definition.functions import (
     get_parent_element_id,
     get_available_slices,
-    get_slice_name,
     get_parent_slice_id,
     get_parent_element,
 )
 
-_logger = get_logger(__file__)
 
+
+_logger = get_logger(__file__)
+FHIR_PRIMITIVES = [
+        "boolean",
+        "string",
+        "decimal",
+        "integer",
+        "integer64",
+        "unsignedInt",
+        "positiveInt",
+        "uri",
+        "canonical",
+        "url",
+        "markdown",
+        "xhtml",
+        "date",
+        "dateTime",
+        "instant",
+        "time",
+    ]
 
 class FlatteningLookupElement(BaseModel):
     parent: str
@@ -37,7 +55,7 @@ class FlatteningLookup(BaseModel):
 
 def id_to_column_name(element) -> str:
     el_id: str = element.id
-    # ':' and '.' are not allowed by pathling in column names, using '#' and '_' instead
+    # ':' and '.' and '-' and '[x]' are not allowed by pathling in column names, using '#' and '_' instead
     el_id = el_id.replace(":", "")
     el_id = el_id.replace(".", "_")
     el_id = el_id.replace("-", "")
@@ -52,10 +70,12 @@ def get_element_type(
         "CodeableConcept",
         "Coding",
         "BackboneElement",
-        "dateTime",
+        "Quantity",
         "Period",
         "Reference",
         "Polymorphic",
+        "dateTime",
+        "code"
     ]
     | None
 ):
@@ -186,13 +206,14 @@ def flatten_Coding(
 
         code_system_url = (
             code_system_el.patternUri
-            if code_system_el.patternUri
+            if code_system_el and code_system_el.patternUri
             else element.patternCoding.system
         )
         fle.viewDefinition = {
             "forEachOrNull": f"{element.path.split(".")[-1]}.where(system = '{code_system_url}')",
             "column": [{"name": id_to_column_name(element), "path": "code"}],
         }
+        #fle.children = [f"{element.id}.code"]
 
     # TODO: check binding
     # if "binding" in element.__dict__.keys():
@@ -250,6 +271,35 @@ def flatten_CodeableConcept(
             {"name": f"{id_to_column_name(element)}_system", "path": "system"},
             {"name": f"{id_to_column_name(element)}_code", "path": "code"},
         ],
+    }
+    return fle
+
+def flatten_Quantity(element: ElementDefinition, profile: StructureDefinitionSnapshot) -> FlatteningLookupElement | None:
+
+    if element.sliceName is not None and "[x]" in element.path.split(".")[-1]:
+        _logger.warning("Child of polymorphic element. Not yet implemented => Skipping")
+        fle = FlatteningLookupElement(parent=get_parent_element_id(element))
+        fle.viewDefinition = {
+            "forEachOfNull":f"{element.sliceName.replace('Quantity','')}.ofType(Quantity)",
+            "select":[]
+        }
+        fle.children = [
+            el.id for el in profile.snapshot.element if element.id in el.id and get_parent_element(profile,el).id == element.id
+        ]
+        return fle
+
+    _logger.warning("Quantity not child of polymorphic element. Not yet implemented => Skiping")
+    return None
+
+def flatten_primitive(element: ElementDefinition, profile: StructureDefinitionSnapshot):
+    fle = FlatteningLookupElement(parent=get_parent_element_id(element))
+    fle.viewDefinition = {
+        "column": [
+            {
+                "name": f"{id_to_column_name(element)}",
+                "path": f"{element.id.split('.')[-1]}",
+            }
+        ]
     }
     return fle
 
@@ -334,7 +384,8 @@ def flatten_Period(
         grand_parent_element = get_parent_element(profile, parent_element)
         fle = FlatteningLookupElement(parent=grand_parent_element.id)
         fle.viewDefinition = {
-            "forEachOrNull": f"{element.sliceName.replace('Period','')}.ofType(Period)"
+            "forEachOrNull": f"{element.sliceName.replace('Period','')}.ofType(Period)",
+            "select":[]
         }
         fle.children = [
             el.id for el in profile.snapshot.element if element.id in el.id and get_parent_element(profile,el).id == element.id
@@ -376,18 +427,24 @@ def flatten_element(
         case "BackboneElement":
             _logger.warning("Found backbone ^^")
             return flatten_BackboneElement(element, profile)
+        case "Quantity":
+            _logger.warning("Found Quantity ^^")
+            return flatten_Quantity(element,profile)
         case "Reference":
             _logger.warning("Found reference ^^")
             return flatten_Reference(element, profile)
-        case "dateTime":
-            _logger.warning("Found dateTime ^^")
-            return flatten_dateTime(element, profile)
         case "Period":
             _logger.warning("Found Period ^^")
             return flatten_Period(element, profile)
         case "Polymorphic":
             _logger.warning("Found dateTime ^^")
             return flatten_polymorphic_element(element, profile)
+        case "dateTime":
+            _logger.warning("Found dateTime ^^")
+            return flatten_dateTime(element, profile)
+        # case t if t in FHIR_PRIMITIVES:
+        #     _logger.warning(f"Found primitive type: {t}")
+        #     return flatten_primitive(element, profile)
 
     return None
 
@@ -416,6 +473,7 @@ def generate_flattening_lookup(
         "resourceType": "StructureDefinition",
         "kind": "resource",
     }
+    lookup_file:List[BaseModel] = []
     for profile in manager.iterate_cache(
         MII_CDS_PACKAGE_PATTERN, content_pattern, skip_on_fail=True
     ):
@@ -427,9 +485,13 @@ def generate_flattening_lookup(
             )
             continue
 
-        if profile.id != "mii-pr-diagnose-condition":
+        if not profile.id in ["mii-pr-diagnose-condition","mii-pr-person-patient","mii-pr-person-patient-pseudonymisiert","mii-pr-prozedur-procedure"]:
             continue
 
         profile: StructureDefinitionSnapshot
         lookup = generate_flattening_lookup_for_profile(profile, client)
+        lookup_file.append(lookup)
         print(lookup.model_dump_json(exclude_none=True, indent=4))
+
+    with open("v1.json", mode="w", encoding="utf-8") as f:
+        json.dump([x.model_dump(exclude_none=True) for x in lookup_file], f, indent=2)
