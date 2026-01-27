@@ -5,7 +5,7 @@ from collections import namedtuple
 from functools import cached_property, reduce
 from importlib import resources
 from itertools import groupby
-from typing import Mapping, List, Optional, Annotated, Union, Literal, Tuple, Any
+from typing import Mapping, List, Optional, Annotated, Union, Literal, Tuple, Any, Type
 
 import cachetools
 from fhir.resources.R4B.elementdefinition import (
@@ -39,26 +39,21 @@ def _elem_def_key(s: StructureDefinition, e_id: str) -> str:
 
 
 class AbstractIndexedStructureDefinition(abc.ABC, StructureDefinition):
-    __indexed_field_path = str
-    __indexed_field = List[ElementDefinition]
 
-    def __check_indexed_field_type(self):
-        path_components = self.__indexed_field_path.split(".")
-        idx_field_value: List[ElementDefinition] = reduce(
+    @abc.abstractmethod
+    def indexed_field_path(self) -> str:
+        pass
+
+    def __indexed_field(self):
+        path_components = self.indexed_field_path().split(".")
+        return reduce(
             lambda acc, field_name: getattr(acc, field_name), path_components, self
         )
-        self.__indexed_field = idx_field_value
-
-    def __init__(self, **kwargs):
-        indexed_field_path = kwargs.pop("__indexed_field_path")
-        super().__init__(**kwargs)
-        self.__indexed_field_path = indexed_field_path
-        self.__check_indexed_field_type()
 
     @computed_field
     @cached_property
     def __element_by_id(self) -> Mapping[str, ElementDefinition]:
-        return {element_def.id: element_def for element_def in self.__indexed_field}
+        return {element_def.id: element_def for element_def in self.__indexed_field()}
 
     @computed_field
     @cached_property
@@ -67,7 +62,7 @@ class AbstractIndexedStructureDefinition(abc.ABC, StructureDefinition):
         return {
             k: list(vs)
             for k, vs in groupby(
-                sorted(self.__indexed_field, key=key_func), key=key_func
+                sorted(self.__indexed_field(), key=key_func), key=key_func
             )
         }
 
@@ -151,23 +146,31 @@ class AbstractIndexedStructureDefinition(abc.ABC, StructureDefinition):
 
 
 class StructureDefinitionDifferential(AbstractIndexedStructureDefinition):
-    def __init__(self, /, **kwargs):
-        kwargs.update({"__indexed_field_path": "differential.element"})
-        super().__init__(**kwargs)
+    def indexed_field_path(self) -> str:
+        return "differential.element"
 
 
 class StructureDefinitionSnapshot(AbstractIndexedStructureDefinition):
-    def __init__(self, /, **kwargs):
-        kwargs.update({"__indexed_field_path": "snapshot.element"})
-        super().__init__(**kwargs)
+    def indexed_field_path(self) -> str:
+        return "snapshot.element"
 
 
-def _idx_struct_def_discriminator_value(v):
+def _idx_struct_def_discriminator_tag_value(v):
     if isinstance(v, dict):
         is_snapshot = len(v.get("snapshot", {}).get("element", [])) > 0
     else:
         is_snapshot = len(getattr(getattr(v, "snapshot", {}), "element", [])) > 0
     return "snapshot" if is_snapshot else "differential"
+
+
+def idx_struct_def_discriminator(v: Any) -> Type:
+    if isinstance(v, dict):
+        is_snapshot = len(v.get("snapshot", {}).get("element", [])) > 0
+    else:
+        is_snapshot = len(getattr(getattr(v, "snapshot", {}), "element", [])) > 0
+    return (
+        StructureDefinitionSnapshot if is_snapshot else StructureDefinitionDifferential
+    )
 
 
 IndexedStructureDefinition = TypeAdapter(
@@ -176,16 +179,6 @@ IndexedStructureDefinition = TypeAdapter(
             Annotated[StructureDefinitionDifferential, Tag("differential")],
             Annotated[StructureDefinitionSnapshot, Tag("snapshot")],
         ],
-        Discriminator(_idx_struct_def_discriminator_value),
+        Discriminator(_idx_struct_def_discriminator_tag_value),
     ]
 )
-
-
-def model_construct(data: Any) -> AbstractIndexedStructureDefinition:
-    match _idx_struct_def_discriminator_value(data):
-        case "differential":
-            return StructureDefinitionDifferential.model_construct(data)
-        case "snapshot":
-            return StructureDefinitionSnapshot.model_construct(data)
-        case _ as t:
-            raise ValueError(f"Unknown structure definition type '{t}'. Cannot determine target model class")
