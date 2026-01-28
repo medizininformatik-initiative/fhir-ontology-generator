@@ -52,7 +52,6 @@ jobs:
         with:
           tag: ${{ github.ref_name }}
           project: fdpg-ontology
-          project-output: 'project-output'
 
   run_unit_tests:
     runs-on: ubuntu-latest
