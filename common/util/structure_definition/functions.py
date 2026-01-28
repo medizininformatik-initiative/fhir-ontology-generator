@@ -1099,7 +1099,7 @@ def get_parent_element_id(
         raise KeyError(
             f"'ElementDefinition.id' is missing in element [path='{element.path}']"
         )
-    # We can determine the parent elements ID using the child elements path the FHIR spec requires the ID to align close
+    # We can determine the parent elements ID using the child elements path. The FHIR spec requires the ID to align close
     # to the elements path and be hierarchical
     split = element_id.split(".")
     element_name = split[-1]
