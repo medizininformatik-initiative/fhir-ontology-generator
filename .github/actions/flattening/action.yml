@@ -1,0 +1,84 @@
+name: Generate Flattening lookup
+
+description: 'Generates Flattening lookup'
+
+inputs:
+  tag:
+    required: false
+    description: 'Git tag if present'
+    default: ''
+  project:
+    required: false
+    description: 'Name of the project to generate for'
+    default: 'fdpg-ontology'
+  project-output:
+    required: false
+    description: 'Name of the project output artifact. Can be left empty if the output is already present in the repository'
+  upload-artifacts:
+    required: true
+    description: 'Whether generated artifacts should be uploaded'
+    default: 'true'
+
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install required python modules
+      run: pip3 install -r requirements.txt
+      shell: bash
+
+    - name: Install Firely Terminal
+      run: |
+        if command -v fhir >/dev/null 2>&1; then
+          echo "Tool firely.terminal is already installed"
+        else
+          echo "Installing tool firely.terminal"
+          sudo apt-get update
+          sudo apt-get install -y dotnet-sdk-8.0
+          sudo apt-get install -y aspnetcore-runtime-8.0
+          sudo apt-get install -y dotnet-runtime-8.0
+          dotnet tool install -g firely.terminal
+        fi
+        fhir --version
+      shell: bash
+
+    - name: Run Flattening lookup generation
+      run: PYTHONPATH='.' python3 flattening/scripts/generate_lookup.py --project "${{ inputs.project }}"
+      shell: bash
+
+    - name: Upload log files
+      uses: actions/upload-artifact@v4
+      with:
+        name: flattening_logs
+        path:
+          logs/generate_dse_element_availability.log
+
+    - name: Add tag-based version (if available) and zip
+      shell: bash
+      working-directory: ./projects/${{ inputs.project }}/output/flattening
+      run: |
+        echo "Setting tag-based version and generating archive"
+        TAG="${{ inputs.tag }}"
+        if [[ -n "$TAG" ]]; then
+          if ! command -v jq >/dev/null 2>&1; then
+            echo "Installing tool jq" 
+            sudo apt-get install -y jq
+          fi
+          echo "Using tag name '$TAG' as resource version"
+          for i in *.fhir.json; do
+            [ -f "$i" ] || break;
+            echo "Updating version of FHIR resource @ $i"
+            jq ".version = \"$TAG\"" "$i" > tmp.fhir.json && mv -f tmp.fhir.json "$i"
+          done
+        fi
+        echo "Collecting and archiving generated files"
+        zip flattening.zip FlatteningLookup.json
+
+    - name: Upload flattening files
+      uses: actions/upload-artifact@v4
+      if: ${{ inputs.upload-artifacts == true || inputs.upload-artifacts == 'true' }}
+      with:
+        name: flattening file
+        path: ./projects/${{ inputs.project }}/output/flattening/*
+        if-no-files-found: error
+        overwrite: true
