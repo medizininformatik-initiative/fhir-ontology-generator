@@ -11,9 +11,6 @@ inputs:
     required: false
     description: 'Name of the project to generate for'
     default: 'fdpg-ontology'
-  project-output:
-    required: false
-    description: 'Name of the project output artifact. Can be left empty if the output is already present in the repository'
   upload-artifacts:
     required: true
     description: 'Whether generated artifacts should be uploaded'

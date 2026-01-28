@@ -48,7 +48,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Generate Flattening lookup
-        uses: ./.github/actions/availability
+        uses: ./.github/actions/flattening
         with:
           tag: ${{ github.ref_name }}
           project: fdpg-ontology
