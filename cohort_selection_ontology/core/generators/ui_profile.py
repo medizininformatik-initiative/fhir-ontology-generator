@@ -52,6 +52,8 @@ from common.util.structure_definition.functions import (
     is_element_slice_base,
     get_available_slices,
     get_slice_owning_element_id,
+    get_slice_name,
+    get_available_slice_names,
 )
 from common.util.test.fhir import check_response_bundle
 from elasticsearch.core.resolvers.designation import extract_designation
@@ -536,7 +538,7 @@ class UIProfileGenerator:
                     )
                 )
             else:
-                available_slices = get_available_slices(
+                available_slices = get_available_slice_names(
                     attribute_defining_element.id, profile_snapshot
                 )
                 self.__logger.debug(f"Available slices: {available_slices}")
@@ -782,7 +784,7 @@ class UIProfileGenerator:
                 self.get_reference_criteria_set_from_value_set(url, context)
             )
         elif not is_element_slice:
-            available_slices = get_available_slices(element.id, snapshot)
+            available_slices = get_available_slice_names(element.id, snapshot)
             self.__logger.debug(f"Found available slices: {available_slices}")
             for slice_name in available_slices:
                 slice_id = element.id + ":" + slice_name
