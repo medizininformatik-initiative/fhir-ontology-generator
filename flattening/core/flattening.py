@@ -40,7 +40,7 @@ FHIR_PRIMITIVES = [
 
 
 class FlatteningLookupElement(BaseModel):
-    parent: str
+    parent: Optional[str] = None
     viewDefinition: Optional[Dict] = None
     children: Optional[List[str]] = None
 
@@ -145,13 +145,14 @@ def flatten_Coding(
                 2. If coding parent is **not** of type "CodeableConcept":
                     - and has no slices defined ``el_code`` and ``el_system`` columns are created
                     - and has slices defined: to be implemented, probably same like codeable concept
-                        TODO: IS THIS EVEN POSSIBLE?
+                        TODO: IS THIS EVEN POSSIBLE? YES -> parent to: condition.meta.security like codeableConcept
 
         2. **codings with a sliceName** : These are children of the codings of type 1 and define the slices.
             fle.parent will point to the CodeableConcept, skipping the .coding (type 1) level
             => Use the ``codeableConcept`` these codings are a children of in::
                 Example: parent for (Condition.code.coding:sct) is "Condition.code" (codeableConcept)
             fle.viewDefinition. ``ForEachOrNull`` should include the parent ``coding`` (See example below)
+            Also it was decided to remove [.userSelected, .id]
 
     Example lookup for coding-children (type 2)::
 
@@ -162,13 +163,11 @@ def flatten_Coding(
           "select": []
         },
         "children": [
-          "Condition.code.coding:sct.id",
           "Condition.code.coding:sct.extension",
           "Condition.code.coding:sct.system",
           "Condition.code.coding:sct.version",
           "Condition.code.coding:sct.code",
           "Condition.code.coding:sct.display",
-          "Condition.code.coding:sct.userSelected"
         ]
       },
 
@@ -187,9 +186,10 @@ def flatten_Coding(
 
         # delete all lvl1 children which do not contain any information
         # Optional: these can never be selected in dse
-        # coding:   .code .system .version .display .userSelected
+            # coding:   .code .system .version .display .userSelected
+        av_slices = get_available_slices(element.id, profile)
         for el_id in get_direct_children_ids(element, profile):
-            if el_id in el_to_flatten:
+            if el_id in el_to_flatten and el_id.split(":")[-1] in av_slices:
                 el_to_flatten.pop(el_id)
 
         # Case 1: Coding inside CodeableConcept.coding → ignore
@@ -251,16 +251,27 @@ def flatten_Coding(
             # "column": [{"name": id_to_column_name(element), "path": "code"}],
             "select": [],
         }
+        # it was decided to not include the following elements
+        excluded_elements = [".userSelected",".id"]
+        for excluded in excluded_elements:
+            full_el = f"{element.id}{excluded}"
+            if profile.get_element_by_id(full_el) is not None:
+                el_to_flatten.pop(full_el)
+
         fle.children = [
             el.id
             for el in profile.snapshot.element
-            if element.id in el.id and get_parent_element(profile, el).id == element.id
+            if element.id in el.id
+               and get_parent_element(profile, el).id == element.id
+                # exclude from children too
+               and element.id.split(".")[-1] not in excluded_elements
         ]
 
     # TODO: check binding
     # if "binding" in element.__dict__.keys():
     #     value_set_url = element.binding.valueSet
     # else: TODO: AGAIN diskus if this is even necessary, or smart (extract codesystems from valueSet)
+    # TODO: PLEASE EXPAND
 
     # TODO: check fixed
 
@@ -276,6 +287,7 @@ def flatten_CodeableConcept(
             The children slices will be processed in the flatten_Coding function.
         Else this function creates two columns: el_system, el_code.
         When evaluating the viewDefinition all coding instances will be listed as rows with slices as columns
+        TODO: check Condition.onset[x]:onsetPeriod.end.extension:lebensphase-bis
     :param element: codeableConcept to be flattened
     :param profile: profile of element codeableConcept
     :return: flattened element
@@ -324,7 +336,9 @@ def flatten_Quantity(
     """
     This function flattens an element of type "Quantity".
     - Quantity child of polymorphic element flattened using the ".ofType" fhir syntax
-    - Quantity not child of polymorphic element: TODO: is this even possible?
+    - Quantity not child of polymorphic element: TODO: is this even possible? It does
+
+    TODO: try generalizing handling of polymorphic elements
     :param element: quantity element to be flattened
     :param profile: profile of element
     :return: flattened element
@@ -345,7 +359,7 @@ def flatten_Quantity(
         return fle
 
     _logger.debug(
-        "Quantity not child of polymorphic element. Not yet implemented => Skiping"
+        "Quantity not child of polymorphic element. Not yet implemented => Skipping"
     )
     return None
 
@@ -488,7 +502,8 @@ def flatten_Period(
         ]
         _logger.debug(f"found children for Period: {fle.children.__str__()}")
         # TODO: WHAT IF NO CHILDREN ARE FOUND: Procedure.performed[x]:performedPeriod
-        # add .start .end anyway?
+        #
+        # TODO: add .start .end anyway?
         return fle
 
     # TODO: handle simple case
@@ -593,7 +608,7 @@ def generate_flattening_lookup(
     _logger.info("Generating flattening lookup files")
     content_pattern = {
         "resourceType": "StructureDefinition",
-        "kind": "resource",
+        "kind": "resource"
     }
     lookup_file: List[FlatteningLookup] = []
     # tqdm only ads a progress bar to output
@@ -616,7 +631,7 @@ def generate_flattening_lookup(
         #     "mii-pr-prozedur-procedure",
         #     "mii-pr-labor-laboruntersuchung",
         # ]:
-        #     continue
+        #    continue
 
         _logger.info(f"Generating flattening lookup for {profile.name}")
 
