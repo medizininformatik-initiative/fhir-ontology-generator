@@ -41,6 +41,19 @@ jobs:
           project: fdpg-ontology
           project-output: 'project-output'
 
+  generate_flattening_lookup_file:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Generate Flattening lookup
+        uses: ./.github/actions/availability
+        with:
+          tag: ${{ github.ref_name }}
+          project: fdpg-ontology
+          project-output: 'project-output'
+
   run_unit_tests:
     runs-on: ubuntu-latest
     steps:
