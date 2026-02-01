@@ -72,7 +72,7 @@ def register_flattener(*fhir_types: str):
 
 
 def check_if_root(element_id: str, profile: StructureDefinitionSnapshot) -> str | None:
-    return None if element_id == profile.get_resource_type() else element_id
+    return None if element_id == profile.type else element_id
 
 
 def id_to_column_name(element_id: str) -> str:
