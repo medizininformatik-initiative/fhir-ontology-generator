@@ -769,10 +769,10 @@ def generate_flattening_lookup(
 
         # ONLY FOR TESTING
         if not profile.id in [
-            # "mii-pr-diagnose-condition",
-            # "mii-pr-person-patient",
-            # "mii-pr-person-patient-pseudonymisiert",
-            # "mii-pr-prozedur-procedure",
+            "mii-pr-diagnose-condition",
+            "mii-pr-person-patient",
+            "mii-pr-person-patient-pseudonymisiert",
+            "mii-pr-prozedur-procedure",
             "mii-pr-labor-laboruntersuchung",
         ]:
             continue
