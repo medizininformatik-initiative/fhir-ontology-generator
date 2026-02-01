@@ -5,7 +5,7 @@ from typing import List
 from common.util.http.terminology.client import FhirTerminologyClient
 from common.util.log.functions import get_logger
 from common.util.project import Project
-from flattening.core.flattening import generate_flattening_lookup, FlatteningLookup
+from flattening.core.flattening2 import generate_flattening_lookup, FlatteningLookup
 
 _logger = get_logger(__file__)
 
