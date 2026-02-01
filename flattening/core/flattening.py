@@ -18,6 +18,7 @@ from common.util.structure_definition.functions import (
 )
 
 _logger = get_logger(__file__)
+EXCLUDED_CHILDREN_CODINGS = ["userSelected","id","system","display","version"]
 FHIR_PRIMITIVES = [
     "boolean",
     "string",
@@ -50,15 +51,17 @@ class FlatteningLookup(BaseModel):
     resource_type: str
     elements: Dict[str, FlatteningLookupElement] = Field(default={})
 
+def check_if_root(element_id: str, profile: StructureDefinitionSnapshot)->str|None:
+    return None if element_id == profile.get_resource_type() else element_id
 
-def id_to_column_name(element) -> str:
+def id_to_column_name(element_id: str) -> str:
     """
     Return the column name given an element.
         Column name is created by striping characters which are not allowed by pathling
-    :param element: Element the column should refer to
+    :param element_id: Element the column should refer to
     :return: column name for the given element
     """
-    el_id: str = element.id
+    el_id: str = element_id
     # ':' and '.' and '-' and '[x]' are not allowed by pathling in column names, using '#' and '_' instead
     el_id = el_id.replace(":", "")
     el_id = el_id.replace(".", "_")
@@ -73,7 +76,7 @@ def get_direct_children_ids(element, profile) -> List[str]:
     Example::
 
         get_direct_children_ids(ElementDefinition("Condition.code.coding"), profile)
-        ->  ["code", "system", "version", "display", "userSelected"]
+        ->  ["code", "system", "version", "display", "userSelected", ":sct", ":icd10-gm"]
 
     :param element: element from which to get the children from
     :param profile: snapshot of the profile of the element in question
@@ -84,7 +87,6 @@ def get_direct_children_ids(element, profile) -> List[str]:
         for el in profile.snapshot.element
         if element.id in el.id and get_parent_element(profile, el).id == element.id
     ]
-
 
 def get_element_type(
     element,
@@ -201,12 +203,12 @@ def flatten_Coding(
         # if element.binding is None:
         # TODO: Where are the children?
         _logger.debug("Standalone Coding => creating columns")
-        fle = FlatteningLookupElement(parent=get_parent_element_id(element))
+        fle = FlatteningLookupElement(parent=check_if_root(get_parent_element_id(element), profile))
         fle.viewDefinition = {
             "forEachOrNull": element.id.split(".")[-1],
             "column": [
-                {"name": f"{id_to_column_name(element)}_system", "path": "system"},
-                {"name": f"{id_to_column_name(element)}_code", "path": "code"},
+                {"name": f"{id_to_column_name(element.id)}_system", "path": "system"},
+                {"name": f"{id_to_column_name(element.id)}_code", "path": "code"},
             ],
         }
         return fle
@@ -236,7 +238,7 @@ def flatten_Coding(
         )
         return None
 
-    fle = FlatteningLookupElement(parent=parent_codeableConcept.id)
+    fle = FlatteningLookupElement(parent=check_if_root(parent_codeableConcept.id,profile))
     # check pattern
     code_system_el = profile.get_element_by_id(f"{element.id}.system")
     if element.patternCoding or (code_system_el and code_system_el.patternUri):
@@ -252,9 +254,8 @@ def flatten_Coding(
             "select": [],
         }
         # it was decided to not include the following elements
-        excluded_elements = [".userSelected",".id"]
-        for excluded in excluded_elements:
-            full_el = f"{element.id}{excluded}"
+        for excluded in EXCLUDED_CHILDREN_CODINGS:
+            full_el = f"{element.id}.{excluded}"
             if profile.get_element_by_id(full_el) is not None:
                 el_to_flatten.pop(full_el)
 
@@ -264,7 +265,7 @@ def flatten_Coding(
             if element.id in el.id
                and get_parent_element(profile, el).id == element.id
                 # exclude from children too
-               and element.id.split(".")[-1] not in excluded_elements
+               and el.id.split(".")[-1] not in EXCLUDED_CHILDREN_CODINGS
         ]
 
     # TODO: check binding
@@ -299,7 +300,7 @@ def flatten_CodeableConcept(
         # TODO: implement later with ofType....
         return None
 
-    fle = FlatteningLookupElement(parent=get_parent_element_id(element))
+    fle = FlatteningLookupElement(parent=check_if_root(get_parent_element_id(element), profile))
     fle.viewDefinition = {"forEachOrNull": element.id.split(".")[-1], "select": []}
 
     # check if a conding is defined and the defined coding has any defined slices -> else col_el_sys + col_el_code
@@ -323,8 +324,8 @@ def flatten_CodeableConcept(
     fle.viewDefinition = {
         "forEachOrNull": f"{element.id.split('.')[-1]}.coding",
         "column": [
-            {"name": f"{id_to_column_name(element)}_system", "path": "system"},
-            {"name": f"{id_to_column_name(element)}_code", "path": "code"},
+            {"name": f"{id_to_column_name(element.id)}_system", "path": "system"},
+            {"name": f"{id_to_column_name(element.id)}_code", "path": "code"},
         ],
     }
     return fle
@@ -345,7 +346,7 @@ def flatten_Quantity(
     """
 
     if element.sliceName is not None and "[x]" in element.path.split(".")[-1]:
-        fle = FlatteningLookupElement(parent=get_parent_element_id(element))
+        fle = FlatteningLookupElement(parent=check_if_root(get_parent_element_id(element),profile))
         fle.viewDefinition = {
             "forEachOrNull": f"{element.sliceName.replace('Quantity','')}.ofType(Quantity)",
             "select": [],
@@ -377,11 +378,11 @@ def flatten_primitive(
     :param type: fhir type to be used in the viewDefinition
     :return: flattened element
     """
-    fle = FlatteningLookupElement(parent=get_parent_element_id(element))
+    fle = FlatteningLookupElement(parent=check_if_root(get_parent_element_id(element),profile))
     fle.viewDefinition = {
         "column": [
             {
-                "name": f"{id_to_column_name(element)}",
+                "name": f"{id_to_column_name(element.id)}",
                 "path": f"{element.id.split('.')[-1]}",
                 "type": type,
             }
@@ -401,7 +402,7 @@ def flatten_BackboneElement(
     :return: flattened element
     """
 
-    fle = FlatteningLookupElement(parent=get_parent_element_id(element))
+    fle = FlatteningLookupElement(parent=check_if_root(get_parent_element_id(element),profile))
     # determine children, base.path
     fle.children = get_direct_children_ids(element, profile)
     fle.viewDefinition = {"forEachOrNull": element.id.split(".")[-1], "select": []}
@@ -421,12 +422,12 @@ def flatten_Reference(
     :return: flattened element
     """
 
-    fle = FlatteningLookupElement(parent=get_parent_element(profile, element).id)
+    fle = FlatteningLookupElement(parent=check_if_root(get_parent_element_id(element),profile))
     fle.viewDefinition = {
         "forEachOrNull": f"{element.id.split('.')[-1]}",
         "column": [
             {
-                "name": f"{id_to_column_name(element)}",
+                "name": f"{id_to_column_name(element.id)}",
                 "path": f"reference",
             }
         ],
@@ -450,23 +451,23 @@ def flatten_dateTime(
         # Condition.onset[x]:onsetDateTime -> grandparent: Condition
         parent_element = get_parent_element(profile, element)
         grand_parent_element = get_parent_element(profile, parent_element)
-        fle = FlatteningLookupElement(parent=grand_parent_element.id)
+        fle = FlatteningLookupElement(parent=check_if_root(grand_parent_element.id, profile))
         fle.viewDefinition = {
             "forEachOrNull": f"{element.sliceName.replace('DateTime','')}.ofType(dateTime)",
             "column": [
                 {
-                    "name": f"{id_to_column_name(element)}",
+                    "name": f"{id_to_column_name(element.id)}",
                     "path": f"$this",
                 }
             ],
         }
         return fle
 
-    fle = FlatteningLookupElement(parent=get_parent_element(profile, element).id)
+    fle = FlatteningLookupElement(parent=check_if_root(get_parent_element_id(element),profile))
     fle.viewDefinition = {
         "column": [
             {
-                "name": f"{id_to_column_name(element)}",
+                "name": f"{id_to_column_name(element.id)}",
                 "path": f"{element.id.split('.')[-1]}",
             }
         ]
@@ -490,24 +491,30 @@ def flatten_Period(
         # Condition.onset[x]:onsetPeriod -> grandparent: Condition
         parent_element = get_parent_element(profile, element)
         grand_parent_element = get_parent_element(profile, parent_element)
-        fle = FlatteningLookupElement(parent=grand_parent_element.id)
+        fle = FlatteningLookupElement(parent=check_if_root(grand_parent_element.id, profile))
         fle.viewDefinition = {
             "forEachOrNull": f"{element.sliceName.replace('Period','')}.ofType(Period)",
             "select": [],
         }
+        must_contain = [".start", ".end"]
         fle.children = [
             el.id
             for el in profile.snapshot.element
             if element.id in el.id and get_parent_element(profile, el).id == element.id
         ]
-        _logger.debug(f"found children for Period: {fle.children.__str__()}")
+
+        if not set(must_contain).issubset(get_direct_children_ids(element, profile)):
+            _logger.warning(f"Found Period {element.id} which has no .start and .end")
+
+
+        _logger.debug(f"found children for Period: {fle.children}")
         # TODO: WHAT IF NO CHILDREN ARE FOUND: Procedure.performed[x]:performedPeriod
         #
         # TODO: add .start .end anyway?
         return fle
 
     # TODO: handle simple case
-    # fle = FlatteningLookupElement(parent=get_parent_element(profile, element).id)
+    # fle = FlatteningLookupElement(parent=check_if_root(get_parent_element_id(element),profile))
     # fle.viewDefinition = {"forEachOrNull": element.id.split(".")[-1], "select": []}
     #
     # fle.children = [
@@ -517,10 +524,29 @@ def flatten_Period(
     return None
 
 
+def flatten_extension(
+        element:ElementDefinition, profile: StructureDefinitionSnapshot
+) -> FlatteningLookupElement | None:
+    """
+    Flatten Extension like a backbone element
+    :param element: element to be flattened
+    :param profile: profile of element
+    :return: flattened element
+    """
+    fle = FlatteningLookupElement(parent=check_if_root(get_parent_element_id(element),profile))
+    fle.children = get_direct_children_ids(element, profile)
+    fle.viewDefinition = {"forEachOrNull": element.id.split(".")[-1], "select": []}
+    _logger.debug(fle.children)
+    return fle
+
+
 def flatten_polymorphic_element(
     element: ElementDefinition, profile: StructureDefinitionSnapshot
 ) -> FlatteningLookupElement | None:
     # TODO: Maybe trying to generalize would be a good idea. As of now, all types special cases
+    # Its hard while some elements contain the information themselves datetime reference,
+    #   other like Period need to be solved with .end .start. Basically for all types of flattening methods
+    #   and types need to be reimplemented as i dont see a way to recylce them
     pass
 
 
@@ -624,14 +650,14 @@ def generate_flattening_lookup(
             continue
 
         # ONLY FOR TESTING
-        # if not profile.id in [
-        #     "mii-pr-diagnose-condition",
-        #     "mii-pr-person-patient",
-        #     "mii-pr-person-patient-pseudonymisiert",
-        #     "mii-pr-prozedur-procedure",
-        #     "mii-pr-labor-laboruntersuchung",
-        # ]:
-        #    continue
+        if not profile.id in [
+            "mii-pr-diagnose-condition",
+            "mii-pr-person-patient",
+            "mii-pr-person-patient-pseudonymisiert",
+            "mii-pr-prozedur-procedure",
+            "mii-pr-labor-laboruntersuchung",
+        ]:
+           continue
 
         _logger.info(f"Generating flattening lookup for {profile.name}")
 
