@@ -467,7 +467,7 @@ def flatten_extension(
                 lookup.update(
                     recontextualize_extension_lookup(ext_lookup, element_id, profile)
                 )
-                flat_ext_el.children = list(lookup.keys())
+                flat_ext_el.children = [f"{element_id}.value[x]"]
 
             lookup.update({element_id: flat_ext_el})
 
@@ -557,7 +557,7 @@ def generate_flattening_polymorphic_child(
     _logger.info(f"Flattening polymorphic subtype {element_id} of type: {type}")
     polymorphic_element_name = polymorphic_parent.id.split(".")[-1].replace("[x]", "")
     fle = FlatteningLookupElement(
-        parent=check_if_root(get_parent_element_id(polymorphic_parent.id), profile)
+        parent=check_if_root(polymorphic_parent.id, profile)
     )
     fle.view_definition = {
         "forEachOrNull": f"{polymorphic_element_name}.ofType({element_type})",
@@ -612,11 +612,11 @@ def flatten_polymorphic(
 
     # if element.slicing is not None:
     # polymorphic_element_name = element.id.split(".")[-1].replace("[x]", "")
-    # flat_ext_parent = FlatteningLookupElement(parent=check_if_root(get_parent_element_id(element_id), profile))
-    # flat_ext_parent.view_definition = {
-    #     "forEachOrNull": polymorphic_element_name,
-    #     "select":[]
-    # }
+    flat_ext_parent = FlatteningLookupElement(parent=check_if_root(get_parent_element_id(element_id), profile))
+    flat_ext_parent.view_definition = {
+        # "forEachOrNull": polymorphic_element_name,
+        "select":[]
+    }
     # flat_ext_parent.children = get_direct_children_ids(element_id, profile)
 
     # if element.slicing is not None:
@@ -645,17 +645,17 @@ def flatten_polymorphic(
 
     children_ids = set(undefined_children).union(defined_children_ids)
 
-    # flat_ext_parent.children = []
+    flat_ext_parent.children = []
     lookup_list = {}
     for child, child_type in children_ids:
-        # flat_ext_parent.children.append(child)
+        flat_ext_parent.children.append(child)
         lookup_list.update(
             generate_flattening_polymorphic_child(
                 child, profile, element, type=child_type, **kwargs
             )
         )
 
-    # lookup_list.update({element_id: flat_ext_parent})
+    lookup_list.update({element_id: flat_ext_parent})
     return lookup_list
 
 
