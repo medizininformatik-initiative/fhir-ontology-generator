@@ -68,6 +68,9 @@
   "MII_PR_Onko_Systemische_Therapie": [
     "Systemtherapie"
   ],
+  "MII_PR_Onko_Systemische_Therapie_Medikation": [
+    "Systemtherapie-Medikation"
+  ],
   "MII_PR_Onko_Operation": [
     "OperationOPS",
     "OperationSCT"
