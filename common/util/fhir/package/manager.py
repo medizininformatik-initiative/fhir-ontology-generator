@@ -20,7 +20,8 @@ from typing import (
     Literal,
     List,
     ContextManager,
-    Annotated, Union,
+    Annotated,
+    Union,
 )
 
 import cachetools
@@ -57,7 +58,7 @@ def build_package_index(package_dir: Path) -> Mapping[str, Any]:
     """
     files = []
     index = {"index-version": 2, "files": files}
-    for file_path in package_dir.glob("**/*.json"):
+    for file_path in package_dir.glob("package/**/[!.]*.json"):
         bn = os.path.basename(file_path)
         content = load_json(file_path, encoding=["utf-8", "utf-8-sig"], fail=True)
         entry = {
@@ -99,11 +100,11 @@ def _contained_in(dict_a, dict_b) -> bool:
     return all(
         key in dict_b
         and (
-            value.match(dict_b[key])
-            if isinstance(value, re.Pattern)
-            else dict_b[key] == value
+            value_a.match(value_b)
+            if isinstance(value_a, re.Pattern) and (value_b := dict_b[key]) is not None
+            else dict_b[key] == value_a
         )
-        for key, value in dict_a.items()
+        for key, value_a in dict_a.items()
     )
 
 

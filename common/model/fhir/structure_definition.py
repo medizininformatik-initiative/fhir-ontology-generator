@@ -34,6 +34,10 @@ CQL_TYPES_TO_VALUE_TYPES = json.load(
 )
 
 
+def _elem_def_key(s: StructureDefinition, e_id: str) -> str:
+    return s.url + "|" + (s.version if s.version else "") + "|" + e_id
+
+
 class AbstractIndexedStructureDefinition(abc.ABC, StructureDefinition):
     __indexed_field_path = str
     __indexed_field = List[ElementDefinition]
@@ -88,7 +92,8 @@ class AbstractIndexedStructureDefinition(abc.ABC, StructureDefinition):
         """
         return self.__elements_by_path.get(path)
 
-    @cachetools.cachedmethod(cache=lambda self: self.__max_card_cache)
+    # @cachetools.cachedmethod(cache=lambda self: self.__max_card_cache)
+    @cachetools.cached(cache={}, key=_elem_def_key)
     def get_aggregated_max_cardinality(self, element_id: str) -> int | Literal["*"]:
         """
         Finds the aggregated max cardinality of an element (element definition) matching the ID
@@ -113,7 +118,8 @@ class AbstractIndexedStructureDefinition(abc.ABC, StructureDefinition):
                     else int(elem_def.max) * p_max
                 )
 
-    @cachetools.cachedmethod(cache=lambda self: self.__min_card_cache)
+    # @cachetools.cachedmethod(cache=lambda self: self.__min_card_cache)
+    @cachetools.cached(cache={}, key=_elem_def_key)
     def get_aggregated_min_cardinality(self, element_id: str) -> int:
         """
         Finds the aggregated min cardinality of an element (element definition) matching the ID
