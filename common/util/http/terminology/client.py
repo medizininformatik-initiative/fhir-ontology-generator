@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Mapping, Optional, List, Literal
 
@@ -63,7 +63,7 @@ class FhirTerminologyClient(BaseClient):
     ) -> Bundle:
         return Bundle(
             type=bundle_type.value,
-            timestamp=datetime.now(),
+            timestamp=datetime.now(timezone.utc),
             total=len(bundle_entries),
             entry=bundle_entries,
         )
@@ -168,4 +168,4 @@ class FhirTerminologyClient(BaseClient):
         response = self.post(
             headers=dict([self.__content_type_header]), body=bundle.model_dump_json()
         )
-        return Bundle(**response.json())
+        return Bundle.model_validate(response.json())
