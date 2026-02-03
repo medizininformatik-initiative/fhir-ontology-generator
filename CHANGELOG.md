@@ -15,6 +15,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+# [v3.9.4] - 2026-01-19
+
+## Added
+
+- Add category procedure criterion class to improve query performance for broad concept searches (#415 @paulolaup)
+
+## Changed
+
+- Extend terminology display file to contain value set descriptors (#408 @paulolaup)
+
+## Fixed
+
+- Fix exclusion of non-occurring elements from feature selection (#416 @paulolaup)
+
 # [v3.9.3] - 2025-12-11
 
 ## Changed
