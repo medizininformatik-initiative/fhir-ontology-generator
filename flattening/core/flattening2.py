@@ -3,7 +3,7 @@ from typing import Optional, List, Dict, Tuple, Callable
 
 from fhir.resources.R4B.elementdefinition import ElementDefinition
 from fhir.resources.R4B.structuredefinition import StructureDefinition
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from availability.constants.fhir import MII_CDS_PACKAGE_PATTERN
 from common.model.fhir.structure_definition import StructureDefinitionSnapshot
@@ -35,6 +35,7 @@ FHIR_PRIMITIVES = [
     "instant",
     "time",
 ]
+PATHLING_SUPPORTED_TYPE_CONVERTER = {"uri": "string"}
 REQUIRED_PRIMITIVE_PER_ELEMENT = {
     "Period": [("start", "dateTime"), ("end", "dateTime")],
     "Quantity": [("value", None), ("code", "code"), ("system", None)],
@@ -47,14 +48,18 @@ _logger = get_logger(__file__)
 
 class FlatteningLookupElement(BaseModel):
     parent: Optional[str] = None
-    view_definition: Optional[Dict] = None
-    children: Optional[List[str]] = None
+    view_definition: Optional[Dict] = Field(alias="viewDefinition", default=None)
+    children: Optional[List[str]] = Field(default_factory=list)
+
+    model_config = {"populate_by_name": True}
 
 
 class FlatteningLookup(BaseModel):
     url: str
-    resource_type: str
+    resource_type: str = Field(alias="resourceType")
     elements: Dict[str, FlatteningLookupElement] = {}
+
+    model_config = {"populate_by_name": True}
 
 
 FLATTEN_FUNCTIONS: dict[str, Callable[..., FlatteningLookupElement | None]] = {}
@@ -414,26 +419,28 @@ def flatten_extension(
 ) -> Dict[str, FlatteningLookupElement]:
 
     element = profile.get_element_by_id(element_id)
-    # flat_ext = FlatteningLookupElement(
-    #     parent=check_if_root(get_parent_element_id(element), profile)
-    # )
+
     # flat_ext.view_definition = {"forEachOrNull": element.id.split(".")[-1], "select": []}
     # parent extension
     if element.slicing is not None:
-        # flat_ext.children = get_direct_children_ids(element.id, profile)
         print(
             f"Found children for {element_id}: {get_direct_children_ids(element.id, profile)}"
         )
-        # flat_ext.view_definition = {
-        #     "forEachOrNull": element.id.split(".")[-1],
-        #     "select": [],
-        # }
+        flat_ext = FlatteningLookupElement(
+            parent=check_if_root(get_parent_element_id(element), profile)
+        )
+        flat_ext.view_definition = {
+            "select": [],
+        }
+        flat_ext.children = get_direct_children_ids(element.id, profile)
         #
         # if not flat_ext.children or len(flat_ext.children) < 0:
         #     return {}
 
         lookup = {}
-        for child in get_direct_children_ids(element.id, profile):
+        if len(flat_ext.children) > 0:
+            lookup.update({element_id: flat_ext})
+        for child in flat_ext.children:
             lookup.update(flatten_element(child, profile, **kwargs))
 
         return lookup
@@ -551,6 +558,7 @@ def generate_flattening_polymorphic_child(
     # Condition.onset[x]:onsetDateTime -> dateTime
     element_type = type
 
+
     if profile.get_element_by_id(element_id):  # optional
         element_type = get_element_type(profile.get_element_by_id(element_id))
 
@@ -560,7 +568,7 @@ def generate_flattening_polymorphic_child(
         parent=check_if_root(polymorphic_parent.id, profile)
     )
     fle.view_definition = {
-        "forEachOrNull": f"{polymorphic_element_name}.ofType({element_type})",
+        "forEachOrNull": f"{polymorphic_element_name}.ofType({PATHLING_SUPPORTED_TYPE_CONVERTER.get(element_type, element_type)})",
         "select": [],
     }
 
@@ -777,9 +785,27 @@ def generate_flattening_lookup(
         ]:
             continue
 
+
+
         _logger.info(f"Generating flattening lookup for {profile.name}")
 
         profile: StructureDefinitionSnapshot
-        lookup = generate_flattening_lookup_for_profile(profile, client, manager)
-        lookup_file.append(lookup)
+        lookup_all_children = generate_flattening_lookup_for_profile(profile, client, manager)
+        lookup_existing_children = lookup_all_children.model_copy(deep=True)
+        for key, el in lookup_all_children.elements.items():
+            el: FlatteningLookupElement
+            new_el = el.model_copy(deep=True)
+            new_el.children = [
+                child
+                for child in (el.children or [])
+                if child in lookup_all_children.elements
+            ]
+
+            lookup_existing_children.elements[key] = new_el
+
+
+
+        lookup_file.append(lookup_existing_children)
+
+
     return lookup_file
