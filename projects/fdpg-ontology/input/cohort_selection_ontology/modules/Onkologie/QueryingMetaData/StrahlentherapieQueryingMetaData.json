@@ -1,0 +1,22 @@
+{
+  "name": "Strahlentherapie",
+  "resource_type": "Procedure",
+  "module": {
+    "code": "mii-cds-Onkologie",
+    "display": "Onkologie"
+  },
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "MII_Onkologie_Strahlentherapie",
+    "display": "MII Onkologie Strahlentherapie",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "Procedure.code.coding:ops",
+  "time_restriction_defining_id": "Procedure.performed[x]",
+  "attribute_defining_id_type_map": {
+    "(Procedure.reasonReference).code.coding:icd10-gm": {
+      "type": "reference",
+      "optional": true
+    }
+  }
+}

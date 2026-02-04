@@ -1,6 +1,9 @@
+import json
 import os
 import subprocess
 from datetime import datetime
+from sys import stderr
+from tabnanny import check
 
 from typing import Optional
 
@@ -38,7 +41,7 @@ def save_docker_logs(dir_path: str, project_name: Optional[str] = None) -> None:
             ]
 
             if not containers:
-                logger.warning("Found no running containers found")
+                logger.warning("Found no running containers")
                 return
 
             now = datetime.now()
@@ -46,21 +49,42 @@ def save_docker_logs(dir_path: str, project_name: Optional[str] = None) -> None:
 
             # Save logs for each container
             for container_id, container_name in containers:
+                inspect_file = os.path.join(
+                    output_folder, f"{container_name}_{current_time}_state.json"
+                )
                 log_file = os.path.join(
                     output_folder, f"{container_name}_{current_time}_logs.txt"
                 )
+                with open(inspect_file, "w") as f:
+                    subprocess.run(
+                        [
+                            "docker",
+                            "container",
+                            "inspect",
+                            "--format='{{json .State}}'",
+                            container_id,
+                        ],
+                        stdout=f,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                        check=True,
+                    )
                 with open(log_file, "w") as f:
                     subprocess.run(
-                        ["docker", "logs", container_id],
+                        ["docker", "logs", "-t", container_id],
                         stdout=f,
                         stderr=subprocess.PIPE,
                         text=True,
                         check=True,
                     )
                 logger.info(
-                    f"Logs saved for container {container_name} [id={container_id}] in {log_file}"
+                    f"Logs saved for container {container_name} [id={container_id}] in {log_file}, {inspect_file}"
                 )
     except subprocess.CalledProcessError as err:
-        logger.error(f"Error while fetching logs. Reason: {err.stderr}", exc_info=err)
+        logger.error(
+            f"Error while fetching container data. Reason: {err.stderr}", exc_info=err
+        )
     except Exception as exc:
-        logger.error(f"Error while fetching logs. Reason: {exc}", exc_info=exc)
+        logger.error(
+            f"Error while fetching container data. Reason: {exc}", exc_info=exc
+        )

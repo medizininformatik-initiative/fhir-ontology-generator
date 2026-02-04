@@ -140,6 +140,7 @@ def docker_services(
             docker_cleanup,
         ) as docker_service:
             yield docker_service
+            common.util.test.docker.save_docker_logs(__test_dir(), "integration-test")
     except:
         do_cleanup = True
     finally:

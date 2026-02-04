@@ -1,0 +1,16 @@
+{
+  "name": "Bioprobe",
+  "resource_type": "Specimen",
+  "module": {
+    "code": "mii-cds-Onkologie",
+    "display": "Onkologie"
+  },
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "MII_Onkologie_Bioprobe",
+    "display": "MII Onkologie Bioprobe",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "Specimen.type",
+  "time_restriction_defining_id": "Specimen.collection.collected[x]:collectedDateTime"
+}
