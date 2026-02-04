@@ -54,4 +54,4 @@ if __name__ == "__main__":
     with open(
         project.output.flattening / "FlatteningLookup.json", mode="w", encoding="utf-8"
     ) as f:
-        json.dump([x.model_dump(exclude_none=True) for x in lookup_file], f, indent=2)
+        json.dump([x.model_dump(exclude_none=True, by_alias=True) for x in lookup_file], f, indent=2)
