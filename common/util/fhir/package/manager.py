@@ -32,7 +32,9 @@ from requests import Request
 from requests.auth import AuthBase
 
 from common.exceptions import UnsupportedError, NotFoundError
-from common.model.fhir.structure_definition import IndexedStructureDefinition
+from common.model.fhir.structure_definition import idx_struct_def_discriminator
+from common.model.fhir.pydantic import construct_model
+
 from common.util.codec.json import load_json
 from common.util.http.client import BaseClient
 from common.util.log.decorators import inject_logger
@@ -227,7 +229,10 @@ class FhirPackageManager(abc.ABC):
                         if (
                             res_type := json_data.get("resourceType")
                         ) == "StructureDefinition":
-                            res = IndexedStructureDefinition.validate_python(json_data)
+                            res = construct_model(
+                                idx_struct_def_discriminator, **json_data
+                            )
+                            # res = IndexedStructureDefinition.validate_python(json_data)
                         else:
                             model_class = fhir.resources.get_fhir_model_class(res_type)
                             res = model_class.model_validate(json_data)

@@ -38,6 +38,7 @@ test.py
 
 # FHIR packages caches
 **/.fhir-package-cache
+**/fhirpkg.lock.json
 
 # Firely Terminal
 /tests/**/fhirpkg.lock.json
