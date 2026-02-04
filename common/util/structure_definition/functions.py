@@ -1048,6 +1048,32 @@ def get_slice_name(element_id: str) -> str | None:
 
 def get_available_slices(
     element_id: str, profile_snapshot: StructureDefinitionSnapshot
+) -> List[ElementDefinition]:
+    """
+    Returns a list of available slice elements
+    :param element_id: str
+    :param profile_snapshot: snapshot which should be scanned for slices
+    :return available_slices: List of available slice elements for given element
+
+    Example:
+        get_available_slices("Specimen.collection.bodySite.coding", profile)
+            => [
+                ElementDefinition(id="Specimen.collection.bodySite.coding:sct"),
+                ElementDefinition(id="Specimen.collection.bodySite.coding:icd-o-3")
+            ]
+    """
+    found_slices: List[ElementDefinition] = []
+
+    for elem in profile_snapshot.snapshot.element:
+        if ":" in elem.id and element_id in get_parent_slice_id(
+            elem.id
+        ):
+            found_slices.append(elem)
+
+    return list(found_slices)
+
+def get_available_slice_names(
+    element_id: str, profile_snapshot: StructureDefinitionSnapshot
 ) -> List[str]:
     """
     Returns a list of available slice ids
@@ -1056,29 +1082,29 @@ def get_available_slices(
     :return available_slices: List of available slices for given element
 
     Example:
-        get_available_slices("Specimen.collection.bodySite.coding") => ["sct", "icd-o-3"]
+        get_available_slice_names("Specimen.collection.bodySite.coding", profile) => ["sct", "icd-o-3"]
     """
-    found_slices: Set[str] = set()
-
-    for elem in profile_snapshot.snapshot.element:
-        snapshot_elem_id = elem.id
-        if ":" in snapshot_elem_id and element_id in get_parent_slice_id(
-            snapshot_elem_id
-        ):
-            found_slices.add(get_slice_name(snapshot_elem_id))
-
-    return list(found_slices)
-
-
-def get_parent_element(
-    profile_snapshot: StructureDefinitionSnapshot, element: ElementDefinition
-) -> Optional[ElementDefinition]:
-    element_id = element.id
-    if not element_id:
-        raise KeyError(
-            f"'ElementDefinition.id' is missing in element [path='{element.path}']"
+    return [
+        get_slice_name(element.id)
+        for element in get_available_slices(
+            element_id, profile_snapshot
         )
-    # We can determine the parent elements ID using the child elements path the FHIR spec requires the ID to align close
+    ]
+
+def get_parent_element_id(
+    element: ElementDefinition | str
+) -> str:
+    element_id: str
+
+    if isinstance(element,ElementDefinition):
+        element_id = element.id
+        if not element_id:
+            raise KeyError(
+                f"'ElementDefinition.id' is missing in element [path='{element.path}']"
+            )
+    if isinstance(element, str):
+        element_id=element
+    # We can determine the parent elements ID using the child elements path. The FHIR spec requires the ID to align close
     # to the elements path and be hierarchical
     split = element_id.split(".")
     element_name = split[-1]
@@ -1086,8 +1112,12 @@ def get_parent_element(
     # Handle slices
     if ":" in element_name:
         parent_id += "." + element_name.split(":")[0]
+    return parent_id
 
-    return profile_snapshot.get_element_by_id(parent_id)
+def get_parent_element(
+    profile_snapshot: StructureDefinitionSnapshot, element: ElementDefinition
+) -> Optional[ElementDefinition]:
+    return profile_snapshot.get_element_by_id(get_parent_element_id(element))
 
 
 def get_common_ancestor_id(element_id_1: str, element_id_2: str) -> str:

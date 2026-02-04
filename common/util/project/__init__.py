@@ -63,6 +63,11 @@ class IODir(ProjectDir, abc.ABC):
 
     @computed_field
     @property
+    def flattening(self) -> ProjectDir:
+        return _sub_dir("flattening", self.path)
+
+    @computed_field
+    @property
     def dse(self) -> ProjectDir:
         return _sub_dir("data_selection_extraction", self.path)
 
