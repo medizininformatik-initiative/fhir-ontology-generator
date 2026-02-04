@@ -97,12 +97,12 @@ def test_sds_get_elements_by_path(
     sample_snapshot_bioprobe_json: dict,
 ):
     start = time.perf_counter_ns()
-    found_in_class: List[ElementDefinition] | None = (
+    found_in_class: List[ElementDefinition] = (
         sample_snapshot_bioprobe.get_element_by_path(search_term)
     )
     result_class = time.perf_counter_ns() - start
 
-    found_in_snapshot: List[ElementDefinition] | None = None
+    found_in_snapshot: List[ElementDefinition] = []
 
     start = time.perf_counter_ns()
     for element in sample_snapshot_bioprobe_json.get("snapshot").get("element"):

@@ -4,12 +4,12 @@ import os
 import re
 from pathlib import Path
 from typing import List, Optional, Generator, Tuple, Any, Set
-from typing_extensions import deprecated
 
 from fhir.resources.R4B.elementdefinition import (
     ElementDefinition,
     ElementDefinitionType,
 )
+from typing_extensions import deprecated
 
 from cohort_selection_ontology.core.terminology.client import (
     CohortSelectionTerminologyClient as TerminologyClient,
@@ -963,9 +963,7 @@ def get_parent_element_type(
     else:
         # remove everything after the [x] and the slicing -> everything until the next . after [x]:
         element_id = re.sub(r"(\[x\]).*?(?=\.)", r"\1", element_id)
-    try:
-        parent_element = profile_snapshot.get_element_by_id(element_id)
-    except Exception:
+    if (parent_element := profile_snapshot.get_element_by_id(element_id)) is None:
         element_id = re.sub(r"(\[x\]).*", r"\1", element_id)
         parent_element = profile_snapshot.get_element_by_id(element_id)
     return get_element_type(parent_element)
@@ -1179,3 +1177,50 @@ def get_parent_slice_id(element_id: str) -> str | None:
     parent_slice_name = element_id.split(":")[-1].split(".")[0]
     parent_slice_id = element_id.rsplit(":", 1)[0] + ":" + parent_slice_name
     return parent_slice_id
+
+
+def select_element_compatible_with_cql_operations(
+    element: ElementDefinition, snapshot: StructureDefinitionSnapshot
+) -> (ElementDefinition, Set[str]):
+    """
+    Uses the given element to determine - if necessary - an element which is more suitable for generating the CQL
+    mapping
+    :param element: ElementDefinition instance to possibly replace
+    :param snapshot: StructureDefinition instance in snapshot form to which the element belongs
+    :return: Alternative element and targeted type if a more compatible element could be identified or the given
+             element and its type if not
+    """
+    ### Select element were the slicing is defined and is of type Coding
+    if element.sliceName is not None and "Coding" in {t.code for t in element.type}:
+        return select_element_compatible_with_cql_operations(
+            get_parent_element(snapshot, element), snapshot
+        )
+
+    element_types = element.type if element.type else []
+    element_type_codes = {t.code for t in element_types}
+    compatible_element = element
+    targeted_types = element_type_codes
+    ### Coding -> CodeableConcept
+    if len(element_types) == 1 and "Coding" in element_type_codes:
+        # If the given element has type Coding which is part of the CodeableConcept type, the parent element is
+        # returned to allow the CQL generation to use this information for query optimization
+        # element_base_path = element.base.path
+        if element.base and (element_base_path := element.base.path):
+            targeted_type = element_base_path.split(".")[0]
+            if targeted_type in {"CodeableConcept", "Reference"}:
+                parent_element = get_parent_element(snapshot, element)
+                if parent_element:
+                    # Recurse until the actual ancestor element is reached. Slicing element definitions do not have
+                    # such an element as their parent (direct ancestor)
+                    compatible_element, _ = (
+                        select_element_compatible_with_cql_operations(
+                            parent_element, snapshot
+                        )
+                    )
+                    targeted_types = {targeted_type}
+        else:
+            raise KeyError(
+                f"Element [id='{element.id}'] is missing required 'ElementDefinition.base.path' "
+                f"element which is required in snapshots"
+            )
+    return compatible_element if compatible_element else element, targeted_types
