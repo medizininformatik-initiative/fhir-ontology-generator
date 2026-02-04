@@ -536,23 +536,33 @@ class UIProfileGenerator:
                     )
                 )
             else:
+                selected_valuesets = []
                 available_slices = get_available_slices(
                     attribute_defining_element.id, profile_snapshot
                 )
-                self.__logger.debug(f"Available slices: {available_slices}")
-                for slice_name in available_slices:
-                    att_def_id = (
-                        get_slice_owning_element_id(attribute_defining_element.id)
-                        + ":"
-                        + slice_name
-                    )
-                    att_def_id = get_element_defining_elements(
-                        profile_snapshot, att_def_id, self.module_dir, self.data_set_dir
-                    )[-1]
-                    selected_valueset = get_selectable_concepts(
-                        att_def_id, profile_snapshot.name, self.__client
-                    )
-                    attribute_definition.referencedValueSet.append(selected_valueset)
+                if len(available_slices) > 0:
+                    self.__logger.debug(f"Available slices: {available_slices}")
+                    for slice_name in available_slices:
+                        att_def_id = (
+                            get_slice_owning_element_id(attribute_defining_element.id)
+                            + ":"
+                            + slice_name
+                        )
+                        att_def_id = get_element_defining_elements(
+                            profile_snapshot,
+                            att_def_id,
+                            self.module_dir,
+                            self.data_set_dir,
+                        )[-1]
+                        selected_valuesets.append(get_selectable_concepts(
+                            att_def_id, profile_snapshot.name, self.__client
+                        ))
+                else:
+                    # when no available sliced were found just
+                    selected_valuesets.append(get_selectable_concepts(
+                        attribute_defining_element, profile_snapshot.name, self.__client
+                    ))
+                attribute_definition.referencedValueSet = selected_valuesets
         elif attribute_type == "quantity":
             unit_defining_path = attribute_defining_element.path + ".code"
             unit_defining_elements = profile_snapshot.get_element_by_path(
