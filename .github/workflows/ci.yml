@@ -21,6 +21,7 @@ jobs:
       - name: Generate ontology files
         uses: ./.github/actions/generate-ontology
         with:
+          tag: ${{ github.ref_name }}
           project: "fdpg-ontology"
           term-server-url: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
           term-server-cert: ${{ secrets.FDPGPLUS_ONTO_SERVER_CERT }}
