@@ -373,7 +373,7 @@ def flatten_reference(
     :param kwargs: kwargs passing through things like the profile manager and the terminology client
     :return: flattened element with flattened children
     """
-    _logger.info(f"Flattening Reference: {element_id}")
+    _logger.debug(f"Flattening Reference: {element_id}")
 
     flat_reference_main = FlatteningLookupElement(
         parent=check_if_root(get_parent_element_id(element_id), profile)
@@ -438,7 +438,7 @@ def flatten_backbone_element(
         "select": [],
     }
 
-    _logger.info(
+    _logger.debug(
         f"Flatten backbone {element_id} with children: {flat_backbone.children}"
     )
 
@@ -489,7 +489,7 @@ def flatten_generic_complex_element(
             flat_generic_complex.children.append(prim_id)
             lookup.update(flatten_primitive(prim_id, profile, type=prim_type))
 
-    _logger.info(
+    _logger.debug(
         f"Flatten {element_id} of type {element_type} with children: {flat_generic_complex.children}"
     )
     return lookup
@@ -591,7 +591,7 @@ def flatten_codeable_concept(
     :return: flattened extension with flattened children
     """
     element = profile.get_element_by_id(element_id)
-    _logger.info(f"Flattening codeableConcept {element_id}")
+    _logger.debug(f"Flattening codeableConcept {element_id}")
 
     flat_element = FlatteningLookupElement(
         parent=check_if_root(get_parent_element_id(element_id), profile)
@@ -611,7 +611,7 @@ def flatten_codeable_concept(
             if len(slice.type) > 0 and "Coding" in slice.type[0].code
         ]
         if len(list_of_children_slices) > 0:
-            _logger.trace(f"found slices: {list_of_children_slices}")
+            _logger.debug(f"found slices: {list_of_children_slices}")
             flat_element.children = list_of_children_slices
         else:
             _logger.debug(
@@ -676,7 +676,7 @@ def generate_flattening_polymorphic_child(
     if profile.get_element_by_id(element_id):  # optional
         element_type = classify_element_type(profile.get_element_by_id(element_id))
 
-    _logger.info(f"Flattening polymorphic subtype {element_id} of type: {type}")
+    _logger.debug(f"Flattening polymorphic subtype {element_id} of type: {type}")
     polymorphic_element_name = polymorphic_parent.id.split(".")[-1].replace("[x]", "")
     fle = FlatteningLookupElement(parent=check_if_root(polymorphic_parent.id, profile))
     fle.view_definition = {
@@ -725,7 +725,7 @@ def flatten_polymorphic(
 
     element = profile.get_element_by_id(element_id)
 
-    _logger.info(f"Flattening polymorphic {element_id}")
+    _logger.debug(f"Flattening polymorphic {element_id}")
 
     flat_ext_parent = FlatteningLookupElement(
         parent=check_if_root(get_parent_element_id(element_id), profile)
@@ -798,7 +798,7 @@ def flatten_primitive(
         if profile.get_element_by_id(element_id)
         else (type if type else None)
     )
-    _logger.info(f"Flattening primitive {element_id} of type: {element_type}")
+    _logger.debug(f"Flattening primitive {element_id} of type: {element_type}")
 
     flat_element = FlatteningLookupElement(
         parent=check_if_root(get_parent_element_id(element_id), profile)
