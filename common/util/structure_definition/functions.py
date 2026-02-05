@@ -1096,14 +1096,20 @@ def get_parent_element_id(
 ) -> str:
     element_id: str
 
-    if isinstance(element,ElementDefinition):
-        element_id = element.id
-        if not element_id:
-            raise KeyError(
-                f"'ElementDefinition.id' is missing in element [path='{element.path}']"
+    match element:
+        case ElementDefinition(id=element_id, path=path):
+            if not element_id:
+                raise KeyError(
+                    f"'ElementDefinition.id' is missing in element [path='{path}']"
+                )
+
+        case str() as element_id:
+            pass
+
+        case _:
+            raise TypeError(
+                f"Expected ElementDefinition or str, got {type(element).__name__}"
             )
-    if isinstance(element, str):
-        element_id=element
     # We can determine the parent elements ID using the child elements path. The FHIR spec requires the ID to align close
     # to the elements path and be hierarchical
     split = element_id.split(".")
