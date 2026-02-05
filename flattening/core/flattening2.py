@@ -1,4 +1,5 @@
 import copy
+import re
 from typing import Optional, List, Dict, Tuple, Callable
 
 from fhir.resources.R4B.elementdefinition import ElementDefinition
@@ -106,6 +107,7 @@ def id_to_column_name(element_id: str) -> str:
     :return: column name for the given element
     """
     el_id: str = element_id
+    el_id = re.compile(r":([a-zA-Z][a-zA-Z0-9_-]*)").sub(lambda m: ":" + m.group(1).capitalize(), el_id)
     # ':' and '.' and '-' and '[x]' are not allowed by pathling in column names, using '#' and '_' instead
     el_id = el_id.replace(":", "")
     el_id = el_id.replace(".", "_")
@@ -158,7 +160,7 @@ def get_direct_children_ids(element: str, profile) -> List[str]:
     return [
         el.id
         for el in profile.snapshot.element
-        if element in el.id and get_parent_element_id(el) == element
+        if get_parent_element_id(el) == element
     ]
 
 
@@ -174,12 +176,6 @@ def get_required_children_for_element(
     :param type: type of element
     :return: List of tuples with format ``(child_id, child_type)``
     """
-    # res = {}
-    # child_elements = [f"{element}.{part_prim_id}" for part_prim_id in REQUIRED_PRIMITIVE_PER_ELEMENT.get(type)]
-    # if f := FLATTEN_FUNCTIONS.get("primitive"):
-    #     for child in child_elements:
-    #         res.update(f(child, profile))
-
     return [
         (f"{element}.{part_prim_id}", part_prim_type)
         for (part_prim_id, part_prim_type) in (
@@ -252,6 +248,27 @@ def recontextualize_extension_lookup(
     return res_lookup
 
 
+def extract_code_system_for_slice(element: ElementDefinition, profile: StructureDefinitionSnapshot) -> str|None:
+    """
+    Extract codesystem for given element.
+        1. Extract from Pattern
+        2. Binding
+        3. Fixed
+    :param element: id of the element
+    :param profile: profile of element
+    :return: codesystem url or None
+    """
+    code_system_el = profile.get_element_by_id(f"{element.id}.system")
+    if element.patternCoding or (code_system_el and code_system_el.patternUri):
+        return (
+            code_system_el.patternUri
+            if code_system_el and code_system_el.patternUri
+            else element.patternCoding.system
+        )
+
+    return None
+
+
 @register_flattener("Coding")
 def flatten_coding(
     element_id: str,
@@ -319,14 +336,7 @@ def flatten_coding(
             parent=check_if_root(codeable_concept_parent, profile)
         )
         # check pattern
-        code_system_el = profile.get_element_by_id(f"{element.id}.system")
-        if element.patternCoding or (code_system_el and code_system_el.patternUri):
-
-            code_system_url = (
-                code_system_el.patternUri
-                if code_system_el and code_system_el.patternUri
-                else element.patternCoding.system
-            )
+        if code_system_url := extract_code_system_for_slice(element, profile):
             flat_element.view_definition = {
                 "forEachOrNull": f"{element.path.split('.')[-1]}.where(system = '{code_system_url}')",
                 "select": [],
@@ -387,13 +397,13 @@ def flatten_reference(
         parent=check_if_root(element_id, profile)
     )
     flat_reference_ref.view_definition = {
-        "forEachOrNull": f"reference",
+        "forEachOrNull": "reference",
         "select": [
             {
                 "column": [
                     {
                         "name": f"{id_to_column_name(ref_element_id)}",
-                        "path": f"$this",
+                        "path": "$this",
                     }
                 ],
             }
@@ -551,7 +561,7 @@ def flatten_extension(
                 ext_profile: StructureDefinitionSnapshot
                 _logger.debug(f"Found profile ->  following reference: {ext_profile_url}")
                 ext_lookup = flatten_polymorphic(
-                    f"Extension.value[x]", ext_profile, **kwargs
+                    "Extension.value[x]", ext_profile, **kwargs
                 )
                 lookup.update(
                     recontextualize_extension_lookup(ext_lookup, element_id, profile)
@@ -601,7 +611,7 @@ def flatten_codeable_concept(
             if len(slice.type) > 0 and "Coding" in slice.type[0].code
         ]
         if len(list_of_children_slices) > 0:
-            _logger.debug(f"found slices: {list_of_children_slices}")
+            _logger.trace(f"found slices: {list_of_children_slices}")
             flat_element.children = list_of_children_slices
         else:
             _logger.debug(
