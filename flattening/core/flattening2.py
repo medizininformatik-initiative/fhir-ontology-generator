@@ -114,7 +114,7 @@ def id_to_column_name(element_id: str) -> str:
     return el_id
 
 
-def get_element_type(
+def classify_element_type(
     element,
 ) -> str | None:
     """
@@ -162,7 +162,7 @@ def get_direct_children_ids(element: str, profile) -> List[str]:
     ]
 
 
-def get_required_primitives_per_element(
+def get_required_children_for_element(
     element: str,
     type: str,
 ) -> List[Tuple[str, str]]:
@@ -183,9 +183,7 @@ def get_required_primitives_per_element(
     return [
         (f"{element}.{part_prim_id}", part_prim_type)
         for (part_prim_id, part_prim_type) in (
-            REQUIRED_PRIMITIVE_PER_ELEMENT.get(type)
-            if REQUIRED_PRIMITIVE_PER_ELEMENT.get(type)
-            else []
+            REQUIRED_PRIMITIVE_PER_ELEMENT.get(type, [])
         )
     ]
 
@@ -209,15 +207,19 @@ def recontextualize_extension_lookup(
       "parent": "Extension",
       "view_definition": {
         "forEachOrNull": "value[x].coding",
-        "column": [
-          {
-            "name": "Extension_value_X__system",
-            "path": "system"
-          },
-          {
-            "name": "Extension_value_X__code",
-            "path": "code"
-          }
+        "select": [
+            {
+                "column": [
+                  {
+                    "name": "Extension_value_X__system",
+                    "path": "system"
+                  },
+                  {
+                    "name": "Extension_value_X__code",
+                    "path": "code"
+                  }
+                ]
+            }
         ]
       },
       "children": []
@@ -233,8 +235,8 @@ def recontextualize_extension_lookup(
         new_key = key.replace("Extension", element_id)
         new_lookup = copy.deepcopy(lookup)
 
-        if new_lookup.view_definition.get("column"):
-            for col in new_lookup.view_definition.get("column"):
+        for select_el in new_lookup.view_definition.get("select",[]):
+            for col in select_el.get("column",[]):
                 col["name"] = col["name"].replace(
                     "Extension", id_to_column_name(element_id)
                 )
@@ -254,7 +256,6 @@ def recontextualize_extension_lookup(
 def flatten_coding(
     element_id: str,
     profile: StructureDefinitionSnapshot,
-    polymorphic_subtype: bool = False,
     codeable_concept_parent: str = None,
     **kwargs,
 ) -> Dict[str, FlatteningLookupElement] | None:
@@ -269,14 +270,13 @@ def flatten_coding(
 
     :param element_id: element id of the coding
     :param profile: profile the element is in
-    :param polymorphic_subtype: True if element is subtype of a polymorphic element like .valueCoding
+    :param polymorphic_concrete_type: True if element is subtype of a polymorphic element like .valueCoding
     :param codeable_concept_parent:
     :param kwargs:
     :return: flattened element with flattened children
     """
 
     element = profile.get_element_by_id(element_id)
-    lookup = {}
 
     if element is None:
         # when working with "pseudo" Codings, meaning codings that should be there but are not properly defined like
@@ -299,23 +299,20 @@ def flatten_coding(
 
     # standalone coding
     if not codeable_concept_parent:
-        if polymorphic_subtype:
-            _logger.debug("Undefined behaviour: coding as polymorphic subtype")
-            return None
+        # TODO: implement properly, with checking for slices. For now generic flattening
+        _logger.warning("Not implemented yet. Falling back to generic flattening")
 
-        # # TODO: when no slices are found
-        # flat_element = FlatteningLookupElement(
-        #     parent=check_if_root(get_parent_element_id(element), profile)
-        # )
-        # flat_element.view_definition = {
-        #     "forEachOrNull": element.id.split(".")[-1],
-        #     "column": [
-        #         {"name": f"{id_to_column_name(element.id)}_system", "path": "system"},
-        #         {"name": f"{id_to_column_name(element.id)}_code", "path": "code"},
-        #     ],
-        # }
-        # return {element.id:flat_element}
-        return {}
+        flat_element = FlatteningLookupElement(
+            parent=check_if_root(get_parent_element_id(element), profile)
+        )
+        flat_element.view_definition = {
+            "forEachOrNull": element.id.split(".")[-1],
+            "column": [
+                {"name": f"{id_to_column_name(element.id)}_system", "path": "system"},
+                {"name": f"{id_to_column_name(element.id)}_code", "path": "code"},
+            ],
+        }
+        return {element.id:flat_element}
 
     else:
         flat_element = FlatteningLookupElement(
@@ -391,10 +388,14 @@ def flatten_reference(
     )
     flat_reference_ref.view_definition = {
         "forEachOrNull": f"reference",
-        "column": [
+        "select": [
             {
-                "name": f"{id_to_column_name(ref_element_id)}",
-                "path": f"$this",
+                "column": [
+                    {
+                        "name": f"{id_to_column_name(ref_element_id)}",
+                        "path": f"$this",
+                    }
+                ],
             }
         ],
     }
@@ -455,7 +456,7 @@ def flatten_generic_complex_element(
 
     element_type = type
     if element := profile.get_element_by_id(element_id):
-        element_type = get_element_type(element)
+        element_type = classify_element_type(element)
     flat_generic_complex = FlatteningLookupElement(
         parent=check_if_root(get_parent_element_id(element_id), profile)
     )
@@ -471,7 +472,7 @@ def flatten_generic_complex_element(
         lookup.update(flatten_element(child, profile, **kwargs))
 
     # add if missing, required primitives. These should only be added if not defined in the profile
-    required_primitives = get_required_primitives_per_element(element_id, element_type)
+    required_primitives = get_required_children_for_element(element_id, element_type)
     for prim_id, prim_type in required_primitives:
         # filter for duplicates with .children
         if prim_id not in flat_generic_complex.children:
@@ -504,24 +505,20 @@ def flatten_extension(
     :param kwargs: kwargs passing through things like the profile manager and the terminology client
     :return: flattened extension with flattened children
     """
-
     element = profile.get_element_by_id(element_id)
 
     # parent extension
     if element.slicing is not None:
-        print(
+        _logger.debug(
             f"Found children for {element_id}: {get_direct_children_ids(element.id, profile)}"
         )
         flat_ext = FlatteningLookupElement(
-            parent=check_if_root(get_parent_element_id(element), profile)
+            parent=check_if_root(get_parent_element_id(element), profile),
+            view_definition={
+                "select": [],
+            },
+            children=get_direct_children_ids(element.id, profile),
         )
-        flat_ext.view_definition = {
-            "select": [],
-        }
-        flat_ext.children = get_direct_children_ids(element.id, profile)
-        #
-        # if not flat_ext.children or len(flat_ext.children) < 0:
-        #     return {}
 
         lookup = {}
         if len(flat_ext.children) > 0:
@@ -535,25 +532,24 @@ def flatten_extension(
         lookup = {}
         manager: FhirPackageManager = kwargs["manager"]
 
-        if element.type[0].profile is not None:
-            ext_profile_url = element.type[0].profile[0]
+        if element.type[0].profile and (ext_profile_url := element.type[0].profile[0]):
 
             flat_ext_el = FlatteningLookupElement(
-                parent=check_if_root(get_parent_element_id(element), profile)
+                parent=check_if_root(get_parent_element_id(element), profile),
+                view_definition={
+                    "forEachOrNull": f"extension.where(url = '{ext_profile_url}')",
+                    "select": [],
+                }
             )
-            flat_ext_el.view_definition = {
-                "forEachOrNull": f"extension.where(url = '{ext_profile_url}')",
-                "select": [],
-            }
 
-            print(f"Found profile for {element_id}: {ext_profile_url}")
+            _logger.debug(f"Found profile for {element_id}: {ext_profile_url}")
             content_pattern = {
                 "resourceType": "StructureDefinition",
                 "url": ext_profile_url,
             }
             if ext_profile := manager.find(content_pattern):
                 ext_profile: StructureDefinitionSnapshot
-                print(f"Found profile ->  going deeper: {ext_profile_url}")
+                _logger.debug(f"Found profile ->  following reference: {ext_profile_url}")
                 ext_lookup = flatten_polymorphic(
                     f"Extension.value[x]", ext_profile, **kwargs
                 )
@@ -668,7 +664,7 @@ def generate_flattening_polymorphic_child(
     element_type = type
 
     if profile.get_element_by_id(element_id):  # optional
-        element_type = get_element_type(profile.get_element_by_id(element_id))
+        element_type = classify_element_type(profile.get_element_by_id(element_id))
 
     _logger.info(f"Flattening polymorphic subtype {element_id} of type: {type}")
     polymorphic_element_name = polymorphic_parent.id.split(".")[-1].replace("[x]", "")
@@ -681,16 +677,18 @@ def generate_flattening_polymorphic_child(
     subtype_flat_element_lookup = flatten_element(
         element_id, profile, polymorphic_child=True, type=type, **kwargs
     )
-    if (
-        subtype_flat_element := subtype_flat_element_lookup.get(element_id)
-    ) and subtype_flat_element is not None:
+    if subtype_flat_element := subtype_flat_element_lookup.get(element_id):
         lookup_list: Dict[str, FlatteningLookupElement] = subtype_flat_element_lookup
         lookup_list.pop(element_id)
         # if element is a primitive element => include the .column of the viewDefinition of the flattened result
         # else if element is a complex element => flatten children accordingly below
         col = subtype_flat_element.view_definition.get("column", "")
         if col:
-            fle.view_definition["column"] = col
+            fle.view_definition["select"] = [
+                {
+                    "column": col
+                }
+            ]
         fle.children = (
             subtype_flat_element.children
             if subtype_flat_element.children
@@ -726,19 +724,32 @@ def flatten_polymorphic(
 
     possible_types = [t.code for t in element.type]
     slice_prefix = element_id.split(".")[-1].replace("[x]", "")
+
+    # children that the profile does not define but which should be there based on the listed types
     undefined_children = [
         (f"{element_id}:{slice_prefix}{t[0].upper()}{t[1:]}", t) for t in possible_types
     ]
-    defined_children_ids = [
-        (child_id, get_element_type(profile.get_element_by_id(child_id)))
-        for child_id in get_direct_children_ids(element_id, profile)
-    ]
 
-    children_ids = set(undefined_children).union(defined_children_ids)
+    # children that the profile defined
+    # considering the children of this element is more bothering then useful
+    # and for the flattening we only ever want the type slices anyway
+    # Polymorphic elements which do not have the valueSlices defined as children, will then proceed
+    # to add the children of the only type to the list they support. In case of Coding this means that
+    # .code, .id, .system all get columns which, as discussed in the flatten_coding does not make sense
+    # to add these in flattening
+    # The only time when this should be considered is in the rare
+    # case an extension is defined on the polymorphic element itself
+    # defined_children_ids = [
+    #     (child_id, get_element_type(profile.get_element_by_id(child_id)))
+    #     for child_id in get_direct_children_ids(element_id, profile)
+    # ]
+    # theoretical
+
+    # children_ids = set(undefined_children).union(defined_children_ids)
 
     flat_ext_parent.children = []
     lookup_list = {}
-    for child, child_type in children_ids:
+    for child, child_type in undefined_children:
         flat_ext_parent.children.append(child)
         lookup_list.update(
             generate_flattening_polymorphic_child(
@@ -773,7 +784,7 @@ def flatten_primitive(
     :return: flattened element
     """
     element_type = (
-        get_element_type(profile.get_element_by_id(element_id))
+        classify_element_type(profile.get_element_by_id(element_id))
         if profile.get_element_by_id(element_id)
         else (type if type else None)
     )
@@ -816,7 +827,7 @@ def flatten_element(
     """
     flat_lookup_els: Dict[str, FlatteningLookupElement] = {}
     element = profile.get_element_by_id(element_id)
-    element_type = type if type else get_element_type(element)
+    element_type = type if type else classify_element_type(element)
     f = FLATTEN_FUNCTIONS.get(element_type)
     if f:
         if res := f(element_id, profile, client=client, **kwargs):
@@ -870,19 +881,9 @@ def generate_flattening_lookup(
         if profile.type in ["SearchParameter"]:
             continue
         if not isinstance(profile, StructureDefinition) and not profile.snapshot:
-            _logger.debug(
+            _logger.warning(
                 f"Profile '{profile.url}' is not in snapshot form => Skipping"
             )
-            continue
-
-        # ONLY FOR TESTING
-        if not profile.id in [
-            "mii-pr-diagnose-condition",
-            "mii-pr-person-patient",
-            "mii-pr-person-patient-pseudonymisiert",
-            "mii-pr-prozedur-procedure",
-            "mii-pr-labor-laboruntersuchung",
-        ]:
             continue
 
         _logger.info(f"Generating flattening lookup for {profile.name}")
@@ -891,6 +892,7 @@ def generate_flattening_lookup(
         lookup_all_children = generate_flattening_lookup_for_profile(
             profile, client, manager
         )
+        # clean up empty children references which point to non-existing elements and remove empty children arrays
         lookup_existing_children = lookup_all_children.model_copy(deep=True)
         for key, el in lookup_all_children.elements.items():
             el: FlatteningLookupElement
@@ -900,6 +902,8 @@ def generate_flattening_lookup(
                 for child in (el.children or [])
                 if child in lookup_all_children.elements
             ]
+            if len(new_el.children) == 0:
+                new_el.children = None
 
             lookup_existing_children.elements[key] = new_el
 

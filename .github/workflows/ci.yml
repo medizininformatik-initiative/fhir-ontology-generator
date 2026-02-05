@@ -230,6 +230,12 @@ jobs:
           name: availability_files
           path: projects/fdpg-ontology/output/availability
 
+      - name: Download flattening files
+        uses: actions/download-artifact@v4
+        with:
+          name: flattening file
+          path: projects/fdpg-ontology/output/flattening
+
       - name: Collect DSE structure definition snapshots
         shell: bash
         run: zip -j projects/fdpg-ontology/output/data_selection_extraction/dse_structures.zip projects/fdpg-ontology/input/data_selection_extraction/snapshots/mii/*
@@ -245,3 +251,4 @@ jobs:
             projects/fdpg-ontology/output/merged_ontology/mapping.zip
             projects/fdpg-ontology/output/availability/availability.zip
             projects/fdpg-ontology/output/data_selection_extraction/dse_structures.zip
+            projects/fdpg-ontology/output/flattening/flattening.zip
