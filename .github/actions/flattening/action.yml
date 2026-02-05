@@ -75,7 +75,7 @@ runs:
       uses: actions/upload-artifact@v4
       if: ${{ inputs.upload-artifacts == true || inputs.upload-artifacts == 'true' }}
       with:
-        name: flattening file
-        path: ./projects/${{ inputs.project }}/output/flattening/*
+        name: flattening_file
+        path: ./projects/${{ inputs.project }}/output/flattening/flattening.zip
         if-no-files-found: error
         overwrite: true
