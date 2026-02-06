@@ -15,6 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+# [v3.9.5] - 2026-02-05
+
+## Fixed
+
+- Fix selection of CQL-compatible elements for query language mapping (#399 @Frontman50)
+- Fix resolution of Observation-value based attributes for query language mapping (#401 @Frontman50)
+- Fix pydantic issues (PR#428 @paulolaup)
+
 # [v3.9.4] - 2026-01-19
 
 ## Added
