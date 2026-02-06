@@ -3,6 +3,10 @@ name: Generate Ontology
 description: 'Generates ontology files'
 
 inputs:
+  tag:
+    required: false
+    description: 'Git tag if present'
+    default: ''
   project:
     required: false
     description: 'Name of the project to generate the ontology files for. Defaults to "fdpg-ontology"'
@@ -70,6 +74,25 @@ runs:
         echo "$SERVER_CERTIFICATE" > certificate.pem
         echo privateKey=$(readlink -f private-key.pem) >> "$GITHUB_OUTPUT"
         echo certificate=$(readlink -f certificate.pem) >> "$GITHUB_OUTPUT"
+
+    - name: Add tag-based version (if available) to index definitions
+      shell: bash
+      working-directory: ./projects/${{ inputs.project }}/input/elastic
+      run: |
+        echo "Setting tag-based version to index definitions"
+        TAG="${{ inputs.tag }}"
+        if [[ -n "$TAG" ]]; then
+          if ! command -v jq >/dev/null 2>&1; then
+            echo "Installing tool jq"
+            sudo apt-get install -y jq
+          fi
+          echo "Using tag name '$TAG' as index version"
+          for i in *.json; do
+            [ -f "$i" ] || break;
+            echo "Updating version of Elasticsearch index definition @ $i"
+            jq ".mappings._meta.version = \"$TAG\"" "$i" > tmp.json && mv -f tmp.json "$i"
+          done
+        fi
 
     - name: Run ontology generation
       env:

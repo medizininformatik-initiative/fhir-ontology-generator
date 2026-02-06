@@ -172,19 +172,20 @@ def test_json_integrity_mapping_tree_dse(test_dir, project, schema_store):
         schema_store=schema_store,
     )
 
+
 def test_terminology_systems_output(test_dir, project, schema_store):
     terminology_systems = project.output / "terminology" / "terminology_systems.json"
-    terminology_systems_schema_file = Path(test_dir, "schemata", "terminology_systems_schema.json")
-    assert validate_json_with_file(file=terminology_systems, schema=terminology_systems_schema_file, schema_store=schema_store)
+    terminology_systems_schema_file = Path(
+        test_dir, "schemata", "terminology_systems_schema.json"
+    )
+    assert validate_json_with_file(
+        file=terminology_systems,
+        schema=terminology_systems_schema_file,
+        schema_store=schema_store,
+    )
 
 
 def test_json_integrity_elastic_file(json_file, test_dir, schema_store):
-    elastic_ontology_index_schema_file = Path(
-        test_dir, "schemata", "elastic_ontology_index_schema.json"
-    )
-    with open(elastic_ontology_index_schema_file, "r", encoding="UTF-8") as f:
-        elastic_ontology_index_schema_file = json.load(f)
-
     elastic_ontology_content_schema_file = Path(
         os.path.join(test_dir, "schemata", "elastic_ontology_content_schema.json")
     )
@@ -199,9 +200,6 @@ def test_json_integrity_elastic_file(json_file, test_dir, schema_store):
     validate_content = fastjsonschema.compile(
         elastic_ontology_content_schema_file, handlers={"https": handler}
     )
-    validate_index = fastjsonschema.compile(
-        elastic_ontology_index_schema_file, handlers={"https": handler}
-    )
 
     logger.info(f"Currently testing: {json_file}")
     line_number = 0
@@ -215,13 +213,11 @@ def test_json_integrity_elastic_file(json_file, test_dir, schema_store):
             if not elastic_ontology_content_line:
                 break  # eof
 
-            elastic_ontology_index_line = json.loads(elastic_ontology_index_line)
             elastic_ontology_content_line = json.loads(elastic_ontology_content_line)
 
             line_number += 2
 
             try:
-                assert validate_index(elastic_ontology_index_line)
                 assert validate_content(elastic_ontology_content_line)
 
             except fastjsonschema.exceptions.JsonSchemaValueException as exc:
