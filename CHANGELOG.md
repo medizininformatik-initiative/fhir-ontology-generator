@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+# [v3.9.6] - 2026-02-09
+
+## Fixed
+
+- Fix incorrect search parameters being used as time filters in DSE (#434 @paulolaup)
+
 # [v3.9.5] - 2026-02-05
 
 ## Fixed
