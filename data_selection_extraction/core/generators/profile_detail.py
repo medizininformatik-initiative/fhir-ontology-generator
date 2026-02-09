@@ -1,7 +1,8 @@
+import json
 import re
 from collections import OrderedDict
 from collections.abc import Callable
-from functools import cmp_to_key, cache
+from functools import cmp_to_key
 from typing import Mapping, List, TypedDict, Any, Optional
 
 import cachetools
@@ -46,12 +47,13 @@ from common.util.log.functions import get_class_logger
 from data_selection_extraction.model.profile_tree import ProfileTreeNode
 from data_selection_extraction.util.fhir.profile import is_profile_selectable
 
-
 Profile = Mapping[str, Any]
 
 _EXT_ELEM_PATTERN = re.compile(
     r".*extension(:(?P<slice_name>[a-zA-Z0-9\/\\\-_\[\]\@]+))?"
 )
+
+SEARCH_FILTER_MAPPING_FILE_NAME = "search_filter_mapping.json"
 
 
 class SearchParamPathMapping(TypedDict):
@@ -105,6 +107,16 @@ class ProfileDetailGenerator:
 
         self.__is_included_cache = {}
         self.__is_recommended_cache = {}
+
+        if (path := project.input.dse / SEARCH_FILTER_MAPPING_FILE_NAME).exists():
+            self.__logger.info(f"Found search filter mapping @ {path}")
+            with path.open(mode="r", encoding="utf-8") as f:
+                self.__search_filter_mapping = json.load(f)
+        else:
+            self.__logger.info(
+                f"Found no search filter mapping @ {path} => Defaults will be used"
+            )
+            self.__search_filter_mapping = {}
 
     @cachetools.cachedmethod(
         cache=lambda self: self.__is_included_cache,
@@ -428,12 +440,16 @@ class ProfileDetailGenerator:
                 return next(e.valueString for e in ext.extension if e.url == "content")
         return None
 
-    @staticmethod
-    def resource_type_to_date_param(resource_type: str) -> str:
-        if resource_type == "Condition":
-            return "recorded-date"
-
-        return "date"
+    def resource_type_to_date_param(self, resource_type: str) -> Optional[str]:
+        if resource_type in self.__search_filter_mapping:
+            # NOTE: Having an explicit null value in the mapping indicates that there is no applicable search parameter
+            return self.__search_filter_mapping[resource_type]
+        else:
+            self.__logger.warning(
+                "No search parameter defined for resource type '%s' => No such filter will be supported",
+                resource_type,
+            )
+            return None
 
     def __get_profiles(
         self, scope: Optional[str] = None
@@ -744,13 +760,17 @@ class ProfileDetailGenerator:
                         ),
                     ],
                 ),
-                filters=[
-                    Filter(
-                        type=FhirSearchType.DATE,
-                        name=date_param,
-                        ui_type="timeRestriction",
-                    )
-                ],
+                filters=(
+                    [
+                        Filter(
+                            type=FhirSearchType.DATE,
+                            name=date_param,
+                            ui_type="timeRestriction",
+                        )
+                    ]
+                    if date_param
+                    else []
+                ),
             )
 
             profile_type = struct_def.type

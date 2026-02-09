@@ -830,9 +830,6 @@ class CQLMappingGenerator(object):
                 # End recursion since with the current enum members reaching this state leads to no further changes. An
                 # exception will be made if the element is a root element since at that level we always assume singleton
                 # occurrence (e.g. for paths like '<resource-type>')
-                print(
-                    f"{SimpleCardinality.SINGLE if is_root else card} at el: {element.id}"
-                )
                 return SimpleCardinality.SINGLE if is_root else card
             case _:
                 parent_element = get_parent_element(snapshot, element)

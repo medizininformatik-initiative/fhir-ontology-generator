@@ -7,8 +7,6 @@ from pathlib import Path
 from typing import Union, Literal, Mapping, List, Any, Optional
 from urllib.parse import urlparse
 
-from fhir.resources.R4B.valueset import ValueSet
-
 from common.util.codec.json import JSONFhirOntoEncoder
 from common.util.fhir.package.manager import FirelyPackageManager
 from common.util.http.exceptions import ClientError
@@ -27,9 +25,9 @@ from cohort_selection_ontology.core.terminology.client import (
     remove_non_direct_ancestors,
 )
 from cohort_selection_ontology.model.tree_map import TreeMap, TermEntryNode
-from cohort_selection_ontology.model.ui_data import TermCode, TranslationDisplayElement
+from cohort_selection_ontology.model.ui_data import TermCode
 from common.util.log.functions import get_logger
-from data_selection_extraction.model.detail import ProfileDetail, ProfileDetailListTA
+from data_selection_extraction.model.detail import ProfileDetailListTA
 
 _logger = get_logger(__file__)
 
@@ -90,9 +88,12 @@ def extend_terminology_display_mapping(
             original = None
         if original:
             if entry := term_mapping.get(vs_url):
-               entry.get("display", {})["original"] = original
+                entry.get("display", {})["original"] = original
             else:
-                term_mapping[vs_url] = {"url": vs_url, "display": {"original": original}}
+                term_mapping[vs_url] = {
+                    "url": vs_url,
+                    "display": {"original": original},
+                }
     with (project.output.terminology / "terminology_systems.json").open(
         mode="w", encoding="utf-8"
     ) as f:
