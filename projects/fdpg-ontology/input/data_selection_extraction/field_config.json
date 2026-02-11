@@ -255,7 +255,16 @@
             "note": "is auto preselected for each resource in background"
           }
         ]
-      }
+      },
+      "exclude": [
+        {
+          "id": "Encounter.identifier",
+          "match": {
+            "target": "id",
+            "pattern": "Encounter.identifier"
+          }
+        }
+      ]
     },
     "http://hl7.org/fhir/StructureDefinition/Medication": {
       "recommend": {
@@ -701,6 +710,16 @@
           }
         ]
       }
+    },
+    "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung": {
+      "include": [
+        {
+          "match": {
+            "target": "id",
+            "pattern": "Encounter.identifier:Aufnahmenummer$"
+          }
+        }
+      ]
     }
   }
 }
