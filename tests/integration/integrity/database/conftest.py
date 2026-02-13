@@ -92,7 +92,7 @@ def docker_services(
         docker_cleanup,
     ) as docker_service:
         yield docker_service
-        save_docker_logs(str(__test_dir()), "integrity-database-test")
+        save_docker_logs(__test_dir(), "integrity-database-test")
 
 
 @pytest.fixture(scope="session")

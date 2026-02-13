@@ -1,0 +1,73 @@
+{
+  "version": "https://medizininformatik-initiative.de/fdpg/StructuredQuery/v3/schema",
+  "display": "Ausgewählte Merkmale",
+  "inclusionCriteria": [
+    [
+      {
+        "attributeFilters": [
+          {
+            "selectedConcepts": [
+              {
+                "code": "R",
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "display": "Resistant"
+              }
+            ],
+            "type": "concept",
+            "attributeCode": {
+              "code": "interpretation",
+              "display": "High, low, normal, etc.",
+              "system": "http://hl7.org/fhir/StructureDefinition"
+            }
+          },
+          {
+            "type": "reference",
+            "criteria": [
+              {
+                "termCodes": [
+                  {
+                    "code": "258503004",
+                    "display": "Skin swab",
+                    "system": "http://snomed.info/sct",
+                    "version": "http://snomed.info/sct/900000000000207008/version/20260101"
+                  }
+                ],
+                "context": {
+                  "code": "Specimen",
+                  "display": "Bioprobe",
+                  "system": "fdpg.mii.cds",
+                  "version": "1.0.0"
+                },
+                "timeRestriction": {
+                  "beforeDate": "2026-02-12"
+                }
+              }
+            ],
+            "attributeCode": {
+              "code": "specimen",
+              "display": "Specimen used for this observation",
+              "system": "http://hl7.org/fhir/StructureDefinition"
+            }
+          }
+        ],
+        "termCodes": [
+          {
+            "code": "18868-0",
+            "display": "Aztreonam [Susceptibility]",
+            "system": "http://loinc.org",
+            "version": "2.80"
+          }
+        ],
+        "context": {
+          "code": "Mikrobiologie Empfindlichkeit",
+          "display": "Mikrobiologie Empfindlichkeit",
+          "system": "fdpg.mii.cds",
+          "version": "1.0.0"
+        },
+        "timeRestriction": {
+          "beforeDate": "2026-02-12"
+        }
+      }
+    ]
+  ]
+}

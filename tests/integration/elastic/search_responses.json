@@ -1,0 +1,1785 @@
+[
+  {
+    "id": "Bioprobe#Specimen#http://snomed.info/sct#0",
+    "results": [
+      {
+        "name": "Plasma specimen",
+        "availability": 0,
+        "terminology": "http://snomed.info/sct",
+        "termcode": "119361006",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Specimen",
+          "display": "Bioprobe",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "119361006",
+            "display": "Plasma specimen",
+            "version": "http://snomed.info/sct/900000000000207008/version/20250701"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "Plasma specimen",
+          "en": "Plasma specimen",
+          "de": "Plasmaprobe"
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "9f236859-841c-3620-bb53-1fc36e453643",
+            "display": {
+              "original": "Body fluid specimen",
+              "en": "Body fluid specimen",
+              "de": "K\u00f6rperfl\u00fcssigkeitsprobe"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "309051001",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "d8b45000-3bfd-3416-9e8d-9d21974a987f",
+            "display": {
+              "original": "Serum or plasma specimen",
+              "en": "Serum or plasma specimen",
+              "de": "Azellul\u00e4re Blutprobe"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "122592007",
+            "selectable": true
+          }
+        ],
+        "children": [
+          {
+            "contextualized_termcode_hash": "946ea391-2fe4-3e84-9e9d-504b9e068f81",
+            "display": {
+              "original": "Plasma specimen with citrate",
+              "en": "Plasma specimen with citrate",
+              "de": "Plasma mit Citrat-Zusatz"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "708048008",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "57d69616-8544-3523-b216-6802fef7d345",
+            "display": {
+              "original": "Capillary plasma specimen",
+              "en": "Capillary plasma specimen",
+              "de": ""
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "2441000181109",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "fa1d19d4-91ba-389f-8def-0e4f17cd1cda",
+            "display": {
+              "original": "Platelet rich plasma specimen",
+              "en": "Platelet rich plasma specimen",
+              "de": "Probe thrombozytenreichen Plasmas"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "119363009",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "9755adbd-c47f-3ff1-ac39-fd7858a66e35",
+            "display": {
+              "original": "Platelet poor plasma specimen",
+              "en": "Platelet poor plasma specimen",
+              "de": "Probe thrombozytenarmen Plasmas"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "119362004",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "d2de8934-e756-3bcd-a32d-86fa06ede3ee",
+            "display": {
+              "original": "Plasma specimen with ethylenediamine tetraacetic acid",
+              "en": "Plasma specimen with ethylenediamine tetraacetic acid",
+              "de": "Plasmaprobe mit EDTA-Zusatz"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "708049000",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "5a1ea203-efc2-3f44-b840-dc209ec22353",
+            "display": {
+              "original": "Mixed venous plasma specimen",
+              "en": "Mixed venous plasma specimen",
+              "de": ""
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "2451000181107",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "a2ccd2cb-07ba-339d-b2a3-8b20bba1dc0f",
+            "display": {
+              "original": "Arterial plasma specimen",
+              "en": "Arterial plasma specimen",
+              "de": ""
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "2431000181102",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "bcf17c8e-9843-3210-86e8-fc9714d42521",
+            "display": {
+              "original": "Venous plasma specimen",
+              "en": "Venous plasma specimen",
+              "de": "Ven\u00f6se Plasmaprobe"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "703432000",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "0d47dce3-5737-33b7-841f-f3b85de923b5",
+            "display": {
+              "original": "Dried plasma spot specimen",
+              "en": "Dried plasma spot specimen",
+              "de": "Getrocknete Plasmatropfen-Probe"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "898205005",
+            "selectable": true
+          }
+        ],
+        "related_terms": [],
+        "kds_module": "Bioprobe"
+      }
+    ]
+  },
+  {
+    "id": "Bioprobe#Specimen#http://snomed.info/sct#1",
+    "results": [
+      {
+        "name": "Blood specimen from blood donor",
+        "availability": 0,
+        "terminology": "http://snomed.info/sct",
+        "termcode": "122560006",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Specimen",
+          "display": "Bioprobe",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "122560006",
+            "display": "Blood specimen from blood donor",
+            "version": "http://snomed.info/sct/900000000000207008/version/20250701"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "Blood specimen from blood donor",
+          "en": "Blood specimen from blood donor",
+          "de": "Spenderblutprobe"
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "33214b72-9498-34a8-8f84-7597d8c12efc",
+            "display": {
+              "original": "Blood specimen",
+              "en": "Blood specimen",
+              "de": "Blutprobe"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "119297000",
+            "selectable": true
+          }
+        ],
+        "children": [
+          {
+            "contextualized_termcode_hash": "ddf2cdae-e3e5-3c03-b2bb-0f068c3bb781",
+            "display": {
+              "original": "Serum specimen from blood donor",
+              "en": "Serum specimen from blood donor",
+              "de": "Probenmaterial aus Spenderserum"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "122589008",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "c9d12711-a777-3335-9542-f8d1b5d8d191",
+            "display": {
+              "original": "Erythrocyte specimen from blood donor",
+              "en": "Erythrocyte specimen from blood donor",
+              "de": "Erythrozyten-Probe von Blutspender/Blutspenderin"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "122581006",
+            "selectable": true
+          }
+        ],
+        "related_terms": [],
+        "kds_module": "Bioprobe"
+      }
+    ]
+  },
+  {
+    "id": "Diagnose#Diagnose#http://fhir.de/CodeSystem/bfarm/alpha-id#0",
+    "results": [
+      {
+        "name": "17-Ketosteroid-Reduktase-Mangel",
+        "availability": 0,
+        "terminology": "http://fhir.de/CodeSystem/bfarm/alpha-id",
+        "termcode": "I119650",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Diagnose",
+          "display": "Diagnose",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://fhir.de/CodeSystem/bfarm/alpha-id",
+            "code": "I119650",
+            "display": "17-Ketosteroid-Reduktase-Mangel",
+            "version": "2026"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "17-Ketosteroid-Reduktase-Mangel",
+          "en": "",
+          "de": ""
+        },
+        "parents": [],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Diagnose"
+      }
+    ]
+  },
+  {
+    "id": "Diagnose#Diagnose#http://fhir.de/CodeSystem/bfarm/alpha-id#1",
+    "results": [
+      {
+        "name": "2-Hydroxyglutarazid\u00e4mie",
+        "availability": 0,
+        "terminology": "http://fhir.de/CodeSystem/bfarm/alpha-id",
+        "termcode": "I118627",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Diagnose",
+          "display": "Diagnose",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://fhir.de/CodeSystem/bfarm/alpha-id",
+            "code": "I118627",
+            "display": "2-Hydroxyglutarazid\u00e4mie",
+            "version": "2026"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "2-Hydroxyglutarazid\u00e4mie",
+          "en": "",
+          "de": ""
+        },
+        "parents": [],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Diagnose"
+      }
+    ]
+  },
+  {
+    "id": "Diagnose#Diagnose#http://fhir.de/CodeSystem/bfarm/icd-10-gm#0",
+    "results": [
+      {
+        "name": "Idiopathische Hypotonie",
+        "availability": 0,
+        "terminology": "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
+        "termcode": "I95.0",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Diagnose",
+          "display": "Diagnose",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
+            "code": "I95.0",
+            "display": "Idiopathische Hypotonie",
+            "version": "2026"
+          }
+        ],
+        "criteria_sets": [
+          "http://fdpg.mii.cds/CriteriaSet/Diagnose/icd-10-gm"
+        ],
+        "display": {
+          "original": "Idiopathische Hypotonie",
+          "en": "",
+          "de": ""
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "367bdb36-a201-381b-ba03-5dae3b542685",
+            "display": {
+              "original": "Hypotonie",
+              "en": "",
+              "de": ""
+            },
+            "terminology": "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
+            "term_code": "I95",
+            "selectable": true
+          }
+        ],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Diagnose"
+      }
+    ]
+  },
+  {
+    "id": "Diagnose#Diagnose#http://fhir.de/CodeSystem/bfarm/icd-10-gm#1",
+    "results": [
+      {
+        "name": "Diabetes mellitus, Typ 2: Ohne Komplikationen: Nicht als entgleist bezeichnet",
+        "availability": 0,
+        "terminology": "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
+        "termcode": "E11.90",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Diagnose",
+          "display": "Diagnose",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
+            "code": "E11.90",
+            "display": "Diabetes mellitus, Typ 2: Ohne Komplikationen: Nicht als entgleist bezeichnet",
+            "version": "2026"
+          }
+        ],
+        "criteria_sets": [
+          "http://fdpg.mii.cds/CriteriaSet/Diagnose/icd-10-gm"
+        ],
+        "display": {
+          "original": "Diabetes mellitus, Typ 2: Ohne Komplikationen: Nicht als entgleist bezeichnet",
+          "en": "",
+          "de": ""
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "5b00bcc8-a61d-3b22-a851-f9a0057f75e9",
+            "display": {
+              "original": "Diabetes mellitus, Typ 2: Ohne Komplikationen",
+              "en": "",
+              "de": ""
+            },
+            "terminology": "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
+            "term_code": "E11.9",
+            "selectable": true
+          }
+        ],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Diagnose"
+      }
+    ]
+  },
+  {
+    "id": "Diagnose#Diagnose#http://www.orpha.net#0",
+    "results": [
+      {
+        "name": "22q11.2 duplication syndrome",
+        "availability": 0,
+        "terminology": "http://www.orpha.net",
+        "termcode": "1727",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Diagnose",
+          "display": "Diagnose",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://www.orpha.net",
+            "code": "1727",
+            "display": "22q11.2 duplication syndrome",
+            "version": "2025"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "22q11.2 duplication syndrome",
+          "en": "22q11.2 duplication syndrome",
+          "de": "22q11.2-Duplikationssyndrom"
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "ee4d7781-7d75-3e0b-97bc-848b19284b6b",
+            "display": {
+              "original": "Partial duplication of the long arm of chromosome 22 syndrome",
+              "en": "Partial duplication of the long arm of chromosome 22 syndrome",
+              "de": "Chromosom 22, partielle Duplikation des langen Arms"
+            },
+            "terminology": "http://www.orpha.net",
+            "term_code": "263004",
+            "selectable": true
+          }
+        ],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Diagnose"
+      }
+    ]
+  },
+  {
+    "id": "Diagnose#Diagnose#http://www.orpha.net#1",
+    "results": [
+      {
+        "name": "Anotia",
+        "availability": 0,
+        "terminology": "http://www.orpha.net",
+        "termcode": "93976",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Diagnose",
+          "display": "Diagnose",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://www.orpha.net",
+            "code": "93976",
+            "display": "Anotia",
+            "version": "2025"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "Anotia",
+          "en": "Anotia",
+          "de": "Anotie"
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "7424b6fa-96d8-3cd5-9b54-356311b5992f",
+            "display": {
+              "original": "Pinnae and external auditory canal anomaly",
+              "en": "Pinnae and external auditory canal anomaly",
+              "de": "Ohrmuschel und \u00e4u\u00dferer Geh\u00f6rgang, Anomalie"
+            },
+            "terminology": "http://www.orpha.net",
+            "term_code": "156243",
+            "selectable": true
+          }
+        ],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Diagnose"
+      }
+    ]
+  },
+  {
+    "id": "Diagnose#Diagnose#http://snomed.info/sct#0",
+    "results": [
+      {
+        "name": "Heat stroke",
+        "availability": 0,
+        "terminology": "http://snomed.info/sct",
+        "termcode": "52072009",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Diagnose",
+          "display": "Diagnose",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "52072009",
+            "display": "Heat stroke",
+            "version": "http://snomed.info/sct/900000000000207008/version/20240701"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "Heat stroke",
+          "en": "Heat stroke",
+          "de": "Hitzschlag"
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "a1ec7960-b365-3586-afa9-fac66bfa588d",
+            "display": {
+              "original": "Effects of heat",
+              "en": "Effects of heat",
+              "de": "Folgen von Hitze"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "111735006",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "4ecee56f-ade2-3085-95b2-24d95761c830",
+            "display": {
+              "original": "Hyperthermia",
+              "en": "Hyperthermia",
+              "de": "Hyperthermie"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "1197782006",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "ac54e77e-eedb-3a9b-809b-2c0bce3622d9",
+            "display": {
+              "original": "Confusional state",
+              "en": "Confusional state",
+              "de": "Verwirrtheitszustand"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "286933003",
+            "selectable": true
+          }
+        ],
+        "children": [
+          {
+            "contextualized_termcode_hash": "1b3a07ef-e21f-3287-99d0-fd617e92d0de",
+            "display": {
+              "original": "Exertional heat stroke",
+              "en": "Exertional heat stroke",
+              "de": "Hitzschlag bei Anstrengung"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "735907005",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "b0949f6b-21fa-3724-ac33-15573e6fb284",
+            "display": {
+              "original": "Sunstroke",
+              "en": "Sunstroke",
+              "de": "Sonnenstich"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "18615009",
+            "selectable": true
+          }
+        ],
+        "related_terms": [],
+        "kds_module": "Diagnose"
+      }
+    ]
+  },
+  {
+    "id": "Diagnose#Diagnose#http://snomed.info/sct#1",
+    "results": [
+      {
+        "name": "Diabetes mellitus",
+        "availability": 0,
+        "terminology": "http://snomed.info/sct",
+        "termcode": "73211009",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Diagnose",
+          "display": "Diagnose",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "73211009",
+            "display": "Diabetes mellitus",
+            "version": "http://snomed.info/sct/900000000000207008/version/20240701"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "Diabetes mellitus",
+          "en": "Diabetes mellitus",
+          "de": "Diabetes mellitus"
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "d3f36278-10bd-3962-b177-77af7299de0f",
+            "display": {
+              "original": "Disorder of endocrine system",
+              "en": "Disorder of endocrine system",
+              "de": "Endokrinologische Erkrankung"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "362969004",
+            "selectable": false
+          },
+          {
+            "contextualized_termcode_hash": "a970dcb1-b85e-3482-b39b-d677e5beb69c",
+            "display": {
+              "original": "Disorder of glucose metabolism",
+              "en": "Disorder of glucose metabolism",
+              "de": "St\u00f6rung des Glukosestoffwechsels"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "126877002",
+            "selectable": true
+          }
+        ],
+        "children": [
+          {
+            "contextualized_termcode_hash": "43b1afbf-9a76-31d8-be37-6c5800f7a567",
+            "display": {
+              "original": "Type 2 diabetes mellitus",
+              "en": "Type 2 diabetes mellitus",
+              "de": "Diabetes mellitus Typ 2"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "44054006",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "8c735476-6652-38d3-9eff-066f5311adb7",
+            "display": {
+              "original": "Stimmler syndrome",
+              "en": "Stimmler syndrome",
+              "de": "Stimmler-Syndrom"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "733072002",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "660c67a5-29ef-35f6-9050-c6958effe10e",
+            "display": {
+              "original": "Ketosis-prone diabetes mellitus",
+              "en": "Ketosis-prone diabetes mellitus",
+              "de": ""
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "890171006",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "fb8d8e80-9ab0-37e9-940c-23b18716e0b1",
+            "display": {
+              "original": "Brittle diabetes mellitus",
+              "en": "Brittle diabetes mellitus",
+              "de": ""
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "11530004",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "e88ef66d-c69b-3365-9030-c627f5a54f54",
+            "display": {
+              "original": "Houssay's syndrome",
+              "en": "Houssay's syndrome",
+              "de": "Houssay-Syndrom"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "123763000",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "bf18443c-f17c-35ba-bd6f-fa9fec37ab16",
+            "display": {
+              "original": "Gingival disease co-occurrent with diabetes mellitus",
+              "en": "Gingival disease co-occurrent with diabetes mellitus",
+              "de": ""
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "716362006",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "2a5d50fb-424a-3de5-9f42-2a147e0ac1e9",
+            "display": {
+              "original": "Type 1 diabetes mellitus",
+              "en": "Type 1 diabetes mellitus",
+              "de": "Diabetes mellitus Typ 1"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "46635009",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "42e22d4d-bd9a-368b-b802-7a74c9546acf",
+            "display": {
+              "original": "Diabetes mellitus due to pancreatic injury",
+              "en": "Diabetes mellitus due to pancreatic injury",
+              "de": ""
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "105401000119101",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "fbb7b8f6-7e39-363d-98d7-f5987d7c516c",
+            "display": {
+              "original": "Diabetes mellitus during pregnancy, childbirth and the puerperium",
+              "en": "Diabetes mellitus during pregnancy, childbirth and the puerperium",
+              "de": "Diabetes mellitus in Schwangerschaft, bei Geburt und im Wochenbett"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "199223000",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "4b313367-66b2-38f2-a557-43b9fba7f5bc",
+            "display": {
+              "original": "Atypical diabetes mellitus",
+              "en": "Atypical diabetes mellitus",
+              "de": "Atypischer Diabetes mellitus"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "530558861000132104",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "87c82d9c-69ce-37b7-9a5c-762f27e3904d",
+            "display": {
+              "original": "Pancreatic hypoplasia, diabetes mellitus, congenital heart disease syndrome",
+              "en": "Pancreatic hypoplasia, diabetes mellitus, congenital heart disease syndrome",
+              "de": "Pankreashypoplasie - Diabetes - Herzkrankheit, kongenital"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "722206009",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "bdfc7f48-13dc-3830-aefd-ba1052674e23",
+            "display": {
+              "original": "Secondary diabetes mellitus",
+              "en": "Secondary diabetes mellitus",
+              "de": "Sekund\u00e4rer Diabetes mellitus"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "8801005",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "dbd36968-a5ce-30cb-8c6f-e3098ff53df0",
+            "display": {
+              "original": "Diabetes mellitus in remission",
+              "en": "Diabetes mellitus in remission",
+              "de": "Diabetes mellitus in Remission"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "703136005",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "50ffadb7-fc87-37bd-8e6c-d6a06e87550e",
+            "display": {
+              "original": "Diabetes mellitus due to genetic defect in insulin action",
+              "en": "Diabetes mellitus due to genetic defect in insulin action",
+              "de": "Diabetes mellitus durch einen genetischen Defekt in der Insulinwirkung"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "609569007",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "f284e2eb-b3a0-3b20-8fe2-336637e2d74a",
+            "display": {
+              "original": "Diabetes mellitus without complication",
+              "en": "Diabetes mellitus without complication",
+              "de": ""
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "111552007",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "bc772f0f-cc8f-367e-9ec7-1467899d08d0",
+            "display": {
+              "original": "Newly diagnosed diabetes",
+              "en": "Newly diagnosed diabetes",
+              "de": ""
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "405749004",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "51f1861a-3a38-3858-8128-7bf3751ae5cf",
+            "display": {
+              "original": "Diabetes mellitus due to genetic defect in beta cell function",
+              "en": "Diabetes mellitus due to genetic defect in beta cell function",
+              "de": "Diabetes mellitus durch genetischen Defekt der Betazellenfunktion"
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "609568004",
+            "selectable": true
+          }
+        ],
+        "related_terms": [],
+        "kds_module": "Diagnose"
+      }
+    ]
+  },
+  {
+    "id": "Einwilligung#Einwilligung#urn:oid:2.16.840.1.113883.3.1937.777.24.5.3#0",
+    "results": [
+      {
+        "name": "BIOMAT Analysedaten zusammenfuehren Dritte",
+        "availability": 0,
+        "terminology": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+        "termcode": "2.16.840.1.113883.3.1937.777.24.5.3.23",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Einwilligung",
+          "display": "Einwilligung",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.23",
+            "display": "BIOMAT Analysedaten zusammenfuehren Dritte",
+            "version": "1.0.7"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "BIOMAT Analysedaten zusammenfuehren Dritte",
+          "en": "",
+          "de": ""
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "a99e9113-0b4e-31bd-ad77-0cce3c835138",
+            "display": {
+              "original": "Biomaterial erheben, lagern, nutzen",
+              "en": "",
+              "de": ""
+            },
+            "terminology": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+            "term_code": "2.16.840.1.113883.3.1937.777.24.5.3.18",
+            "selectable": true
+          }
+        ],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Einwilligung"
+      }
+    ]
+  },
+  {
+    "id": "Einwilligung#Einwilligung#urn:oid:2.16.840.1.113883.3.1937.777.24.5.3#1",
+    "results": [
+      {
+        "name": "KKDAT 5J prospektiv uebertragen",
+        "availability": 0,
+        "terminology": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+        "termcode": "2.16.840.1.113883.3.1937.777.24.5.3.15",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Einwilligung",
+          "display": "Einwilligung",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+            "code": "2.16.840.1.113883.3.1937.777.24.5.3.15",
+            "display": "KKDAT 5J prospektiv uebertragen",
+            "version": "1.0.7"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "KKDAT 5J prospektiv uebertragen",
+          "en": "",
+          "de": ""
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "9040d303-8774-38fa-926c-213011dd93d6",
+            "display": {
+              "original": "KKDAT prospektiv uebertragen speichern nutzen",
+              "en": "",
+              "de": ""
+            },
+            "terminology": "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+            "term_code": "2.16.840.1.113883.3.1937.777.24.5.3.14",
+            "selectable": true
+          }
+        ],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Einwilligung"
+      }
+    ]
+  },
+  {
+    "id": "Fall#Fall#http://terminology.hl7.org/CodeSystem/v3-ActCode#0",
+    "results": [
+      {
+        "name": "ambulatory",
+        "availability": 0,
+        "terminology": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "termcode": "AMB",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Fall",
+          "display": "Fall",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+            "code": "AMB",
+            "display": "ambulatory",
+            "version": "9.0.0"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "ambulatory",
+          "en": "",
+          "de": ""
+        },
+        "parents": [],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Fall"
+      }
+    ]
+  },
+  {
+    "id": "Fall#Fall#http://terminology.hl7.org/CodeSystem/v3-ActCode#1",
+    "results": [
+      {
+        "name": "inpatient encounter",
+        "availability": 0,
+        "terminology": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "termcode": "IMP",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Fall",
+          "display": "Fall",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+            "code": "IMP",
+            "display": "inpatient encounter",
+            "version": "9.0.0"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "inpatient encounter",
+          "en": "",
+          "de": ""
+        },
+        "parents": [],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Fall"
+      }
+    ]
+  },
+  {
+    "id": "Labor#Laboruntersuchung#http://loinc.org#0",
+    "results": [
+      {
+        "name": "Leukocytes other/Leukocytes in Blood",
+        "availability": 0,
+        "terminology": "http://loinc.org",
+        "termcode": "26471-3",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Laboruntersuchung",
+          "display": "Laboruntersuchung",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://loinc.org",
+            "code": "26471-3",
+            "display": "Leukocytes other/Leukocytes in Blood",
+            "version": "2.81"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "Leukocytes other/Leukocytes in Blood",
+          "en": "Leukocytes other/Leukocytes in Blood",
+          "de": "Leukozyten andere/Leukozyten in Blut"
+        },
+        "parents": [],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Labor"
+      }
+    ]
+  },
+  {
+    "id": "Labor#Laboruntersuchung#http://loinc.org#1",
+    "results": [
+      {
+        "name": "Platelets given [Type]",
+        "availability": 0,
+        "terminology": "http://loinc.org",
+        "termcode": "10412-5",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Laboruntersuchung",
+          "display": "Laboruntersuchung",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://loinc.org",
+            "code": "10412-5",
+            "display": "Platelets given [Type]",
+            "version": "2.81"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "Platelets given [Type]",
+          "en": "Platelets given [Type]",
+          "de": ""
+        },
+        "parents": [],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Labor"
+      }
+    ]
+  },
+  {
+    "id": "Medikation#Medikamentenanordnung#http://fhir.de/CodeSystem/bfarm/atc#0",
+    "results": [
+      {
+        "name": "(111In)Indiumpentetreotid",
+        "availability": 0,
+        "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+        "termcode": "V09IB01",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Medikamentenanordnung",
+          "display": "Anordnung von Medikamenten",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://fhir.de/CodeSystem/bfarm/atc",
+            "code": "V09IB01",
+            "display": "(111In)Indiumpentetreotid",
+            "version": "2026"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "(111In)Indiumpentetreotid",
+          "en": "",
+          "de": ""
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "960477aa-ba05-335a-8705-771889a371b1",
+            "display": {
+              "original": "(111In)Indiumverbindungen",
+              "en": "",
+              "de": ""
+            },
+            "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+            "term_code": "V09IB",
+            "selectable": true
+          }
+        ],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Medikation"
+      }
+    ]
+  },
+  {
+    "id": "Medikation#Medikamentenanordnung#http://fhir.de/CodeSystem/bfarm/atc#1",
+    "results": [
+      {
+        "name": "(123I)Iodiofetamin",
+        "availability": 0,
+        "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+        "termcode": "V09AB01",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Medikamentenanordnung",
+          "display": "Anordnung von Medikamenten",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://fhir.de/CodeSystem/bfarm/atc",
+            "code": "V09AB01",
+            "display": "(123I)Iodiofetamin",
+            "version": "2026"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "(123I)Iodiofetamin",
+          "en": "",
+          "de": ""
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "32941fdf-ad7e-3a39-8a7f-63d764395ac7",
+            "display": {
+              "original": "(123I)Iodverbindungen",
+              "en": "",
+              "de": ""
+            },
+            "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+            "term_code": "V09AB",
+            "selectable": true
+          }
+        ],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Medikation"
+      }
+    ]
+  },
+  {
+    "id": "Medikation#Medikamentenverabreichung#http://fhir.de/CodeSystem/bfarm/atc#0",
+    "results": [
+      {
+        "name": "(111In)Indiumpentetreotid",
+        "availability": 0,
+        "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+        "termcode": "V09IB01",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Medikamentenverabreichung",
+          "display": "Verabreichung von Medikamenten",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://fhir.de/CodeSystem/bfarm/atc",
+            "code": "V09IB01",
+            "display": "(111In)Indiumpentetreotid",
+            "version": "2026"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "(111In)Indiumpentetreotid",
+          "en": "",
+          "de": ""
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "c591b082-9a4d-34f8-a06d-64d0ecaa14d2",
+            "display": {
+              "original": "(111In)Indiumverbindungen",
+              "en": "",
+              "de": ""
+            },
+            "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+            "term_code": "V09IB",
+            "selectable": true
+          }
+        ],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Medikation"
+      }
+    ]
+  },
+  {
+    "id": "Medikation#Medikamentenverabreichung#http://fhir.de/CodeSystem/bfarm/atc#1",
+    "results": [
+      {
+        "name": "(123I)Iodiofetamin",
+        "availability": 0,
+        "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+        "termcode": "V09AB01",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Medikamentenverabreichung",
+          "display": "Verabreichung von Medikamenten",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://fhir.de/CodeSystem/bfarm/atc",
+            "code": "V09AB01",
+            "display": "(123I)Iodiofetamin",
+            "version": "2026"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "(123I)Iodiofetamin",
+          "en": "",
+          "de": ""
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "507916e9-c626-3a89-aabd-90297a665b5d",
+            "display": {
+              "original": "(123I)Iodverbindungen",
+              "en": "",
+              "de": ""
+            },
+            "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+            "term_code": "V09AB",
+            "selectable": true
+          }
+        ],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Medikation"
+      }
+    ]
+  },
+  {
+    "id": "Medikation#Medikamentenverordnung#http://fhir.de/CodeSystem/bfarm/atc#0",
+    "results": [
+      {
+        "name": "(111In)Indiumpentetreotid",
+        "availability": 0,
+        "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+        "termcode": "V09IB01",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Medikamentenverordnung",
+          "display": "Verordnung von Medikamenten",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://fhir.de/CodeSystem/bfarm/atc",
+            "code": "V09IB01",
+            "display": "(111In)Indiumpentetreotid",
+            "version": "2026"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "(111In)Indiumpentetreotid",
+          "en": "",
+          "de": ""
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "2bd4eb13-b5cb-34e2-9a95-f404a0367a19",
+            "display": {
+              "original": "(111In)Indiumverbindungen",
+              "en": "",
+              "de": ""
+            },
+            "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+            "term_code": "V09IB",
+            "selectable": true
+          }
+        ],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Medikation"
+      }
+    ]
+  },
+  {
+    "id": "Medikation#Medikamentenverordnung#http://fhir.de/CodeSystem/bfarm/atc#1",
+    "results": [
+      {
+        "name": "(123I)Iodiofetamin",
+        "availability": 0,
+        "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+        "termcode": "V09AB01",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Medikamentenverordnung",
+          "display": "Verordnung von Medikamenten",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://fhir.de/CodeSystem/bfarm/atc",
+            "code": "V09AB01",
+            "display": "(123I)Iodiofetamin",
+            "version": "2026"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "(123I)Iodiofetamin",
+          "en": "",
+          "de": ""
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "45c36520-53b1-3c50-adeb-8ab3ab4af1ed",
+            "display": {
+              "original": "(123I)Iodverbindungen",
+              "en": "",
+              "de": ""
+            },
+            "terminology": "http://fhir.de/CodeSystem/bfarm/atc",
+            "term_code": "V09AB",
+            "selectable": true
+          }
+        ],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Medikation"
+      }
+    ]
+  },
+  {
+    "id": "Person#Patient#http://snomed.info/sct#0",
+    "results": [
+      {
+        "name": "Gegenw\u00e4rtiges chronologisches Alter",
+        "availability": 0,
+        "terminology": "http://snomed.info/sct",
+        "termcode": "424144002",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Patient",
+          "display": "Patient",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "424144002",
+            "display": "Gegenw\u00e4rtiges chronologisches Alter",
+            "version": null
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "Gegenw\u00e4rtiges chronologisches Alter",
+          "en": "Current chronological age",
+          "de": "Alter"
+        },
+        "parents": [],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Person"
+      }
+    ]
+  },
+  {
+    "id": "Person#Patient#http://snomed.info/sct#1",
+    "results": [
+      {
+        "name": "Geschlecht",
+        "availability": 0,
+        "terminology": "http://snomed.info/sct",
+        "termcode": "263495000",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Patient",
+          "display": "Patient",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "263495000",
+            "display": "Geschlecht",
+            "version": null
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "Geschlecht",
+          "en": "Gender",
+          "de": "Geschlecht"
+        },
+        "parents": [],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Person"
+      }
+    ]
+  },
+  {
+    "id": "Person#Vitalstatus#http://loinc.org#0",
+    "results": [
+      {
+        "name": "Patient Disposition",
+        "availability": 0,
+        "terminology": "http://loinc.org",
+        "termcode": "67162-8",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Vitalstatus",
+          "display": "Vitalstatus",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://loinc.org",
+            "code": "67162-8",
+            "display": "Patient Disposition",
+            "version": "None"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "Patient Disposition",
+          "en": "Patient Disposition",
+          "de": ""
+        },
+        "parents": [],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Person"
+      }
+    ]
+  },
+  {
+    "id": "Prozedur#Procedure#http://fhir.de/CodeSystem/bfarm/ops#0",
+    "results": [
+      {
+        "name": "Implantation eines Herzschrittmachers, Defibrillators und Ereignis-Rekorders: Schrittmacher, Zweikammersystem, mit zwei Schrittmachersonden: Ohne antitachykarde Stimulation",
+        "availability": 0,
+        "terminology": "http://fhir.de/CodeSystem/bfarm/ops",
+        "termcode": "5-377.30",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Procedure",
+          "display": "Prozedur",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://fhir.de/CodeSystem/bfarm/ops",
+            "code": "5-377.30",
+            "display": "Implantation eines Herzschrittmachers, Defibrillators und Ereignis-Rekorders: Schrittmacher, Zweikammersystem, mit zwei Schrittmachersonden: Ohne antitachykarde Stimulation",
+            "version": "2026"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "Implantation eines Herzschrittmachers, Defibrillators und Ereignis-Rekorders: Schrittmacher, Zweikammersystem, mit zwei Schrittmachersonden: Ohne antitachykarde Stimulation",
+          "en": "",
+          "de": ""
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "01d68e42-212f-30e4-9800-91a96c24a8a7",
+            "display": {
+              "original": "Implantation eines Herzschrittmachers, Defibrillators und Ereignis-Rekorders: Schrittmacher, Zweikammersystem, mit zwei Schrittmachersonden",
+              "en": "",
+              "de": ""
+            },
+            "terminology": "http://fhir.de/CodeSystem/bfarm/ops",
+            "term_code": "5-377.3",
+            "selectable": true
+          }
+        ],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Prozedur"
+      }
+    ]
+  },
+  {
+    "id": "Prozedur#Procedure#http://fhir.de/CodeSystem/bfarm/ops#1",
+    "results": [
+      {
+        "name": "Inzision, Embolektomie und Thrombektomie von Blutgef\u00e4\u00dfen: Arterien Unterarm und Hand: A. princeps pollicis",
+        "availability": 0,
+        "terminology": "http://fhir.de/CodeSystem/bfarm/ops",
+        "termcode": "5-380.27",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Procedure",
+          "display": "Prozedur",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://fhir.de/CodeSystem/bfarm/ops",
+            "code": "5-380.27",
+            "display": "Inzision, Embolektomie und Thrombektomie von Blutgef\u00e4\u00dfen: Arterien Unterarm und Hand: A. princeps pollicis",
+            "version": "2026"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "Inzision, Embolektomie und Thrombektomie von Blutgef\u00e4\u00dfen: Arterien Unterarm und Hand: A. princeps pollicis",
+          "en": "",
+          "de": ""
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "4cc56fd6-a1c8-36d6-9177-51972aff4e97",
+            "display": {
+              "original": "Inzision, Embolektomie und Thrombektomie von Blutgef\u00e4\u00dfen: Arterien Unterarm und Hand",
+              "en": "",
+              "de": ""
+            },
+            "terminology": "http://fhir.de/CodeSystem/bfarm/ops",
+            "term_code": "5-380.2",
+            "selectable": true
+          }
+        ],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Prozedur"
+      }
+    ]
+  },
+  {
+    "id": "Prozedur#Procedure#http://snomed.info/sct#0",
+    "results": [
+      {
+        "name": "\"Section\" examination - approved doctor",
+        "availability": 0,
+        "terminology": "http://snomed.info/sct",
+        "termcode": "171425002",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Procedure",
+          "display": "Prozedur",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "171425002",
+            "display": "\"Section\" examination - approved doctor",
+            "version": "http://snomed.info/sct/900000000000207008/version/20240701"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "\"Section\" examination - approved doctor",
+          "en": "Section examination - approved doctor",
+          "de": ""
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "1018a000-a1b9-359f-a4a6-441ba60c687a",
+            "display": {
+              "original": "Mental Health Act examination",
+              "en": "Mental Health Act examination",
+              "de": ""
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "171423009",
+            "selectable": true
+          }
+        ],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Prozedur"
+      }
+    ]
+  },
+  {
+    "id": "Prozedur#Procedure#http://snomed.info/sct#1",
+    "results": [
+      {
+        "name": "Replacement of cast",
+        "availability": 0,
+        "terminology": "http://snomed.info/sct",
+        "termcode": "288142002",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Procedure",
+          "display": "Prozedur",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "288142002",
+            "display": "Replacement of cast",
+            "version": "http://snomed.info/sct/900000000000207008/version/20240701"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "Replacement of cast",
+          "en": "Replacement of cast",
+          "de": ""
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "54f51c8f-8ce0-33d5-bef4-f0a19600a9d2",
+            "display": {
+              "original": "Replacement of device",
+              "en": "Replacement of device",
+              "de": ""
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "384728007",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "dbc02c29-e2ac-3257-bbe1-1ba4800d6623",
+            "display": {
+              "original": "Cast removal",
+              "en": "Cast removal",
+              "de": ""
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "274480009",
+            "selectable": true
+          }
+        ],
+        "children": [
+          {
+            "contextualized_termcode_hash": "ea51949a-fe1b-3491-a1b4-a4e8c97c3419",
+            "display": {
+              "original": "Change of plaster cast",
+              "en": "Change of plaster cast",
+              "de": ""
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "180290000",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "ecf2e497-0c4a-3ac4-97cc-9e0da746ecee",
+            "display": {
+              "original": "Replacement of cast of lower limb",
+              "en": "Replacement of cast of lower limb",
+              "de": ""
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "449340005",
+            "selectable": true
+          },
+          {
+            "contextualized_termcode_hash": "cca2c733-a7cf-3112-b041-b4e368705dc2",
+            "display": {
+              "original": "Replacement of cast of upper limb",
+              "en": "Replacement of cast of upper limb",
+              "de": ""
+            },
+            "terminology": "http://snomed.info/sct",
+            "term_code": "449341009",
+            "selectable": true
+          }
+        ],
+        "related_terms": [],
+        "kds_module": "Prozedur"
+      }
+    ]
+  },
+  {
+    "id": "Person#Todesursache#http://loinc.org#0",
+    "results": [
+      {
+        "name": "Cause of death",
+        "availability": 0,
+        "terminology": "http://loinc.org",
+        "termcode": "79378-6",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Todesursache",
+          "display": "Todesursache",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://loinc.org",
+            "code": "79378-6",
+            "display": "Cause of death",
+            "version": "None"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "Cause of death",
+          "en": "Cause of death",
+          "de": ""
+        },
+        "parents": [],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Person"
+      }
+    ]
+  },
+  {
+    "id": "Person#Todesursache#http://snomed.info/sct#0",
+    "results": [
+      {
+        "name": "Death diagnosis",
+        "availability": 0,
+        "terminology": "http://snomed.info/sct",
+        "termcode": "16100001",
+        "selectable": true,
+        "context": {
+          "system": "fdpg.mii.cds",
+          "code": "Todesursache",
+          "display": "Todesursache",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "16100001",
+            "display": "Death diagnosis",
+            "version": "None"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "Death diagnosis",
+          "en": "Death diagnosis",
+          "de": ""
+        },
+        "parents": [],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Person"
+      }
+    ]
+  }
+]
