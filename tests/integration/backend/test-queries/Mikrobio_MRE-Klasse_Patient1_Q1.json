@@ -6,6 +6,22 @@
       {
         "attributeFilters": [
           {
+            "selectedConcepts": [
+              {
+                "code": "710332005",
+                "display": "Multidrug-resistant Pseudomonas aeruginosa",
+                "system": "http://snomed.info/sct",
+                "version": "2099"
+              }
+            ],
+            "type": "concept",
+            "attributeCode": {
+              "code": "value[x]",
+              "display": "Actual result",
+              "system": "http://hl7.org/fhir/StructureDefinition"
+            }
+          },
+          {
             "type": "reference",
             "criteria": [
               {
@@ -37,15 +53,15 @@
         ],
         "termCodes": [
           {
-            "code": "49223-1",
-            "system": "http://loinc.org",
-            "display": "Colony count [#/volume] in Unspecified specimen by Visual count",
-            "version": "2.80"
+            "code": "1285113001",
+            "display": "Type of antimicrobial resistant organism",
+            "system": "http://snomed.info/sct",
+            "version": ""
           }
         ],
         "context": {
-          "code": "Mikrobiologie Keimzahl",
-          "display": "Mikrobiologie Keimzahl",
+          "code": "Mikrobiologie MRE-Klasse",
+          "display": "Mikrobiologie MRE-Klasse",
           "system": "fdpg.mii.cds",
           "version": "1.0.0"
         },

@@ -1,6 +1,6 @@
 {
   "context": {
-    "code": "mikrobiologie-empfindlichkeit",
+    "code": "Mikrobiologie Empfindlichkeit",
     "display": "Mikrobiologie Empfindlichkeit",
     "system": "fdpg.mii.cds",
     "version": "1.0.0"
@@ -16,6 +16,10 @@
   "attribute_defining_id_type_map": {
     "Observation.interpretation": {
       "type": "concept",
+      "optional": true
+    },
+    "(Observation.specimen).type.coding": {
+      "type": "reference",
       "optional": true
     }
   }

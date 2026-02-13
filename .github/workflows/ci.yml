@@ -198,6 +198,20 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  run_cql_translation_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Load sq2cql version from config
+        id: load-sq2cql-version
+        shell: bash
+        run: echo "SQ2CQL_VERSION=$(grep -Po '(?<=SQ2CQL_VERSION=)[^"]*' pyproject.toml)" >> $GITHUB_ENV
+      - name: Restore cache
+        id: restore-cache
+        uses: actions/cache/restore@v5
+        with:
+          key: sq2cql-cli-${{ env.SQ2CQL_VERSION }}
+          path: tests/integration/cql/sq2cql-cli/target/sq2cql-cli.jar
+
   release:
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}
     needs: [build, generate_availability, run_unit_tests, run_integration_tests, run_json_integrity_tests]

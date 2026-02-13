@@ -16,6 +16,7 @@ from cohort_selection_ontology.core.resolvers.querying_metadata import (
 from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot,
     FHIR_TYPES_TO_VALUE_TYPES,
+    IndexedStructureDefinition,
 )
 from common.util.fhir.bundle import BundleType
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
@@ -95,23 +96,24 @@ class UIProfileGenerator:
         full_context_term_code_ui_profile_name_mapping = {}
         full_ui_profile_name_ui_profile_mapping = {}
         self.module_dir = modules_dir / module_name
-        files = self.module_dir.rglob("*snapshot.json")
+        files = (self.module_dir / "differential" / "package").rglob("*.json")
         for file in files:
             with open(file, mode="r", encoding="utf8") as f:
-                snapshot = StructureDefinitionSnapshot.model_validate_json(f.read())
-                context_tc_mapping, profile_name_profile_mapping = (
-                    self.generate_normalized_term_code_ui_profile_mapping(
-                        snapshot, module_name
+                profile = IndexedStructureDefinition.validate_json(f.read())
+                if profile.snapshot:
+                    context_tc_mapping, profile_name_profile_mapping = (
+                        self.generate_normalized_term_code_ui_profile_mapping(
+                            profile, module_name
+                        )
                     )
-                )
-                full_context_term_code_ui_profile_name_mapping = {
-                    **full_context_term_code_ui_profile_name_mapping,
-                    **context_tc_mapping,
-                }
-                full_ui_profile_name_ui_profile_mapping = {
-                    **full_ui_profile_name_ui_profile_mapping,
-                    **profile_name_profile_mapping,
-                }
+                    full_context_term_code_ui_profile_name_mapping = {
+                        **full_context_term_code_ui_profile_name_mapping,
+                        **context_tc_mapping,
+                    }
+                    full_ui_profile_name_ui_profile_mapping = {
+                        **full_ui_profile_name_ui_profile_mapping,
+                        **profile_name_profile_mapping,
+                    }
 
         return (
             full_context_term_code_ui_profile_name_mapping,
@@ -554,14 +556,20 @@ class UIProfileGenerator:
                             self.module_dir,
                             self.data_set_dir,
                         )[-1]
-                        selected_valuesets.append(get_selectable_concepts(
-                            att_def_id, profile_snapshot.name, self.__client
-                        ))
+                        selected_valuesets.append(
+                            get_selectable_concepts(
+                                att_def_id, profile_snapshot.name, self.__client
+                            )
+                        )
                 else:
                     # when no available sliced were found just
-                    selected_valuesets.append(get_selectable_concepts(
-                        attribute_defining_element, profile_snapshot.name, self.__client
-                    ))
+                    selected_valuesets.append(
+                        get_selectable_concepts(
+                            attribute_defining_element,
+                            profile_snapshot.name,
+                            self.__client,
+                        )
+                    )
                 attribute_definition.referencedValueSet = selected_valuesets
         elif attribute_type == "quantity":
             unit_defining_path = attribute_defining_element.path + ".code"
@@ -647,10 +655,14 @@ class UIProfileGenerator:
             return attribute_definition
         elif attribute_type == "CodeableConcept":
             if binding := element.binding:
-                concepts = get_selectable_concepts(element, profile_snapshot.name, self.__client)
+                concepts = get_selectable_concepts(
+                    element, profile_snapshot.name, self.__client
+                )
                 attribute_definition.referencedValueSet.append(concepts)
             elif binding := predicate.binding:
-                concepts = get_selectable_concepts(predicate, profile_snapshot.name, self.__client)
+                concepts = get_selectable_concepts(
+                    predicate, profile_snapshot.name, self.__client
+                )
                 attribute_definition.referencedValueSet.append(concepts)
             else:
                 concepts = get_fixed_term_codes(
@@ -797,8 +809,14 @@ class UIProfileGenerator:
             for slice_name in available_slices:
                 slice_id = element.id + ":" + slice_name
                 slice_element = get_element_defining_elements(
-                    slice_id, snapshot, module_dir, context
+                    snapshot, slice_id, module_dir, context
                 )[-1]
+                if slice_element is None:
+                    self.__logger.warning(
+                        f"No slice-defining element definition with ID {slice_id} in profile "
+                        f"{snapshot.url} => Skipping"
+                    )
+                    continue
                 url = get_binding_value_set_url(slice_element)
                 referenced_criteria_sets.append(
                     self.get_reference_criteria_set_from_value_set(url, context)
@@ -851,9 +869,11 @@ class UIProfileGenerator:
         :param context: Context of the criteria set
         :return: Criteria set
         """
-        criteria_set = [CriteriaSet(
-            url=self.create_criteria_set_url_from_tc(fixed_term_codes[0], context)
-        )]
+        criteria_set = [
+            CriteriaSet(
+                url=self.create_criteria_set_url_from_tc(fixed_term_codes[0], context)
+            )
+        ]
         for term_code in fixed_term_codes:
             criteria_set[0].contextualized_term_codes.append((context, term_code))
         return criteria_set

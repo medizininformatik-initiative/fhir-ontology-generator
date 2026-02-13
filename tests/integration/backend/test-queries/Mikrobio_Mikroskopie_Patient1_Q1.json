@@ -37,20 +37,31 @@
         ],
         "termCodes": [
           {
-            "code": "49223-1",
-            "system": "http://loinc.org",
-            "display": "Colony count [#/volume] in Unspecified specimen by Visual count",
-            "version": "2.80"
+            "code": "117259009",
+            "display": "Microscopy",
+            "system": "http://snomed.info/sct",
+            "version": ""
           }
         ],
         "context": {
-          "code": "Mikrobiologie Keimzahl",
-          "display": "Mikrobiologie Keimzahl",
+          "code": "Mikrobiologie Mikroskopie",
+          "display": "Mikrobiologie Mikroskopie",
           "system": "fdpg.mii.cds",
           "version": "1.0.0"
         },
         "timeRestriction": {
           "beforeDate": "2026-02-12"
+        },
+        "valueFilter": {
+          "selectedConcepts": [
+            {
+              "code": "260373001",
+              "display": "Detected (qualifier value)",
+              "system": "http://snomed.info/sct",
+              "version": "2099"
+            }
+          ],
+          "type": "concept"
         }
       }
     ]
