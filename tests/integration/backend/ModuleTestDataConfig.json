@@ -80,12 +80,33 @@
     "data": ["Patient-mii-exa-test-data-patient-1.json", "Person_Condition_Todesursache_SNOMED_Patient1_Q1.json"]
   },
   {
-    "data": ["Patient-mii-exa-test-data-patient-1.json", "Mikrobio_Diagnostik_Patient1_Q1.json"]
-  },
-  {
-    "data": ["Patient-mii-exa-test-data-patient-1.json", "Mikrobio_Immunologie_Patient1_Q1.json"]
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Mikrobio_Immunologie_Serologie_Patient1_Q1.json"]
   },
   {
     "data": ["Patient-mii-exa-test-data-patient-1.json", "Mikrobio_Keimzahl_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Mikrobio_Empfindlichkeit_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Mikrobio_MRE-Klasse_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Mikrobio_MRGN-Klasse_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Mikrobio_Resistenzgene_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Mikrobio_Resistenzmutation_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Mikrobio_Virulenzfaktor_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Mikrobio_Voraussichtliche_Empfindlichkeit_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "Mikrobio_Molekulare_Diagnostik_Patient1_Q1.json"]
   }
 ]

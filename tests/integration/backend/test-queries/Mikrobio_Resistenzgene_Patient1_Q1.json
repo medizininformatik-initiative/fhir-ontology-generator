@@ -1,5 +1,5 @@
 {
-  "version": "https://medizininformatik-initiative.de/fdpg/StructuredQuery/v3/schema",
+  "version": "http://to_be_decided.com/draft-1/schema#",
   "display": "Ausgewählte Merkmale",
   "inclusionCriteria": [
     [
@@ -24,7 +24,7 @@
                   "version": "1.0.0"
                 },
                 "timeRestriction": {
-                  "beforeDate": "2026-02-12"
+                  "beforeDate": "2026-02-16"
                 }
               }
             ],
@@ -37,20 +37,30 @@
         ],
         "termCodes": [
           {
-            "code": "49223-1",
+            "code": "48813-0",
+            "display": "Methicillin resistance mecA gene [Presence] by Molecular method",
             "system": "http://loinc.org",
-            "display": "Colony count [#/volume] in Unspecified specimen by Visual count",
             "version": "2.80"
           }
         ],
         "context": {
-          "code": "Mikrobiologie Keimzahl",
-          "display": "Mikrobiologie Keimzahl",
+          "code": "Mikrobiologie Resistenzgene",
+          "display": "Mikrobiologie Resistenzgene",
           "system": "fdpg.mii.cds",
           "version": "1.0.0"
         },
         "timeRestriction": {
-          "beforeDate": "2026-02-12"
+          "beforeDate": "2026-02-16"
+        },
+        "valueFilter": {
+          "selectedConcepts": [
+            {
+              "code": "260373001",
+              "display": "Detected (qualifier value)",
+              "system": "http://snomed.info/sct"
+            }
+          ],
+          "type": "concept"
         }
       }
     ]

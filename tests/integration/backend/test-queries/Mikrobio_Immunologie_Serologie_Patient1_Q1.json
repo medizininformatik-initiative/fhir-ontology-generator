@@ -6,6 +6,22 @@
       {
         "attributeFilters": [
           {
+            "selectedConcepts": [
+              {
+                "code": "50697-2",
+                "display": "Influenza virus A Ag [Identifier] in Isolate",
+                "system": "http://loinc.org",
+                "version": "2099"
+              }
+            ],
+            "type": "concept",
+            "attributeCode": {
+              "code": "code",
+              "display": "Type of observation (code / type)",
+              "system": "http://hl7.org/fhir/StructureDefinition"
+            }
+          },
+          {
             "type": "reference",
             "criteria": [
               {
@@ -37,20 +53,31 @@
         ],
         "termCodes": [
           {
-            "code": "49223-1",
-            "system": "http://loinc.org",
-            "display": "Colony count [#/volume] in Unspecified specimen by Visual count",
-            "version": "2.80"
+            "code": "252318005",
+            "display": "Immunology laboratory test",
+            "system": "http://snomed.info/sct",
+            "version": ""
           }
         ],
         "context": {
-          "code": "Mikrobiologie Keimzahl",
-          "display": "Mikrobiologie Keimzahl",
+          "code": "Mikrobiologie Serologie/Immunologie",
+          "display": "Mikrobiologie Serologie/Immunologie",
           "system": "fdpg.mii.cds",
           "version": "1.0.0"
         },
         "timeRestriction": {
           "beforeDate": "2026-02-12"
+        },
+        "valueFilter": {
+          "selectedConcepts": [
+            {
+              "code": "10828004",
+              "display": "Positive",
+              "system": "http://snomed.info/sct",
+              "version": "2099"
+            }
+          ],
+          "type": "concept"
         }
       }
     ]
