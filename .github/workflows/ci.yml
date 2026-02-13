@@ -201,6 +201,8 @@ jobs:
   run_cql_translation_tests:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
       - name: Load sq2cql version from config
         id: load-sq2cql-version
         shell: bash
