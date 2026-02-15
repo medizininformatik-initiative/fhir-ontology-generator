@@ -199,6 +199,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   run_cql_translation_tests:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -213,6 +214,19 @@ jobs:
         with:
           key: sq2cql-cli-${{ env.SQ2CQL_VERSION }}
           path: tests/integration/cql/sq2cql-cli/target/sq2cql-cli.jar
+      - name: Build tool
+        id: build-tool
+        if: steps.restore-cache.outputs.cache-hit != 'true'
+        uses: ./.github/actions/build-sq2cql
+        with:
+          sq2cql-version: ${{ env.SQ2CQL_VERSION }}
+      - name: Download project output
+        uses: actions/download-artifact@v4
+        with:
+          name: packaged ontology
+          path: projects/fdpg-ontology/output/merged_ontology
+      - name: Run integration tests
+        run: pytest tests/integration/backend/cql_translation_test.py -v --cov --cov-branch --cov-report=xml --project "fdpg-ontology"
 
   release:
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}
