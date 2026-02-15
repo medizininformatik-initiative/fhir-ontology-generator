@@ -1,0 +1,45 @@
+{
+  "version": "https://medizininformatik-initiative.de/fdpg/StructuredQuery/v3/schema",
+  "display": "Ausgewählte Merkmale",
+  "inclusionCriteria": [
+    [
+      {
+        "attributeFilters": [
+          {
+            "selectedConcepts": [
+              {
+                "code": "LA33215-7",
+                "display": "3MRGN",
+                "system": "http://loinc.org",
+                "version": "2099"
+              }
+            ],
+            "type": "concept",
+            "attributeCode": {
+              "code": "value[x]",
+              "display": "Actual result",
+              "system": "http://hl7.org/fhir/StructureDefinition"
+            }
+          }
+        ],
+        "termCodes": [
+          {
+            "code": "99780-9",
+            "display": "Multidrug resistant gram-negative organism classification [Type]",
+            "system": "http://loinc.org",
+            "version": ""
+          }
+        ],
+        "context": {
+          "code": "Mikrobiologie MRGN-Klasse",
+          "display": "Mikrobiologie MRGN-Klasse",
+          "system": "fdpg.mii.cds",
+          "version": "1.0.0"
+        },
+        "timeRestriction": {
+          "beforeDate": "2026-02-12"
+        }
+      }
+    ]
+  ]
+}

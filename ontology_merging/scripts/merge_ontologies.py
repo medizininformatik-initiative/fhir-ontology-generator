@@ -14,7 +14,6 @@ from common.util.log.functions import get_logger
 from common.util.project import Project
 from common.util.sql.merging import SqlMerger
 
-
 logger = get_logger(__file__)
 
 
@@ -27,9 +26,9 @@ def configure_args_parser():
     arg_parser.add_argument("--merge_sqldump", action="store_true")
     arg_parser.add_argument("--merge_dse", action="store_true")
     arg_parser.add_argument(
-        "-dp",
+        "-p",
         "--project",
-        required=True,  # Makes this argument required
+        required=True,
         help="Project to merge ontology files for",
     )
     return arg_parser
@@ -86,9 +85,7 @@ def add_system_urls_to_systems_json(project: Project, system_urls):
                 ],
             )
 
-            terminology_systems.append(
-                {"url": key, "display": cs_display.model_dump()}
-            )
+            terminology_systems.append({"url": key, "display": cs_display.model_dump()})
 
         terminology_systems = sorted(terminology_systems, key=lambda x: x["url"])
 

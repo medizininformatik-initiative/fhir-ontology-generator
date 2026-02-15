@@ -1,0 +1,24 @@
+{
+  "context": {
+    "code": "Mikrobiologie Voraussichtliche Empfindlichkeit",
+    "display": "Mikrobiologie Voraussichtliche Empfindlichkeit",
+    "system": "fdpg.mii.cds",
+    "version": "1.0.0"
+  },
+  "module": {
+    "code": "mii-cds-mikrobiologie",
+    "display": "Mikrobiologie"
+  },
+  "name": "Voraussichtliche Empfindlichkeit",
+  "resource_type": "Observation",
+  "term_code_defining_id": "Observation.code",
+  "time_restriction_defining_id": "Observation.effective[x]",
+  "value_defining_id": "Observation.value[x]:valueCodeableConcept",
+  "value_type": "concept",
+  "attribute_defining_id_type_map": {
+    "(Observation.specimen).type.coding": {
+      "type": "reference",
+      "optional": true
+    }
+  }
+}

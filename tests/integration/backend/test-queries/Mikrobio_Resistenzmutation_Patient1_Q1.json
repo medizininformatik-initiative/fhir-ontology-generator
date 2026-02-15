@@ -1,0 +1,45 @@
+{
+  "version": "https://medizininformatik-initiative.de/fdpg/StructuredQuery/v3/schema",
+  "display": "Ausgewählte Merkmale",
+  "inclusionCriteria": [
+    [
+      {
+        "attributeFilters": [
+          {
+            "selectedConcepts": [
+              {
+                "code": "260373001",
+                "display": "Detected (qualifier value)",
+                "system": "http://snomed.info/sct",
+                "version": "2099"
+              }
+            ],
+            "type": "concept",
+            "attributeCode": {
+              "code": "value[x]",
+              "display": "Actual result",
+              "system": "http://hl7.org/fhir/StructureDefinition"
+            }
+          }
+        ],
+        "termCodes": [
+          {
+            "code": "94054-4",
+            "display": "Bacterial katG gene drug resistance mutation [Identifier] by Molecular method",
+            "system": "http://loinc.org",
+            "version": "2.80"
+          }
+        ],
+        "context": {
+          "code": "Mikrobiologie Resistenzmutation",
+          "display": "Mikrobiologie Resistenzmutation",
+          "system": "fdpg.mii.cds",
+          "version": "1.0.0"
+        },
+        "timeRestriction": {
+          "beforeDate": "2026-02-12"
+        }
+      }
+    ]
+  ]
+}
