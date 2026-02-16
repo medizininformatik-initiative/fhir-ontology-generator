@@ -1,0 +1,16 @@
+{
+  "name": "Histologiebefund",
+  "resource_type": "DiagnosticReport",
+  "module": {
+    "code": "mii-cds-Onkologie",
+    "display": "Onkologie"
+  },
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "MII_Onkologie_Histologiebefund",
+    "display": "MII Onkologie Histologiebefund",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "DiagnosticReport.code.coding:pathology-report",
+  "time_restriction_defining_id": "DiagnosticReport.effective[x]"
+}

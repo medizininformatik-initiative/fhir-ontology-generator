@@ -105,11 +105,17 @@ jobs:
           python-version: '3.13'
           cache: 'pip'
 
-      - name: Download Ontology files
+#      - name: Download Ontology files
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: project-output
+#          path: projects/fdpg-ontology/output
+
+      - name: Download ontology archives
         uses: actions/download-artifact@v4
         with:
-          name: project-output
-          path: projects/fdpg-ontology/output
+          name: packaged ontology
+          path: projects/fdpg-ontology/output/merged_ontology
 
       - name: Download Availability files
         uses: actions/download-artifact@v4

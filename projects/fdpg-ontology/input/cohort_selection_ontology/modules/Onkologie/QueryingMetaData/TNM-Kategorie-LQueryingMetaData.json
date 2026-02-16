@@ -1,0 +1,26 @@
+{
+  "name": "TNM-Kategorie-L",
+  "resource_type": "Observation",
+  "module": {
+    "code": "mii-cds-Onkologie",
+    "display": "Onkologie"
+  },
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "MII_Onkologie_TNM",
+    "display": "MII Onkologie TNM",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "Observation.code",
+  "time_restriction_defining_id": "Observation.effective[x]",
+  "attribute_defining_id_type_map": {
+    "(Observation.focus).code.coding:icd10-gm": {
+      "type": "reference",
+      "optional": true
+    },
+    "Observation.value[x]":{
+      "type": "",
+      "optional": true
+    }
+  }
+}
