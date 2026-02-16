@@ -469,11 +469,7 @@ def main():
 
     logger.info(f"Starting FHIR ontology generator for project '{project.name}'")
 
-    modules = (
-        args.module
-        if args.module
-        else [module for module in os.listdir(input_modules_dir)]
-    )
+    modules = ["Onkologie", "Person"]
 
     for module in modules:
         try:
