@@ -40,12 +40,6 @@ jobs:
           name: project-output
           path: projects/fdpg-ontology/output/
 
-      - name: Download availability files
-        uses: actions/download-artifact@v4
-        with:
-          name: availability_files
-          path: projects/fdpg-ontology/output/availability
-
       - name: Collect DSE structure definition snapshots
         shell: bash
         run: zip -j projects/fdpg-ontology/output/data_selection_extraction/dse_structures.zip projects/fdpg-ontology/input/data_selection_extraction/snapshots/mii/*
@@ -59,5 +53,4 @@ jobs:
             projects/fdpg-ontology/output/merged_ontology/elastic.zip
             projects/fdpg-ontology/output/merged_ontology/backend.zip
             projects/fdpg-ontology/output/merged_ontology/mapping.zip
-            projects/fdpg-ontology/output/availability/availability.zip
             projects/fdpg-ontology/output/data_selection_extraction/dse_structures.zip
