@@ -1,8 +1,11 @@
-from typing import TypeVar, Type, Callable, Any
+from typing import TypeVar, Type, Callable, Any, Mapping, Dict
 
+import cachetools
 from fhir_core.types import FhirBase
-from pydantic import BaseModel
+from pydantic import BaseModel, TypeAdapter
+from pydantic.fields import FieldInfo
 
+from common.model.pydantic import validate_subset
 from common.typing.functions import resolve_type
 
 T = TypeVar("T", bound=BaseModel)
@@ -44,3 +47,16 @@ def construct_model(model_cls: Type[T] | Callable[[Any], Type[T]], **data) -> T:
                 f"Failed to construct field '{name}' of model class {model_cls}"
             ) from exc
     return model_cls.model_construct(**data)
+
+
+def validate_partial_model(model_cls: Type[T], data: Mapping[str, Any]) -> T:
+    """
+    Validates and constructs a partial model instance from the input data representing a subset of fields required
+    by the model class
+
+    :param model_cls: Model class to validate against and construct instance of
+    :param data: Data to validate and construct with
+    :return: Partially validated and constructed model class instance
+    """
+    validate_subset(model_cls, data)
+    return construct_model(model_cls, **data)

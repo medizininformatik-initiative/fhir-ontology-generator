@@ -1,5 +1,14 @@
 {
   "default": {
+    "include": [
+      {
+        "match": {
+          "target": "id",
+          "exact": "false",
+          "pattern": "identifier"
+        }
+      }
+    ],
     "exclude": [
       {
         "match": {
@@ -61,12 +70,6 @@
         "match": {
           "target": "base.path",
           "pattern": "Meta"
-        }
-      },
-      {
-        "match": {
-          "target": "id",
-          "pattern": "\\.identifier"
         }
       }
     ]
@@ -243,28 +246,12 @@
           {
             "match": {
               "target": "id",
-              "pattern": "Encounter.identifier"
-            },
-            "note": "is auto preselected in background by DUP pipeline coordinator if needed for DIMP step in data extraction pipeline"
-          },
-          {
-            "match": {
-              "target": "id",
               "pattern": "Encounter.subject"
             },
             "note": "is auto preselected for each resource in background"
           }
         ]
-      },
-      "exclude": [
-        {
-          "id": "Encounter.identifier",
-          "match": {
-            "target": "id",
-            "pattern": "Encounter.identifier"
-          }
-        }
-      ]
+      }
     },
     "http://hl7.org/fhir/StructureDefinition/Medication": {
       "recommend": {
@@ -481,12 +468,6 @@
           {
             "match": {
               "target": "id",
-              "pattern": "Observation.identifier:analyseBefundCode"
-            }
-          },
-          {
-            "match": {
-              "target": "id",
               "pattern": "Observation.subject"
             },
             "note": "is auto preselected for each resource in background"
@@ -527,13 +508,6 @@
           }
         },
         {
-          "id": "Patient.identifier",
-          "match": {
-            "target": "id",
-            "pattern": "Patient.identifier"
-          }
-        },
-        {
           "id": "Patient.address",
           "match": {
             "target": "id",
@@ -567,13 +541,6 @@
           {
             "match": {
               "target": "id",
-              "pattern": "Patient.identifier"
-            },
-            "note": "is auto preselected in background by DUP pipeline coordinator if needed for DIMP step in data extraction pipeline"
-          },
-          {
-            "match": {
-              "target": "id",
               "pattern": "Patient.gender"
             }
           },
@@ -597,22 +564,6 @@
           }
         ]
       }
-    },
-    "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/PatientPseudonymisiert": {
-      "include": [
-        {
-          "match": {
-            "target": "id",
-            "pattern": "Patient.identifier:PseudonymisierterIdentifier"
-          }
-        },
-        {
-          "match": {
-            "target": "id",
-            "pattern": "Patient.identifier:AnonymisierterIdentifier"
-          }
-        }
-      ]
     },
     "http://hl7.org/fhir/StructureDefinition/Procedure": {
       "recommend": {
@@ -710,16 +661,6 @@
           }
         ]
       }
-    },
-    "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung": {
-      "include": [
-        {
-          "match": {
-            "target": "id",
-            "pattern": "Encounter.identifier:Aufnahmenummer$"
-          }
-        }
-      ]
     }
   }
 }
