@@ -106,6 +106,7 @@ class ProfileDetailGenerator:
         self.module_translation = module_translation
 
         self.__is_included_cache = {}
+        self.__is_required_cache = {}
         self.__is_recommended_cache = {}
 
         if (path := project.input.dse / SEARCH_FILTER_MAPPING_FILE_NAME).exists():
@@ -136,13 +137,30 @@ class ProfileDetailGenerator:
             return is_included
 
     @cachetools.cachedmethod(
+        cache=lambda self: self.__is_required_cache,
+        key=lambda _, ed, pr: pr.url + "#" + ed.id,
+    )
+    def is_field_required(
+        self, elem_def: ElementDefinition, profile: IndexedStructureDefinition
+    ) -> bool:
+        if profile.get_aggregated_max_cardinality(elem_def.id) == 0:
+            return False
+        is_required = self.fields_config.is_required(
+            elem_def, profile, self.__project.package_manager
+        )
+        if is_required is None:
+            return not self.filter_element(elem_def, profile)
+        else:
+            return is_required
+
+    @cachetools.cachedmethod(
         cache=lambda self: self.__is_recommended_cache,
         key=lambda _, ed, pr: pr.url + "#" + ed.id,
     )
     def is_field_recommended(
         self, elem_def: ElementDefinition, profile: IndexedStructureDefinition
     ) -> bool:
-        if profile.get_aggregated_max_cardinality(elem_def.id) == "0":
+        if profile.get_aggregated_max_cardinality(elem_def.id) == 0:
             return False
         is_recommended = self.fields_config.is_recommended(
             elem_def, profile, self.__project.package_manager
@@ -370,16 +388,20 @@ class ProfileDetailGenerator:
                 element.id
             )
 
-        # Do not allow sub elements (that are not a reference) of BackboneElement typed elements to be selected
+        # Do not allow sub elements (that are not a reference) of BackboneElement or Identifier typed elements to be
+        # selected
         elem_id_split = element.id.rsplit(".", maxsplit=1)
         if len(elem_id_split) == 1:
             return False
         parent_elem = profile.get_element_by_id(elem_id_split[0])
         elem = profile.get_element_by_id(element.id)
+        supports_ref = supports_type(elem, FhirComplexDataType.REFERENCE)
         while parent_elem is not None:
-            if supports_type(
-                parent_elem, FhirComplexDataType.BACKBONE_ELEMENT
-            ) and not supports_type(elem, FhirComplexDataType.REFERENCE):
+            if (
+                supports_type(parent_elem, FhirComplexDataType.BACKBONE_ELEMENT)
+                or supports_type(parent_elem, FhirComplexDataType.IDENTIFIER)
+                and not supports_ref
+            ):
                 return True
             elem_id_split = parent_elem.id.rsplit(".", maxsplit=1)
             if len(elem_id_split) == 1:
@@ -623,7 +645,7 @@ class ProfileDetailGenerator:
                                 mii_references.extend(references)
 
         if is_root and supports_reference and len(mii_references) == 0:
-            self.__logger.warning(
+            self.__logger.debug(
                 f"{field_type} element '{element.id}' does not support any selectable MII "
                 f"profile in the current scope. This could be fixed by adding snapshots to the "
                 f"DSE package snapshots directory, but can also be an indicator that no MII profile "
@@ -839,7 +861,7 @@ class ProfileDetailGenerator:
                 supported_types = get_types_supported_by_element(element)
                 field_type = None
                 if len(supported_types) > 1:
-                    self.__logger.warning(
+                    self.__logger.debug(
                         f"Element '{element.id}' supports multiple types but only fixed typed "
                         f"elements can be represented faithfully at this point => Proceeding with "
                         f"first type listed"
@@ -871,12 +893,7 @@ class ProfileDetailGenerator:
                 #   if not ".medication" in field_id:
                 #        is_recommended_field = False
 
-                # FIXME: Currently this value will be hard-coded to `False` since requiring researchers to include some
-                #        fields that might not have some value to their research can unnecessarily complicate access to
-                #        the data since access to these fields might require additional vetting steps and explicit
-                #        permission by an ethics committee (e.g. in the case of the Patient.deceased element)
-                # is_required_field = self.check_at_least_one_in_elem_and_true(element, ["isModifier"])
-                is_required_field = False
+                is_required_field = self.is_field_required(element, struct_def)
 
                 # FIXME: Temporary fix to make elements of type 'Reference' not recommended due to issues in the UI
                 #        except for references to the MII Medication profile
@@ -925,7 +942,7 @@ class ProfileDetailGenerator:
                             referenced_mii_profiles = []
 
                         if len(referenced_mii_profiles) == 0:
-                            self.__logger.warning(
+                            self.__logger.debug(
                                 f"Element '{element.id}' references profiles that do not match any "
                                 f"MII profile => Discarding"
                             )

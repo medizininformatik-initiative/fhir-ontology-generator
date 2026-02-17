@@ -1,73 +1,119 @@
 {
   "default": {
+    "include": [
+      {
+        "pattern": {
+          "mustSupport": true,
+          "type": [
+            {
+              "code": "Identifier"
+            }
+          ],
+          "base": {
+            "path": "?regex:(?!Reference\\.identifier).*"
+          }
+        },
+        "note": "Include all Identifier-typed elements apart from the Reference.identifier element"
+      }
+    ],
     "exclude": [
       {
-        "match": {
-          "target": "base.path",
-          "exact": true,
-          "pattern": "Resource.id"
+        "pattern": {
+          "base": {
+            "path": "Resource.id"
+          }
         }
       },
       {
-        "match": {
-          "target": "base.path",
-          "exact": true,
-          "pattern": "Resource.meta"
+        "pattern": {
+          "base": {
+            "path": "Resource.meta"
+          }
         }
       },
       {
-        "match": {
-          "target": "base.path",
-          "exact": true,
-          "pattern": "Resource.implicitRules"
+        "pattern": {
+          "base": {
+            "path": "Resource.implicitRules"
+          }
         }
       },
       {
-        "match": {
-          "target": "base.path",
-          "exact": true,
-          "pattern": "Resource.language"
+        "pattern": {
+          "base": {
+            "path": "Resource.language"
+          }
         }
       },
       {
-        "match": {
-          "target": "base.path",
-          "exact": true,
-          "pattern": "DomainResource.contained"
+        "pattern": {
+          "base": {
+            "path": "DomainResource.contained"
+          }
         }
       },
       {
-        "match": {
-          "target": "base.path",
-          "exact": true,
-          "pattern": "DomainResource.modifierExtension"
+        "pattern": {
+          "base": {
+            "path": "DomainResource.modifierExtension"
+          }
         }
       },
       {
-        "match": {
-          "target": "base.path",
-          "exact": true,
-          "pattern": "Element.id"
+        "pattern": {
+          "base": {
+            "path": "Element.id"
+          }
         }
       },
       {
-        "match": {
-          "target": "base.path",
-          "exact": true,
-          "pattern": "BackboneElement.modifierExtension"
+        "pattern": {
+          "base": {
+            "path": "BackboneElement.modifierExtension"
+          }
         }
       },
       {
-        "match": {
-          "target": "base.path",
-          "pattern": "Meta"
-        }
+        "pattern": {
+          "base": {
+            "path": "?regex:Meta(?fhir:descendantsOrSelf())"
+          }
+        },
+        "note": "Exclude meta elements and their sub elements"
       },
       {
-        "match": {
-          "target": "id",
-          "pattern": "\\.identifier"
-        }
+        "pattern": {
+          "base": {
+            "path": "?regex:Identifier(?fhir:descendants())"
+          }
+        },
+        "note": "Exclude all sub elements of the Identifier data type"
+      },
+      {
+        "pattern": {
+          "type": [
+            {
+              "code": "Identifier"
+            }
+          ],
+          "base": {
+            "path": "?regex:Reference\\.identifier.*"
+          }
+        },
+        "note": "Exclude the Reference.identifier element and its descendants"
+      }
+    ],
+    "required": [
+      {
+        "pattern": {
+          "mustSupport": true,
+          "type": [
+            {
+              "code": "Identifier"
+            }
+          ]
+        },
+        "note": "If included all must-support Identifier-typed elements are set as required"
       }
     ]
   },
@@ -76,62 +122,53 @@
       "recommend": {
         "always": [
           {
-            "match": {
-              "target": "id",
-              "pattern": "Condition.extension:ReferenzPrimaerdiagnose"
+            "pattern": {
+              "id": "Condition.extension:ReferenzPrimaerdiagnose"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Condition.clinicalStatus"
+            "pattern": {
+              "id": "Condition.clinicalStatus"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Condition.verificationStatus"
+            "pattern": {
+              "id": "Condition.verificationStatus"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Condition.code"
+            "pattern": {
+              "id": "Condition.code"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Condition.onset\\[x\\]"
+            "pattern": {
+              "id": "Condition.onset[x]"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Condition.abatement\\[x\\]"
+            "pattern": {
+              "id": "Condition.abatement[x]"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Condition.recordedDate"
+            "pattern": {
+              "id": "Condition.recordedDate"
             }
           }
         ],
         "never": [
           {
-            "match": {
-              "target": "id",
-              "pattern": "Condition.id"
+            "pattern": {
+              "id": "Condition.id"
             },
             "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
           },
           {
-            "note": "is auto preselected for each resource in background",
-            "match": {
-              "target": "id",
-              "pattern": "Condition.subject"
-            }
+            "pattern": {
+              "id": "Condition.subject"
+            },
+            "note": "is auto preselected for each resource in background"
           }
         ]
       }
@@ -140,55 +177,46 @@
       "recommend": {
         "always": [
           {
-            "match": {
-              "target": "id",
-              "exact":true,
-              "pattern": "Consent.status"
+            "pattern": {
+              "id": "Consent.status"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Consent.dateTime"
+            "pattern": {
+              "id": "Consent.dateTime"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Consent.source\\[x\\]"
+            "pattern": {
+              "id": "Consent.source[x]"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Consent.policy"
+            "pattern": {
+              "id": "Consent.policy"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Consent.provision"
+            "pattern": {
+              "id": "Consent.provision"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Consent.category"
+            "pattern": {
+              "id": "Consent.category"
             }
           }
         ],
         "never": [
           {
-            "match": {
-              "target": "id",
-              "pattern": "Consent.id"
+            "pattern": {
+              "id": "Consent.id"
             },
             "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Consent.patient"
+            "pattern": {
+              "id": "Consent.patient"
             },
             "note": "is auto preselected for each resource in background"
           }
@@ -199,94 +227,66 @@
       "recommend": {
         "always": [
           {
-            "match": {
-              "target": "id",
-              "exact": true,
-              "pattern": "Encounter.status"
+            "pattern": {
+              "id": "Encounter.status"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Encounter.type"
+            "pattern": {
+              "id": "Encounter.type"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "exact": true,
-              "pattern": "Encounter.class"
+            "pattern": {
+              "id": "Encounter.class"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Encounter.serviceType"
+            "pattern": {
+              "id": "Encounter.serviceType"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Encounter.period"
+            "pattern": {
+              "id": "Encounter.period"
             },
             "note": "is auto preselected for each resource in background"
           }
         ],
         "never": [
           {
-            "match": {
-              "target": "id",
-              "pattern": "Encounter.id"
+            "pattern": {
+              "id": "Encounter.id"
             },
             "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Encounter.identifier"
-            },
-            "note": "is auto preselected in background by DUP pipeline coordinator if needed for DIMP step in data extraction pipeline"
-          },
-          {
-            "match": {
-              "target": "id",
-              "pattern": "Encounter.subject"
+            "pattern": {
+              "id": "Encounter.subject"
             },
             "note": "is auto preselected for each resource in background"
           }
         ]
-      },
-      "exclude": [
-        {
-          "id": "Encounter.identifier",
-          "match": {
-            "target": "id",
-            "pattern": "Encounter.identifier"
-          }
-        }
-      ]
+      }
     },
     "http://hl7.org/fhir/StructureDefinition/Medication": {
       "recommend": {
         "always": [
           {
-            "match": {
-              "target": "id",
-              "pattern": "Medication.code"
+            "pattern": {
+              "id": "Medication.code"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Medication.ingredient"
+            "pattern": {
+              "id": "Medication.ingredient"
             }
           }
         ],
         "never": [
           {
-            "match": {
-              "target": "id",
-              "pattern": "Medication.id"
+            "pattern": {
+              "id": "Medication.id"
             },
             "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
           }
@@ -297,38 +297,32 @@
       "recommend": {
         "always": [
           {
-            "match": {
-              "target": "id",
-              "exact": true,
-              "pattern": "MedicationAdministration.status"
+            "pattern": {
+              "id": "MedicationAdministration.status"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "MedicationAdministration.medication\\[x\\]"
+            "pattern": {
+              "id": "MedicationAdministration.medication[x]"
             },
             "note": "the reference/link to medication is necessary to identify the Statement, as the code is in the Medication resource"
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "MedicationAdministration.effective\\[x\\]"
+            "pattern": {
+              "id": "MedicationAdministration.effective[x]"
             }
           }
         ],
         "never": [
           {
-            "match": {
-              "target": "id",
-              "pattern": "MedicationAdministration.id"
+            "pattern": {
+              "id": "MedicationAdministration.id"
             },
             "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "MedicationAdministration.subject"
+            "pattern": {
+              "id": "MedicationAdministration.subject"
             },
             "note": "is auto preselected for each resource in background"
           }
@@ -339,44 +333,37 @@
       "recommend": {
         "always": [
           {
-            "match": {
-              "target": "id",
-              "exact": true,
-              "pattern": "MedicationRequest.status"
+            "pattern": {
+              "id": "MedicationRequest.status"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "MedicationRequest.intent"
+            "pattern": {
+              "id": "MedicationRequest.intent"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "MedicationRequest.medication\\[x\\]"
+            "pattern": {
+              "id": "MedicationRequest.medication[x]"
             },
             "note": "the reference/link to medication is necessary to identify the Statement, as the code is in the Medication resource"
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "MedicationRequest.authoredOn"
+            "pattern": {
+              "id": "MedicationRequest.authoredOn"
             }
           }
         ],
         "never": [
           {
-            "match": {
-              "target": "id",
-              "pattern": "MedicationRequest.id"
+            "pattern": {
+              "id": "MedicationRequest.id"
             },
             "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "MedicationRequest.subject"
+            "pattern": {
+              "id": "MedicationRequest.subject"
             },
             "note": "is auto preselected for each resource in background"
           }
@@ -387,38 +374,32 @@
       "recommend": {
         "always": [
           {
-            "match": {
-              "target": "id",
-              "exact": true,
-              "pattern": "MedicationStatement.status"
+            "pattern": {
+              "id": "MedicationStatement.status"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "MedicationStatement.medication\\[x\\]"
+            "pattern": {
+              "id": "MedicationStatement.medication[x]"
             },
             "note": "the reference/link to medication is necessary to identify the Statement, as the code is in the Medication resource"
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "MedicationStatement.effective\\[x\\]"
+            "pattern": {
+              "id": "MedicationStatement.effective[x]"
             }
           }
         ],
         "never": [
           {
-            "match": {
-              "target": "id",
-              "pattern": "MedicationStatement.id"
+            "pattern": {
+              "id": "MedicationStatement.id"
             },
             "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "MedicationStatement.subject"
+            "pattern": {
+              "id": "MedicationStatement.subject"
             },
             "note": "is auto preselected for each resource in background"
           }
@@ -429,65 +410,51 @@
       "recommend": {
         "always": [
           {
-            "match": {
-              "target": "id",
-              "pattern": "Observation.code"
+            "pattern": {
+              "id": "Observation.code"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Observation.effective"
+            "pattern": {
+              "id": "Observation.effective[x]"
             },
-            "reasonForSelection": "for most use cases a date is relevant for context"
+            "note": "for most use cases a date is relevant for context"
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Observation.value\\[x\\]"
+            "pattern": {
+              "id": "Observation.value[x]"
             },
-            "reasonForSelection": "value usually part of Observation - each type of value contains the same information -> no further specification necessary"
+            "note": "value usually part of Observation - each type of value contains the same information -> no further specification necessary"
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Observation.dataAbsentReason"
+            "pattern": {
+              "id": "Observation.dataAbsentReason"
             },
-            "reasonForSelection": "Might change the interpretation of the value -> should be included"
+            "note": "Might change the interpretation of the value -> should be included"
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Observation.interpretation"
+            "pattern": {
+              "id": "Observation.interpretation"
             },
-            "reasonForSelection": "Interpretation is important as value and reference values can vary between sites for the same Observation value"
+            "note": "Interpretation is important as value and reference values can vary between sites for the same Observation value"
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Observation.referenceRange"
+            "pattern": {
+              "id": "Observation.referenceRange"
             },
-            "reasonForSelection": "Part of a standard observation value"
+            "note": "Part of a standard observation value"
           }
         ],
         "never": [
           {
-            "match": {
-              "target": "id",
-              "pattern": "Observation.id"
+            "pattern": {
+              "id": "Observation.id"
             },
             "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Observation.identifier:analyseBefundCode"
-            }
-          },
-          {
-            "match": {
-              "target": "id",
-              "pattern": "Observation.subject"
+            "pattern": {
+              "id": "Observation.subject"
             },
             "note": "is auto preselected for each resource in background"
           }
@@ -497,172 +464,116 @@
     "http://hl7.org/fhir/StructureDefinition/Patient": {
       "include": [
         {
-          "id": "Patient.address:Strassenanschrift.postalCode",
-          "match": {
-            "target": "id",
-            "pattern": "Patient.address:Strassenanschrift.postalCode"
+          "pattern": {
+            "id": "Patient.address:Strassenanschrift.postalCode"
           }
         },
         {
-          "id": "Patient.address:Strassenanschrift.country",
-          "match": {
-            "target": "id",
-            "pattern": "Patient.address:Strassenanschrift.country"
+          "pattern": {
+            "id": "Patient.address:Strassenanschrift.country"
           }
         }
       ],
       "exclude": [
         {
-          "id": "Patient.name",
-          "match": {
-            "target": "id",
-            "pattern": "Patient.name"
+          "pattern": {
+            "id": "Patient.name"
           }
         },
         {
-          "id": "Patient.location",
-          "match": {
-            "target": "id",
-            "pattern": "Patient.location"
+          "pattern": {
+            "id": "Patient.location"
           }
         },
         {
-          "id": "Patient.identifier",
-          "match": {
-            "target": "id",
-            "pattern": "Patient.identifier"
+          "pattern": {
+            "id": "Patient.address"
           }
         },
         {
-          "id": "Patient.address",
-          "match": {
-            "target": "id",
-            "pattern": "Patient.address"
-          }
-        },
-        {
-          "id": "Patient.link",
-          "match": {
-            "target": "id",
-            "pattern": "Patient.link"
+          "pattern": {
+            "id": "Patient.link"
           }
         }
       ],
       "recommend": {
         "always": [
           {
-            "match": {
-              "target": "id",
-              "pattern": "Patient.deceased\\[x\\]"
+            "pattern": {
+              "id": "Patient.deceased[x]"
             }
           }
         ],
         "never": [
           {
-            "match": {
-              "target": "id",
-              "pattern": "Patient.id"
+            "pattern": {
+              "id": "Patient.id"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Patient.identifier"
-            },
-            "note": "is auto preselected in background by DUP pipeline coordinator if needed for DIMP step in data extraction pipeline"
-          },
-          {
-            "match": {
-              "target": "id",
-              "pattern": "Patient.gender"
+            "pattern": {
+              "id": "Patient.gender"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Patient.birthDate"
+            "pattern": {
+              "id": "Patient.birthDate"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Patient.name"
+            "pattern": {
+              "id": "Patient.name"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Patient.address"
+            "pattern": {
+              "id": "Patient.address"
             }
           }
         ]
       }
     },
-    "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/PatientPseudonymisiert": {
-      "include": [
-        {
-          "match": {
-            "target": "id",
-            "pattern": "Patient.identifier:PseudonymisierterIdentifier"
-          }
-        },
-        {
-          "match": {
-            "target": "id",
-            "pattern": "Patient.identifier:AnonymisierterIdentifier"
-          }
-        }
-      ]
-    },
     "http://hl7.org/fhir/StructureDefinition/Procedure": {
       "recommend": {
         "always": [
           {
-            "match": {
-              "target": "id",
-              "exact": true,
-              "pattern": "Procedure.status"
+            "pattern": {
+              "id": "Procedure.status"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Procedure.code"
+            "pattern": {
+              "id": "Procedure.code"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Procedure.subject"
+            "pattern": {
+              "id": "Procedure.subject"
             },
             "note": "is auto preselected for each resource in background"
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Procedure.performed\\[x\\]"
+            "pattern": {
+              "id": "Procedure.performed[x]"
             },
             "note": "is auto preselected for each resource in background"
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Procedure.bodySite"
+            "pattern": {
+              "id": "Procedure.bodySite"
             }
           }
         ],
         "never": [
           {
-            "match": {
-              "target": "id",
-              "pattern": "Procedure.id"
+            "pattern": {
+              "id": "Procedure.id"
             },
             "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Procedure.subject"
+            "pattern": {
+              "id": "Procedure.subject"
             },
             "note": "is auto preselected for each resource in background"
           }
@@ -672,54 +583,39 @@
     "http://hl7.org/fhir/StructureDefinition/Specimen": {
       "exclude": [
         {
-          "match": {
-            "target": "id",
-            "pattern": "Specimen.extension:gehoertZu"
+          "pattern": {
+            "id": "Specimen.extension:gehoertZu"
           }
         }
       ],
       "recommend": {
         "always": [
           {
-            "match": {
-              "target": "id",
-              "pattern": "Specimen.type"
+            "pattern": {
+              "id": "Specimen.type"
             }
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Specimen.collection"
+            "pattern": {
+              "id": "Specimen.collection"
             }
           }
         ],
         "never": [
           {
-            "match": {
-              "target": "id",
-              "pattern": "Specimen.id"
+            "pattern": {
+              "id": "Specimen.id"
             },
             "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
           },
           {
-            "match": {
-              "target": "id",
-              "pattern": "Specimen.patient"
+            "pattern": {
+              "id": "Specimen.patient"
             },
             "note": "is auto preselected for each resource in background"
           }
         ]
       }
-    },
-    "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung": {
-      "include": [
-        {
-          "match": {
-            "target": "id",
-            "pattern": "Encounter.identifier:Aufnahmenummer$"
-          }
-        }
-      ]
     }
   }
 }
