@@ -1,0 +1,91 @@
+{
+    "$defs": {
+        "FieldConfigEntry": {
+            "properties": {
+                "pattern": {
+                    "title": "Pattern",
+                    "type": "object"
+                },
+                "reasonForSelection": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Reasonforselection"
+                },
+                "note": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Note"
+                }
+            },
+            "title": "FieldConfigEntry",
+            "type": "object"
+        },
+        "FieldConfigRecommendation": {
+            "properties": {
+                "always": {
+                    "default": [],
+                    "items": {
+                        "$ref": "#/$defs/FieldConfigEntry"
+                    },
+                    "title": "Always",
+                    "type": "array"
+                },
+                "never": {
+                    "default": [],
+                    "items": {
+                        "$ref": "#/$defs/FieldConfigEntry"
+                    },
+                    "title": "Never",
+                    "type": "array"
+                }
+            },
+            "title": "FieldConfigRecommendation",
+            "type": "object"
+        }
+    },
+    "properties": {
+        "include": {
+            "default": [],
+            "items": {
+                "$ref": "#/$defs/FieldConfigEntry"
+            },
+            "title": "Include",
+            "type": "array"
+        },
+        "exclude": {
+            "default": [],
+            "items": {
+                "$ref": "#/$defs/FieldConfigEntry"
+            },
+            "title": "Exclude",
+            "type": "array"
+        },
+        "required": {
+            "default": [],
+            "items": {
+                "$ref": "#/$defs/FieldConfigEntry"
+            },
+            "title": "Required",
+            "type": "array"
+        },
+        "recommend": {
+            "$ref": "#/$defs/FieldConfigRecommendation"
+        }
+    },
+    "title": "FieldConfig",
+    "type": "object"
+}
