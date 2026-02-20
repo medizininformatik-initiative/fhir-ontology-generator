@@ -3,7 +3,7 @@ from typing import TypeVar, Type, Callable, Any, Mapping
 from fhir_core.types import FhirBase
 from pydantic import BaseModel
 
-from common.model.pydantic import _get_type_adapter_for_type
+from common.model.pydantic import get_type_adapter_for_type
 from common.typing.functions import resolve_type
 
 T = TypeVar("T", bound=BaseModel)
@@ -73,7 +73,7 @@ def validate_subset(model_cls: Type[T], data) -> Any:
                     validated[key] = validate_subset(annotation_t, value)
             return validated
         case _:
-            return _get_type_adapter_for_type(model_cls).validate_python(data)
+            return get_type_adapter_for_type(model_cls).validate_python(data)
 
 
 def validate_partial_model(model_cls: Type[T], data: Mapping[str, Any]) -> T:
