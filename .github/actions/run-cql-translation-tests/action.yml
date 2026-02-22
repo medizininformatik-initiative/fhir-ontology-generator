@@ -1,0 +1,82 @@
+name: Generate Ontology
+
+description: 'Generates ontology files'
+
+inputs:
+  project:
+    required: true
+    description: 'Name of the project to generate the ontology files for'
+  sq2cql-version:
+    required: true
+    description: 'Version of sq2cql library to use'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup python 3 environment
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+        cache: 'pip'
+
+    - name: Install required python modules
+      shell: bash
+      run: pip3 install -r requirements.txt
+
+    - name: Install Firely Terminal
+      run: |
+        if command -v fhir >/dev/null 2>&1; then
+          echo "Tool firely.terminal is already installed"
+        else
+          echo "Installing tool firely.terminal"
+          sudo apt-get update
+          sudo apt-get install -y dotnet-sdk-8.0
+          sudo apt-get install -y aspnetcore-runtime-8.0
+          sudo apt-get install -y dotnet-runtime-8.0
+          dotnet tool install -g firely.terminal
+        fi
+        fhir --version
+      shell: bash
+
+    - name: Restore cache
+      id: restore-cache
+      uses: actions/cache/restore@v5
+      with:
+        key: sq2cql-cli-${{ inputs.sq2cql-version }}
+        path: tests/integration/cql/sq2cql-cli/target/sq2cql-cli.jar
+
+    - name: Build CLI tool
+      id: build-cli-tool
+      uses:
+
+    - name: Save cache
+      id: save-cache
+      if: steps.restore-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v5
+      with:
+        key: sq2cql-cli-${{ inputs.sq2cql-version }}
+        path: tests/integration/cql/sq2cql-cli/target/sq2cql-cli.jar
+
+    - name: Run ontology generation
+      env:
+        ONTOLOGY_SERVER_ADDRESS: ${{ inputs.term-server-url }}
+        SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
+        PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
+      shell: bash
+      run: ./generate_full_ontology.sh --project ${{ inputs.project }} --all
+
+    - name: Upload Ontology
+      uses: actions/upload-artifact@v4
+      with:
+        name: packaged ontology
+        path: |
+          projects/${{ inputs.project }}/output/merged_ontology/elastic.zip
+          projects/${{ inputs.project }}/output/merged_ontology/backend.zip
+          projects/${{ inputs.project }}/output/merged_ontology/mapping.zip
+
+    - name: Project Output - Ontology
+      uses: actions/upload-artifact@v4
+      with:
+        name: project-output
+        path: |
+          projects/${{ inputs.project }}/output/

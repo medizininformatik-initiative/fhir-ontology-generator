@@ -1,0 +1,85 @@
+{
+  "version": "https://medizininformatik-initiative.de/fdpg/StructuredQuery/v3/schema",
+  "display": "Ausgewählte Merkmale",
+  "inclusionCriteria": [
+    [
+      {
+        "attributeFilters": [
+          {
+            "selectedConcepts": [
+              {
+                "code": "94310-0",
+                "display": "SARS-related coronavirus N gene [Presence] in Specimen by Nucleic acid amplification using CDC primer-probe set N3",
+                "system": "http://loinc.org",
+                "version": "2099"
+              }
+            ],
+            "type": "concept",
+            "attributeCode": {
+              "code": "code",
+              "display": "Type of observation (code / type)",
+              "system": "http://hl7.org/fhir/StructureDefinition"
+            }
+          },
+          {
+            "type": "reference",
+            "criteria": [
+              {
+                "termCodes": [
+                  {
+                    "code": "258503004",
+                    "display": "Skin swab",
+                    "system": "http://snomed.info/sct",
+                    "version": "http://snomed.info/sct/900000000000207008/version/20260101"
+                  }
+                ],
+                "context": {
+                  "code": "Specimen",
+                  "display": "Bioprobe",
+                  "system": "fdpg.mii.cds",
+                  "version": "1.0.0"
+                },
+                "timeRestriction": {
+                  "beforeDate": "2026-02-12"
+                }
+              }
+            ],
+            "attributeCode": {
+              "code": "specimen",
+              "display": "Specimen used for this observation",
+              "system": "http://hl7.org/fhir/StructureDefinition"
+            }
+          }
+        ],
+        "termCodes": [
+          {
+            "code": "92253-4",
+            "display": "Microorganism identified in Isolate or Specimen by Molecular genetics method",
+            "system": "http://loinc.org",
+            "version": ""
+          }
+        ],
+        "context": {
+          "code": "Mikrobiologie Molekulare Diagnostik",
+          "display": "Mikrobiologie Molekulare Diagnostik",
+          "system": "fdpg.mii.cds",
+          "version": "1.0.0"
+        },
+        "timeRestriction": {
+          "beforeDate": "2026-02-12"
+        },
+        "valueFilter": {
+          "selectedConcepts": [
+            {
+              "code": "10828004",
+              "display": "Positive",
+              "system": "http://snomed.info/sct",
+              "version": "2099"
+            }
+          ],
+          "type": "concept"
+        }
+      }
+    ]
+  ]
+}

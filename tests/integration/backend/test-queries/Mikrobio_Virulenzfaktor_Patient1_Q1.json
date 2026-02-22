@@ -1,0 +1,68 @@
+{
+        "version": "http://to_be_decided.com/draft-1/schema#",
+        "display": "Ausgewählte Merkmale",
+        "inclusionCriteria": [
+            [
+                {
+                    "attributeFilters": [
+                        {
+                            "type": "reference",
+                            "criteria": [
+                                {
+                                    "termCodes": [
+                                        {
+                                            "code": "258503004",
+                                            "display": "Skin swab",
+                                            "system": "http://snomed.info/sct",
+                                            "version": "http://snomed.info/sct/900000000000207008/version/20260101"
+                                        }
+                                    ],
+                                    "context": {
+                                        "code": "Specimen",
+                                        "display": "Bioprobe",
+                                        "system": "fdpg.mii.cds",
+                                        "version": "1.0.0"
+                                    },
+                                    "timeRestriction": {
+                                        "beforeDate": "2026-02-16"
+                                    }
+                                }
+                            ],
+                            "attributeCode": {
+                                "code": "specimen",
+                                "display": "Specimen used for this observation",
+                                "system": "http://hl7.org/fhir/StructureDefinition"
+                            }
+                        }
+                    ],
+                    "termCodes": [
+                        {
+                            "code": "87380-2",
+                            "display": "Escherichia coli Stx2e toxin stx2e gene [Presence] in Isolate by NAA with probe detection",
+                            "system": "http://loinc.org",
+                            "version": "2.80"
+                        }
+                    ],
+                    "context": {
+                        "code": "Mikrobiologie Virulenzfaktor",
+                        "display": "Mikrobiologie Virulenzfaktor",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "timeRestriction": {
+                        "beforeDate": "2026-02-16"
+                    },
+                    "valueFilter": {
+                        "selectedConcepts": [
+                            {
+                                "code": "260373001",
+                                "display": "Detected (qualifier value)",
+                                "system": "http://snomed.info/sct"
+                            }
+                        ],
+                        "type": "concept"
+                    }
+                }
+            ]
+        ]
+    }
