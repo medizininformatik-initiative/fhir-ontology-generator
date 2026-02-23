@@ -36,7 +36,16 @@ FHIR_PRIMITIVES = [
     "instant",
     "time",
 ]
-PATHLING_SUPPORTED_TYPE_CONVERTER = {"uri": "string"}
+
+# TODO: LOOOK at extensions in extensions https://simplifier.net/mii-basismodul-medikation-2024/mii_ex_medikation_wirkstoffrelation
+
+
+# Converter built after https://build.fhir.org/fhirpath.html#types
+PATHLING_SUPPORTED_TYPE_CONVERTER = {
+    # "uri": "string",
+    # "canonical": "string",
+    # "instant": "dateTime"
+}
 REQUIRED_PRIMITIVE_PER_ELEMENT = {
     "Period": [("start", "dateTime"), ("end", "dateTime")],
     "Ratio": [("numerator","Quantity"), ("denominator","Quantity")],
@@ -362,7 +371,7 @@ def flatten_coding(
                 and el.id.split(".")[-1] not in EXCLUDED_CHILDREN_CODINGS
             ]
 
-            clean_kwargs = {k: v for k, v in kwargs.items() if k != "type"}
+            clean_kwargs = {k: v for k, v in kwargs.items() if k != "type" and k != "polymorphic_child"}
             lookup = {}
             for child in flat_element.children:
                 lookup.update(flatten_element(child, profile, **clean_kwargs))
@@ -567,8 +576,8 @@ def flatten_extension(
         for child in flat_ext.children:
             lookup.update(flatten_element(child, profile, **kwargs))
 
-        return lookup
-
+        # return lookup
+        return {}
     else:
         lookup = {}
         manager: FhirPackageManager = kwargs["manager"]
@@ -601,8 +610,8 @@ def flatten_extension(
 
             lookup.update({element_id: flat_ext_el})
 
-        return lookup
-
+        # return lookup
+        return {}
 
 @register_flattener("CodeableConcept")
 def flatten_codeable_concept(
@@ -711,6 +720,7 @@ def generate_flattening_polymorphic_child(
 
     _logger.debug(f"Flattening polymorphic subtype {element_id} of type: {type}")
     polymorphic_element_name = polymorphic_parent.id.split(".")[-1].replace("[x]", "")
+    sufix = ".coding" if type == "CodeableConcept" else ""
     fle = FlatteningLookupElement(parent=check_if_root(polymorphic_parent.id, profile))
     fle.view_definition = {
         "forEachOrNull": f"{polymorphic_element_name}.ofType({PATHLING_SUPPORTED_TYPE_CONVERTER.get(element_type, element_type)})",
@@ -942,15 +952,16 @@ def generate_flattening_lookup(
 
 
         # ONLY FOR TESTING
-        # if not profile.id in [
-        #     # "mii-pr-diagnose-condition",
-        #     # "mii-pr-person-patient",
-        #     # "mii-pr-person-patient-pseudonymisiert",
-        #     # "mii-pr-prozedur-procedure",
-        #     # "mii-pr-labor-laboruntersuchung",
-        #     "mii-pr-medikation-medication"
-        # ]:
-        #     continue
+        if not profile.id in [
+           # "mii-pr-medikation-medication-administration"
+            # "mii-pr-diagnose-condition",
+            # "mii-pr-person-patient",
+            # "mii-pr-person-patient-pseudonymisiert",
+            # "mii-pr-prozedur-procedure",
+            # "mii-pr-labor-laboruntersuchung",
+            "mii-pr-medikation-medication"
+        ]:
+            continue
 
         _logger.info(f"Generating flattening lookup for {profile.name}")
 
