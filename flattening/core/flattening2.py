@@ -387,10 +387,24 @@ def flatten_coding(
 
             return lookup
 
-        # TODO: check for Binding
-
-        return None
-
+        else:
+            flat_element = FlatteningLookupElement(
+                parent=check_if_root(get_parent_element_id(element), profile)
+            )
+            flat_element.view_definition = {
+                "forEachOrNull": element.id.split(".")[-1],
+                "column": [
+                    {
+                        "name": f"{id_to_column_name(element.id)}_system",
+                        "path": "system",
+                    },
+                    {
+                        "name": f"{id_to_column_name(element.id)}_code",
+                        "path": "code"
+                    },
+                ],
+            }
+            return {element.id: flat_element}
 
 @register_flattener("Reference")
 def flatten_reference(
@@ -576,8 +590,7 @@ def flatten_extension(
         for child in flat_ext.children:
             lookup.update(flatten_element(child, profile, **kwargs))
 
-        # return lookup
-        return {}
+        return lookup
     else:
         lookup = {}
         manager: FhirPackageManager = kwargs["manager"]
@@ -610,8 +623,7 @@ def flatten_extension(
 
             lookup.update({element_id: flat_ext_el})
 
-        # return lookup
-        return {}
+        return lookup
 
 @register_flattener("CodeableConcept")
 def flatten_codeable_concept(
@@ -644,6 +656,7 @@ def flatten_codeable_concept(
     # check if a conding is defined and the defined coding has any defined slices -> else col_el_sys + col_el_code
     # TODO: allow extensions too? if no coding does this mean that no other elements?
     child_coding_element = profile.get_element_by_id(f"{element_id}.coding")
+    lookup = None
     if child_coding_element is not None:
         list_of_children_slices = [
             slice.id
@@ -653,35 +666,15 @@ def flatten_codeable_concept(
         if len(list_of_children_slices) > 0:
             _logger.debug(f"found slices: {list_of_children_slices}")
             flat_element.children = list_of_children_slices
-        else:
-            _logger.debug(
-                f"creating two columns for {element_id} because no slice had been found \n"
-                f"for coding: {child_coding_element.id if child_coding_element else ''}. "
-                f"Make sure this is correct"
-            )
-            flat_element.view_definition = {
-                "forEachOrNull": f"{element_id.split('.')[-1]}.coding",
-                "column": [
-                    {
-                        "name": f"{id_to_column_name(element_id)}_system",
-                        "path": "system",
-                    },
-                    {"name": f"{id_to_column_name(element_id)}_code", "path": "code"},
-                ],
-            }
-            flat_element.children = []
 
-
-        clean_kwargs = {k: v for k, v in kwargs.items() if k != "type"}
-        lookup = {element_id: flat_element}
-        for child in flat_element.children:
-            lookup.update(
-                flatten_element(
-                    child, profile, codeable_concept_parent=element_id, **clean_kwargs
+            clean_kwargs = {k: v for k, v in kwargs.items() if k != "type"}
+            lookup = {element_id: flat_element}
+            for child in flat_element.children:
+                lookup.update(
+                    flatten_element(
+                        child, profile, codeable_concept_parent=element_id, **clean_kwargs,
+                    )
                 )
-            )
-
-        return lookup
     else:
         _logger.debug(
             f"creating two columns for {element_id} because no slice had been found \n"
@@ -689,13 +682,35 @@ def flatten_codeable_concept(
             f"Make sure this is correct"
         )
         flat_element.view_definition = {
-            "forEachOrNull": f"{element_id.split('.')[-1]}.coding",
-            "column": [
-                {"name": f"{id_to_column_name(element_id)}_system", "path": "system"},
-                {"name": f"{id_to_column_name(element_id)}_code", "path": "code"},
-            ],
+            "forEachOrNull": f"{element_id.split('.')[-1]}",
+            "select":[]
         }
-        return {element_id: flat_element}
+        child = f"{element_id}.coding"
+        flat_element.children = [child]
+
+        clean_kwargs = {k: v for k, v in kwargs.items() if k != "type"}
+        lookup = {element_id: flat_element}
+        lookup.update(
+            flatten_element(
+                child, profile,codeable_concept_parent=element_id, type="Coding" ,**clean_kwargs,
+            )
+        )
+
+    return lookup
+    # else:
+    #     _logger.debug(
+    #         f"creating two columns for {element_id} because no slice had been found \n"
+    #         f"for coding: {child_coding_element.id if child_coding_element else ''}. "
+    #         f"Make sure this is correct"
+    #     )
+    #     flat_element.view_definition = {
+    #         "forEachOrNull": f"{element_id.split('.')[-1]}.coding",
+    #         "column": [
+    #             {"name": f"{id_to_column_name(element_id)}_system", "path": "system"},
+    #             {"name": f"{id_to_column_name(element_id)}_code", "path": "code"},
+    #         ],
+    #     }
+    #     return {element_id: flat_element}
 
 
 def generate_flattening_polymorphic_child(
@@ -940,7 +955,7 @@ def generate_flattening_lookup(
     lookup_file: List[FlatteningLookup] = []
 
     for profile in manager.iterate_cache(
-        MII_CDS_PACKAGE_PATTERN, content_pattern, skip_on_fail=True
+        MII_CDS_PACKAGE_PATTERN, content_pattern, skip_on_fail=False
     ):
         if profile.type in ["SearchParameter"]:
             continue
@@ -953,13 +968,18 @@ def generate_flattening_lookup(
 
         # ONLY FOR TESTING
         if not profile.id in [
-           # "mii-pr-medikation-medication-administration"
+            # "mii-pr-medikation-medication-administration",
             # "mii-pr-diagnose-condition",
             # "mii-pr-person-patient",
             # "mii-pr-person-patient-pseudonymisiert",
             # "mii-pr-prozedur-procedure",
+            # "mii-pr-medikation-medication-statement",
+            # "mii-pr-medikation-medication-request",
             # "mii-pr-labor-laboruntersuchung",
-            "mii-pr-medikation-medication"
+            "mii-pr-medikation-medication",
+            # "Specimen",
+            # "sd-mii-icu-ect-dauer-haemodialysesitzung",
+            # "mii-pr-fall-kontakt-gesundheitseinrichtung"
         ]:
             continue
 
