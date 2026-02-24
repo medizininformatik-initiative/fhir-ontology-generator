@@ -223,12 +223,6 @@ def generate_cs_tree_map(
     _logger.debug("Building closure table")
     try:
         closure_map = client.get_closure_map(term_codes, closure_name)
-        cs_path = Path("maps")
-        cs_path.mkdir(parents=True, exist_ok=True)
-        with (cs_path / f"{closure_name}.fhir.json").open(
-            mode="w+", encoding="utf-8"
-        ) as cs_f:
-            cs_f.write(closure_map.model_dump_json())
         if groups := closure_map.group:
             if len(groups) > 1:
                 raise Exception(
