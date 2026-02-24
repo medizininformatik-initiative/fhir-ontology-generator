@@ -15,6 +15,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+# [v3.10.0] - 2026-02-24
+
+## Added
+
+- Add new version of profile details configuration logic and format based on ElementDefinition patterns (#443 @paulolaup)
+- Add release tag-based version metadata entry to Elasticsearch index definition files (#432 @paulolaup)
+
+## Changed
+
+- Rework identifier field handling in DSE: Include identifier elements as recommended fields (#441 @paulolaup)
+
 # [v3.9.6] - 2026-02-09
 
 ## Fixed
