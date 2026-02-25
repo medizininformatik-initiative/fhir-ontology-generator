@@ -1,5 +1,5 @@
 {
-  "Diagnose": [
+  "MII_PR_Diagnose_Condition": [
     "AlphaIdCondition",
     "Condition",
     "SnomedCondition",

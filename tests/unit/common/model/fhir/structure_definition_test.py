@@ -31,7 +31,6 @@ from common.model.fhir.structure_definition import (
 )
 from common.util.project import Project
 
-
 _logger = get_logger(__name__)
 
 
@@ -170,7 +169,7 @@ def test_sds_get_multiple_elements(
         / "Diagnose"
         / "differential"
         / "package"
-        / "FDPG_Diagnose-snapshot.json",
+        / "StructureDefinition-mii-pr-diagnose-condition-snapshot.json",
     )
     p3 = ProcessedElementResult(
         element=p3_snap.get_element_by_id("Condition.code.coding:icd10-gm"),

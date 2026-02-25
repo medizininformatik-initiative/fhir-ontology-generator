@@ -192,7 +192,7 @@ jobs:
           ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
           SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
           PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
-        run: pytest tests/integration/integrity/json -v -n 10 --cov --cov-branch --cov-report=xml --project "fdpg-ontology"
+        run: pytest tests/integration/integrity/json -n 5 --cov --cov-branch --cov-report=xml --project "fdpg-ontology"
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5

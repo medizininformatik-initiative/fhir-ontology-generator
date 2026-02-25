@@ -1,11 +1,11 @@
 {
-  "Patient": [
+  "MII_PR_Person_Patient": [
     "Age", "Gender"
   ],
-  "Vitalstatus": [
+  "MII_PR_Person_Vitalstatus": [
     "Vitalstatus"
   ],
-  "Todesursache": [
+  "MII_PR_Person_Todesursache": [
     "CauseOfDeathSnomed",
     "CauseOfDeathLoinc"
   ]
