@@ -8,5 +8,6 @@ env = [
     "USERNAME=test",
     "PASSWORD=supersecretpassword",
     "TOKEN_ACCESS_URL=http://localhost:8083/auth/realms/dataportal/protocol/openid-connect/token",
-    "TERMINOLOGY_SERVER_ADDRESS=https://ontoserver.mii-termserv.de/fhir"
+    "TERMINOLOGY_SERVER_ADDRESS=https://ontoserver.mii-termserv.de/fhir",
+    "SQ2CQL_VERSION=1.2.0"
 ]

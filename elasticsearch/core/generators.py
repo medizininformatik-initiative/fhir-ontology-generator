@@ -217,7 +217,7 @@ class ElasticSearchGenerator:
                         "code": termcode["code"],
                         "display": termcode["display"],
                         "system": termcode["system"],
-                        "version": 2099,
+                        #"version": 2099,
                     },
                     "value_sets": [value_set["url"]],
                     "display": self.__designation_resolver.resolve_term(termcode),

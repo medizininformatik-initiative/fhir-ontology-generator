@@ -128,10 +128,11 @@ def tokenize(chained_fhir_element_id):
     )
 
 
-def is_structure_definition(file: Path) -> bool:
+def is_structure_definition(file: Path, require_snapshot: bool = False) -> bool:
     """
-    Checks if a file is a structured definition
+    Checks if a file content represents a FHIR StructuredDefinition
     :param file: potential structured definition
+    :param require_snapshot: Requires StructureDefinition resource to also be in snapshot form
     :return: true if the file is a structured definition else false
     """
     with open(file, encoding="UTF-8") as json_file:
@@ -141,6 +142,8 @@ def is_structure_definition(file: Path) -> bool:
             logger.warning(f"Could not decode {file}")
             return False
         if json_data.get("resourceType") == "StructureDefinition":
+            if require_snapshot:
+                return len(json_data.get("snapshot", {}).get("element", [])) > 0
             return True
         return False
 
@@ -654,7 +657,7 @@ def get_element_type(element: ElementDefinition) -> str:
         if "Reference" in types and "CodeableConcept" in types:
             return "CodeableConcept"
         else:
-            raise Exception("Multiple types are currently not supported")
+            raise Exception("Multiple types are currently not supported at element: " + element.id)
     elif not element_types:
         raise Exception(
             "No type found for element "

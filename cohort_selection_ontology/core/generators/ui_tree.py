@@ -130,8 +130,8 @@ class UITreeGenerator:
                 os.path.join(self.__modules_dir, module_name, "differential", "package")
             )
             if file.is_file()
-            and file.name.endswith("snapshot.json")
-            and is_structure_definition(file.path)
+            and file.name.endswith(".json")
+            and is_structure_definition(file.path, require_snapshot=True)
         ]
 
         result = TreeMapList()
@@ -171,36 +171,40 @@ class UITreeGenerator:
         if not term_code_defining_element:
             raise Exception(
                 f"Could not resolve term code defining id {term_code_defining_id} "
-                f"in {fhir_profile_snapshot.name}"
+                f"in {fhir_profile_snapshot.url}"
             )
-        if term_code_defining_element.patternCoding is not None:
-            if term_code_defining_element.patternCoding.code is not None:
-                term_code = pattern_coding_to_term_code(
-                    term_code_defining_element, self.__client
+        if (
+            pc := term_code_defining_element.patternCoding
+        ) is not None and pc.code is not None:
+            term_code = pattern_coding_to_term_code(
+                term_code_defining_element, self.__client
+            )
+            return [
+                TreeMap(
+                    {term_code.code: TermEntryNode(term_code=term_code)},
+                    None,
+                    term_code.system,
+                    term_code.version,
                 )
-                return [
-                    TreeMap(
-                        {term_code.code: TermEntryNode(term_code=term_code)},
-                        None,
-                        term_code.system,
-                        term_code.version,
-                    )
-                ]
-        if term_code_defining_element.patternCodeableConcept is not None:
-            if term_code_defining_element.patternCodeableConcept.coding is not None:
-                term_code = pattern_codeable_concept_to_term_code(
-                    term_code_defining_element, self.__client
+            ]
+        elif (
+            (pcc := term_code_defining_element.patternCodeableConcept) is not None
+            and (pccc := pcc.coding) is not None
+            and any(c.code is not None for c in pccc)
+        ):
+            term_code = pattern_codeable_concept_to_term_code(
+                term_code_defining_element, self.__client
+            )
+            return [
+                TreeMap(
+                    {term_code.code: TermEntryNode(term_code=term_code)},
+                    None,
+                    term_code.system,
+                    term_code.version,
                 )
-                return [
-                    TreeMap(
-                        {term_code.code: TermEntryNode(term_code=term_code)},
-                        None,
-                        term_code.system,
-                        term_code.version,
-                    )
-                ]
-        if term_code_defining_element.binding is not None:
-            value_set = term_code_defining_element.binding.valueSet
+            ]
+        elif (binding := term_code_defining_element.binding) is not None:
+            value_set = binding.valueSet
             return [self.__client.get_term_map(value_set)]
         else:
             term_code = fhir_profile_snapshot.try_get_term_code_from_sub_elements(
@@ -238,8 +242,8 @@ class UITreeGenerator:
                 os.path.join(self.__modules_dir, module_name, "differential", "package")
             )
             if file.is_file()
-            and file.name.endswith("snapshot.json")
-            and is_structure_definition(file.path)
+            and file.name.endswith(".json")
+            and is_structure_definition(file.path, require_snapshot=True)
         ]
         result.append(
             self.generate_module_contextualized_term_code_info(module_name, files)
@@ -350,19 +354,23 @@ class UITreeGenerator:
                 f"Could not resolve term code defining id {term_code_defining_id} "
                 f"in {fhir_profile_snapshot.name}"
             )
-        if term_code_defining_element.patternCoding is not None:
-            if term_code_defining_element.patternCoding.code is not None:
-                term_code = pattern_coding_to_term_code(
-                    term_code_defining_element, self.__client
-                )
-                return [ContextualizedTermCodeInfo(term_code=term_code)]
-        if term_code_defining_element.patternCodeableConcept is not None:
-            if term_code_defining_element.patternCodeableConcept.coding is not None:
-                term_code = pattern_codeable_concept_to_term_code(
-                    term_code_defining_element, self.__client
-                )
-                return [ContextualizedTermCodeInfo(term_code=term_code)]
-        if term_code_defining_element.binding:
+        if (
+            pc := term_code_defining_element.patternCoding
+        ) is not None and pc.code is not None:
+            term_code = pattern_coding_to_term_code(
+                term_code_defining_element, self.__client
+            )
+            return [ContextualizedTermCodeInfo(term_code=term_code)]
+        elif (
+            (pcc := term_code_defining_element.patternCodeableConcept) is not None
+            and (pccc := pcc.coding) is not None
+            and any(c.code is not None for c in pccc)
+        ):
+            term_code = pattern_codeable_concept_to_term_code(
+                term_code_defining_element, self.__client
+            )
+            return [ContextualizedTermCodeInfo(term_code=term_code)]
+        elif term_code_defining_element.binding:
             value_set = term_code_defining_element.binding.valueSet
             return self.__client.get_term_info(value_set)
         else:

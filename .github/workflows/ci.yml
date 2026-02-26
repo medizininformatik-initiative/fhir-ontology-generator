@@ -149,12 +149,23 @@ jobs:
           SERVER_CERTIFICATE: ${{ secrets.FDPGPLUS_ONTO_SERVER_CERT }}
           PRIVATE_KEY: ${{ secrets.FDPGPLUS_ONTO_SERVER_KEY }}
 
+      - name: Load sq2cql version from config
+        id: load-sq2cql-version
+        shell: bash
+        run: echo "SQ2CQL_VERSION=$(grep -Po '(?<=SQ2CQL_VERSION=)[^"]*' pyproject.toml)" >> $GITHUB_ENV
+
+      - name: Build tool
+        id: build-tool
+        uses: ./.github/actions/build-sq2cql
+        with:
+          sq2cql-version: ${{ env.SQ2CQL_VERSION }}
+
       - name: Run integration tests
         env:
           ONTOLOGY_SERVER_ADDRESS: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
           SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
           PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
-        run: pytest tests/integration -v --cov --cov-branch --cov-report=xml --project "fdpg-ontology" --ignore=tests/integration/integrity/json
+        run: pytest tests/integration --cov --cov-branch --cov-report=xml --project "fdpg-ontology" --ignore=tests/integration/integrity/json
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5

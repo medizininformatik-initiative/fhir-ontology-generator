@@ -48,8 +48,8 @@ def test_dir() -> str:
     return __test_dir()
 
 
-@pytest.fixture(scope="session")
-def docker_compose_file(pytestconfig) -> str:
+@pytest.fixture(scope="session", autouse=True)
+def copy_and_unpack_project_output(pytestconfig):
     project = Project(name=pytestconfig.getoption("--project"))
 
     tmp_path = os.path.join(__test_dir(), "tmp")
@@ -107,6 +107,9 @@ def docker_compose_file(pytestconfig) -> str:
         os.path.join(tmp_path, "elastic.zip"),
     )
 
+
+@pytest.fixture(scope="session")
+def docker_compose_file() -> str:
     yield os.path.join(__test_dir(), "docker-compose.yml")
     # util.tests.docker.save_docker_logs(__test_dir(), "integration-tests")
 

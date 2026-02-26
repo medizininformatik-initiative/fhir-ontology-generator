@@ -151,9 +151,7 @@ class FHIRSearchMappingGenerator(object):
             self.__logger.debug("[Reason]", exc_info=err)
             return collections.OrderedDict.fromkeys([])
 
-    def _resolve_composite_search_parameter(
-        self, search_parameters: OrderedDict[str, dict]
-    ):
+    def _resolve_composite_search_parameter(self, search_parameters: OrderedDict[str, dict]):
         if len(search_parameters) != 2:
             raise InvalidElementTypeException(
                 "Composite search parameter must have 2 elements"
@@ -342,14 +340,18 @@ class FHIRSearchMappingGenerator(object):
             attribute, profile_snapshot, module_dir_name, "composite"
         )
         first_search_param = next(iter(search_param_components.values()))
-        if first_search_param.get("type") == "quantity":
-            attribute_type = "quantity"
-        elif first_search_param.get("type") == "token":
-            attribute_type = "composite-concept"
-        else:
-            raise ValueError(
-                "Composite search parameters must have a quantity or token as the first element"
-            )
+
+        match first_search_param.get("type"):
+            case "quantity":
+                attribute_type = "quantity"
+            case "token":
+                attribute_type = "concept"
+            case _ as t:
+                comb_sp_name = "$".join(search_param_components.keys())
+                raise ValueError(
+                    f"Composite search parameter must have a quantity or token as the first element but has {t}"
+                    f"[search_param={comb_sp_name}, elem_id={attribute}, profile_url={profile_snapshot.url}]"
+                )
         return attribute_type
 
     def set_value_search_param(
