@@ -1,0 +1,17 @@
+{
+  "name": "Systemtherapie-Medikation",
+  "resource_type": "MedicationStatement",
+  "module": {
+    "code": "mii-cds-Onkologie",
+    "display": "Onkologie"
+  },
+  "context": {
+    "system": "fdpg.mii.cds",
+    "code": "MII_Onkologie_Systemische_Medikation",
+    "display": "MII Onkologie Systemische Medikation",
+    "version": "1.0.0"
+  },
+  "term_code_defining_id": "MedicationStatement.medication[x]:medicationCodeableConcept.coding:atcClassDe",
+  "time_restriction_defining_id": "MedicationStatement.effective[x]"
+
+}

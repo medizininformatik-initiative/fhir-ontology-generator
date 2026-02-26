@@ -88,11 +88,12 @@ services:
       - ./tmp/ontology:/opt/dataportal-backend/ontology
       #- ./secrets:/opt/dataportal-security
       #- ./certs:/opt/dataportal-backend/certs
+      - ./application.yml:/opt/dataportal-backend/config/application.yml
     healthcheck:
-      test: [ "CMD-SHELL", "curl --silent --fail http://localhost:8090/api/v5/actuator/health || exit 1" ]
+      test: [ "CMD-SHELL", "curl --no-progress-meter --fail-with-body http://localhost:8090/api/v5/actuator/health || exit 1" ]
       interval: 10s
       timeout: 10s
-      retries: 30
+      retries: 10
 
   dataportal-postgres:
     image: 'postgres:16-alpine'
@@ -121,6 +122,10 @@ services:
       node.name: es01
       cluster.name: elasticsearch
       xpack.security.enabled: false
+    volumes:
+      - type: volume
+        source: elastic-data
+        target: /usr/share/elasticsearch/data
 
   elastic-search-init:
     depends_on:
@@ -150,6 +155,11 @@ services:
       - "8082:8080"
     volumes:
       - "blaze-data:/app/data"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --no-progress-meter --fail-with-body http://localhost:8080/health || exit 1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
 
 #  flare:
 #    image: ghcr.io/medizininformatik-initiative/flare:2.3.0
@@ -201,3 +211,5 @@ volumes:
     name: integration-test_dataportal-auth-db
   blaze-data:
     name: integration-test_blaze-data
+  elastic-data:
+    name: integration-test_elastic-data
