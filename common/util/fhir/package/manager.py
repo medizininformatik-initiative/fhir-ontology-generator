@@ -206,7 +206,7 @@ class FhirPackageManager(abc.ABC):
                 for _, package in (
                     sorted(entry.items(), key=lambda p: p[0], reverse=True)[:1]
                     if latest_only
-                    else entry.items()
+                    else sorted(entry.items(), key=lambda p: p[0], reverse=True)
                 )
             ],
         )

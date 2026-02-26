@@ -168,7 +168,7 @@ class FieldsConfig(BaseModel):
         pm: FhirPackageManager,
     ) -> Optional[bool]:
         try:
-            profiles = [profile, *pm.dependencies_of(profile)]
+            profiles = [profile, *pm.dependencies_of(profile, latest_only=False)]
         except Exception as exc:
             self.__logger.warning(
                 f"Failed to resolve profile hierarchy for profile '{profile.url}' => Cannot determine recommendation of element def '{elem_def.id}' via config",
@@ -196,7 +196,7 @@ class FieldsConfig(BaseModel):
         pm: FhirPackageManager,
     ) -> Optional[bool]:
         try:
-            profiles = [profile, *pm.dependencies_of(profile)]
+            profiles = [profile, *pm.dependencies_of(profile, latest_only=False)]
         except Exception as exc:
             self.__logger.warning(
                 f"Failed to resolve profile hierarchy for profile '{profile.url}' => Cannot determine if element represented by element def '{elem_def.id}' is required via config"
@@ -224,7 +224,7 @@ class FieldsConfig(BaseModel):
         pm: FhirPackageManager,
     ) -> Optional[bool]:
         try:
-            profiles = [profile, *pm.dependencies_of(profile)]
+            profiles = [profile, *pm.dependencies_of(profile, latest_only=False)]
         except Exception as exc:
             self.__logger.warning(
                 f"Failed to resolve profile hierarchy for profile '{profile.url}' => Cannot determine inclusion of element def '{elem_def.id}' via config"

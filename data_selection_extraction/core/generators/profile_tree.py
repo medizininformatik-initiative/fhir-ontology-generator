@@ -16,7 +16,11 @@ from cohort_selection_ontology.model.ui_data import (
     TranslationDisplayElement,
     Translation,
 )
-from common.model.fhir.structure_definition import IndexedStructureDefinition
+from common.model.fhir.pydantic import construct_model
+from common.model.fhir.structure_definition import (
+    IndexedStructureDefinition,
+    idx_struct_def_discriminator,
+)
 from common.model.fhir.structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.enums import FhirPrimitiveDataType, FhirComplexDataType
 from common.util.log.functions import get_class_logger
@@ -409,9 +413,7 @@ class ProfileTreeGenerator:
                 try:
                     with open(file_path, mode="r", encoding="utf-8") as f:
                         try:
-                            content = StructureDefinitionSnapshot.model_validate_json(
-                                f.read()
-                            )
+                            content = construct_model(idx_struct_def_discriminator, **json.load(f))
                         except pydantic.ValidationError as e:
                             error_list = ""
                             for err in e.errors():
