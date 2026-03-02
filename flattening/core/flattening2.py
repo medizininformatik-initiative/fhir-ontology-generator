@@ -613,14 +613,54 @@ def flatten_extension(
             if ext_profile := manager.find(content_pattern):
                 ext_profile: StructureDefinitionSnapshot
                 _logger.debug(f"Found profile ->  following reference: {ext_profile_url}")
-                ext_lookup = flatten_polymorphic(
-                    "Extension.value[x]", ext_profile, **kwargs
-                )
-                lookup.update(
-                    recontextualize_extension_lookup(ext_lookup, element_id, profile)
-                )
-                flat_ext_el.children = [f"{element_id}.value[x]"]
 
+                value_ext_el = ext_profile.get_element_by_id("Extension.value[x]")
+                if value_ext_el and int(value_ext_el.max) > 0:
+                    ext_lookup = flatten_polymorphic(
+                        "Extension.value[x]", ext_profile, **kwargs
+                    )
+                    lookup.update(
+                        recontextualize_extension_lookup(ext_lookup, element_id, profile)
+                    )
+                    flat_ext_el.children = [f"{element_id}.value[x]"]
+
+                else:
+                    # case when extension does contain extensions itself => no value[x] allowed -> max=0
+                    for child_ext in get_direct_children_ids("Extension", ext_profile):
+                        child = ext_profile.get_element_by_id(child_ext)
+                        if get_element_type(child) == "Extension":
+                            flat_ext_el.children.append(child_ext)
+                            ext_lookup = flatten_element(
+                                child_ext, ext_profile, **kwargs
+                            )
+                            lookup.update(
+                                recontextualize_extension_lookup(
+                                    ext_lookup, element_id, profile
+                                )
+                            )
+
+            lookup.update(
+                recontextualize_extension_lookup(
+                    {element_id: flat_ext_el}, element_id, profile
+                )
+            )
+
+        elif (children := get_direct_children_ids(element.id, profile)) and len(children)>0:
+            # extension defined in-Place || this case is not supported, ignoring
+            ext_profile_url = profile.get_element_by_id(element.id + ".url").fixedUri
+            flat_ext_el = FlatteningLookupElement(
+                parent=check_if_root(get_parent_element_id(element), profile),
+                view_definition={
+                    "forEachOrNull": f"extension.where(url = '{ext_profile_url}')",
+                    "select": [],
+                },
+            )
+            lookup.update(
+                flatten_polymorphic(
+                    f"{element.id}.value[x]", profile, **kwargs
+                )
+            )
+            flat_ext_el.children = [f"{element.id}.value[x]"]
             lookup.update({element_id: flat_ext_el})
 
         return lookup
@@ -913,7 +953,7 @@ def flatten_element(
             flat_lookup_els.update(res)
 
     else:
-        _logger.error(f"No flattener defined for {element_type} for {element_id}")
+        _logger.warning(f"No flattener defined for {element_type} for {element_id}")
 
     return flat_lookup_els
 
@@ -967,21 +1007,21 @@ def generate_flattening_lookup(
 
 
         # ONLY FOR TESTING
-        if not profile.id in [
-            # "mii-pr-medikation-medication-administration",
-            # "mii-pr-diagnose-condition",
-            # "mii-pr-person-patient",
-            # "mii-pr-person-patient-pseudonymisiert",
-            # "mii-pr-prozedur-procedure",
-            # "mii-pr-medikation-medication-statement",
-            # "mii-pr-medikation-medication-request",
-            # "mii-pr-labor-laboruntersuchung",
-            "mii-pr-medikation-medication",
-            # "Specimen",
-            # "sd-mii-icu-ect-dauer-haemodialysesitzung",
-            # "mii-pr-fall-kontakt-gesundheitseinrichtung"
-        ]:
-            continue
+        # if not profile.id in [
+        #     "mii-pr-medikation-medication-administration",
+        #     "mii-pr-diagnose-condition",
+        #     # "mii-pr-person-patient",
+        #     "mii-pr-person-patient-pseudonymisiert",
+        #     "mii-pr-prozedur-procedure",
+        #     "mii-pr-medikation-medication-statement",
+        #     "mii-pr-medikation-medication-request",
+        #     "mii-pr-labor-laboruntersuchung",
+        #     "mii-pr-medikation-medication",
+        #     "Specimen",
+        #     "sd-mii-icu-ect-dauer-haemodialysesitzung",
+        #     "mii-pr-fall-kontakt-gesundheitseinrichtung"
+        # ]:
+        #     continue
 
         _logger.info(f"Generating flattening lookup for {profile.name}")
 
