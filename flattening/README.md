@@ -14,6 +14,7 @@ python scripts/generate_lookup.py -p fdpg-ontology
    - Supports extensions defined in separate profile
    - Supports extensions with extensions
 4. Polymorphic elements: yes, but only the types mentioned above
+5. Excluded by design: ``id``, `modifierExtension`
 
 ## How to work with a lookup file
 The lookup file contains instructions on how each element has to be flattened 
