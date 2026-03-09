@@ -9,56 +9,84 @@ python scripts/generate_lookup.py -p fdpg-ontology
 1. Primitives:
    - ``boolean``, ``string``, ``code``, ``decimal``, ``integer``, ``integer64``, ``unsignedInt``, ``positiveInt``, ``uri``, ``canonical``, ``url``, ``markdown``, ``xhtml``, ``date``, ``dateTime``, ``instant``, ``time`` 
 2. Complex:
-   - ``Coding``, ``CodeableConcept``, `Period`, `Ratio`, `Range`, `Quantity`, ``References``, ``BackboneElements``
+   - ``Coding``, ``CodeableConcept``, `Period`, `Ratio`, `Range`, `Quantity`, ``Reference``, ``BackboneElement``
 3. Extensions: yes
    - Supports extensions defined in separate profile
-   - Supports extensions with extensions
+   - Supports extensions defined within other extension definitions
+   - Supports extensions defined within the resource itself
 4. Polymorphic elements: yes, but only the types mentioned above
-5. Excluded by design: ``id``, `modifierExtension`
+5. Excluded by design, these being irrelevant in instance data: ``id``, `modifierExtension`
 
 ## How to work with a lookup file
 The lookup file contains instructions on how each element has to be flattened 
-and can be used to generate viewDefinition files for a selection of elements of a Profile.
+and can be used to generate ``ViewDefinition`` files representing a selection of elements within a profile.
 
-When generating a ViewDefinition from a lookup file, the following rules need to be adhered to:
+Assume you have a [CRTDL](https://github.com/medizininformatik-initiative/clinical-resource-transfer-definition-language) 
+file with ``attributeGroups`` defined in the ``dataExtraction``. Find your profile's lookup
+by searching for a lookup with ``lookup.url`` matching your ``groupReference``. Then generate the profile's ``ViewDefinition``
+by following these rules:
 1. The element of interest must be inserted into the ``parent.viewDefinition.select`` array of its parent
-   - any siblings of the element of interest do not need to be inserted
+   - any siblings of the element of interest must not be inserted
    - if the ``parent`` attribute is not set, the element needs to be inserted into 
-   the select array on the first level in the viewDefinition
+   the select array on the first level in the ``ViewDefinition``
 2. If the element of interest has a ``.children`` array defined, all ids contained in said array must be
-   flattened as well
+   processed by these rules as well.
 
 _Recommended_: _Include elements `subject.reference` (only if part of [patient compartment](https://hl7.org/fhir/R4/compartmentdefinition-patient.html)) 
 and `id` by default to later be able to identify patients in your data._
 
-Tools that implement generation of viewDefintions from lookup files:
+Tools that implement generation of ``ViewDefinition`` from lookup files:
 - [Aether](https://medizininformatik-initiative.github.io/aether/)
 
 ## Lookup file format:
-Json-encoded array of lookups of each profile.
+Json-encoded array of lookups for each profile.
 A lookup for a profile should look like this:
 - ``url``: url of the profile which this lookup corresponds to. 
-  Used to match lookups, instance data and feature selection
+  Used to match lookups, instance data and feature selection in the ``ViewDefinition`` building step.
 - ``resourceType``: the resource type of the Profile. (``Medication``, ``Observation``, etc.)
 - ``elements``: a dictionary holding the flattening instructions indexed by the element ids contained in the Profile
   - Each lookup element should contain at minimum the ``.viewDefinition`` attribute:
     - ``.parent``: id of parent element. Used for the insertion as described [here](#how-to-work-with-a-lookup-file)
       - if missing => parent is implicitly pointing to root should be included in root select array
-    - ``.viewDefinition`` viewDefinition snippet to use for this lookup element.
+    - ``.viewDefinition`` `ViewDefinition` snippet to use for this lookup element.
       - For possible content, see how the different types are handled [here](#implementation-details)
     - ``.children``: array of children ids. Also used for insertion as described [here](#how-to-work-with-a-lookup-file)
       - if missing, no supported children could be found 
 
+``JSON`` schema for the lookup file can be found here: [LookupFileSchema.json](schema/LookupFileSchema.json)
+
 ## Implementation details:
 As the lookup file contains flattening instructions for all supported elements, 
-each possible element type needs a way to be flattened. For this it does make 
-sense to think about where within or beneath each type the actual values are stored, 
-when looking at the instance data.
-### 1. Primitive types
-Since primitive types in most cases are the elements which actually contain the values,
-these can be flattened directly. Thus, the viewDefinition snippet contains the actual column and path.
+each possible element type needs a way to be flattened. 
+For this reason the following section will describe the process for each data type in detail
 
-For example: For this pritive-typed element ``Condition.recordedDate`` the following 
+All examples use the [Condition](https://simplifier.net/mii-basismodul-diagnose-2024/mii_pr_diagnose_condition) 
+and [Procedure](https://simplifier.net/mii-basismodul-prozedur-2024/mii_pr_prozedur_procedure) 
+resources form MII project on Simplifier  
+
+### Handling cardinality (rows) and slices (columns)
+
+Cardinality handling, when flattening, can be done through the use of ``forEach`` keyword from the `ViewDefinition` syntax,
+which creates a new row (Explodes downwards) for each occurrence / instance of the element, specified by a given path.
+
+We use the ``forEachOrNull`` version of `forEach` because it allows rows with not all cells filled, 
+the importance of which will become clear [later](#2-generic-complex).
+For ease of implementation and resilience we use ``forEachOrNull`` on every element of the `ViewDefinition`, handling the
+cardinality implicitly.
+- Elements with ``"max" = 0`` and thus, no instances, will be ignored
+- Elements with ``"max" = 1`` will be flattened to one row when using `forEachOrNull`
+- Elements with `"max" = *` and with multiple instances will be flattened to one row per instance
+
+Slices are flattened sideways, meaning each slice gets one or more individual columns. The main use of this can be seen
+when flattening [CodeableConcepts and Codings](#3-complex---codings-and-codeableconcepts)
+
+
+
+### 1. Primitive types
+Since primitive data types hold (mostly) a single value, elements supporting only such types can be flattened directly.
+Thus, the `ViewDefinition` snippet contains the actual column and path.
+
+For example: For this primitively typed element ``Condition.recordedDate`` the following 
 lookup elements would be generated:
 ```json
   "Condition.recordedDate": {
@@ -72,11 +100,12 @@ lookup elements would be generated:
       ]
     }
   },
-``` 
-_Note: No ``.parent`` is defined because the parent is the root of the resource. 
-No `.children` array is defined because primitive elements do not have children._
+```
+> [!NOTE]
+> No ``.parent`` is defined because the parent is the root of the resource. 
+> No `.children` array is defined because this primitively typed element does not have any children. 
 
-A viewDefinition containing only this element would look like this
+A `ViewDefinition` containing only this element would look like this
 ```json
 {
   "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
@@ -119,22 +148,35 @@ Below is a table with example output:
 
 Complex elements are structures, which do not hold any information themselves, but rather rely on 
 their primitive child elements which hold the actual values. Thus, complex elements can't be flattened directly.
-This element's children are enumerated in the ``.children`` attribute. 
+Children of such elements are listed in the ``.children`` attribute. 
 
-- _Generic_ complex elements which can all be flattened the same. Examples: ``Ratio``, ``Period``, ``Quantity``, etc.
-- _Non-Generic_ complex element types need to be flattened in a for each specifically defined way. 
-    This applies to the following types: ``Coding``, `CodeableConcept`, `Extension`, `Reference`, `Polymorphic`
+Based on limitations and different goals for the final result, we place complex elements in two categories.
+- **Generic** complex elements which can all be flattened the same way. These are elements which only consist
+    of child elements and which can be handled by flattening their children. 
+    Most complex elements fall in this category.
+    Examples: ``Ratio``, ``Period``, ``Quantity``, etc.
+- **Non-Generic** complex element types/structures that each need a special handling. For example, we wanted the 
+    slices of a ``Coding`` element to be expanded and ``Extension``-urls to be followed, which cant be handled 
+    by the generic approach.
+    Although `Polymorphic` is not a data type, being in need for special handling, it does also fit into this list.
+    This category applies to the following types: ``Coding``, `CodeableConcept`, `Extension`, `Polymorphic`
 
-The viewDefinition also changed, now containing ``forEachOrNull`` and `select`:
-1. ``forEachOrNull`` this needs to be used for every element to deal with cardinality implicitly
-2. ``select``: corresponds to the select in the viewDefinition into which the children viewDefinition snippets are later
+
+
+
+
+To deal with complex data types the ``.viewDefinition`` entry now additionally contains the
+``forEachOrNull`` and ``select`` entries.
+1. ``forEachOrNull`` this needs to be used for every element to [deal with cardinality implicitly](#handling-cardinality-rows-and-slices-columns)
+2. ``select``: corresponds to the [select](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/StructureDefinition-ViewDefinition-definitions.html#diff_ViewDefinition.select)
+    in the `ViewDefinition` into which the children `ViewDefinition` snippets are later
     inserted
 
-Some complex types do need specific child elements without which flattening is meaningless. For example, 
+Some complex types need specific child elements without which flattening is meaningless. For example, 
 the type ``Period`` in the example below needs ``.start``, ``.end``. These elements are included in the output lookup,
 even if they are not explicitly defined in the profile.
 
-Example flattening a generic complex type: 
+Example flattening of a generic complex type: 
 - For an element of type ``Period`` which is composed of two ``datetime`` (``.start``, ``.end``) elements,
 the lookup is: 
 
@@ -178,16 +220,15 @@ the lookup is:
   }
 }
 ````
+> [!NOTE]
+> 1. in the example above the actual ``Period`` element 
+> is one of the types of the polymorphic element: ``Condition.onset[x]``. 
+> Handling of polymorphic elements will be described later.
+> 2. in the example lookup the actual ``Period`` element has its children enumerated 
+> in the ``.children`` attribute
 
-_Note 1: in the example above the actual ``Period`` element 
-is one of the types of the polymorphic element: ``Condition.onset[x]``. 
-Handling of polymorphic elements will be described later._
 
-_Note 2: in the example lookup the actual ``Period`` element has its children enumerated 
-in the ``.children`` attribute_
-
-
-This lookup and with only ``Condition.onset[x]:onsetPeriod`` selected, should result in this viewDefinition:
+This lookup and with only ``Condition.onset[x]:onsetPeriod`` selected, should result in this `ViewDefinition`:
 ````json
 {
   "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
@@ -246,7 +287,7 @@ For each slice and when no slice is defined these columns are created: (`el_code
 
 Example flattening for CodeableConcepts and Codings:
 - Each CodeableConcept has a corresponding ``.coding`` element, even if not explicitly defined
-- Each Coding(defined or not) will be split up by slices if any present.
+- Each Coding (defined or not) will be split up by slices if any present.
 
 Example lookup for ``Condition.code`` CodeableConcept
 ```json
@@ -336,12 +377,11 @@ Example lookup for ``Condition.code`` CodeableConcept
   },
   
 ```
+> [!NOTE]
+> 1. ``Extensions`` are not considered in this example, but will be discussed [later](#5-extensions).
+> 2. Only ``icd10-gm`` and ``alpha-id`` are considered in this example for simplicity
 
-_Note 1: ``Extensions`` are not considered in this example, but will be discussed [later](#5-extensions)._
-
-_Note 2: Only ``icd10-gm`` and ``alpha-id`` are considered in this example for simplicity_
-
-Resulting viewDefinition:
+Resulting `ViewDefinition`:
 ````json
 {
   "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
@@ -435,16 +475,17 @@ Producing the following example output:
 | cond-ex11 | Patient/pat-ex11 | http://fhir.de/CodeSystem/bfarm/icd-10-gm | E78.5                             | http://fhir.de/CodeSystem/bfarm/alpha-id | A111111                           |
 | cond-ex11 | Patient/pat-ex11 | http://fhir.de/CodeSystem/bfarm/icd-10-gm | I10                               | http://fhir.de/CodeSystem/bfarm/alpha-id | B222222                           |
 | cond-ex11 | Patient/pat-ex11 | http://fhir.de/CodeSystem/bfarm/icd-10-gm | E78.5                             | http://fhir.de/CodeSystem/bfarm/alpha-id | B222222                           |
-Couple notes:
-- Note that ``Condition`` with id ``cond-ex1`` appears two times. This is because of the usage of ``forEachOrNull``, 
-    which creates a row for each entry it finds for a given column. 
-    Thus, for the two codes found for ``Condition_code_codingIcd10gm_code`` two rows will be produced, even if this 
-    might be an unrealistic example.
-- Note that for ``Conditions`` with ids 8 and 10 the columns for both codesystem are populated. This means that the
-    testdata contained codes across multiple slices. In case of ``Condition.code`` these codes should have the same 
-    meaning.
-- Note that for the ``Condition`` with id `cond-ex11` four columns were created and that the codes repeat.
-    This is because of the ``forEachOrNull`, which creates all possible combinations with the values nested below itself
+
+> [!NOTE]
+> 1. Note that ``Condition`` with id ``cond-ex1`` appears two times. This is because of the usage of ``forEachOrNull``, 
+> which creates a row for each entry it finds for a given column. 
+> Thus, for the two codes found for ``Condition_code_codingIcd10gm_code`` two rows will be produced, even if this 
+> might be an unrealistic example. 
+> 2. Note that for ``Conditions`` with ids 8 and 10 the columns for both codesystem are populated. This means that the
+> testdata contained codes across multiple slices. In case of ``Condition.code`` these codes should have the same 
+> meaning.
+> 3. Note that for the ``Condition`` with id `cond-ex11` four columns were created and that the codes repeat.
+> This is because of the ``forEachOrNull`, which creates all possible combinations with the values nested below itself
 
 
 ### 4. Polymorphic
@@ -522,7 +563,7 @@ by its possible types.
 }
 ````
 
-A generated viewDefinition could look like this:
+A generated `ViewDefinition` could look like this:
 ````json
 {
   "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
@@ -582,7 +623,8 @@ A generated viewDefinition could look like this:
   ]
 }
 ````
-_Note: Each type is distinguished by the ``.ofType()`` function. Example: ``onset.ofType(Period)``_
+> [!NOTE]
+> Each type is distinguished by the ``.ofType()`` function. Example: ``onset.ofType(Period)``
 
 Possible output table with example data:
 
@@ -604,10 +646,10 @@ Possible output table with example data:
 | cond-ex14  | Patient/pat-ex14   | 2023-03-15T07:45:00+01:00       |                                     |                                   |
 | cond-ex15  | Patient/pat-ex15   | 2024-02-10T18:00:00+01:00       |                                     |                                   |
 
-_Note 1: Extensions are ignored because they will be discussed [later](#5-extensions)_
-
-_Note 2: ``Condition.onset[x]:onsetAge`` is missing, even though is listed as supported types in the structure definition
-This is because, as of now, the type ``Age`` is not supported in the lookup generator_
+> [!NOTE]
+> 1. Extensions are ignored because they will be discussed [later](#5-extensions)
+> 2. ``Condition.onset[x]:onsetAge`` is missing, even though is listed as supported types in the structure definition
+This is because, as of now, the type ``Age`` is not supported in the lookup generator
 
 ### 5. Extensions
 Extensions can be defined on any element. Because of that we can not possibly predict all extensions 
@@ -670,7 +712,7 @@ Example of lookup with simple extension `Procedure.extension:Dokumentationsdatum
 ````
 
 
-Generated viewDefinition:
+Generated `ViewDefinition`:
 ```json
 {
   "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",

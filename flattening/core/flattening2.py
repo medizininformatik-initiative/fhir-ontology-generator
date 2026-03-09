@@ -650,7 +650,7 @@ def flatten_extension(
             )
 
         elif (children := get_direct_children_ids(element.id, profile)) and len(children)>0:
-            # extension defined in-Place || this case is not supported, ignoring
+            # extension defined in-Place
             ext_profile_url = profile.get_element_by_id(element.id + ".url").fixedUri
             flat_ext_el = FlatteningLookupElement(
                 parent=check_if_root(get_parent_element_id(element), profile),
