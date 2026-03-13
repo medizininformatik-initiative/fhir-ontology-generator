@@ -8,7 +8,8 @@
     "type": "object",
     "properties": {
       "entries": {"type": "array", "items": { "$ref": "#/definitions/entry" } },
-      "system": {"type": "string"}
+      "system": {"type": "string"},
+      "version": {"type": "string"}
     },
     "required": ["entries", "system"],
     "additionalProperties": false
