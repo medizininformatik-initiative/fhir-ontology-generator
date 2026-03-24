@@ -1,8 +1,8 @@
 services:
   fhir-server:
-    image: "samply/blaze:1.7@sha256:f2e87759605587eaf9cbbf86e229938019a732bb908d4e59f107a2744e73825f"
+    image: "samply/blaze:1.10.1@sha256:dcc951be40714a4eee5f78db08b90a5a9ea9d4a172f716bdb419f5c1a2feebc6"
     environment:
-      BASE_URL: "http://blaze:8080/fhir"
+      BASE_URL: "http://localhost:8082"
       JAVA_TOOL_OPTIONS: "-Xmx1g"
       LOG_LEVEL: "debug"
       ENFORCE_REFERENTIAL_INTEGRITY: "false"

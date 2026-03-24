@@ -183,12 +183,12 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Upload Docker logs
+      - name: Upload logs
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ failure() }}
         with:
-          name: docker_logs_integration_testing
-          path: tests/integration/backend/docker_logs
+          name: integration_test_logs
+          path: logs
 
   release:
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}
