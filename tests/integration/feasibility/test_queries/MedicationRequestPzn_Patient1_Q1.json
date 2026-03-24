@@ -1,0 +1,28 @@
+{
+  "version": "http://to_be_decided.com/draft-1/schema#",
+  "display": "Ausgewählte Merkmale",
+  "inclusionCriteria": [
+    [
+      {
+        "termCodes": [
+          {
+            "system": "http://fhir.de/CodeSystem/ifa/pzn",
+            "code": "15205222",
+            "display": "XYDALBA",
+            "version": "2026"
+          }
+        ],
+        "context": {
+          "code": "Medikamentenanordnung",
+          "display": "Anordnung von Medikamenten",
+          "system": "fdpg.mii.cds",
+          "version": "1.0.0"
+        },
+        "timeRestriction": {
+          "afterDate": "2024-02-16",
+          "beforeDate": "2024-02-16"
+        }
+      }
+    ]
+  ]
+}

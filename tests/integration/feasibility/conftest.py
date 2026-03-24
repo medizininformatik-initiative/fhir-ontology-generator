@@ -220,6 +220,9 @@ def _prepare_measure_evaluation(
     mapping_tree_file: Path,
 ) -> str:
     cql_query = _translate_to_cql(sq_file_path, cql_mapping_file, mapping_tree_file)
+    _logger.debug(
+        f"Translation result of CCDL query file '{sq_file_path}' to CQL:\n{cql_query}"
+    )
 
     library = _create_library(cql_query)
     measure = _create_measure(library)
