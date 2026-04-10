@@ -119,3 +119,18 @@ def join_fhirpath(*paths: str | None) -> str:
         filter(lambda x: x is not None and len(x) > 0 and x != "$this", paths)
     )
     return string if len(string) > 0 else "$this"
+
+
+def get_fhirpath_expression_root_node(
+    tree: fhirpathParser.ExpressionContext,
+) -> fhirpathParser.ExpressionContext:
+    """
+    Navigate down the left side of the parse tree to arrive at and return the expression node representing the root node
+    of the FHIRPath expression
+
+    :param tree: Parse tree to find the FHIRPath root node of
+    :return: FHIRPath root node
+    """
+    while isinstance(tree, fhirpathParser.InvocationExpressionContext):
+        tree = tree.getChild(0)
+    return tree

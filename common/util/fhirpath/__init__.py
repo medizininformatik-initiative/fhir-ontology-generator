@@ -18,6 +18,19 @@ _parser = FhirPathParser(CommonTokenStream(_lexer))
 RULE_NAMES = _parser.ruleNames
 
 
+from enum import StrEnum
+
+
+class ExternalConstant(StrEnum):
+    """
+    Special FHIRPath external constants that are already defined by the specification
+    """
+    CONTEXT = "%context"
+    RESOURCE = "%resource"
+    ROOT_RESOURCE = "%rootResource"
+    PROFILE = "%profile"
+
+
 def parser_for(fhir_path_expr: str) -> FhirPathParser:
     """
     Returns a parser object for the given FHIRPath expression string

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import copy
 from importlib.resources import open_text
 import json
 import os
@@ -29,11 +28,9 @@ from cohort_selection_ontology.core.generators.ui_tree import UITreeGenerator
 from cohort_selection_ontology.util.database import DataBaseWriter
 from common.util.fhir.terminal import generate_snapshots
 from common.util.codec.json import write_object_as_json
-from cohort_selection_ontology.model.mapping import (
-    CQLMapping,
-    FhirMapping,
-    MapEntryList,
-)
+from cohort_selection_ontology.model.mapping.cql import CQLMapping
+from cohort_selection_ontology.model.mapping.fhirsearch import FhirMapping
+from cohort_selection_ontology.model.mapping import MapEntryList
 from cohort_selection_ontology.model.ui_profile import UIProfile
 from cohort_selection_ontology.model.ui_data import TermCode
 from common.constants.docker import POSTGRES_IMAGE
@@ -202,10 +199,9 @@ def denormalize_mapping_to_old_format(
     result = MapEntryList()
     for (context, term_code), mapping_name in term_code_to_mapping_name.items():
         try:
-            mapping = copy.copy(mapping_name_to_mapping[mapping_name])
-            mapping.key = term_code
-            mapping.context = context
-            result.entries.append(mapping)
+            mapping = mapping_name_to_mapping[mapping_name]
+            denormalized_mapping = mapping.denormalize(context=context, key=term_code)
+            result.entries.append(denormalized_mapping)
         except KeyError:
             logger.warning(f"No mapping found for term code {term_code.code}")
     return result

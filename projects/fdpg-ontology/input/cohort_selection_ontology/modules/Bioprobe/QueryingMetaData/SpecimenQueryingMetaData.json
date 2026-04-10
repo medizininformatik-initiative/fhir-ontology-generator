@@ -11,16 +11,16 @@
     "display": "Bioprobe",
     "version": "1.0.0"
   },
-  "term_code_defining_id": "Specimen.type.coding:sct",
+  "term_code_defining_id": "Specimen.type.coding.slice(%resource, 'sct')",
   "attribute_defining_id_type_map": {
-    "((Specimen.extension:festgestellteDiagnose).value[x]).code.coding:icd10-gm": {
+    "Specimen.extension.slice(%profile, 'festgestellteDiagnose').value.ofType(Reference).resolve().code.coding.slice(%resource, 'icd10-gm')": {
       "type": "reference",
       "optional": true
     },
-    "Specimen.collection.bodySite.coding:icd-o-3": {
+    "Specimen.collection.bodySite.coding.slice(%resource, 'icd-o-3')": {
       "type": "concept",
       "optional": true
     }
   },
-  "time_restriction_defining_id": "Specimen.collection.collected[x]"
+  "time_restriction_defining_id": "Specimen.collection.collected"
 }

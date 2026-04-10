@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from functools import reduce
 from importlib.resources import files
-from typing import Tuple, List, Dict, Set
+from typing import Tuple, List, Dict
 
 from fhir.resources.R4B.elementdefinition import ElementDefinition
 from lxml import etree
@@ -16,7 +16,7 @@ from cohort_selection_ontology.core.resolvers.querying_metadata import (
 from cohort_selection_ontology.core.terminology.client import (
     CohortSelectionTerminologyClient,
 )
-from cohort_selection_ontology.model.mapping import (
+from cohort_selection_ontology.model.mapping.cql import (
     CQLMapping,
     CQLAttributeSearchParameter,
     CQLTimeRestrictionParameter,
@@ -45,7 +45,6 @@ from common.util.structure_definition.functions import (
     translate_element_to_fhir_path_expression,
     generate_attribute_key,
     get_term_code_by_id,
-    is_element_in_snapshot,
     get_fixed_term_codes,
     select_element_compatible_with_cql_operations,
 )
@@ -203,84 +202,35 @@ class CQLMappingGenerator(object):
         :param module_dir_name: Name of the module where the QueryingMetadata file and profiles snapshot are located
         :return: CQL mapping
         """
-        modules_dir = self.__project.input.cso.mkdirs("modules")
-        cql_mapping = CQLMapping(querying_meta_data.name)
-        cql_mapping.resourceType = querying_meta_data.resource_type
+        key_attr = None
         if tc_defining_id := querying_meta_data.term_code_defining_id:
-            # TODO: Temporary fix by filtering out CDS Medication querying metadata since they receive special
-            #       treatment in sq2cql
-            if (
-                not self.is_primary_path(
-                    querying_meta_data.resource_type,
-                    self.remove_fhir_resource_type(tc_defining_id),
-                )
-                and not querying_meta_data.module.code == "mii-cds-medikation"
+            if not self.is_primary_path(
+                querying_meta_data.resource_type,
+                self.remove_fhir_resource_type(tc_defining_id),
             ):
-                if is_element_in_snapshot(profile_snapshot, tc_defining_id):
-                    element = profile_snapshot.get_element_by_id(tc_defining_id)
-                else:
-                    element = get_element_defining_elements(
-                        profile_snapshot, tc_defining_id, module_dir_name, modules_dir
-                    )[-1]
-                element, types = select_element_compatible_with_cql_operations(
-                    element, profile_snapshot
-                )
-                element_id = element.id
-                if not types:
-                    raise KeyError(
-                        "ElementDefinition.type cannot be empty as at least one type is required for CQL "
-                        f"translation [profile='{profile_snapshot.name}, "
-                        f"element_id='{element_id}']"
-                    )
-                types = self.__allowed_defining_code_fhir_types.intersection(types)
-                if len(types) == 0:
-                    raise UnsupportedTypingException(
-                        f"Supported type range of element '{element_id}' has no "
-                        f"overlap with the expected type range of a time restricting "
-                        f"element in the CQL mapping [present={types}, "
-                        f"allowed={self.__allowed_defining_code_fhir_types}]"
-                    )
-                term_code_fhir_path = (
-                    self.translate_term_element_id_to_fhir_path_expression(
-                        element_id, profile_snapshot, module_dir_name
-                    )
-                )
-                card = CQLMappingGenerator.__aggregate_cardinality_using_element(
-                    element, profile_snapshot
-                )
-                cql_mapping.termCode = CQLTypeParameter(
-                    path=term_code_fhir_path, types=types, cardinality=card
+                key_attr = self.get_attribute_search_param(
+                    tc_defining_id, None, profile_snapshot, module_dir_name
                 )
 
         if val_defining_id := querying_meta_data.value_defining_id:
-            element = profile_snapshot.get_element_by_id(val_defining_id)
-            element, types = select_element_compatible_with_cql_operations(
-                element, profile_snapshot
+            key_attr = self.get_attribute_search_param(
+                val_defining_id, None, profile_snapshot, module_dir_name
             )
-            element_id = element.id
-            if not types:
-                raise KeyError(
-                    "ElementDefinition.type cannot be empty as at least one type is required for CQL "
-                    f"translation [profile='{profile_snapshot.name}, "
-                    f"element_id='{element_id}']"
+
+        cql_mapping = CQLMapping(
+            name=querying_meta_data.name,
+            resource_type=querying_meta_data.resource_type,
+            key_attribute=(
+                CQLTypeParameter(
+                    path=key_attr.path,
+                    types=key_attr.types,
+                    cardinality=key_attr.cardinality,
+                    reference_target_type=key_attr.reference_target_type,
                 )
-            types = self.__allowed_defining_value_fhir_types.intersection(types)
-            if len(types) == 0:
-                raise UnsupportedTypingException(
-                    f"Supported type range of element '{element_id}' has no "
-                    f"overlap with the expected type range of a value element in the CQL "
-                    f"mapping [present={types}, "
-                    f"allowed={self.__allowed_defining_value_fhir_types}]"
-                )
-            value_fhir_path = self.translate_element_id_to_fhir_path_expressions(
-                element_id, profile_snapshot, module_dir_name
-            )
-            card = CQLMappingGenerator.__aggregate_cardinality_using_element(
-                element, profile_snapshot
-            )
-            cql_mapping.value = CQLTypeParameter(
-                path=value_fhir_path, types=types, cardinality=card
-            )
+                if key_attr
+                else None
+            ),
+        )
 
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
             element = profile_snapshot.get_element_by_id(time_defining_id)
@@ -307,21 +257,20 @@ class CQLMappingGenerator(object):
                     element_id, profile_snapshot, module_dir_name
                 )
             )
-
             card = CQLMappingGenerator.__aggregate_cardinality_using_element(
                 element, profile_snapshot
             )
-            cql_mapping.timeRestriction = CQLTimeRestrictionParameter(
-                types=types, cardinality=card, path=FHIRPathlike(fhir_path)
+            cql_mapping.time_restriction = CQLTimeRestrictionParameter(
+                types=list(types), cardinality=card, path=fhir_path
             )
+
         for (
             attr_defining_id,
             attr_attributes,
         ) in querying_meta_data.attribute_defining_id_type_map.items():
             attr_type = attr_attributes.type
-            self.set_attribute_search_param(
+            self.get_attribute_search_param(
                 attr_defining_id,
-                cql_mapping,
                 attr_type,
                 profile_snapshot,
                 module_dir_name,
@@ -329,14 +278,13 @@ class CQLMappingGenerator(object):
 
         return cql_mapping
 
-    def set_attribute_search_param(
+    def get_attribute_search_param(
         self,
         attr_defining_id: str,
-        cql_mapping,
         attr_type: str,
         profile_snapshot: StructureDefinitionSnapshot,
         module_dir_name: str,
-    ):
+    ) -> CQLAttributeSearchParameter:
         attribute_key = generate_attribute_key(attr_defining_id)
         attribute_type = (
             attr_type
@@ -384,7 +332,7 @@ class CQLMappingGenerator(object):
             attr_defining_id, profile_snapshot, module_dir_name
         )
         attribute = CQLAttributeSearchParameter(
-            types=attribute_types,
+            types=list(attribute_types),
             key=attribute_key,
             path=attribute_fhir_path,
             cardinality=cards,
@@ -394,7 +342,7 @@ class CQLMappingGenerator(object):
                 profile_snapshot, attr_defining_id, module_dir_name
             )
 
-        cql_mapping.add_attribute(attribute)
+        return attribute
 
     def get_composite_code(
         self, attribute, profile_snapshot: StructureDefinitionSnapshot, module_dir_name
@@ -527,13 +475,15 @@ class CQLMappingGenerator(object):
         module_dir_name: str,
     ) -> str:
         modules_dir = self.__project.input.cso.mkdirs("modules")
-        elements = get_element_defining_elements(
+        results = get_element_defining_elements_with_source_snapshots(
             profile_snapshot, element_id, module_dir_name, modules_dir
         )
-        # TODO: Revisit and evaluate if this really the way to go.
-        for element in elements:
+        elements = [r.element for r in results]
+        for result in results:
+            element = result.element
+            source_snapshot = result.profile_snapshot
             element, types = select_element_compatible_with_cql_operations(
-                element, profile_snapshot
+                element, source_snapshot
             )
             for element_type in types:
                 if element_type == "Reference":

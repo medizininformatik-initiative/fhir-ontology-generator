@@ -715,20 +715,20 @@ def try_get_term_code_from_sub_elements(
         module_dir,
     )
     if code_element and system_element:
-        if "patternCode" in code_element and "patternUri" in system_element:
+        if code_element.patternCode and system_element.patternUri:
             return TermCode(
-                system=system_element["patternUri"],
-                code=code_element["patternCode"],
+                system=system_element.patternUri,
+                code=code_element.patternCode,
                 display=client.get_term_code_display(
-                    system_element["patternUri"], code_element["patternCode"]
+                    system_element.patternUri, code_element.patternCode
                 ),
             )
-        if "fixedCode" in code_element and "fixedUri" in system_element:
+        if code_element.fixedCode and system_element.fixedUri:
             return TermCode(
-                system=system_element["fixedUri"],
-                code=code_element["fixedCode"],
+                system=system_element.fixedUri,
+                code=code_element.fixedCode,
                 display=client.get_term_code_display(
-                    system_element["fixedUri"], code_element["fixedCode"]
+                    system_element.fixedUri, code_element.fixedCode
                 ),
             )
 
@@ -1181,7 +1181,7 @@ def get_parent_slice_id(element_id: str) -> str | None:
 
 def select_element_compatible_with_cql_operations(
     element: ElementDefinition, snapshot: StructureDefinitionSnapshot
-) -> (ElementDefinition, Set[str]):
+) -> Tuple[ElementDefinition, Set[str]]:
     """
     Uses the given element to determine - if necessary - an element which is more suitable for generating the CQL
     mapping

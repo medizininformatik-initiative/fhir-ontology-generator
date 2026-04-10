@@ -32,7 +32,7 @@ from requests import Request
 from requests.auth import AuthBase
 
 from common.exceptions import UnsupportedError, NotFoundError
-from common.model.fhir.structure_definition import idx_struct_def_discriminator
+from common.model.fhir.structure_definition import idx_struct_def_discriminator, StructureDefinitionSnapshot
 from common.model.fhir.pydantic import construct_model
 
 from common.util.codec.json import load_json
@@ -128,6 +128,8 @@ class FhirPackageManager(abc.ABC):
 
         if not self.__package_cache_dir.exists():
             raise Exception(f"No FHIR cache directory @ {self.__package_cache_dir}")
+
+        self._update_index()
 
     def __add_to_cache(self, key: Path, res: Resource):
         if len(self.__cache) == self.__cache_size and key not in self.__cache:
@@ -265,6 +267,15 @@ class FhirPackageManager(abc.ABC):
         return next(
             self.iterate_cache(package_pattern, index_pattern, latest_only), None
         )
+
+    def find_snapshot(self, profile: str) -> Optional[StructureDefinitionSnapshot]:
+        """
+        Searches for a structure definition snapshot with the given profile URL
+
+        :param profile: URL of the profile to search for
+        :return: Matching structure defin   expr_str = "Specimen.extension.slice(%pition in snapshot form
+        """
+        return self.find(index_pattern={"url": profile}, latest_only=False)
 
     @cachetools.cached(cache={}, key=_profile_cache_key)
     def dependents_of(

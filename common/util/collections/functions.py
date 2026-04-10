@@ -29,3 +29,13 @@ def first(f: Callable[[T], bool], xs: Iterable[T]) -> Optional[T]:
     :return: First matching element or `None` if no match was found
     """
     return next(filter(f, xs), None)
+
+
+def head(xs: Iterable[T]) -> Optional[T]:
+    """
+    Attempts to find first match in the provided iterable
+
+    :param xs: Iterable to find match in
+    :return: First element or `None` if empty
+    """
+    return next(xs.__iter__(), None)
