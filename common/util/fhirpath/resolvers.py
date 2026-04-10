@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import List, Tuple, TypeVar, Generic, override, Generator, Optional
+from typing import List, Tuple, TypeVar, Generic, Generator, Optional
 
 from fhir.resources.R4B.elementdefinition import ElementDefinition
 
@@ -19,10 +19,6 @@ T = TypeVar("T", bound=fhirpathParser.InvocationContext)
 class Event(ABC, Generic[T]):
     def __init__(self, invocation: T):
         self._trigger = invocation
-        self._process()
-
-    def _process(self):
-        pass
 
     def __repr__(self) -> str:
         member_str = ", ".join([f"{k}={repr(v)}" for k, v in self.__dict__.items() if not k.startswith("_")])
@@ -41,17 +37,17 @@ class Event(ABC, Generic[T]):
 
 
 class MemberInvocation(Event[fhirpathParser.MemberInvocationContext]):
-    @override
-    def _process(self):
+    def __init__(self, invoc: fhirpathParser.MemberInvocationContext):
+        super().__init__(invoc)
         self.identifier: str = self._trigger.identifier().getText()
 
 
 class FunctionInvocation(Event[fhirpathParser.FunctionInvocationContext]):
     def __init__(self, invocation: fhirpathParser.FunctionInvocationContext):
+        super().__init__(invocation)
         self.identifier: str = invocation.function().identifier().getText()
         param_list = invocation.function().paramList()
         self._parameters: List[fhirpathParser.ExpressionContext] = param_list.expression() if param_list else []
-        super().__init__(invocation)
 
     @staticmethod
     def for_invocation(invoc: fhirpathParser.FunctionInvocationContext):
@@ -67,8 +63,8 @@ class FunctionInvocation(Event[fhirpathParser.FunctionInvocationContext]):
 
 
 class SliceFunctionInvocation(FunctionInvocation):
-    @override
-    def _process(self):
+    def __init__(self, invocation: fhirpathParser.FunctionInvocationContext):
+        super().__init__(invocation)
         self.structure_ref: str = self._parameters[0].term().getText().strip("'")
         self.slice_name: str = self._parameters[1].term().getText().strip("'")
 
@@ -78,8 +74,8 @@ class ResolveFunctionInvocation(FunctionInvocation):
 
 
 class OfTypeFunctionInvocation(FunctionInvocation):
-    @override
-    def _process(self):
+    def __init__(self, invocation: fhirpathParser.FunctionInvocationContext):
+        super().__init__(invocation)
         resource_type = self._parameters[0].term().getText()
         self.type_name: str = validate_fhir_data_type_name_in_version("R4B", resource_type)
 
@@ -116,7 +112,7 @@ def _get_element_def_fuzzy(structure_def: StructureDefinitionSnapshot, element_d
 
 
 # Resolution
-class FhirPathResolver:
+class FHIRPathResolver:
     def __init__(self, package_manager: FhirPackageManager):
         self.__package_manager = package_manager
 
@@ -133,7 +129,8 @@ class FhirPathResolver:
             type_def = elem_def.type[0]
             match type_def.profile:
                 case [_, _, *_]:
-                    raise Exception(f"Slice definition supports more than one profile for type [elem_def='{elem_def.id}', structure_def='{structure_def.url}']")
+                    raise Exception(f"Slice definition supports more than one profile for type "
+                                    f"[elem_def='{elem_def.id}', structure_def='{structure_def.url}']")
                 case [profile_url]:
                     return self.__package_manager.find_snapshot(profile_url), elem_def, type_def.code
         return structure_def, elem_def, elem_def_id
@@ -141,7 +138,8 @@ class FhirPathResolver:
     def __process_resolve_function(self, structure_def: StructureDefinitionSnapshot, elem_def: ElementDefinition) -> StructureDefinitionSnapshot:
         type_def = first(lambda t: t.code == "Reference", elem_def.type)
         if not type_def:
-            raise Exception(f"Target element definition of resolve call does not support data type 'Reference' [elem_def='{elem_def.id}', structure_def='{structure_def.url}']")
+            raise Exception(f"Target element definition of resolve call does not support data type 'Reference' "
+                            f"[elem_def='{elem_def.id}', structure_def='{structure_def.url}']")
         match type_def.targetProfile:
             case [profile_url]:
                 return self.__package_manager.find_snapshot(profile_url)

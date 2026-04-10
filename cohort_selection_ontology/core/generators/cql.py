@@ -32,6 +32,7 @@ from common.model.fhir.structure_definition import (
     CQL_TYPES_TO_VALUE_TYPES,
 )
 from common.typing.fhir import FHIRPathlike
+from common.util.fhirpath.resolvers import FHIRPathResolver
 from common.util.log.functions import get_class_logger
 from common.util.project import Project
 from common.util.structure_definition.functions import (
@@ -74,6 +75,7 @@ class CQLMappingGenerator(object):
         """
         self.__project = project
         self.__client = CohortSelectionTerminologyClient(self.__project)
+        self.__fp_resolver = FHIRPathResolver(project.package_manager)
         self.querying_meta_data_resolver = querying_meta_data_resolver
         self.primary_paths = self.get_primary_paths_per_resource()
         self.generated_mappings = []
@@ -472,16 +474,9 @@ class CQLMappingGenerator(object):
         self,
         element_id: str,
         profile_snapshot: StructureDefinitionSnapshot,
-        module_dir_name: str,
     ) -> str:
-        modules_dir = self.__project.input.cso.mkdirs("modules")
-        results = get_element_defining_elements_with_source_snapshots(
-            profile_snapshot, element_id, module_dir_name, modules_dir
-        )
-        elements = [r.element for r in results]
-        for result in results:
-            element = result.element
-            source_snapshot = result.profile_snapshot
+        chain = self.__fp_resolver.resolve_path(profile_snapshot, element_id)
+        for source_snapshot, element in chain:
             element, types = select_element_compatible_with_cql_operations(
                 element, source_snapshot
             )
@@ -490,34 +485,29 @@ class CQLMappingGenerator(object):
                     return (
                         self.get_cql_optimized_path_expression(
                             translate_element_to_fhir_path_expression(
-                                profile_snapshot, elements
+                                profile_snapshot, [ed for _, ed in chain]
                             )[0]
                         )
                         + ".reference"
                     )
         return self.translate_element_id_to_fhir_path_expressions(
-            element_id, profile_snapshot, module_dir_name
+            element_id, profile_snapshot
         )
 
     def translate_element_id_to_fhir_path_expressions(
         self,
         element_id: str,
         profile_snapshot: StructureDefinitionSnapshot,
-        module_dir_name: str,
     ) -> str:
         """
         Translates an element id to a fhir search parameter
         :param element_id: element id
         :param profile_snapshot: FHIR profile snapshot containing the element id
-        :param module_dir_name: Name of the module directory
         :return: fhir search parameter
         """
-        modules_dir = self.__project.input.cso.mkdirs("modules")
-        elements = get_element_defining_elements(
-            profile_snapshot, element_id, module_dir_name, modules_dir
-        )
+        chain = self.__fp_resolver.resolve_path(profile_snapshot, element_id)
         expressions = translate_element_to_fhir_path_expression(
-            profile_snapshot, elements
+            profile_snapshot, [ed for _, ed in chain]
         )
         return ".".join(
             [
@@ -530,21 +520,16 @@ class CQLMappingGenerator(object):
         self,
         element_id,
         profile_snapshot: StructureDefinitionSnapshot,
-        module_dir_name: str,
     ) -> str:
         """
         Translates an element id to a fhir search parameter
         :param element_id: element id
         :param profile_snapshot: FHIR profile snapshot containing the element id
-        :param module_dir_name: Name of the module directory
         :return: fhir search parameter
         """
-        modules_dir = self.__project.input.cso.mkdirs("modules")
-        elements = get_element_defining_elements(
-            profile_snapshot, element_id, module_dir_name, modules_dir
-        )
+        chain = self.__fp_resolver.resolve_path(profile_snapshot, element_id)
         expressions = translate_element_to_fhir_path_expression(
-            profile_snapshot, elements
+            profile_snapshot, [ed for _, ed in chain]
         )
         return ".".join(
             [
@@ -686,26 +671,23 @@ class CQLMappingGenerator(object):
     def get_reference_type(
         self,
         profile_snapshot: StructureDefinitionSnapshot,
-        attr_defining_id: str,
-        module_dir_name: str,
+        attr_defining_id: str
     ):
         """
         Returns the type of the referenced attribute
         :param profile_snapshot: FHIR profile snapshot
         :param attr_defining_id: attribute id
-        :param module_dir_name: Name of the module directory
         :return: attribute type
         """
-        modules_dir = self.__project.input.cso.mkdirs("modules")
-        elements = get_element_defining_elements(
-            profile_snapshot, attr_defining_id, module_dir_name, modules_dir
-        )
-        for element in elements:
+        chain = self.__fp_resolver.resolve_path(profile_snapshot, attr_defining_id)
+        for _, element in chain:
             for element_type in element.type:
                 if element_type.code == "Reference":
+                    modules_dir = self.__project.input.cso.mkdirs("modules")
                     return extract_reference_type(
                         element_type, modules_dir, profile_snapshot.name
                     )
+        return None
 
     @staticmethod
     def add_first_after_extension_where_expression(cql_path_expression):

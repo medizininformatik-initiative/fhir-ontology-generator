@@ -7,6 +7,8 @@ from common.util.fhirpath.fhirpathListener import fhirpathListener
 from common.util.fhirpath.fhirpathParser import fhirpathParser
 from common.util.fhirpath.listeners import FHIRPathLoggingErrorListener
 
+from enum import StrEnum
+
 # Aliases
 FhirPathLexer = fhirpathLexer
 FhirPathListener = fhirpathListener
@@ -18,13 +20,11 @@ _parser = FhirPathParser(CommonTokenStream(_lexer))
 RULE_NAMES = _parser.ruleNames
 
 
-from enum import StrEnum
-
-
 class ExternalConstant(StrEnum):
     """
     Special FHIRPath external constants that are already defined by the specification
     """
+    UCUM = "%ucum"
     CONTEXT = "%context"
     RESOURCE = "%resource"
     ROOT_RESOURCE = "%rootResource"
