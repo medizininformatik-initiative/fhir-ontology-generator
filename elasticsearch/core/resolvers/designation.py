@@ -13,7 +13,6 @@ from common.util.http.terminology.client import FhirTerminologyClient
 from common.util.log.functions import get_class_logger, get_logger
 from common.util.project import Project
 
-
 _logger = get_logger(__file__)
 
 
@@ -23,7 +22,7 @@ def extract_designation(parameters: dict, language: str, fuzzy=True) -> str | No
     :param parameters: `Parameters` resource to extract display value from
     :param language: Language code identifying display value to extract
     :param fuzzy: Controls whether fuzzy matching is enabled when matching the languages codes. If `True` matches will
-                  be determined using the regex '`^{language}(-\S+)?$`'
+                  be determined using the regex '`^{language}(-\\S+)?$`'
     :return: Either `str` display value or `None` if no designation for language codes exists
     """
     for designation in filter(

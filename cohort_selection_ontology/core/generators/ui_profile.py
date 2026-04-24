@@ -1,5 +1,4 @@
 from __future__ import annotations
-import os
 from pathlib import Path
 from typing import Dict, Tuple, List, Mapping, Set
 
@@ -17,6 +16,7 @@ from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot,
     FHIR_TYPES_TO_VALUE_TYPES,
 )
+from common.util.collections.functions import first
 from common.util.fhir.bundle import BundleType
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from cohort_selection_ontology.model.ui_profile import (
@@ -30,6 +30,7 @@ from cohort_selection_ontology.model.ui_data import (
     TranslationDisplayElement,
     Translation,
 )
+from common.util.fhirpath.resolvers import FHIRPathResolver
 from common.util.log.functions import get_class_logger
 from common.util.project import Project
 from common.util.structure_definition.functions import (
@@ -37,8 +38,6 @@ from common.util.structure_definition.functions import (
     get_selectable_concepts,
     get_units,
     UCUM_SYSTEM,
-    get_element_defining_elements,
-    get_element_defining_elements_with_source_snapshots,
     resolve_defining_id,
     get_binding_value_set_url,
     get_display_from_element_definition,
@@ -48,7 +47,6 @@ from common.util.structure_definition.functions import (
     get_element_type,
     get_common_ancestor,
     InvalidValueTypeException,
-    ProcessedElementResult,
     is_element_slice_base,
     get_available_slices,
     get_slice_owning_element_id,
@@ -78,6 +76,7 @@ class UIProfileGenerator:
         self.querying_meta_data_resolver = querying_meta_data_resolver
         self.module_dir: str = ""
         self.__project = project
+        self.__fp_resolver = FHIRPathResolver(self.__project.package_manager)
         self.data_set_dir: Path = self.__project.input.cso.mkdirs("modules")
         self.__client = CohortSelectionTerminologyClient(self.__project)
 
@@ -147,8 +146,7 @@ class UIProfileGenerator:
                 else get_term_code_by_id(
                     profile_snapshot,
                     querying_meta_data_entry.term_code_defining_id,
-                    self.data_set_dir,
-                    self.module_dir,
+                    self.__fp_resolver,
                     self.__client,
                 )
             )
@@ -278,7 +276,7 @@ class UIProfileGenerator:
         :param languages: Language codes to match designations with. They should represent values set in
                           `CodeSystem.concept.designation.langauge`
         :param fuzzy: Controls whether fuzzy matching is enabled when matching the languages codes. If `True` matches
-                      will be determined using the regex '`^{language}(-\S+)?$`'
+                      will be determined using the regex '`^{language}(-\\S+)?$`'
         :return: Map containing the language codes mapped to their designations
         """
         if coding.system is None:
@@ -443,13 +441,15 @@ class UIProfileGenerator:
         return value_definition
 
     def get_attribute_definitions(
-        self, profile_snapshot: StructureDefinitionSnapshot, querying_meta_data
+        self,
+        profile_snapshot: StructureDefinitionSnapshot,
+        querying_meta_data: ResourceQueryingMetaData,
     ) -> List[AttributeDefinition]:
         """
         Returns the attribute definitions for the given FHIR profile snapshot
-        :param profile_snapshot:
-        :param querying_meta_data:
-        :return:
+        :param profile_snapshot: Structure definition (in snapshot form) on which the criterion is defined
+        :param querying_meta_data: Criterion definition
+        :return: ``AttributeDefinition`` objects for CQL translation
         """
         attribute_definitions = []
         for (
@@ -483,15 +483,10 @@ class UIProfileGenerator:
         :param optional: Boolean indicating the optionality of the attribute definition
         :return: Attribute definition
         """
-        attribute_defining_elements: List[ElementDefinition] = (
-            get_element_defining_elements(
-                profile_snapshot,
-                attribute_defining_element_id,
-                self.module_dir,
-                self.data_set_dir,
-            )
+        results = self.__fp_resolver.resolve_path(
+            profile_snapshot, attribute_defining_element_id
         )
-        attribute_defining_element = attribute_defining_elements[-1]
+        _, attribute_defining_element = results[-1]
 
         attribute_type = (
             attribute_type
@@ -511,16 +506,14 @@ class UIProfileGenerator:
         )
 
         # TODO: attribute_defining_elements is a list of element but we only ever expect one in this instance (at least that is what the logic can handle)
-
-        if len(attribute_defining_elements) > 1:
+        if len(results) > 1:
             self.__logger.warning(
-                "more than one attribute definition element, only one supported, using last one instead"
+                f"More than one attribute definition element, only one supported, using last one instead [attr_def_id={repr(attribute_defining_element_id)}]"
             )
 
         attribute_code, attribute_display = process_element_definition(
             attribute_defining_element
         )
-
         attribute_definition = AttributeDefinition(
             attributeCode=attribute_code, type=attribute_type, optional=optional
         )
@@ -548,20 +541,24 @@ class UIProfileGenerator:
                             + ":"
                             + slice_name
                         )
-                        att_def_id = get_element_defining_elements(
+                        _, att_def_id = self.__fp_resolver.resolve_leaf(
                             profile_snapshot,
                             att_def_id,
-                            self.module_dir,
-                            self.data_set_dir,
-                        )[-1]
-                        selected_valuesets.append(get_selectable_concepts(
-                            att_def_id, profile_snapshot.name, self.__client
-                        ))
+                        )
+                        selected_valuesets.append(
+                            get_selectable_concepts(
+                                att_def_id, profile_snapshot.name, self.__client
+                            )
+                        )
                 else:
                     # when no available sliced were found just
-                    selected_valuesets.append(get_selectable_concepts(
-                        attribute_defining_element, profile_snapshot.name, self.__client
-                    ))
+                    selected_valuesets.append(
+                        get_selectable_concepts(
+                            attribute_defining_element,
+                            profile_snapshot.name,
+                            self.__client,
+                        )
+                    )
                 attribute_definition.referencedValueSet = selected_valuesets
         elif attribute_type == "quantity":
             unit_defining_path = attribute_defining_element.path + ".code"
@@ -590,18 +587,16 @@ class UIProfileGenerator:
     def generate_composite_attribute(
         self,
         profile_snapshot: StructureDefinitionSnapshot,
-        attribute_defining_element_id,
+        attribute_defining_element_id: str,
     ) -> AttributeDefinition:
-        attribute_defining_elements = get_element_defining_elements(
+        attribute_defining_elements = self.__fp_resolver.resolve_path(
             profile_snapshot,
             attribute_defining_element_id,
-            self.module_dir,
-            self.data_set_dir,
         )
         if len(attribute_defining_elements) != 2:
             raise ValueError("composite attributes need to reference 2 elements")
-        element: ElementDefinition = attribute_defining_elements[0]
-        predicate: ElementDefinition = attribute_defining_elements[-1]
+        _, element = attribute_defining_elements[0]
+        _, predicate = attribute_defining_elements[-1]
         attribute_code = self.generate_composite_attribute_code(
             profile_snapshot, predicate
         )
@@ -646,12 +641,12 @@ class UIProfileGenerator:
             attribute_definition.type = "quantity"
             return attribute_definition
         elif attribute_type == "CodeableConcept":
-            if binding := predicate.binding:
+            if predicate.binding:
                 concepts = get_selectable_concepts(
                     predicate, profile_snapshot.name, self.__client
                 )
                 attribute_definition.referencedValueSet.append(concepts)
-            elif binding := element.binding:
+            elif element.binding:
                 concepts = get_selectable_concepts(
                     element, profile_snapshot.name, self.__client
                 )
@@ -660,16 +655,15 @@ class UIProfileGenerator:
                 concepts = get_fixed_term_codes(
                     profile_snapshot,
                     predicate,
-                    self.module_dir,
-                    self.data_set_dir,
+                    self.__fp_resolver,
                     self.__client,
                 )
-                attribute_definition.referencedCriteriaSet = (
+                attribute_definition.referencedCriteriaSet = [
                     self.get_reference_criteria_set_from_fixed_term_codes(
                         concepts,
                         self.get_referenced_context(profile_snapshot, self.module_dir),
                     )
-                )
+                ]
             return attribute_definition
         else:
             raise InvalidValueTypeException(
@@ -699,7 +693,7 @@ class UIProfileGenerator:
         self, profile_snapshot: StructureDefinitionSnapshot, element
     ) -> TermCode:
         composite_attribute_code = get_fixed_term_codes(
-            profile_snapshot, element, self.module_dir, self.data_set_dir, self.__client
+            profile_snapshot, element, self.__fp_resolver, self.__client
         )
         if composite_attribute_code:
             return composite_attribute_code[0]
@@ -736,19 +730,17 @@ class UIProfileGenerator:
     def generate_reference_attribute_definition(
         self,
         profile_snapshot: StructureDefinitionSnapshot,
-        attribute_defining_element_id,
+        attribute_defining_element_id: str,
     ):
         """
         Generates an attribute definition for a reference attribute
         :param profile_snapshot: FHIR profile snapshot
         :param attribute_defining_element_id: element id that defines the reference
+        :return: attribute definition
         """
         attribute_defining_elements_with_source_snapshots = (
-            get_element_defining_elements_with_source_snapshots(
-                profile_snapshot,
-                attribute_defining_element_id,
-                self.module_dir,
-                self.data_set_dir,
+            self.__fp_resolver.resolve_path(
+                profile_snapshot, attribute_defining_element_id
             )
         )
         # TODO: Check if this suffices in all instances
@@ -756,7 +748,7 @@ class UIProfileGenerator:
         # the referenced profile and thus their descriptions miss the context of the attribute (e.g. just 'code of a
         # diagnosis' and not 'code of a diagnosis established using a biopsy sample')
         attribute_code, attribute_display = process_element_definition(
-            attribute_defining_elements_with_source_snapshots[0].element
+            attribute_defining_elements_with_source_snapshots[0][1]
         )
         attribute_definition = AttributeDefinition(
             attributeCode=attribute_code, type="reference"
@@ -768,18 +760,31 @@ class UIProfileGenerator:
         return attribute_definition
 
     def get_reference_criteria_set(
-        self, elements: List[ProcessedElementResult]
+        self,
+        chain: List[Tuple[StructureDefinitionSnapshot, ElementDefinition]],
     ) -> List[CriteriaSet]:
-        element: ElementDefinition = elements[-1].element
-        snapshot: StructureDefinitionSnapshot = elements[-1].profile_snapshot
-        module_dir = elements[-1].module_dir
-        context = self.get_referenced_context(snapshot, module_dir)
+        """
+        Resolves the set of supported term codes for a criterion
+
+        :param chain: List of tuples of ``ElementDefinition``s and their containing ``StructureDefinition``s defining
+                      the path to the criterion
+        :return: ``CriteriaSet`` object
+        """
+        # Furthest link in the chain that with the context being either a resource or an extension definition such that
+        # other data type (e.g. of kind ``complex-type``) definition are ignored
+        snapshot, elem_def = first(
+            lambda t: t[0].kind == "resource" or t[0].type == "Extension",
+            reversed(chain),
+        )
         referenced_criteria_sets = []
-        is_element_slice = is_element_slice_base(element.id)
+        is_element_slice = is_element_slice_base(elem_def.id)
+        context = self.querying_meta_data_resolver.get_query_meta_data(snapshot)[
+            0
+        ].context
 
         if is_element_slice and (
             fixed_term_codes := get_fixed_term_codes(
-                snapshot, element, module_dir, self.data_set_dir, self.__client
+                snapshot, elem_def, self.__fp_resolver, self.__client
             )
         ):
             referenced_criteria_sets.append(
@@ -787,18 +792,16 @@ class UIProfileGenerator:
                     fixed_term_codes, context
                 )
             )
-        elif url := get_binding_value_set_url(elements[-1].element):
+        elif url := get_binding_value_set_url(elem_def):
             referenced_criteria_sets.append(
                 self.get_reference_criteria_set_from_value_set(url, context)
             )
         elif not is_element_slice:
-            available_slices = get_available_slices(element.id, snapshot)
+            available_slices = get_available_slices(elem_def.id, snapshot)
             self.__logger.debug(f"Found available slices: {available_slices}")
             for slice_name in available_slices:
-                slice_id = element.id + ":" + slice_name
-                slice_element = get_element_defining_elements(
-                    slice_id, snapshot, module_dir, context
-                )[-1]
+                slice_id = elem_def.id + ":" + slice_name
+                _, slice_element = self.__fp_resolver.resolve_leaf(snapshot, slice_id)
                 url = get_binding_value_set_url(slice_element)
                 referenced_criteria_sets.append(
                     self.get_reference_criteria_set_from_value_set(url, context)
@@ -806,22 +809,21 @@ class UIProfileGenerator:
         else:
             raise Exception(
                 f"Unable to generate reference criteria set for element:"
-                f" {element.id} in profile: {snapshot.name}"
+                f" {elem_def.id} in profile: {snapshot.name}"
             )
         return referenced_criteria_sets
 
     def get_referenced_context(
-        self, profile_snapshot: StructureDefinitionSnapshot, module_dir
+        self, profile_snapshot: StructureDefinitionSnapshot, module: str
     ):
         """
         Returns the referenced context for the given FHIR profile snapshot
         :param profile_snapshot: FHIR profile snapshot
-        :param module_dir: Module directory of the profile
+        :param module: Name of the module containing the criterion definition
         :return: Referenced context
         """
-        module_name = str(module_dir).replace("package", "").split(os.sep)[-1]
         return self.querying_meta_data_resolver.get_query_meta_data(
-            profile_snapshot, module_name
+            profile_snapshot, module
         )[0].context
 
     def get_reference_criteria_set_from_value_set(
@@ -848,7 +850,7 @@ class UIProfileGenerator:
         """
         Returns the criteria set for the given fixed term codes
         :param fixed_term_codes: Fixed term codes
-        :param context: Context of the criteria set
+        :param context: ``TermCode`` object representing coded context of the containing criterion
         :return: Criteria set
         """
         criteria_set = CriteriaSet(

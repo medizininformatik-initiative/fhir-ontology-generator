@@ -11,13 +11,13 @@
     "display": "Bioprobe",
     "version": "1.0.0"
   },
-  "term_code_defining_id": "Specimen.type.coding.slice(%resource, 'sct')",
+  "term_code_defining_id": "Specimen.type.coding.slice(%profile, 'sct')",
   "attribute_defining_id_type_map": {
-    "Specimen.extension.slice(%profile, 'festgestellteDiagnose').value.ofType(Reference).resolve().code.coding.slice(%resource, 'icd10-gm')": {
+    "Specimen.extension.slice(%profile, 'festgestellteDiagnose').value.ofType(Reference).resolve().code.coding.slice('https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose', 'icd10-gm')": {
       "type": "reference",
       "optional": true
     },
-    "Specimen.collection.bodySite.coding.slice(%resource, 'icd-o-3')": {
+    "Specimen.collection.bodySite.coding.slice(%profile, 'icd-o-3')": {
       "type": "concept",
       "optional": true
     }

@@ -273,7 +273,7 @@ class FhirPackageManager(abc.ABC):
         Searches for a structure definition snapshot with the given profile URL
 
         :param profile: URL of the profile to search for
-        :return: Matching structure defin   expr_str = "Specimen.extension.slice(%pition in snapshot form
+        :return: Matching structure definition in snapshot form
         """
         return self.find(index_pattern={"url": profile}, latest_only=False)
 

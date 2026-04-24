@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Tuple
 
 from fhir.resources.R4B.elementdefinition import ElementDefinition
 
@@ -22,6 +22,7 @@ from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot as StructureDefinition,
     StructureDefinitionSnapshot,
 )
+from common.util.fhirpath.resolvers import FHIRPathResolver
 from common.util.log.functions import get_class_logger
 from common.util.project import Project
 from common.util.structure_definition.functions import (
@@ -51,6 +52,7 @@ class UITreeGenerator:
         """
         self.__project = project
         self.__client = CohortSelectionTerminologyClient(self.__project)
+        self.__resolver = FHIRPathResolver(self.__project.package_manager)
         self.query_meta_data_resolver = querying_meta_data_resolver
         self.__modules_dir = self.__project.input.cso.mkdirs("modules")
 
@@ -89,7 +91,7 @@ class UITreeGenerator:
         :param module_dir_name: Name of the module directory
         :return: root of the ui tree
         """
-        result_map: dict[(TermCode, str), TreeMap] = {}
+        result_map: dict[Tuple[TermCode, str], TreeMap] = {}
         for qmd in applicable_querying_meta_data:
             tree_maps: List[TreeMap] = []
             if qmd.term_code_defining_id:
@@ -165,8 +167,7 @@ class UITreeGenerator:
         term_code_defining_element: ElementDefinition = resolve_defining_id(
             fhir_profile_snapshot,
             term_code_defining_id,
-            self.__modules_dir,
-            module_dir_name,
+            self.__resolver
         )
         if not term_code_defining_element:
             raise Exception(
@@ -342,8 +343,7 @@ class UITreeGenerator:
         term_code_defining_element = resolve_defining_id(
             fhir_profile_snapshot,
             term_code_defining_id,
-            self.__modules_dir,
-            module_dir_name,
+            self.__resolver
         )
         if not term_code_defining_element:
             raise Exception(

@@ -26,8 +26,8 @@ from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot,
     ProcessedElementResult,
 )
-from common.util.collections.functions import flatten
 from common.util.fhir.enums import FhirDataType
+from common.util.fhirpath.resolvers import FHIRPathResolver
 from common.util.log.functions import get_class_logger
 
 UCUM_SYSTEM = "http://unitsofmeasure.org"
@@ -241,31 +241,30 @@ def get_element_defining_elements(
 def resolve_defining_id(
     profile_snapshot: StructureDefinitionSnapshot,
     defining_id: str,
-    modules_dir_path: str | Path,
-    module_dir_name: str,
+    resolver: FHIRPathResolver,
 ) -> ElementDefinition | None:
     """
     :param profile_snapshot: StructureDefinition which the defining id belongs to
     :param defining_id: defining id
-    :param module_dir_name: name of the module directory like 'Bioprobe' or 'Diagnose'
-    :param modules_dir_path: path to the FHIR dataset directory
+    :param resolver: ``FHIRPathResolver`` object to resolve expression with
     :return: resolved defining id
     """
-    return get_element_defining_elements(
-        profile_snapshot, defining_id, module_dir_name, modules_dir_path
-    )[-1]
+    result = resolver.resolve_path(profile_snapshot, defining_id)
+    if len(result) > 0:
+        return result[0][1]
+    else:
+        return None
 
 
+@deprecated(
+    "Use ``FHIRPathResolver.resolve_path() directly since this function is only a proxy for it"
+)
 def get_element_defining_elements_with_source_snapshots(
     profile_snapshot: StructureDefinitionSnapshot,
     chained_element_id,
-    start_module_dir: str | Path,
-    data_set_dir: str | Path,
-) -> List[ProcessedElementResult]:
-    parsed_list = list(flatten(parse(chained_element_id)))
-    return process_element_id(
-        profile_snapshot, parsed_list, start_module_dir, data_set_dir
-    )
+    resolver: FHIRPathResolver,
+) -> List[Tuple[StructureDefinitionSnapshot, ElementDefinition]]:
+    return resolver.resolve_path(profile_snapshot, chained_element_id)
 
 
 def process_element_id(
@@ -698,21 +697,17 @@ def replace_x_with_cast_expression(element_path: str, element_type: str):
 def try_get_term_code_from_sub_elements(
     profile_snapshot: StructureDefinitionSnapshot,
     parent_coding_id,
-    data_set_dir,
-    module_dir,
+    fp_resolver: FHIRPathResolver,
     client: TerminologyClient,
 ) -> Optional[TermCode]:
     """"""
     if profile_snapshot.get_element_by_id(parent_coding_id + ".code") is not None:
         return None
-    code_element = resolve_defining_id(
-        profile_snapshot, parent_coding_id + ".code", data_set_dir, module_dir
+    _, code_element = fp_resolver.resolve_leaf(
+        profile_snapshot, parent_coding_id + ".code"
     )
-    system_element = resolve_defining_id(
-        profile_snapshot,
-        parent_coding_id + ".system",
-        data_set_dir,
-        module_dir,
+    _, system_element = fp_resolver.resolve_leaf(
+        profile_snapshot, parent_coding_id + ".system"
     )
     if code_element and system_element:
         if code_element.patternCode and system_element.patternUri:
@@ -738,8 +733,7 @@ def try_get_term_code_from_sub_elements(
 def get_fixed_term_codes(
     profile_snapshot: StructureDefinitionSnapshot,
     element: ElementDefinition,
-    module_dir,
-    data_set_dir,
+    fp_resolver: FHIRPathResolver,
     client: TerminologyClient,
 ) -> List[TermCode]:
     """
@@ -755,7 +749,7 @@ def get_fixed_term_codes(
         return [pattern_coding_to_term_code(element, client)]
     else:
         if tc := try_get_term_code_from_sub_elements(
-            profile_snapshot, element.id, module_dir, data_set_dir, client
+            profile_snapshot, element.id, fp_resolver, client
         ):
             return [tc]
     return []
@@ -764,16 +758,14 @@ def get_fixed_term_codes(
 def get_term_code_by_id(
     profile_snapshot: StructureDefinitionSnapshot,
     term_code_defining_id: str,
-    data_set_dir,
-    module_dir,
+    fp_resolver: FHIRPathResolver,
     client: TerminologyClient,
 ) -> List[TermCode]:
     """
     Returns the term entries for the given term code defining id
     :param profile_snapshot: StructureDefinitionSnapshot which the term_code_defining_id belong to
     :param term_code_defining_id: ID of the element that defines the term code
-    :param data_set_dir: Data set directory of the FHIR profile
-    :param module_dir: Module directory of the FHIR profile
+    :param fp_resolver: ``FHIRPathResolver`` object to resolve FHIRPath expressions
     :param client: Client instance to perform terminology server operations
     :return: Term entries
     """
@@ -782,10 +774,9 @@ def get_term_code_by_id(
             f"No term code defining id given print for {profile_snapshot.name}"
         )
 
-    term_code_defining_element = resolve_defining_id(
-        profile_snapshot, term_code_defining_id, data_set_dir, module_dir
-    )
-    if not term_code_defining_element:
+    if link := fp_resolver.resolve_leaf(profile_snapshot, term_code_defining_id):
+        term_code_defining_element = link[1]
+    else:
         raise Exception(
             f"Could not resolve term code defining id {term_code_defining_id} "
             f"in {profile_snapshot.name}"
@@ -807,8 +798,7 @@ def get_term_code_by_id(
         tc = try_get_term_code_from_sub_elements(
             profile_snapshot,
             term_code_defining_id,
-            data_set_dir,
-            module_dir,
+            fp_resolver,
             client,
         )
         if tc:

@@ -20,6 +20,7 @@ from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot,
     FHIR_TYPES_TO_VALUE_TYPES,
 )
+from common.util.fhirpath.resolvers import FHIRPathResolver
 from common.util.log.functions import get_class_logger
 from common.util.project import Project
 from common.util.structure_definition.functions import (
@@ -70,6 +71,7 @@ class FHIRSearchMappingGenerator(object):
         """
         self.__project = project
         self.__client = CohortSelectionTerminologyClient(self.__project)
+        self.__fp_resolver = FHIRPathResolver(project.package_manager)
         self.querying_meta_data_resolver = querying_meta_data_resolver
         self.generated_mappings = []
         self.fhir_search_mapping_resolver = fhir_search_mapping_resolver
@@ -208,8 +210,7 @@ class FHIRSearchMappingGenerator(object):
                 else get_term_code_by_id(
                     profile_snapshot,
                     querying_meta_data_entry.term_code_defining_id,
-                    self.__modules_dir,
-                    module_name,
+                    self.__fp_resolver,
                     self.__client,
                 )
             )

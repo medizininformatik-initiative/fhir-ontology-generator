@@ -40,7 +40,6 @@ from common.util.structure_definition.functions import (
     extract_reference_type,
     get_element_type,
     get_element_defining_elements,
-    get_element_defining_elements_with_source_snapshots,
     resolve_defining_id,
     get_parent_element,
     translate_element_to_fhir_path_expression,
@@ -141,7 +140,6 @@ class CQLMappingGenerator(object):
         :param module_name: name of the module the profile belongs to
         :return: normalized term code to CQL mapping
         """
-        modules_dir = self.__project.input.cso / "modules"
         querying_meta_data: List[ResourceQueryingMetaData] = (
             self.querying_meta_data_resolver.get_query_meta_data(
                 profile_snapshot, module_name
@@ -166,8 +164,7 @@ class CQLMappingGenerator(object):
                 else get_term_code_by_id(
                     profile_snapshot,
                     querying_meta_data_entry.term_code_defining_id,
-                    modules_dir,
-                    module_name,
+                    self.__fp_resolver,
                     self.__client,
                 )
             )
@@ -361,8 +358,7 @@ class CQLMappingGenerator(object):
         return get_fixed_term_codes(
             profile_snapshot,
             where_clause_element,
-            modules_dir,
-            module_dir_name,
+            self.__fp_resolver,
             self.__client,
         )[0]
 
@@ -669,9 +665,7 @@ class CQLMappingGenerator(object):
         return CQL_TYPES_TO_VALUE_TYPES.get(attribute_type)
 
     def get_reference_type(
-        self,
-        profile_snapshot: StructureDefinitionSnapshot,
-        attr_defining_id: str
+        self, profile_snapshot: StructureDefinitionSnapshot, attr_defining_id: str
     ):
         """
         Returns the type of the referenced attribute
@@ -802,11 +796,9 @@ class CQLMappingGenerator(object):
         self,
         element_defining_id: str,
         profile_snapshot: StructureDefinitionSnapshot,
-        module_dir_name: str,
     ) -> SimpleCardinality:
-        modules_dir = self.__project.input.cso.mkdirs("modules")
-        element_results = get_element_defining_elements_with_source_snapshots(
-            profile_snapshot, element_defining_id, module_dir_name, modules_dir
+        element_results = self.__fp_resolver.resolve_path(
+            profile_snapshot, element_defining_id
         )
         if element_results is None or len(element_results) == 0:
             raise Exception(
@@ -816,13 +808,13 @@ class CQLMappingGenerator(object):
             )
         else:
             cards = []
-            for result in element_results:
+            for profile_snapshot, element_def in element_results:
                 opt_element, _ = select_element_compatible_with_cql_operations(
-                    result.element, result.profile_snapshot
+                    element_def, profile_snapshot
                 )
                 cards.append(
                     CQLMappingGenerator.__aggregate_cardinality_using_element(
-                        opt_element, result.profile_snapshot
+                        opt_element, profile_snapshot
                     )
                 )
             return reduce(lambda a, b: a * b, cards)
