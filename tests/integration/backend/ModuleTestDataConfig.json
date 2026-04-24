@@ -24,16 +24,37 @@
     "data": ["Patient-mii-exa-test-data-patient-1.json","Observation_Patient1_Q1.json"]
   },
   {
-    "data": ["Patient-mii-exa-test-data-patient-1.json","MedicationAdministration_Patient1_Q1.json"]
+    "data": ["Patient-mii-exa-test-data-patient-1.json","MedicationAdministrationAtcDe_Patient1_Q1.json"]
   },
   {
-    "data": ["Patient-mii-exa-test-data-patient-1.json","MedicationRequest_Patient1_Q1.json"]
+    "data": ["Patient-mii-exa-test-data-patient-1.json","MedicationAdministrationPzn_Patient1_Q1.json"],
+    "status": {
+      "disabled": true,
+      "reason": "Missing PZN code system alias entry in sql2cql"
+    }
   },
   {
-    "data": ["Patient-mii-exa-test-data-patient-1.json","MedicationStatement_Patient1_Q1.json"],
+    "data": ["Patient-mii-exa-test-data-patient-1.json","MedicationRequestAtcDe_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json","MedicationRequestPzn_Patient1_Q1.json"],
+    "status": {
+      "disabled": true,
+      "reason": "Missing PZN code system alias entry in sql2cql"
+    }
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json","MedicationStatementAtcDe_Patient1_Q1.json"],
     "status": {
       "disabled": true,
       "reason": "Bug in Blaze FHIR server: Incorrect time interval overlap calculation"
+    }
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json","MedicationStatementPzn_Patient1_Q1.json"],
+    "status": {
+      "disabled": true,
+      "reason": "Bug in Blaze FHIR server: Incorrect time interval overlap calculation and missing PZN code system alias entry in sql2cql"
     }
   },
   {

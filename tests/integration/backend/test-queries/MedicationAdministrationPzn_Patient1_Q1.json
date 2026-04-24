@@ -1,0 +1,28 @@
+{
+  "version": "http://to_be_decided.com/draft-1/schema#",
+  "display": "Ausgewählte Merkmale",
+  "inclusionCriteria": [
+    [
+      {
+        "termCodes": [
+          {
+            "system": "http://fhir.de/CodeSystem/ifa/pzn",
+            "code": "06312077",
+            "display": "ASS 100 - 1a Pharma TAH Tabletten",
+            "version": "2026"
+          }
+        ],
+        "context": {
+          "code": "Medikamentenverabreichung",
+          "display": "Verabreichung von Medikamenten",
+          "system": "fdpg.mii.cds",
+          "version": "1.0.0"
+        },
+        "timeRestriction": {
+          "afterDate": "2024-02-15",
+          "beforeDate": "2024-02-17"
+        }
+      }
+    ]
+  ]
+}
