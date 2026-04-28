@@ -15,6 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+# [v4.0.1] - 2026-04-28
+
+## Fixed
+
+- Fix incorrect display for MII CDS MedicationAdministration profile in DSE by upgrading to minor version 2025.0.1
+  of module (#449 @paulolaup)
+
 # [v4.0.0] - 2026-02-26
 
 ## Changed
