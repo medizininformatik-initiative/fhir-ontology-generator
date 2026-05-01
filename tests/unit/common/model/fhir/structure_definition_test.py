@@ -178,9 +178,9 @@ def test_sds_get_multiple_elements(
         last_short_desc=None,
     )
 
-    assert actual_result[0].element == p1.element
-    assert actual_result[1].element == p2.element
-    assert actual_result[2].element == p3.element
+    assert actual_result[0].element.id == p1.element.id
+    assert actual_result[1].element.id == p2.element.id
+    assert actual_result[2].element.id == p3.element.id
 
 
 def test_get_parent_slice_id():
