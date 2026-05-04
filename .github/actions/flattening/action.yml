@@ -1,0 +1,86 @@
+name: Generate Flattening lookup
+
+description: 'Generates Flattening lookup'
+
+inputs:
+  tag:
+    required: false
+    description: 'Git tag if present'
+    default: ''
+  project:
+    required: false
+    description: 'Name of the project to generate for'
+    default: 'fdpg-ontology'
+  upload-artifacts:
+    required: true
+    description: 'Whether generated artifacts should be uploaded'
+    default: 'true'
+  term-server-url:
+    required: true
+    description: 'URL of the FHIR terminology server to use'
+  term-server-cert:
+    required: false
+    description: '(Optional) certificate to authenticate with the terminology server'
+  term-server-key:
+    required: false
+    description: '(Optional) private key to authenticate with the terminology server'
+
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install required python modules
+      run: pip3 install -r requirements.txt
+      shell: bash
+
+    - name: Install Firely Terminal
+      run: |
+        if command -v fhir >/dev/null 2>&1; then
+          echo "Tool firely.terminal is already installed"
+        else
+          echo "Installing tool firely.terminal"
+          sudo apt-get update
+          sudo apt-get install -y dotnet-sdk-8.0
+          sudo apt-get install -y aspnetcore-runtime-8.0
+          sudo apt-get install -y dotnet-runtime-8.0
+          dotnet tool install -g firely.terminal
+        fi
+        fhir --version
+      shell: bash
+
+    - name: Save secret to file
+      id: certificates
+      env:
+        SERVER_CERTIFICATE: ${{ inputs.term-server-cert }}
+        PRIVATE_KEY: ${{ inputs.term-server-key }}
+      shell: bash
+      run: |
+        echo "$PRIVATE_KEY" > private-key.pem
+        echo "$SERVER_CERTIFICATE" > certificate.pem
+        echo privateKey=$(readlink -f private-key.pem) >> "$GITHUB_OUTPUT"
+        echo certificate=$(readlink -f certificate.pem) >> "$GITHUB_OUTPUT"
+
+    - name: Run Flattening lookup generation
+      env:
+        ONTOLOGY_SERVER_ADDRESS: ${{ inputs.term-server-url }}
+        SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
+        PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
+      run: PYTHONPATH='.' python3 flattening/scripts/generate_lookup.py -p "${{ inputs.project }}"
+      shell: bash
+
+    - name: Upload log files
+      uses: actions/upload-artifact@v4
+      with:
+        name: flattening_logs
+        path:
+          logs/generate_dse_element_availability.log
+
+    - name: Upload flattening files
+      uses: actions/upload-artifact@v7
+      if: ${{ inputs.upload-artifacts == true || inputs.upload-artifacts == 'true' }}
+      with:
+        archive: 'true'
+        name: flatteningLookup
+        path: ./projects/${{ inputs.project }}/output/flattening/flatteningLookup.json
+        if-no-files-found: error
+        overwrite: true

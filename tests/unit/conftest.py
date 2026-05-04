@@ -8,6 +8,7 @@ from fhir.resources.R4B.elementdefinition import ElementDefinition
 from fhir.resources.R4B.structuredefinition import StructureDefinition
 
 from common.util.fhir.package.manager import FhirPackageManager
+from common.util.http.terminology.client import FhirTerminologyClient
 from common.util.project import Project
 
 
@@ -30,9 +31,9 @@ def _global_project() -> Project:
     return p
 
 
-@cachetools.cached(cache={}, key=lambda mp: mp.abolute())
-def _module_project(module_path: Path) -> Project:
-    p = Project(path=module_path)
+@cachetools.cached(cache={}, key=lambda path: path.absolute())
+def _module_project(path: Path) -> Project:
+    p = Project(path=path)
     p.package_manager.restore(inflate=True)
     return p
 
@@ -64,6 +65,10 @@ def project(request: FixtureRequest) -> Project:
     raise ValueError(
         f"Unknown project resolution mode '{resolution_mode}'. Expected one of 'default', 'global', 'module', 'ancestor'"
     )
+
+@pytest.fixture(scope="module")
+def client(project: Project) -> FhirTerminologyClient:
+    return FhirTerminologyClient.from_project(project)
 
 
 @pytest.fixture(scope="module")
