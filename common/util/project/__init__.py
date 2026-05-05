@@ -89,7 +89,12 @@ class IODir(ProjectDir, abc.ABC):
     @computed_field
     @property
     def elastic(self) -> ProjectDir:
-        return _sub_dir("elastic", self.path)
+        return (_sub_dir("elastic", self.path)
+
+    @computed_field)
+    @property
+    def dimp_config(self) -> ProjectDir:
+        return _sub_dir("dimp_config", self.path)
 
 
 class InputDir(IODir):
