@@ -243,7 +243,7 @@ jobs:
       - name: Download flattening files
         uses: actions/download-artifact@v4
         with:
-          name: flattening file
+          name: flatteningLookup
           path: projects/fdpg-ontology/output/flattening
 
       - name: Collect DSE structure definition snapshots
