@@ -226,25 +226,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download project output
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: project-output
           path: projects/fdpg-ontology/output/
 
       - name: Download availability files
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: availability_files
           path: projects/fdpg-ontology/output/availability
 
       - name: Download flattening files
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: flatteningLookup
           path: projects/fdpg-ontology/output/flattening
+
+      - name: Zip flattening lookup
+        run: |
+          zip projects/fdpg-ontology/output/flattening/flatteningLookup.zip projects/fdpg-ontology/output/flattening/flatteningLookup.json
 
       - name: Collect DSE structure definition snapshots
         shell: bash

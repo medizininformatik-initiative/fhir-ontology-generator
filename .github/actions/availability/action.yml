@@ -23,7 +23,7 @@ runs:
   using: "composite"
   steps:
     - name: Install npm
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
 
     - name: Install Sushi
       shell: bash
@@ -34,7 +34,7 @@ runs:
       run: chmod +x availability/scripts/generate-coding-availability-measure.sh
 
     - name: Fetch project output
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v8
       if: ${{ inputs.project-output != '' }}
       with:
         name: ${{ inputs.project-output }}
@@ -68,7 +68,7 @@ runs:
       shell: bash
 
     - name: Upload log files
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: availability_logs
         path:
@@ -96,10 +96,11 @@ runs:
         zip availability.zip stratum-to-context.json Measure-CdsCodingAvailability.fhir.json Measure-DseElementAvailability.fhir.json
 
     - name: Upload Availability files
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: ${{ inputs.upload-artifacts == true || inputs.upload-artifacts == 'true' }}
       with:
         name: availability_files
-        path: ./projects/${{ inputs.project }}/output/availability/*
+        archive: 'false'
+        path: ./projects/${{ inputs.project }}/output/availability/availability.zip
         if-no-files-found: error
         overwrite: true
