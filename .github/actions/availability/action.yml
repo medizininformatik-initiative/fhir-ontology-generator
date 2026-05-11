@@ -93,14 +93,13 @@ runs:
           done
         fi
         echo "Collecting and archiving generated files"
-        zip availability.zip stratum-to-context.json Measure-CdsCodingAvailability.fhir.json Measure-DseElementAvailability.fhir.json
+#        zip availability.zip stratum-to-context.json Measure-CdsCodingAvailability.fhir.json Measure-DseElementAvailability.fhir.json
 
     - name: Upload Availability files
       uses: actions/upload-artifact@v7
       if: ${{ inputs.upload-artifacts == true || inputs.upload-artifacts == 'true' }}
       with:
         name: availability_files
-        archive: 'false'
-        path: ./projects/${{ inputs.project }}/output/availability/availability.zip
+        path: ./projects/${{ inputs.project }}/output/availability/*
         if-no-files-found: error
         overwrite: true
