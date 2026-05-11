@@ -250,6 +250,13 @@ jobs:
         run: |
           zip -j projects/fdpg-ontology/output/flattening/flatteningLookup.zip projects/fdpg-ontology/output/flattening/flatteningLookup.json
 
+      - name: Zip availability files
+        run: |
+          zip -j projects/fdpg-ontology/output/availability/availability.zip \
+            projects/fdpg-ontology/output/availability/stratum-to-context.json \
+            projects/fdpg-ontology/output/availability/Measure-CdsCodingAvailability.fhir.json \
+            projects/fdpg-ontology/output/availability/Measure-DseElementAvailability.fhir.json
+
       - name: Collect DSE structure definition snapshots
         shell: bash
         run: zip -j projects/fdpg-ontology/output/data_selection_extraction/dse_structures.zip projects/fdpg-ontology/input/data_selection_extraction/snapshots/mii/*
