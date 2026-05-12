@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Generate ontology files
         uses: ./.github/actions/generate-ontology
@@ -33,7 +33,7 @@ jobs:
       - build
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Generate Availability measures
         uses: ./.github/actions/availability
@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Generate Flattening lookup
         uses: ./.github/actions/flattening
@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install required python modules
         run: pip3 install -r requirements.txt
@@ -112,28 +112,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup python 3 environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.13'
           cache: 'pip'
 
 #      - name: Download Ontology files
-#        uses: actions/download-artifact@v4
+#        uses: actions/download-artifact@v6
 #        with:
 #          name: project-output
 #          path: projects/fdpg-ontology/output
 
       - name: Download ontology archives
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: packaged ontology
           path: projects/fdpg-ontology/output/merged_ontology
 
       - name: Download Availability files
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: availability_files
           path: projects/fdpg-ontology/output/availability
@@ -183,7 +183,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload Docker logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ failure() }}
         with:
           name: docker_logs_integration_testing
@@ -194,13 +194,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install required python modules
         run: pip3 install -r requirements.txt
 
       - name: Download project output
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: project-output
           path: projects/fdpg-ontology/output/
@@ -226,32 +226,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download project output
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: project-output
           path: projects/fdpg-ontology/output/
 
       - name: Download availability files
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: availability_files
           path: projects/fdpg-ontology/output/availability
 
       - name: Download flattening files
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: flatteningLookup
           path: projects/fdpg-ontology/output/flattening
+
+      - name: Zip flattening lookup
+        run: |
+          zip -j projects/fdpg-ontology/output/flattening/flatteningLookup.json.zip projects/fdpg-ontology/output/flattening/flatteningLookup.json
+
+      - name: Zip availability files
+        run: |
+          zip -j projects/fdpg-ontology/output/availability/availability.zip \
+            projects/fdpg-ontology/output/availability/stratum-to-context.json \
+            projects/fdpg-ontology/output/availability/Measure-CdsCodingAvailability.fhir.json \
+            projects/fdpg-ontology/output/availability/Measure-DseElementAvailability.fhir.json
 
       - name: Collect DSE structure definition snapshots
         shell: bash
         run: zip -j projects/fdpg-ontology/output/data_selection_extraction/dse_structures.zip projects/fdpg-ontology/input/data_selection_extraction/snapshots/mii/*
 
       - name: Draft release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           draft: true
           generate_release_notes: true
@@ -261,4 +272,4 @@ jobs:
             projects/fdpg-ontology/output/merged_ontology/mapping.zip
             projects/fdpg-ontology/output/availability/availability.zip
             projects/fdpg-ontology/output/data_selection_extraction/dse_structures.zip
-            projects/fdpg-ontology/output/flattening/flatteningLookup.zip
+            projects/fdpg-ontology/output/flattening/flatteningLookup.json.zip
