@@ -7,7 +7,7 @@
     "Bundle": "timestamp",
     "CarePlan": "date",
     "Composition": "date",
-    "Condition": "onset-date",
+    "Condition": "recorded-date",
     "Consent": "date",
     "Coverage": null,
     "Device": null,
