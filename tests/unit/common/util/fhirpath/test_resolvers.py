@@ -34,11 +34,11 @@ class TestFHIRPathResolver:
                 [
                     (
                         "https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/MedicationAdministration",
-                        "MedicationAdministration.medication:medicationReference",
+                        "MedicationAdministration.medication[x]:medicationReference",
                     ),
                     (
                         "https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/Medication",
-                        "Medication.code.coding:actClassDe",
+                        "Medication.code.coding:atcClassDe",
                     ),
                 ],
                 id="mii-cds-medicationAdministration-slice-ref",

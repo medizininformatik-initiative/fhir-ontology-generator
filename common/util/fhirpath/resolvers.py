@@ -21,6 +21,12 @@ T = TypeVar("T", bound=fhirpathParser.InvocationContext)
 
 # Events
 class Event(ABC, Generic[T]):
+    """
+    Event base class for events triggered during parsing of a FHIRPath expression that are useful to resolvers. It
+    provides default implementations for string representation of instances. Event are emitted on invocations (refer to
+    the grammar file for information on what constitutes an invocation in a FHIRPath expression)
+    """
+
     def __init__(self, invocation: T):
         self._trigger = invocation
 
@@ -127,13 +133,26 @@ def _get_element_def_fuzzy(
 ) -> ElementDefinition:
     if elem_def := structure_def.get_element_by_id(element_def_id):
         return elem_def
-    else elem_def := structure_def.get_element_by_id(element_def_id + "[x]"):
-        slice_name = element_def_id.rsplit(".", 1)[-1].rsplit(":", 1)[-1]
-        polymorphic_elem_def_id =
-        return elem_def
+    else:
+        split = element_def_id.rsplit(".", 1)
+        prefix = split[0]
+        name_parts = split[-1].rsplit(":", 1)
+        elem_def_name = name_parts[0] + "[x]"
+        if len(name_parts) >= 2:
+            # Account for slice name appearing after polymorphism indicator '[x]'
+            elem_def_name = elem_def_name + ":" + name_parts[1]
+        if elem_def := structure_def.get_element_by_id(prefix + "." + elem_def_name):
+            return elem_def
         else:
+            id_pattern = (
+                prefix
+                + "."
+                + name_parts[0]
+                + "([x])"
+                + (f":{name_parts[1]}" if len(name_parts) >= 2 else "")
+            )
             raise KeyError(
-                f"No such element definition [idPattern='{element_def_id}/[x]', structure_def='{structure_def.url}']"
+                f"No such element definition [idPattern='{id_pattern}', structure_def='{structure_def.url}']"
             )
 
 
@@ -159,6 +178,12 @@ def _find_definition_reference(
 
 # Resolution
 class FHIRPathResolver:
+    """
+    FHIRPath expression resolver returning a chain of tuples of `StructureDefinition` and `ElementDefinition`s
+    representing definition context (e.g. the `StructureDefinition`) and the corresponding partial path of the
+    expression representing an `ElementDefinition` that is defined by within this context
+    """
+
     def __init__(self, package_manager: FhirPackageManager):
         self.__package_manager = package_manager
 
