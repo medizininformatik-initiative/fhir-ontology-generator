@@ -1,0 +1,152 @@
+{
+  "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/PatientPseudonymisiert": {
+    "lookup_additions": {
+      "Patient.identifier:pid.use": {
+        "parent": "Patient.identifier:pid",
+        "viewDefinition": {
+          "column": [
+            {
+              "name": "Patient_identifierPid_use",
+              "path": "use",
+              "type": "code"
+            }
+          ]
+        }
+      },
+      "Patient.identifier:pid.type": {
+        "parent": "Patient.identifier:pid",
+        "viewDefinition": {
+          "forEachOrNull": "type",
+          "select": []
+        },
+        "children": [
+          "Patient.identifier:pid.type.coding"
+        ]
+      },
+      "Patient.identifier:pid.type.coding": {
+        "parent": "Patient.identifier:pid.type",
+        "viewDefinition": {
+          "forEachOrNull": "coding",
+          "column": [
+            {
+              "name": "Patient_identifierPid_type_coding_system",
+              "path": "system"
+            },
+            {
+              "name": "Patient_identifierPid_type_coding_code",
+              "path": "code"
+            }
+          ]
+        }
+      },
+      "Patient.identifier:pid.system": {
+        "parent": "Patient.identifier:pid",
+        "viewDefinition": {
+          "column": [
+            {
+              "name": "Patient_identifierPid_system",
+              "path": "system",
+              "type": "uri"
+            }
+          ]
+        }
+      },
+      "Patient.identifier:pid.value": {
+        "parent": "Patient.identifier:pid",
+        "viewDefinition": {
+          "column": [
+            {
+              "name": "Patient_identifierPid_value",
+              "path": "value",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "Patient.identifier:pid.period.start": {
+        "parent": "Patient.identifier:pid.period",
+        "viewDefinition": {
+          "column": [
+            {
+              "name": "Patient_identifierPid_period_start",
+              "path": "start",
+              "type": "dateTime"
+            }
+          ]
+        }
+      },
+      "Patient.identifier:pid.period.end": {
+        "parent": "Patient.identifier:pid.period",
+        "viewDefinition": {
+          "column": [
+            {
+              "name": "Patient_identifierPid_period_end",
+              "path": "end",
+              "type": "dateTime"
+            }
+          ]
+        }
+      },
+      "Patient.identifier:pid.period": {
+        "parent": "Patient.identifier:pid",
+        "viewDefinition": {
+          "forEachOrNull": "period",
+          "select": []
+        },
+        "children": [
+          "Patient.identifier:pid.period.end",
+          "Patient.identifier:pid.period.start"
+        ]
+      },
+      "Patient.identifier:pid.assigner.reference": {
+        "parent": "Patient.identifier:pid.assigner",
+        "viewDefinition": {
+          "column": [
+            {
+              "name": "Patient_identifierPid_assigner_reference",
+              "path": "reference",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "Patient.identifier:pid.assigner": {
+        "parent": "Patient.identifier:pid",
+        "viewDefinition": {
+          "forEachOrNull": "assigner",
+          "select": []
+        },
+        "children": [
+          "Patient.identifier:pid.assigner.reference"
+        ]
+      },
+      "Patient.identifier:pid": {
+        "parent": "Patient.identifier",
+        "viewDefinition": {
+          "forEachOrNull": "$this.where(type.coding.system = 'http://terminology.hl7.org/CodeSystem/v2-0203' and type.coding.code = 'MR')",
+          "select": []
+        },
+        "children": [
+          "Patient.identifier:pid.use",
+          "Patient.identifier:pid.type",
+          "Patient.identifier:pid.value",
+          "Patient.identifier:pid.system",
+          "Patient.identifier:pid.period",
+          "Patient.identifier:pid.assigner"
+        ]
+      },
+      "Patient.identifier": {
+        "viewDefinition": {
+          "forEachOrNull": "identifier",
+          "select": []
+        },
+        "children": [
+          "Patient.identifier:PseudonymisierterIdentifier",
+          "Patient.identifier:AnonymisierterIdentifier",
+          "Patient.identifier:MaskierterVersichertenIdentifer",
+          "Patient.identifier:pid"
+        ]
+      }
+    }
+  }
+}

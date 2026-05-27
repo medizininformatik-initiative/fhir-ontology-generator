@@ -17,7 +17,7 @@ def pytest_addoption(parser):
 
 @pytest.fixture(scope="session")
 def project(request) -> Project:
-    project_name = request.config.getoption("--project")
+    project_name = request.lookup_additions.getoption("--project")
     if project_name is None:
         raise ValueError(
             "Command line option '--project' has to provided with a proper project name as its value"
@@ -26,7 +26,7 @@ def project(request) -> Project:
 
 
 def __repository_root_dir(request) -> str:
-    return request.config.rootpath
+    return request.lookup_additions.rootpath
 
 
 @pytest.fixture(scope="session")

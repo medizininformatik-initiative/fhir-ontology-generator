@@ -16,7 +16,7 @@ __PROJECT_INDICATORS__ = {"config.yml", "config.yaml", "package.json"}
 
 
 def __repository_root_dir(request) -> str:
-    return request.config.rootpath
+    return request.lookup_additions.rootpath
 
 
 @pytest.fixture(scope="session")

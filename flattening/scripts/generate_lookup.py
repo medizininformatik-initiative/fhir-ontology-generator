@@ -2,10 +2,12 @@ import argparse
 import json
 from typing import List
 
-from common.util.http.terminology.client import FhirTerminologyClient
 from common.util.log.functions import get_logger
 from common.util.project import Project
-from flattening.core.flattening import generate_flattening_lookup, FlatteningLookup
+from flattening.core.flattening import (
+    FlatteningLookup,
+    FlatteningLookupGenerator,
+)
 
 _logger = get_logger(__file__)
 
@@ -47,12 +49,9 @@ if __name__ == "__main__":
     args = arg_parser.parse_args()
 
     project = _setup_project(args.project)
-    with open(project.input.flattening / "FlatteningConfig.json", mode="r", encoding="utf-8") as f:
-        config = json.load(f)
+    lookup_generator = FlatteningLookupGenerator(project)
 
-    lookup_file: List[FlatteningLookup] = generate_flattening_lookup(
-        project.package_manager, FhirTerminologyClient.from_project(project), config
-    )
+    lookup_file: List[FlatteningLookup] = lookup_generator.generate_flattening_lookup()
 
     with open(
         project.output.flattening / "flatteningLookup.json", mode="w", encoding="utf-8"
