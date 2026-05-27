@@ -411,11 +411,11 @@ def generate_cql_mapping(
         )
         os.makedirs(os.path.dirname(cql_mapping_file), exist_ok=True)
         with open(cql_mapping_file, mode="w", encoding="utf-8") as f:
-            f.write(cql_mappings.to_json())
+            f.write(cql_mappings.model_dump_json(by_alias=True))
     except Exception as exc:
         raise Exception(
-            "CQL mapping generation failed. No mapping will be emitted", exc
-        )
+            "CQL mapping generation failed. No mapping will be emitted"
+        ) from exc
 
 
 def generate_fhir_mapping(
@@ -448,7 +448,7 @@ def generate_fhir_mapping(
     )
     os.makedirs(os.path.dirname(fhir_mapping_file), exist_ok=True)
     with open(fhir_mapping_file, mode="w", encoding="utf-8") as f:
-        f.write(fhir_search_mapping.to_json())
+        f.write(fhir_search_mapping.model_dump_json(by_alias=True))
     # validate_fhir_mapping("mapping_fhir")
     logger.info("FHIR mapping generated and validated.")
 

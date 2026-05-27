@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Dict, Tuple, List, Mapping, Set
+from typing import Dict, Tuple, List, Mapping, Set, Optional
 
 from fhir.resources.R4B.coding import Coding
 from fhir.resources.R4B.elementdefinition import ElementDefinition
@@ -731,11 +731,13 @@ class UIProfileGenerator:
         self,
         profile_snapshot: StructureDefinitionSnapshot,
         attribute_defining_element_id: str,
+        module_name: Optional[str] = None,
     ):
         """
         Generates an attribute definition for a reference attribute
         :param profile_snapshot: FHIR profile snapshot
         :param attribute_defining_element_id: element id that defines the reference
+        :param module_name: (Optional) name of the module to search for referenced criterion definitions in
         :return: attribute definition
         """
         attribute_defining_elements_with_source_snapshots = (
@@ -755,19 +757,21 @@ class UIProfileGenerator:
         )
         attribute_definition.display = attribute_display
         attribute_definition.referencedCriteriaSet = self.get_reference_criteria_set(
-            attribute_defining_elements_with_source_snapshots
+            attribute_defining_elements_with_source_snapshots, module_name
         )
         return attribute_definition
 
     def get_reference_criteria_set(
         self,
         chain: List[Tuple[StructureDefinitionSnapshot, ElementDefinition]],
+        module_name: Optional[str] = None,
     ) -> List[CriteriaSet]:
         """
         Resolves the set of supported term codes for a criterion
 
         :param chain: List of tuples of ``ElementDefinition``s and their containing ``StructureDefinition``s defining
                       the path to the criterion
+        :param module_name: (Optional) name of the module to search for matching criterion definitions in
         :return: ``CriteriaSet`` object
         """
         # Furthest link in the chain that with the context being either a resource or an extension definition such that
@@ -778,9 +782,9 @@ class UIProfileGenerator:
         )
         referenced_criteria_sets = []
         is_element_slice = is_element_slice_base(elem_def.id)
-        context = self.querying_meta_data_resolver.get_query_meta_data(snapshot)[
-            0
-        ].context
+        context = self.querying_meta_data_resolver.get_query_meta_data(
+            snapshot, module_name
+        )[0].context
 
         if is_element_slice and (
             fixed_term_codes := get_fixed_term_codes(
@@ -798,7 +802,6 @@ class UIProfileGenerator:
             )
         elif not is_element_slice:
             available_slices = get_available_slices(elem_def.id, snapshot)
-            self.__logger.debug(f"Found available slices: {available_slices}")
             for slice_name in available_slices:
                 slice_id = elem_def.id + ":" + slice_name
                 _, slice_element = self.__fp_resolver.resolve_leaf(snapshot, slice_id)

@@ -1,20 +1,18 @@
 from __future__ import annotations
 
-import json
 from abc import ABC, abstractmethod
-from functools import total_ordering
-from typing import List, TypeVar, Generic
+from typing import List, TypeVar, Generic, Callable, Any
 
-from pydantic import BaseModel
+from pydantic import Field, SerializeAsAny
 from sortedcontainers import SortedSet
 
 from cohort_selection_ontology.model.ui_data import TermCode
 from common.model.fhir.types import FHIRResourceTypeStr
-from common.model.pydantic.mixins import SerializeSorted, CamelCase
-from common.util.codec.json import JSONFhirOntoEncoder
+from common.model.pydantic.mixins import StandardBaseModel
+from common.util.log.functions import name
 
 
-class AttributeSearchParameter(BaseModel):
+class AttributeSearchParameter(StandardBaseModel):
     """
     AttributeSearchParameter the information how to translate the attribute part of a criteria to a FHIR query snippet
     :param key: Defines the code of the attribute and acts as unique identifier within the ui_profile
@@ -29,8 +27,7 @@ class AttributeSearchParameter(BaseModel):
 T = TypeVar("T", bound="DenormalizedMapping")
 
 
-@total_ordering
-class Mapping(BaseModel, Generic[T], ABC, CamelCase, SerializeSorted):
+class Mapping(StandardBaseModel, Generic[T], ABC):
     name: str
     resource_type: FHIRResourceTypeStr["R4B"]
 
@@ -44,47 +41,26 @@ class Mapping(BaseModel, Generic[T], ABC, CamelCase, SerializeSorted):
         :param key: Key coding to associate with the denormalized version
         :return: Object of type ``T`` extending ``DenormalizedCQLMapping``
         """
-
         pass
 
-    # only required for version 1 support
-    def __eq__(self, other):
-        return issubclass(other, self.__class__) and self.name == other.name
-
-    def __lt__(self, other):
-        return self.name < other.name
-
-    def __hash__(self):
-        return hash(self.name)
+    @classmethod
+    def __sort_key__(cls) -> Callable[[dict[str, Any]], Any]:
+        return lambda x: x.get("name")
 
 
-@total_ordering
-class DenormalizedMapping(ABC, BaseModel, CamelCase, SerializeSorted):
+class DenormalizedMapping(StandardBaseModel):
     name: str
     resource_type: FHIRResourceTypeStr["R4B"]
     context: TermCode
     key: TermCode
 
-    # only required for version 1 support
-    def __eq__(self, other):
-        return self.key == other.key
-
-    def __lt__(self, other):
-        return self.key < other.key
-
-    def __hash__(self):
-        return hash(self.key)
+    @classmethod
+    def __sort_key__(cls) -> Callable[[dict[str, Any]], Any]:
+        return lambda x: repr(x.get("context")) + ":" + repr(x.get("key")) + ":" + name
 
 
-class MapEntryList:
-    def __init__(self):
-        self.entries = []
-
-    def to_json(self):
-        self.entries = list(self.entries)
-        return json.dumps(
-            self.entries, cls=JSONFhirOntoEncoder, sort_keys=True, indent=4
-        )
+class MapEntryList(StandardBaseModel):
+    entries: List[SerializeAsAny[DenormalizedMapping]] = Field(default_factory=list)
 
     def get_code_systems(self):
         code_systems = SortedSet()

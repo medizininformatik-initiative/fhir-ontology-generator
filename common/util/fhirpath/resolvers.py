@@ -337,4 +337,4 @@ class FHIRPathResolver:
                  cannot be resolved within the provided context (i.e. no element definition can be found)
         """
         chain = self.resolve_path(context, fhir_path)
-        return chain[-1][1] if chain else None
+        return chain[-1] if chain else None

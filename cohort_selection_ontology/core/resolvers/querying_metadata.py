@@ -92,12 +92,7 @@ class StandardDataSetQueryingMetaDataResolver(ResourceQueryingMetaDataResolver):
             )
             if profile_name in profile_to_metadata_mapping:
                 for metadata_name in profile_to_metadata_mapping[profile_name]:
-                    metadata_file = (
-                        self.__project.input.cso.mkdirs(
-                            "modules", module_name, "QueryingMetaData"
-                        )
-                        / f"{metadata_name}QueryingMetaData.json"
-                    )
+                    metadata_file = mp / "QueryingMetaData" / f"{metadata_name}QueryingMetaData.json"
                     with open(metadata_file, mode="r", encoding="utf-8") as file:
                         result.append(ResourceQueryingMetaData.from_json(file))
         if not result:

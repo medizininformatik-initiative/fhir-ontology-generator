@@ -11,6 +11,7 @@ from cohort_selection_ontology.model.ui_data import (
     TranslationDisplayElement,
     Translation,
 )
+from common.util.fhirpath.resolvers import FHIRPathResolver
 from common.util.log.functions import get_logger
 from common.util.structure_definition.functions import (
     extract_reference_type,
@@ -318,14 +319,15 @@ def test_extract_value_type(
 )
 def test_extract_reference_type(
     sample_snapshot: StructureDefinitionSnapshot,
-    fdpg_project: Project,
     value_defining_id: str,
+    fdpg_project: Project,
     expected: str,
+    fhirpath_resolver: FHIRPathResolver
 ):
-    modules_dir = fdpg_project.input.cso.path / "modules"
-
     elements = get_element_defining_elements(
-        sample_snapshot, value_defining_id, "Bioprobe", modules_dir
+        sample_snapshot,
+        value_defining_id,
+        fhirpath_resolver,
     )
 
     found_reference_type = ""
@@ -334,7 +336,7 @@ def test_extract_reference_type(
         for element_type in element.type:
             if element_type.code == "Reference":
                 found_reference_type = extract_reference_type(
-                    element_type, modules_dir, sample_snapshot.name
+                    element_type, fdpg_project.input.cso / "modules", sample_snapshot.name
                 )
                 break
     assert found_reference_type == expected
@@ -382,19 +384,17 @@ def test_get_display_from_element_definition(
 
 
 @pytest.mark.parametrize(
-    "element_id, sample_snapshot, module_dir_name, expected, is_composite",
+    "element_id, sample_snapshot, expected, is_composite",
     [
         (
             "Specimen.collection.collected[x]",
             lf("sample_snapshot_bioprobe"),
-            "Bioprobe",
             ["(Specimen.collection.collected as dateTime)"],
             False,
         ),
         (
             "((Specimen.extension:festgestellteDiagnose).value[x]).code.coding:icd10-gm",
             lf("sample_snapshot_bioprobe"),
-            "Bioprobe",
             [
                 "(Specimen.extension.where(url='https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Diagnose').value as Reference)",
                 "Extension.value[x]",
@@ -405,14 +405,12 @@ def test_get_display_from_element_definition(
         (
             "Specimen.collection.bodySite",
             lf("sample_snapshot_bioprobe"),
-            "Bioprobe",
             ["Specimen.collection.bodySite"],
             False,
         ),
         (
             "Specimen.type.coding:sct",
             lf("sample_snapshot_bioprobe"),
-            "Bioprobe",
             ["Specimen.type.coding"],
             False,
         ),
@@ -421,15 +419,12 @@ def test_get_display_from_element_definition(
 def test_translate_element_to_fhir_path_expression(
     element_id: str,
     sample_snapshot: StructureDefinitionSnapshot,
-    module_dir_name: str,
     expected: List[str],
     is_composite: bool,
-    fdpg_project: Project,
+    fhirpath_resolver: FHIRPathResolver
 ):
-
-    modules_dir = fdpg_project.input.cso.mkdirs("modules")
     elements = get_element_defining_elements(
-        sample_snapshot, element_id, module_dir_name, modules_dir
+        sample_snapshot, element_id, fhirpath_resolver
     )
 
     result = translate_element_to_fhir_path_expression(

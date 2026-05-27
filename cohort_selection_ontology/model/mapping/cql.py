@@ -3,9 +3,19 @@ from __future__ import annotations
 from dataclasses import field
 
 from enum import Enum
-from typing import Union, Set, List, Optional, ClassVar, Collection, override
+from typing import (
+    Union,
+    Set,
+    List,
+    Optional,
+    ClassVar,
+    Collection,
+    override,
+    Callable,
+    Any,
+)
 
-from pydantic import BaseModel, field_validator
+from pydantic import field_validator
 
 from cohort_selection_ontology.model.mapping import (
     AttributeSearchParameter,
@@ -14,6 +24,9 @@ from cohort_selection_ontology.model.mapping import (
 )
 from cohort_selection_ontology.model.ui_data import TermCode
 from common.model.fhir.types import FHIRDataTypeStr
+from common.model.pydantic.mixins import (
+    StandardBaseModel,
+)
 from common.typing.fhir import FHIRPath
 
 
@@ -42,14 +55,14 @@ class SimpleCardinality(str, Enum):
                 return SimpleCardinality.MANY
 
 
-class FixedCQLCriteria(BaseModel):
+class FixedCQLCriteria(StandardBaseModel):
     types: Set[FHIRDataTypeStr["R4B"]]
     value: List[TermCode]
     path: FHIRPath
     cardinality: SimpleCardinality
 
 
-class CQLTypeParameter(BaseModel):
+class CQLTypeParameter(StandardBaseModel):
     """
     Holds information about an element within a FHIR resources that a filter targets
     """
@@ -80,7 +93,9 @@ class CQLAttributeSearchParameter(AttributeSearchParameter, CQLTypeParameter):
     query snippet
     """
 
-    pass
+    @classmethod
+    def __sort_key__(cls) -> Callable[[dict[str, Any]], Any]:
+        return lambda x: repr(x.get("key"))
 
 
 class CQLTimeRestrictionParameter(CQLTypeParameter):
@@ -107,6 +122,12 @@ class CQLMapping(Mapping):
     corresponding ELM FHIR ModelInfo type and there will be no explicit mapping for this attribute.
     """
 
+    PRIMARY_ATTR_KEY: ClassVar[TermCode] = TermCode(
+        system="https://www.medizininformatik-initiative.de/fdpg-plus/ccdl/attribute",
+        code="primary-attribute",
+        display="Primary criterion attribute",
+    )
+
     key_attribute: Optional[CQLTypeParameter] = None
     time_restriction: Optional[CQLTimeRestrictionParameter] = None
     attributes: List[CQLAttributeSearchParameter] = field(default_factory=list)
@@ -130,7 +151,7 @@ class CQLMapping(Mapping):
             time_restriction=self.time_restriction,
             attributes=[
                 CQLAttributeSearchParameter(
-                    key=key,
+                    key=self.PRIMARY_ATTR_KEY.model_copy(deep=True),
                     path=key_attr.path,
                     cardinality=key_attr.cardinality,
                     types=key_attr.types,

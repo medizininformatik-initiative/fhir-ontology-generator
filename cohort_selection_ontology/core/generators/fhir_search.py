@@ -130,7 +130,7 @@ class FHIRSearchMappingGenerator(object):
         :return: FHIR search parameter
         """
         fhir_path_expressions = self.translate_element_id_to_fhir_path_expressions(
-            element_id, profile_snapshot, module_dir_name
+            element_id, profile_snapshot
         )
         try:
             search_parameters: OrderedDict[str, dict] = (
@@ -293,7 +293,9 @@ class FHIRSearchMappingGenerator(object):
         profile_snapshot,
         module_dir_name: str,
     ):
-        attribute_key = generate_attribute_key(attribute)
+        chain = self.__fp_resolver.resolve_path(profile_snapshot, attribute)
+        leaf_sd, leaf_ed = chain[-1]
+        attribute_key = generate_attribute_key(leaf_ed.id)
         attribute_type = (
             predefined_type
             if predefined_type
@@ -322,7 +324,7 @@ class FHIRSearchMappingGenerator(object):
         self, attribute, profile_snapshot: StructureDefinitionSnapshot, module_dir_name
     ):
         attribute_parsed = get_element_defining_elements(
-            profile_snapshot, attribute, module_dir_name, self.__modules_dir
+            profile_snapshot, attribute, self.__fp_resolver
         )
         if len(attribute_parsed) != 2:
             raise ValueError(
@@ -426,17 +428,15 @@ class FHIRSearchMappingGenerator(object):
         self,
         element_id: str,
         profile_snapshot: StructureDefinitionSnapshot,
-        module_dir_name: str,
     ) -> List[str]:
         """
         Translates an element id to a fhir search parameter
         :param element_id: element id
         :param profile_snapshot: FHIR profile snapshot containing the element id
-        :param module_dir_name: Name of the module directory
         :return: fhir search parameter
         """
         elements = get_element_defining_elements(
-            profile_snapshot, element_id, module_dir_name, self.__modules_dir
+            profile_snapshot, element_id, self.__fp_resolver
         )
         return translate_element_to_fhir_path_expression(profile_snapshot, elements)
 

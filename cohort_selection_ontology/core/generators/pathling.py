@@ -10,8 +10,9 @@ from cohort_selection_ontology.core.resolvers.querying_metadata import (
     ResourceQueryingMetaDataResolver,
 )
 from common.model.fhir.structure_definition import StructureDefinitionSnapshot
+from common.util.fhirpath.resolvers import FHIRPathResolver
 from common.util.project import Project
-from cohort_selection_ontology.model.mapping import (
+from cohort_selection_ontology.model.mapping.pathling import (
     PathlingMapping,
     PathlingAttributeSearchParameter,
 )
@@ -38,6 +39,7 @@ class PathlingMappingGenerator(object):
         """
         self.__project = project
         self.__client = CohortSelectionTerminologyClient(self.__project)
+        self.__fp_resolver = FHIRPathResolver(self.__project.package_manager)
         self.querying_meta_data_resolver = querying_meta_data_resolver
         self.generated_mappings = []
         self.data_set_dir: str = ""
@@ -209,7 +211,7 @@ class PathlingMappingGenerator(object):
         self, element_id: str, profile_snapshot: StructureDefinitionSnapshot
     ) -> str:
         elements = get_element_defining_elements(
-            profile_snapshot, element_id, self.module_dir, self.data_set_dir
+            profile_snapshot, element_id, self.__fp_resolver
         )
         # TODO: Revisit and evaluate if this really the way to go.
         for element in elements:
@@ -237,7 +239,7 @@ class PathlingMappingGenerator(object):
         :return: fhir search parameter
         """
         elements = get_element_defining_elements(
-            profile_snapshot, element_id, self.module_dir, self.data_set_dir
+            profile_snapshot, element_id, self.__fp_resolver
         )
         expressions = profile_snapshot.translate_element_to_fhir_path_expression(
             elements

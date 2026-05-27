@@ -9,7 +9,7 @@ from fhir.resources.R4B.structuredefinition import StructureDefinition
 from pydantic import BaseModel, Field, field_validator
 
 from common.model.fhir.pydantic import validate_partial_model
-from common.model.pydantic.mixins import CamelCase
+from common.model.pydantic.mixins import CamelCaseBaseModel
 from common.util.fhir.package.manager import FhirPackageManager
 from common.util.log.functions import get_class_logger
 
@@ -73,7 +73,7 @@ def _matches_pattern(model: BaseModel, pattern: Mapping[str, Any]) -> bool:
     return True
 
 
-class FieldConfigEntry(BaseModel, CamelCase):
+class FieldConfigEntry(CamelCaseBaseModel):
     pattern: Annotated[Mapping[str, Any], Field(default_factory=dict)]
     note: Annotated[Optional[str], Field(default=None)]
 

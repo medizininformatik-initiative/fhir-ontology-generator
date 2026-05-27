@@ -203,13 +203,16 @@ class CQLMappingGenerator(object):
         """
         key_attr = None
         if tc_defining_id := querying_meta_data.term_code_defining_id:
-            if not self.is_primary_path(
-                querying_meta_data.resource_type,
-                self.remove_fhir_resource_type(tc_defining_id),
-            ):
-                key_attr = self.get_attribute_search_param(
-                    tc_defining_id, None, profile_snapshot, module_dir_name
-                )
+            # Primary path disabled
+            # tc_chain = self.__fp_resolver.resolve_path(profile_snapshot, tc_defining_id)
+            # _, root_elem_def = tc_chain[0]
+            # if not self.is_primary_path(
+            #     querying_meta_data.resource_type,
+            #     self.remove_fhir_resource_type(root_elem_def.id),
+            # ):
+            key_attr = self.get_attribute_search_param(
+                tc_defining_id, None, profile_snapshot, module_dir_name
+            )
 
         if val_defining_id := querying_meta_data.value_defining_id:
             key_attr = self.get_attribute_search_param(
@@ -232,9 +235,11 @@ class CQLMappingGenerator(object):
         )
 
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
-            element = profile_snapshot.get_element_by_id(time_defining_id)
+            tr_struct_def, tr_elem_def = self.__fp_resolver.resolve_leaf(
+                profile_snapshot, time_defining_id
+            )
             element, types = select_element_compatible_with_cql_operations(
-                element, profile_snapshot
+                tr_elem_def, tr_struct_def
             )
             element_id = element.id
             if not types:
@@ -253,7 +258,7 @@ class CQLMappingGenerator(object):
                 )
             fhir_path = (
                 self.translate_element_id_to_fhir_path_expressions_time_restriction(
-                    element_id, profile_snapshot, module_dir_name
+                    element_id, profile_snapshot
                 )
             )
             card = CQLMappingGenerator.__aggregate_cardinality_using_element(
@@ -268,11 +273,13 @@ class CQLMappingGenerator(object):
             attr_attributes,
         ) in querying_meta_data.attribute_defining_id_type_map.items():
             attr_type = attr_attributes.type
-            self.get_attribute_search_param(
-                attr_defining_id,
-                attr_type,
-                profile_snapshot,
-                module_dir_name,
+            cql_mapping.attributes.append(
+                self.get_attribute_search_param(
+                    attr_defining_id,
+                    attr_type,
+                    profile_snapshot,
+                    module_dir_name,
+                )
             )
 
         return cql_mapping
@@ -284,7 +291,9 @@ class CQLMappingGenerator(object):
         profile_snapshot: StructureDefinitionSnapshot,
         module_dir_name: str,
     ) -> CQLAttributeSearchParameter:
-        attribute_key = generate_attribute_key(attr_defining_id)
+        chain = self.__fp_resolver.resolve_path(profile_snapshot, attr_defining_id)
+        _, root_elem_def = chain[0]
+        attribute_key = generate_attribute_key(root_elem_def.id)
         attribute_type = (
             attr_type
             if attr_type
@@ -314,7 +323,7 @@ class CQLMappingGenerator(object):
             )
         else:
             if attribute_type != "Reference":
-                element = profile_snapshot.get_element_by_id(attr_defining_id)
+                element = profile_snapshot.get_element_by_id(root_elem_def.id)
                 element, attribute_types = (
                     select_element_compatible_with_cql_operations(
                         element, profile_snapshot
@@ -323,12 +332,12 @@ class CQLMappingGenerator(object):
                 attr_defining_id = element.id
             attribute_fhir_path = (
                 self.translate_term_element_id_to_fhir_path_expression(
-                    attr_defining_id, profile_snapshot, module_dir_name
+                    attr_defining_id, profile_snapshot
                 )
             )
         attribute_types = attribute_types if attribute_types else {attribute_type}
         cards = self.__aggregate_cardinality_using_element_id(
-            attr_defining_id, profile_snapshot, module_dir_name
+            attr_defining_id, profile_snapshot
         )
         attribute = CQLAttributeSearchParameter(
             types=list(attribute_types),
@@ -337,18 +346,17 @@ class CQLMappingGenerator(object):
             cardinality=cards,
         )
         if attribute_type == "Reference":
-            attribute.referenceTargetType = self.get_reference_type(
-                profile_snapshot, attr_defining_id, module_dir_name
+            attribute.reference_target_type = self.get_reference_type(
+                profile_snapshot, attr_defining_id
             )
 
         return attribute
 
     def get_composite_code(
-        self, attribute, profile_snapshot: StructureDefinitionSnapshot, module_dir_name
+        self, attribute, profile_snapshot: StructureDefinitionSnapshot
     ):
-        modules_dir = self.__project.input.cso.mkdirs("modules")
         attribute_parsed = get_element_defining_elements(
-            profile_snapshot, attribute, module_dir_name, modules_dir
+            profile_snapshot, attribute, self.__fp_resolver
         )
         if len(attribute_parsed) != 2:
             raise ValueError(
@@ -366,11 +374,9 @@ class CQLMappingGenerator(object):
         self,
         attribute: str,
         profile_snapshot: StructureDefinitionSnapshot,
-        module_dir_name: str,
     ):
-        modules_dir = self.__project.input.cso.mkdirs("modules")
         attribute_parsed = get_element_defining_elements(
-            profile_snapshot, attribute, module_dir_name, modules_dir
+            profile_snapshot, attribute, self.__fp_resolver
         )
         if len(attribute_parsed) != 2:
             raise ValueError(
@@ -410,20 +416,17 @@ class CQLMappingGenerator(object):
         self,
         attribute: str,
         profile_snapshot: StructureDefinitionSnapshot,
-        module_dir_name: str,
     ) -> str:
         """
 
         :param attribute: id of the attribute
         :param profile_snapshot: StructureDefinitionSnapshot
-        :param module_dir_name: name of the module
 
         :return: FHIR search parameter
 
         """
-        modules_dir = self.__project.input.cso.mkdirs("modules")
         elements = get_element_defining_elements(
-            profile_snapshot, attribute, module_dir_name, modules_dir
+            profile_snapshot, attribute, self.__fp_resolver
         )
         # first seems to be the value every time
         elements[0], _ = select_element_compatible_with_cql_operations(
@@ -434,9 +437,7 @@ class CQLMappingGenerator(object):
             profile_snapshot, elements, is_composite=True
         )
         value_clause = expressions[0]
-        composite_code = self.get_composite_code(
-            attribute, profile_snapshot, module_dir_name
-        )
+        composite_code = self.get_composite_code(attribute, profile_snapshot)
         updated_where_clause = f".where(code.coding.exists(system = '{composite_code.system}' and code = '{composite_code.code}'))"
         # replace original where clause in attribute using string manipulation and regex
         updated_attribute_path = re.sub(
@@ -657,7 +658,7 @@ class CQLMappingGenerator(object):
         if " as ValueSet" in attribute_id:
             attribute_id = attribute_id.replace(" as ValueSet", "")
         attribute_element = resolve_defining_id(
-            profile_snapshot, attribute_id, modules_dir, module_dir_name
+            profile_snapshot, attribute_id, self.__fp_resolver
         )
 
         attribute_type = extract_value_type(attribute_element, profile_snapshot.name)

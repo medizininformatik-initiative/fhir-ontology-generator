@@ -163,7 +163,7 @@ class TermCode(BaseModel):
 
     def __repr__(self):
         return (
-            self.system + " " + self.code + " " + self.version if self.version else ""
+            self.system + (("(" + self.version + ")") if self.version else "") + "|" + self.code
         )
 
     def to_dict(self):

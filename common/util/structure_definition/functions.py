@@ -227,13 +227,12 @@ def get_extension_definition(
 def get_element_defining_elements(
     profile_snapshot: StructureDefinitionSnapshot,
     chained_element_id: str,
-    start_module_dir: str,
-    data_set_dir: str | Path,
+    resolver: FHIRPathResolver,
 ) -> List[ElementDefinition] | None:
     return [
-        element_with_source_snapshot.element
-        for element_with_source_snapshot in get_element_defining_elements_with_source_snapshots(
-            profile_snapshot, chained_element_id, start_module_dir, data_set_dir
+        elem_def_and_snapshot[1]
+        for elem_def_and_snapshot in resolver.resolve_path(
+            profile_snapshot, chained_element_id
         )
     ]
 

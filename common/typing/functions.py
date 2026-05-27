@@ -1,7 +1,7 @@
 from collections import Counter
 from functools import reduce
 from operator import and_
-from typing import Any, get_args, Tuple, Iterable, Optional
+from typing import Any, get_args, Tuple, Iterable
 
 from types import UnionType
 
@@ -41,3 +41,14 @@ def resolve_type(ann: Any) -> Tuple[Any, bool]:
         case "Literal":
             return mca_type([type(v) for v in get_args(ann)]), False
     raise ValueError(f"Cannot resolve unambiguous underlying type of annotation {ann}")
+
+
+
+# We only care for JSON types for now
+_SORTABLE_JSON_TYPES = {str, int, float, bool, bytes}
+
+
+def type_is_sortable(t) -> bool:
+    if t in _SORTABLE_JSON_TYPES:
+        return True
+    return hasattr(t, "__lt__") and t.__lt__ is not object.__lt__

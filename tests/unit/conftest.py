@@ -8,6 +8,7 @@ from fhir.resources.R4B.elementdefinition import ElementDefinition
 from fhir.resources.R4B.structuredefinition import StructureDefinition
 
 from common.util.fhir.package.manager import FhirPackageManager
+from common.util.fhirpath.resolvers import FHIRPathResolver
 from common.util.project import Project
 
 
@@ -69,6 +70,11 @@ def project(request: FixtureRequest) -> Project:
 @pytest.fixture(scope="module")
 def package_manager(project: Project) -> FhirPackageManager:
     return project.package_manager
+
+
+@pytest.fixture(scope="module")
+def fhirpath_resolver(package_manager: FhirPackageManager) -> FHIRPathResolver:
+    return FHIRPathResolver(package_manager)
 
 
 @pytest.fixture
