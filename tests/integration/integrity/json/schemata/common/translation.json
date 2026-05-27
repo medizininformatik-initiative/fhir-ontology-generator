@@ -1,9 +1,0 @@
-{
-  "$id": "https://fdpg.de/translation.json",
-  "type": "object",
-  "properties": {
-    "language": {"type": "string"},
-    "value": {"type": "string"}
-  },
-  "required": ["language"]
-}
