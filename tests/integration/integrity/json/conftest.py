@@ -9,7 +9,6 @@ import pytest
 from _pytest.python import Metafunc
 
 from common.util.project import Project
-from ...conftest import project
 from common.util.log.functions import get_logger
 
 logger = get_logger(__file__)

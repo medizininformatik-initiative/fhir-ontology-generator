@@ -1,0 +1,21 @@
+services:
+  fhir-server:
+    image: "samply/blaze:1.7@sha256:f2e87759605587eaf9cbbf86e229938019a732bb908d4e59f107a2744e73825f"
+    environment:
+      BASE_URL: "http://blaze:8080/fhir"
+      JAVA_TOOL_OPTIONS: "-Xmx1g"
+      LOG_LEVEL: "debug"
+      ENFORCE_REFERENTIAL_INTEGRITY: "false"
+    ports:
+      - "8082:8080"
+    volumes:
+      - "blaze-data:/app/data"
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "http://localhost:8080/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  blaze-data:
