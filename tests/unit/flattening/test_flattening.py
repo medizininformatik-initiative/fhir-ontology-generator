@@ -15,7 +15,6 @@ from flattening.core.flattening import (
     ViewDefinitionSelect,
     FlatteningLookupGenerator,
 )
-from tests.unit.conftest import profile, elem_def
 
 
 @pytest.mark.parametrize(

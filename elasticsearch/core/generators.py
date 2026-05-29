@@ -103,7 +103,7 @@ class ElasticSearchGenerator:
             display=self.__designation_resolver.resolve_term(parent_term_code),
             terminology=system,
             term_code=code,
-            selectable=self.__determine_if_termcode_selectable(parent_term_code_info)
+            selectable=self.__determine_if_termcode_selectable(parent_term_code_info),
         )
 
         return parent_relational_termcode
@@ -211,14 +211,16 @@ class ElasticSearchGenerator:
             termcode_hash = str(uuid.uuid3(namespace_uuid, termcode_hash_input))
 
             if termcode_hash not in termcode_to_valueset:
+                tc = {
+                    "code": termcode["code"],
+                    "display": termcode["display"],
+                    "system": termcode["system"],
+                }
+                if v := termcode.get("version"):
+                    tc["version"] = v
                 termcode_to_valueset[termcode_hash] = {
                     "hash": termcode_hash,
-                    "termcode": {
-                        "code": termcode["code"],
-                        "display": termcode["display"],
-                        "system": termcode["system"],
-                        "version": 2099,
-                    },
+                    "termcode": tc,
                     "value_sets": [value_set["url"]],
                     "display": self.__designation_resolver.resolve_term(termcode),
                 }
