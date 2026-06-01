@@ -1,35 +1,43 @@
-import json
 import os
 import subprocess
 from datetime import datetime
-from sys import stderr
-from tabnanny import check
+from pathlib import Path
+from subprocess import CalledProcessError
 
-from typing import Optional
-
+from common.constants.project import PROJECT_ROOT
 from common.util.log.functions import get_logger
 
+_logger = get_logger(__file__)
 
-logger = get_logger(__file__)
 
-
-def save_docker_logs(dir_path: str, project_name: Optional[str] = None) -> None:
+def save_docker_logs(dir_path: Path, project_name: str) -> None:
     """
-    Saves logs of all running Docker containers to a logs folder.
-    This should be the last test in the file to ensure all other tests are complete.
-    :param dir_path: Location (directory) in which to save the directory containing the container logs
-    :param project_name: Optional Docker project name no filter container names for.
+    Saves logs of all running Docker containers of a compose project to some directory. The actual path under which the
+    log files can be found is: ::
+
+    <repo_path>/logs/<dir_path>/docker/<project_name>
+    :param dir_path: Relative location to the global logs directory to save the logs at
+    :param project_name: Docker Compose project name no filter container names for.
                          Pattern: <project_name>_<service_name>
     """
     # Directory of the (this) test file
-    output_folder = os.path.join(dir_path, "docker_logs")
-    os.makedirs(output_folder, exist_ok=True)
+    logs_dir = PROJECT_ROOT / "logs"
+    output_folder = (
+        logs_dir / dir_path.relative_to(PROJECT_ROOT) / "docker" / project_name
+    )
+    output_folder.mkdir(parents=True, exist_ok=True)
 
     try:
         # Get the list of running container IDs
-        args = ["docker", "ps", "-a", "--format", "{{.ID}} {{.Names}}"]
-        if project_name:
-            args.extend(["-f", f"name=^{project_name}"])
+        args = [
+            "docker",
+            "ps",
+            "-a",
+            "--format",
+            "{{.ID}} {{.Names}}",
+            "-f",
+            f"name=^{project_name}",
+        ]
         result = subprocess.run(
             args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True
         )
@@ -41,7 +49,9 @@ def save_docker_logs(dir_path: str, project_name: Optional[str] = None) -> None:
             ]
 
             if not containers:
-                logger.warning("Found no running containers")
+                _logger.warning(
+                    f"Found no running containers for compose project '{project_name}'"
+                )
                 return
 
             now = datetime.now()
@@ -77,14 +87,12 @@ def save_docker_logs(dir_path: str, project_name: Optional[str] = None) -> None:
                         text=True,
                         check=True,
                     )
-                logger.info(
-                    f"Logs saved for container {container_name} [id={container_id}] in {log_file}, {inspect_file}"
+                _logger.info(
+                    f"Saved logs of container '{container_name}' ({container_id}) @ '{log_file}'"
                 )
-    except subprocess.CalledProcessError as err:
-        logger.error(
-            f"Error while fetching container data. Reason: {err.stderr}", exc_info=err
-        )
-    except Exception as exc:
-        logger.error(
-            f"Error while fetching container data. Reason: {exc}", exc_info=exc
+    except Exception as err:
+        _logger.error(
+            f"Error while fetching logs for compose project '{project_name}'. Details: "
+            f"{err.stderr if isinstance(err, CalledProcessError) else err}",
+            exc_info=err,
         )

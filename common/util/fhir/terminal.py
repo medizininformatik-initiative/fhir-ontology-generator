@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 from typing import List
 
+from typing_extensions import deprecated
+
 from common.util.structure_definition.functions import is_structure_definition
 
 
