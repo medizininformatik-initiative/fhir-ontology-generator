@@ -15,7 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
-#[v4.1.0] - 2026-05-04
+# [v4.1.1] - 2026-06-03
+
+## Fixed
+
+- Replace incorrect time filter search parameter config entry for Condition resource type (#473 @paulolaup)
+- Fix consent flattening (#470 @paulolaup)
+
+# [v4.1.0] - 2026-05-04
 
 ## Added 
 - Flattening lookup file generation based on profiles in DSE (#406 #456 @Frontman50)
