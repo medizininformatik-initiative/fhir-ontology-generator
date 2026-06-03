@@ -11,7 +11,7 @@ from cohort_selection_ontology.model.ui_data import (
     TranslationDisplayElement,
     Translation,
 )
-from common.util.log.functions import get_logger
+from common.log import get_logger
 from common.util.structure_definition.functions import (
     extract_reference_type,
     get_element_defining_elements,
@@ -25,7 +25,7 @@ from common.util.structure_definition.functions import (
     translate_element_to_fhir_path_expression,
     find_polymorphic_value,
 )
-from common.model.fhir.structure_definition import (
+from common.model.fhir.idx_structure_definition import (
     StructureDefinitionSnapshot,
     ProcessedElementResult,
 )

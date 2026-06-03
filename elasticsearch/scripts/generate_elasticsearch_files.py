@@ -1,7 +1,7 @@
 import argparse
 
 from elasticsearch.core.generators import ElasticSearchGenerator
-from common.util.log.functions import get_logger
+from common.log import get_logger
 from common.util.project import Project
 
 logger = get_logger(__file__)

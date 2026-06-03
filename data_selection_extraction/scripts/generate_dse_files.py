@@ -2,7 +2,6 @@ import argparse
 import collections
 import os
 import json
-from pathlib import Path
 
 from typing import Union, Literal, Mapping, List, Any, Optional
 from urllib.parse import urlparse
@@ -26,7 +25,7 @@ from cohort_selection_ontology.core.terminology.client import (
 )
 from cohort_selection_ontology.model.tree_map import TreeMap, TermEntryNode
 from cohort_selection_ontology.model.ui_data import TermCode
-from common.util.log.functions import get_logger
+from common.log import get_logger
 from data_selection_extraction.model.detail import ProfileDetailListTA
 
 _logger = get_logger(__file__)

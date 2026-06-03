@@ -12,7 +12,7 @@ from typing import List, OrderedDict, Dict, Tuple
 from collections import OrderedDict as orderedDict
 
 from common.exceptions import NotFoundError
-from common.util.log.functions import get_class_logger
+from common.log import get_class_logger
 
 
 # TODO: Refactor class hierarchy: The ABC only really needs to implement the most basic functionalities, the rest could

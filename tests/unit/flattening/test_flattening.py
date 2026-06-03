@@ -3,7 +3,7 @@ from typing import Dict
 import pytest
 from fhir.resources.R4B.elementdefinition import ElementDefinition
 
-from common.model.fhir.structure_definition import StructureDefinitionSnapshot
+from common.model.fhir.idx_structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.package.manager import FhirPackageManager
 from common.util.http.terminology.client import FhirTerminologyClient
 from flattening.core.flattening import (

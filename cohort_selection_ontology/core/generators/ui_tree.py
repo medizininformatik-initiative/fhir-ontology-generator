@@ -18,11 +18,11 @@ from cohort_selection_ontology.model.tree_map import (
     TreeMap,
 )
 from cohort_selection_ontology.model.ui_data import TermCode
-from common.model.fhir.structure_definition import (
+from common.model.fhir.idx_structure_definition import (
     StructureDefinitionSnapshot as StructureDefinition,
     StructureDefinitionSnapshot,
 )
-from common.util.log.functions import get_class_logger
+from common.log import get_class_logger
 from common.util.project import Project
 from common.util.structure_definition.functions import (
     is_structure_definition,

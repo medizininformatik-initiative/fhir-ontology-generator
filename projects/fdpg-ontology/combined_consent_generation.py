@@ -16,7 +16,7 @@ import argparse
 import os
 
 from common.util.codec.json import JSONFhirOntoEncoder
-from common.util.log.functions import get_logger
+from common.log import get_logger
 from common.util.project import Project
 
 logger = get_logger(__file__)

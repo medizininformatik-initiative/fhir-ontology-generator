@@ -12,7 +12,7 @@ from availability.core.element_availability import (
     update_stratifier_ids,
 )
 from common.util.collections.functions import first
-from common.util.log.functions import get_logger
+from common.log import get_logger
 from common.util.project import Project
 from data_selection_extraction.model.detail import ProfileDetail, FieldDetail
 

@@ -5,7 +5,7 @@ from typing import Mapping
 from jsonpath_ng import parse
 
 from common.util.http.backend.client import FeasibilityBackendClient
-from common.util.log.functions import get_logger
+from common.log import get_logger
 from common.util.test.fhir import (
     load_list_of_resources_onto_fhir_server,
     delete_list_of_resources_from_fhir_server,

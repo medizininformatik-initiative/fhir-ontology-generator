@@ -46,7 +46,7 @@ from availability.core.element_availability import (
     generate_measure,
     _find_subject_reference_elem_def,
 )
-from common.model.fhir.structure_definition import StructureDefinitionSnapshot
+from common.model.fhir.idx_structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.package.manager import FhirPackageManager
 from common.util.fhirpath import parse_expr, fhirpathParser
 

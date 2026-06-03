@@ -7,7 +7,7 @@ from _pytest.python import Metafunc
 from fhir.resources.R4B.bundle import Bundle
 from fhir.resources.R4B.measure import Measure
 
-from common.util.log.functions import get_logger
+from common.log import get_logger
 from common.util.fhir.package.manager import FhirPackageManager
 from common.util.project import Project
 from common.util.test.fhir import download_and_unzip_kds_test_data

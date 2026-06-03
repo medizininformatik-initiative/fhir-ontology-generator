@@ -10,10 +10,9 @@ from cohort_selection_ontology.model.ui_data import (
     Translation,
 )
 from common.util.http.terminology.client import FhirTerminologyClient
-from common.util.log.functions import get_logger
+from common.log import get_logger
 from common.util.project import Project
 from common.util.sql.merging import SqlMerger
-
 
 logger = get_logger(__file__)
 
@@ -86,9 +85,7 @@ def add_system_urls_to_systems_json(project: Project, system_urls):
                 ],
             )
 
-            terminology_systems.append(
-                {"url": key, "display": cs_display.model_dump()}
-            )
+            terminology_systems.append({"url": key, "display": cs_display.model_dump()})
 
         terminology_systems = sorted(terminology_systems, key=lambda x: x["url"])
 

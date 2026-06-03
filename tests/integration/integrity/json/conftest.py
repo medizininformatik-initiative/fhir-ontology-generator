@@ -3,14 +3,14 @@ import os
 from pathlib import Path
 from os import PathLike
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
-from typing import Mapping, Union, Iterator, Optional
+from typing import Mapping, Union
 
 import pytest
 from _pytest.python import Metafunc
 
 from common.util.project import Project
 from ...conftest import project
-from common.util.log.functions import get_logger
+from common.log import get_logger
 
 logger = get_logger(__file__)
 

@@ -1,5 +1,5 @@
 import re
-from typing import List, Dict, Tuple, Callable, Mapping, Any
+from typing import List, Dict, Tuple, Callable, Mapping
 
 from fhir.resources.R4B.elementdefinition import ElementDefinition
 from fhir.resources.R4B.structuredefinition import StructureDefinition
@@ -7,16 +7,15 @@ from fhir.resources.R4B.structuredefinition import StructureDefinition
 from availability.constants.fhir import (
     FLATTENING_PACKAGE_PATTERN,
 )
-from common.model.fhir.structure_definition import StructureDefinitionSnapshot
+from common.model.fhir.idx_structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.package.manager import FhirPackageManager
 from common.util.http.exceptions import ClientError
 from common.util.http.terminology.client import FhirTerminologyClient
-from common.util.log.functions import get_logger
-from common.util.project import Project
+from common.log import get_logger
 from common.util.structure_definition.functions import (
     get_parent_element_id,
     get_parent_element,
-    get_available_slices, is_element_slice_base,
+    get_available_slices,
 )
 from flattening.model.FlatteningLookupModels import (
     FlatteningLookupElement,
@@ -170,7 +169,9 @@ def get_element_type(
     return None
 
 
-def get_direct_children_ids(element: str, profile: StructureDefinitionSnapshot) -> List[str]:
+def get_direct_children_ids(
+    element: str, profile: StructureDefinitionSnapshot
+) -> List[str]:
     """
     Returns the list of ids of direct children . All elements 1 level below.
     Example::
@@ -244,9 +245,14 @@ def recontextualize_extension_lookup(
 
         for column_el in (
             new_lookup.view_definition.column
-            if new_lookup and new_lookup.view_definition and new_lookup.view_definition.column else []
+            if new_lookup
+            and new_lookup.view_definition
+            and new_lookup.view_definition.column
+            else []
         ):
-            column_el.name = column_el.name.replace("Extension", id_to_column_name(element_id))
+            column_el.name = column_el.name.replace(
+                "Extension", id_to_column_name(element_id)
+            )
 
         # Recontextualize children ids
         new_lookup.children = [
@@ -261,7 +267,10 @@ def recontextualize_extension_lookup(
 
 
 def extract_where_clause_for_slice(
-    element: ElementDefinition, profile: StructureDefinitionSnapshot, client: FhirTerminologyClient = None, **kwargs
+    element: ElementDefinition,
+    profile: StructureDefinitionSnapshot,
+    client: FhirTerminologyClient = None,
+    **kwargs,
 ) -> str | None:
     """
     Extract codesystem for given element.
@@ -295,15 +304,16 @@ def extract_where_clause_for_slice(
             value_set = client.expand_value_set(url=binding_url)
 
             used_codes = [
-                code.get("code")
-                for code in value_set.get("expansion").get("contains")
+                code.get("code") for code in value_set.get("expansion").get("contains")
             ]
             where_clause = " or ".join(f"code = '{code}'" for code in used_codes)
             return where_clause
         except ClientError as e:
             _logger.error(f"Could not expand valueSet: {binding_url} \n" f"{e}")
 
-    elif (system_el := profile.get_element_by_id(f"{element.id}.system")) and system_el.fixedUri:
+    elif (
+        system_el := profile.get_element_by_id(f"{element.id}.system")
+    ) and system_el.fixedUri:
         return f"system = '{system_el.fixedUri}'"
 
     return None
@@ -359,7 +369,9 @@ def extract_code_system_for_identifier(
         and type_el.patternCodeableConcept.coding[0].system
     ):
         # edge case from Observation.identifier from profile: https://simplifier.net/mii-basismodul-labor-2025/mii_pr_labor_laboruntersuchung
-        return f"type.coding.system = '{type_el.patternCodeableConcept.coding[0].system}'"
+        return (
+            f"type.coding.system = '{type_el.patternCodeableConcept.coding[0].system}'"
+        )
     return None
 
 
@@ -390,10 +402,9 @@ def flatten_coding(
 
     if element is None:
         # Case `element is None`
-            # when working with "pseudo" Codings, meaning codings that should be there but are not explicitly defined like
-            # Extension.value[x]:valueCoding in https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/StructureDefinition/Durchfuehrungsabsicht
-            # => return generic coding flattening
-
+        # when working with "pseudo" Codings, meaning codings that should be there but are not explicitly defined like
+        # Extension.value[x]:valueCoding in https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/StructureDefinition/Durchfuehrungsabsicht
+        # => return generic coding flattening
 
         flat_element = FlatteningLookupElement(
             parent=check_if_root(get_parent_element_id(element_id), profile)
@@ -434,8 +445,9 @@ def flatten_coding(
                 el.id
                 for el in profile.snapshot.element
                 if element.id in el.id
-                   and get_parent_element(profile, el).id == element.id
-                   and el.id.split(".")[-1] in [k for (k,v) in REQUIRED_PRIMITIVE_PER_ELEMENT.get("Coding")]
+                and get_parent_element(profile, el).id == element.id
+                and el.id.split(".")[-1]
+                in [k for (k, v) in REQUIRED_PRIMITIVE_PER_ELEMENT.get("Coding")]
             ]
 
             clean_kwargs = {
@@ -560,9 +572,7 @@ def flatten_generic_complex_element(
     required_primitives = get_required_children_for_element(element_id, element_type)
     for prim_id, prim_type in required_primitives:
         flat_generic_complex.children.append(prim_id)
-        lookup.update(
-            flatten_element(prim_id, profile, type=prim_type, **clean_kwargs)
-        )
+        lookup.update(flatten_element(prim_id, profile, type=prim_type, **clean_kwargs))
 
     lookup.update({element_id: flat_generic_complex})
     return lookup
@@ -674,7 +684,9 @@ def flatten_extension(
                                 )
                             )
             else:
-                _logger.error(f"Could not resolve Extension ({element_id}) profile: {ext_profile_url}")
+                _logger.error(
+                    f"Could not resolve Extension ({element_id}) profile: {ext_profile_url}"
+                )
 
             lookup.update(
                 recontextualize_extension_lookup(
@@ -734,7 +746,9 @@ def flatten_codeable_concept(
             if len(slice_def.type) > 0 and "Coding" in slice_def.type[0].code
         ]
         if len(list_of_children_slices) > 0:
-            _logger.debug(f"When flattening codeableConcept {element_id} \t found slices: {list_of_children_slices}")
+            _logger.debug(
+                f"When flattening codeableConcept {element_id} \t found slices: {list_of_children_slices}"
+            )
             flat_element.children = list_of_children_slices
 
             clean_kwargs = {k: v for k, v in kwargs.items() if k != "type"}
@@ -780,7 +794,11 @@ def flatten_codeable_concept(
 
 
 def generate_flattening_polymorphic_child(
-    element_id: str, profile: StructureDefinitionSnapshot, polymorphic_parent: ElementDefinition, type: str = None, **kwargs
+    element_id: str,
+    profile: StructureDefinitionSnapshot,
+    polymorphic_parent: ElementDefinition,
+    type: str = None,
+    **kwargs,
 ) -> Dict[str, FlatteningLookupElement] | None:
     """
     Helper function for flattening polymorphic children. This is done by flattening the child (coding, quantity, etc.)
@@ -1058,7 +1076,7 @@ def generate_flattening_lookup_for_profile(
     profile: StructureDefinitionSnapshot,
     client: FhirTerminologyClient,
     manager: FhirPackageManager,
-    config: Mapping[str, Mapping[str, Mapping[str, Dict]]]
+    config: Mapping[str, Mapping[str, Mapping[str, Dict]]],
 ) -> FlatteningLookup:
     """
     Function to generate flattening for an entire profile.
@@ -1078,7 +1096,9 @@ def generate_flattening_lookup_for_profile(
             flatten_element(lvl1_el, profile, client, manager=manager)
         )
     if profile.url in config and config.get(profile.url):
-        for el_id, addition in config.get(profile.url).get("lookup_additions", {}).items():
+        for el_id, addition in (
+            config.get(profile.url).get("lookup_additions", {}).items()
+        ):
             lookup_elements.update(
                 {el_id: FlatteningLookupElement.model_validate(addition)}
             )
@@ -1093,7 +1113,7 @@ def generate_flattening_lookup_for_profile(
 
 
 def flattening_post_process(
-    lookup_elements: Dict[str, FlatteningLookupElement]
+    lookup_elements: Dict[str, FlatteningLookupElement],
 ) -> Dict[str, FlatteningLookupElement]:
     """
     Applies postprocessing to give lookup:
@@ -1106,9 +1126,10 @@ def flattening_post_process(
     for key, el in lookup_elements.items():
         el: FlatteningLookupElement
         new_el = el.model_copy(deep=True)
-        new_el.children = sorted([
-            child for child in (el.children or []) if child in lookup_elements
-        ],key = lambda x: len(x))
+        new_el.children = sorted(
+            [child for child in (el.children or []) if child in lookup_elements],
+            key=lambda x: len(x),
+        )
         if len(new_el.children) == 0:
             new_el.children = None
 
@@ -1118,7 +1139,9 @@ def flattening_post_process(
 
 
 def generate_flattening_lookup(
-    manager: FhirPackageManager, client: FhirTerminologyClient, config: Mapping[str, Mapping[str, Mapping[str, Dict]]]
+    manager: FhirPackageManager,
+    client: FhirTerminologyClient,
+    config: Mapping[str, Mapping[str, Mapping[str, Dict]]],
 ) -> List[FlatteningLookup]:
     """
     Flatten all available profiles
@@ -1149,7 +1172,9 @@ def generate_flattening_lookup(
         )
 
         profile: StructureDefinitionSnapshot
-        lookup = generate_flattening_lookup_for_profile(profile, client, manager, config)
+        lookup = generate_flattening_lookup_for_profile(
+            profile, client, manager, config
+        )
         lookup_file.append(lookup)
 
     return lookup_file

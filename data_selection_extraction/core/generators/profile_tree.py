@@ -17,13 +17,13 @@ from cohort_selection_ontology.model.ui_data import (
     Translation,
 )
 from common.model.fhir.pydantic import construct_model
-from common.model.fhir.structure_definition import (
-    IndexedStructureDefinition,
+from common.model.fhir.idx_structure_definition import (
+    IdxStructureDefinition,
     idx_struct_def_discriminator,
 )
-from common.model.fhir.structure_definition import StructureDefinitionSnapshot
+from common.model.fhir.idx_structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.enums import FhirPrimitiveDataType, FhirComplexDataType
-from common.util.log.functions import get_class_logger
+from common.log import get_class_logger
 
 from enum import Enum
 from typing import Mapping, Optional, Any, List
@@ -36,7 +36,6 @@ from common.util.structure_definition.functions import (
 from data_selection_extraction.config.profile_detail import FieldsConfig
 from data_selection_extraction.model.profile_tree import ProfileTreeNode
 from data_selection_extraction.util.fhir.profile import is_profile_selectable
-
 
 _EXT_ELEM_PATTERN = re.compile(
     r".*extension(:(?P<slice_name>[a-zA-Z0-9\/\\\-_\[\]\@]+))?"
@@ -120,7 +119,7 @@ class ProfileTreeGenerator:
         return name
 
     def filter_element(
-        self, element: ElementDefinition, profile: IndexedStructureDefinition
+        self, element: ElementDefinition, profile: IdxStructureDefinition
     ) -> bool:
         # TODO: This is a temporary workaround to allow both the postal code and the country information to be selected
         #       during data selection. To preserve context, selecting elements with simple data types which are not on
@@ -413,7 +412,9 @@ class ProfileTreeGenerator:
                 try:
                     with open(file_path, mode="r", encoding="utf-8") as f:
                         try:
-                            content = construct_model(idx_struct_def_discriminator, **json.load(f))
+                            content = construct_model(
+                                idx_struct_def_discriminator, **json.load(f)
+                            )
                         except pydantic.ValidationError as e:
                             error_list = ""
                             for err in e.errors():

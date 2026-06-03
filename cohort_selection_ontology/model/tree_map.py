@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from cohort_selection_ontology.model.ui_profile import del_keys, del_none
 from cohort_selection_ontology.model.ui_data import Module, TermCode
 from common.util.codec.json import JSONSerializable
-from common.util.log.functions import get_class_logger
+from common.log import get_class_logger
 
 
 class TermEntryNode(BaseModel):

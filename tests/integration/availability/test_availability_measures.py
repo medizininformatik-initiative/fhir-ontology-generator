@@ -9,9 +9,8 @@ from fhir.resources.R4B.bundle import Bundle
 from pydantic import ValidationError
 
 from common.util.fhirpath import parse_expr
-from common.util.log.functions import get_logger
+from common.log import get_logger
 from common.util.test.docker import save_docker_logs
-
 
 _logger = get_logger(__name__)
 

@@ -16,11 +16,11 @@ from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaD
 from cohort_selection_ontology.model.ui_data import TermCode
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS
 from common.exceptions import NotFoundError
-from common.model.fhir.structure_definition import (
+from common.model.fhir.idx_structure_definition import (
     StructureDefinitionSnapshot,
     FHIR_TYPES_TO_VALUE_TYPES,
 )
-from common.util.log.functions import get_class_logger
+from common.log import get_class_logger
 from common.util.project import Project
 from common.util.structure_definition.functions import (
     extract_value_type,

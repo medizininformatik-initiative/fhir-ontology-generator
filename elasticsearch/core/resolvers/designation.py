@@ -10,9 +10,8 @@ from typing import List, TypeVar, Any, Mapping
 from common.util.collections.functions import first
 from common.util.fhir.bundle import create_bundle, BundleType
 from common.util.http.terminology.client import FhirTerminologyClient
-from common.util.log.functions import get_class_logger, get_logger
+from common.log import get_class_logger, get_logger
 from common.util.project import Project
-
 
 _logger = get_logger(__file__)
 

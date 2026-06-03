@@ -37,7 +37,7 @@ from cohort_selection_ontology.model.mapping import (
 from cohort_selection_ontology.model.ui_profile import UIProfile
 from cohort_selection_ontology.model.ui_data import TermCode
 from common.constants.docker import POSTGRES_IMAGE
-from common.util.log.functions import get_logger
+from common.log import get_logger
 from common.util.project import Project
 
 logger = get_logger(__file__)

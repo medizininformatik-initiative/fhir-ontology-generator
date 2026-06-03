@@ -6,8 +6,8 @@ from pydantic import BaseModel, PrivateAttr
 
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
 from cohort_selection_ontology.model.ui_data import TermCode
-from common.model.fhir.structure_definition import StructureDefinitionSnapshot
-from common.util.log.functions import get_class_logger
+from common.model.fhir.idx_structure_definition import StructureDefinitionSnapshot
+from common.log import get_class_logger
 from common.util.project import Project
 
 

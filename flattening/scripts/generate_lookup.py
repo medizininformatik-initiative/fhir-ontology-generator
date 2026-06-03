@@ -3,7 +3,7 @@ import json
 from typing import List
 
 from common.util.http.terminology.client import FhirTerminologyClient
-from common.util.log.functions import get_logger
+from common.log import get_logger
 from common.util.project import Project
 from flattening.core.flattening import generate_flattening_lookup, FlatteningLookup
 
@@ -47,7 +47,9 @@ if __name__ == "__main__":
     args = arg_parser.parse_args()
 
     project = _setup_project(args.project)
-    with open(project.input.flattening / "FlatteningConfig.json", mode="r", encoding="utf-8") as f:
+    with open(
+        project.input.flattening / "FlatteningConfig.json", mode="r", encoding="utf-8"
+    ) as f:
         config = json.load(f)
 
     lookup_file: List[FlatteningLookup] = generate_flattening_lookup(

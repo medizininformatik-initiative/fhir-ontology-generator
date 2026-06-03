@@ -6,7 +6,7 @@ from json_source_map import calculate
 from os.path import basename
 from pathlib import Path
 from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaData
-from common.util.log.functions import get_logger
+from common.log import get_logger
 
 logger = get_logger(__file__)
 

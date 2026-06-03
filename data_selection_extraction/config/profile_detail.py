@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field, field_validator
 from common.model.fhir.pydantic import validate_partial_model
 from common.model.pydantic.mixins import CamelCase
 from common.util.fhir.package.manager import FhirPackageManager
-from common.util.log.functions import get_class_logger
+from common.log import get_class_logger
 
 _POS_REGEX_IDENTIFIER = "?regex:"
 _ALIAS_MAP = {

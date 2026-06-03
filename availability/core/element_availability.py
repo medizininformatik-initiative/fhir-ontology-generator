@@ -36,15 +36,15 @@ from availability.core.exceptions import MissingSubjectRefError
 from common.constants.fhir import EXT_DATA_ABSENT_REASON_URL
 from common.exceptions import NotFoundError, UnsupportedError
 from common.model.fhir.functions import get_reference_fields
-from common.model.fhir.structure_definition import (
+from common.model.fhir.idx_structure_definition import (
     StructureDefinitionSnapshot,
-    IndexedStructureDefinition,
+    IdxStructureDefinition,
 )
 from common.util.fhir.enums import FhirPrimitiveDataType
 from common.util.fhir.package.manager import FhirPackageManager
 from common.util.fhirpath import parse_expr, fhirpathParser
 from common.util.fhirpath.functions import get_symbol
-from common.util.log.functions import get_logger
+from common.log import get_logger
 from common.util.structure_definition.functions import get_parent_element
 
 _logger = get_logger(__file__)
@@ -55,7 +55,7 @@ _REGEX_MATCH_TRAILING_EXISTS_FUNC = re.compile(r"exists\((.*)\)$")
 
 
 def _find_subject_reference_elem_def(
-    profile: IndexedStructureDefinition,
+    profile: IdxStructureDefinition,
 ) -> Optional[ElementDefinition]:
     """
     Tries to find the first-level element holding the reference to the Patient resource (that represent the patient to
@@ -893,7 +893,7 @@ def _generate_stratifiers_for_typed_elem(
 
 def _resolve_supported_types(
     elem_def: ElementDefinition,
-    snapshot: IndexedStructureDefinition,
+    snapshot: IdxStructureDefinition,
     manager: FhirPackageManager,
 ) -> List[ElementDefinitionType]:
     """

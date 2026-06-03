@@ -9,7 +9,7 @@ from fhir.resources.R4B.structuredefinition import StructureDefinition
 
 from availability.constants.fhir import MII_CDS_PACKAGE_PATTERN
 from common.exceptions import NotFoundError
-from common.model.fhir.structure_definition import StructureDefinitionSnapshot
+from common.model.fhir.idx_structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.package.manager import FhirPackageManager
 from common.util.project import Project
 from common.util.structure_definition.functions import get_parent_element

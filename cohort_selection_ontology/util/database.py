@@ -9,7 +9,7 @@ from typing_extensions import deprecated
 from cohort_selection_ontology.model.ui_profile import UIProfile, CriteriaSet
 from cohort_selection_ontology.model.ui_data import TermCode
 
-from common.util.log.functions import get_class_logger
+from common.log import get_class_logger
 
 NAMESPACE_UUID = uuid.UUID("00000000-0000-0000-0000-000000000000")
 
@@ -532,23 +532,19 @@ class DataBaseWriter:
         leaking into the table and resulting in rows without any UI profile reference. Due to other SQL statements not
         overwriting existing entries (based on the rows term code hash value), these incomplete entries will persist
         """
-        self.cursor.execute(
-            """
+        self.cursor.execute("""
             SELECT COUNT(*)
             FROM contextualized_termcode
             WHERE ui_profile_id IS NULL;
-        """
-        )
+        """)
         row = self.cursor.fetchone()
         cnt = row[0] if row else 0
         if cnt > 0:
             self.__logger.info(
                 f"Removing {cnt} contextualized term code entries without reference to any UI profile"
             )
-            self.cursor.execute(
-                """
+            self.cursor.execute("""
                 DELETE FROM contextualized_termcode
                 WHERE ui_profile_id IS NULL;
-            """
-            )
+            """)
             self.db_connection.commit()

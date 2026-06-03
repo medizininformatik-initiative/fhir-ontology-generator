@@ -14,9 +14,9 @@ from cohort_selection_ontology.model.ui_data import (
     BulkTranslationDisplayElement,
     Translation,
 )
-from common.model.fhir.structure_definition import (
+from common.model.fhir.idx_structure_definition import (
     StructureDefinitionSnapshot,
-    IndexedStructureDefinition,
+    IdxStructureDefinition,
 )
 from common.util.project import Project
 from common.util.structure_definition.functions import (
@@ -43,7 +43,7 @@ from common.util.fhir.enums import (
     FhirSearchType,
 )
 
-from common.util.log.functions import get_class_logger
+from common.log import get_class_logger
 from data_selection_extraction.model.profile_tree import ProfileTreeNode
 from data_selection_extraction.util.fhir.profile import is_profile_selectable
 
@@ -124,7 +124,7 @@ class ProfileDetailGenerator:
         key=lambda _, ed, pr: pr.url + "#" + ed.id,
     )
     def is_field_included(
-        self, elem_def: ElementDefinition, profile: IndexedStructureDefinition
+        self, elem_def: ElementDefinition, profile: IdxStructureDefinition
     ) -> bool:
         if profile.get_aggregated_max_cardinality(elem_def.id) == 0:
             return False
@@ -141,7 +141,7 @@ class ProfileDetailGenerator:
         key=lambda _, ed, pr: pr.url + "#" + ed.id,
     )
     def is_field_required(
-        self, elem_def: ElementDefinition, profile: IndexedStructureDefinition
+        self, elem_def: ElementDefinition, profile: IdxStructureDefinition
     ) -> bool:
         if profile.get_aggregated_max_cardinality(elem_def.id) == 0:
             return False
@@ -158,7 +158,7 @@ class ProfileDetailGenerator:
         key=lambda _, ed, pr: pr.url + "#" + ed.id,
     )
     def is_field_recommended(
-        self, elem_def: ElementDefinition, profile: IndexedStructureDefinition
+        self, elem_def: ElementDefinition, profile: IdxStructureDefinition
     ) -> bool:
         if profile.get_aggregated_max_cardinality(elem_def.id) == 0:
             return False
@@ -335,7 +335,7 @@ class ProfileDetailGenerator:
         fields.append(field)
 
     def filter_element(
-        self, element: ElementDefinition, profile: IndexedStructureDefinition
+        self, element: ElementDefinition, profile: IdxStructureDefinition
     ) -> bool:
         # TODO: This is a temporary workaround to allow both the postal code and the country information to be selected
         #       during data selection. To preserve context, selecting elements with simple data types which are not on

@@ -1,7 +1,7 @@
 import argparse
 import shutil
 
-from common.util.log.functions import get_logger
+from common.log import get_logger
 from common.util.project import Project
 
 logger = get_logger(__file__)

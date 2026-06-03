@@ -7,7 +7,7 @@ from cohort_selection_ontology.core.generators.ui_profile import UIProfileGenera
 from cohort_selection_ontology.core.resolvers.querying_metadata import (
     StandardDataSetQueryingMetaDataResolver,
 )
-from common.model.fhir.structure_definition import StructureDefinitionSnapshot
+from common.model.fhir.idx_structure_definition import StructureDefinitionSnapshot
 from common.util.project import Project
 
 

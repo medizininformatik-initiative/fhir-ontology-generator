@@ -20,7 +20,7 @@ from itertools import groupby
 from cohort_selection_ontology.model.ui_data import TermCode
 from common.exceptions import UnsupportedError
 from common.util.http.terminology.client import FhirTerminologyClient
-from common.util.log.functions import get_logger
+from common.log import get_logger
 from common.util.project import Project
 
 

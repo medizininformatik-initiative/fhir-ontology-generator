@@ -1,9 +1,8 @@
 from collections.abc import Mapping
 from typing import Any
 
-from common.model.fhir.structure_definition import StructureDefinitionSnapshot
-from common.util.log.functions import get_logger
-
+from common.model.fhir.idx_structure_definition import StructureDefinitionSnapshot
+from common.log import get_logger
 
 logger = get_logger(__file__)
 

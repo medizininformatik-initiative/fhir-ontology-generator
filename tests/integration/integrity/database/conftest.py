@@ -1,9 +1,7 @@
 import importlib.resources
 import os
 import shutil
-import time
 from pathlib import Path
-from pydoc import resolve
 from typing import Union, Iterator
 
 import docker
@@ -14,12 +12,11 @@ from psycopg2 import OperationalError
 from psycopg2._psycopg import connection
 from pytest_docker.plugin import Services, get_docker_services
 
-from common.util.log.functions import get_logger
+from common.log import get_logger
 from common.util.project import Project
 from common.util.test.docker import save_docker_logs
 
 import common.resources.sql as sql_resources
-
 
 logger = get_logger(__name__)
 

@@ -11,7 +11,7 @@ from cohort_selection_ontology.model.ui_data import RelationalTermcode
 from common.util.codec.json import JSONFhirOntoEncoder
 from elasticsearch.core.resolvers.designation import TerminologyDesignationResolver
 
-from common.util.log.functions import get_class_logger
+from common.log import get_class_logger
 from common.util.project import Project
 
 
@@ -103,7 +103,7 @@ class ElasticSearchGenerator:
             display=self.__designation_resolver.resolve_term(parent_term_code),
             terminology=system,
             term_code=code,
-            selectable=self.__determine_if_termcode_selectable(parent_term_code_info)
+            selectable=self.__determine_if_termcode_selectable(parent_term_code_info),
         )
 
         return parent_relational_termcode

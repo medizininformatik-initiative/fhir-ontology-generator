@@ -16,7 +16,7 @@ import pytest
 from common.util.http.auth.credentials import OAuthClientCredentials
 from common.util.http.backend.client import FeasibilityBackendClient
 from common.util.http.functions import is_responsive
-from common.util.log.functions import get_logger
+from common.log import get_logger
 from common.util.project import Project
 from common.util.test.fhir import download_and_unzip_kds_test_data
 

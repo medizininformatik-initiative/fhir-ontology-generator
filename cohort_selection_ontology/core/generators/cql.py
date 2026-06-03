@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from functools import reduce
 from importlib.resources import files
-from typing import Tuple, List, Dict, Set
+from typing import Tuple, List, Dict
 
 from fhir.resources.R4B.elementdefinition import ElementDefinition
 from lxml import etree
@@ -27,12 +27,12 @@ from cohort_selection_ontology.model.query_metadata import ResourceQueryingMetaD
 from cohort_selection_ontology.model.ui_data import TermCode
 from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS
 from common.exceptions.typing import UnsupportedTypingException
-from common.model.fhir.structure_definition import (
+from common.model.fhir.idx_structure_definition import (
     StructureDefinitionSnapshot,
     CQL_TYPES_TO_VALUE_TYPES,
 )
 from common.typing.fhir import FHIRPathlike
-from common.util.log.functions import get_class_logger
+from common.log import get_class_logger
 from common.util.project import Project
 from common.util.structure_definition.functions import (
     extract_value_type,
