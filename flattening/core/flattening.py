@@ -182,6 +182,10 @@ def get_direct_children_ids(element: str, profile: StructureDefinitionSnapshot) 
     :param profile: snapshot of the profile of the element in question
     :return: list of children ids
     """
+    # if not a snapshot return []
+    if not profile.snapshot or not profile.snapshot.element:
+        print(f"{element} requested profile {profile.url} which is not a snapshot")
+        return []
     return [
         el.id for el in profile.snapshot.element if get_parent_element_id(el) == element
     ]
