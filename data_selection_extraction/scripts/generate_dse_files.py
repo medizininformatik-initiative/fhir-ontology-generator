@@ -319,7 +319,7 @@ if __name__ == "__main__":
     project = Project(args.project)
     dse_input_dir = project.input.dse
     dse_output_dir = project.output.dse
-    project.package_manager.restore(inflate=True)
+    project.package_manager.restore(inflate=True, lenient=True)
 
     with open(dse_input_dir / "module_config.json", "r", encoding="utf-8") as f:
         module_config = json.load(f)

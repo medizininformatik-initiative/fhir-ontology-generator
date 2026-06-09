@@ -29,7 +29,7 @@ def project() -> Project:
 @functools.cache
 def _package_manager() -> FhirPackageManager:
     pm = _project().package_manager
-    pm.restore(inflate=True)
+    pm.restore(inflate=True, lenient=True)
     return pm
 
 
