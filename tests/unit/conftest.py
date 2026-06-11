@@ -27,14 +27,14 @@ def repository_root_dir(request) -> str:
 @functools.cache
 def _global_project() -> Project:
     p = Project(path=Path(__file__).parent)
-    p.package_manager.restore(inflate=True)
+    p.package_manager.restore(inflate=True, lenient=True)
     return p
 
 
 @cachetools.cached(cache={}, key=lambda path: path.absolute())
 def _module_project(path: Path) -> Project:
     p = Project(path=path)
-    p.package_manager.restore(inflate=True)
+    p.package_manager.restore(inflate=True, lenient=True)
     return p
 
 

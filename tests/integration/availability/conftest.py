@@ -32,7 +32,7 @@ def test_dir() -> Path:
 
 @pytest.fixture(scope="session")
 def package_manager(project: Project) -> FhirPackageManager:
-    project.package_manager.restore(inflate=True)
+    project.package_manager.restore(inflate=True, lenient=True)
     return project.package_manager
 
 

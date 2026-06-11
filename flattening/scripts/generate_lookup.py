@@ -19,7 +19,7 @@ def _setup_project(project_name: str) -> Project:
     """
     project = Project(project_name)
     _logger.info("Preparing packages")
-    project.package_manager.restore(inflate=True)
+    project.package_manager.restore(inflate=True, lenient=True)
     return project
 
 
