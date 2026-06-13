@@ -40,6 +40,7 @@ from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot,
     IndexedStructureDefinition,
 )
+from common.util.collections.functions import first
 from common.util.fhir.enums import FhirPrimitiveDataType
 from common.util.fhir.package.manager import FhirPackageManager
 from common.util.fhirpath import parse_expr, fhirpathParser
@@ -70,18 +71,21 @@ def _find_subject_reference_elem_def(
         match ref_fields:
             case []:
                 return None
-            case [f]:
-                elem_path = f"{res_type}.{f.alias}"
             case _:
-                # Try common names for such an element if there are multiple candidates
-                f_names = [f.alias for f in ref_fields]
-                if "subject" in f_names:
-                    elem_path = f"{res_type}.subject"
-                elif "patient" in f_names:
-                    elem_path = f"{res_type}.patient"
-                else:
-                    return None
-        return profile.get_element_by_id(elem_path)
+                # Find Patient reference element identified as subject reference via the corresponding W5 mapping. Note,
+                # this matches the specific W5 mapping in FHIR R4, it might be different in other versions
+                return first(
+                    lambda ed: first(
+                        lambda m: m.identity == "w5"
+                        and m.map.startswith("FiveWs.subject"),
+                        ed.mapping if (ed and ed.mapping) else [],
+                    )
+                    is not None,
+                    (
+                        profile.get_element_by_id(f"{res_type}.{f.alias}")
+                        for f in ref_fields
+                    ),
+                )
     else:
         raise ValueError(
             f"Unknown FHIR resource type '{res_type}' constrained by profile '{profile}'"

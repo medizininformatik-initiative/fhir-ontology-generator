@@ -1,6 +1,9 @@
 import typing
+from itertools import takewhile
 from typing import Optional, Set, List
 
+from fhir.resources.R4B import get_fhir_model_class
+from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from pydantic.fields import FieldInfo
 
 
@@ -29,13 +32,19 @@ def get_reference_fields(
             ref_fields.append(model_field)
 
     if ref_types:
+        # Resolve base types on which the provided types are based (e.g. abstract types such as Resource etc.). They are
+        # used to indicate that a reference supports any Resource type
+        expanded_ref_types = {
+            m_cls.get_resource_type()
+            for t in ref_types
+            for m_cls in takewhile(
+                lambda cls: cls != FHIRResourceModel, get_fhir_model_class(t).__mro__
+            )
+        }
         ref_fields = [
             *filter(
-                lambda fi: any(
-                    [
-                        t in fi.json_schema_extra.get("enum_reference_types")
-                        for t in ref_types
-                    ]
+                lambda fi: not expanded_ref_types.isdisjoint(
+                    fi.json_schema_extra.get("enum_reference_types")
                 ),
                 ref_fields,
             )
