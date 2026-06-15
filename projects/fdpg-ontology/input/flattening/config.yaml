@@ -1,0 +1,33 @@
+# Project specific flattening-config file
+# This file is empty because we use the default from ../flattening/default_config/config
+# If you want to define your own rules, just override them here
+
+# No type is excluded by the default config
+excluded_types:
+  - http://hl7.org/fhirpath/System.String
+  - http://hl7.org/fhirpath/System.DateTime
+  - http://hl7.org/fhirpath/System.Decimal
+  - ParameterDefinition
+  - Money
+  - RelatedArtifact
+  - Narrative
+  - None
+  - Expression
+  - http://hl7.org/fhirpath/System.Date
+  - HumanName
+  - ContactDetail
+  - Signature
+  - Resource
+  - id
+
+# For all not excluded types that have no default flattening instructions in the default_config,
+#    there needs to be specified how that type should be flattened
+# Overwrite here the types you need
+required_children_per_element:
+
+  # specific for fdpg-ontology
+  Coding:
+    - id: code
+      type: code
+    - id: system
+      type: uri
