@@ -4,7 +4,9 @@ from pathlib import Path
 
 import pytest
 from _pytest.python import Metafunc
-from fhir.resources.R4B.elementdefinition import ElementDefinition
+from fhir.resources.R4B.elementdefinition import (
+    ElementDefinition,
+)
 from fhir.resources.R4B.structuredefinition import StructureDefinition
 
 from availability.constants.fhir import MII_CDS_PACKAGE_PATTERN
@@ -39,6 +41,11 @@ def package_manager() -> FhirPackageManager:
 
 
 @pytest.fixture(scope="session")
+def resources_dir() -> Path:
+    return Path(__file__).parent / "resources"
+
+
+@pytest.fixture(scope="session")
 def test_profile(package_manager: FhirPackageManager) -> StructureDefinitionSnapshot:
     idx_pattern = {"url": TEST_PROFILE_URL}
     if p := package_manager.find(idx_pattern) is not None:
@@ -50,19 +57,23 @@ def test_profile(package_manager: FhirPackageManager) -> StructureDefinitionSnap
 
 
 @pytest.fixture
-def profile(request, package_manager: FhirPackageManager):
+def profile(request, package_manager: FhirPackageManager, resources_dir: Path):
     """
     Fixture that can be used for indirect parameters named 'profile' to resolve any `string` typed value as a
     profile URL or pass on any `StructureDefinition` typed parameters
     """
     match request.param:
-        case str() as profile_url:
+        case str(profile_url):
             return package_manager.find({"url": profile_url})
+        case Path() as profile_f:
+            f_path = resources_dir / profile_f
+            return StructureDefinitionSnapshot.model_validate_json(f_path.read_text(encoding="utf-8"))
         case StructureDefinition() as struct_def:
             return struct_def
         case _ as param:
             raise ValueError(
-                f"Fixture 'profile' does not support indirect parameters of type {type(param)} [supported_types=[{type(str)}, {type(StructureDefinition)}]]"
+                f"Fixture 'profile' does not support indirect parameters of type {type(param)} "
+                f"[supported_types=[{type(str)}, {type(Path)}, {type(StructureDefinition)}]]"
             )
 
 
