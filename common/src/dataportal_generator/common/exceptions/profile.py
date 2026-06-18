@@ -1,4 +1,4 @@
-from common.exceptions import NotFoundError
+from dataportal_generator.common.exceptions import NotFoundError
 
 
 class MissingProfileError(NotFoundError):

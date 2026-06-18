@@ -3,8 +3,8 @@ from typing import TypeVar, Type, Callable, Any, Mapping
 from fhir_core.types import FhirBase
 from pydantic import BaseModel
 
-from common.model.pydantic import get_type_adapter_for_type
-from common.typing.functions import resolve_type
+from dataportal_generator.common.model.pydantic import get_type_adapter_for_type
+from dataportal_generator.common.typing.functions import resolve_type
 
 T = TypeVar("T", bound=BaseModel)
 

@@ -1,7 +1,7 @@
 from collections import Counter
 from functools import reduce
 from operator import and_
-from typing import Any, get_args, Tuple, Iterable, Optional
+from typing import Any, get_args, Tuple, Iterable
 
 from types import UnionType
 

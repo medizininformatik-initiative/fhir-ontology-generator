@@ -4,8 +4,8 @@ import sys
 
 from typing import Any, Optional
 
-from common.constants.project import PROJECT_ROOT
-from common.log import GLOBAL_LOGGING_CONFIG_FILE, LOGGING_DIR
+from dataportal_generator.common.constants.project import PROJECT_ROOT
+from dataportal_generator.common.log import GLOBAL_LOGGING_CONFIG_FILE, LOGGING_DIR
 
 # Process logging.yaml file and set logging config after
 LOGGING_DIR.mkdir(parents=True, exist_ok=True)

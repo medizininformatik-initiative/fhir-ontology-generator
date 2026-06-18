@@ -1,12 +1,41 @@
+[project]
+name = "dataportal-generator"
+version = "4.1.0"
+description = "Static file generation for the German Research Data Portal for Health (FDPG)"
+readme = "README.md"
+requires-python = ">=3.12"
+
+[dependency-groups]
+dev = [
+    {include-group = "test"},
+    {include-group = "format"}
+]
+test = [
+    "pytest~=8.3.4",
+    "pytest-cov==6.0.0",
+    "pytest-docker==3.1.1",
+    "pytest-env==1.1.5",
+    "pytest-httpserver==1.1.3",
+    "pytest-lazy-fixtures==1.3.4",
+    "pytest-xdist==3.8.0",
+]
+format = [
+    "black>=26.5.1",
+]
+
+[tool.uv]
+managed = true
+package = false
+
+[tool.uv.workspace]
+members = [
+    "common"
+]
+
 [tool.pytest.ini_options]
 log_cli = 1
 log_cli_level = "INFO"
 pythonpath = [".", "test", "src"]
 env = [
-    "CLIENT_ID=dataportal-webapp",
-    "CLIENT_SECRET=piczMMlNFoQuKTjRT4o4FJibPUFuI2bk",
-    "USERNAME=test",
-    "PASSWORD=supersecretpassword",
-    "TOKEN_ACCESS_URL=http://localhost:8083/auth/realms/dataportal/protocol/openid-connect/token",
     "TERMINOLOGY_SERVER_ADDRESS=https://ontoserver.mii-termserv.de/fhir"
 ]

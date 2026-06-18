@@ -1,4 +1,4 @@
-from common.exceptions import UnsupportedError
+from dataportal_generator.common.exceptions import UnsupportedError
 
 
 class UnsupportedTypingException(UnsupportedError):

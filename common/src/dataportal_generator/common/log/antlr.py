@@ -7,7 +7,7 @@ from antlr4.error.ErrorListener import ErrorListener
 from antlr4.error.Errors import RecognitionException
 from typing_extensions import TypeVar
 
-from common.log.functions import get_class_logger
+from dataportal_generator.common.log.functions import get_class_logger
 
 T = TypeVar("T", bound=Parser)
 

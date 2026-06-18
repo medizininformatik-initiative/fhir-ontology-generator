@@ -1,4 +1,4 @@
-from common.log.functions import get_class_logger
+from dataportal_generator.common.log.functions import get_class_logger
 
 
 def inject_logger(cls):

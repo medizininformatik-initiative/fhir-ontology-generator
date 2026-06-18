@@ -1,7 +1,7 @@
 import logging
 from enum import Enum
 
-from common.constants.project import PROJECT_ROOT
+from dataportal_generator.common.constants.project import PROJECT_ROOT
 
 
 GLOBAL_LOGGING_CONFIG_FILE = PROJECT_ROOT / "logging.yaml"
