@@ -15,6 +15,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+# [v4.2.0] - 2026-06-19
+
+## Added
+
+- Support flattening of additional data types and make process configurable (#468 @Frontman)
+- Include `Quantity.comparator`, `Quantity.unit`, and `Coding.version` in flattening of these data types (#483 @Frontman)
+
+## Fixed
+
+- Fix generation of coded stratifier identifiers for DSE availability measure (#484 @paulolaup)
+
 # [v4.1.1] - 2026-06-03
 
 ## Fixed
