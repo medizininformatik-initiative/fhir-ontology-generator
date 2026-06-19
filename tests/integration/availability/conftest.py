@@ -78,7 +78,8 @@ def test_data_bundle(tmp_dir: Path) -> Bundle:
 
 
 def pytest_generate_tests(metafunc: Metafunc):
-    if "test_stratifier_fhirpath_expression_validity" == metafunc.definition.name:
+    if ("test_stratifier_fhirpath_expression_validity" == metafunc.definition.name
+            or "test_measure_compatability_with_fde" == metafunc.definition.name):
         params = [pytest.param(measure_fn) for measure_fn in _MEASURES]
         metafunc.parametrize(
             argnames=["measure"],

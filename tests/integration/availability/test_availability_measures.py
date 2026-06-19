@@ -12,7 +12,6 @@ from common.util.fhirpath import parse_expr
 from common.util.log.functions import get_logger
 from common.util.test.docker import save_docker_logs
 
-
 _logger = get_logger(__name__)
 
 
@@ -46,6 +45,57 @@ def test_stratifier_fhirpath_expression_validity(measure: Measure):
                 raise Exception(
                     f"Failed to parse FHIRPath expression of stratifier '{strat.id}' in group '{grp.id}'"
                 ) from exc
+
+
+def test_measure_compatability_with_fde(measure: Measure):
+    ids = set()
+    fde_codes = set()
+    errors = list()
+    for grp in measure.group:
+        criteria = set()
+        for strat in grp.stratifier:
+            # Stratifier IDs
+            try:
+                assert strat.id not in ids, "All stratifiers should have a unique ID"
+                ids.add(strat.id)
+            except AssertionError as err:
+                errors.append(err)
+            # Stratifier FDE coding
+            try:
+                fde_codings = list(
+                    filter(
+                        lambda c: c.system == "http://fhir-data-evaluator/strat/system",
+                        strat.code.coding,
+                    )
+                )
+                assert (
+                    len(fde_codings) == 1
+                ), f"Exactly one FDE stratifier coding should be present (group: {repr(grp.id)}, stratifier: {strat.id})"
+                fde_code = fde_codings[0].code
+                assert (
+                    fde_code not in fde_codes
+                ), "All stratifiers should have a unique FDE code"
+                fde_codes.add(fde_codings[0].code)
+            except AssertionError as err:
+                errors.append(err)
+            # Stratifier criteria
+            try:
+                c = strat.criteria
+                assert (
+                    c is not None
+                    and c.language == "text/fhirpath"
+                    and c.expression is not None
+                ), "Stratifier should have a FHIRPath criterion"
+                assert (
+                    c.expression not in criteria
+                ), "All stratifiers of a group should have a unique FHIRPath expression"
+                criteria.add(c.expression)
+            except AssertionError as err:
+                errors.append(err)
+    if errors:
+        raise ExceptionGroup(
+            f"Measure {repr(measure.name)} is not compatible with FDE", errors
+        )
 
 
 def test_generating_measure_report(

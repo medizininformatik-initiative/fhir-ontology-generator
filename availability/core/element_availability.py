@@ -40,6 +40,7 @@ from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot,
     IndexedStructureDefinition,
 )
+from common.util.collections.functions import first
 from common.util.fhir.enums import FhirPrimitiveDataType
 from common.util.fhir.package.manager import FhirPackageManager
 from common.util.fhirpath import parse_expr, fhirpathParser
@@ -52,6 +53,16 @@ _logger = get_logger(__file__)
 
 _REGEX_MATCH_TRAILING_WHERE_FUNC = re.compile(r"where\((.*)\)$")
 _REGEX_MATCH_TRAILING_EXISTS_FUNC = re.compile(r"exists\((.*)\)$")
+
+
+_EXCLUDED_BASE_PATHS = {"Extension.id", "Extension.url", "Resource.id", "Element.id"}
+
+
+def _filter_elem_def(elem_def: ElementDefinition) -> bool:
+    if base := elem_def.base:
+        if base.path in _EXCLUDED_BASE_PATHS:
+            return False
+    return True
 
 
 def _find_subject_reference_elem_def(
@@ -596,7 +607,7 @@ def _append_filter_for_slice(
                 if len(slice_elem_def.type) == 1:
                     expr = f"ofType({slice_elem_def.type[0].code})"
                     type_expr = (
-                        expr if discr_path == "$this" else f"{discr.path}.{expr}"
+                        expr if discr_path == "$this" else f"{discr_path}.{expr}"
                     )
                     return base_expr + "." + type_expr
                 else:
@@ -646,6 +657,7 @@ def _generate_stratifier(expr: str, full_elem_id: str) -> MeasureGroupStratifier
     :return: Stratifier
     """
     return MeasureGroupStratifier(
+        id=full_elem_id,
         criteria=Expression(language="text/fhirpath", expression=expr),
         code=CodeableConcept(
             coding=[
@@ -679,7 +691,7 @@ def _get_full_element_id(
 
 
 def _resolve_polymorphism_in_expr(expr: str, fhir_type: Optional[str] = None) -> str:
-    """ "
+    """
     Resolves polymorphic element names with the given FHIRPath expression using the given FHIR type
 
     :param expr: FHIRPath expression string
@@ -784,6 +796,46 @@ def _generate_stratifiers_for_extension_elements(
     return stratifiers
 
 
+def _generate_stratifiers_from_extension_definitions(
+    elem_def: ElementDefinition,
+    parent_expr: str,
+    manager: FhirPackageManager,
+    chained_elem_id: List[str],
+) -> List[MeasureGroupStratifier]:
+    """
+    Generates stratifiers from the referenced extension structure definitions supported by the given element definition
+
+    :param elem_def: ``ElementDefinition`` instance supporting data type ``Extension``
+    :param parent_expr: FHIRPath expression for navigating to the parent element
+    :param manager: FHIR package manager providing the package scope to work with
+    :param chained_elem_id: Chain of IDs of elements from previous resource contexts leading to the extension
+    :return: List of stratifiers based on the referenced extension structure definitions
+    """
+    if not (ext_type := first(lambda e: e.code == "Extension", elem_def.type)):
+        raise ValueError(
+            f"Element definition {elem_def.id} does not support data type 'Extension'"
+        )
+    stratifiers = []
+    ext_profiles = ext_type.profile if ext_type.profile is not None else []
+    for url in ext_profiles:
+        index_pattern = {"url": url}
+        snapshot = manager.find(index_pattern)
+        if not snapshot or not isinstance(snapshot, StructureDefinition):
+            raise NotFoundError(
+                f"Could not find StructureDefinition resource defining extension structure '{url}'"
+            )
+        snapshot = StructureDefinitionSnapshot.model_validate(snapshot)
+        stratifiers.extend(
+            _generate_stratifiers_for_extension_elements(
+                snapshot,
+                parent_expr,
+                manager,
+                chained_elem_id,
+            )
+        )
+    return stratifiers
+
+
 def _generate_stratifiers_for_typed_elem(
     elem_type: ElementDefinitionType,
     parent_expr: str,
@@ -797,42 +849,12 @@ def _generate_stratifiers_for_typed_elem(
     :param elem_type: FHIR data type supported by the element
     :param parent_expr: FHIRPath expression for navigating to the parent element
     :param parent_elem_id: Element ID of the parent element
-    :param manager: FHIR package manager
+    :param manager: FHIR package manager in ``elem_def.id``
     :param chained_elem_id: Chain of IDs of preceding elements resulting from context switches (reference resolution
                             etc.)
     :return: List of stratifiers
     """
     match elem_type.code:
-        case "Extension":
-            stratifiers = [
-                _generate_stratifier(
-                    _ensure_trailing_existence_check(parent_expr),
-                    _get_full_element_id(chained_elem_id, "Extension"),
-                )
-            ]
-            if elem_type.profile:
-                profile_urls = elem_type.profile
-                for url in profile_urls:
-                    index_pattern = {"url": url}
-                    snapshot = manager.find(index_pattern)
-                    if not snapshot or not isinstance(snapshot, StructureDefinition):
-                        raise NotFoundError(
-                            f"Could not find StructureDefinition resource defining extension structure '{url}'"
-                        )
-                    snapshot = StructureDefinitionSnapshot.model_validate(snapshot)
-                    stratifiers.extend(
-                        _generate_stratifiers_for_extension_elements(
-                            snapshot,
-                            parent_expr,
-                            manager,
-                            chained_elem_id,
-                        )
-                    )
-            else:
-                # Extension elements can be defined inside the resource snapshot itself in which case its sub-elements
-                # will already be processed like other elements definitions in the snapshot
-                pass
-            return stratifiers
         case "Reference":
             # profile_urls = elem_type.targetProfile if elem_type.targetProfile else []
             stratifiers = [
@@ -848,7 +870,7 @@ def _generate_stratifiers_for_typed_elem(
             #        inclusion in the initial population which has to be done by either including all referenced
             #        resources or by selecting all relevant ones via specific search parameters. The former option is
             #        currently not supported by all FHIR server (e.g. blaze) and the later requires resolving search
-            #        parameters using the FHIRPath expression they use to select elements which is fasr from trivial (it
+            #        parameters using the FHIRPath expression they use to select elements which is far from trivial (it
             #        would require determining expression equivalence)
             # for url in profile_urls:
             #     index_pattern = {"url": url}
@@ -928,6 +950,15 @@ def _resolve_supported_types(
         return []
 
 
+def _supports_extension_type(
+    elem_def: ElementDefinition, struct_def: StructureDefinition, pm: FhirPackageManager
+) -> bool:
+    return any(
+        t.code == "Extension"
+        for t in _resolve_supported_types(elem_def, struct_def, pm)
+    )
+
+
 def _generate_stratifiers_for_elem_def(
     elem_def: ElementDefinition,
     snapshot: StructureDefinitionSnapshot,
@@ -967,6 +998,20 @@ def _generate_stratifiers_for_elem_def(
     if elem_def.max == "0":
         _logger.debug(
             f"Skipping element '{elem_def.id}' since it has max cardinality '0'"
+        )
+        elem_expr_cache[elem_def.id] = expr
+        return stratifiers
+    # TODO: Add support for slices of reference typed elements. ATM this cannot be supported since the FHIRPath filter
+    #  generated from the discriminator cannot be processed by the FDE
+    if (
+        first(
+            lambda t: t.code == "Reference",
+            _resolve_supported_types(elem_def, snapshot, manager),
+        )
+        and elem_def.sliceName
+    ):
+        _logger.debug(
+            f"Skipping element definition {repr(elem_def.id)} since slices of Reference typed elements are currently not supported"
         )
         elem_expr_cache[elem_def.id] = expr
         return stratifiers
@@ -1037,7 +1082,7 @@ def _generate_measure_group_for_profile(
     subject_ref_elem_def = _find_subject_reference_elem_def(snapshot)
     if not subject_ref_elem_def:
         raise MissingSubjectRefError(
-            f"Profile '{snapshot.url}' has no suitable subject reference element and is thus no measure group can be "
+            f"Profile '{snapshot.url}' has no suitable subject reference element and thus no measure group can be "
             f"generated"
         )
     subject_ref_name = subject_ref_elem_def.path.split(".")[-1]
@@ -1058,11 +1103,17 @@ def _generate_measure_group_for_profile(
     # Used to store expression for every element ID encountered such that known expressions can be used to generate
     # expressions for new element IDs due to the hierarchical nature of the FHIR data model
     elem_id_expr_map = dict()
+    # Store element definitions support data type `Extension` for additional processing after all element defintions
+    # contained within the snapshot are already processed. The reason for this is that we want to prioritize using
+    # element definitions within the snapshot (possibly containing constrains) over those defined externally in the
+    # referenced structure definition
+    extension_postprocessing = list()
     # We sort the list of element definitions by their ID (in ascending order) to encounter elements in a descending
     # hierarchical order regarding there appearance in the resource
     for elem_def in sorted(snapshot.snapshot.element, key=lambda ed: ed.id):
-        if elem_def.id == snapshot.type or elem_def.id.endswith(".id"):
+        if elem_def.id == snapshot.type or not _filter_elem_def(elem_def):
             # Skip root and ID element processing
+            _logger.debug(f"Skipping element definition {repr(elem_def.id)}")
             elem_id_expr_map[elem_def.id] = elem_def.path
             continue
         _logger.debug(f"Generating stratifiers for element '{elem_def.id}'")
@@ -1070,6 +1121,8 @@ def _generate_measure_group_for_profile(
             elem_stratifiers = _generate_stratifiers_for_elem_def(
                 elem_def, snapshot, manager, elem_id_expr_map
             )
+            if _supports_extension_type(elem_def, snapshot, manager):
+                extension_postprocessing.append(elem_def)
         except Exception as exc:
             _logger.warning(
                 f"Failed to generate stratifiers for element '{elem_def.id}' in profile '{snapshot.url}' => Skipping"
@@ -1077,6 +1130,15 @@ def _generate_measure_group_for_profile(
             _logger.debug("Details:", exc_info=exc)
             continue
         measure_group.stratifier.extend(elem_stratifiers)
+    # Extension postprocessing
+    strat_ids = set(s.id for s in measure_group.stratifier)
+    for elem_def in extension_postprocessing:
+        ext_strats = _generate_stratifiers_from_extension_definitions(
+            elem_def, elem_id_expr_map[elem_def.id], manager, [elem_def.id]
+        )
+        measure_group.stratifier.extend(
+            filter(lambda s: s.id not in strat_ids, ext_strats)
+        )
     return measure_group
 
 
@@ -1154,7 +1216,7 @@ def generate_measure(manager: FhirPackageManager, **elements) -> Measure:
             match exc:
                 case MissingSubjectRefError():
                     _logger.info(
-                        f"No eligible subject reference can identified in profile '{profile.url}' => Excluding"
+                        f"No eligible subject reference can be identified in profile '{profile.url}' => Excluding"
                     )
                 case _:
                     _logger.error(

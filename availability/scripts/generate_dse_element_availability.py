@@ -4,8 +4,9 @@ from collections.abc import Mapping
 from datetime import datetime, UTC
 from typing import List
 
-from fhir.resources.R4B.measure import Measure
+from fhir.resources.R4B.measure import Measure, MeasureGroupStratifier
 from fhir.resources.R4B.meta import Meta
+from fhir.resources.R4B.structuredefinition import StructureDefinition
 
 from availability.core.element_availability import (
     generate_measure,
@@ -123,7 +124,6 @@ def generate_element_availability_for_dse(project: Project) -> Measure:
                 f"Failed to determine FHIR profile from which the measure group was generated [group_id='{group.id}'] => Dropping group from measure"
             )
             continue
-        included_groups.append(group)
         if fds := profile_details.get(source_profile_url):
             profile = project.package_manager.find(
                 index_pattern={"url": source_profile_url}
@@ -146,6 +146,7 @@ def generate_element_availability_for_dse(project: Project) -> Measure:
                     )
                     continue
             group.stratifier = included_stratifiers
+            included_groups.append(group)
         else:
             _logger.debug(
                 f"No profile details exists for profile '{source_profile_url}' => Dropping group from measure"
