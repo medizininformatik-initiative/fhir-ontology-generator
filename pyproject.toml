@@ -29,13 +29,14 @@ package = false
 
 [tool.uv.workspace]
 members = [
-    "common"
+    "common",
+    "availability"
 ]
 
 [tool.pytest.ini_options]
 log_cli = 1
 log_cli_level = "INFO"
-pythonpath = [".", "test", "src"]
+pythonpath = [".", "tests", "src"]
 env = [
     "TERMINOLOGY_SERVER_ADDRESS=https://ontoserver.mii-termserv.de/fhir"
 ]

@@ -20,21 +20,16 @@ RuleSet: AddStratifierGroup(groupN, expression, expression-population, subject-p
 * group[{groupN}].population[measureObservation].extension[criteriaReference].url = "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-criteriaReference"
 * group[{groupN}].population[measureObservation].id = "measure-observation-identifier"
 
-RuleSet: AddStratifierToGroup(groupN, stratN, expression, code, strat-id)
+
+RuleSet: AddStratifierToGroup(groupN, stratN, expression, code, strat-id, contextCode, contextDisplay)
 * group[{groupN}].stratifier[{stratN}].criteria.language = #text/fhirpath
 * group[{groupN}].stratifier[{stratN}].criteria.expression = "{expression}"
 * group[{groupN}].stratifier[{stratN}].code = http://fhir-data-evaluator/strat/system#{code}
 * group[{groupN}].stratifier[{stratN}].id = {strat-id}
 
 
-RuleSet: AddStratifierToGroupWhere(groupN, stratN, fhirPathSelect, fhirPathWhere, code, strat-id)
+RuleSet: AddStratifierToGroupWhere(groupN, stratN, fhirPathSelect, fhirPathWhere, code, strat-id, contextCode, contextDisplay)
 * group[{groupN}].stratifier[{stratN}].criteria.language = #text/fhirpath
 * group[{groupN}].stratifier[{stratN}].criteria.expression = "{fhirPathSelect}({fhirPathWhere})"
 * group[{groupN}].stratifier[{stratN}].code = http://fhir-data-evaluator/strat/system#{code}
 * group[{groupN}].stratifier[{stratN}].id = {strat-id}
-
-
-
-
-
-

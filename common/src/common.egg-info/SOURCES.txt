@@ -5,7 +5,6 @@ src/common.egg-info/SOURCES.txt
 src/common.egg-info/dependency_links.txt
 src/common.egg-info/requires.txt
 src/common.egg-info/top_level.txt
-src/dataportal_generator/__init__.py
 src/dataportal_generator/common/__init__.py
 src/dataportal_generator/common/config/__init__.py
 src/dataportal_generator/common/config/project.py

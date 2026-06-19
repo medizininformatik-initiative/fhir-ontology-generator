@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "availability"
+version = "4.1.0"
+dependencies = [
+    "antlr4-python3-runtime==4.9.3",
+    "cachetools>=7.1.4",
+    "fhir-resources==8.0.0",
+    "isodate==0.7.2",
+    "pydantic~=2.10.5",
+    "requests==2.31.0",
+    "typing-extensions~=4.12.2",
+    "common"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.uv.sources]
+common = { workspace = true }

@@ -4,6 +4,7 @@ requires-python = ">=3.12"
 
 [manifest]
 members = [
+    "availability",
     "common",
     "dataportal-generator",
 ]
@@ -30,6 +31,33 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/fc/0f/aafca9af9315aee06a89ffde799a10a582fe8de76c563ee80bbcdc08b3fb/attrs-24.2.0.tar.gz", hash = "sha256:5cfb1b9148b5b086569baec03f20d7b6bf3bcacc9a42bebf87ffaaca362f6346", size = 792678, upload-time = "2024-08-06T14:37:38.364Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/6a/21/5b6702a7f963e95456c0de2d495f67bf5fd62840ac655dc451586d23d39a/attrs-24.2.0-py3-none-any.whl", hash = "sha256:81921eb96de3191c8258c199618104dd27ac608d9366f5e35d011eae1867ede2", size = 63001, upload-time = "2024-08-06T14:37:36.958Z" },
+]
+
+[[package]]
+name = "availability"
+version = "4.1.0"
+source = { editable = "availability" }
+dependencies = [
+    { name = "antlr4-python3-runtime" },
+    { name = "cachetools" },
+    { name = "common" },
+    { name = "fhir-resources" },
+    { name = "isodate" },
+    { name = "pydantic" },
+    { name = "requests" },
+    { name = "typing-extensions" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "antlr4-python3-runtime", specifier = "==4.9.3" },
+    { name = "cachetools", specifier = ">=7.1.4" },
+    { name = "common", editable = "common" },
+    { name = "fhir-resources", specifier = "==8.0.0" },
+    { name = "isodate", specifier = "==0.7.2" },
+    { name = "pydantic", specifier = "~=2.10.5" },
+    { name = "requests", specifier = "==2.31.0" },
+    { name = "typing-extensions", specifier = "~=4.12.2" },
 ]
 
 [[package]]

@@ -1,0 +1,8 @@
+antlr4-python3-runtime==4.9.3
+cachetools>=7.1.4
+fhir-resources==8.0.0
+isodate==0.7.2
+pydantic~=2.10.5
+requests==2.31.0
+typing-extensions~=4.12.2
+common

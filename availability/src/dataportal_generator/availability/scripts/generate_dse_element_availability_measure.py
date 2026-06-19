@@ -8,12 +8,12 @@ from fhir.resources.R4B.measure import Measure
 from fhir.resources.R4B.meta import Meta
 
 from availability.core.element_availability import (
-    generate_measure,
+    ElementAvailabilityGenerator,
     update_stratifier_ids,
 )
-from common.util.collections.functions import first
-from common.log import get_logger
-from common.util.project import Project
+from dataportal_generator.common.util.collection import first
+from dataportal_generator.common.log.functions import get_logger
+from dataportal_generator.common.model.project import Project
 from data_selection_extraction.model.detail import ProfileDetail, FieldDetail
 
 _logger = get_logger(__file__)
@@ -79,8 +79,7 @@ def _flatten_fields(detail: ProfileDetail | FieldDetail) -> List[FieldDetail]:
 
 def generate_element_availability_for_dse(project: Project) -> Measure:
     _logger.info("Generating Measure resource")
-    measure = generate_measure(
-        project.package_manager,
+    measure = ElementAvailabilityGenerator(project).generate_measure(
         id="DseElementAvailabilityMeasure",
         meta=Meta(
             profile=[
@@ -103,7 +102,7 @@ def generate_element_availability_for_dse(project: Project) -> Measure:
         mode="r", encoding="utf-8"
     ) as details_f:
         profile_details: Mapping[str, Mapping[str, FieldDetail]] = {
-            pd.get("url"): {fd.get("id"): fd for fd in _flatten_fields(pd)}
+            pd.get("url"): {fd.id: fd for fd in _flatten_fields(pd)}
             for pd in json.load(details_f)
         }
 
