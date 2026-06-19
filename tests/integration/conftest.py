@@ -26,7 +26,7 @@ def project(request) -> Project:
 
 
 def __repository_root_dir(request) -> str:
-    return request.config.rootpath
+    return request.rootpath
 
 
 @pytest.fixture(scope="session")

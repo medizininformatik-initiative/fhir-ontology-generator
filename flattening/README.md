@@ -2,15 +2,20 @@
 
 ## Usage
 ```bash
-python scripts/generate_lookup.py -p fdpg-ontology
+python scripts/generate_lookup.py -p <your-project-name>
 ```
 
 ## Currently supported:
 1. Primitives:
-   - ``boolean``, ``string``, ``code``, ``decimal``, ``integer``, ``integer64``, ``unsignedInt``, ``positiveInt``, ``uri``, ``canonical``, ``url``, ``markdown``, ``xhtml``, ``date``, ``dateTime``, ``instant``, ``time`` 
+   - `boolean`, `string`, `code`, `decimal`, `integer`, `integer64`, `unsignedInt`, `positiveInt`, `uri`, `canonical`, `url`, `markdown`, `xhtml`, `date`, `dateTime`, `instant`, `time`, `oid`, `uuid`, `id`, `base64Binary`
+
 2. Complex:
-   - ``Coding``, ``CodeableConcept``, `Period`, `Ratio`, `Range`, `Quantity`, ``Reference``, ``BackboneElement``
-        ``Age``, ``Duration``, ``Count``, ``Distance``, ``SimpleQuantity``, ``MoneyQuantity``, ``Identifier``  
+   - `Coding`, `CodeableConcept`, `Identifier`, `Period`, `Ratio`, `Range`, `Quantity`, `Reference`
+   - `Age`, `Count`, `Duration`, `Distance`, `SimpleQuantity`, `MoneyQuantity`, `Money`
+   - `Attachment`, `Contributor`, `ContactDetail`, `SampledData`, `Expression`, `ContactPoint`, `Address`
+   - `UsageContext`, `DataRequirement`, `Annotation`, `Dosage`, `Meta`
+   - `TriggerDefinition`, `Timing`, `ParameterDefinition`, `RelatedArtifact`, `HumanName`, `Signature`, `Narrative`
+
 3. Extensions: yes
    - Supports extensions defined in separate profile
    - Supports extensions defined within other extension definitions
@@ -18,7 +23,33 @@ python scripts/generate_lookup.py -p fdpg-ontology
 4. Polymorphic elements: yes, but only the types mentioned above
 5. Excluded by design, these being irrelevant in instance data: ``id``, `modifierExtension`
 
+The list above covers nearly all data types encountered in MII Core Data Set profiles. 
+That being said, **_some types are disabled_** in the [config.yaml](../projects/fdpg-ontology/input/flattening/config.yaml).
+If you discover a missing type, please refer to issue [#468](https://github.com/medizininformatik-initiative/fhir-ontology-generator/issues/468) for the rationale behind disabled types.
+
+The [config.yaml](../projects/fdpg-ontology/input/flattening/config.yaml)
+file also allows for overriding the default behavior of flattening a type with all its children and 
+instead provide a custom structure. For example, we decided that, when flattening codings, the display and version 
+are irrelevant, thus are not included in the lookup file. 
+See [config.yaml](../projects/fdpg-ontology/input/flattening/config.yaml) for more detail
+
+> [!NOTE]
+> Be sure to check if the flattener of you choosing supports open types or if you first need to enable them.  
+> For enabling open types in our [fhir-flattener](https://github.com/medizininformatik-initiative/fhir-flattener) (pathling) append this to the docker-compose file:
+> ````yaml
+>    environment:
+>      ENABLED_OPEN_TYPES:
+>        oid,boolean,string,code,decimal,integer,integer64,unsignedInt,positiveInt,uri,canonical,url,markdown,xhtml,date,dateTime,instant,time,uuid,base64Binary,Coding,CodeableConcept,Identifier,Period,Ratio,Range,Quantity,Age,Count,Duration,Distance,SimpleQuantity,MoneyQuantity,Reference,TriggerDefinition,Timing,Attachment,Contributor,ContactDetail,SampledData,Expression,ContactPoint,Address,UsageContext,DataRequirement,Annotation,Dosage,Meta
+> ````
+
+
+
 ## How to work with a lookup file
+The following section is an implementation guide of the algorithm for generating ViewDefinitions with a lookupFile.
+
+Tools that already implement the generation of ``ViewDefinition`` from lookup files:
+- [Aether](https://medizininformatik-initiative.github.io/aether/guides/steps/flattening.html)
+
 The lookup file contains instructions on how each element has to be flattened 
 and can be used to generate ``ViewDefinition`` files representing a selection of elements within a profile.
 
@@ -35,9 +66,6 @@ by following these rules:
 
 _Recommended_: _Include elements `subject.reference` (only if part of [patient compartment](https://hl7.org/fhir/R4/compartmentdefinition-patient.html)) 
 and `id` by default to later be able to identify patients in your data._
-
-Tools that implement generation of ``ViewDefinition`` from lookup files:
-- [Aether](https://medizininformatik-initiative.github.io/aether/)
 
 ## Lookup file format:
 JSON-encoded array of lookups for each profile.
@@ -160,13 +188,13 @@ Based on limitations and different goals for the final result, we place complex 
     slices of a ``Coding`` element to be expanded and ``Extension``-urls to be followed, which cant be handled 
     by the generic approach.
     Although `Polymorphic` is not a data type, being in need for special handling, it does also fit into this list.
-    This category applies to the following types: ``Coding``, `CodeableConcept`, `Extension`, `Polymorphic`
+    This category applies to the following types: ``Coding``, `CodeableConcept`, `Extension`, `Polymorphic`, `Identifier`
 
 
 
 
 
-To deal with complex data types the ``.viewDefinition`` entry now additionally contains the
+To deal with complex data types the ``.viewDefinition`` entry now additionally (compared to primitives above) contains the
 ``forEachOrNull`` and ``select`` entries.
 1. ``forEachOrNull`` this needs to be used for every element to [deal with cardinality implicitly](#handling-cardinality-rows-and-slices-columns)
 2. ``select``: corresponds to the [select](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/StructureDefinition-ViewDefinition-definitions.html#diff_ViewDefinition.select)
@@ -174,8 +202,10 @@ To deal with complex data types the ``.viewDefinition`` entry now additionally c
     inserted
 
 Some complex types need specific child elements without which flattening is meaningless. For example, 
-the type ``Period`` in the example below needs ``.start``, ``.end``. These elements are included in the output lookup,
-even if they are not explicitly defined in the profile.
+the type ``Period`` in the example below needs ``.start``, ``.end``. These elements are included in the output lookup
+even if they are not explicitly defined in the profile. The child elements included for 
+each type are defined by a dictionary in [flattening.py](/flattening/core/flattening.py#L78). 
+To remove a child from the flattening of generic complex elements, simply delete (or comment out) the corresponding ChildSpec entry.
 
 Example flattening of a generic complex type: 
 - For an element of type ``Period`` which is composed of two ``datetime`` (``.start``, ``.end``) elements,

@@ -1,0 +1,408 @@
+from flattening.model.FlatteningConfigModels import FlatteningConfig, ChildSpec
+
+DEFAULT_CONFIG: FlatteningConfig = FlatteningConfig(
+    excluded_types=[],
+    required_children_per_element={
+        "Coding": [
+            ChildSpec(id="code", type="code"),
+            ChildSpec(id="system", type="uri"),
+            ChildSpec(id="version", type="string"),
+            ChildSpec(id="display", type="string"),
+            ChildSpec(id="userSelected", type="boolean"),
+        ],
+        "Identifier": [
+            ChildSpec(id="use", type="code"),
+            ChildSpec(id="type", type="CodeableConcept"),
+            ChildSpec(id="system", type="uri"),
+            ChildSpec(id="value", type="string"),
+            ChildSpec(id="period", type="Period"),
+            ChildSpec(id="assigner", type="Reference"),
+        ],
+        "Period": [
+            ChildSpec(id="start", type="dateTime"),
+            ChildSpec(id="end", type="dateTime"),
+        ],
+        "Ratio": [
+            ChildSpec(id="numerator", type="Quantity"),
+            ChildSpec(id="denominator", type="Quantity"),
+        ],
+        "Range": [
+            ChildSpec(id="low", type="Quantity"),
+            ChildSpec(id="high", type="Quantity"),
+        ],
+        "Quantity": [
+            ChildSpec(id="value", type="decimal"),
+            ChildSpec(id="code", type="code"),
+            ChildSpec(id="system", type="uri"),
+            ChildSpec(id="unit", type="string"),
+            ChildSpec(id="comparator", type="code"),
+        ],
+        "Age": [
+            ChildSpec(id="value", type="decimal"),
+            ChildSpec(id="code", type="code"),
+            ChildSpec(id="system", type="uri"),
+        ],
+        "Count": [
+            ChildSpec(id="value", type="decimal"),
+            ChildSpec(id="code", type="code"),
+            ChildSpec(id="system", type="uri"),
+        ],
+        "Duration": [
+            ChildSpec(id="value", type="decimal"),
+            ChildSpec(id="code", type="code"),
+            ChildSpec(id="system", type="uri"),
+        ],
+        "Distance": [
+            ChildSpec(id="value", type="decimal"),
+            ChildSpec(id="code", type="code"),
+            ChildSpec(id="system", type="uri"),
+        ],
+        "SimpleQuantity": [
+            ChildSpec(id="value", type="decimal"),
+            ChildSpec(id="code", type="code"),
+            ChildSpec(id="system", type="uri"),
+        ],
+        "MoneyQuantity": [
+            ChildSpec(id="value", type="decimal"),
+            ChildSpec(id="code", type="code"),
+            ChildSpec(id="system", type="uri"),
+        ],
+        "Reference": [
+            ChildSpec(id="reference", type="string"),
+        ],
+        "TriggerDefinition": [
+            ChildSpec(id="type", type="code"),
+            ChildSpec(id="name", type="string"),
+            ChildSpec(
+                id="timing[x]",
+                type="Polymorphic",
+                required_types_for_polymorphic_element=[
+                    "date",
+                    "dateTime",
+                    "Timing",
+                    "Reference",
+                ],
+            ),
+            ChildSpec(id="data", type="DataRequirement"),
+            ChildSpec(id="condition", type="Expression"),
+        ],
+        "Timing": [
+            ChildSpec(
+                id="event",
+                type="dateTime",
+                max_cardinality_multiple=True,
+            ),
+            ChildSpec(id="repeat", type="Timing.repeat"),
+            ChildSpec(id="code", type="CodeableConcept"),
+        ],
+        "Timing.repeat": [
+            ChildSpec(
+                id="bounds[x]",
+                type="Polymorphic",
+                required_types_for_polymorphic_element=[
+                    "Duration",
+                    "Period",
+                    "Range",
+                ],
+            ),
+            ChildSpec(id="count", type="positiveInt"),
+            ChildSpec(id="countMax", type="positiveInt"),
+            ChildSpec(id="duration", type="decimal"),
+            ChildSpec(id="durationMax", type="decimal"),
+            ChildSpec(id="durationUnit", type="code"),
+            ChildSpec(id="frequency", type="positiveInt"),
+            ChildSpec(id="frequencyMax", type="positiveInt"),
+            ChildSpec(id="period", type="decimal"),
+            ChildSpec(id="periodMax", type="decimal"),
+            ChildSpec(id="periodUnit", type="code"),
+            ChildSpec(
+                id="dayOfWeek",
+                type="code",
+                max_cardinality_multiple=True,
+            ),
+            ChildSpec(
+                id="timeOfDay",
+                type="time",
+                max_cardinality_multiple=True,
+            ),
+            ChildSpec(
+                id="when",
+                type="code",
+                max_cardinality_multiple=True,
+            ),
+            ChildSpec(id="offset", type="unsignedInt"),
+        ],
+        "Attachment": [
+            ChildSpec(id="contentType", type="code"),
+            ChildSpec(id="language", type="code"),
+            ChildSpec(id="data", type="base64Binary"),
+            ChildSpec(id="url", type="url"),
+            ChildSpec(id="size", type="unsignedInt"),
+            ChildSpec(id="hash", type="base64Binary"),
+            ChildSpec(id="title", type="string"),
+            ChildSpec(id="creation", type="dateTime"),
+        ],
+        "Contributor": [
+            ChildSpec(id="type", type="code"),
+            ChildSpec(id="name", type="string"),
+            ChildSpec(id="contact", type="ContactDetail"),
+        ],
+        "ContactDetail": [
+            ChildSpec(id="name", type="string"),
+            ChildSpec(id="telecom", type="ContactPoint"),
+        ],
+        "SampledData": [
+            ChildSpec(id="origin", type="SimpleQuantity"),
+            ChildSpec(id="period", type="decimal"),
+            ChildSpec(id="factor", type="decimal"),
+            ChildSpec(id="lowerLimit", type="decimal"),
+            ChildSpec(id="upperLimit", type="decimal"),
+            ChildSpec(id="dimensions", type="positiveInt"),
+            ChildSpec(id="data", type="string"),
+        ],
+        "Expression": [
+            ChildSpec(id="description", type="string"),
+            ChildSpec(id="language", type="code"),
+            ChildSpec(id="expression", type="string"),
+            ChildSpec(id="reference", type="uri"),
+        ],
+        "ContactPoint": [
+            ChildSpec(id="system", type="code"),
+            ChildSpec(id="value", type="string"),
+            ChildSpec(id="use", type="code"),
+            ChildSpec(id="rank", type="positiveInt"),
+            ChildSpec(id="period", type="Period"),
+        ],
+        "Address": [
+            ChildSpec(id="use", type="code"),
+            ChildSpec(id="type", type="code"),
+            ChildSpec(id="text", type="string"),
+            ChildSpec(id="line", type="string"),
+            ChildSpec(id="city", type="string"),
+            ChildSpec(id="district", type="string"),
+            ChildSpec(id="state", type="string"),
+            ChildSpec(id="postalCode", type="string"),
+            ChildSpec(id="country", type="string"),
+            ChildSpec(id="period", type="Period"),
+        ],
+        "UsageContext": [
+            ChildSpec(id="code", type="Coding"),
+            ChildSpec(
+                id="value[x]",
+                type="Polymorphic",
+                required_types_for_polymorphic_element=[
+                    "CodeableConcept",
+                    "Quantity",
+                    "Range",
+                    "Reference",
+                ],
+            ),
+        ],
+        "DataRequirement": [
+            ChildSpec(id="type", type="code"),
+            ChildSpec(
+                id="profile",
+                type="canonical",
+                max_cardinality_multiple=True,
+            ),
+            ChildSpec(
+                id="subject[x]",
+                type="Polymorphic",
+                required_types_for_polymorphic_element=[
+                    "CodeableConcept",
+                    "Reference",
+                ],
+            ),
+            ChildSpec(
+                id="mustSupport",
+                type="string",
+                max_cardinality_multiple=True,
+            ),
+            ChildSpec(
+                id="codeFilter",
+                type="DataRequirement.codeFilter",
+                max_cardinality_multiple=True,
+            ),
+            ChildSpec(
+                id="dateFilter",
+                type="DataRequirement.dateFilter",
+                max_cardinality_multiple=True,
+            ),
+            ChildSpec(id="limit", type="positiveInt"),
+            ChildSpec(
+                id="sort",
+                type="DataRequirement.sort",
+                max_cardinality_multiple=True,
+            ),
+        ],
+        "DataRequirement.codeFilter": [
+            ChildSpec(id="path", type="string"),
+            ChildSpec(id="searchParam", type="string"),
+            ChildSpec(id="valueSet", type="canonical"),
+            ChildSpec(
+                id="code",
+                type="Coding",
+                max_cardinality_multiple=True,
+            ),
+        ],
+        "DataRequirement.dateFilter": [
+            ChildSpec(id="path", type="string"),
+            ChildSpec(id="searchParam", type="string"),
+            ChildSpec(
+                id="value[x]",
+                type="Polymorphic",
+                required_types_for_polymorphic_element=[
+                    "dateTime",
+                    "Duration",
+                    "Period",
+                ],
+            ),
+        ],
+        "DataRequirement.sort": [
+            ChildSpec(id="path", type="string"),
+            ChildSpec(id="direction", type="code"),
+        ],
+        "Annotation": [
+            ChildSpec(
+                id="author[x]",
+                type="Polymorphic",
+                required_types_for_polymorphic_element=[
+                    "Reference",
+                    "string",
+                ],
+            ),
+            ChildSpec(id="time", type="dateTime"),
+            ChildSpec(id="text", type="markdown"),
+        ],
+        "Dosage": [
+            ChildSpec(id="sequence", type="integer"),
+            ChildSpec(id="text", type="string"),
+            ChildSpec(
+                id="additionalInstruction",
+                type="CodeableConcept",
+                max_cardinality_multiple=True,
+            ),
+            ChildSpec(id="patientInstruction", type="string"),
+            ChildSpec(id="timing", type="Timing"),
+            ChildSpec(
+                id="asNeeded[x]",
+                type="Polymorphic",
+                required_types_for_polymorphic_element=[
+                    "boolean",
+                    "CodeableConcept",
+                ],
+            ),
+            ChildSpec(id="site", type="CodeableConcept"),
+            ChildSpec(id="route", type="CodeableConcept"),
+            ChildSpec(id="method", type="CodeableConcept"),
+            ChildSpec(
+                id="doseAndRate",
+                type="Dosage.doseAndRate",
+                max_cardinality_multiple=True,
+            ),
+            ChildSpec(id="maxDosePerPeriod", type="Ratio"),
+            ChildSpec(id="maxDosePerAdministration", type="SimpleQuantity"),
+            ChildSpec(id="maxDosePerLifetime", type="SimpleQuantity"),
+        ],
+        "Dosage.doseAndRate": [
+            ChildSpec(id="type", type="CodeableConcept"),
+            ChildSpec(
+                id="dose[x]",
+                type="Polymorphic",
+                required_types_for_polymorphic_element=[
+                    "Quantity",
+                    "Range",
+                ],
+            ),
+            ChildSpec(
+                id="rate[x]",
+                type="Polymorphic",
+                required_types_for_polymorphic_element=[
+                    "Quantity",
+                    "Range",
+                    "Ratio",
+                ],
+            ),
+        ],
+        "Meta": [
+            ChildSpec(id="versionId", type="id"),
+            ChildSpec(id="lastUpdated", type="instant"),
+            ChildSpec(id="source", type="uri"),
+            ChildSpec(
+                id="profile",
+                type="canonical",
+                max_cardinality_multiple=True,
+            ),
+            ChildSpec(
+                id="security",
+                type="Coding",
+                max_cardinality_multiple=True,
+            ),
+            ChildSpec(
+                id="tag",
+                type="Coding",
+                max_cardinality_multiple=True,
+            ),
+        ],
+        "ParameterDefinition": [
+            ChildSpec(id="name", type="code"),
+            ChildSpec(id="use", type="code"),
+            ChildSpec(id="min", type="integer"),
+            ChildSpec(id="max", type="string"),
+            ChildSpec(id="documentation", type="string"),
+            ChildSpec(id="type", type="code"),
+            ChildSpec(id="profile", type="uri"),
+        ],
+        "Money": [
+            ChildSpec(id="value", type="decimal"),
+            ChildSpec(id="currency", type="code"),
+        ],
+        "RelatedArtifact": [
+            ChildSpec(id="type", type="code"),
+            ChildSpec(id="label", type="string"),
+            ChildSpec(id="display", type="string"),
+            ChildSpec(id="citation", type="markdown"),
+            ChildSpec(id="url", type="url"),
+            ChildSpec(id="document", type="Attachment"),
+            ChildSpec(id="resource", type="uri"),
+        ],
+        "HumanName": [
+            ChildSpec(id="use", type="code"),
+            ChildSpec(id="text", type="string"),
+            ChildSpec(id="family", type="string"),
+            ChildSpec(
+                id="given",
+                type="string",
+                max_cardinality_multiple=True,
+            ),
+            ChildSpec(
+                id="prefix",
+                type="string",
+                max_cardinality_multiple=True,
+            ),
+            ChildSpec(
+                id="suffix",
+                type="string",
+                max_cardinality_multiple=True,
+            ),
+            ChildSpec(id="period", type="Period"),
+        ],
+        "Signature": [
+            ChildSpec(
+                id="type",
+                type="Coding",
+                max_cardinality_multiple=True,
+            ),
+            ChildSpec(id="when", type="instant"),
+            ChildSpec(id="who", type="Reference"),
+            ChildSpec(id="onBehalfOf", type="Reference"),
+            ChildSpec(id="targetFormat", type="code"),
+            ChildSpec(id="sigFormat", type="code"),
+            ChildSpec(id="data", type="base64Binary"),
+        ],
+        "Narrative": [
+            ChildSpec(id="status", type="code"),
+            ChildSpec(id="div", type="xhtml"),
+        ],
+    },
+)
