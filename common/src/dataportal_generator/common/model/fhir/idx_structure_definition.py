@@ -1,9 +1,6 @@
 import abc
 import functools
-import json
-from collections import namedtuple
 from functools import cached_property, reduce
-from importlib import resources
 from itertools import groupby
 from typing import (
     Mapping,
@@ -25,24 +22,24 @@ from fhir.resources.R4B.elementdefinition import (
 from fhir.resources.R4B.structuredefinition import StructureDefinition
 from pydantic import computed_field, TypeAdapter, Discriminator, Tag
 
-from cohort_selection_ontology.resources import cql, fhir
-
-ProcessedElementResult = namedtuple(
-    "ProcessedElementResult",
-    ["element", "profile_snapshot", "module_dir", "last_short_desc"],
-)
-ShortDesc = namedtuple("ShortDesc", ["origin", "desc"])
-FHIR_TYPES_TO_VALUE_TYPES = json.load(
-    fp=(resources.files(fhir) / "fhir-types-to-value-types.json").open(
-        "r", encoding="utf-8"
-    )
-)
-
-CQL_TYPES_TO_VALUE_TYPES = json.load(
-    fp=(resources.files(cql) / "cql-types-to-value-types.json").open(
-        "r", encoding="utf-8"
-    )
-)
+# from cohort_selection_ontology.resources import cql, fhir
+#
+# ProcessedElementResult = namedtuple(
+#     "ProcessedElementResult",
+#     ["element", "profile_snapshot", "module_dir", "last_short_desc"],
+# )
+# ShortDesc = namedtuple("ShortDesc", ["origin", "desc"])
+# FHIR_TYPES_TO_VALUE_TYPES = json.load(
+#     fp=(resources.files(fhir) / "fhir-types-to-value-types.json").open(
+#         "r", encoding="utf-8"
+#     )
+# )
+#
+# CQL_TYPES_TO_VALUE_TYPES = json.load(
+#     fp=(resources.files(cql) / "cql-types-to-value-types.json").open(
+#         "r", encoding="utf-8"
+#     )
+# )
 
 
 def _elem_def_key(s: StructureDefinition, e_id: str) -> str:

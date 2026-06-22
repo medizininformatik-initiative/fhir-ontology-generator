@@ -15,9 +15,10 @@ from dataportal_generator.common.fhir.package_manager import (
     FirelyPackageManager,
     RepositoryPackageManager,
 )
-from dataportal_generator.common.log import get_class_logger
-from dataportal_generator.common.constants.project import PROJECT_ROOT
 from dataportal_generator.common.config.project import ProjectConfig
+from dataportal_generator.common.log.functions import get_logger, configure_logging
+
+_logger = get_logger(__name__)
 
 
 class ProjectDir(BaseModel):
@@ -112,8 +113,6 @@ class Project(ProjectDir):
     project, its location on the filesystem, and environment variables.
     """
 
-    __logger = get_class_logger("Project")
-
     name: Annotated[
         str,
         Field(
@@ -149,7 +148,7 @@ class Project(ProjectDir):
             name = os.path.basename(path)
         else:
             if path is None:
-                path = Path(str(os.path.join(PROJECT_ROOT, "projects", name)))
+                path = Path("projects", name)
         if isinstance(path, str):
             path = Path(path)
         # env
@@ -170,10 +169,8 @@ class Project(ProjectDir):
         _name, _path, _env, _conf = self.any_of(name, path)
         super().__init__(_path, name=_name, env=_env, config=_conf)
         if not os.path.exists(self.path):
-            self.__logger.warning(
-                f"No project '{self.name}' exists @ {self.path}. Operating on it will likely result "
-                f"in failure"
-            )
+            raise FileNotFoundError(f"No project {repr(self.name)} exists @ {repr(self.path)}")
+        configure_logging(self.path)
 
     @staticmethod
     def __create_dirs(path: Path):
@@ -207,3 +204,14 @@ class Project(ProjectDir):
                 raise ValueError(
                     f"Unsupported FHIR package manager type '{manager_conf.type}'"
                 )
+
+    @cached_property
+    def logs(self) -> Path:
+        """
+        Path to logs directory of the project
+
+        :return: ``pathlib.Path`` object pointing to the logging directory
+        """
+        dir_path = self.path / "logs"
+        dir_path.mkdir(parents=True, exist_ok=True)
+        return dir_path

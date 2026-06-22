@@ -21,14 +21,14 @@ RuleSet: AddStratifierGroup(groupN, expression, expression-population, subject-p
 * group[{groupN}].population[measureObservation].id = "measure-observation-identifier"
 
 
-RuleSet: AddStratifierToGroup(groupN, stratN, expression, code, strat-id, contextCode, contextDisplay)
+RuleSet: AddStratifierToGroup(groupN, stratN, expression, code, strat-id)
 * group[{groupN}].stratifier[{stratN}].criteria.language = #text/fhirpath
 * group[{groupN}].stratifier[{stratN}].criteria.expression = "{expression}"
 * group[{groupN}].stratifier[{stratN}].code = http://fhir-data-evaluator/strat/system#{code}
 * group[{groupN}].stratifier[{stratN}].id = {strat-id}
 
 
-RuleSet: AddStratifierToGroupWhere(groupN, stratN, fhirPathSelect, fhirPathWhere, code, strat-id, contextCode, contextDisplay)
+RuleSet: AddStratifierToGroupWhere(groupN, stratN, fhirPathSelect, fhirPathWhere, code, strat-id)
 * group[{groupN}].stratifier[{stratN}].criteria.language = #text/fhirpath
 * group[{groupN}].stratifier[{stratN}].criteria.expression = "{fhirPathSelect}({fhirPathWhere})"
 * group[{groupN}].stratifier[{stratN}].code = http://fhir-data-evaluator/strat/system#{code}

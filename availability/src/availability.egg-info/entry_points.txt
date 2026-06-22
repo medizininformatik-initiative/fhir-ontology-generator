@@ -1,0 +1,3 @@
+[console_scripts]
+generate-coding-availability-measure = dataportal_generator.availability.scripts.generate_coding_availability_measure:__main
+generate-element-availability-measure = dataportal_generator.availability.scripts.generate_element_availability_measure:main

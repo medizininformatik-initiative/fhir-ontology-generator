@@ -1,2 +1,0 @@
-Output File                                Name                          Type      FSH File                      Lines
-Measure-CdsCodingAvailabilityMeasure.json  CdsCodingAvailabilityMeasure  Instance  cds_availability_measure.fsh  1 - 159

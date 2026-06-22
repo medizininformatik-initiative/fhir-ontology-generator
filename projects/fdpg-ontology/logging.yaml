@@ -12,7 +12,7 @@ root:
 
 filters:
   className:
-    (): common.util.log.filters.ClassNameFilter
+    (): dataportal_generator.common.log.filters.ClassNameFilter
 
 handlers:
   file:
@@ -20,7 +20,7 @@ handlers:
     level: "DEBUG"
     formatter: "file"
     filters: ["className"]
-    filename: "logs/{log_file_name}"
+    filename: "{log_file_name}"
     mode: "w"
   console:
     class: "logging.StreamHandler"
@@ -40,4 +40,4 @@ formatters:
     datefmt: "%Y-%m-%dT%H:%M:%S"
     style: "%"
     validate: 1
-    class: "common.util.log.formatters.ColorFormatter"
+    class: "dataportal_generator.common.log.formatters.ColorFormatter"

@@ -1,11 +1,8 @@
 import logging
 from enum import Enum
+from pathlib import Path
 
-from dataportal_generator.common.constants.project import PROJECT_ROOT
-
-
-GLOBAL_LOGGING_CONFIG_FILE = PROJECT_ROOT / "logging.yaml"
-LOGGING_DIR = PROJECT_ROOT / "logs"
+DEFAULT_LOGGING_CONFIG_FILE = Path(__file__).parent / "resources" / "logging.yaml"
 
 
 class Colors(Enum):

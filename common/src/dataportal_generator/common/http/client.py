@@ -5,13 +5,13 @@ from requests.adapters import HTTPAdapter
 from requests.auth import AuthBase
 from urllib3 import Retry
 
-from common.config.project import HTTPConfig
-from common.constants.http import RETRYABLE_STATUS_CODES
-from common.util.http.exceptions import (
+from dataportal_generator.common.config.project import HTTPConfig
+from dataportal_generator.common.constants.http import RETRYABLE_STATUS_CODES
+from dataportal_generator.common.http.exceptions import (
     raise_appropriate_exception,
 )
-from common.util.http.retries import CustomRetry
-from common.util.http.url import insert_path_params, format_query_params, merge_urls
+from dataportal_generator.common.http.retries import CustomRetry
+from dataportal_generator.common.http.url import insert_path_params, format_query_params, merge_urls
 
 
 class BaseClient:

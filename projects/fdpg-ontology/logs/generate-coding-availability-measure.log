@@ -1,0 +1,3 @@
+2026-06-22T15:54:31 [INFO] functions:38 - Logging using configuration options defined @ PosixPath('/home/confi/Projects/dataportal-generator/projects/fdpg-ontology/logging.yaml')
+2026-06-22T15:54:31 [INFO] generate_coding_availability_measure:36 - Generating CDS Coding Availability measure using SUSHI project @ PosixPath('/home/confi/Projects/dataportal-generator/projects/fdpg-ontology/input/availability/coding_availability')
+2026-06-22T15:54:35 [INFO] generate_coding_availability_measure:52 - Copying generated measure file and context mapping

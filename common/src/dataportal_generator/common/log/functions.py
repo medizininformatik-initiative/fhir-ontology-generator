@@ -1,35 +1,44 @@
+import functools
 import logging.config
 import os
 import sys
+from pathlib import Path
 
 from typing import Any, Optional
 
-from dataportal_generator.common.constants.project import PROJECT_ROOT
-from dataportal_generator.common.log import GLOBAL_LOGGING_CONFIG_FILE, LOGGING_DIR
+from dataportal_generator.common.log import DEFAULT_LOGGING_CONFIG_FILE
 
-# Process logging.yaml file and set logging config after
-LOGGING_DIR.mkdir(parents=True, exist_ok=True)
 
-with open(GLOBAL_LOGGING_CONFIG_FILE, mode="rb") as config_f:
-    import yaml
+@functools.cache
+def configure_logging(project_dir: Path):
+    # Process logging.yaml file and set logging config after
+    logging_config_file = project_dir / "logging.yaml"
+    if not logging_config_file.exists():
+        logging_config_file = DEFAULT_LOGGING_CONFIG_FILE
 
-    config = yaml.load(config_f, Loader=yaml.Loader)
+    with open(logging_config_file, mode="rb") as config_f:
+        import yaml
 
-for name, handler in config["handlers"].items():
-    if handler.get("class") == "logging.FileHandler":
-        file_name = handler["filename"]
-        script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
-        handler["filename"] = str(
-            PROJECT_ROOT.joinpath(
-                file_name.format(log_file_name=script_name + ".log")
-            ).resolve()
-        )
-logging.config.dictConfig(config)
+        config = yaml.load(config_f, Loader=yaml.Loader)
 
-logging.info(
-    f"Logging using configuration options defined @ {GLOBAL_LOGGING_CONFIG_FILE}",
-    extra={"className": ""},
-)
+    logging_dir = project_dir / "logs"
+    logging_dir.mkdir(parents=True, exist_ok=True)
+
+    for name, handler in config["handlers"].items():
+        if handler.get("class") == "logging.FileHandler":
+            file_name = handler["filename"]
+            script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
+            handler["filename"] = str(
+                logging_dir.joinpath(
+                    file_name.format(log_file_name=script_name + ".log")
+                ).resolve()
+            )
+    logging.config.dictConfig(config)
+
+    logging.info(
+        f"Logging using configuration options defined @ {repr(logging_config_file)}",
+        extra={"className": ""},
+    )
 
 
 def get_logger(name: Optional[str] = None) -> logging.LoggerAdapter:
