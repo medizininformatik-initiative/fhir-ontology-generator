@@ -1,5 +1,9 @@
 {
   "MII_PR_Bildgebung_Bildgebungsstudie": [
-    "MII_PR_Bildgebung_Bildgebungsstudie"
+    "BildgebungBildgebungsstudie"
+  ],
+  "MII_PR_Bildgebung_Radiologischer_Befund": [
+    "BildgebungRadiologischerBefundberichtSnomedCt",
+    "BildgebungRadiologischerBefundberichtLoinc"
   ]
 }
