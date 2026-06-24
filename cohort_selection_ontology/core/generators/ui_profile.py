@@ -96,7 +96,7 @@ class UIProfileGenerator:
         full_context_term_code_ui_profile_name_mapping = {}
         full_ui_profile_name_ui_profile_mapping = {}
         self.module_dir = modules_dir / module_name
-        files = self.module_dir.rglob("*snapshot.json")
+        files = self.module_dir.rglob("differential/*snapshot.json")
         for file in files:
             with open(file, mode="r", encoding="utf8") as f:
                 snapshot = StructureDefinitionSnapshot.model_validate_json(f.read())
@@ -555,14 +555,20 @@ class UIProfileGenerator:
                             self.module_dir,
                             self.data_set_dir,
                         )[-1]
-                        selected_valuesets.append(get_selectable_concepts(
-                            att_def_id, profile_snapshot.name, self.__client
-                        ))
+                        selected_valuesets.append(
+                            get_selectable_concepts(
+                                att_def_id, profile_snapshot.name, self.__client
+                            )
+                        )
                 else:
                     # when no available sliced were found just
-                    selected_valuesets.append(get_selectable_concepts(
-                        attribute_defining_element, profile_snapshot.name, self.__client
-                    ))
+                    selected_valuesets.append(
+                        get_selectable_concepts(
+                            attribute_defining_element,
+                            profile_snapshot.name,
+                            self.__client,
+                        )
+                    )
                 attribute_definition.referencedValueSet = selected_valuesets
         elif attribute_type == "quantity":
             unit_defining_path = attribute_defining_element.path + ".code"
@@ -793,7 +799,9 @@ class UIProfileGenerator:
                 self.get_reference_criteria_set_from_value_set(url, context)
             )
         elif not is_element_slice:
-            available_slices: List[str] = get_available_slice_names(element.id, snapshot)
+            available_slices: List[str] = get_available_slice_names(
+                element.id, snapshot
+            )
             self.__logger.debug(f"Found available slices: {available_slices}")
             for slice_name in available_slices:
                 slice_id = element.id + ":" + slice_name
