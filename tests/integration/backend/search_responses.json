@@ -928,5 +928,37 @@
                 ]
             }
         ]
+    },
+    {
+        "id": "BildgebungsStudie#ImagingStudy#http://dicom.nema.org/resources/ontology/DCM",
+        "data": [
+            {
+                "totalHits": 1,
+                "results": [
+                    {
+                        "id": "4ad48dff-90c1-3c12-8c11-8846032abfcd",
+                        "display": {
+                            "original": "Magnetic Resonance",
+                            "translations": [
+                                {
+                                    "language": "de-DE",
+                                    "value": ""
+                                },
+                                {
+                                    "language": "en-US",
+                                    "value": ""
+                                }
+                            ]
+                        },
+                        "availability": 0,
+                        "context": "Bildgebungsstudie",
+                        "terminology": "http://dicom.nema.org/resources/ontology/DCM",
+                        "termcode": "MR",
+                        "kdsModule": "MII KDS Bildgebung",
+                        "selectable": true
+                    }
+                ]
+            }
+        ]
     }
 ]

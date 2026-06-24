@@ -1,6 +1,7 @@
 import json
 import os
 import zipfile
+from pathlib import Path
 from typing import Tuple, Optional
 
 import requests
@@ -9,30 +10,27 @@ from fhir.resources.R4B.operationoutcome import OperationOutcome, OperationOutco
 from common.util.fhir.bundle import create_bundle, BundleType
 from common.util.log.functions import get_logger
 
-
 logger = get_logger(__file__)
 
 
 def download_and_unzip_kds_test_data(
     target_folder="testdata",
-    download_url="https://github.com/medizininformatik-initiative/mii-testdata/releases/download/v1.0.1/kds-testdata-2024.0.1.zip",
+    download_url="https://github.com/medizininformatik-initiative/mii-testdata/releases/download/v2026.0.0-rc.1/kds-testdata-2026.0.0-20260330-135816.zip",
 ) -> bool:
     """
     Downloads testdata from GitHub repository and stores it in the specified location.
     :param target_folder: The folder to save the downloaded zip files.
     :param download_url: The url to download the zip files from.
     """
-
-    # TODO: make the output folder independent:
-    # instead of: testdata -> kds-testdata-2024.0.1 -> resources -> [files]
-    # rather do: testdata -> resources -> [files]
     response = requests.get(download_url, timeout=5)
-    zip_path = "kds-testdata-2024.0.1.zip"
+    zip_path = "kds-testdata"
     with open(zip_path, "wb") as file:
         file.write(response.content)
     os.makedirs(target_folder, exist_ok=True)
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
         zip_ref.extractall(target_folder)
+    test_data_dir = next(Path(target_folder).glob("kds-testdata*"))
+    test_data_dir.rename(test_data_dir.parent / "kds-testdata")
     os.remove(zip_path)
     logger.debug("Downloaded testdata successfully")
     return True

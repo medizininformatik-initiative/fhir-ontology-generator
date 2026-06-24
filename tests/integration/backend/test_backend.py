@@ -106,7 +106,7 @@ def test_ccdl_query(
 
     # create list with all referenced files - recursively?
     resource_folder = os.path.join(
-        test_dir, "testdata", "kds-testdata-2024.0.1", "resources"
+        test_dir, "testdata", "kds-testdata", "resources"
     )
     fhir_resources = get_patient_files(
         data_resource_file, test_data_folder=resource_folder
