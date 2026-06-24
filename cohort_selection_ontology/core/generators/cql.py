@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from functools import reduce
 from importlib.resources import files
-from typing import Tuple, List, Dict, Set
+from typing import Tuple, List, Dict
 
 from fhir.resources.R4B.elementdefinition import ElementDefinition
 from lxml import etree
@@ -53,7 +53,7 @@ from common.util.structure_definition.functions import (
 
 
 class CQLMappingGenerator(object):
-    __allowed_time_restriction_fhir_types = {"date", "dateTime", "Period"}
+    __allowed_time_restriction_fhir_types = {"date", "dateTime", "Period", "instant"}
     __allowed_defining_code_fhir_types = {"Coding", "CodeableConcept", "Reference"}
     __allowed_defining_value_fhir_types = {
         "code",

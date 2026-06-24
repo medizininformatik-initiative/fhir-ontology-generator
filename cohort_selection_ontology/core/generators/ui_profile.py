@@ -281,7 +281,7 @@ class UIProfileGenerator:
         :param languages: Language codes to match designations with. They should represent values set in
                           `CodeSystem.concept.designation.langauge`
         :param fuzzy: Controls whether fuzzy matching is enabled when matching the languages codes. If `True` matches
-                      will be determined using the regex '`^{language}(-\S+)?$`'
+                      will be determined using the regex '`^{language}(-\\S+)?$`'
         :return: Map containing the language codes mapped to their designations
         """
         if coding.system is None:
@@ -805,7 +805,9 @@ class UIProfileGenerator:
                 self.get_reference_criteria_set_from_value_set(url, context)
             )
         elif not is_element_slice:
-            available_slices: List[str] = get_available_slice_names(element.id, snapshot)
+            available_slices: List[str] = get_available_slice_names(
+                element.id, snapshot
+            )
             self.__logger.debug(f"Found available slices: {available_slices}")
             for slice_name in available_slices:
                 slice_id = element.id + ":" + slice_name

@@ -1781,5 +1781,41 @@
         "kds_module": "Person"
       }
     ]
+  },
+  {
+    "id": "Molgen#Befundbericht#http://loinc.org#0",
+    "results": [
+      {
+        "name": "Genetic analysis report",
+        "availability": 0,
+        "terminology": "http://loinc.org",
+        "termcode": "51969-4",
+        "selectable": true,
+        "context": {
+          "code": "Molekulargenetischer Befundbericht",
+          "display": "Molekulargenetischer Befundbericht",
+          "system": "fdpg.mii.cds",
+          "version": "1.0.0"
+        },
+        "termcodes": [
+          {
+            "system": "http://loinc.org",
+            "code": "51969-4",
+            "display": "Genetic analysis report",
+            "version": "None"
+          }
+        ],
+        "criteria_sets": [],
+        "display": {
+          "original": "Genetic analysis report",
+          "en": "Genetic analysis report",
+          "de": ""
+        },
+        "parents": [],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Molgen"
+      }
+    ]
   }
 ]

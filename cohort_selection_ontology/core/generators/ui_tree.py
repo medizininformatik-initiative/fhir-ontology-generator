@@ -162,6 +162,7 @@ class UITreeGenerator:
         :param module_dir_name: Name of the module directory
         :return: term entries
         """
+
         term_code_defining_element: ElementDefinition = resolve_defining_id(
             fhir_profile_snapshot,
             term_code_defining_id,
