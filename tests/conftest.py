@@ -1,10 +1,9 @@
-import functools
 import os
 import shutil
 import zipfile
 from pathlib import Path
 from types import ModuleType
-from typing import Tuple
+from typing import Tuple, Optional
 
 import cachetools
 import pytest
@@ -23,7 +22,7 @@ from common.util.project import Project
 _logger = get_logger(__file__)
 
 
-__PROJECT_INDICATORS__ = {"config.yml", "config.yaml", "package.json"}
+_PROJECT_TEMPLATE_REL_PATH = Path("resources", "project")
 
 _MII_CDS_TEST_DATA_PREFIX = "kds-testdata"
 _MII_CDS_TEST_DATA_BUNDLES_PREFIX = "testdata-bundles-ndjson"
@@ -40,28 +39,42 @@ def repository_root_dir(request) -> str:
     return __repository_root_dir(request)
 
 
-def ___tmp_project(path: Path) -> Project:
-    p_path = path / ".tmp" / "project"
-    p_path.mkdir(parents=True, exist_ok=True)
-    if (src_path := path / "package.json").exists():
-        shutil.copy(src_path, p_path / "package.json")
-    if (src_path := path / "config.yml").exists():
-        shutil.copy(src_path, p_path / "config.yml")
+def __validate_project_template(template_dir: Path):
+    try:
+        if not template_dir.exists() or template_dir.is_dir():
+            raise FileNotFoundError("Missing project template directory")
+        conf_file_path = template_dir / "config.yml"
+        conf_file_path = (
+            conf_file_path
+            if conf_file_path.exists()
+            else (template_dir / "config.yaml")
+        )
+        if not conf_file_path.exists() and conf_file_path.is_file():
+            raise FileNotFoundError("Could not find config file")
+        package_file_path = template_dir / "package.json"
+        if not package_file_path.exists() and package_file_path.is_file():
+            raise FileNotFoundError("Could not find package.json file")
+    except Exception as exc:
+        raise Exception(f"Invalid project template @ {repr(template_dir)}") from exc
+
+
+def __tmp_project(target_location: Path, template: Optional[Path] = None) -> Project:
+    p_path = target_location / ".tmp" / "project"
+    shutil.rmtree(p_path, ignore_errors=True)
+    if template:
+        shutil.copytree(template, p_path)
+    else:
+        p_path.mkdir(parents=True, exist_ok=True)
     p = Project(path=p_path)
-    p.package_manager.restore(inflate=True)
+    p.package_manager.restore(inflate=True, lenient=True)
     return p
-
-
-@functools.cache
-def _global_project() -> Project:
-    _logger.debug("Creating global test project")
-    return ___tmp_project(Path(__file__).parent)
 
 
 @cachetools.cached(cache={}, key=lambda mp: mp.absolute())
 def _module_project(module_path: Path) -> Project:
     _logger.debug(f"Creating project for module {repr(module_path)}")
-    return ___tmp_project(module_path)
+    project_template_path = module_path / _PROJECT_TEMPLATE_REL_PATH
+    return __tmp_project(module_path, project_template_path)
 
 
 @pytest.fixture(scope="module")
@@ -73,20 +86,17 @@ def project(request: FixtureRequest) -> Project:
 
     if resolution_mode == "module" or resolution_mode == "default":
         mod_dir = request.path.parent
-        if resolution_mode == "module" or any(
-            [f.name in __PROJECT_INDICATORS__ for f in mod_dir.iterdir()]
-        ):
+        if resolution_mode == "module":
             return _module_project(mod_dir)
     if resolution_mode == "ancestor" or resolution_mode == "default":
         mod_dir = request.path.parent.parent
         root_mod_dir = Path(__file__).parent
         while mod_dir != root_mod_dir:
-            # Check if there is some form of project config in the module
-            if any([f.name in __PROJECT_INDICATORS__ for f in mod_dir.iterdir()]):
+            if (mod_dir / _PROJECT_TEMPLATE_REL_PATH).exists():
                 return _module_project(mod_dir)
             mod_dir = mod_dir.parent
     if resolution_mode == "global" or resolution_mode == "default":
-        return _global_project()
+        return _module_project(Path(__file__).parent)
 
     raise ValueError(
         f"Unknown project resolution mode '{resolution_mode}'. Expected one of 'default', 'global', 'module', 'ancestor'"
