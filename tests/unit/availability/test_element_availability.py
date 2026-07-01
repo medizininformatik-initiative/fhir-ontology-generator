@@ -1,56 +1,46 @@
 from contextlib import nullcontext
-from typing import Any, List, Optional
 from pathlib import Path
+from typing import List, Optional
 
 import fhir.resources.R4B.structuredefinition
 import pytest
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.coding import Coding
-from fhir.resources.R4B.element import Element
 from fhir.resources.R4B.elementdefinition import (
     ElementDefinition,
-    ElementDefinitionBinding,
-    ElementDefinitionSlicingDiscriminator,
     ElementDefinitionSlicing,
+    ElementDefinitionSlicingDiscriminator,
+    ElementDefinitionType,
 )
 from fhir.resources.R4B.expression import Expression
-from fhir.resources.R4B.elementdefinition import ElementDefinitionType
 from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.measure import (
-    MeasureGroupStratifier,
+    Measure,
     MeasureGroup,
     MeasureGroupPopulation,
-    Measure,
+    MeasureGroupStratifier,
 )
-from fhir.resources.R4B.parameters import ParametersParameter
 from fhir.resources.R4B.structuredefinition import StructureDefinition
 
 from availability.core.element_availability import (
-    _find_polymorphic_value,
-    _find_value_for_discriminator_pattern_or_value,
-    _element_to_fhirpath_filter,
-    _element_data_to_fhirpath_filter,
-    _append_filter_from_profile_discriminated_elem,
-    _append_filter_for_slice,
-    _get_filter_from_pattern_or_value_discriminated_elem,
-    _generate_stratifier,
-    _get_full_element_id,
-    _resolve_polymorphism_in_expr,
-    _generate_stratifier_for_reference,
-    _generate_stratifiers_for_extension_elements,
-    _generate_stratifiers_for_typed_elem,
-    _resolve_supported_types,
-    _generate_stratifiers_for_elem_def,
-    _generate_measure_group_for_profile,
-    update_stratifier_ids,
     _add_data_absent_reason_clause,
     _ensure_trailing_existence_check,
-    generate_measure,
     _find_subject_reference_elem_def,
+    _generate_measure_group_for_profile,
+    _generate_stratifier,
+    _generate_stratifier_for_reference,
+    _generate_stratifiers_for_elem_def,
+    _generate_stratifiers_for_extension_elements,
+    _generate_stratifiers_for_typed_elem,
+    _get_full_element_id,
+    _resolve_polymorphism_in_expr,
+    _resolve_supported_types,
+    generate_measure,
+    update_stratifier_ids,
 )
 from common.model.fhir.structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.package.manager import FhirPackageManager
-from common.util.fhirpath import parse_expr, fhirpathParser
+from common.util.fhirpath import fhirpathParser, parse_expr
 
 
 @pytest.mark.parametrize(
@@ -191,217 +181,6 @@ def test__ensure_trailing_existence_check(
     value = _ensure_trailing_existence_check(expr_str, is_primitive)
     assert value == expected
 
-
-@pytest.mark.parametrize(
-    "elem, elem_name, expected",
-    [
-        (ParametersParameter(name="test1", valueCode="abc"), "value", "abc"),
-        (ParametersParameter(name="test2", valueUri="abc"), "value", "abc"),
-        (Coding(system="http://code-system.org", code="abc"), "value", None),
-    ],
-)
-def test__find_polymorphic_value(elem: Element, elem_name: str, expected):
-    value = _find_polymorphic_value(elem, elem_name)
-    assert expected == value
-
-
-@pytest.mark.parametrize(
-    "elem_def, expected",
-    [
-        (ElementDefinition(path="a.b.c", fixedCode="abc"), ("fixed", "abc")),
-        (ElementDefinition(path="a.b.c", patternCode="abc"), ("pattern", "abc")),
-        (
-            ElementDefinition(
-                path="a.b.c", binding=ElementDefinitionBinding(strength="required")
-            ),
-            ("binding", ElementDefinitionBinding(strength="required")),
-        ),
-        (ElementDefinition(path="a.b.c"), None),
-    ],
-)
-def test__find_value_for_discriminator_pattern_or_value(elem_def, expected):
-    value = _find_value_for_discriminator_pattern_or_value(elem_def)
-    assert expected == value
-
-
-@pytest.mark.parametrize(
-    "key, data, expected",
-    [
-        ("$this", "abc", ["$this = 'abc'"]),
-        ("element", "abc", ["element = 'abc'"]),
-        ("$this", [], []),
-        (
-            "$this",
-            ["a"],
-            ["$this = 'a'"],
-        ),
-        (
-            "$this",
-            ["a", "b", "c"],
-            ["exists($this = 'a') and exists($this = 'b') and exists($this = 'c')"],
-        ),
-        ("$this", {}, []),
-        (
-            "$this",
-            {"a": "1"},
-            ["a = '1'"],
-        ),
-        (
-            "element",
-            {"a": "1"},
-            ["element.exists(a = '1')"],
-        ),
-        (
-            "$this",
-            {"a": "1", "b": "2", "c": "3"},
-            ["a = '1' and b = '2' and c = '3'"],
-        ),
-        (
-            "element",
-            {"a": "1", "b": "2", "c": "3"},
-            ["element.exists(a = '1' and b = '2' and c = '3')"],
-        ),
-        (
-            "element",
-            {"coding": [{"system": "http://codesystem.org", "code": "abc"}]},
-            [
-                "element.coding.exists(system = 'http://codesystem.org' and code = 'abc')"
-            ],
-        ),
-    ],
-)
-def test__element_data_to_fhirpath_filter(key: str, data: Any, expected: List[str]):
-    value = _element_data_to_fhirpath_filter(key, data)
-    assert expected == value
-
-
-@pytest.mark.parametrize(
-    "key, data, expected",
-    [
-        ("$this", "abc", "where($this = 'abc')"),
-        ("element", "abc", "where(element = 'abc')"),
-        (
-            "$this",
-            ["a"],
-            "where($this = 'a')",
-        ),
-        (
-            "$this",
-            ["a", "b", "c"],
-            "where(exists($this = 'a') and exists($this = 'b') and exists($this = 'c'))",
-        ),
-        (
-            "$this",
-            {"a": "1"},
-            "where(a = '1')",
-        ),
-        (
-            "element",
-            {"a": "1"},
-            "where(element.exists(a = '1'))",
-        ),
-        (
-            "$this",
-            {"a": "1", "b": "2", "c": "3"},
-            "where(a = '1' and b = '2' and c = '3')",
-        ),
-        (
-            "element",
-            {"a": "1", "b": "2", "c": "3"},
-            "where(element.exists(a = '1' and b = '2' and c = '3'))",
-        ),
-        (
-            "element",
-            {"coding": [{"system": "http://codesystem.org", "code": "abc"}]},
-            "where(element.coding.exists(system = 'http://codesystem.org' and code = 'abc'))",
-        ),
-    ],
-)
-def test__element_to_fhirpath_filter(key: str, data: Any, expected: str):
-    value = _element_to_fhirpath_filter(key, data)
-    assert value == expected
-
-
-def test__append_filter_from_profile_discriminated_elem(
-    base_expr: str,
-    elem_def: ElementDefinition,
-    discr: ElementDefinitionSlicingDiscriminator,
-    snapshot: StructureDefinitionSnapshot,
-    manager: FhirPackageManager,
-    expected,
-):
-    value = _append_filter_from_profile_discriminated_elem(
-        base_expr, elem_def, discr, snapshot, manager
-    )
-    assert value == expected
-
-
-def test__get_filter_from_pattern_or_value_discriminated_elem(
-    elem_def: ElementDefinition,
-    discr_path: str,
-    snapshot: StructureDefinitionSnapshot,
-    expected: str,
-    package_manager: FhirPackageManager,
-):
-    value = _get_filter_from_pattern_or_value_discriminated_elem(
-        elem_def, discr_path, snapshot, package_manager
-    )
-    assert value == expected
-
-
-@pytest.mark.parametrize(
-    argnames="base_expr, elem_def, profile, expected",
-    argvalues=[
-        (
-            "Specimen.processing",
-            "Specimen.processing:lagerprozess",
-            "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
-            "Specimen.processing.where(procedure.coding.exists(system = 'http://snomed.info/sct' and code = '1186936003'))",
-        ),
-        (
-            "Specimen.collection.fastingStatus",
-            "Specimen.collection.fastingStatus[x]:fastingStatusCodeableConcept",
-            "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
-            "Specimen.collection.fastingStatus.ofType(CodeableConcept)",
-        ),
-        (
-            "Specimen.collection.extension",
-            "Specimen.collection.extension:einstellungBlutversorgung",
-            "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
-            "Specimen.collection.extension('https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/EinstellungBlutversorgung')",
-        ),
-        (
-            "Observation.effective",
-            "Observation.effective[x]:effectiveDateTime",
-            "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/kopfumfang",
-            "Observation.effective.where($this is dateTime or $this is Period)",
-        ),
-        (
-            "Composition.section",
-            "Composition.section:diagRep",
-            "https://www.medizininformatik-initiative.de/fhir/ext/modul-bildgebung/StructureDefinition/mii-pr-bildgebung-semistrukt-befundbericht",
-            "Composition.section.where(entry.resolve().meta.profile.exists($this = 'https://www.medizininformatik-initiative.de/fhir/ext/modul-bildgebung/StructureDefinition/mii-pr-bildgebung-radiologischer-befund'))",
-        ),
-    ],
-    ids=[
-        "pattern_slicing_with_pattern_in_subelement",
-        "type_slicing",
-        "profile_slicing_with_single_profile",
-        # "profile_slicing_with_multiple_profiles"  # We have no such example in the package cache ATM
-        "type_slicing_with_multiple_types",
-        "profile_slicing",
-    ],
-    indirect=["elem_def", "profile"],
-)
-def test__append_filter_for_slice(
-    base_expr: str,
-    elem_def: ElementDefinition,
-    profile: StructureDefinitionSnapshot,
-    expected: str,
-    package_manager: FhirPackageManager,
-):
-    value = _append_filter_for_slice(base_expr, elem_def, profile, package_manager)
-    assert value == expected
 
 
 @pytest.mark.parametrize(

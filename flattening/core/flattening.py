@@ -1,6 +1,6 @@
 import json
 import re
-from typing import List, Dict, Mapping
+from typing import Dict, List, Mapping
 
 import yaml
 from fhir.resources.R4B.elementdefinition import ElementDefinition
@@ -9,21 +9,23 @@ from fhir.resources.R4B.structuredefinition import StructureDefinition
 from availability.constants.fhir import (
     FLATTENING_PACKAGE_PATTERN,
 )
+from common.exceptions import NotFoundError
 from common.model.fhir.structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.package.manager import FhirPackageManager
+from common.util.fhirpath.functions import filter_for_slice
 from common.util.http.exceptions import ClientError
 from common.util.http.terminology.client import FhirTerminologyClient
 from common.util.log.functions import get_logger
 from common.util.structure_definition.functions import (
-    get_parent_element_id,
-    get_parent_element,
     get_available_slices,
+    get_parent_element,
+    get_parent_element_id,
 )
 from flattening import DEFAULT_CONFIG
-from flattening.model.FlatteningConfigModels import FlatteningConfig, ChildSpec
+from flattening.model.FlatteningConfigModels import FlatteningConfig
 from flattening.model.FlatteningLookupModels import (
-    FlatteningLookupElement,
     FlatteningLookup,
+    FlatteningLookupElement,
     ViewDefinitionColumn,
     ViewDefinitionSelect,
     ViewDefinitionSnippet,
@@ -388,13 +390,31 @@ class FlatteningLookupGenerator:
 
         return None
 
+    def _extract_where_clause_for_slice_by_discriminator(
+        self, slice_element: ElementDefinition, profile: StructureDefinitionSnapshot
+    ) -> str | None:
+        try:
+            return filter_for_slice(
+                "$this",
+                slice_element,
+                profile,
+                self.package_manager,
+                FLATTENING_PACKAGE_PATTERN,
+            )
+        except NotFoundError as err:
+            _logger.warning(
+                f"Could not extract discriminator filter for {slice_element.id} "
+                f"=> defaulting to generic flattening. {err}"
+            )
+            return None
+
     def _extract_code_system_for_identifier(
         self, element: ElementDefinition, profile: StructureDefinitionSnapshot
     ) -> str | None:
         """
         Attempts to extract code system of identifier slice from patterUri and fixedUri
         :param element: ID of the element which represents the slice of the identifier for which the code system should be extracted
-        :param profile: profile containing element
+        :param profile: profile containing element definition
         :return: codesystem url or None
         """
 
@@ -583,24 +603,60 @@ class FlatteningLookupGenerator:
         :param kwargs: kwargs passing through things like the profile manager and the terminology client
         :return: flattened backbone element with flattened children
         """
-        # element = profile.get_element_by_id(element_id)
-        flat_backbone = FlatteningLookupElement(
-            parent=check_if_root(get_parent_element_id(element_id), profile)
-        )
-        # determine children, base.path
-        flat_backbone.children = get_direct_children_ids(element_id, profile)
-
-        flat_backbone.view_definition = ViewDefinitionSnippet(
-            for_each_or_null=element_id.split(".")[-1], select=[]
-        )
-
-        lookup = {element_id: flat_backbone}
+        lookup = {}
         clean_kwargs = {k: v for k, v in kwargs.items() if k != "type"}
-        for child in flat_backbone.children:
-            lookup.update(
-                self._flatten_element(element_id=child, profile=profile, **clean_kwargs)
-            )
+        flat_backbone = FlatteningLookupElement(
+            parent=check_if_root(get_parent_element_id(element_id), profile),
+            view_definition=ViewDefinitionSnippet(
+                for_each_or_null=element_id.split(".")[-1], select=[]
+            ),
+        )
 
+        element = profile.get_element_by_id(element_id)
+        # if backbone slices are available =>  flatten only slices
+        # (flatten Obs.component:meanBP.value[x] and ignore Obs.component.value[x])
+        if element and element.slicing:
+            list_of_children_slices = [
+                slice_def.id
+                for slice_def in get_available_slices(element_id, profile)
+                if slice_def
+                and slice_def.type
+                and len(slice_def.type) > 0
+                and "BackboneElement" in slice_def.type[0].code
+            ]
+
+            flat_backbone.children = list_of_children_slices
+
+            for child in list_of_children_slices:
+                child: str
+                lookup.update(
+                    self._flatten_element(
+                        element_id=child,
+                        profile=profile,
+                        **clean_kwargs,
+                    )
+                )
+        else:
+            if element and element.sliceName:
+                # if slice name is available => for each needs to have where clause
+                if expr := self._extract_where_clause_for_slice_by_discriminator(
+                    element, profile
+                ):
+                    flat_backbone.view_definition = ViewDefinitionSnippet(
+                        for_each_or_null=f"{expr}",
+                        select=[],
+                    )
+
+            flat_backbone.children = get_direct_children_ids(element_id, profile)
+
+            for child in flat_backbone.children:
+                lookup.update(
+                    self._flatten_element(
+                        element_id=child, profile=profile, **clean_kwargs
+                    )
+                )
+
+        lookup.update({element_id: flat_backbone})
         return lookup
 
     def _flatten_generic_complex_element(
@@ -1008,7 +1064,8 @@ class FlatteningLookupGenerator:
             # filter out any children which do not represent types of the given element
             # Example:
             #   filter out: .id .display  etc.
-            if (child_el := profile.get_element_by_id(child_id)) and child_el.sliceName is not None
+            if (child_el := profile.get_element_by_id(child_id))
+            and child_el.sliceName is not None
         }
 
         possible_types: List[str] = (
