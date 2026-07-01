@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+# [v4.2.1] - 2026-07-01
+
+## Added
+
+- Support flattening of sliced backboneElements (#493 @Frontman50)
+
 # [v4.2.0] - 2026-06-19
 
 ## Added
