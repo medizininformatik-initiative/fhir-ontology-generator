@@ -429,11 +429,16 @@ def test_flatten_primitive(
                 "Task.input.value[x]:valueAddress.line": FlatteningLookupElement(
                     parent="Task.input.value[x]:valueAddress",
                     view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueaddress_line",
-                                path="line",
-                                type="string",
+                        for_each_or_null="line",
+                        select=[
+                            ViewDefinitionSelect(
+                                column=[
+                                    ViewDefinitionColumn(
+                                        name="Task_input_value_X_Valueaddress_line",
+                                        path="$this",
+                                        type="string",
+                                    ),
+                                ],
                             ),
                         ],
                     ),
