@@ -177,7 +177,7 @@ DEFAULT_CONFIG: FlatteningConfig = FlatteningConfig(
             ChildSpec(id="use", type="code"),
             ChildSpec(id="type", type="code"),
             ChildSpec(id="text", type="string"),
-            ChildSpec(id="line", type="string"),
+            ChildSpec(id="line", type="string", max_cardinality_multiple=True),
             ChildSpec(id="city", type="string"),
             ChildSpec(id="district", type="string"),
             ChildSpec(id="state", type="string"),
