@@ -702,10 +702,31 @@ class FlatteningLookupGenerator:
                     )
                 )
 
-        # add the defined required primitive children
-        required_children = self._get_required_children_for_element(
-            element_id, element_type
-        )
+        required_children = []
+        # add the defined required primitive children if element has no slicing
+        if element and element.slicing and not is_polymorphic(element):
+            list_of_children_slices = [
+                slice_def.id
+                for slice_def in get_available_slices(element_id, profile)
+                if slice_def
+                and slice_def.type
+                and len(slice_def.type) > 0
+                and element_type in slice_def.type[0].code
+            ]
+            
+            for slice_id in list_of_children_slices:
+                required_children.append(
+                    (slice_id, element_type, [], False)
+                )
+        else:
+            if element and element.sliceName and (expr:=self._extract_where_clause_for_slice_by_discriminator(slice_element=element, profile=profile)):
+                flat_generic_complex.view_definition = ViewDefinitionSnippet(
+                    for_each_or_null=f"{expr}",
+                    select=[],
+                )
+            required_children = self._get_required_children_for_element(
+                element_id, element_type
+            )
 
         for child_id, child_type, polymorph_types, max_card in required_children:
             flat_generic_complex.children.append(child_id)
