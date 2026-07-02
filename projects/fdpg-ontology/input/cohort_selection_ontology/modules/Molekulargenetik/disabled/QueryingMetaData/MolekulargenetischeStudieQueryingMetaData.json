@@ -1,0 +1,22 @@
+{
+  "context": {
+    "code": "Molekulargenetische Studie",
+    "display": "Molekulargenetische Studie",
+    "system": "fdpg.mii.cds",
+    "version": "1.0.0"
+  },
+  "module": {
+    "code": "mii-cds-molgen",
+    "display": "Molgen"
+  },
+  "name": "MolekulargenetischeStudie",
+  "resource_type": "Procedure",
+  "term_code_defining_id": "Procedure.code",
+  "time_restriction_defining_id": "Procedure.performed[x]",
+  "attribute_defining_id_type_map": {
+    "((Procedure.extension:genomic-study-analysis).value[x]).code": {
+      "type": "refence",
+      "optional": true
+    }
+  }
+}
