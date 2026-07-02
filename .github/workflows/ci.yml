@@ -57,6 +57,21 @@ jobs:
           term-server-cert: ${{ secrets.FDPGPLUS_ONTO_SERVER_CERT }}
           term-server-key: ${{ secrets.FDPGPLUS_ONTO_SERVER_KEY }}
 
+  generate_dimp_config:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Generate DIMP config
+        uses: ./.github/actions/dimp-config
+        with:
+          tag: ${{ github.ref_name }}
+          project: fdpg-ontology
+          term-server-url: ${{ secrets.FDPGPLUS_ONTO_SERVER_URL }}
+          term-server-cert: ${{ secrets.FDPGPLUS_ONTO_SERVER_CERT }}
+          term-server-key: ${{ secrets.FDPGPLUS_ONTO_SERVER_KEY }}
+
   run_unit_tests:
     runs-on: ubuntu-latest
     steps:
@@ -222,7 +237,7 @@ jobs:
 
   release:
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-    needs: [build, generate_availability, run_unit_tests, run_integration_tests, run_json_integrity_tests]
+    needs: [build, generate_availability, generate_dimp_config, run_unit_tests, run_integration_tests, run_json_integrity_tests]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -246,9 +261,19 @@ jobs:
           name: flatteningLookup
           path: projects/fdpg-ontology/output/flattening
 
+      - name: Download DIMP config
+        uses: actions/download-artifact@v8
+        with:
+          name: dimp_config
+          path: projects/fdpg-ontology/output/dimp_config
+
       - name: Zip flattening lookup
         run: |
           zip -j projects/fdpg-ontology/output/flattening/flattening.zip projects/fdpg-ontology/output/flattening/flatteningLookup.json
+
+      - name: Zip DIMP config
+        run: |
+          zip -j projects/fdpg-ontology/output/dimp_config/dimp_config.zip projects/fdpg-ontology/output/dimp_config/dimp_config.yaml
 
       - name: Zip availability files
         run: |
@@ -273,3 +298,4 @@ jobs:
             projects/fdpg-ontology/output/availability/availability.zip
             projects/fdpg-ontology/output/data_selection_extraction/dse_structures.zip
             projects/fdpg-ontology/output/flattening/flattening.zip
+            projects/fdpg-ontology/output/dimp_config/dimp_config.zip

@@ -27,7 +27,7 @@ class ProjectDir(BaseModel):
             strict=True,
             frozen=True,
             init=True,
-            description="Path object pointing to the root " "directory of the project",
+            description="Path object pointing to the root directory of the project",
         ),
     ]
 
@@ -90,6 +90,11 @@ class IODir(ProjectDir, abc.ABC):
     @property
     def elastic(self) -> ProjectDir:
         return _sub_dir("elastic", self.path)
+
+    @computed_field
+    @property
+    def dimp_config(self) -> ProjectDir:
+        return _sub_dir("dimp_config", self.path)
 
 
 class InputDir(IODir):
