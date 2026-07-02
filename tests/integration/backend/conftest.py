@@ -9,8 +9,7 @@ from _pytest.python import Metafunc
 from pydantic import BaseModel
 from pytest_docker.plugin import Services, get_docker_services
 
-from common import util
-import common.util.test.docker
+from common.util.test.docker import save_docker_logs
 import pytest
 
 from common.util.http.auth.credentials import OAuthClientCredentials
@@ -108,7 +107,7 @@ def docker_compose_file(pytestconfig) -> str:
     )
 
     yield os.path.join(__test_dir(), "docker-compose.yml")
-    # util.tests.docker.save_docker_logs(__test_dir(), "integration-tests")
+    # save_docker_logs(__test_dir(), "integration-tests")
 
 
 @pytest.fixture(scope="session")
@@ -118,7 +117,8 @@ def docker_setup(pytestconfig) -> Union[list[str], str]:
 
 @pytest.fixture(scope="session")
 def docker_cleanup() -> Union[list[str], str]:
-    return ["down", "-v"]
+    # No automatic clean up by pytest-docker
+    return []
 
 
 @pytest.fixture(scope="session")
@@ -144,7 +144,7 @@ def docker_services(
     except:
         do_cleanup = True
     finally:
-        common.util.test.docker.save_docker_logs(__test_dir(), "integration-test")
+        save_docker_logs(__test_dir(), "integration-test")
         if do_cleanup:
             subprocess.check_output(
                 ["docker", "compose", *docker_cleanup], cwd=__test_dir()

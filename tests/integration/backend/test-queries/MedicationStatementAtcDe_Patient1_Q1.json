@@ -19,8 +19,7 @@
           "version": "1.0.0"
         },
         "timeRestriction": {
-          "afterDate": "2020-08-30",
-          "beforeDate": "2020-08-30"
+          "afterDate": "2020-08-30"
         }
       }
     ]
