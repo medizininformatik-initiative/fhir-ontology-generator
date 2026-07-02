@@ -78,5 +78,8 @@
   },
   {
     "data": ["Patient-mii-exa-test-data-patient-1.json", "Person_Condition_Todesursache_SNOMED_Patient1_Q1.json"]
+  },
+  {
+    "data": ["Patient-mii-exa-test-data-patient-1.json", "IMG_ImagingStudy_BildgebungsStudie_Query1Patient1.json"]
   }
 ]

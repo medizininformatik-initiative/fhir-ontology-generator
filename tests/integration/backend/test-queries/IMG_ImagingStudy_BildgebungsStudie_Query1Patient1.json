@@ -1,0 +1,23 @@
+{
+  "version": "http://to_be_decided.com/draft-1/schema#",
+  "display": "Ausgewählte Merkmale",
+  "inclusionCriteria": [
+    [
+      {
+        "termCodes": [
+          {
+            "code": "MR",
+            "system": "http://dicom.nema.org/resources/ontology/DCM",
+            "display": "Magnetic Resonance"
+          }
+        ],
+        "context": {
+          "code": "Bildgebungsstudie",
+          "display": "Bildgebungsstudie",
+          "system": "fdpg.mii.cds",
+          "version": "1.0.0"
+        }
+      }
+    ]
+  ]
+}
