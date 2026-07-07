@@ -31,7 +31,7 @@ class CodeSystemTranslationReportLanguage(BaseModel):
         :return: Percentage translated
         """
         self.percent = round(
-            self.__get_present_translations_count()
+            self.get_present_translations_count()
             / (total_codes if total_codes else 1)
             * 100,
             1,
@@ -57,7 +57,7 @@ class CodeSystemTranslationReportLanguage(BaseModel):
         self.missing = sum(1 for code in self.codes.values() if not code)
         return self.missing
 
-    def __get_present_translations_count(self) -> int:
+    def get_present_translations_count(self) -> int:
         """
         Calculates the number of codes **which do have** translations for this language
         :return: Number of codes with translations
@@ -83,7 +83,7 @@ class CodeSystemTranslationReport(BaseModel):
             key: value
             for lang in self.languages.keys()
             for key, value in {
-                f"Missing {lang}": self.languages[lang].calc_missing(),
+                f"Codes {lang}": self.languages[lang].get_present_translations_count(),
                 f"{lang} percent": str(
                     self.languages[lang].calc_percent(self.codes_in_total)
                 )
