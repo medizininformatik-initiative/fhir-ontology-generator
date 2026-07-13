@@ -1,0 +1,114 @@
+[
+  {
+    "query": "BioprobeQuery1Patient1.json",
+    "expected": 1,
+    "status": {
+      "disabled": true,
+      "reason": "Version v2026.0.0-rc.1 of the MII test data is missing proper codings in the Condition resource of the biobank test data bundle"
+    }
+  },
+  {
+    "query": "BioprobeQuery2Patient1.json",
+    "expected": 1
+  },
+  {
+    "query": "BioprobeQuery3Patient1.json",
+    "expected": 1,
+    "status": {
+      "disabled": true,
+      "reason": "Version v2026.0.0-rc.1 of the MII test data is missing ICD-0-3 body site codings in Specimen test data of the biobank test data bundle"
+    }
+  },
+  {
+    "query": "Diagnose_AlphaID_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "Diagnose_ICD10_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "Diagnose_SCT_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "Consent_MiiConsent_Patient1_Q1.json",
+    "expected": 10
+  },
+  {
+    "query": "Encounter_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "Observation_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "MedicationAdministration_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "MedicationRequest_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "MedicationStatement_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "Person_Gender_Patient1_Q1.json",
+    "expected": 15
+  },
+  {
+    "query": "Person_Vitalstatus_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "Prozedur_CategorySCT_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "Prozedur_OPS_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "Prozedur_SCT_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "ICU_ArteriellerBlutdruck_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "ICU_Atemfrequenz_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "ICU_Herzfrequenz_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "ICU_Koerpergroesse_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "ICU_Koepergewicht_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "ICU_spo2-pulsoxymetrie_Patient1_Q1.json",
+    "expected": 1,
+    "status": {
+      "disabled": true,
+      "reason": "No test data available and containing ISIK module (stage 5) not yet mandated"
+    }
+  },
+  {
+    "query": "Person_Condition_Todesursache_LOINC_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "Person_Condition_Todesursache_SNOMED_Patient1_Q1.json",
+    "expected": 1
+  }
+]
