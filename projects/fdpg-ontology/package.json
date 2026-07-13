@@ -8,7 +8,7 @@
   "dependencies": {
     "hl7.fhir.r4.core": "4.0.1",
     "de.basisprofil.r4": "1.5.4",
-    "de.einwilligungsmanagement": "2.0.1",
+    "de.einwilligungsmanagement": "2.0.3",
     "de.gematik.isik-basismodul": "4.0.3",
     "de.gematik.isik-vitalparameter": "4.0.1",
     "de.ihe-d.terminology": "3.0.1",
