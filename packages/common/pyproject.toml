@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "common"
+version = "5.0.0"
+dependencies = [
+    "antlr4-python3-runtime==4.9.3",
+    "attrs~=24.2.0",
+    "beautifulsoup4~=4.11.2",
+    "cachetools>=7.1.4",
+    "fhir-resources==8.0.0",
+    "isodate==0.7.2",
+    "pydantic~=2.10.5",
+    "python-dotenv==1.2.2",
+    "pyyaml==6.0.2",
+    "requests==2.33.0",
+    "semver>=3.0",
+    "typing-extensions~=4.12.2",
+    "urllib3~=2.7.0",
+]
+
+[project.entry-points.pytest11]
+common-test = "dataportal_generator.common_test.plugin"
+
+[dependency-groups]
+dev = [
+    { include-group = "lint" },
+    { include-group = "test" }
+]
+lint = [
+    "ruff"
+]
+test = [
+    "pytest>=8",
+    "pytest-env"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dataportal_generator"]
+
+[tool.pytest_env]
+env = [
+    "CCTB_CLI_VERSION=2.0.0",
+    "MII_CDS_TEST_DATA_VERSION=v2026.0.0-rc.1"
+]
