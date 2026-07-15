@@ -1,0 +1,5 @@
+ALTER TABLE contextualized_termcode drop constraint CONTEXT_ID_FK;
+ALTER TABLE contextualized_termcode drop constraint CONCEPT_ID_FK;
+ALTER TABLE contextualized_termcode drop constraint ui_profile_id_fk;
+ALTER TABLE contextualized_termcode drop constraint mapping_id_fk;
+ALTER TABLE contextualized_termcode drop constraint contextualized_termcode_context_id_termcode_id_key;

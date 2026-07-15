@@ -1,3 +1,0 @@
-backend.zip filter=lfs diff=lfs merge=lfs -text
-elastic.zip filter=lfs diff=lfs merge=lfs -text
-mapping.zip filter=lfs diff=lfs merge=lfs -text

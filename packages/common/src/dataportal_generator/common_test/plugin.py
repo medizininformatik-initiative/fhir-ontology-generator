@@ -1,0 +1,1 @@
+pytest_plugins = ["dataportal_generator.common_test.fixtures"]

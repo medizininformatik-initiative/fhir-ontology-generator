@@ -1,0 +1,28 @@
+from typing import Mapping, Optional, Any
+
+
+def format_query_params(
+    query_params: Optional[Mapping[str, Any]] = None,
+) -> Optional[Mapping[str, Any]]:
+    if query_params is None:
+        return None
+    return {k.replace("_", "-"): v for k, v in query_params.items() if k is not None}
+
+
+def insert_path_params(url: str, **path_params) -> str:
+    split = url.split("?", 1)
+    return split[0].format(**path_params) + (split[1] if len(split) > 1 else "")
+
+
+def merge_urls(url_a: str, url_b: Optional[str]) -> str:
+    if url_b is None:
+        return url_a
+    if len(url_a) == 0 and len(url_b) == 0:
+        return ""
+    match (url_a.endswith("/") + url_b.startswith("/")):
+        case 0:
+            return url_a + "/" + url_b
+        case 1:
+            return url_a + url_b
+        case 2:
+            return url_a + url_b.lstrip("/")
