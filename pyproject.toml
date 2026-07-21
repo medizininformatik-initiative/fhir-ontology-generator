@@ -3,5 +3,5 @@ log_cli = 1
 log_cli_level = "INFO"
 
 [tool.pytest_env]
-CCTB_CLI_VERSION = "2.0.0-alpha.1"
+CCTB_CLI_VERSION = "2.0.0"
 MII_CDS_TEST_DATA_VERSION = "v2026.0.0-rc.1"
