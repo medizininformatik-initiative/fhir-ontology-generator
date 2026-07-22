@@ -1,6 +1,8 @@
+import sys
 from datetime import datetime, timezone
+from math import inf
 from pathlib import Path
-from typing import Mapping, Optional, List, Literal
+from typing import Mapping, Optional, List, Literal, Any
 
 from fhir.resources.R4B.bundle import Bundle, BundleEntry, BundleEntryRequest
 from fhir.resources.R4B.codesystem import CodeSystem
@@ -92,14 +94,31 @@ class FhirTerminologyClient(BaseClient):
             else:
                 raise
 
-    def expand_value_set(
-        self, url: str, version: Optional[str] = None
-    ) -> Optional[Mapping[str, any]]:
+    def __expand_value_set_with_offset(
+        self, url: str, version: Optional[str] = None, offset: int = 0
+    ) -> Mapping[str, Any]:
         return self.get(
             "/ValueSet/$expand",
             headers=dict([self.__accept_header]),
-            query_params={"url": url, "version": version},
+            query_params={"url": url, "version": version, "offset": str(offset)},
         ).json()
+
+    def expand_value_set(
+        self, url: str, version: Optional[str] = None
+    ) -> Optional[Mapping[str, Any]]:
+        offset = 0
+        vs = self.__expand_value_set_with_offset(url, version, offset)
+        expansion = vs.get("expansion", {})
+        contains = expansion.get("contains", [])
+        total = expansion.get("total", {})
+        offset += len(contains)
+        while offset < total:
+            vs_page = self.__expand_value_set_with_offset(url, version, offset)
+            vs_page_expansion = vs_page.get("expansion", {})
+            vs_page_contains = vs_page_expansion.get("contains", [])
+            contains.extend(vs_page_contains)
+            offset += len(vs_page_contains)
+        return vs
 
     def search_code_system(self, **search_params) -> Bundle:
         bundle = self.get(
