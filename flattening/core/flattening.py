@@ -11,6 +11,7 @@ from availability.constants.fhir import (
 )
 from common.exceptions import NotFoundError
 from common.model.fhir.structure_definition import StructureDefinitionSnapshot
+from common.util.collections.functions import first
 from common.util.fhir.package.manager import FhirPackageManager
 from common.util.fhirpath.functions import filter_for_slice
 from common.util.http.exceptions import ClientError
@@ -195,9 +196,10 @@ def get_direct_children_ids(
     :param profile: snapshot of the profile of the element in question
     :return: list of children ids
     """
-    return [
-        el.id for el in profile.snapshot.element if get_parent_element_id(el) == element
-    ]
+    if elem_def := profile.get_element_by_id(element):
+        return [child.id for child in elem_def.children]
+    else:
+        return []
 
 
 def recontextualize_extension_lookup(
@@ -251,7 +253,12 @@ def recontextualize_extension_lookup(
             for child in (new_lookup.children if new_lookup.children else [])
         ]
 
-        new_lookup.parent = check_if_root(get_parent_element_id(element_id), profile)
+        if lookup.parent:
+            new_lookup.parent = lookup.parent.replace("Extension", element_id)
+        else:
+            new_lookup.parent = check_if_root(
+                get_parent_element_id(element_id), profile
+            )
         res_lookup[new_key] = new_lookup
 
     return res_lookup
@@ -693,16 +700,6 @@ class FlatteningLookupGenerator:
 
         lookup = {}
 
-        # flatten extensions if any present
-        for child_id in get_direct_children_ids(element_id, profile):
-            if get_element_type(profile.get_element_by_id(child_id)) == "Extension":
-                flat_generic_complex.children.append(child_id)
-                lookup.update(
-                    self._flatten_element(
-                        element_id=child_id, profile=profile, **clean_kwargs
-                    )
-                )
-
         required_children = []
         # add the defined required primitive children if element has no slicing
         if element and element.slicing and not is_polymorphic(element):
@@ -798,6 +795,12 @@ class FlatteningLookupGenerator:
         """
         element = profile.get_element_by_id(element_id)
 
+        if not element:
+            return {}
+
+        parent_elem_def = element.parent
+        parent_type = get_element_type(parent_elem_def)
+
         # base extension element
         if element.slicing is not None:
             _logger.debug(
@@ -805,7 +808,14 @@ class FlatteningLookupGenerator:
             )
             flat_ext = FlatteningLookupElement(
                 parent=check_if_root(get_parent_element_id(element), profile),
-                view_definition=ViewDefinitionSnippet(select=[]),
+                view_definition=ViewDefinitionSnippet(
+                    for_each_or_null=(
+                        parent_elem_def.rel_path
+                        if parent_type in FHIR_PRIMITIVES
+                        else None
+                    ),
+                    select=[],
+                ),
                 children=get_direct_children_ids(element.id, profile),
             )
 
@@ -814,7 +824,7 @@ class FlatteningLookupGenerator:
                 lookup.update({element_id: flat_ext})
             for child in flat_ext.children:
                 lookup.update(
-                    self._flatten_element(element_id=child, profile=profile, **kwargs)
+                    self._flatten_extension(element_id=child, profile=profile, **kwargs)
                 )
 
             return lookup
@@ -840,13 +850,7 @@ class FlatteningLookupGenerator:
                 )
 
                 _logger.debug(f"Found profile for {element_id}: {ext_profile_url}")
-                content_pattern = {
-                    "resourceType": "StructureDefinition",
-                    "url": ext_profile_url,
-                }
-                if ext_profile := self.package_manager.find(
-                    content_pattern, latest_only=False
-                ):
+                if ext_profile := self.package_manager.find_struct_def(ext_profile_url):
                     ext_profile: StructureDefinitionSnapshot
                     _logger.debug(
                         f"Found profile ->  following reference: {ext_profile_url}"
@@ -859,6 +863,7 @@ class FlatteningLookupGenerator:
                             profile=ext_profile,
                             **kwargs,
                         )
+                        ext_lookup["Extension.value[x]"].parent = "Extension"
                         lookup.update(
                             recontextualize_extension_lookup(
                                 ext_lookup, element_id, profile
@@ -874,9 +879,12 @@ class FlatteningLookupGenerator:
                             child = ext_profile.get_element_by_id(child_ext)
                             if get_element_type(child) == "Extension":
                                 flat_ext_el.children.append(child_ext)
-                                ext_lookup = self._flatten_element(
-                                    element_id=child_ext, profile=ext_profile, **kwargs
+                                ext_lookup = self._flatten_extension(
+                                    child_ext, ext_profile, **kwargs
                                 )
+                                flat_ext_el.children = [
+                                    child_ext.replace("Extension", element_id)
+                                ]
                                 lookup.update(
                                     recontextualize_extension_lookup(
                                         ext_lookup, element_id, profile
@@ -887,11 +895,7 @@ class FlatteningLookupGenerator:
                         f"Could not resolve Extension ({element_id}) profile: {ext_profile_url}"
                     )
 
-                lookup.update(
-                    recontextualize_extension_lookup(
-                        {element_id: flat_ext_el}, element_id, profile
-                    )
-                )
+                lookup.update({element_id: flat_ext_el})
 
             elif (children := get_direct_children_ids(element.id, profile)) and len(
                 children
@@ -1305,10 +1309,7 @@ class FlatteningLookupGenerator:
             )
 
         lookup = {element_id: flat_element}
-        for child in get_direct_children_ids(element_id, profile):
-            lookup.update(
-                self._flatten_element(element_id=child, profile=profile, **kwargs)
-            )
+
         return lookup
 
     def _flatten_element(
@@ -1343,49 +1344,85 @@ class FlatteningLookupGenerator:
 
         res: Dict[str, FlatteningLookupElement] = {}
 
-        match element_type:
-            case x if x in GENERIC_COMPLEX_TYPES:
-                res = self._flatten_generic_complex_element(
-                    element_id=element_id, profile=profile, type=element_type, **kwargs
-                )
-            case x if x in FHIR_PRIMITIVES:
-                res = self._flatten_primitive(
-                    element_id=element_id, profile=profile, type=element_type, **kwargs
-                )
-            case "Coding":
-                res = self._flatten_coding(
-                    element_id=element_id, profile=profile, type=element_type, **kwargs
-                )
-            case "Identifier":
-                res = self._flatten_identifier(
-                    element_id=element_id, profile=profile, type=element_type, **kwargs
-                )
-            case "CodeableConcept":
-                res = self._flatten_codeable_concept(
-                    element_id=element_id, profile=profile, type=element_type, **kwargs
-                )
-            case "Polymorphic":
-                res = self._flatten_polymorphic(
-                    element_id=element_id, profile=profile, type=element_type, **kwargs
-                )
-            case "BackboneElement":
-                res = self._flatten_backbone_element(
-                    element_id=element_id, profile=profile, type=element_type, **kwargs
-                )
-            case "Extension":
-                res = self._flatten_extension(
-                    element_id=element_id, profile=profile, type=element_type, **kwargs
-                )
-            case _:
-                if element_type not in self.config.excluded_types:
-                    _logger.warning(
-                        f"No flattener defined for `{element_type}` for {element_id}"
+        if element_type == "Extension":
+            res = self._flatten_extension(
+                element_id=element_id, profile=profile, type=element_type, **kwargs
+            )
+            flat_lookup_els.update(res)
+        else:
+            match element_type:
+                case x if x in GENERIC_COMPLEX_TYPES:
+                    res = self._flatten_generic_complex_element(
+                        element_id=element_id,
+                        profile=profile,
+                        type=element_type,
+                        **kwargs,
                     )
-                _logger.error(
-                    f"No flattener defined for `{element_type}` for {element_id}"
-                )
+                case x if x in FHIR_PRIMITIVES:
+                    res = self._flatten_primitive(
+                        element_id=element_id,
+                        profile=profile,
+                        type=element_type,
+                        **kwargs,
+                    )
+                case "Coding":
+                    res = self._flatten_coding(
+                        element_id=element_id,
+                        profile=profile,
+                        type=element_type,
+                        **kwargs,
+                    )
+                case "Identifier":
+                    res = self._flatten_identifier(
+                        element_id=element_id,
+                        profile=profile,
+                        type=element_type,
+                        **kwargs,
+                    )
+                case "CodeableConcept":
+                    res = self._flatten_codeable_concept(
+                        element_id=element_id,
+                        profile=profile,
+                        type=element_type,
+                        **kwargs,
+                    )
+                case "Polymorphic":
+                    res = self._flatten_polymorphic(
+                        element_id=element_id,
+                        profile=profile,
+                        type=element_type,
+                        **kwargs,
+                    )
+                case "BackboneElement":
+                    res = self._flatten_backbone_element(
+                        element_id=element_id,
+                        profile=profile,
+                        type=element_type,
+                        **kwargs,
+                    )
+                case _:
+                    if element_type not in self.config.excluded_types:
+                        _logger.warning(
+                            f"No flattener defined for `{element_type}` for {element_id}"
+                        )
 
-        flat_lookup_els.update(res)
+            # Handle possible slices of the 'extension' element
+            # FIXME: We have to exclude all extension on primitively-typed elements since Pathling does not seem to
+            #        support them ATM
+            if element and all(t.code not in FHIR_PRIMITIVES for t in element.type):
+                ext_elem_def_id = element_id + ".extension"
+                ext_flattening_lookup_elements = self._flatten_extension(
+                    ext_elem_def_id, profile
+                )
+                # Set extension lookup elements as additional children
+                if ext_flattening_lookup_elements:
+                    _, parent = first(lambda t: t[0] == element_id, res.items())
+                    if ext_elem_def_id not in parent.children:
+                        parent.children.append(ext_elem_def_id)
+            else:
+                ext_flattening_lookup_elements = {}
+
+            flat_lookup_els.update({**res, **ext_flattening_lookup_elements})
 
         return flat_lookup_els
 

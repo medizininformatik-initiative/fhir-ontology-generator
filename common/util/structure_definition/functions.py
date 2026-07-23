@@ -1091,9 +1091,8 @@ def get_available_slice_names(
         )
     )
 
-def get_parent_element_id(
-    element: ElementDefinition | str
-) -> str:
+
+def get_parent_element_id(element: ElementDefinition | str) -> str:
     element_id: str
 
     match element:
@@ -1103,9 +1102,8 @@ def get_parent_element_id(
                     f"'ElementDefinition.id' is missing in element [path='{path}']"
                 )
 
-        case str() as element_id:
+        case str(element_id):
             pass
-
         case _:
             raise TypeError(
                 f"Expected ElementDefinition or str, got {type(element).__name__}"
@@ -1119,6 +1117,7 @@ def get_parent_element_id(
     if ":" in element_name:
         parent_id += "." + element_name.split(":")[0]
     return parent_id
+
 
 def get_parent_element(
     profile_snapshot: StructureDefinitionSnapshot, element: ElementDefinition

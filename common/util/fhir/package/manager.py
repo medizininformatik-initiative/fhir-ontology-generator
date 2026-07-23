@@ -33,6 +33,10 @@ from requests import Request
 from requests.auth import AuthBase
 
 from common.exceptions import UnsupportedError, NotFoundError
+from common.model.fhir.nav_structure_definition import (
+    NavStructureDefinition,
+    ensure_struct_def_is_navigable,
+)
 from common.model.fhir.structure_definition import idx_struct_def_discriminator
 from common.model.fhir.pydantic import construct_model
 
@@ -44,7 +48,9 @@ from common.util.log.decorators import inject_logger
 def _version_matches(fuzzy: str, exact: str) -> bool:
     fuzzy_split = fuzzy.split(".")[:3]
     if fuzzy_split[1] == "x" and fuzzy_split[2] != "x":
-        raise ValueError(f"Fuzzy version minor part cannot be 'x' if patch part is exact: {repr(fuzzy)}")
+        raise ValueError(
+            f"Fuzzy version minor part cannot be 'x' if patch part is exact: {repr(fuzzy)}"
+        )
     # Clean from label from exact
     exact_split = exact.split("-", maxsplit=1)[0].split(".")[:3]
     if not fuzzy_split[0] == exact_split[0]:
@@ -61,7 +67,7 @@ def _parse_package_name_and_version(package_name: str) -> tuple[str, str]:
     valid = False
     for i in range(0, len(package_name)):
         try:
-            ver = semver.Version.parse(package_name[i - 1:])
+            ver = semver.Version.parse(package_name[i - 1 :])
             valid = True
         except ValueError:
             # Ensure longest possible valid semver string is parsed
@@ -72,7 +78,7 @@ def _parse_package_name_and_version(package_name: str) -> tuple[str, str]:
     if ver is None:
         raise ValueError(f"Invalid package name: {repr(package_name)}")
     ver_str = str(ver)
-    name = package_name[:-len(ver_str) - 1]
+    name = package_name[: -len(ver_str) - 1]
     return name, ver_str
 
 
@@ -180,7 +186,7 @@ class FhirPackageManager(abc.ABC):
 
     def _update_index_with_package(self, package_dir: Path):
         with open(
-                package_dir / "package" / "package.json", mode="r", encoding="utf-8"
+            package_dir / "package" / "package.json", mode="r", encoding="utf-8"
         ) as f:
             package_info = json.load(f)
             name = package_info.get("name")
@@ -191,9 +197,9 @@ class FhirPackageManager(abc.ABC):
                 if not idx_path.exists() or idx_path.is_file():
                     update_package_index_file(package_dir)
                 with open(
-                        idx_path,
-                        mode="r",
-                        encoding="utf-8",
+                    idx_path,
+                    mode="r",
+                    encoding="utf-8",
                 ) as idx_f:
                     name_entry[version] = (package_info, json.load(idx_f))
 
@@ -272,10 +278,11 @@ class FhirPackageManager(abc.ABC):
                         if (
                             res_type := json_data.get("resourceType")
                         ) == "StructureDefinition":
-                            res = construct_model(
-                                idx_struct_def_discriminator, **json_data
+                            res = ensure_struct_def_is_navigable(
+                                construct_model(
+                                    idx_struct_def_discriminator, **json_data
+                                )
                             )
-                            # res = IndexedStructureDefinition.validate_python(json_data)
                         else:
                             model_class = fhir.resources.get_fhir_model_class(res_type)
                             res = model_class.model_validate(json_data)
@@ -307,6 +314,21 @@ class FhirPackageManager(abc.ABC):
         """
         return next(
             self.iterate_cache(package_pattern, index_pattern, latest_only), None
+        )
+
+    def find_struct_def(self, url: str) -> Optional[NavStructureDefinition]:
+        """
+        Attempts to find a matching FHIR StructureDefinition resource in the package cache
+
+        :param url: ``StructureDefinition.url`` value to match
+        :return: ``NavStructureDefinition`` object or `None` if there is no match
+        """
+        return self.find(
+            {
+                "resourceType": "StructureDefinition",
+                "url": url,
+            },
+            latest_only=False,
         )
 
     @cachetools.cached(cache={}, key=_profile_cache_key)
@@ -388,7 +410,9 @@ class FhirPackageManager(abc.ABC):
         else:
             raise NotFoundError(f"Failed to find profile '{base_def}' in index")
 
-    def install(self, *packages: str | tuple[str, str], inflate: bool = False, **kwargs):
+    def install(
+        self, *packages: str | tuple[str, str], inflate: bool = False, **kwargs
+    ):
         """
         Attempts to install all packages represented by the provided package names and (optional) versions
 
@@ -636,7 +660,12 @@ class RepositoryPackageManager(FhirPackageManager):
             stream=True,
         )
 
-    def install(self, *packages: tuple[str, str], inflate: bool = False, lenient_on_deps: bool = False):
+    def install(
+        self,
+        *packages: tuple[str, str],
+        inflate: bool = False,
+        lenient_on_deps: bool = False,
+    ):
         if inflate and not self.__can_inflate:
             raise ValueError(
                 "Package inflation is not possible due to missing tool 'firely.terminal'"
@@ -652,7 +681,9 @@ class RepositoryPackageManager(FhirPackageManager):
                             f"A package version has to be provided in this implementation"
                         )
                 if self.has_package(name, version):
-                    self._logger.debug(f"Package {name_and_version} is already installed")
+                    self._logger.debug(
+                        f"Package {name_and_version} is already installed"
+                    )
                     continue
                 try:
                     self._logger.info(f"Installing package {name_and_version}")
@@ -678,9 +709,15 @@ class RepositoryPackageManager(FhirPackageManager):
                         shutil.copytree(tmp_package_dir, package_dir)
                         shutil.rmtree(tmp_package_dir)
                     # Install dependencies
-                    deps = [(pkg, ver) for pkg, ver in pkg_info.get("dependencies", {}).items() if not self.has_package(pkg, ver)]
+                    deps = [
+                        (pkg, ver)
+                        for pkg, ver in pkg_info.get("dependencies", {}).items()
+                        if not self.has_package(pkg, ver)
+                    ]
                     if deps:
-                        self._logger.debug(f"Installing (missing) dependencies of package {name_and_version}: {deps}")
+                        self._logger.debug(
+                            f"Installing (missing) dependencies of package {name_and_version}: {deps}"
+                        )
                         for dep in deps:
                             try:
                                 self.install(dep, inflate=False)
@@ -763,16 +800,19 @@ class GitHubPackageManager(RepositoryPackageManager):
     @functools.cached_property
     def __package_files(
         self,
-    ) -> Mapping[
-        tuple[str, str], Annotated[str, "Download URL"]
-    ]:
+    ) -> Mapping[tuple[str, str], Annotated[str, "Download URL"]]:
         try:
             data = self.__contents_client.get(
                 self.__path,
                 headers={"Accept": "application/json"},
                 query_params={"ref": self.__ref} if self.__ref else None,
             ).json()
-            return {_parse_package_name_and_version(e["name"].rsplit(".", maxsplit=1)[0]): e["download_url"] for e in data}
+            return {
+                _parse_package_name_and_version(
+                    e["name"].rsplit(".", maxsplit=1)[0]
+                ): e["download_url"]
+                for e in data
+            }
         except Exception as exc:
             raise Exception(
                 f"Failed to retrieve information about FHIR packages hosted in the repository "
@@ -780,17 +820,18 @@ class GitHubPackageManager(RepositoryPackageManager):
             ) from exc
 
     def _request_package(
-            self,
-            name_and_version: Optional[tuple[str, str]] = None,
-            *_
+        self, name_and_version: Optional[tuple[str, str]] = None, *_
     ) -> ContextManager[Request]:
         if not name_and_version:
-            raise ValueError("GitHub package manager requires name and version in order to find the package")
+            raise ValueError(
+                "GitHub package manager requires name and version in order to find the package"
+            )
         name, version = name_and_version
         fuzzy_matches = list(
             filter(
-                lambda e: e[0][0].startswith(name) and _version_matches(version, e[0][1]),
-                self.__package_files.items()
+                lambda e: e[0][0].startswith(name)
+                and _version_matches(version, e[0][1]),
+                self.__package_files.items(),
             )
         )
         exact_match = next(
@@ -805,7 +846,9 @@ class GitHubPackageManager(RepositoryPackageManager):
         else:
             if len(fuzzy_matches) == 0:
                 raise Exception(f"No match found for package {name_and_version}")
-            closest_match = sorted(fuzzy_matches, key=lambda e: e[0] + "-" + e[1], reverse=True)[0]
+            closest_match = sorted(
+                fuzzy_matches, key=lambda e: e[0] + "-" + e[1], reverse=True
+            )[0]
             self._logger.debug(
                 f"Failed to find exact match => Requesting closest match '{closest_match}'"
             )

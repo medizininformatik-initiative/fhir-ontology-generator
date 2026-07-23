@@ -38,7 +38,7 @@ def _elem_def_key(s: StructureDefinition, e_id: str) -> str:
     return s.url + "|" + (s.version if s.version else "") + "|" + e_id
 
 
-class AbstractIndexedStructureDefinition(abc.ABC, StructureDefinition):
+class IdxStructureDefinition(abc.ABC, StructureDefinition):
 
     @abc.abstractmethod
     def indexed_field_path(self) -> str:
@@ -145,12 +145,12 @@ class AbstractIndexedStructureDefinition(abc.ABC, StructureDefinition):
         )
 
 
-class StructureDefinitionDifferential(AbstractIndexedStructureDefinition):
+class StructureDefinitionDifferential(IdxStructureDefinition):
     def indexed_field_path(self) -> str:
         return "differential.element"
 
 
-class StructureDefinitionSnapshot(AbstractIndexedStructureDefinition):
+class StructureDefinitionSnapshot(IdxStructureDefinition):
     def indexed_field_path(self) -> str:
         return "snapshot.element"
 

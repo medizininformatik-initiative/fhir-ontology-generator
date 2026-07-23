@@ -9,10 +9,15 @@ from fhir.resources.R4B.elementdefinition import (
     ElementDefinitionBinding,
     ElementDefinitionSlicingDiscriminator,
 )
-from pydantic import conlist
+from pydantic import conlist, BaseModel
 
 from availability.constants.fhir import MII_CDS_PACKAGE_PATTERN
 from common.exceptions import NotFoundError, UnsupportedError
+from common.model.fhir.nav_element_definition import NavElementDefinition
+from common.model.fhir.nav_structure_definition import (
+    NavStructureDefinition,
+    ensure_struct_def_is_navigable,
+)
 from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot,
 )
@@ -22,6 +27,7 @@ from common.util.structure_definition.functions import get_parent_element
 
 _REGEX_MATCH_TRAILING_WHERE_FUNC = re.compile(r"where\((.*)\)$")
 _REGEX_MATCH_TRAILING_EXISTS_FUNC = re.compile(r"exists\((.*)\)$")
+
 
 def unsupported_fhirpath_expr(
     c: ParserRuleContext,
@@ -136,6 +142,7 @@ def join_fhirpath(*paths: str | None) -> str:
     )
     return string if len(string) > 0 else "$this"
 
+
 def _find_polymorphic_value(data: Element, element_name: str) -> Optional[Any]:
     """
     Attempts to find the value of a polymorphic element by iterating over all possible data type-specific names
@@ -160,7 +167,8 @@ def _find_value_for_discriminator_pattern_or_value(
     discriminated slicings, e.g. looks for a values in the `fixed[x]`, `pattern[x]`, or `binding` sub-element
 
     :param elem: `ElementDefinition` instance containing the discriminator value
-    :return: Tuple of the sub-element name and its value ir `None` if no fitting sub-element could be found
+    :return: Tuple of the value type (``"fixed"``, ``"pattern"``, or ``"binding"``) and the value or `None` if the
+             element definition defines has none of these restrictions
     """
     if fixed := _find_polymorphic_value(elem, "fixed"):
         return "fixed", fixed
@@ -179,7 +187,7 @@ def _element_data_to_fhirpath_filter(key: str = "$this", data: Any = None) -> Li
 
     :param key: Name of the element in its parent structure
     :param data: FHIR element data to transform
-    :return: FHIRPath filter string
+    :return: List of FHIRPath filter string
     """
     exprs = []
     match data:
@@ -203,7 +211,7 @@ def _element_data_to_fhirpath_filter(key: str = "$this", data: Any = None) -> Li
                             exprs.append(f"{key}.exists({expr})")
                 case _:
                     if key == "$this":
-                        exprs.append(" and ".join(sub_exprs))
+                        exprs.extend(sub_exprs)
                     else:
                         exprs.append(f"{key}.exists({' and '.join(sub_exprs)})")
         case list():
@@ -217,9 +225,12 @@ def _element_data_to_fhirpath_filter(key: str = "$this", data: Any = None) -> Li
                     expr = sub_exprs[0]
                     exprs.append(f"{key}.exists({expr})" if key != "$this" else expr)
                 case _:
-                    clause = " and ".join([f"exists({se})" for se in sub_exprs])
-                    clause = f"{key}.exists({clause})" if key != "$this" else clause
-                    exprs.append(clause)
+                    clause = (
+                        [f"{key}.exists({' and '.join(sub_exprs)})"]
+                        if key != "$this"
+                        else sub_exprs
+                    )
+                    exprs.extend(clause)
         case _:
             # TODO: Add handling for other simple FHIR data types
             exprs.append(f"{key} = '{str(data)}'")
@@ -316,6 +327,72 @@ def _append_filter_from_profile_discriminated_elem(
             )
 
 
+def fhirpath_filter_from_value_discriminated_elem_def(
+    elem_def: NavElementDefinition,
+    struct_def: NavStructureDefinition,
+    discr_path: Optional[str] = None,
+) -> Optional[str]:
+    """
+    Creates a FHIRPath filter expression for the provided value-discriminated element definition
+
+    :param elem_def: element definition to which a value-type discriminator path points
+    :param struct_def: structure definition holding the element definition
+    :param discr_path: Discriminator path. Providing `None` is intended for internal use
+    :return: FHIRPath filter expression string or `None` if not expression could be determined. The filter expression
+             will be a `where` function invocation containing the filter criteria that shall be called on the
+             discriminated element
+    """
+    exprs = []
+    if ret := _find_value_for_discriminator_pattern_or_value(elem_def):
+        discr_value_type, discr_value = ret
+        if discr_value_type == "binding":
+            binding = elem_def.binding
+            if binding and binding.strength == "required" and binding.valueSet:
+                exprs.append(
+                    f"{'' if discr_path else (elem_def.rel_path + '.')}memberOf('{binding.valueSet}')"
+                )
+        else:
+            exprs.extend(
+                _element_data_to_fhirpath_filter(
+                    key="$this" if discr_path else elem_def.rel_path,
+                    data=(
+                        discr_value.model_dump()
+                        if isinstance(discr_value, BaseModel)
+                        else discr_value
+                    ),
+                )
+            )
+    if not exprs:
+        # We ignore slices since the discriminator value should be part of any instance of the element. Checking the
+        # element definitions within the structure definition snapshot should suffice since the discriminator value will be
+        # defined by it
+        for sub_elem in elem_def.elements:
+            if sub_elem_expr := fhirpath_filter_from_value_discriminated_elem_def(
+                sub_elem, struct_def
+            ):
+                exprs.append(sub_elem_expr)
+    add_discr_path = discr_path is not None and discr_path != "$this"
+    match exprs:
+        case []:
+            return None
+        case [x]:
+            # Wrap with `where` function invocation on non-internal call to produce final FHIRPath filter expression
+            return (
+                f"where({(discr_path + '.') if add_discr_path else ''}{x})".replace(
+                    ".$this", ""
+                )
+                if discr_path
+                else x
+            )
+        case _:
+            if exprs:
+                join = " and ".join(exprs)
+                criteria = f"{discr_path}.exists({join})" if add_discr_path else join
+                return f"where({criteria})".replace(".$this", "")
+            else:
+                return None
+
+
 def _find_discr_value_defining_elem_def(
     discr_path: str,
     snapshot: StructureDefinitionSnapshot,
@@ -393,6 +470,9 @@ def _get_filter_from_pattern_or_value_discriminated_elem(
     :param manager: FHIR package manager providing access to package cache
     :return: FHIRPath filter selecting elements matching the slice
     """
+    # TODO: Apply navigable structure def model to entire code base
+    snapshot = ensure_struct_def_is_navigable(snapshot)
+    elem_def = snapshot.get_element_by_id(elem_def.id)
     if "resolve()" in discr_path:
         # If the discriminator path crosses resource boundaries all references will be resolved to find the range of
         # values for slice membership
@@ -442,14 +522,10 @@ def _get_filter_from_pattern_or_value_discriminated_elem(
             elem_def = _find_discr_value_defining_elem_def(
                 discr_path, snapshot, elem_def
             )
-        if discr_val_t := _find_value_for_discriminator_pattern_or_value(elem_def):
-            val_type, value = discr_val_t
-            match val_type:
-                case "binding":
-                    path = f"{discr_path}." if discr_path != "$this" else ""
-                    return f"where({path}memberOf('{value.valueSet}'))"
-                case _:
-                    return _element_to_fhirpath_filter(discr_path, value)
+        if discr_filter := fhirpath_filter_from_value_discriminated_elem_def(
+            elem_def, snapshot, discr_path
+        ):
+            return discr_filter
         else:
             raise NotFoundError(
                 f"Missing any of fixed[x], pattern[x], or binding in element definition '{elem_def.id}' of profile "
@@ -498,7 +574,7 @@ def filter_for_slice(
                             f"Only pattern or value discriminators targeting an extensions 'url' "
                             f"element are supported to discriminate Extension typed elements "
                             f"[element_id='{slice_elem_def.id}', profile_url='{snapshot.url}']"
-                    )
+                        )
                     if t.profile:
                         checks = []
                         if len(t.profile) == 1:

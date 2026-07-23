@@ -55,30 +55,16 @@ def test_sds_get_element_by_id(
     found_in_class: ElementDefinition | None = (
         sample_snapshot_bioprobe.get_element_by_id(search_term)
     )
-    result_class = time.perf_counter_ns() - start
 
-    found_in_snapshot: ElementDefinition | None = None
+    found_in_snapshot: dict | None = None
 
-    start = time.perf_counter_ns()
     for element in sample_snapshot_bioprobe_json.get("snapshot").get("element"):
         if element.get("id") == search_term:
-            found_in_snapshot = ElementDefinition.model_validate_json(
-                json.dumps(element)
-            )
-            break
-    result_snapshot = time.perf_counter_ns() - start
+            found_in_snapshot = element
 
-    _logger.info(
-        f"\nSearchTerm: {search_term}\n"
-        f"Found iterative: "
-        f"{found_in_snapshot.id if found_in_snapshot else found_in_snapshot }"
-        f"\t\t\t in {result_snapshot} ns"
-        f"Found   indexed: "
-        f"{found_in_class.id if found_in_class else found_in_class}"
-        f"\t\t\t in {result_class} ns"
-    )
-
-    assert found_in_class == found_in_snapshot
+    assert (
+        found_in_class.model_dump() if found_in_class else None
+    ) == found_in_snapshot
 
 
 @pytest.mark.parametrize(
@@ -95,33 +81,18 @@ def test_sds_get_elements_by_path(
     sample_snapshot_bioprobe: StructureDefinitionSnapshot,
     sample_snapshot_bioprobe_json: dict,
 ):
-    start = time.perf_counter_ns()
-    found_in_class: List[ElementDefinition] = (
-        sample_snapshot_bioprobe.get_element_by_path(search_term)
-    )
-    result_class = time.perf_counter_ns() - start
+    found_in_class: List[dict] = [
+        ed.model_dump()
+        for ed in sample_snapshot_bioprobe.get_element_by_path(search_term)
+    ]
 
-    found_in_snapshot: List[ElementDefinition] = []
+    found_in_snapshot: List[dict] = []
 
-    start = time.perf_counter_ns()
     for element in sample_snapshot_bioprobe_json.get("snapshot").get("element"):
         if element.get("path") == search_term:
             if found_in_snapshot is None:
                 found_in_snapshot = []
-            found_in_snapshot.append(
-                ElementDefinition.model_validate_json(json.dumps(element))
-            )
-    result_snapshot = time.perf_counter_ns() - start
-
-    _logger.info(
-        f"\nSearchTerm: {search_term}\n"
-        f"Found iterative: "
-        f"{len(found_in_snapshot) if found_in_snapshot else found_in_snapshot}"
-        f"\t\t\t in {result_snapshot} ns"
-        f"Found   indexed: "
-        f"{len(found_in_class) if found_in_class else found_in_class}"
-        f"\t\t\t in {result_class} ns"
-    )
+            found_in_snapshot.append(element)
 
     assert found_in_class == found_in_snapshot
 

@@ -1,7 +1,6 @@
 from typing import Optional, List, Dict
 
-from pydantic import BaseModel, Field, model_validator, field_validator
-
+from pydantic import BaseModel, Field, model_validator, field_validator, TypeAdapter
 
 class ViewDefinitionColumn(BaseModel):
     name: str = Field(alias="name", default=None)
@@ -18,7 +17,7 @@ class ViewDefinitionSelect(BaseModel):
 
 
 class ViewDefinitionSnippet(BaseModel):
-    for_each_or_null: str = Field(alias="forEachOrNull", default=None)
+    for_each_or_null: Optional[str] = Field(alias="forEachOrNull", default=None)
     select: List[ViewDefinitionSelect] = Field(alias="select", default=None)
     column: List[ViewDefinitionColumn] = Field(alias="column", default=None)
 
@@ -34,7 +33,7 @@ class ViewDefinitionSnippet(BaseModel):
 
 
 class FlatteningLookupElement(BaseModel):
-    parent: Optional[str] = None
+    parent: Optional[str] = Field(default=None, deprecated="Should be determined via `children` field")
     view_definition: Optional[ViewDefinitionSnippet] = Field(
         alias="viewDefinition", default=None
     )
@@ -67,3 +66,6 @@ class FlatteningLookup(BaseModel):
                         raise ValueError(f"Duplicate column name: {col.name}")
                     visited_columns.add(col.name)
         return lookup
+
+
+FlatteningLookupListTA = TypeAdapter(list[FlatteningLookup])

@@ -367,7 +367,7 @@ def test__find_value_for_discriminator_pattern_or_value(elem_def, expected):
         (
             "$this",
             ["a", "b", "c"],
-            ["exists($this = 'a') and exists($this = 'b') and exists($this = 'c')"],
+            ["$this = 'a'", "$this = 'b'", "$this = 'c'"],
         ),
         ("$this", {}, []),
         (
@@ -383,7 +383,7 @@ def test__find_value_for_discriminator_pattern_or_value(elem_def, expected):
         (
             "$this",
             {"a": "1", "b": "2", "c": "3"},
-            ["a = '1' and b = '2' and c = '3'"],
+            ["a = '1'", "b = '2'", "c = '3'"],
         ),
         (
             "element",
@@ -401,7 +401,7 @@ def test__find_value_for_discriminator_pattern_or_value(elem_def, expected):
 )
 def test__element_data_to_fhirpath_filter(key: str, data: Any, expected: List[str]):
     value = _element_data_to_fhirpath_filter(key, data)
-    assert expected == value
+    assert value == expected
 
 
 @pytest.mark.parametrize(
@@ -417,7 +417,7 @@ def test__element_data_to_fhirpath_filter(key: str, data: Any, expected: List[st
         (
             "$this",
             ["a", "b", "c"],
-            "where(exists($this = 'a') and exists($this = 'b') and exists($this = 'c'))",
+            "where($this = 'a' and $this = 'b' and $this = 'c')",
         ),
         (
             "$this",

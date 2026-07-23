@@ -1,0 +1,418 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "MII PR Person Patient (Pseudonymisiert)",
+  "status": "draft",
+  "resource": "Patient",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Patient_deceased_X_Deceasedboolean",
+              "path": "$this",
+              "type": "boolean"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "deceased.ofType(boolean)"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Patient_deceased_X_Deceaseddatetime",
+              "path": "$this",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "deceased.ofType(dateTime)"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Patient_identifierAnonymisierteridentifier_assigner_reference",
+                      "path": "reference",
+                      "type": "string"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "assigner"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Patient_identifierAnonymisierteridentifier_period_end",
+                      "path": "end",
+                      "type": "dateTime"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Patient_identifierAnonymisierteridentifier_period_start",
+                      "path": "start",
+                      "type": "dateTime"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "period"
+            },
+            {
+              "column": [
+                {
+                  "name": "Patient_identifierAnonymisierteridentifier_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Patient_identifierAnonymisierteridentifier_type_coding_system",
+                      "path": "system",
+                      "type": "uri"
+                    },
+                    {
+                      "name": "Patient_identifierAnonymisierteridentifier_type_coding_code",
+                      "path": "code",
+                      "type": "code"
+                    },
+                    {
+                      "name": "Patient_identifierAnonymisierteridentifier_type_coding_version",
+                      "path": "version",
+                      "type": "string"
+                    }
+                  ],
+                  "forEachOrNull": "coding"
+                }
+              ],
+              "forEachOrNull": "type"
+            },
+            {
+              "column": [
+                {
+                  "name": "Patient_identifierAnonymisierteridentifier_use",
+                  "path": "use",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Patient_identifierAnonymisierteridentifier_value",
+                  "path": "value",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "$this.where(type.coding.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue')"
+        },
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Patient_identifierMaskierterversichertenidentifer_assigner_reference",
+                      "path": "reference",
+                      "type": "string"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "assigner"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Patient_identifierMaskierterversichertenidentifer_period_end",
+                      "path": "end",
+                      "type": "dateTime"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Patient_identifierMaskierterversichertenidentifer_period_start",
+                      "path": "start",
+                      "type": "dateTime"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "period"
+            },
+            {
+              "column": [
+                {
+                  "name": "Patient_identifierMaskierterversichertenidentifer_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Patient_identifierMaskierterversichertenidentifer_type_coding_system",
+                      "path": "system",
+                      "type": "uri"
+                    },
+                    {
+                      "name": "Patient_identifierMaskierterversichertenidentifer_type_coding_code",
+                      "path": "code",
+                      "type": "code"
+                    },
+                    {
+                      "name": "Patient_identifierMaskierterversichertenidentifer_type_coding_version",
+                      "path": "version",
+                      "type": "string"
+                    }
+                  ],
+                  "forEachOrNull": "coding"
+                }
+              ],
+              "forEachOrNull": "type"
+            },
+            {
+              "column": [
+                {
+                  "name": "Patient_identifierMaskierterversichertenidentifer_use",
+                  "path": "use",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Patient_identifierMaskierterversichertenidentifer_value",
+                  "path": "value",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "$this.where(type.coding.system = 'http://fhir.de/sid/gkv/kvid-10')"
+        },
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Patient_identifierPseudonymisierteridentifier_assigner_reference",
+                      "path": "reference",
+                      "type": "string"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "assigner"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Patient_identifierPseudonymisierteridentifier_period_end",
+                      "path": "end",
+                      "type": "dateTime"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Patient_identifierPseudonymisierteridentifier_period_start",
+                      "path": "start",
+                      "type": "dateTime"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "period"
+            },
+            {
+              "column": [
+                {
+                  "name": "Patient_identifierPseudonymisierteridentifier_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Patient_identifierPseudonymisierteridentifier_type_coding_system",
+                      "path": "system",
+                      "type": "uri"
+                    },
+                    {
+                      "name": "Patient_identifierPseudonymisierteridentifier_type_coding_code",
+                      "path": "code",
+                      "type": "code"
+                    },
+                    {
+                      "name": "Patient_identifierPseudonymisierteridentifier_type_coding_version",
+                      "path": "version",
+                      "type": "string"
+                    }
+                  ],
+                  "forEachOrNull": "coding"
+                }
+              ],
+              "forEachOrNull": "type"
+            },
+            {
+              "column": [
+                {
+                  "name": "Patient_identifierPseudonymisierteridentifier_use",
+                  "path": "use",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Patient_identifierPseudonymisierteridentifier_value",
+                  "path": "value",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "$this.where(type.coding.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue')"
+        },
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Patient_identifierPid_assigner_reference",
+                      "path": "reference",
+                      "type": "string"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "assigner"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Patient_identifierPid_period_end",
+                      "path": "end",
+                      "type": "dateTime"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Patient_identifierPid_period_start",
+                      "path": "start",
+                      "type": "dateTime"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "period"
+            },
+            {
+              "column": [
+                {
+                  "name": "Patient_identifierPid_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Patient_identifierPid_type_coding_system",
+                      "path": "system"
+                    },
+                    {
+                      "name": "Patient_identifierPid_type_coding_code",
+                      "path": "code"
+                    }
+                  ],
+                  "forEachOrNull": "coding"
+                }
+              ],
+              "forEachOrNull": "type"
+            },
+            {
+              "column": [
+                {
+                  "name": "Patient_identifierPid_use",
+                  "path": "use",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Patient_identifierPid_value",
+                  "path": "value",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "$this.where(type.coding.system = 'http://terminology.hl7.org/CodeSystem/v2-0203' and type.coding.code = 'MR')"
+        }
+      ],
+      "forEachOrNull": "identifier"
+    }
+  ]
+}
