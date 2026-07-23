@@ -6007,12 +6007,86 @@ def test_flatten_primitive(
                 ),
             },
         ),
+        (
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab",
+            "Observation.effective[x]",
+            {
+                "Observation.effective[x]": FlatteningLookupElement(
+                    viewDefinition=ViewDefinitionSnippet(select=[]),
+                    children=["Observation.effective[x]:effectiveDateTime"],
+                ),
+                "Observation.effective[x].extension": FlatteningLookupElement(
+                    parent="Observation.effective[x]",
+                    viewDefinition=ViewDefinitionSnippet(select=[]),
+                    children=[
+                        "Observation.effective[x].extension:QuelleKlinischesBezugsdatum"
+                    ],
+                ),
+                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum": FlatteningLookupElement(
+                    parent="Observation.effective[x].extension",
+                    viewDefinition=ViewDefinitionSnippet(
+                        forEachOrNull="extension.where(url = 'https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/QuelleKlinischesBezugsdatum')",
+                        select=[],
+                    ),
+                    children=[
+                        "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]"
+                    ],
+                ),
+                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]": FlatteningLookupElement(
+                    parent="Observation.effective[x].extension",
+                    viewDefinition=ViewDefinitionSnippet(select=[]),
+                    children=[
+                        "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]:valueCoding"
+                    ],
+                ),
+                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]:valueCoding": FlatteningLookupElement(
+                    parent="Observation.effective[x].extension",
+                    viewDefinition=ViewDefinitionSnippet(
+                        forEachOrNull="value.ofType(Coding)",
+                        select=[
+                            ViewDefinitionSelect(
+                                column=[
+                                    ViewDefinitionColumn(
+                                        name="Observation_effective_X__extensionQuelleklinischesbezugsdatum_value_X_Valuecoding_system",
+                                        path="system",
+                                        type="uri",
+                                    ),
+                                    ViewDefinitionColumn(
+                                        name="Observation_effective_X__extensionQuelleklinischesbezugsdatum_value_X_Valuecoding_code",
+                                        path="code",
+                                        type="code",
+                                    ),
+                                ]
+                            )
+                        ],
+                    ),
+                ),
+                "Observation.effective[x]:effectiveDateTime": FlatteningLookupElement(
+                    parent="Observation.effective[x]",
+                    viewDefinition=ViewDefinitionSnippet(
+                        forEachOrNull="effective.ofType(dateTime)",
+                        select=[
+                            ViewDefinitionSelect(
+                                column=[
+                                    ViewDefinitionColumn(
+                                        name="Observation_effective_X_Effectivedatetime",
+                                        path="$this",
+                                        type="dateTime",
+                                    )
+                                ]
+                            )
+                        ],
+                    ),
+                ),
+            },
+        ),
     ],
     ids=[
         "Polymorphic time: Procedure.performed[x]",
         "Polymorphic time: Observation.effective[x]",
         "Polymorphic quantity: Observation.value[x]",
         "Polymorphic with all types: molgen empfohlene-folgemassnahme",
+        "Polymorphic with sliced extension element",
     ],
     indirect=["profile"],
 )
@@ -7762,7 +7836,8 @@ def test_profile_with_random_slicename_for_type(flattening_lookup_generator):
     )
 
     expected = sorted(
-        flattening_post_process(expected_lookup_elements).items(), key=lambda x: (len(x[0]), x[0])
+        flattening_post_process(expected_lookup_elements).items(),
+        key=lambda x: (len(x[0]), x[0]),
     )
 
     assert lookup == expected
