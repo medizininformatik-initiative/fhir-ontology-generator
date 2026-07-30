@@ -1,0 +1,28 @@
+{
+  "version": "http://to_be_decided.com/draft-1/schema#",
+  "display": "Ausgewählte Merkmale",
+  "inclusionCriteria": [
+    [
+      {
+        "termCodes": [
+          {
+            "code": "15205222",
+            "display": "XYDALBA",
+            "system": "http://fhir.de/CodeSystem/ifa/pzn",
+            "version": "2026"
+          }
+        ],
+        "context": {
+          "code": "Medikamentenverabreichung",
+          "display": "Verabreichung von Medikamenten",
+          "system": "fdpg.mii.cds",
+          "version": "1.0.0"
+        },
+        "timeRestriction": {
+          "afterDate": "2024-02-15",
+          "beforeDate": "2024-02-17"
+        }
+      }
+    ]
+  ]
+}

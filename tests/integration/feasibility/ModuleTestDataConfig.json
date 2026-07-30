@@ -44,15 +44,27 @@
     "expected": 1
   },
   {
-    "query": "MedicationAdministration_Patient1_Q1.json",
+    "query": "MedicationAdministrationAtcDe_Patient1_Q1.json",
     "expected": 1
   },
   {
-    "query": "MedicationRequest_Patient1_Q1.json",
+    "query": "MedicationRequestAtcDe_Patient1_Q1.json",
     "expected": 1
   },
   {
-    "query": "MedicationStatement_Patient1_Q1.json",
+    "query": "MedicationStatementAtcDe_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "MedicationAdministrationPzn_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "MedicationRequestPzn_Patient1_Q1.json",
+    "expected": 1
+  },
+  {
+    "query": "MedicationStatementPzn_Patient1_Q1.json",
     "expected": 1
   },
   {
