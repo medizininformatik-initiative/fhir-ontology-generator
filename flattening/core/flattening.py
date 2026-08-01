@@ -679,7 +679,7 @@ class FlatteningLookupGenerator:
         """
 
         element_type = type
-        if element := profile.get_element_by_id(element_id):
+        if (element := profile.get_element_by_id(element_id)) and not type:
             element_type = get_element_type(element)
         flat_generic_complex = FlatteningLookupElement(
             parent=check_if_root(get_parent_element_id(element_id), profile)
@@ -1381,6 +1381,9 @@ class FlatteningLookupGenerator:
                     _logger.warning(
                         f"No flattener defined for `{element_type}` for {element_id}"
                     )
+                _logger.error(
+                    f"No flattener defined for `{element_type}` for {element_id}"
+                )
 
         flat_lookup_els.update(res)
 
