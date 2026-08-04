@@ -1063,15 +1063,14 @@ def get_available_slices(
                 ElementDefinition(id="Specimen.collection.bodySite.coding:icd-o-3")
             ]
     """
-    found_slices: List[ElementDefinition] = []
+    slice_prefix = f"{element_id}:"
 
-    for elem in profile_snapshot.snapshot.element:
-        if ":" in elem.id and element_id in get_parent_slice_id(
-            elem.id
-        ):
-            found_slices.append(elem)
-
-    return list(found_slices)
+    return [
+        element
+        for element in profile_snapshot.snapshot.element
+        if element.id.startswith(slice_prefix)
+        and "." not in element.id[len(slice_prefix) :]
+    ]
 
 def get_available_slice_names(
     element_id: str, profile_snapshot: StructureDefinitionSnapshot
