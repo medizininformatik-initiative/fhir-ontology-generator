@@ -30,7 +30,7 @@ test.py
 **/tmp
 **/.tmp
 **/temp
-/tests/**/testdata
+/.tests/**/testdata
 **/.coverage
 /logs/
 # Directories holding docker logs recorded during (intergration) testing
@@ -41,8 +41,12 @@ test.py
 **/fhirpkg.lock.json
 
 # Firely Terminal
-/tests/**/fhirpkg.lock.json
+/.tests/**/fhirpkg.lock.json
 
 # Project output files
+/dist/*
 /projects/*/output
 /projects/*/input/**/dependencies
+
+# Build
+packages/*/src/*.egg-info/

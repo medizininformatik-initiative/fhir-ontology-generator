@@ -1,0 +1,8 @@
+fhir-packages:
+  manager:
+    type: "github"
+    params:
+      org: "medizininformatik-initiative"
+      repo: "fhir-package-store"
+      ref: "c7e7b8dfc78d9e41c69e3d60c9d95b6a55347af3"
+      path: "package-tarballs"
