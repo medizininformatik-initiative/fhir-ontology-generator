@@ -153,7 +153,8 @@ def is_polymorphic(element: ElementDefinition) -> bool:
     :return: true if polymorphic
     """
     return (
-        element.type is not None and "[x]" in element.id.split(".")[-1]
+        element.type is not None
+        and "[x]" in element.id.split(".")[-1]
         # len > 1 does not apply as there are polymorphic elements with only one defined type
         # Laboruntersuchung.effective[x]
         # and len(element.type) > 1
@@ -713,13 +714,19 @@ class FlatteningLookupGenerator:
                 and len(slice_def.type) > 0
                 and element_type in slice_def.type[0].code
             ]
-            
+
             for slice_id in list_of_children_slices:
-                required_children.append(
-                    (slice_id, element_type, [], False)
-                )
+                required_children.append((slice_id, element_type, [], False))
         else:
-            if element and element.sliceName and (expr:=self._extract_where_clause_for_slice_by_discriminator(slice_element=element, profile=profile)):
+            if (
+                element
+                and element.sliceName
+                and (
+                    expr := self._extract_where_clause_for_slice_by_discriminator(
+                        slice_element=element, profile=profile
+                    )
+                )
+            ):
                 flat_generic_complex.view_definition = ViewDefinitionSnippet(
                     for_each_or_null=f"{expr}",
                     select=[],
@@ -837,7 +844,9 @@ class FlatteningLookupGenerator:
                     "resourceType": "StructureDefinition",
                     "url": ext_profile_url,
                 }
-                if ext_profile := self.package_manager.find(content_pattern):
+                if ext_profile := self.package_manager.find(
+                    content_pattern, latest_only=False
+                ):
                     ext_profile: StructureDefinitionSnapshot
                     _logger.debug(
                         f"Found profile ->  following reference: {ext_profile_url}"
@@ -1322,9 +1331,7 @@ class FlatteningLookupGenerator:
         element_type = (
             type
             if type
-            else "Polymorphic"
-            if is_polymorphic(element)
-            else get_element_type(element)
+            else "Polymorphic" if is_polymorphic(element) else get_element_type(element)
         )
 
         if element_type in self.config.excluded_types or element_type is None:

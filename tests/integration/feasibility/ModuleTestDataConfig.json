@@ -110,5 +110,9 @@
   {
     "query": "Person_Condition_Todesursache_SNOMED_Patient1_Q1.json",
     "expected": 1
+  },
+  {
+    "query": "MolekulargenetischerBefundbericht_Patient1_Q1.json",
+    "expected": 3
   }
 ]
