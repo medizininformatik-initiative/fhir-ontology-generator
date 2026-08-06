@@ -7762,7 +7762,1815 @@ def test_profile_with_random_slicename_for_type(flattening_lookup_generator):
     )
 
     expected = sorted(
-        flattening_post_process(expected_lookup_elements).items(), key=lambda x: (len(x[0]), x[0])
+        flattening_post_process(expected_lookup_elements).items(),
+        key=lambda x: (len(x[0]), x[0]),
     )
 
     assert lookup == expected
+
+
+@pytest.mark.parametrize(
+    argnames="profile, elem_id, elem_type, expected",
+    argvalues=[
+        (
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/MedicationStatement",
+            "MedicationStatement.dosage",
+            "Dosage",
+            {
+                key: FlatteningLookupElement.model_validate(value)
+                for key, value in json.loads(
+                    """
+                    {
+                        "MedicationStatement.dosage": {
+                            "viewDefinition": {
+                              "forEachOrNull": "dosage",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.additionalInstruction",
+                              "MedicationStatement.dosage.asNeeded[x]",
+                              "MedicationStatement.dosage.doseAndRate",
+                              "MedicationStatement.dosage.maxDosePerAdministration",
+                              "MedicationStatement.dosage.maxDosePerLifetime",
+                              "MedicationStatement.dosage.maxDosePerPeriod",
+                              "MedicationStatement.dosage.method",
+                              "MedicationStatement.dosage.patientInstruction",
+                              "MedicationStatement.dosage.route",
+                              "MedicationStatement.dosage.sequence",
+                              "MedicationStatement.dosage.site",
+                              "MedicationStatement.dosage.text",
+                              "MedicationStatement.dosage.timing"
+                            ]
+                          },
+                          "MedicationStatement.dosage.additionalInstruction": {
+                            "parent": "MedicationStatement.dosage",
+                            "viewDefinition": {
+                              "forEachOrNull": "additionalInstruction",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.additionalInstruction.coding"
+                            ]
+                          },
+                          "MedicationStatement.dosage.additionalInstruction.coding": {
+                            "parent": "MedicationStatement.dosage.additionalInstruction",
+                            "viewDefinition": {
+                              "forEachOrNull": "coding",
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_additionalInstruction_coding_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                },
+                                {
+                                  "name": "MedicationStatement_dosage_additionalInstruction_coding_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.asNeeded[x]": {
+                            "parent": "MedicationStatement.dosage",
+                            "viewDefinition": {
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.asNeeded[x]:asNeededBoolean",
+                              "MedicationStatement.dosage.asNeeded[x]:asNeededCodeableConcept"
+                            ]
+                          },
+                          "MedicationStatement.dosage.asNeeded[x]:asNeededBoolean": {
+                            "parent": "MedicationStatement.dosage.asNeeded[x]",
+                            "viewDefinition": {
+                              "forEachOrNull": "asNeeded.ofType(boolean)",
+                              "select": [
+                                {
+                                  "column": [
+                                    {
+                                      "name": "MedicationStatement_dosage_asNeeded_X_Asneededboolean",
+                                      "path": "$this",
+                                      "type": "boolean"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.asNeeded[x]:asNeededCodeableConcept": {
+                            "parent": "MedicationStatement.dosage.asNeeded[x]",
+                            "viewDefinition": {
+                              "forEachOrNull": "asNeeded.ofType(CodeableConcept)",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.asNeeded[x]:asNeededCodeableConcept.coding"
+                            ]
+                          },
+                          "MedicationStatement.dosage.asNeeded[x]:asNeededCodeableConcept.coding": {
+                            "parent": "MedicationStatement.dosage.asNeeded[x]:asNeededCodeableConcept",
+                            "viewDefinition": {
+                              "forEachOrNull": "coding",
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_asNeeded_X_Asneededcodeableconcept_coding_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                },
+                                {
+                                  "name": "MedicationStatement_dosage_asNeeded_X_Asneededcodeableconcept_coding_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate": {
+                            "parent": "MedicationStatement.dosage",
+                            "viewDefinition": {
+                              "forEachOrNull": "doseAndRate",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.doseAndRate.dose[x]",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]",
+                              "MedicationStatement.dosage.doseAndRate.type"
+                            ]
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]": {
+                            "parent": "MedicationStatement.dosage.doseAndRate",
+                            "viewDefinition": {
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity",
+                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange"
+                            ]
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]",
+                            "viewDefinition": {
+                              "forEachOrNull": "dose.ofType(Quantity)",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.code",
+                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.comparator",
+                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.system",
+                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.unit",
+                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.value"
+                            ]
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.code": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Dosequantity_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.comparator": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Dosequantity_comparator",
+                                  "path": "comparator",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.system": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Dosequantity_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.unit": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Dosequantity_unit",
+                                  "path": "unit",
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.value": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Dosequantity_value",
+                                  "path": "value",
+                                  "type": "decimal"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]",
+                            "viewDefinition": {
+                              "forEachOrNull": "dose.ofType(Range)",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high",
+                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low"
+                            ]
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange",
+                            "viewDefinition": {
+                              "forEachOrNull": "high",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.code",
+                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.comparator",
+                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.system",
+                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.unit",
+                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.value"
+                            ]
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.code": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_high_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.comparator": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_high_comparator",
+                                  "path": "comparator",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.system": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_high_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.unit": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_high_unit",
+                                  "path": "unit",
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.value": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_high_value",
+                                  "path": "value",
+                                  "type": "decimal"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange",
+                            "viewDefinition": {
+                              "forEachOrNull": "low",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.code",
+                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.comparator",
+                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.system",
+                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.unit",
+                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.value"
+                            ]
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.code": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_low_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.comparator": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_low_comparator",
+                                  "path": "comparator",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.system": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_low_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.unit": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_low_unit",
+                                  "path": "unit",
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.value": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_low_value",
+                                  "path": "value",
+                                  "type": "decimal"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]": {
+                            "parent": "MedicationStatement.dosage.doseAndRate",
+                            "viewDefinition": {
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio"
+                            ]
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]",
+                            "viewDefinition": {
+                              "forEachOrNull": "rate.ofType(Quantity)",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.code",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.comparator",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.system",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.unit",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.value"
+                            ]
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.code": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Ratequantity_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.comparator": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Ratequantity_comparator",
+                                  "path": "comparator",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.system": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Ratequantity_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.unit": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Ratequantity_unit",
+                                  "path": "unit",
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.value": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Ratequantity_value",
+                                  "path": "value",
+                                  "type": "decimal"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]",
+                            "viewDefinition": {
+                              "forEachOrNull": "rate.ofType(Range)",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low"
+                            ]
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange",
+                            "viewDefinition": {
+                              "forEachOrNull": "high",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.code",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.comparator",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.system",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.unit",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.value"
+                            ]
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.code": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_high_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.comparator": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_high_comparator",
+                                  "path": "comparator",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.system": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_high_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.unit": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_high_unit",
+                                  "path": "unit",
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.value": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_high_value",
+                                  "path": "value",
+                                  "type": "decimal"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange",
+                            "viewDefinition": {
+                              "forEachOrNull": "low",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.code",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.comparator",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.system",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.unit",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.value"
+                            ]
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.code": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_low_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.comparator": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_low_comparator",
+                                  "path": "comparator",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.system": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_low_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.unit": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_low_unit",
+                                  "path": "unit",
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.value": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_low_value",
+                                  "path": "value",
+                                  "type": "decimal"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]",
+                            "viewDefinition": {
+                              "forEachOrNull": "rate.ofType(Ratio)",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator"
+                            ]
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio",
+                            "viewDefinition": {
+                              "forEachOrNull": "denominator",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.code",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.comparator",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.system",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.unit",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.value"
+                            ]
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.code": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_denominator_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.comparator": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_denominator_comparator",
+                                  "path": "comparator",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.system": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_denominator_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.unit": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_denominator_unit",
+                                  "path": "unit",
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.value": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_denominator_value",
+                                  "path": "value",
+                                  "type": "decimal"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio",
+                            "viewDefinition": {
+                              "forEachOrNull": "numerator",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.code",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.comparator",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.system",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.unit",
+                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.value"
+                            ]
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.code": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_numerator_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.comparator": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_numerator_comparator",
+                                  "path": "comparator",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.system": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_numerator_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.unit": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_numerator_unit",
+                                  "path": "unit",
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.value": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_numerator_value",
+                                  "path": "value",
+                                  "type": "decimal"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.doseAndRate.type": {
+                            "parent": "MedicationStatement.dosage.doseAndRate",
+                            "viewDefinition": {
+                              "forEachOrNull": "type",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.doseAndRate.type.coding"
+                            ]
+                          },
+                          "MedicationStatement.dosage.doseAndRate.type.coding": {
+                            "parent": "MedicationStatement.dosage.doseAndRate.type",
+                            "viewDefinition": {
+                              "forEachOrNull": "coding",
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_type_coding_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                },
+                                {
+                                  "name": "MedicationStatement_dosage_doseAndRate_type_coding_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.maxDosePerAdministration": {
+                            "parent": "MedicationStatement.dosage",
+                            "viewDefinition": {
+                              "forEachOrNull": "maxDosePerAdministration",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.maxDosePerAdministration.code",
+                              "MedicationStatement.dosage.maxDosePerAdministration.system",
+                              "MedicationStatement.dosage.maxDosePerAdministration.value"
+                            ]
+                          },
+                          "MedicationStatement.dosage.maxDosePerAdministration.code": {
+                            "parent": "MedicationStatement.dosage.maxDosePerAdministration",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_maxDosePerAdministration_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.maxDosePerAdministration.system": {
+                            "parent": "MedicationStatement.dosage.maxDosePerAdministration",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_maxDosePerAdministration_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.maxDosePerAdministration.value": {
+                            "parent": "MedicationStatement.dosage.maxDosePerAdministration",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_maxDosePerAdministration_value",
+                                  "path": "value",
+                                  "type": "decimal"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.maxDosePerLifetime": {
+                            "parent": "MedicationStatement.dosage",
+                            "viewDefinition": {
+                              "forEachOrNull": "maxDosePerLifetime",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.maxDosePerLifetime.code",
+                              "MedicationStatement.dosage.maxDosePerLifetime.system",
+                              "MedicationStatement.dosage.maxDosePerLifetime.value"
+                            ]
+                          },
+                          "MedicationStatement.dosage.maxDosePerLifetime.code": {
+                            "parent": "MedicationStatement.dosage.maxDosePerLifetime",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_maxDosePerLifetime_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.maxDosePerLifetime.system": {
+                            "parent": "MedicationStatement.dosage.maxDosePerLifetime",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_maxDosePerLifetime_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.maxDosePerLifetime.value": {
+                            "parent": "MedicationStatement.dosage.maxDosePerLifetime",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_maxDosePerLifetime_value",
+                                  "path": "value",
+                                  "type": "decimal"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.maxDosePerPeriod": {
+                            "parent": "MedicationStatement.dosage",
+                            "viewDefinition": {
+                              "forEachOrNull": "maxDosePerPeriod",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.maxDosePerPeriod.denominator",
+                              "MedicationStatement.dosage.maxDosePerPeriod.numerator"
+                            ]
+                          },
+                          "MedicationStatement.dosage.maxDosePerPeriod.denominator": {
+                            "parent": "MedicationStatement.dosage.maxDosePerPeriod",
+                            "viewDefinition": {
+                              "forEachOrNull": "denominator",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.maxDosePerPeriod.denominator.code",
+                              "MedicationStatement.dosage.maxDosePerPeriod.denominator.comparator",
+                              "MedicationStatement.dosage.maxDosePerPeriod.denominator.system",
+                              "MedicationStatement.dosage.maxDosePerPeriod.denominator.unit",
+                              "MedicationStatement.dosage.maxDosePerPeriod.denominator.value"
+                            ]
+                          },
+                          "MedicationStatement.dosage.maxDosePerPeriod.denominator.code": {
+                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.denominator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_denominator_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.maxDosePerPeriod.denominator.comparator": {
+                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.denominator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_denominator_comparator",
+                                  "path": "comparator",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.maxDosePerPeriod.denominator.system": {
+                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.denominator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_denominator_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.maxDosePerPeriod.denominator.unit": {
+                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.denominator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_denominator_unit",
+                                  "path": "unit",
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.maxDosePerPeriod.denominator.value": {
+                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.denominator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_denominator_value",
+                                  "path": "value",
+                                  "type": "decimal"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.maxDosePerPeriod.numerator": {
+                            "parent": "MedicationStatement.dosage.maxDosePerPeriod",
+                            "viewDefinition": {
+                              "forEachOrNull": "numerator",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.maxDosePerPeriod.numerator.code",
+                              "MedicationStatement.dosage.maxDosePerPeriod.numerator.comparator",
+                              "MedicationStatement.dosage.maxDosePerPeriod.numerator.system",
+                              "MedicationStatement.dosage.maxDosePerPeriod.numerator.unit",
+                              "MedicationStatement.dosage.maxDosePerPeriod.numerator.value"
+                            ]
+                          },
+                          "MedicationStatement.dosage.maxDosePerPeriod.numerator.code": {
+                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.numerator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_numerator_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.maxDosePerPeriod.numerator.comparator": {
+                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.numerator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_numerator_comparator",
+                                  "path": "comparator",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.maxDosePerPeriod.numerator.system": {
+                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.numerator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_numerator_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.maxDosePerPeriod.numerator.unit": {
+                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.numerator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_numerator_unit",
+                                  "path": "unit",
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.maxDosePerPeriod.numerator.value": {
+                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.numerator",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_numerator_value",
+                                  "path": "value",
+                                  "type": "decimal"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.method": {
+                            "parent": "MedicationStatement.dosage",
+                            "viewDefinition": {
+                              "forEachOrNull": "method",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.method.coding"
+                            ]
+                          },
+                          "MedicationStatement.dosage.method.coding": {
+                            "parent": "MedicationStatement.dosage.method",
+                            "viewDefinition": {
+                              "forEachOrNull": "coding",
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_method_coding_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                },
+                                {
+                                  "name": "MedicationStatement_dosage_method_coding_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.patientInstruction": {
+                            "parent": "MedicationStatement.dosage",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_patientInstruction",
+                                  "path": "patientInstruction",
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.route": {
+                            "parent": "MedicationStatement.dosage",
+                            "viewDefinition": {
+                              "forEachOrNull": "route",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.route.coding:EDQM",
+                              "MedicationStatement.dosage.route.coding:SNOMED"
+                            ]
+                          },
+                          "MedicationStatement.dosage.route.coding:EDQM": {
+                            "parent": "MedicationStatement.dosage.route",
+                            "viewDefinition": {
+                              "forEachOrNull": "coding.where(system = 'http://standardterms.edqm.eu')",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.route.coding:EDQM.code",
+                              "MedicationStatement.dosage.route.coding:EDQM.system"
+                            ]
+                          },
+                          "MedicationStatement.dosage.route.coding:EDQM.code": {
+                            "parent": "MedicationStatement.dosage.route.coding:EDQM",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_route_codingEdqm_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.route.coding:EDQM.system": {
+                            "parent": "MedicationStatement.dosage.route.coding:EDQM",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_route_codingEdqm_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.route.coding:SNOMED": {
+                            "parent": "MedicationStatement.dosage.route",
+                            "viewDefinition": {
+                              "forEachOrNull": "coding.where(system = 'http://snomed.info/sct')",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.route.coding:SNOMED.code",
+                              "MedicationStatement.dosage.route.coding:SNOMED.system"
+                            ]
+                          },
+                          "MedicationStatement.dosage.route.coding:SNOMED.code": {
+                            "parent": "MedicationStatement.dosage.route.coding:SNOMED",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_route_codingSnomed_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.route.coding:SNOMED.system": {
+                            "parent": "MedicationStatement.dosage.route.coding:SNOMED",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_route_codingSnomed_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.sequence": {
+                            "parent": "MedicationStatement.dosage",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_sequence",
+                                  "path": "sequence",
+                                  "type": "integer"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.site": {
+                            "parent": "MedicationStatement.dosage",
+                            "viewDefinition": {
+                              "forEachOrNull": "site",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.site.coding:SNOMED"
+                            ]
+                          },
+                          "MedicationStatement.dosage.site.coding:SNOMED": {
+                            "parent": "MedicationStatement.dosage.site",
+                            "viewDefinition": {
+                              "forEachOrNull": "coding.where(system = 'http://snomed.info/sct')",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.site.coding:SNOMED.code",
+                              "MedicationStatement.dosage.site.coding:SNOMED.system"
+                            ]
+                          },
+                          "MedicationStatement.dosage.site.coding:SNOMED.code": {
+                            "parent": "MedicationStatement.dosage.site.coding:SNOMED",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_site_codingSnomed_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.site.coding:SNOMED.system": {
+                            "parent": "MedicationStatement.dosage.site.coding:SNOMED",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_site_codingSnomed_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.text": {
+                            "parent": "MedicationStatement.dosage",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_text",
+                                  "path": "text",
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing": {
+                            "parent": "MedicationStatement.dosage",
+                            "viewDefinition": {
+                              "forEachOrNull": "timing",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.timing.code",
+                              "MedicationStatement.dosage.timing.event",
+                              "MedicationStatement.dosage.timing.repeat"
+                            ]
+                          },
+                          "MedicationStatement.dosage.timing.code": {
+                            "parent": "MedicationStatement.dosage.timing",
+                            "viewDefinition": {
+                              "forEachOrNull": "code",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.timing.code.coding"
+                            ]
+                          },
+                          "MedicationStatement.dosage.timing.code.coding": {
+                            "parent": "MedicationStatement.dosage.timing.code",
+                            "viewDefinition": {
+                              "forEachOrNull": "coding",
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_code_coding_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                },
+                                {
+                                  "name": "MedicationStatement_dosage_timing_code_coding_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.event": {
+                            "parent": "MedicationStatement.dosage.timing",
+                            "viewDefinition": {
+                              "forEachOrNull": "event",
+                              "select": [
+                                {
+                                  "column": [
+                                    {
+                                      "name": "MedicationStatement_dosage_timing_event",
+                                      "path": "$this",
+                                      "type": "dateTime"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat": {
+                            "parent": "MedicationStatement.dosage.timing",
+                            "viewDefinition": {
+                              "forEachOrNull": "repeat",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]",
+                              "MedicationStatement.dosage.timing.repeat.count",
+                              "MedicationStatement.dosage.timing.repeat.countMax",
+                              "MedicationStatement.dosage.timing.repeat.dayOfWeek",
+                              "MedicationStatement.dosage.timing.repeat.duration",
+                              "MedicationStatement.dosage.timing.repeat.durationMax",
+                              "MedicationStatement.dosage.timing.repeat.durationUnit",
+                              "MedicationStatement.dosage.timing.repeat.frequency",
+                              "MedicationStatement.dosage.timing.repeat.frequencyMax",
+                              "MedicationStatement.dosage.timing.repeat.offset",
+                              "MedicationStatement.dosage.timing.repeat.period",
+                              "MedicationStatement.dosage.timing.repeat.periodMax",
+                              "MedicationStatement.dosage.timing.repeat.periodUnit",
+                              "MedicationStatement.dosage.timing.repeat.timeOfDay",
+                              "MedicationStatement.dosage.timing.repeat.when"
+                            ]
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]": {
+                            "parent": "MedicationStatement.dosage.timing.repeat",
+                            "viewDefinition": {
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration",
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsPeriod",
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange"
+                            ]
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]",
+                            "viewDefinition": {
+                              "forEachOrNull": "bounds.ofType(Duration)",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration.code",
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration.system",
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration.value"
+                            ]
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration.code": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsduration_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration.system": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsduration_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration.value": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsduration_value",
+                                  "path": "value",
+                                  "type": "decimal"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsPeriod": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]",
+                            "viewDefinition": {
+                              "forEachOrNull": "bounds.ofType(Period)",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsPeriod.end",
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsPeriod.start"
+                            ]
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsPeriod.end": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsPeriod",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsperiod_end",
+                                  "path": "end",
+                                  "type": "dateTime"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsPeriod.start": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsPeriod",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsperiod_start",
+                                  "path": "start",
+                                  "type": "dateTime"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]",
+                            "viewDefinition": {
+                              "forEachOrNull": "bounds.ofType(Range)",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high",
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low"
+                            ]
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange",
+                            "viewDefinition": {
+                              "forEachOrNull": "high",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.code",
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.comparator",
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.system",
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.unit",
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.value"
+                            ]
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.code": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_high_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.comparator": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_high_comparator",
+                                  "path": "comparator",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.system": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_high_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.unit": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_high_unit",
+                                  "path": "unit",
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.value": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_high_value",
+                                  "path": "value",
+                                  "type": "decimal"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange",
+                            "viewDefinition": {
+                              "forEachOrNull": "low",
+                              "select": []
+                            },
+                            "children": [
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.code",
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.comparator",
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.system",
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.unit",
+                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.value"
+                            ]
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.code": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_low_code",
+                                  "path": "code",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.comparator": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_low_comparator",
+                                  "path": "comparator",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.system": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_low_system",
+                                  "path": "system",
+                                  "type": "uri"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.unit": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_low_unit",
+                                  "path": "unit",
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.value": {
+                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_low_value",
+                                  "path": "value",
+                                  "type": "decimal"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.count": {
+                            "parent": "MedicationStatement.dosage.timing.repeat",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_count",
+                                  "path": "count",
+                                  "type": "positiveInt"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.countMax": {
+                            "parent": "MedicationStatement.dosage.timing.repeat",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_countMax",
+                                  "path": "countMax",
+                                  "type": "positiveInt"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.dayOfWeek": {
+                            "parent": "MedicationStatement.dosage.timing.repeat",
+                            "viewDefinition": {
+                              "forEachOrNull": "dayOfWeek",
+                              "select": [
+                                {
+                                  "column": [
+                                    {
+                                      "name": "MedicationStatement_dosage_timing_repeat_dayOfWeek",
+                                      "path": "$this",
+                                      "type": "code"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.duration": {
+                            "parent": "MedicationStatement.dosage.timing.repeat",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_duration",
+                                  "path": "duration",
+                                  "type": "decimal"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.durationMax": {
+                            "parent": "MedicationStatement.dosage.timing.repeat",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_durationMax",
+                                  "path": "durationMax",
+                                  "type": "decimal"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.durationUnit": {
+                            "parent": "MedicationStatement.dosage.timing.repeat",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_durationUnit",
+                                  "path": "durationUnit",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.frequency": {
+                            "parent": "MedicationStatement.dosage.timing.repeat",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_frequency",
+                                  "path": "frequency",
+                                  "type": "positiveInt"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.frequencyMax": {
+                            "parent": "MedicationStatement.dosage.timing.repeat",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_frequencyMax",
+                                  "path": "frequencyMax",
+                                  "type": "positiveInt"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.offset": {
+                            "parent": "MedicationStatement.dosage.timing.repeat",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_offset",
+                                  "path": "offset",
+                                  "type": "unsignedInt"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.period": {
+                            "parent": "MedicationStatement.dosage.timing.repeat",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_period",
+                                  "path": "period",
+                                  "type": "decimal"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.periodMax": {
+                            "parent": "MedicationStatement.dosage.timing.repeat",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_periodMax",
+                                  "path": "periodMax",
+                                  "type": "decimal"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.periodUnit": {
+                            "parent": "MedicationStatement.dosage.timing.repeat",
+                            "viewDefinition": {
+                              "column": [
+                                {
+                                  "name": "MedicationStatement_dosage_timing_repeat_periodUnit",
+                                  "path": "periodUnit",
+                                  "type": "code"
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.timeOfDay": {
+                            "parent": "MedicationStatement.dosage.timing.repeat",
+                            "viewDefinition": {
+                              "forEachOrNull": "timeOfDay",
+                              "select": [
+                                {
+                                  "column": [
+                                    {
+                                      "name": "MedicationStatement_dosage_timing_repeat_timeOfDay",
+                                      "path": "$this",
+                                      "type": "time"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          "MedicationStatement.dosage.timing.repeat.when": {
+                            "parent": "MedicationStatement.dosage.timing.repeat",
+                            "viewDefinition": {
+                              "forEachOrNull": "when",
+                              "select": [
+                                {
+                                  "column": [
+                                    {
+                                      "name": "MedicationStatement_dosage_timing_repeat_when",
+                                      "path": "$this",
+                                      "type": "code"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                    }
+                    """
+                ).items()
+            },
+        )
+    ],
+    ids=["Dosage.doseAndRate - should not be overridden by snapshot type 'Element'"],
+    indirect=["profile"],
+)
+def test_generic_complex_element_flattening(
+    profile: StructureDefinitionSnapshot,
+    elem_id: str,
+    elem_type: str,
+    expected: Dict[str, FlatteningLookupElement],
+    flattening_lookup_generator: FlatteningLookupGenerator,
+):
+    """
+    Tests whether flattening prioritizes the usage of the (default_)config
+    rather than relaying on snapshot defined types, if there is an assumed type.
+
+    In case of medication: ``.dosage.doseAndRate`` the actual type, derived from the snapshot
+    is `Element` which the flattener does not know how to flatten, because it's too ambiguous,
+    meaning that no children can be derived from that, even though `Dosage` is a well known type.
+    This test should ensure that the correct type
+    used for `MedicationStatement.dosage.doseAndRate` is `dosage.doseAndRate`
+    from the (default_)config.
+    """
+
+    res = flattening_post_process(
+        flattening_lookup_generator._flatten_element(
+            elem_id,
+            profile,
+            type=elem_type,
+        )
+    )
+    res = sorted(res.items(), key=lambda x: (len(x[0]), x[0]))
+    expected = sorted(
+        flattening_post_process(expected).items(), key=lambda x: (len(x[0]), x[0])
+    )
+
+    assert res == expected
