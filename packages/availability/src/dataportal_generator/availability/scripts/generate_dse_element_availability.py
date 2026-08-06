@@ -4,17 +4,17 @@ from collections.abc import Mapping
 from datetime import datetime, UTC
 from typing import List
 
-from fhir.resources.R4B.measure import Measure, MeasureGroupStratifier
+from fhir.resources.R4B.measure import Measure
 from fhir.resources.R4B.meta import Meta
-from fhir.resources.R4B.structuredefinition import StructureDefinition
 
-from availability.core.element_availability import (
+from dataportal_generator.availability.core.element_availability import (
     generate_measure,
     update_stratifier_ids,
+    make_stratifier_codes_fde_compatible,
 )
-from common.util.collections.functions import first
-from common.util.log.functions import get_logger
-from common.util.project import Project
+from dataportal_generator.common.util.collections import first
+from dataportal_generator.common.log.functions import get_logger
+from dataportal_generator.common.model.project import Project
 from data_selection_extraction.model.detail import ProfileDetail, FieldDetail
 
 _logger = get_logger(__file__)
@@ -78,7 +78,17 @@ def _flatten_fields(detail: ProfileDetail | FieldDetail) -> List[FieldDetail]:
         raise ValueError(f"Unexpected type {type(detail)}")
 
 
-def generate_element_availability_for_dse(project: Project) -> Measure:
+def run(project: Project) -> Measure:
+    """
+    Generates the DSE Element Availability measure resource for the given project
+
+    :param project: ``Project`` object representing the project to generate for
+    :return: FHIR ``Measure`` resource
+    """
+    global _logger
+    if not _logger:
+        _logger = get_logger(__name__)
+
     _logger.info("Generating Measure resource")
     measure = generate_measure(
         project.package_manager,
@@ -112,8 +122,9 @@ def generate_element_availability_for_dse(project: Project) -> Measure:
     included_groups = []
     for group in measure.group:
         source_ext = first(
-            lambda ext: ext.url
-            == "http://hl7.org/fhir/StructureDefinition/elementSource",
+            lambda ext: (
+                ext.url == "http://hl7.org/fhir/StructureDefinition/elementSource"
+            ),
             group.extension,
         )
         source_profile_url = (
@@ -125,10 +136,6 @@ def generate_element_availability_for_dse(project: Project) -> Measure:
             )
             continue
         if fds := profile_details.get(source_profile_url):
-            profile = project.package_manager.find(
-                index_pattern={"url": source_profile_url}
-            )
-            profile_name = profile.name.replace(" ", "_")
             included_stratifiers = []
             for strat in group.stratifier:
                 strat_coding = first(
@@ -136,9 +143,6 @@ def generate_element_availability_for_dse(project: Project) -> Measure:
                     strat.code.coding,
                 )
                 if fds.get(strat_coding.code):
-                    # Update stratifier codes with profile name
-                    _, *path = strat_coding.code.split(".", maxsplit=1)
-                    strat_coding.code = ".".join([profile_name, *path])
                     included_stratifiers.append(strat)
                 else:
                     _logger.debug(
@@ -153,17 +157,21 @@ def generate_element_availability_for_dse(project: Project) -> Measure:
             )
             continue
     measure.group = included_groups
+    make_stratifier_codes_fde_compatible(project.package_manager, measure)
     return update_stratifier_ids(measure)
 
 
-if __name__ == "__main__":
+def __main():
     arg_parser = _configure_argparser()
     args = arg_parser.parse_args()
 
     project = _setup_project(args.project)
 
+    global _logger
+    _logger = get_logger(__name__)
+
     _logger.info("Generating Availability Measure resource for DSE")
-    element_measure = generate_element_availability_for_dse(project)
+    element_measure = run(project)
 
     measure_file_path = (
         project.output.availability / "Measure-DseElementAvailability.fhir.json"
@@ -171,3 +179,7 @@ if __name__ == "__main__":
     _logger.info(f"Writing measure to file @ {measure_file_path}")
     with measure_file_path.open(mode="w", encoding="utf-8") as f:
         f.write(element_measure.model_dump_json())
+
+
+if __name__ == "__main__":
+    __main()

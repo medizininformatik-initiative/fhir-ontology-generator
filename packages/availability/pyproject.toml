@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "availability"
+version = "5.0.0"
+requires-python  = ">=3.12"
+dependencies = [
+    "common>=5"
+]
+
+[project.entry-points.pytest11]
+availability-test = "dataportal_generator.availability_test.plugin"
+
+[dependency-groups]
+dev = [
+    { include-group = "lint" },
+    { include-group = "test" }
+]
+lint = [
+    "ruff==0.16.1"
+]
+test = [
+    "pytest==9.1.1",
+    "pytest-env==1.7.0",
+    "pytest-docker==3.2.5"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dataportal_generator"]
+include = [
+    "src/dataportal_generator/**/resources/**" # Include all resource files
+]
+
+[tool.pytest_env]
+MII_CDS_TEST_DATA_VERSION = "v2026.0.0-rc.1"
+
+[tool.uv.sources]
+common = { workspace = true }
