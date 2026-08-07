@@ -139,6 +139,12 @@ jobs:
           name: availability_files
           path: projects/fdpg-ontology/output/availability
 
+      - name: Download Flattening files
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: flatteningLookup
+          path: projects/fdpg-ontology/output/flattening
+
       - name: Install required python modules
         run: pip3 install -r requirements.txt
 
@@ -183,12 +189,12 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Upload Docker logs
+      - name: Upload logs
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ failure() }}
         with:
-          name: docker_logs_integration_testing
-          path: tests/integration/backend/docker_logs
+          name: integration_test_logs
+          path: logs
 
   release:
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}

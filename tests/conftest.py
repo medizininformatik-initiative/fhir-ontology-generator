@@ -60,9 +60,10 @@ def __validate_project_template(template_dir: Path):
 
 def __tmp_project(target_location: Path, template: Optional[Path] = None) -> Project:
     p_path = target_location / ".tmp" / "project"
-    shutil.rmtree(p_path, ignore_errors=True)
+    shutil.rmtree(p_path / "output", ignore_errors=True)
+    shutil.rmtree(p_path / "logs", ignore_errors=True)
     if template:
-        shutil.copytree(template, p_path)
+        shutil.copytree(template, p_path, dirs_exist_ok=True)
     else:
         p_path.mkdir(parents=True, exist_ok=True)
     p = Project(path=p_path)

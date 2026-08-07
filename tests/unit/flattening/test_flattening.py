@@ -1,10 +1,11 @@
 import json
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Mapping, Optional
 
 import pytest
 from fhir.resources.R4B.elementdefinition import ElementDefinition
 
+from common.model.fhir.nav_structure_definition import NavStructureDefinition
 from common.model.fhir.structure_definition import StructureDefinitionSnapshot
 from common.util.http.terminology.client import FhirTerminologyClient
 from flattening.core.flattening import (
@@ -15,6 +16,7 @@ from flattening.core.flattening import (
     ViewDefinitionSelect,
     FlatteningLookupGenerator,
 )
+from flattening.model.FlatteningLookupModels import FlatteningLookup
 
 
 @pytest.mark.parametrize(
@@ -6007,12 +6009,96 @@ def test_flatten_primitive(
                 ),
             },
         ),
+        pytest.param(
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab",
+            "Observation.effective[x]",
+            {
+                "Observation.effective[x]": FlatteningLookupElement(
+                    viewDefinition=ViewDefinitionSnippet(select=[]),
+                    children=[
+                        "Observation.effective[x].extension",
+                        "Observation.effective[x]:effectiveDateTime",
+                    ],
+                ),
+                "Observation.effective[x].extension": FlatteningLookupElement(
+                    parent="Observation.effective[x]",
+                    viewDefinition=ViewDefinitionSnippet(
+                        for_each_or_null="effective", select=[]
+                    ),
+                    children=[
+                        "Observation.effective[x].extension:QuelleKlinischesBezugsdatum"
+                    ],
+                ),
+                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum": FlatteningLookupElement(
+                    parent="Observation.effective[x].extension",
+                    viewDefinition=ViewDefinitionSnippet(
+                        forEachOrNull="extension.where(url = 'https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/QuelleKlinischesBezugsdatum')",
+                        select=[],
+                    ),
+                    children=[
+                        "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]"
+                    ],
+                ),
+                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]": FlatteningLookupElement(
+                    parent="Observation.effective[x].extension:QuelleKlinischesBezugsdatum",
+                    viewDefinition=ViewDefinitionSnippet(select=[]),
+                    children=[
+                        "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]:valueCoding"
+                    ],
+                ),
+                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]:valueCoding": FlatteningLookupElement(
+                    parent="Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]",
+                    viewDefinition=ViewDefinitionSnippet(
+                        forEachOrNull="value.ofType(Coding)",
+                        select=[
+                            ViewDefinitionSelect(
+                                column=[
+                                    ViewDefinitionColumn(
+                                        name="Observation_effective_X__extensionQuelleklinischesbezugsdatum_value_X_Valuecoding_system",
+                                        path="system",
+                                        type="uri",
+                                    ),
+                                    ViewDefinitionColumn(
+                                        name="Observation_effective_X__extensionQuelleklinischesbezugsdatum_value_X_Valuecoding_code",
+                                        path="code",
+                                        type="code",
+                                    ),
+                                ]
+                            )
+                        ],
+                    ),
+                ),
+                "Observation.effective[x]:effectiveDateTime": FlatteningLookupElement(
+                    parent="Observation.effective[x]",
+                    viewDefinition=ViewDefinitionSnippet(
+                        forEachOrNull="effective.ofType(dateTime)",
+                        select=[
+                            ViewDefinitionSelect(
+                                column=[
+                                    ViewDefinitionColumn(
+                                        name="Observation_effective_X_Effectivedatetime",
+                                        path="$this",
+                                        type="dateTime",
+                                    )
+                                ]
+                            )
+                        ],
+                    ),
+                ),
+            },
+            marks=[
+                pytest.mark.skip(
+                    "ATM extensions on elements that support any primitive FHIR data type are not supported"
+                )
+            ],
+        ),
     ],
     ids=[
         "Polymorphic time: Procedure.performed[x]",
         "Polymorphic time: Observation.effective[x]",
         "Polymorphic quantity: Observation.value[x]",
         "Polymorphic with all types: molgen empfohlene-folgemassnahme",
+        "Polymorphic with sliced extension element",
     ],
     indirect=["profile"],
 )
@@ -6331,7 +6417,7 @@ def test_codeable_concept(
                     ],
                 ),
                 "Condition.extension:ReferenzPrimaerdiagnose.value[x]": FlatteningLookupElement(
-                    parent="Condition.extension",
+                    parent="Condition.extension:ReferenzPrimaerdiagnose",
                     view_definition=ViewDefinitionSnippet(
                         select=[],
                     ),
@@ -6340,7 +6426,7 @@ def test_codeable_concept(
                     ],
                 ),
                 "Condition.extension:ReferenzPrimaerdiagnose.value[x]:valueReference": FlatteningLookupElement(
-                    parent="Condition.extension",
+                    parent="Condition.extension:ReferenzPrimaerdiagnose.value[x]",
                     view_definition=ViewDefinitionSnippet(
                         for_each_or_null="value.ofType(Reference)",
                         select=[],
@@ -6350,7 +6436,7 @@ def test_codeable_concept(
                     ],
                 ),
                 "Condition.extension:ReferenzPrimaerdiagnose.value[x]:valueReference.reference": FlatteningLookupElement(
-                    parent="Condition.extension",
+                    parent="Condition.extension:ReferenzPrimaerdiagnose.value[x]:valueReference",
                     view_definition=ViewDefinitionSnippet(
                         column=[
                             ViewDefinitionColumn(
@@ -6372,7 +6458,7 @@ def test_codeable_concept(
                     ],
                 ),
                 "Condition.extension:Feststellungsdatum.value[x]": FlatteningLookupElement(
-                    parent="Condition.extension",
+                    parent="Condition.extension:Feststellungsdatum",
                     view_definition=ViewDefinitionSnippet(
                         select=[],
                     ),
@@ -6381,7 +6467,7 @@ def test_codeable_concept(
                     ],
                 ),
                 "Condition.extension:Feststellungsdatum.value[x]:valueDateTime": FlatteningLookupElement(
-                    parent="Condition.extension",
+                    parent="Condition.extension:Feststellungsdatum.value[x]",
                     view_definition=ViewDefinitionSnippet(
                         for_each_or_null="value.ofType(dateTime)",
                         select=[
@@ -6434,14 +6520,14 @@ def test_codeable_concept(
                     ],
                 ),
                 "Medication.ingredient.extension:Wirkstofftyp.value[x]": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension",
+                    parent="Medication.ingredient.extension:Wirkstofftyp",
                     view_definition=ViewDefinitionSnippet(select=[]),
                     children=[
                         "Medication.ingredient.extension:Wirkstofftyp.value[x]:valueCoding",
                     ],
                 ),
                 "Medication.ingredient.extension:Wirkstofftyp.value[x]:valueCoding": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension",
+                    parent="Medication.ingredient.extension:Wirkstofftyp.value[x]",
                     view_definition=ViewDefinitionSnippet(
                         for_each_or_null="value.ofType(Coding)",
                         select=[
@@ -6481,7 +6567,7 @@ def test_codeable_concept(
                     ],
                 ),
                 "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientReference": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension",
+                    parent="Medication.ingredient.extension:Wirkstoffrelation.extension",
                     view_definition=ViewDefinitionSnippet(
                         for_each_or_null="extension.where(url = 'ingredientReference')",
                         select=[],
@@ -6491,14 +6577,14 @@ def test_codeable_concept(
                     ],
                 ),
                 "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientReference.value[x]": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension",
+                    parent="Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientReference",
                     view_definition=ViewDefinitionSnippet(select=[]),
                     children=[
                         "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientReference.value[x]:valueReference",
                     ],
                 ),
                 "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientReference.value[x]:valueReference": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension",
+                    parent="Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientReference.value[x]",
                     view_definition=ViewDefinitionSnippet(
                         for_each_or_null="value.ofType(Reference)",
                         select=[],
@@ -6508,7 +6594,7 @@ def test_codeable_concept(
                     ],
                 ),
                 "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientReference.value[x]:valueReference.reference": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension",
+                    parent="Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientReference.value[x]:valueReference",
                     view_definition=ViewDefinitionSnippet(
                         column=[
                             ViewDefinitionColumn(
@@ -6520,7 +6606,7 @@ def test_codeable_concept(
                     ),
                 ),
                 "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientUri": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension",
+                    parent="Medication.ingredient.extension:Wirkstoffrelation.extension",
                     view_definition=ViewDefinitionSnippet(
                         for_each_or_null="extension.where(url = 'ingredientUri')",
                         select=[],
@@ -6530,14 +6616,14 @@ def test_codeable_concept(
                     ],
                 ),
                 "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientUri.value[x]": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension",
+                    parent="Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientUri",
                     view_definition=ViewDefinitionSnippet(select=[]),
                     children=[
                         "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientUri.value[x]:valueUri",
                     ],
                 ),
                 "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientUri.value[x]:valueUri": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension",
+                    parent="Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientUri.value[x]",
                     view_definition=ViewDefinitionSnippet(
                         for_each_or_null="value.ofType(uri)",
                         select=[
@@ -6909,10 +6995,169 @@ def test_codeable_concept(
                 ),
             },
         ),
+        (
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab",
+            "Observation.effective[x].extension",
+            {
+                "Observation.effective[x].extension": FlatteningLookupElement(
+                    parent="Observation.effective[x]",
+                    viewDefinition=ViewDefinitionSnippet(
+                        forEachOrNull="effective", select=[]
+                    ),
+                    children=[
+                        "Observation.effective[x].extension:QuelleKlinischesBezugsdatum"
+                    ],
+                ),
+                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum": FlatteningLookupElement(
+                    parent="Observation.effective[x].extension",
+                    viewDefinition=ViewDefinitionSnippet(
+                        forEachOrNull="extension.where(url = 'https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/QuelleKlinischesBezugsdatum')",
+                        select=[],
+                    ),
+                    children=[
+                        "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]"
+                    ],
+                ),
+                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]": FlatteningLookupElement(
+                    parent="Observation.effective[x].extension:QuelleKlinischesBezugsdatum",
+                    viewDefinition=ViewDefinitionSnippet(select=[]),
+                    children=[
+                        "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]:valueCoding"
+                    ],
+                ),
+                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]:valueCoding": FlatteningLookupElement(
+                    parent="Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]",
+                    viewDefinition=ViewDefinitionSnippet(
+                        forEachOrNull="value.ofType(Coding)",
+                        select=[
+                            ViewDefinitionSelect(
+                                column=[
+                                    ViewDefinitionColumn(
+                                        name="Observation_effective_X__extensionQuelleklinischesbezugsdatum_value_X_Valuecoding_system",
+                                        path="system",
+                                        type="uri",
+                                    ),
+                                    ViewDefinitionColumn(
+                                        name="Observation_effective_X__extensionQuelleklinischesbezugsdatum_value_X_Valuecoding_code",
+                                        path="code",
+                                        type="code",
+                                    ),
+                                ]
+                            )
+                        ],
+                    ),
+                ),
+            },
+        ),
+        (
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab",
+            "Observation.value[x]:valueQuantity.extension",
+            {
+                "Observation.value[x]:valueQuantity.extension": FlatteningLookupElement(
+                    parent="Observation.value[x]:valueQuantity",
+                    viewDefinition=ViewDefinitionSnippet(select=[]),
+                    children=[
+                        "Observation.value[x]:valueQuantity.extension:pqTranslation"
+                    ],
+                ),
+                "Observation.value[x]:valueQuantity.extension:pqTranslation": FlatteningLookupElement(
+                    parent="Observation.value[x]:valueQuantity.extension",
+                    viewDefinition=ViewDefinitionSnippet(
+                        forEachOrNull="extension.where(url = 'http://hl7.org/fhir/StructureDefinition/iso21090-PQ-translation')",
+                        select=[],
+                    ),
+                    children=[
+                        "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]"
+                    ],
+                ),
+                "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]": FlatteningLookupElement(
+                    parent="Observation.value[x]:valueQuantity.extension:pqTranslation",
+                    viewDefinition=ViewDefinitionSnippet(select=[]),
+                    children=[
+                        "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity"
+                    ],
+                ),
+                "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity": FlatteningLookupElement(
+                    parent="Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]",
+                    viewDefinition=ViewDefinitionSnippet(
+                        forEachOrNull="value.ofType(Quantity)", select=[]
+                    ),
+                    children=[
+                        "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.code",
+                        "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.comparator",
+                        "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.system",
+                        "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.unit",
+                        "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.value",
+                    ],
+                ),
+                "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.code": FlatteningLookupElement(
+                    parent="Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity",
+                    viewDefinition=ViewDefinitionSnippet(
+                        column=[
+                            ViewDefinitionColumn(
+                                name="Observation_value_X_Valuequantity_extensionPqtranslation_value_X_Valuequantity_code",
+                                path="code",
+                                type="code",
+                            )
+                        ]
+                    ),
+                ),
+                "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.comparator": FlatteningLookupElement(
+                    parent="Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity",
+                    viewDefinition=ViewDefinitionSnippet(
+                        column=[
+                            ViewDefinitionColumn(
+                                name="Observation_value_X_Valuequantity_extensionPqtranslation_value_X_Valuequantity_comparator",
+                                path="comparator",
+                                type="code",
+                            )
+                        ]
+                    ),
+                ),
+                "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.system": FlatteningLookupElement(
+                    parent="Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity",
+                    viewDefinition=ViewDefinitionSnippet(
+                        column=[
+                            ViewDefinitionColumn(
+                                name="Observation_value_X_Valuequantity_extensionPqtranslation_value_X_Valuequantity_system",
+                                path="system",
+                                type="uri",
+                            )
+                        ]
+                    ),
+                ),
+                "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.unit": FlatteningLookupElement(
+                    parent="Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity",
+                    viewDefinition=ViewDefinitionSnippet(
+                        column=[
+                            ViewDefinitionColumn(
+                                name="Observation_value_X_Valuequantity_extensionPqtranslation_value_X_Valuequantity_unit",
+                                path="unit",
+                                type="string",
+                            )
+                        ]
+                    ),
+                ),
+                "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.value": FlatteningLookupElement(
+                    parent="Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity",
+                    viewDefinition=ViewDefinitionSnippet(
+                        column=[
+                            ViewDefinitionColumn(
+                                name="Observation_value_X_Valuequantity_extensionPqtranslation_value_X_Valuequantity_value",
+                                path="value",
+                                type="decimal",
+                            )
+                        ]
+                    ),
+                ),
+            },
+        ),
     ],
     ids=[
-        "Extension defined in separate profile: Condition.extension",
-        "Extension defined inplace and extern: Medication.ingredient",
+        "Extension defined in separate profile (1): Condition.extension",
+        "Extension defined inplace and extern (1): Medication.ingredient",
+        "Extension defined in separate profile (2): Observation.effective[x].extension",
+        "Extension defined in separate profile (3): Observation.value[x]:valueQuantity.extension",
     ],
     indirect=["profile"],
 )
@@ -7750,7 +7995,7 @@ def test_profile_with_random_slicename_for_type(flattening_lookup_generator):
         ),
     }
 
-    profile_broken = StructureDefinitionSnapshot.model_validate(profile_dict)
+    profile_broken = NavStructureDefinition.model_validate(profile_dict)
 
     lookup = sorted(
         flattening_post_process(
@@ -9574,3 +9819,110 @@ def test_generic_complex_element_flattening(
     )
 
     assert res == expected
+
+
+def _construct_child_to_parent_mapping(lookup: FlatteningLookup) -> Mapping[str, str]:
+    """
+    Helper function to construct a mapping of lookup elements (via their ID) to their parent elements ID
+    """
+    child_to_parent = dict()
+    for elem_id, elem in lookup.elements.items():
+        if children := getattr(elem, "children", []):
+            for child_id in children:
+                child_to_parent[child_id] = elem_id
+    return child_to_parent
+
+
+def _construct_fhirpath_prefix(
+    elem_id: str,
+    elem: FlatteningLookupElement,
+    child_to_parent: Mapping[str, str],
+    lookup: FlatteningLookup,
+) -> Optional[str]:
+    """
+    Helper function to construct the aggregated FHIRPath expression prefix from any flattening lookup. The aggregation
+    starts at the provided lookup element and ends at its lookup root element. This step only construct the prefix using
+    the `forEachOrNull` field values of the lookup elements in the chain
+    """
+    fhirpath_expr = None
+    if parent_id := child_to_parent.get(elem_id):
+        fhirpath_expr = _construct_fhirpath_prefix(
+            parent_id, lookup.elements[parent_id], child_to_parent, lookup
+        )
+    if vd := elem.view_definition:
+        if foreach_filter := vd.for_each_or_null:
+            fhirpath_expr = (
+                f"{fhirpath_expr}.{foreach_filter}" if fhirpath_expr else foreach_filter
+            )
+    # FHIRPath aggregation is expected to replace such redundant expression parts
+    return fhirpath_expr.replace(".$this", "") if fhirpath_expr else None
+
+
+def _construct_fhirpaths(
+    elem_id: str,
+    elem: FlatteningLookupElement,
+    child_to_parent: Mapping[str, str],
+    lookup: FlatteningLookup,
+) -> list[str]:
+    """
+    Helper function to construct the aggregated FHIRPath expression from any flattening lookup. The aggregation
+    starts at the provided lookup element and ends at its lookup root element. An expression is generated for each view
+    definition column and if none is defined then only the aggregated `forEachOrNull` expression is returned
+    """
+    prefix = _construct_fhirpath_prefix(elem_id, elem, child_to_parent, lookup)
+    fhirpath_exprs = list()
+    if vd := elem.view_definition:
+        if columns := vd.column:
+            for c in columns:
+                col_path = c.path
+                if col_path != "$this":
+                    fhirpath_exprs.append(
+                        f"{prefix}.{col_path}" if prefix else col_path
+                    )
+                else:
+                    if prefix:
+                        fhirpath_exprs.append(prefix)
+    if not fhirpath_exprs:
+        if prefix:
+            fhirpath_exprs.append(prefix)
+    return fhirpath_exprs
+
+
+@pytest.mark.parametrize(
+    argnames=["elem_id", "profile_lookup", "expected"],
+    argvalues=[
+        pytest.param(
+            "Patient.identifier:MaskierterVersichertenIdentifer.value.extension:data-absent-reason.value[x]:valueCode",
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/PatientPseudonymisiert",
+            [
+                "identifier.where(type.coding.system = 'http://fhir.de/sid/gkv/kvid-10').value.extension.where(url = 'http://hl7.org/fhir/StructureDefinition/data-absent-reason').value.ofType(code)"
+            ],
+            marks=[
+                pytest.mark.skip(
+                    "ATM extensions on elements that support any primitive FHIR data type are not supported"
+                )
+            ],
+            id="MII_PR_Person_PatientPseudonymisiert.identifier:MaskierterVersichertenIdentifer.value.extension:data-absent-reason.value[x]",
+        ),
+        pytest.param(
+            "Observation.effective[x].extension:QuelleKlinischesBezugsdatum",
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab",
+            [
+                "effective.extension.where(url = 'https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/QuelleKlinischesBezugsdatum')"
+            ],
+            marks=[
+                pytest.mark.skip(
+                    "ATM extensions on elements that support any primitive FHIR data type are not supported"
+                )
+            ],
+            id="MII_PR_Labor_Laboruntersuchung.effective[x].extension:QuelleKlinischesBezugsdatum",
+        ),
+    ],
+    indirect=["profile_lookup"],
+)
+def test_aggregated_fhir_path_expression(
+    elem_id: str, profile_lookup: FlatteningLookup, expected
+):
+    mapping = _construct_child_to_parent_mapping(profile_lookup)
+    elem = profile_lookup.elements[elem_id]
+    assert _construct_fhirpaths(elem_id, elem, mapping, profile_lookup) == expected

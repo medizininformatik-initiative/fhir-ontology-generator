@@ -1,0 +1,829 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "MII PR Labor Laboruntersuchung",
+  "status": "draft",
+  "resource": "Observation",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        },
+        {
+          "name": "patient",
+          "path": "subject.reference"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Observation_code_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Observation_code_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Observation_code_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "code"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Observation_dataAbsentReason_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Observation_dataAbsentReason_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Observation_dataAbsentReason_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "dataAbsentReason"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Observation_effective_X_Effectivedatetime",
+              "path": "$this",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "effective.ofType(dateTime)"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Observation_identifierAnalysebefundcode_assigner_reference",
+                      "path": "reference",
+                      "type": "string"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "assigner"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Observation_identifierAnalysebefundcode_period_end",
+                      "path": "end",
+                      "type": "dateTime"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_identifierAnalysebefundcode_period_start",
+                      "path": "start",
+                      "type": "dateTime"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "period"
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_identifierAnalysebefundcode_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "select": [
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "Observation_identifierAnalysebefundcode_type_codingObservationinstancev2_code",
+                          "path": "code",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "Observation_identifierAnalysebefundcode_type_codingObservationinstancev2_system",
+                          "path": "system",
+                          "type": "uri"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "Observation_identifierAnalysebefundcode_type_codingObservationinstancev2_version",
+                          "path": "version",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "coding.where(system = 'http://terminology.hl7.org/CodeSystem/v2-0203')"
+                }
+              ],
+              "forEachOrNull": "type"
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_identifierAnalysebefundcode_use",
+                  "path": "use",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_identifierAnalysebefundcode_value",
+                  "path": "value",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "$this.where(type.coding.system = 'http://terminology.hl7.org/CodeSystem/v2-0203')"
+        }
+      ],
+      "forEachOrNull": "identifier"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Observation_interpretation_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Observation_interpretation_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Observation_interpretation_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "interpretation"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_high_code",
+                      "path": "code",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_high_comparator",
+                      "path": "comparator",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_high_system",
+                      "path": "system",
+                      "type": "uri"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_high_unit",
+                      "path": "unit",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_high_value",
+                      "path": "value",
+                      "type": "decimal"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "high"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_low_code",
+                      "path": "code",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_low_comparator",
+                      "path": "comparator",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_low_system",
+                      "path": "system",
+                      "type": "uri"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_low_unit",
+                      "path": "unit",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_low_value",
+                      "path": "value",
+                      "type": "decimal"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "low"
+            }
+          ],
+          "forEachOrNull": "age"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_appliesTo_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "Observation_referenceRange_appliesTo_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "Observation_referenceRange_appliesTo_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "appliesTo"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_high_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_high_comparator",
+                  "path": "comparator",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_high_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_high_unit",
+                  "path": "unit",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_high_value",
+                  "path": "value",
+                  "type": "decimal"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "high"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_low_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_low_comparator",
+                  "path": "comparator",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_low_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_low_unit",
+                  "path": "unit",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_low_value",
+                  "path": "value",
+                  "type": "decimal"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "low"
+        },
+        {
+          "column": [
+            {
+              "name": "Observation_referenceRange_text",
+              "path": "text",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_type_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "Observation_referenceRange_type_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "Observation_referenceRange_type_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "type"
+        }
+      ],
+      "forEachOrNull": "referenceRange"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Observation_value_X_Valuecodeableconcept_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Observation_value_X_Valuecodeableconcept_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Observation_value_X_Valuecodeableconcept_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "value.ofType(CodeableConcept)"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Observation_value_X_Valuequantity_code",
+              "path": "code",
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "Observation_value_X_Valuequantity_comparator",
+              "path": "comparator",
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Observation_value_X_Valuequantity_extensionPqtranslation_value_X_Valuequantity_code",
+                      "path": "code",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_value_X_Valuequantity_extensionPqtranslation_value_X_Valuequantity_comparator",
+                      "path": "comparator",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_value_X_Valuequantity_extensionPqtranslation_value_X_Valuequantity_system",
+                      "path": "system",
+                      "type": "uri"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_value_X_Valuequantity_extensionPqtranslation_value_X_Valuequantity_unit",
+                      "path": "unit",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_value_X_Valuequantity_extensionPqtranslation_value_X_Valuequantity_value",
+                      "path": "value",
+                      "type": "decimal"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "value.ofType(Quantity)"
+            }
+          ],
+          "forEachOrNull": "extension.where(url = 'http://hl7.org/fhir/StructureDefinition/iso21090-PQ-translation')"
+        },
+        {
+          "column": [
+            {
+              "name": "Observation_value_X_Valuequantity_system",
+              "path": "system",
+              "type": "uri"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "Observation_value_X_Valuequantity_unit",
+              "path": "unit",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "Observation_value_X_Valuequantity_value",
+              "path": "value",
+              "type": "decimal"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "value.ofType(Quantity)"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valuerange_high_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valuerange_high_comparator",
+                  "path": "comparator",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valuerange_high_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valuerange_high_unit",
+                  "path": "unit",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valuerange_high_value",
+                  "path": "value",
+                  "type": "decimal"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "high"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valuerange_low_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valuerange_low_comparator",
+                  "path": "comparator",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valuerange_low_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valuerange_low_unit",
+                  "path": "unit",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valuerange_low_value",
+                  "path": "value",
+                  "type": "decimal"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "low"
+        }
+      ],
+      "forEachOrNull": "value.ofType(Range)"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valueratio_denominator_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valueratio_denominator_comparator",
+                  "path": "comparator",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valueratio_denominator_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valueratio_denominator_unit",
+                  "path": "unit",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valueratio_denominator_value",
+                  "path": "value",
+                  "type": "decimal"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "denominator"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valueratio_numerator_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valueratio_numerator_comparator",
+                  "path": "comparator",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valueratio_numerator_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valueratio_numerator_unit",
+                  "path": "unit",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_value_X_Valueratio_numerator_value",
+                  "path": "value",
+                  "type": "decimal"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "numerator"
+        }
+      ],
+      "forEachOrNull": "value.ofType(Ratio)"
+    }
+  ]
+}
