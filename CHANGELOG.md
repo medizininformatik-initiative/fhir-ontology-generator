@@ -15,6 +15,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+# [v4.3.0] - 2026-08-07
+
+## Added
+
+- Implement first version of CDS module **Molekulargenetischer Befundbericht** 2026 for cohort selection (#488 @Frontman50, @paulolaup)
+- Add support for extraction of patient medical record number (#456 @Frontman50)
+
+## Fixed
+
+- Fix flattening of medication dosage information (#510 @Frontman50)
+- Fix flattening lookup elements based on slices in FHIR `StructureDefinition`s having multiple parents (#519 @Frontman50)
+- Fix extensions not being handled for element types during flattening lookup generation. Extension (slices) defined on
+  primitively-typed elements will be **excluded** from the flattening lookup due to lack of support by *Pathling*
+  (#512 @paulolaup)
+
+## Deprecated
+
+- Deprecate `parent` field of `FlatteningLookupElement` model class since it can be inferred via the `children` field. 
+  Will be removed with major release **v5.0.0** (#512 @paulolaup)
+
 # [v4.2.2] - 2026-07-02
 
 ## Added
