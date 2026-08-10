@@ -213,12 +213,12 @@ class TerminologyDesignationResolver:
                 match resource["resourceType"]:
                     case "Parameters":
                         for language in languages:
-                            code = list(
+                            code = next(
                                 filter(
                                     lambda p: p.get("name") == "code",
                                     resource.get("parameter", []),
                                 )
-                            )[0].get("valueCode")
+                            ).get("valueCode")
                             designation = extract_designation(resource, language)
                             if designation:
                                 if code not in code_system_concepts:
@@ -226,10 +226,6 @@ class TerminologyDesignationResolver:
                                 designations = code_system_concepts[code]
                                 if language not in designations:
                                     designations[language] = designation
-                            else:
-                                self.__logger.debug(
-                                    f"Failed to extract designation for language '{language}' [parameter='{json.dumps(resource)}']"
-                                )
                     case "OperationOutcome":
                         failure_cnt += 1
                         self.__logger.debug(f"Operation failed. Details:\n{resource}")

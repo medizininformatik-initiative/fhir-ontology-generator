@@ -2,7 +2,6 @@ import argparse
 import collections
 import os
 import json
-from pathlib import Path
 
 from typing import Union, Literal, Mapping, List, Any, Optional
 from urllib.parse import urlparse
@@ -28,6 +27,7 @@ from cohort_selection_ontology.model.tree_map import TreeMap, TermEntryNode
 from cohort_selection_ontology.model.ui_data import TermCode
 from common.util.log.functions import get_logger
 from data_selection_extraction.model.detail import ProfileDetailListTA
+from data_selection_extraction.model.profile_tree import ProfileTreeTA
 
 _logger = get_logger(__file__)
 
@@ -375,11 +375,12 @@ if __name__ == "__main__":
     if args.copy_snapshots:
         tree_generator.copy_profile_snapshots()
 
+    _logger.info("Generating profile tree")
     tree_generator.get_profile_snapshots()
     profile_tree = tree_generator.generate_profiles_tree()
 
-    with open(dse_output_dir / "profile_tree.json", mode="w", encoding="utf-8") as f:
-        json.dump(profile_tree, f, ensure_ascii=False, cls=JSONFhirOntoEncoder)
+    with open(dse_output_dir / "profile_tree.json", mode="wb") as f:
+        f.write(ProfileTreeTA.dump_json(profile_tree, exclude_none=True))
 
     with open(
         dse_input_dir / "mapping-type-code.json", mode="r", encoding="utf-8"

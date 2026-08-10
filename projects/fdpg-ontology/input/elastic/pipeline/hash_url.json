@@ -1,0 +1,63 @@
+{
+  "processors": [
+    {
+      "fingerprint": {
+        "fields": [
+          "url"
+        ],
+        "target_field": "fingerprint",
+        "method": "SHA-256"
+      }
+    },
+    {
+      "gsub": {
+        "field": "fingerprint",
+        "pattern": "\\+",
+        "replacement": "-"
+      }
+    },
+    {
+      "gsub": {
+        "field": "fingerprint",
+        "pattern": "/",
+        "replacement": "_"
+      }
+    },
+    {
+      "gsub": {
+        "field": "fingerprint",
+        "pattern": "=+$",
+        "replacement": ""
+      }
+    },
+    {
+      "set": {
+        "field": "_id",
+        "value": "{{fingerprint}}"
+      }
+    },
+    {
+      "foreach": {
+        "field": "children",
+        "ignore_missing": true,
+        "processor": {
+          "pipeline": {
+            "name": "hash_url_relative"
+          }
+        }
+      }
+    },
+    {
+      "foreach": {
+        "field": "parents",
+        "ignore_missing": true,
+        "processor": {
+          "pipeline": {
+            "name": "hash_url_relative"
+          }
+        }
+      }
+    }
+  ]
+}
+

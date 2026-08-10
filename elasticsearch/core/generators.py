@@ -2,21 +2,116 @@ import os
 import json
 import shutil
 import uuid
-import zipfile
-from typing import Mapping
-from zipfile import ZipFile
+from pathlib import Path
+from typing import Mapping, Any, Callable, TypeVar
 import re
 
 from cohort_selection_ontology.model.ui_data import RelationalTermcode
 from common.util.codec.json import JSONFhirOntoEncoder
+from data_selection_extraction.model.profile_tree import ProfileTreeNode, ProfileTreeTA
 from elasticsearch.core.resolvers.designation import TerminologyDesignationResolver
 
-from common.util.log.functions import get_class_logger
+from common.util.log.functions import get_logger
 from common.util.project import Project
+from elasticsearch.model.profile_index import ProfileIndexDocument
+
+_logger = get_logger(__file__)
+
+
+########################################################################################################################
+# Serialization functions
+########################################################################################################################
+
+
+def _ontology_doc_ser(_, doc: Any) -> tuple[bytes, bytes]:
+    obj_hash = doc["hash"]
+    del doc["hash"]
+    action_and_metadata_d = (
+        f'{{"index": {{"_index": "ontology", "_id": "{obj_hash}"}}}}\n'.encode("utf-8")
+    )
+    doc_b = (json.dumps(doc, cls=JSONFhirOntoEncoder) + "\n").encode("utf-8")
+    return action_and_metadata_d, doc_b
+
+
+def _codeable_concept_doc_ser(_, doc: Any) -> tuple[bytes, bytes]:
+    obj_hash = doc["hash"]
+    del doc["hash"]
+    action_and_metadata_d = (
+        f'{{"index": {{"_index": "codeable_concept", "_id": "{obj_hash}"}}}}\n'.encode(
+            "utf-8"
+        )
+    )
+    doc_b = (json.dumps(doc, cls=JSONFhirOntoEncoder) + "\n").encode("utf-8")
+    return action_and_metadata_d, doc_b
+
+
+def _profile_doc_ser(idx: int, doc: ProfileIndexDocument) -> tuple[bytes, bytes]:
+    action_and_metadata_b = (
+        f'{{"index": {{"_index": "profile", "_id": "{idx}"}}}}\n'.encode("utf-8")
+    )
+    doc_bytes_b = (doc.model_dump_json() + "\n").encode(encoding="utf-8")
+    return action_and_metadata_b, doc_bytes_b
+
+
+########################################################################################################################
+
+
+T = TypeVar("T")
+
+
+def _write_es_documents(
+    dst: Path,
+    file_name_prefix: str,
+    index_name: str,
+    documents: list[T],
+    serializer: Callable[[int, T], tuple[bytes, bytes]],
+    max_doc_cnt: int = 10_000,
+    max_file_size_mb: int = 10,
+):
+    """
+    Serializes list of objects as Elasticsearch index documents and writes them as bulk import NDJSON files to the disk.
+    A new files is created if either ``max_doc_count`` or ``max_file_size_mb`` is exceeded
+
+    :param dst: Path to the destination directory
+    :param file_name_prefix: Name prefix of the NDJSON files
+    :param index_name: Name of the Elasticsearch index the documents should be uploaded to
+    :param documents: List of objects that are part of the bulk import
+    :param serializer: Callable taking in the index of the object in the list and the object itself. It should return a
+                       tuple where the first entry is the action JSON object and the second the serialized data to index
+    :param max_doc_cnt: Maximum number of documents to be part of a single NDJSON file
+    :param max_file_size_mb: Maximum NDJSON file size (in MB)
+    """
+    if not documents:
+        _logger.warning(f"No documents to write for index {repr(index_name)}")
+        return
+    max_file_size_bytes = max_file_size_mb * 1024 * 1024
+    current_file_subindex = 0
+    current_file_size = 0
+    current_doc_cnt = 0
+
+    fd = (dst / f"{file_name_prefix}_{current_file_subindex}.ndjson").open(mode="wb")
+    try:
+        for idx, doc in enumerate(documents):
+            action_and_metadata_b, doc_b = serializer(idx, doc)
+            num_new_bytes = len(action_and_metadata_b) + len(doc_b)
+            current_doc_cnt += 2
+            if (
+                current_file_size + num_new_bytes
+            ) >= max_file_size_bytes or current_doc_cnt >= max_doc_cnt:
+                fd.close()
+                current_file_subindex += 1
+                current_file_size = num_new_bytes
+                current_doc_cnt = 2
+                fd = (dst / f"{file_name_prefix}_{current_file_subindex}.ndjson").open(
+                    mode="wb"
+                )
+            fd.write(action_and_metadata_b)
+            fd.write(doc_b)
+    finally:
+        fd.close()
 
 
 class ElasticSearchGenerator:
-    __logger = get_class_logger("ElasticSearchGenerator")
 
     def __init__(self, project: Project):
         self.__project = project
@@ -128,7 +223,7 @@ class ElasticSearchGenerator:
             if not self.__designation_resolver.has_designations_for(
                 ui_tree.get("system")
             ):
-                self.__logger.warning(
+                _logger.warning(
                     f"No designations are loaded for code system '{ui_tree.get('system')}' => No translations will be "
                     f"available"
                 )
@@ -198,7 +293,7 @@ class ElasticSearchGenerator:
 
     def __convert_value_set(self, value_set, termcode_to_valueset, namespace_uuid_str):
         if len(value_set.get("expansion", {}).get("contains", [])) == 0:
-            self.__logger.warning(
+            _logger.warning(
                 f"Value set [url={value_set.get('url', '<missing>')}] is not expanded or its "
                 f"expansion is empty => Skipping"
             )
@@ -230,45 +325,8 @@ class ElasticSearchGenerator:
                     value_set["url"]
                 )
 
-    def __write_es_import_to_file(
-        self,
-        current_file_index,
-        current_file_name,
-        json_flat,
-        index_name,
-        max_filesize_mb,
-        filename_prefix,
-        extension,
-    ):
-        current_file_subindex = 1
-        current_file_size = 0
-
-        elastic_dir = self.__project.output.mkdirs("merged_ontology", "elastic")
-        with open(current_file_name, mode="a", encoding="UTF-8") as current_file:
-            for obj in json_flat:
-                obj_hash = obj["hash"]
-                del obj["hash"]
-                current_line = (
-                    f'{{"index": {{"_index": "{index_name}", "_id": "{obj_hash}"}}}}\n'
-                )
-                current_file.write(current_line)
-                current_file_size += len(current_line)
-                current_line = json.dumps(obj, cls=JSONFhirOntoEncoder) + "\n"
-                current_file.write(current_line)
-                current_file_size += len(current_line)
-
-                if current_file_size > max_filesize_mb * 1024 * 1024:
-                    current_file_subindex += 1
-                    current_file_name = elastic_dir / (
-                        f"{filename_prefix}_{index_name}_{current_file_index}_"
-                        + f"{current_file_subindex}{extension}"
-                    )
-                    current_file_size = 0
-                    current_file.close()
-                    current_file = open(current_file_name, mode="w", encoding="UTF-8")
-
     @staticmethod
-    def __write_es_to_file(
+    def __update_es_files_with_availability(
         es_availability_inserts, max_filesize_mb, filename_prefix, extension, write_dir
     ):
         current_file_subindex = 1
@@ -279,7 +337,7 @@ class ElasticSearchGenerator:
         current_file_name = os.path.join(
             write_dir, f"{filename_prefix}_{current_file_subindex}{extension}"
         )
-        ElasticSearchGenerator.__logger.debug(f"Writing to file {current_file_name}")
+        _logger.debug(f"Writing to file {current_file_name}")
         with open(current_file_name, mode="w+", encoding="UTF-8") as current_file:
 
             for insert in es_availability_inserts:
@@ -297,33 +355,7 @@ class ElasticSearchGenerator:
                     current_file_size = 0
                     current_file.close()
                     current_file = open(current_file_name, mode="w", encoding="UTF-8")
-                    ElasticSearchGenerator.__logger.debug(
-                        f"Writing to file {current_file_name}"
-                    )
-
-    @staticmethod
-    def __zip_elastic_files(
-        output_file, work_dir, filename_prefix, extension, include_additional_files
-    ):
-        with ZipFile(
-            output_file, mode="w", compression=zipfile.ZIP_DEFLATED
-        ) as elastic_zip:
-            # Add the new files to the zipfile
-            for root, dirs, files in os.walk(work_dir):
-                for file in files:
-                    if file.startswith(filename_prefix) and file.endswith(extension):
-                        os.chdir(root)
-                        elastic_zip.write(filename=file, arcname=f"{file}")
-                        os.remove(file)
-            # Add files from additional folders if any
-            if include_additional_files:
-                for root, dirs, files in os.walk(include_additional_files):
-                    for file in files:
-                        file_path = os.path.join(root, file)
-                        elastic_zip.write(
-                            file_path,
-                            os.path.relpath(file_path, include_additional_files),
-                        )
+                    _logger.debug(f"Writing to file {current_file_name}")
 
     def __load_termcode_info(
         self, tree_file_name, namespace_uuid_str
@@ -341,9 +373,7 @@ class ElasticSearchGenerator:
         ) as f:
             term_code_info_list = json.load(f)
 
-            self.__logger.debug(
-                f"Loaded termcode info map from file '{filename_prefix}'"
-            )
+            _logger.debug(f"Loaded termcode info map from file '{filename_prefix}'")
             for term_code_info in term_code_info_list:
                 term_code_hash = self.__get_contextualized_termcode_hash(
                     term_code_info["context"],
@@ -354,7 +384,7 @@ class ElasticSearchGenerator:
 
         return term_code_info_map
 
-    def __get_hashed_tree(self) -> Mapping[str, any]:
+    def __get_hashed_tree(self) -> Mapping[str, Any]:
         directory = self.__project.input.elastic
         es_onto_tree = {}
 
@@ -447,12 +477,39 @@ class ElasticSearchGenerator:
             )
         return count
 
+    def __generate_documents_from_profile_tree_node(
+        self,
+        node: ProfileTreeNode,
+        parent: ProfileIndexDocument | None = None,
+    ) -> list[ProfileIndexDocument]:
+        doc = ProfileIndexDocument.from_profile_tree_node(node)
+        doc.parents = [parent.to_ref()] if parent else []
+        return [
+            doc,
+            *(
+                desc_doc
+                for child in node.children
+                for desc_doc in self.__generate_documents_from_profile_tree_node(
+                    child, doc
+                )
+            ),
+        ]
+
+    def generate_profile_tree_files(
+        self, profile_tree: list[ProfileTreeNode]
+    ) -> list[ProfileIndexDocument]:
+        # Get module-level nodes
+        documents = []
+        for tree_node in profile_tree:
+            documents.extend(
+                self.__generate_documents_from_profile_tree_node(tree_node, None)
+            )
+        return documents
+
     def generate_elasticsearch_files(
         self,
         generate_availability,
         namespace_uuid_str="00000000-0000-0000-0000-000000000000",
-        index_name="ontology",
-        filename_prefix="onto_es_",
         max_filesize_mb=10,
         update_translation_supplements=False,
     ):
@@ -460,12 +517,11 @@ class ElasticSearchGenerator:
         translations_dir = self.__project.output.translation.mkdirs("supplements")
         availability_output_dir = self.__project.output.availability
 
-        extension = ".json"
         ui_tree_dir = generated_ontology_dir / "ui-trees"
         current_file_index = 0
 
         elastic_dir = generated_ontology_dir / "elastic"
-        self.__logger.debug(f"Cleaning up output directory @ {elastic_dir}")
+        _logger.debug(f"Cleaning up output directory @ {elastic_dir}")
         if elastic_dir.exists():
             shutil.rmtree(elastic_dir)
         os.makedirs(elastic_dir, exist_ok=True)
@@ -484,11 +540,11 @@ class ElasticSearchGenerator:
         )
 
         if generate_availability:
-            self.__logger.info("Generating availability")
+            _logger.info("Generating availability")
             es_availability_inserts = []
 
             avail_hash_tree = self.__get_hashed_tree()
-            self.__logger.debug("Updating availability on hash tree")
+            _logger.debug("Updating availability on hash tree")
             self.__update_availability_on_hash_tree(avail_hash_tree, namespace_uuid_str)
 
             for key, value in avail_hash_tree.items():
@@ -507,24 +563,20 @@ class ElasticSearchGenerator:
                 es_availability_inserts.append(insert_hash)
                 es_availability_inserts.append(insert_availability)
 
-            self.__write_es_to_file(
+            self.__update_es_files_with_availability(
                 es_availability_inserts,
                 max_filesize_mb,
                 "es_availability_update",
-                extension,
+                ".ndjson",
                 availability_output_dir,
             )
 
             return
 
-        self.__logger.info("Generating Elasticsearch term code index documents")
+        _logger.info("Generating Elasticsearch term code index documents")
         for filename in os.listdir(ui_tree_dir):
-            if filename.endswith(extension):
-                self.__logger.info(f"Processing {filename}")
-                current_file = (
-                    elastic_dir
-                    / f"{filename_prefix}_{index_name}_{current_file_index}{extension}"
-                )
+            if filename.endswith(".json"):
+                _logger.info(f"Processing {filename}")
 
                 with open(ui_tree_dir / filename, mode="r", encoding="UTF-8") as f:
                     json_tree = json.load(f)
@@ -542,43 +594,52 @@ class ElasticSearchGenerator:
                     namespace_uuid_str,
                 )
 
-                self.__write_es_import_to_file(
-                    current_file_index,
-                    current_file,
+                _write_es_documents(
+                    self.__project.output.mkdirs("merged_ontology", "elastic"),
+                    f"onto_es__ontology_{current_file_index}",
+                    "ontology",
                     json_flat,
-                    index_name,
-                    max_filesize_mb,
-                    filename_prefix,
-                    extension,
+                    _ontology_doc_ser,
                 )
 
                 current_file_index = current_file_index + 1
 
-        self.__logger.info("Generating Elasticsearch value set index documents")
-        index_name = "codeable_concept"
+        _logger.info("Generating Elasticsearch value set index documents")
         termcode_to_valueset = {}
 
-        current_file = (
-            elastic_dir
-            / f"{filename_prefix}_{index_name}_{current_file_index}{extension}"
-        )
-
         for filename in os.listdir(value_set_dir):
-            if filename.endswith(extension):
+            if filename.endswith(".json"):
+                _logger.info(f"Processing value set file {filename}")
                 with open(value_set_dir / filename, mode="r", encoding="UTF-8") as f:
                     value_set = json.load(f)
-                    self.__convert_value_set(
-                        value_set, termcode_to_valueset, namespace_uuid_str
-                    )
+                self.__convert_value_set(
+                    value_set, termcode_to_valueset, namespace_uuid_str
+                )
 
         json_flat = list(termcode_to_valueset.values())
 
-        self.__write_es_import_to_file(
-            current_file_index,
-            current_file,
+        _write_es_documents(
+            self.__project.output.mkdirs("merged_ontology", "elastic"),
+            "onto_es__codeable_concept",
+            "codeable_concept",
             json_flat,
-            index_name,
-            max_filesize_mb,
-            filename_prefix,
-            extension,
+            _codeable_concept_doc_ser,
+        )
+
+        _logger.info("Generating Elasticsearch profile index documents")
+
+        dse_output_dir = self.__project.output.dse
+        with (dse_output_dir / "profile_tree.json").open(
+            mode="r", encoding="utf-8"
+        ) as fd:
+            profile_tree = ProfileTreeTA.validate_json(fd.read())
+
+        documents = self.generate_profile_tree_files(profile_tree)
+
+        _write_es_documents(
+            self.__project.output.mkdirs("merged_ontology", "elastic"),
+            "onto_es__profile",
+            "profile",
+            documents,
+            _profile_doc_ser,
         )
