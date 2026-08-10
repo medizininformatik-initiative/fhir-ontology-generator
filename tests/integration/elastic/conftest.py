@@ -114,7 +114,7 @@ def elastic_url(docker_ip, docker_services, docker_compose_project_name) -> str:
         if status == "exited":
             break
         attempts += 1
-        time.sleep(5)
+        time.sleep(10)
     if attempts == max_attempts:
         raise Exception(f"Service '{service_name}' did not exit in time")
 

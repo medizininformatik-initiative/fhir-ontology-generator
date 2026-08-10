@@ -1,11 +1,14 @@
 {
   "MII_PR_Medikation_MedicationAdministration": [
-    "MedicationAdministration"
+    "MedicationAdministrationAtcDe",
+    "MedicationAdministrationPzn"
   ],
   "MII_PR_Medikation_MedicationStatement": [
-    "MedicationStatement"
+    "MedicationStatementAtcDe",
+    "MedicationStatementPzn"
   ],
   "MII_PR_Medikation_MedicationRequest": [
-    "MedicationRequest"
+    "MedicationRequestAtcDe",
+    "MedicationRequestPzn"
   ]
 }
