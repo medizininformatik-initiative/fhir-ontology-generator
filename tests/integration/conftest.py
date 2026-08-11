@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from common.util.fhir.package.manager import FhirPackageManager
 from common.util.project import Project
 
 
@@ -21,9 +22,12 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def copy_and_unpack_project_output(pytestconfig) -> Path:
-    project = Project(name=pytestconfig.getoption("--project"))
+def project(pytestconfig) -> Project:
+    return Project(name=pytestconfig.getoption("--project"))
 
+
+@pytest.fixture(scope="session", autouse=True)
+def copy_and_unpack_project_output(project: Project) -> Path:
     tmp_path = os.path.join(__test_dir(), ".tmp")
     ontology_dir_path = os.path.join(tmp_path, "ontology")
     if not os.path.exists(ontology_dir_path):
@@ -101,3 +105,9 @@ def mapping_tree_file(copy_and_unpack_project_output) -> Path:
 @pytest.fixture(scope="session")
 def availability_dir(copy_and_unpack_project_output) -> Path:
     return copy_and_unpack_project_output / "availability"
+
+
+@pytest.fixture(scope="session")
+def package_manager(project: Project) -> FhirPackageManager:
+    # project.package_manager.restore(inflate=True, lenient=True)
+    return project.package_manager

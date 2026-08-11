@@ -170,6 +170,7 @@ class FhirPackageManager(abc.ABC):
 
         if not self.__package_cache_dir.exists():
             raise Exception(f"No FHIR cache directory @ {self.__package_cache_dir}")
+        self._update_index()
 
     def __add_to_cache(self, key: Path, res: Resource):
         if len(self.__cache) == self.__cache_size and key not in self.__cache:
@@ -208,7 +209,7 @@ class FhirPackageManager(abc.ABC):
         for package_path in cache_path.iterdir():
             if not package_path.is_dir():
                 continue
-            self._update_index_with_package(self.cache_location() / package_path)
+            self._update_index_with_package(cache_path / package_path)
 
     def has_package(self, name: str, version: Optional[str]) -> bool:
         """

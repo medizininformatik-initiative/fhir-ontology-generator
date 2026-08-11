@@ -13,7 +13,10 @@ from common.exceptions import NotFoundError
 from common.model.fhir.structure_definition import StructureDefinitionSnapshot
 from common.util.collections.functions import first
 from common.util.fhir.package.manager import FhirPackageManager
-from common.util.fhirpath.functions import filter_for_slice
+from common.util.fhirpath.functions import (
+    filter_for_slice,
+    fhirpath_filter_from_value_discriminated_elem_def,
+)
 from common.util.http.exceptions import ClientError
 from common.util.http.terminology.client import FhirTerminologyClient
 from common.util.log.functions import get_logger
@@ -361,12 +364,17 @@ class FlatteningLookupGenerator:
         :param profile: profile of element
         :return: codesystem url or None
         """
-        code_system_el = profile.get_element_by_id(f"{element.id}.system")
-        if element.patternCoding or (code_system_el and code_system_el.patternUri):
+        if (
+            element.patternCoding
+            or getattr(element.element("system"), "patternUri", None)
+            or getattr(element.element("code"), "patternCode", None)
+        ):
             return (
-                f"system = '{code_system_el.patternUri}'"
-                if code_system_el and code_system_el.patternUri
-                else f"system = '{element.patternCoding.system}'"
+                fhirpath_filter_from_value_discriminated_elem_def(
+                    element, profile, "$this"
+                )
+                .removeprefix("where(")
+                .removesuffix(")")
             )
 
         elif element.binding:
@@ -1207,10 +1215,10 @@ class FlatteningLookupGenerator:
             # Can be handled together because the only difference is the forEachOrNull
 
             foreach = f"{element_id.split('.')[-1]}"
-            if where_clause := self._extract_code_system_for_identifier(
-                element, profile
+            if where_clause := fhirpath_filter_from_value_discriminated_elem_def(
+                element, profile, "$this"
             ):
-                foreach = f"$this.where({where_clause})"
+                foreach = "$this." + where_clause
 
             flat_ident_child = FlatteningLookupElement(
                 parent=check_if_root(get_parent_element_id(element_id), profile),
@@ -1487,7 +1495,9 @@ class FlatteningLookupGenerator:
         lookup_file: List[FlatteningLookup] = []
 
         for profile in self.package_manager.iterate_cache(
-            FLATTENING_PACKAGE_PATTERN, content_pattern, skip_on_fail=False
+            FLATTENING_PACKAGE_PATTERN,
+            content_pattern,
+            skip_on_fail=False,
         ):
             if profile.type in ["SearchParameter"]:
                 continue

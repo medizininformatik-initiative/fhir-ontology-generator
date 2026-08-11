@@ -130,7 +130,10 @@ def _construct_fhirpaths(
             )
         if columns := vd.column:
             for c in columns:
-                fhirpath_exprs.extend(f"{prefix}.{c}" for prefix in prefixes)
+                if prefixes:
+                    fhirpath_exprs.extend(f"{prefix}.{c.path}" for prefix in prefixes)
+                else:
+                    fhirpath_exprs.append(c.path)
         else:
             fhirpath_exprs = prefixes
     else:
@@ -152,10 +155,12 @@ def _assert_lookup_validity(
     for elem_id, elem in lookup.elements.items():
         elem_errors = []
 
-        view_def = getattr(elem, "view_definition", {})
-        columns = getattr(getattr(view_def, "select", {}), "column", [])
-        if view_def and not columns:
-            columns = getattr(view_def, "column", [])
+        columns = []
+        if view_def := elem.view_definition:
+            if select := view_def.select:
+                columns = [c for s in select for c in s.column] if select else []
+            else:
+                columns = view_def.column if view_def.column else []
         if columns:
             try:
                 names = {c.name for c in columns}
@@ -254,6 +259,8 @@ def test_lookup_file_validity(flattening_lookup: Path, package_manager):
     errors = []
     for lookup in flattening_lookups:
         struct_def = package_manager.find({"url": lookup.url})
+        if not struct_def:
+            raise ValueError(f"Missing structure definition {repr(lookup.url)}")
         try:
             _assert_lookup_validity(lookup, struct_def)
         except Exception as exc:
