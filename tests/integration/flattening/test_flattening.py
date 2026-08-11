@@ -149,12 +149,13 @@ def _assert_lookup_validity(
             for child_id in children:
                 child_to_parent[child_id].append(elem_id)
 
-    for elem_id, elem in lookup.elements:
+    for elem_id, elem in lookup.elements.items():
         elem_errors = []
 
-        columns = getattr(
-            getattr(getattr(elem, "view_definition", {}), "select", {}), "column", []
-        )
+        view_def = getattr(elem, "view_definition", {})
+        columns = getattr(getattr(view_def, "select", {}), "column", [])
+        if view_def and not columns:
+            columns = getattr(view_def, "column", [])
         if columns:
             try:
                 names = {c.name for c in columns}
@@ -194,7 +195,7 @@ def _assert_lookup_validity(
         parents = child_to_parent.get(elem_id, [])
         try:
             assert (
-                len(parents) == 1
+                len(parents) <= 1
             ), f"Lookup element {repr(elem_id)} has more than one parent"
         except AssertionError as err:
             elem_errors.append(err)
