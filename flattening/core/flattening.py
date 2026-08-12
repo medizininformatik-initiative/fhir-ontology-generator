@@ -154,8 +154,7 @@ def is_polymorphic(element: ElementDefinition) -> bool:
     :return: true if polymorphic
     """
     return (
-        element.type is not None
-        and "[x]" in element.id.split(".")[-1]
+        element.type is not None and "[x]" in element.id.split(".")[-1]
         # len > 1 does not apply as there are polymorphic elements with only one defined type
         # Laboruntersuchung.effective[x]
         # and len(element.type) > 1
@@ -220,6 +219,9 @@ def recontextualize_extension_lookup(
     :return: recontextualized lookup
     """
     res_lookup = {}
+
+    if not ext_lookup:
+        return {}
 
     for key, lookup in ext_lookup.items():
         new_key = key.replace("Extension", element_id)
@@ -288,6 +290,44 @@ def flattening_post_process(
         res[key] = new_el
 
     return dict(sorted(res.items(), key=lambda item: item[0]))
+
+
+def filter_for_invalid_lookup(
+    element_id: str, lookup: Dict[str, FlatteningLookupElement]
+) -> Dict[str, FlatteningLookupElement]:
+    """
+    Returns {} when an element is deemed to be wrong, else returns the lookup.
+    By using this function after each flattening function, deletion can propagate up the tree
+        leaving no flatteningLookup branches without any valid leafs
+    Lookup is correct if the current lookupElement determined by ``element_id``:
+        1. has valid children (referenced children can be found within the lookup)
+        2. has column definition
+        3. has select which contains column definition (example below)
+    :param element_id: id of the element, root of the lookup
+    :param lookup: flatteningLookup with element_id at root
+    :return: {} is of correct structure
+    """
+    lookup_element: FlatteningLookupElement = lookup.get(element_id)
+    if not lookup_element:
+        return {}
+
+    # if at least one referenced children exists
+    if lookup_element and lookup_element.children:
+        for child_id in lookup_element.children:
+            if lookup.get(child_id):
+                return lookup
+        return {}
+
+    # if lookupElement has columns
+    if lookup_element and lookup_element.view_definition.column is not None:
+        return lookup
+
+    # if non-empty select already carries its own content
+    # (e.g. columns wrapped for a polymorphic child like `value[x]:valueCoding`)
+    if lookup_element.view_definition and lookup_element.view_definition.select:
+        return lookup
+
+    return {}
 
 
 class FlatteningLookupGenerator:
@@ -827,7 +867,7 @@ class FlatteningLookupGenerator:
                     self._flatten_extension(element_id=child, profile=profile, **kwargs)
                 )
 
-            return lookup
+            return filter_for_invalid_lookup(element_id, lookup)
         else:
             # extension slices
             lookup = {}
@@ -863,6 +903,8 @@ class FlatteningLookupGenerator:
                             profile=ext_profile,
                             **kwargs,
                         )
+                        if not ext_lookup:
+                            return {}
                         ext_lookup["Extension.value[x]"].parent = "Extension"
                         lookup.update(
                             recontextualize_extension_lookup(
@@ -916,10 +958,11 @@ class FlatteningLookupGenerator:
                         element_id=f"{element.id}.value[x]", profile=profile, **kwargs
                     )
                 )
+
                 flat_ext_el.children = [f"{element.id}.value[x]"]
                 lookup.update({element_id: flat_ext_el})
 
-            return lookup
+            return filter_for_invalid_lookup(element_id, lookup)
 
     def _flatten_codeable_concept(
         self,
@@ -1008,7 +1051,7 @@ class FlatteningLookupGenerator:
         polymorphic_parent_id: str,
         type: str = None,
         **kwargs,
-    ) -> Dict[str, FlatteningLookupElement] | None:
+    ) -> Dict[str, FlatteningLookupElement]:
         """
         Helper function for flattening polymorphic children. This is done by flattening the child (coding, quantity, etc.)
         the correct way and then inserting the generated "columns"
@@ -1064,7 +1107,7 @@ class FlatteningLookupGenerator:
                 else get_direct_children_ids(element_id, profile)
             )
             lookup_list.update({element_id: fle})
-            return lookup_list
+            return filter_for_invalid_lookup(element_id, lookup_list)
 
         return {}
 
@@ -1135,19 +1178,18 @@ class FlatteningLookupGenerator:
         flat_ext_parent.children = []
         lookup_list = {}
         for child, child_type in unified_children:
-            flat_ext_parent.children.append(child)
-            lookup_list.update(
-                self._generate_flattening_polymorphic_child(
-                    element_id=child,
-                    profile=profile,
-                    polymorphic_parent_id=element_id,
-                    type=child_type,
-                    **clean_kwargs,
-                )
-            )
+            if el := self._generate_flattening_polymorphic_child(
+                element_id=child,
+                profile=profile,
+                polymorphic_parent_id=element_id,
+                type=child_type,
+                **clean_kwargs,
+            ):
+                flat_ext_parent.children.append(child)
+                lookup_list.update(el)
 
         lookup_list.update({element_id: flat_ext_parent})
-        return lookup_list
+        return filter_for_invalid_lookup(element_id, lookup_list)
 
     def _flatten_identifier(
         self,
@@ -1332,7 +1374,9 @@ class FlatteningLookupGenerator:
         element_type = (
             type
             if type
-            else "Polymorphic" if is_polymorphic(element) else get_element_type(element)
+            else "Polymorphic"
+            if is_polymorphic(element)
+            else get_element_type(element)
         )
 
         if element_type in self.config.excluded_types or element_type is None:
@@ -1345,10 +1389,11 @@ class FlatteningLookupGenerator:
         res: Dict[str, FlatteningLookupElement] = {}
 
         if element_type == "Extension":
-            res = self._flatten_extension(
-                element_id=element_id, profile=profile, type=element_type, **kwargs
+            flat_lookup_els.update(
+                self._flatten_extension(
+                    element_id=element_id, profile=profile, type=element_type, **kwargs
+                )
             )
-            flat_lookup_els.update(res)
         else:
             match element_type:
                 case x if x in GENERIC_COMPLEX_TYPES:
@@ -1422,9 +1467,14 @@ class FlatteningLookupGenerator:
             else:
                 ext_flattening_lookup_elements = {}
 
-            flat_lookup_els.update({**res, **ext_flattening_lookup_elements})
+            if res:
+                flat_lookup_els.update(res)
+            if ext_flattening_lookup_elements:
+                flat_lookup_els.update(ext_flattening_lookup_elements)
 
-        return flat_lookup_els
+            # flat_lookup_els.update({**res, **ext_flattening_lookup_elements})
+
+        return filter_for_invalid_lookup(element_id, flat_lookup_els)
 
     def generate_flattening_lookup_for_profile(
         self,

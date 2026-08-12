@@ -231,3 +231,50 @@ def test_lookup_file_validity(flattening_lookup: Path, package_manager):
             errors.append(exc)
     if errors:
         raise ExceptionGroup(f"Flattening lookup file is invalid", errors)
+
+
+def _assert_profile_with_no_empty_select_without_children(lookup: FlatteningLookup):
+    """
+    Per the "How to work with a lookup file" section of ``flattening/README.md``, a lookup element's ``.children``
+    are inserted into its own ``viewDefinition.select`` array when a ``ViewDefinition`` is built. An empty
+    ``select`` is therefore only meaningful if the element has at least one child which actually resolves to an
+    element in the lookup - otherwise the generated ``ViewDefinition`` ends up with a ``select`` entry that is
+    never filled (see issue with ``DiagnosticReport.extension:related-report.value[x]`` in
+    https://www.medizininformatik-initiative.de/fhir/ext/modul-patho/StructureDefinition/mii-pr-patho-report).
+    Elements using ``column`` instead of ``select`` (primitive leaves) are not affected by this rule, and neither
+    are elements whose ``select`` already carries content (e.g. primitively-typed polymorphic children).
+    """
+    errors = []
+    for elem_id, elem in lookup.elements.items():
+        vd = elem.view_definition
+        if vd is None or vd.select is None or len(vd.select) > 0:
+            continue
+        try:
+            assert elem.children, (
+                f"Lookup element {repr(elem_id)} has an empty 'select' and no 'children'"
+            )
+            assert any(child_id in lookup.elements for child_id in elem.children), (
+                f"Lookup element {repr(elem_id)} has an empty 'select' and lists children {elem.children!r}, "
+                f"but none of them resolve to an element in the lookup"
+            )
+        except AssertionError as err:
+            errors.append(err)
+    if errors:
+        raise ExceptionGroup(
+            f"Lookup for profile {repr(lookup.url)} contains elements with a dangling empty 'select'", errors
+        )
+
+
+def test_lookup_file_no_empty_select_without_children(flattening_lookup: Path):
+    with flattening_lookup.open(mode="r", encoding="utf-8") as f:
+        flattening_lookups = FlatteningLookupListTA.validate_json(f.read())
+    errors = []
+    for lookup in flattening_lookups:
+        try:
+            _assert_profile_with_no_empty_select_without_children(lookup)
+        except Exception as exc:
+            errors.append(exc)
+    if errors:
+        raise ExceptionGroup(
+            "Flattening lookup file contains elements with a dangling empty 'select'", errors
+        )

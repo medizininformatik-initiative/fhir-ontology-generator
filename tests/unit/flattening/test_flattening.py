@@ -15,8 +15,124 @@ from flattening.core.flattening import (
     flattening_post_process,
     ViewDefinitionSelect,
     FlatteningLookupGenerator,
+    filter_for_invalid_lookup,
 )
 from flattening.model.FlatteningLookupModels import FlatteningLookup
+
+
+@pytest.mark.parametrize(
+    argnames="element_id, lookup, expected",
+    argvalues=[
+        pytest.param(
+            "Observation.extension:foo",
+            {},
+            {},
+            id="element_id missing from lookup -> dropped",
+        ),
+        pytest.param(
+            "Condition.code.coding:icd10-gm.code",
+            {
+                "Condition.code.coding:icd10-gm.code": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(
+                        column=[
+                            ViewDefinitionColumn(
+                                name="Condition_code_codingIcd10gm_code",
+                                path="code",
+                                type="code",
+                            )
+                        ]
+                    ),
+                ),
+            },
+            "unchanged",
+            id="primitive leaf with top-level column, no children -> kept",
+        ),
+        pytest.param(
+            # Regression for the "Account.coverage.extension:Abrechnungsart.value[x]:valueCoding"
+            # case: a polymorphic child whose columns are wrapped inside `select` (as produced by
+            # `_generate_flattening_polymorphic_child`) instead of a top-level `column`, and which
+            # has no `children` of its own. This used to be wrongly treated as "nothing to
+            # contribute" and dropped, which cascaded upward and deleted the whole extension chain.
+            "Account.coverage.extension:Abrechnungsart.value[x]:valueCoding",
+            {
+                "Account.coverage.extension:Abrechnungsart.value[x]:valueCoding": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(
+                        for_each_or_null="value.ofType(Coding)",
+                        select=[
+                            ViewDefinitionSelect(
+                                column=[
+                                    ViewDefinitionColumn(
+                                        name="Account_coverage_extensionAbrechnungsart_value_X_Valuecoding_system",
+                                        path="system",
+                                        type="uri",
+                                    )
+                                ]
+                            )
+                        ],
+                    ),
+                ),
+            },
+            "unchanged",
+            id="polymorphic leaf with non-empty select, no children -> kept",
+        ),
+        pytest.param(
+            "Observation.effective[x].extension:QuelleKlinischesBezugsdatum",
+            {
+                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                    children=["Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]"],
+                ),
+                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                    children=[
+                        "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]:valueCoding"
+                    ],
+                ),
+                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]:valueCoding": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(
+                        select=[ViewDefinitionSelect(column=[])]
+                    ),
+                ),
+            },
+            "unchanged",
+            id="empty select + children, child resolves -> kept",
+        ),
+        pytest.param(
+            # This is the original issue: an extension's value[x] has no defined/assumed types
+            # (e.g. `DiagnosticReport.extension:related-report.value[x]` for
+            # `workflow-relatedArtifact`), so it ends up with an empty `select` and either no
+            # children or children that don't resolve to anything in the lookup. Keeping it
+            # produces a `ViewDefinition.select` entry that is never filled.
+            "DiagnosticReport.extension:related-report.value[x]",
+            {
+                "DiagnosticReport.extension:related-report.value[x]": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                ),
+            },
+            {},
+            id="empty select, no children -> dropped (the original #523 bug)",
+        ),
+        pytest.param(
+            "DiagnosticReport.extension:related-report.value[x]",
+            {
+                "DiagnosticReport.extension:related-report.value[x]": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                    children=["DiagnosticReport.extension:related-report.value[x]:valueCoding"],
+                ),
+                # the referenced child never made it into the lookup (e.g. it was excluded or
+                # dropped further down the chain)
+            },
+            {},
+            id="empty select, children present but none resolve -> dropped",
+        ),
+    ],
+)
+def test_filter_for_empty_select(element_id, lookup, expected):
+    result = filter_for_invalid_lookup(element_id, lookup)
+    if expected == "unchanged":
+        assert result == lookup
+    else:
+        assert result == expected
 
 
 @pytest.mark.parametrize(
