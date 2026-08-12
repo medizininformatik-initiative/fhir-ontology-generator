@@ -134,7 +134,7 @@
               ]
             }
           ],
-          "forEachOrNull": "$this.where(type.coding.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue')"
+          "forEachOrNull": "$this.where(type.coding.exists(system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue' and code = 'ANONYED'))"
         },
         {
           "select": [
@@ -228,7 +228,7 @@
               ]
             }
           ],
-          "forEachOrNull": "$this.where(type.coding.system = 'http://fhir.de/sid/gkv/kvid-10')"
+          "forEachOrNull": "$this.where(type.coding.exists(system = 'http://fhir.de/CodeSystem/identifier-type-de-basis' and code = 'KVZ10'))"
         },
         {
           "select": [
@@ -322,7 +322,7 @@
               ]
             }
           ],
-          "forEachOrNull": "$this.where(type.coding.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue')"
+          "forEachOrNull": "$this.where(type.coding.exists(system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue' and code = 'PSEUDED'))"
         },
         {
           "select": [

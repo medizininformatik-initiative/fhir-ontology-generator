@@ -104,14 +104,14 @@ PAIRWISE_DISCRIMINATOR_CASES = [
 
 @pytest.fixture
 def discriminator_filter_stubs(monkeypatch):
-    def pattern_or_value_filter(_slice_elem_def, discr_path, *_):
+    def pattern_or_value_filter(_slice_elem_def, discr_path, *_, **__):
         discr_type = {
             DISCRIMINATOR_PATHS["value"]: "value",
             DISCRIMINATOR_PATHS["pattern"]: "pattern",
         }[discr_path]
         return f"where({DISCRIMINATOR_PREDICATES[discr_type]})"
 
-    def profile_filter(*_):
+    def profile_filter(*_, **__):
         return f"component.where({DISCRIMINATOR_PREDICATES['profile']})"
 
     monkeypatch.setattr(
@@ -223,7 +223,8 @@ def test_filter_for_observation_component_with_single_code_pattern_discriminator
     monkeypatch.setattr(
         functions,
         "_get_filter_from_pattern_or_value_discriminated_elem",
-        lambda *_: "where(code.coding.exists(system = 'loinc' and code = '85354-9'))",
+        lambda *_,
+        **__: "where(code.coding.exists(system = 'loinc' and code = '85354-9'))",
     )
 
     actual = functions.filter_for_slice(
@@ -257,7 +258,8 @@ def test_filter_for_observation_component_combines_code_and_type_discriminators(
     monkeypatch.setattr(
         functions,
         "_get_filter_from_pattern_or_value_discriminated_elem",
-        lambda *_: "where(code.coding.exists(system = 'loinc' and code = '8480-6'))",
+        lambda *_,
+        **__: "where(code.coding.exists(system = 'loinc' and code = '8480-6'))",
     )
 
     actual = functions.filter_for_slice(
@@ -290,7 +292,7 @@ def test_filter_for_encounter_location_combines_physical_type_and_status_pattern
     )
     monkeypatch.setattr(functions, "get_parent_element", lambda *_: parent)
 
-    def pattern_filter(_slice_elem_def, discr_path, *_):
+    def pattern_filter(_slice_elem_def, discr_path, *_, **__):
         return {
             "physicalType": "where(physicalType.coding.exists(system = 'http://terminology.hl7.org/CodeSystem/location-physical-type' and code = 'ro'))",
             "status": "where(status = 'active')",
@@ -531,3 +533,48 @@ def test__append_filter_for_slice(
 ):
     value = filter_for_slice(base_expr, elem_def, profile, package_manager)
     assert value == expected
+
+
+@pytest.mark.parametrize(
+    argnames=["elem_def", "profile", "expected"],
+    argvalues=[
+        pytest.param(
+            "Observation.identifier:analyseBefundCode",
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab",
+            "where(type.coding.exists(system = 'http://terminology.hl7.org/CodeSystem/v2-0203' and code = 'OBI'))",
+            id="pattern-discriminator-targeting-codeable-concept-typed-sub-elem",
+        ),
+        pytest.param(
+            "Observation.value[x]:valueQuantity",
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab",
+            "where($this is Quantity)",
+            id="type-discriminator-on-polymorphic-element-with-single-typed-slice-def-elem-def",
+        ),
+        pytest.param(
+            "Observation.effective[x].extension:QuelleKlinischesBezugsdatum",
+            "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab",
+            "where(url = 'https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/QuelleKlinischesBezugsdatum')",
+            id="value-discriminator-on-extension-element-targeting-url-sub-elem",
+        ),
+        pytest.param(
+            "Specimen.type.coding:sct",
+            "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
+            "where(system = 'http://snomed.info/sct')",
+            id="pattern-discriminator-targeting-uri-typed-sub-elem",
+        ),
+        pytest.param(
+            "Composition.section:diagRep",
+            "https://www.medizininformatik-initiative.de/fhir/ext/modul-bildgebung/StructureDefinition/mii-pr-bildgebung-semistrukt-befundbericht",
+            "where(entry.resolve().meta.profile.exists(url = 'https://www.medizininformatik-initiative.de/fhir/ext/modul-bildgebung/StructureDefinition/mii-pr-bildgebung-radiologischer-befund'))",
+            id="profile-discriminator-targeting-reference-typed-sub-elem",
+            marks=[
+                pytest.mark.xfail(
+                    reason="Profile discrimination is only supported for Extensions"
+                )
+            ],
+        ),
+    ],
+    indirect=["elem_def", "profile"],
+)
+def test__fhirpath_filter_for_slice(elem_def, profile, expected):
+    assert functions.fhirpath_filter_for_slice(elem_def) == expected

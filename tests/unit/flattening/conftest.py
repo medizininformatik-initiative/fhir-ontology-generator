@@ -1,6 +1,7 @@
 import pytest
 from _pytest.fixtures import FixtureRequest
 
+from flattening import DEFAULT_CONFIG
 from flattening.core.flattening import FlatteningLookupGenerator
 from flattening.model.FlatteningLookupModels import FlatteningLookup
 
@@ -10,6 +11,27 @@ PROJECT_RESOLUTION = "ancestor"
 @pytest.fixture
 def flattening_lookup_generator(project):
     return FlatteningLookupGenerator(project)
+
+
+@pytest.fixture
+def generator() -> FlatteningLookupGenerator:
+    """
+    A ``FlatteningLookupGenerator`` built without a real ``Project``: no package manager,
+    no terminology client, no lookup additions, just the default flattening config.
+
+    Use this (together with ``builders.build_profile``) for tests that exercise a single
+    flattening function against a small synthetic profile, instead of pulling in a real
+    MII package and a full recursive comparison.
+
+    It has no ``package_manager``/``client``, so it can't resolve slice discriminators or
+    value set bindings or follow extension profile references - avoid those in tests using it.
+    """
+    gen = FlatteningLookupGenerator.__new__(FlatteningLookupGenerator)
+    gen.package_manager = None
+    gen.client = None
+    gen.lookup_additions = {}
+    gen.config = DEFAULT_CONFIG.model_copy(deep=True)
+    return gen
 
 
 @pytest.fixture

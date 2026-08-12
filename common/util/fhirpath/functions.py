@@ -9,7 +9,8 @@ from fhir.resources.R4B.elementdefinition import (
     ElementDefinitionBinding,
     ElementDefinitionSlicingDiscriminator,
 )
-from pydantic import conlist, BaseModel
+from pydantic import BaseModel, conlist
+from typing_extensions import deprecated
 
 from availability.constants.fhir import MII_CDS_PACKAGE_PATTERN
 from common.exceptions import NotFoundError, UnsupportedError
@@ -23,10 +24,404 @@ from common.model.fhir.structure_definition import (
 )
 from common.util.fhir.package.manager import FhirPackageManager
 from common.util.fhirpath import RULE_NAMES, fhirpathParser, get_rule_name
+from common.util.http.exceptions import ClientError
+from common.util.http.terminology.client import FhirTerminologyClient
+from common.util.log.functions import get_logger
 from common.util.structure_definition.functions import get_parent_element
+
+_logger = get_logger(__file__)
 
 _REGEX_MATCH_TRAILING_WHERE_FUNC = re.compile(r"where\((.*)\)$")
 _REGEX_MATCH_TRAILING_EXISTS_FUNC = re.compile(r"exists\((.*)\)$")
+
+# Types `memberOf()` can actually be evaluated against -- Pathling only supports `Coding`/`CodeableConcept` there
+_MEMBER_OF_CAPABLE_TYPES = {"Coding", "CodeableConcept"}
+
+ALL_FHIR_RESOURCE_TYPES_R4B = {
+    "ChargeItem",
+    "StructureMap",
+    "DocumentManifest",
+    "Group",
+    "AdverseEvent",
+    "PractitionerRole",
+    "ValueSet",
+    "OperationOutcome",
+    "Account",
+    "MessageHeader",
+    "Ingredient",
+    "Linkage",
+    "Condition",
+    "SpecimenDefinition",
+    "Medication",
+    "GraphDefinition",
+    "CoverageEligibilityResponse",
+    "StructureDefinition",
+    "DocumentReference",
+    "SupplyRequest",
+    "Invoice",
+    "RegulatedAuthorization",
+    "Appointment",
+    "DeviceRequest",
+    "Practitioner",
+    "PaymentReconciliation",
+    "CoverageEligibilityRequest",
+    "RequestGroup",
+    "Encounter",
+    "Endpoint",
+    "EnrollmentRequest",
+    "ResearchElementDefinition",
+    "DeviceMetric",
+    "ActivityDefinition",
+    "DeviceUseStatement",
+    "Task",
+    "Claim",
+    "Slot",
+    "DomainResource",
+    "CapabilityStatement",
+    "Flag",
+    "ImmunizationEvaluation",
+    "MeasureReport",
+    "EnrollmentResponse",
+    "VisionPrescription",
+    "Evidence",
+    "MedicationStatement",
+    "ImplementationGuide",
+    "QuestionnaireResponse",
+    "Contract",
+    "Media",
+    "TestScript",
+    "Consent",
+    "CatalogEntry",
+    "Coverage",
+    "ConceptMap",
+    "Provenance",
+    "ResearchSubject",
+    "ResearchDefinition",
+    "NutritionProduct",
+    "Observation",
+    "RiskAssessment",
+    "OperationDefinition",
+    "ClinicalImpression",
+    "PaymentNotice",
+    "Procedure",
+    "Patient",
+    "ClaimResponse",
+    "Basic",
+    "InsurancePlan",
+    "CodeSystem",
+    "ClinicalUseDefinition",
+    "CareTeam",
+    "Subscription",
+    "MedicationDispense",
+    "SubscriptionStatus",
+    "CommunicationRequest",
+    "PlanDefinition",
+    "ServiceRequest",
+    "EvidenceReport",
+    "DiagnosticReport",
+    "Resource",
+    "CarePlan",
+    "CompartmentDefinition",
+    "SubstanceDefinition",
+    "Goal",
+    "GuidanceResponse",
+    "Measure",
+    "AllergyIntolerance",
+    "PackagedProductDefinition",
+    "BodyStructure",
+    "NutritionOrder",
+    "BiologicallyDerivedProduct",
+    "Location",
+    "VerificationResult",
+    "Composition",
+    "EvidenceVariable",
+    "MedicationRequest",
+    "OrganizationAffiliation",
+    "ManufacturedItemDefinition",
+    "MedicationAdministration",
+    "HealthcareService",
+    "Binary",
+    "MessageDefinition",
+    "ObservationDefinition",
+    "List",
+    "MolecularSequence",
+    "ResearchStudy",
+    "Schedule",
+    "Person",
+    "Communication",
+    "EpisodeOfCare",
+    "Device",
+    "AdministrableProductDefinition",
+    "NamingSystem",
+    "AppointmentResponse",
+    "Questionnaire",
+    "SubscriptionTopic",
+    "ImmunizationRecommendation",
+    "TestReport",
+    "ImagingStudy",
+    "Substance",
+    "Citation",
+    "ChargeItemDefinition",
+    "Organization",
+    "MedicinalProductDefinition",
+    "SearchParameter",
+    "ExampleScenario",
+    "DeviceDefinition",
+    "Immunization",
+    "Specimen",
+    "MedicationKnowledge",
+    "RelatedPerson",
+    "EventDefinition",
+    "AuditEvent",
+    "Bundle",
+    "Library",
+    "SupplyDelivery",
+    "Parameters",
+    "TerminologyCapabilities",
+    "ExplanationOfBenefit",
+    "FamilyMemberHistory",
+    "DetectedIssue",
+}
+
+
+def fhirpath_filter_for_profile_discriminated_slice(
+    slice_elem_def: NavElementDefinition,
+    discr_path: str,
+    _criteria_only: bool = False,
+) -> str:
+    """
+    Creates a FHIRPath filter expression for the provided profile-discriminated slice element definition
+
+    :param slice_elem_def: Slice-defining element definition
+    :param discr_path: Slicing discriminator path
+    :param _criteria_only: If `True` only the criteria within the `where()` function invocation are returned
+    :return: FHIRPath filter expression string. The filter expression will be a `where` function invocation containing
+             the filter criteria that shall be called on the discriminated element
+    """
+    # Handle 'resolve()' invocation
+    ref_elem_rel_path = discr_path.removesuffix("resolve()").removesuffix(".")
+    ref_elem_rel_path = ref_elem_rel_path if ref_elem_rel_path else "$this"
+    if ref_elem_rel_path == "$this":
+        target_elem_def = slice_elem_def
+    else:
+        target_elem_def = slice_elem_def.child(*ref_elem_rel_path.split("."))
+        if not target_elem_def:
+            raise ValueError(
+                f"Profile-discriminated element definition '{slice_elem_def.id}' has no sub element definition "
+                f"'{slice_elem_def.id}.{ref_elem_rel_path}'"
+            )
+    if not target_elem_def.type:
+        raise ValueError(
+            f"Profile-discriminated target element definition '{target_elem_def.id}' defines no types"
+        )
+    exprs = []
+    for t in target_elem_def.type:
+        # TODO: We might have to adjust this check to include 'targetProfile' when we support Reference/canonical
+        if not t.profile and not t.targetProfile:
+            raise ValueError(
+                f"Profile-discriminated target element definition '{target_elem_def.id}' supports type without profile"
+            )
+        match t.code:
+            case "Extension":
+                exprs.append(" or ".join(f"url = '{pr}'" for pr in t.profile))
+            case _:
+                raise NotImplementedError(
+                    f"Cannot generate FHIRPath filter expression for element definition '{slice_elem_def.id}'. Type "
+                    f"'{t.code}' is currently not supported in profile discriminated slices"
+                )
+    match exprs:
+        case []:
+            raise Exception(
+                f"Failed to generate FHIRPath filter expression for profile discriminated element definition "
+                f"'{slice_elem_def.id}'"
+            )
+        case [x]:
+            expr = x
+        case _:
+            expr = " or ".join(exprs)
+    if discr_path != "$this":
+        expr = f"{discr_path}.{expr}"
+    return expr if _criteria_only else f"where({expr})"
+
+
+def fhirpath_filter_for_type_discriminated_slice(
+    slice_elem_def: NavElementDefinition,
+    discr_path: str,
+    _criteria_only: bool = False,
+) -> str:
+    if not slice_elem_def.type:
+        raise ValueError(
+            f"Type-discriminated element definition '{slice_elem_def.id}' defines no types"
+        )
+    slicing_def_elem_def = slice_elem_def.parent
+    if (
+        slicing_def_elem_def.type
+        and len(slicing_def_elem_def.type) == 1
+        and slicing_def_elem_def.type[0].code == "Reference"
+    ):
+        # If the slicing-defining element definition supports only the data type 'Reference' then the type
+        # discriminator is applied to the resource type of the reference target
+        target_types = []
+        for t_pr in slice_elem_def.type[0].targetProfile:
+            res_type = t_pr.removeprefix("http://hl7.org/fhir/StructureDefinition/")
+            if res_type not in ALL_FHIR_RESOURCE_TYPES_R4B:
+                raise ValueError(
+                    f"Type-discriminated element definition '{slice_elem_def.id}' supports target profile "
+                    f"'{t_pr}' which does not define a valid FHIR R4B resource type"
+                )
+            target_types.append(res_type)
+        match target_types:
+            case []:
+                raise Exception(
+                    f"Failed to generate FHIRPath filter expression for type-discriminated element "
+                    f"definition '{slice_elem_def.id}'"
+                )
+            case [t]:
+                expr = f"resolve() is {t}"
+            case _ as ts:
+                expr = f"resolve().exists({' or '.join('$this is ' + t for t in ts)})"
+        if discr_path != "$this":
+            expr = f"{discr_path}.{expr}"
+    else:
+        types = [t.code for t in slice_elem_def.type]
+        if len(types) == 1:
+            expr = f"{discr_path} is {types[0]}"
+        else:
+            expr = " or ".join(f"$this is {t}" for t in types)
+            if discr_path != "$this":
+                expr = f"{discr_path}.exists({expr})"
+    return expr if _criteria_only else f"where({expr})"
+
+
+def fhirpath_filter_for_exists_discriminated_slice(
+    discr_path: str,
+    _criteria_only: bool = False,
+) -> str:
+    expr = "exists()" if discr_path == "$this" else f"{discr_path}.exists()"
+    return expr if _criteria_only else f"where({expr})"
+
+
+def fhirpath_filter_for_value_or_pattern_discriminated_slice(
+    slice_elem_def: NavElementDefinition,
+    discr_path: str,
+    _criteria_only: bool = False,
+    manager: Optional[FhirPackageManager] = None,
+    client: Optional[FhirTerminologyClient] = None,
+) -> str:
+    if not slice_elem_def.type:
+        raise ValueError(
+            f"Value or pattern discriminated element definition '{slice_elem_def.id}' defines no types"
+        )
+
+    # Extension shortcut
+    if (
+        len(slice_elem_def.type) == 1
+        and slice_elem_def.type[0].code == "Extension"
+        and discr_path == "url"
+    ):
+        return fhirpath_filter_for_profile_discriminated_slice(
+            slice_elem_def, "$this", _criteria_only
+        )
+
+    # The full id of the element the discriminator specifies.
+    # Cant be computed inside the function because of recursion.
+    binding_target_id = (
+        slice_elem_def.id
+        if discr_path == "$this"
+        else f"{slice_elem_def.id}.{discr_path}"
+    )
+    expr = fhirpath_filter_from_value_discriminated_elem_def(
+        slice_elem_def,
+        slice_elem_def.struct_def,
+        "$this",
+        client=client,
+        manager=manager,
+        _binding_target_id=binding_target_id,
+    )
+    if not expr:
+        raise Exception(
+            f"Failed to generate FHIRPath filter expression for value/pattern discriminated element "
+            f"definition '{slice_elem_def.id}'"
+        )
+    return expr.removeprefix("where(").removesuffix(")") if _criteria_only else expr
+
+
+def fhirpath_filter_for_slice(
+    slice_elem_def: NavElementDefinition,
+    manager: Optional[FhirPackageManager] = None,
+    client: Optional[FhirTerminologyClient] = None,
+) -> str:
+    parent_elem_def = slice_elem_def.parent
+    discriminators = (
+        parent_elem_def.slicing.discriminator
+        if parent_elem_def and parent_elem_def.slicing
+        else []
+    )
+    if not discriminators:
+        raise ValueError(
+            f"Parent element definition '{parent_elem_def.id}' defines no slicing discriminators"
+        )
+    exprs = []
+    # A "value"/"pattern" discriminator always resolves to the same combined expression regardless of which
+    # specific path it names (see `fhirpath_filter_for_value_or_pattern_discriminated_slice`), so only the first
+    # such discriminator needs to be evaluated -- evaluating every one would just AND that identical expression
+    # with itself once per discriminator
+    value_or_pattern_expr_added = False
+    for discr in discriminators:
+        if discr.path == "$this":
+            norm_discr_path = "$this"
+        else:
+            norm_discr_path = discr.path.replace("$this.", "")
+            # In case absolute paths are used
+            if norm_discr_path.startswith(slice_elem_def.path):
+                norm_discr_path = norm_discr_path[len(slice_elem_def.path) + 1 :]
+            # Some IGs (e.g. MII's imaging extensions) name the discriminator path after the very element the
+            # slicing is declared on (e.g. slicing `CodeableConcept.coding` by value with `path: "coding"`). Since
+            # that element's own path segment can't be a sub path of itself, this is a self-referential quirk that
+            # means the same thing as "$this" -- the whole item is the discriminating value
+            elif norm_discr_path == parent_elem_def.path.rsplit(".", 1)[-1]:
+                norm_discr_path = "$this"
+        # if "resolve()" in norm_discr_path:
+        #    raise NotImplementedError(
+        #        f"Crossing of resource boundaries via 'resolve()' is currently not supported"
+        #    )
+        match discr.type:
+            case "value" | "pattern":
+                if not value_or_pattern_expr_added:
+                    exprs.append(
+                        fhirpath_filter_for_value_or_pattern_discriminated_slice(
+                            slice_elem_def,
+                            norm_discr_path,
+                            _criteria_only=True,
+                            manager=manager,
+                            client=client,
+                        )
+                    )
+                    value_or_pattern_expr_added = True
+            case "exists":
+                exprs.append(
+                    fhirpath_filter_for_exists_discriminated_slice(
+                        norm_discr_path, _criteria_only=True
+                    )
+                )
+            case "type":
+                exprs.append(
+                    fhirpath_filter_for_type_discriminated_slice(
+                        slice_elem_def, norm_discr_path, _criteria_only=True
+                    )
+                )
+            case "profile":
+                exprs.append(
+                    fhirpath_filter_for_profile_discriminated_slice(
+                        slice_elem_def, norm_discr_path, _criteria_only=True
+                    )
+                )
+            case _ as invalid_type:
+                raise ValueError(
+                    f"Unknown discriminator type '{invalid_type}' in slicing definition of element "
+                    f"definition '{parent_elem_def.id}'"
+                )
+    return f"where({' and '.join(exprs)})"
 
 
 def unsupported_fhirpath_expr(
@@ -327,10 +722,97 @@ def _append_filter_from_profile_discriminated_elem(
             )
 
 
+def _valueset_codes_filter(target: str, codes: List[str]) -> str:
+    """
+    Creates FHIRPath filter from a list of codes
+
+    :param target: `"$this"` if `target` itself is what should be tested, otherwise the (relative) path to test
+    :param codes: List of possible codes
+    :return: FHIRPath filter expression string
+    """
+    if len(codes) == 1:
+        return f"{target} = '{codes[0]}'"
+    alternatives = " or ".join(f"$this = '{c}'" for c in codes)
+    return (
+        f"{target}.exists({alternatives})" if target != "$this" else f"({alternatives})"
+    )
+
+
+def _filter_from_binding(
+    elem_def: NavElementDefinition,
+    target: str,
+    client: Optional[FhirTerminologyClient],
+) -> Optional[str]:
+    """
+    Builds a FHIRPath filter expression testing `target` against the ValueSet bound to `elem_def`.
+
+    `memberOf()` is only used when `elem_def` is `Coding`/`CodeableConcept`-typed
+    For any other type the ValueSet is expanded instead and the filter lists the allowed codes explicitly.
+
+    :param elem_def: Element definition the binding is declared on
+    :param binding: The binding itself
+    :param target: `"$this"` if `elem_def` itself is what should be tested, otherwise the (relative) path to test
+    :param client: FHIR terminology client used to expand the ValueSet
+    :return: FHIRPath filter expression string, or `None` if none could be built
+    """
+    binding: ElementDefinitionBinding = elem_def.binding
+    if client is None or any(
+        t.code in _MEMBER_OF_CAPABLE_TYPES for t in (elem_def.type or [])
+    ):
+        return f"{target}.memberOf('{binding.valueSet}')".replace("$this.", "")
+    try:
+        expansion = client.expand_value_set(url=binding.valueSet)
+        codes = [
+            c["code"]
+            for c in (expansion or {}).get("expansion", {}).get("contains", [])
+            if c.get("code")
+        ]
+    except ClientError as err:
+        _logger.warning(
+            f"Could not expand ValueSet '{binding.valueSet}' bound to '{elem_def.id}': {err}"
+        )
+        return None
+    if not codes:
+        return None
+    return _valueset_codes_filter(target, codes)
+
+
+def fhirpath_retrieve_children_of_type_profile(
+    profile_url: str, manager: FhirPackageManager
+) -> List[NavElementDefinition]:
+    """
+    Extracts all direct children of the root element of the target type profile. Useful if the elements needed to
+    build a slice discriminator filter, are defined on the type profile itself rather than locally on the sliced
+    element.
+    :param profile_url: Url of the type profile
+    :param manager: Package-manager for retrieving the profile
+    :return: List of the root element's direct child NavElementDefinitions
+    """
+
+    if not (type_profile := manager.find_struct_def(profile_url)):
+        raise NotFoundError(f"Type-Profile with url {profile_url} not found")
+
+    if not (base_el_id := type_profile.type):
+        raise NotFoundError(
+            f"Type-Profile with url {profile_url} does not contain element with type-profile.type as id"
+        )
+
+    base_el: NavElementDefinition | None = type_profile.get_element_by_id(base_el_id)
+    if not base_el:
+        raise NotFoundError(
+            f"Root element '{type_profile.type}' not found in Type-Profile '{profile_url}'"
+        )
+
+    return base_el.elements
+
+
 def fhirpath_filter_from_value_discriminated_elem_def(
     elem_def: NavElementDefinition,
     struct_def: NavStructureDefinition,
     discr_path: Optional[str] = None,
+    client: Optional[FhirTerminologyClient] = None,
+    manager: FhirPackageManager = None,
+    _binding_target_id: Optional[str] = None,
 ) -> Optional[str]:
     """
     Creates a FHIRPath filter expression for the provided value-discriminated element definition
@@ -338,19 +820,22 @@ def fhirpath_filter_from_value_discriminated_elem_def(
     :param elem_def: element definition to which a value-type discriminator path points
     :param struct_def: structure definition holding the element definition
     :param discr_path: Discriminator path. Providing `None` is intended for internal use
-    :return: FHIRPath filter expression string or `None` if not expression could be determined. The filter expression
-             will be a `where` function invocation containing the filter criteria that shall be called on the
-             discriminated element
+    :param _binding_target_id: The element id the discriminator actually points to. Only here a binding is and considered
+    :return: FHIRPath filter expression string or `None` if not expression could be determined
     """
     exprs = []
+    is_binding_target = _binding_target_id is None or elem_def.id == _binding_target_id
+
     if ret := _find_value_for_discriminator_pattern_or_value(elem_def):
         discr_value_type, discr_value = ret
         if discr_value_type == "binding":
-            binding = elem_def.binding
-            if binding and binding.strength == "required" and binding.valueSet:
-                exprs.append(
-                    f"{'' if discr_path else (elem_def.rel_path + '.')}memberOf('{binding.valueSet}')"
+            # a binding is only trusted on the element the discriminator specifies: binding_target_id
+            if is_binding_target and discr_value.valueSet:
+                binding_expr = _filter_from_binding(
+                    elem_def, "$this" if discr_path else elem_def.rel_path, client
                 )
+                if discr_value.strength == "required":
+                    exprs.append(binding_expr)
         else:
             exprs.extend(
                 _element_data_to_fhirpath_filter(
@@ -362,20 +847,48 @@ def fhirpath_filter_from_value_discriminated_elem_def(
                     ),
                 )
             )
+
+    # store, if exprs come from this element or from its children. Second case needs this's elements name as a prefix
+    found_directly_on_elem_def = bool(exprs)
+
     if not exprs:
         # We ignore slices since the discriminator value should be part of any instance of the element. Checking the
         # element definitions within the structure definition snapshot should suffice since the discriminator value will be
         # defined by it
-        for sub_elem in elem_def.elements:
+
+        children = elem_def.elements
+
+        # case when slice discr info is in type profile
+        # This should only be used when elem_def.elements has no elements, to avoid a filter with duplicate entries
+        if (
+            len(elem_def.elements) == 0
+            and manager
+            and elem_def.type
+            and elem_def.type[0].profile
+            and len(elem_def.type[0].profile) == 1
+            and (type_profile_url := elem_def.type[0].profile[0])
+        ):
+            children = fhirpath_retrieve_children_of_type_profile(
+                type_profile_url, manager
+            )
+
+        for sub_elem in children:
             if sub_elem_expr := fhirpath_filter_from_value_discriminated_elem_def(
-                sub_elem, struct_def
+                sub_elem,
+                struct_def,
+                manager=manager,
+                client=client,
+                _binding_target_id=_binding_target_id,
             ):
                 exprs.append(sub_elem_expr)
+
     add_discr_path = discr_path is not None and discr_path != "$this"
     match exprs:
         case []:
             return None
         case [x]:
+            if discr_path is None and not found_directly_on_elem_def:
+                return f"{elem_def.rel_path}.{x}"
             # Wrap with `where` function invocation on non-internal call to produce final FHIRPath filter expression
             return (
                 f"where({(discr_path + '.') if add_discr_path else ''}{x})".replace(
@@ -385,12 +898,12 @@ def fhirpath_filter_from_value_discriminated_elem_def(
                 else x
             )
         case _:
-            if exprs:
-                join = " and ".join(exprs)
-                criteria = f"{discr_path}.exists({join})" if add_discr_path else join
-                return f"where({criteria})".replace(".$this", "")
-            else:
-                return None
+            join = " and ".join(exprs)
+            # if the fhir path expression is found directly on the current element, its name has to be added as a prefix
+            if discr_path is None and not found_directly_on_elem_def:
+                return f"{elem_def.rel_path}.exists({join})"
+            criteria = f"{discr_path}.exists({join})" if add_discr_path else join
+            return f"where({criteria})".replace(".$this", "")
 
 
 def _find_discr_value_defining_elem_def(
@@ -458,7 +971,7 @@ def _get_filter_from_pattern_or_value_discriminated_elem(
 ) -> str:
     """
     Follows the discriminator path and at each node check for the discriminator value in the element at the current
-    sub path. The discriminator value can be defined in any element definition whos path is a sub path of the
+    sub path. The discriminator value can be defined in any element definition whose path is a sub path of the
     discriminator path. For instance, given the discriminator defined on element with path 'a.b.c' and discriminator
     path `d.e.f`, we have to check elements 'a.b.c', `a.b.c.d`, ..., and `a.b.c.d.e.f`. If the path is not exhausted, we
     expect the value of an element to be complex and the rest of the path being represented in the structure of its
@@ -523,7 +1036,7 @@ def _get_filter_from_pattern_or_value_discriminated_elem(
                 discr_path, snapshot, elem_def
             )
         if discr_filter := fhirpath_filter_from_value_discriminated_elem_def(
-            elem_def, snapshot, discr_path
+            elem_def, snapshot, discr_path, manager=manager
         ):
             return discr_filter
         else:
@@ -533,6 +1046,7 @@ def _get_filter_from_pattern_or_value_discriminated_elem(
             )
 
 
+@deprecated("Replaced be fhirpath_filter_for_slice")
 def filter_for_slice(
     base_expr: str,
     slice_elem_def: ElementDefinition,
