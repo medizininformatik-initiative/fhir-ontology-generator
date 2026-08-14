@@ -550,7 +550,7 @@ def filter_for_slice(
     :param package_pattern: Package index pattern used to resolve profile discriminator dependencies
     :return: Extended version of the given FHIRPath expression
     """
-    parent_elem = get_parent_element(snapshot, slice_elem_def)
+    parent_elem = slice_elem_def.parent
     discriminators = parent_elem.slicing.discriminator
     exprs: List[str] = []
     if len(discriminators) == 0:
