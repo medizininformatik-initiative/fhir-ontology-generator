@@ -6,7 +6,7 @@ import random as rd
 import uuid
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 def del_none(dictionary):
@@ -104,7 +104,7 @@ class RelationalTermcode(BaseModel):
 
 class Translation(BaseModel):
     language: str
-    value: Optional[str]
+    value: Optional[str] = Field(default=None)
 
 
 class BulkTranslation(BaseModel):

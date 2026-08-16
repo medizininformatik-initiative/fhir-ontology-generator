@@ -1,0 +1,174 @@
+{
+  "Account": {
+    "en-US": "Account",
+    "de-DE": "Abrechnungsfall"
+  },
+  "AdverseEvent": {
+    "en-US": "Adverse Event",
+    "de-DE": "Unerwünschtes Ereignis"
+  },
+  "AllergyIntolerance": {
+    "en-US": "Allergy / Intolerance",
+    "de-DE": "Allergie / Intoleranz"
+  },
+  "Binary": {
+    "en-US": "Binary Resource",
+    "de-DE": "Binäre Ressource"
+  },
+  "BodyStructure": {
+    "en-US": "Body Structure",
+    "de-DE": "Körperstruktur"
+  },
+  "Bundle": {
+    "en-US": "Bundle",
+    "de-DE": "Bündel / Paket"
+  },
+  "CarePlan": {
+    "en-US": "Care Plan",
+    "de-DE": "Behandlungsplan"
+  },
+  "Composition": {
+    "en-US": "Composition",
+    "de-DE": "Dokument"
+  },
+  "Condition": {
+    "en-US": "Condition",
+    "de-DE": "Diagnose / Erkrankung"
+  },
+  "Consent": {
+    "en-US": "Consent",
+    "de-DE": "Einwilligung"
+  },
+  "Coverage": {
+    "en-US": "Coverage",
+    "de-DE": "Versicherungsdeckung"
+  },
+  "Device": {
+    "en-US": "Device",
+    "de-DE": "Gerät / Medizinprodukt"
+  },
+  "DeviceMetric": {
+    "en-US": "Device Metric",
+    "de-DE": "Gerätemetrik"
+  },
+  "DiagnosticReport": {
+    "en-US": "Diagnostic Report",
+    "de-DE": "Befundbericht"
+  },
+  "DocumentReference": {
+    "en-US": "Document Reference",
+    "de-DE": "Dokumentenreferenz"
+  },
+  "Encounter": {
+    "en-US": "Encounter",
+    "de-DE": "Kontakt / Behandlungsfall"
+  },
+  "EvidenceVariable": {
+    "en-US": "Evidence Variable",
+    "de-DE": "Evidenzvariable"
+  },
+  "Extension": {
+    "en-US": "Extension",
+    "de-DE": "Erweiterung"
+  },
+  "FamilyMemberHistory": {
+    "en-US": "Family Member History",
+    "de-DE": "Familienanamnese"
+  },
+  "ImagingStudy": {
+    "en-US": "Imaging Study",
+    "de-DE": "Bildgebungsstudie"
+  },
+  "Library": {
+    "en-US": "Library",
+    "de-DE": "Bibliothek"
+  },
+  "List": {
+    "en-US": "List",
+    "de-DE": "Liste"
+  },
+  "Location": {
+    "en-US": "Location",
+    "de-DE": "Standort / Ort"
+  },
+  "Media": {
+    "en-US": "Media",
+    "de-DE": "Mediendatei"
+  },
+  "Medication": {
+    "en-US": "Medication",
+    "de-DE": "Arzneimittel"
+  },
+  "MedicationAdministration": {
+    "en-US": "Medication Administration",
+    "de-DE": "Arzneimittelverabreichung"
+  },
+  "MedicationRequest": {
+    "en-US": "Medication Request",
+    "de-DE": "Medikamentenverordnung"
+  },
+  "MedicationStatement": {
+    "en-US": "Medication Statement",
+    "de-DE": "Medikamentendokumentation"
+  },
+  "Observation": {
+    "en-US": "Observation",
+    "de-DE": "Beobachtung / Messwert"
+  },
+  "Organization": {
+    "en-US": "Organization",
+    "de-DE": "Organisation"
+  },
+  "Patient": {
+    "en-US": "Patient",
+    "de-DE": "Patient"
+  },
+  "Practitioner": {
+    "en-US": "Practitioner",
+    "de-DE": "Behandelnder / Arzt"
+  },
+  "PractitionerRole": {
+    "en-US": "Practitioner Role",
+    "de-DE": "Rolle des Behandelnden"
+  },
+  "Procedure": {
+    "en-US": "Procedure",
+    "de-DE": "Prozedur / Eingriff"
+  },
+  "Provenance": {
+    "en-US": "Provenance",
+    "de-DE": "Herkunft / Provenienz"
+  },
+  "RelatedPerson": {
+    "en-US": "Related Person",
+    "de-DE": "Bezugsperson / Angehöriger"
+  },
+  "ResearchStudy": {
+    "en-US": "Research Study",
+    "de-DE": "Forschungsstudie"
+  },
+  "RiskAssessment": {
+    "en-US": "Risk Assessment",
+    "de-DE": "Risikoabschätzung"
+  },
+  "ServiceRequest": {
+    "en-US": "Service Request",
+    "de-DE": "Auftragsanforderung"
+  },
+  "Specimen": {
+    "en-US": "Specimen",
+    "de-DE": "Probe / Biomaterial"
+  },
+  "Subscription": {
+    "en-US": "Subscription",
+    "de-DE": "Abonnement"
+  },
+  "Substance": {
+    "en-US": "Substance",
+    "de-DE": "Substanz"
+  },
+  "Task": {
+    "en-US": "Task",
+    "de-DE": "Aufgabe"
+  }
+}

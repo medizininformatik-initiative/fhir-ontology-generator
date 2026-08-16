@@ -1,0 +1,35 @@
+{
+  "processors": [
+    {
+      "fingerprint": {
+        "fields": [
+          "_ingest._value.url"
+        ],
+        "target_field": "_ingest._value.id",
+        "method": "SHA-256"
+      }
+    },
+    {
+      "gsub": {
+        "field": "_ingest._value.id",
+        "pattern": "\\+",
+        "replacement": "-"
+      }
+    },
+    {
+      "gsub": {
+        "field": "_ingest._value.id",
+        "pattern": "/",
+        "replacement": "_"
+      }
+    },
+    {
+      "gsub": {
+        "field": "_ingest._value.id",
+        "pattern": "=+$",
+        "replacement": ""
+      }
+    }
+  ]
+}
+

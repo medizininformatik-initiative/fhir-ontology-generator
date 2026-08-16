@@ -33,7 +33,7 @@ def copy_and_unpack_project_output(pytestconfig) -> Path:
 
         # Copy and unpack ontology archives
         backend_path = os.path.join(tmp_path, "backend.zip")
-        shutil.copyfile(
+        os.symlink(
             project.output.mkdirs("merged_ontology") / "backend.zip", backend_path
         )
         shutil.unpack_archive(backend_path, ontology_dir_path)
@@ -44,12 +44,8 @@ def copy_and_unpack_project_output(pytestconfig) -> Path:
             if file_name.endswith(".sql"):
                 shutil.move(os.path.join(ontology_dir_path, file_name), migration_path)
 
-        dse_dir_path = os.path.join(ontology_dir_path, "dse")
-        os.makedirs(dse_dir_path, exist_ok=True)
-        shutil.move(os.path.join(ontology_dir_path, "profile_tree.json"), dse_dir_path)
-
         mapping_path = os.path.join(tmp_path, "mapping.zip")
-        shutil.copyfile(
+        os.symlink(
             project.output.mkdirs("merged_ontology") / "mapping.zip", mapping_path
         )
         unpacked_dir_path = os.path.join(ontology_dir_path, "mapping")
@@ -75,7 +71,7 @@ def copy_and_unpack_project_output(pytestconfig) -> Path:
         shutil.rmtree(unpacked_dir_path)
 
         # Copy elastic archive
-        shutil.copyfile(
+        os.symlink(
             project.output.mkdirs("merged_ontology") / "elastic.zip",
             os.path.join(tmp_path, "elastic.zip"),
         )
