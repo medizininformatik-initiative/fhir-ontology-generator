@@ -15,6 +15,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+# [v5.0.0] - 2026-08-17
+
+## Added
+
+- Add Elasticsearch index definition, pipeline definitions, and file generation for (profile detail) feature selection 
+  indexing and searching (#513 @paulolaup)
+
+## Changed
+
+- Change file extension of Elasticsearch import documents to '.ndjson' and update Elasticsearch archvie layout to 
+  distinguish between index definitions, pipelines, and import documents (#513 @paulolaup)
+
+## Fixed
+
+- Fix localization extraction in feature selection caused by broken translation extension detection (#513 @paulolaup)
+
+## Removed
+
+- Removed profile tree from release artifacts. All information is now part of the profile index documents 
+  (#513 @paulolaup)
+
 # [v4.3.0] - 2026-08-07
 
 ## Added
