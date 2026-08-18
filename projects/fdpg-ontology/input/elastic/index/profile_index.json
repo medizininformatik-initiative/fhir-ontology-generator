@@ -5,6 +5,20 @@
       "default_pipeline": "hash_url"
     },
     "analysis": {
+      "char_filter": {
+        "umlaut_char_filter": {
+          "type": "mapping",
+          "mappings": [
+            "ä => ae",
+            "ö => oe",
+            "ü => ue",
+            "Ä => Ae",
+            "Ö => Oe",
+            "Ü => Ue",
+            "ß => ss"
+          ]
+        }
+      },
       "tokenizer": {
         "edge_ngram_tokenizer": {
           "type": "edge_ngram",
@@ -60,6 +74,9 @@
       "analyzer": {
         "edge_ngram_analyzer": {
           "type": "custom",
+          "char_filter": [
+            "umlaut_char_filter"
+          ],
           "tokenizer": "edge_ngram_tokenizer",
           "filter": [
             "lowercase"
@@ -67,6 +84,9 @@
         },
         "edge_ngram_analyzer_include_punctuation": {
           "type": "custom",
+          "char_filter": [
+            "umlaut_char_filter"
+          ],
           "tokenizer": "edge_ngram_tokenizer_include_punctuation",
           "filter": [
             "lowercase"
@@ -74,6 +94,9 @@
         },
         "ngram_analyzer": {
           "type": "custom",
+          "char_filter": [
+            "umlaut_char_filter"
+          ],
           "tokenizer": "ngram_tokenizer",
           "filter": [
             "lowercase"
@@ -81,6 +104,9 @@
         },
         "ngram_analyzer_include_punctuation": {
           "type": "custom",
+          "char_filter": [
+            "umlaut_char_filter"
+          ],
           "tokenizer": "ngram_tokenizer_include_punctuation",
           "filter": [
             "lowercase"
@@ -88,6 +114,9 @@
         },
         "lowercase_analyzer": {
           "type": "custom",
+          "char_filter": [
+            "umlaut_char_filter"
+          ],
           "tokenizer": "whitespace_tokenizer",
           "filter": [
             "lowercase"
