@@ -550,7 +550,7 @@ def filter_for_slice(
     :param package_pattern: Package index pattern used to resolve profile discriminator dependencies
     :return: Extended version of the given FHIRPath expression
     """
-    parent_elem = get_parent_element(snapshot, slice_elem_def)
+    parent_elem = slice_elem_def.parent
     discriminators = parent_elem.slicing.discriminator
     exprs: List[str] = []
     if len(discriminators) == 0:
@@ -609,7 +609,46 @@ def filter_for_slice(
             case "exists":
                 exprs.append(f"{discr_path}.exists()")
             case "type":
-                if single_discriminator and len(slice_elem_def.type) == 1:
+                reference_types = [
+                    t for t in slice_elem_def.type if t.code in ("Reference", "canonical")
+                ]
+                if reference_types and "resolve()" in discr_path:
+                    # The discriminator differentiates slices by the type of the *resolved* target resource, not
+                    # by the (always "Reference"/"canonical") type of the referencing element itself. Resolve the
+                    # actual resource type(s) via the slice's target profile(s).
+                    target_types: List[str] = []
+                    for t in reference_types:
+                        for target_profile_url in t.targetProfile or []:
+                            target_profile = manager.find(
+                                index_pattern={"url": target_profile_url}
+                            )
+                            if not target_profile:
+                                raise NotFoundError(
+                                    f"Could not resolve target profile '{target_profile_url}' referenced by "
+                                    f"'{slice_elem_def.id}' in profile '{snapshot.url}' to determine its "
+                                    f"discriminator type"
+                                )
+                            if target_profile.type not in target_types:
+                                target_types.append(target_profile.type)
+                    if not target_types:
+                        raise NotFoundError(
+                            f"Element '{slice_elem_def.id}' in profile '{snapshot.url}' defines no target "
+                            f"profile to resolve a 'type' discriminator against"
+                        )
+                    if single_discriminator and len(target_types) == 1:
+                        expr = f"ofType({target_types[0]})"
+                        type_expr = (
+                            expr if discr_path == "$this" else f"{discr_path}.{expr}"
+                        )
+                        return base_expr + "." + type_expr
+                    else:
+                        clause = " or ".join(f"$this is {t}" for t in target_types)
+                        exprs.append(
+                            clause
+                            if discr_path == "$this"
+                            else f"{discr_path}.exists({clause})"
+                        )
+                elif single_discriminator and len(slice_elem_def.type) == 1:
                     expr = f"ofType({slice_elem_def.type[0].code})"
                     type_expr = (
                         expr if discr_path == "$this" else f"{discr_path}.{expr}"

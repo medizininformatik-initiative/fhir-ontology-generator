@@ -130,7 +130,10 @@ def _construct_fhirpaths(
             )
         if columns := vd.column:
             for c in columns:
-                fhirpath_exprs.extend(f"{prefix}.{c}" for prefix in prefixes)
+                if prefixes:
+                    fhirpath_exprs.extend(f"{prefix}.{c.path}" for prefix in prefixes)
+                else:
+                    fhirpath_exprs.append(c.path)
         else:
             fhirpath_exprs = prefixes
     else:
@@ -149,44 +152,75 @@ def _assert_lookup_validity(
             for child_id in children:
                 child_to_parent[child_id].append(elem_id)
 
-    for child_id, parents in child_to_parent.items():
+    for elem_id, elem in lookup.elements.items():
         elem_errors = []
-        try:
-            assert (
-                child_id in lookup.elements
-            ), f"Child ID {repr(child_id)} should point to an existing element"
-        except AssertionError as err:
-            elem_errors.append(err)
-        try:
-            assert (
-                len(parents) == 1
-            ), f"Lookup element {repr(child_id)} has more than one parent"
-            child = lookup.elements[child_id]
-            if not child.children:
-                exprs = _construct_fhirpaths(child_id, child, child_to_parent, lookup)
+
+        columns = []
+        if view_def := elem.view_definition:
+            if select := view_def.select:
+                columns = [c for s in select for c in s.column] if select else []
+            else:
+                columns = view_def.column if view_def.column else []
+        if columns:
+            try:
+                names = {c.name for c in columns}
+                assert len(names) == len(
+                    columns
+                ), f"All columns should have unique names: {repr(names)}"
+                paths = {c.path for c in columns}
+                assert len(paths) == len(
+                    columns
+                ), f"All columns should have unique paths: {repr(paths)}"
+            except AssertionError as err:
+                elem_errors.append(err)
+        if not elem.children:
+            try:
+                assert (
+                    len(columns) >= 1
+                ), "A leaf element should have a select entry with at least 1 column entry"
+            except AssertionError as err:
+                elem_errors.append(err)
+            try:
+                exprs = _construct_fhirpaths(elem_id, elem, child_to_parent, lookup)
                 assert (
                     len(exprs) >= 1
                 ), f"A leaf element should be translatable into a FHIRPath expression"
                 for expr in exprs:
-                    expr_to_elem[expr].append(child_id)
+                    expr_to_elem[expr].append(elem_id)
+            except AssertionError as err:
+                elem_errors.append(err)
+
+        for child_id in elem.children:
+            try:
+                assert (
+                    child_id in lookup.elements
+                ), f"Child ID {repr(child_id)} should point to an existing element"
+            except AssertionError as err:
+                elem_errors.append(err)
+        parents = child_to_parent.get(elem_id, [])
+        try:
+            assert (
+                len(parents) <= 1
+            ), f"Lookup element {repr(elem_id)} has more than one parent"
         except AssertionError as err:
             elem_errors.append(err)
+
         parent_id = parents[0] if parents else None
         if not parent_id:
             try:
                 assert check_if_root(
-                    parent_id, struct_def
+                    elem_id, struct_def
                 ), "Only root elements do not have a parent"
             except AssertionError as err:
                 elem_errors.append(err)
         else:
             try:
-                assert child_id.startswith(
+                assert elem_id.startswith(
                     parent_id
-                ), f"Child ID {repr(child_id)} should be an actual subpath of the parent lookup element {repr(parent_id)}"
+                ), f"The element ID should be an actual subpath of the parent lookup element {repr(parent_id)}"
                 assert (
-                    child_id != parent_id
-                ), f"Child ID {repr(child_id)} cannot be equal to its parents ID {repr(parent_id)}"
+                    elem_id != parent_id
+                ), f"The element ID cannot be equal to its parents ID {repr(parent_id)}"
             except AssertionError as err:
                 errors.append(err)
 
@@ -225,9 +259,60 @@ def test_lookup_file_validity(flattening_lookup: Path, package_manager):
     errors = []
     for lookup in flattening_lookups:
         struct_def = package_manager.find({"url": lookup.url})
+        if not struct_def:
+            raise ValueError(f"Missing structure definition {repr(lookup.url)}")
         try:
             _assert_lookup_validity(lookup, struct_def)
         except Exception as exc:
             errors.append(exc)
     if errors:
         raise ExceptionGroup(f"Flattening lookup file is invalid", errors)
+
+
+def _assert_profile_with_no_empty_select_without_children(lookup: FlatteningLookup):
+    """
+    Per the "How to work with a lookup file" section of ``flattening/README.md``, a lookup element's ``.children``
+    are inserted into its own ``viewDefinition.select`` array when a ``ViewDefinition`` is built. An empty
+    ``select`` is therefore only meaningful if the element has at least one child which actually resolves to an
+    element in the lookup - otherwise the generated ``ViewDefinition`` ends up with a ``select`` entry that is
+    never filled (see issue with ``DiagnosticReport.extension:related-report.value[x]`` in
+    https://www.medizininformatik-initiative.de/fhir/ext/modul-patho/StructureDefinition/mii-pr-patho-report).
+    Elements using ``column`` instead of ``select`` (primitive leaves) are not affected by this rule, and neither
+    are elements whose ``select`` already carries content (e.g. primitively-typed polymorphic children).
+    """
+    errors = []
+    for elem_id, elem in lookup.elements.items():
+        vd = elem.view_definition
+        # this function only tests if there are any lookupElements with an empty select with no children
+        # thus all elements where the select attr is not defined or which have children should be ignored
+        if vd is None or vd.select is None or len(vd.select) > 0:
+            continue
+        try:
+            assert elem.children, (
+                f"Lookup element {repr(elem_id)} has an empty 'select' and no 'children'"
+            )
+            assert any(child_id in lookup.elements for child_id in elem.children), (
+                f"Lookup element {repr(elem_id)} has an empty 'select' and lists children {elem.children!r}, "
+                f"but none of them resolve to an element in the lookup"
+            )
+        except AssertionError as err:
+            errors.append(err)
+    if errors:
+        raise ExceptionGroup(
+            f"Lookup for profile {repr(lookup.url)} contains elements with a dangling empty 'select'", errors
+        )
+
+
+def test_lookup_file_no_empty_select_without_children(flattening_lookup: Path):
+    with flattening_lookup.open(mode="r", encoding="utf-8") as f:
+        flattening_lookups = FlatteningLookupListTA.validate_json(f.read())
+    errors = []
+    for lookup in flattening_lookups:
+        try:
+            _assert_profile_with_no_empty_select_without_children(lookup)
+        except Exception as exc:
+            errors.append(exc)
+    if errors:
+        raise ExceptionGroup(
+            "Flattening lookup file contains elements with a dangling empty 'select'", errors
+        )
