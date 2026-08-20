@@ -15,7 +15,7 @@ from flattening.core.flattening import (
     flattening_post_process,
     ViewDefinitionSelect,
     FlatteningLookupGenerator,
-    pruning_leafless_branches,
+    prune_leafless_branches,
 )
 from flattening.model.FlatteningLookupModels import FlatteningLookup
 
@@ -128,7 +128,7 @@ from flattening.model.FlatteningLookupModels import FlatteningLookup
     ],
 )
 def test_filter_for_empty_select(element_id, lookup, expected):
-    result = pruning_leafless_branches(element_id, lookup)
+    result = prune_leafless_branches(element_id, lookup)
     if expected == "unchanged":
         assert result == lookup
     else:

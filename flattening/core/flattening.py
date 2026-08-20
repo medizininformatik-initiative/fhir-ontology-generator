@@ -295,7 +295,7 @@ def flattening_post_process(
     return dict(sorted(res.items(), key=lambda item: item[0]))
 
 
-def pruning_leafless_branches(
+def prune_leafless_branches(
     element_id: str, lookup: Dict[str, FlatteningLookupElement]
 ) -> Dict[str, FlatteningLookupElement]:
     """
@@ -494,8 +494,8 @@ class FlatteningLookupGenerator:
             if element.patternIdentifier.system:
                 return f"type.coding.system = '{element.patternIdentifier.system}'"
         if element.sliceName and profile.get_element_by_id(f"{element.id}.type.coding"):
-            where_clause = self._extract_where_clause_for_slice(
-                profile.get_element_by_id(f"{element.id}.type.coding"), profile
+            where_clause = fhirpath_filter_from_value_discriminated_elem_def(
+                profile.get_element_by_id(f"{element.id}.type.coding"), profile, "$this"
             )
             if where_clause:
                 return where_clause
@@ -584,9 +584,11 @@ class FlatteningLookupGenerator:
                 )
             )
             # columns based on the extracted code_system
-            if where_clause := self._extract_where_clause_for_slice(element, profile):
+            if where_clause := fhirpath_filter_from_value_discriminated_elem_def(
+                element, profile, "$this"
+            ):
                 flat_element.view_definition = ViewDefinitionSnippet(
-                    for_each_or_null=f"{element.path.split('.')[-1]}.where({where_clause})",
+                    for_each_or_null=f"{element.path.split('.')[-1]}.{where_clause}",
                     select=[],
                 )
 
@@ -875,7 +877,7 @@ class FlatteningLookupGenerator:
                     self._flatten_extension(element_id=child, profile=profile, **kwargs)
                 )
 
-            return pruning_leafless_branches(element_id, lookup)
+            return prune_leafless_branches(element_id, lookup)
         else:
             # extension slices
             lookup = {}
@@ -969,7 +971,7 @@ class FlatteningLookupGenerator:
                     flat_ext_el.children = [f"{element.id}.value[x]"]
 
                 lookup.update({element_id: flat_ext_el})
-            return pruning_leafless_branches(element_id, lookup)
+            return prune_leafless_branches(element_id, lookup)
 
     def _flatten_codeable_concept(
         self,
@@ -1113,7 +1115,7 @@ class FlatteningLookupGenerator:
                 else get_direct_children_ids(element_id, profile)
             )
             lookup_list.update({element_id: fle})
-            return pruning_leafless_branches(element_id, lookup_list)
+            return prune_leafless_branches(element_id, lookup_list)
 
         return {}
 
@@ -1195,7 +1197,7 @@ class FlatteningLookupGenerator:
                 lookup_list.update(el)
 
         lookup_list.update({element_id: flat_ext_parent})
-        return pruning_leafless_branches(element_id, lookup_list)
+        return prune_leafless_branches(element_id, lookup_list)
 
     def _flatten_identifier(
         self,
@@ -1267,7 +1269,7 @@ class FlatteningLookupGenerator:
                     select=[],
                 ),
             )
-            clean_kwargs = {k: v for k, v in kwargs.items() if k != "type"}
+            clean_kwargs = {k: v for k, v in kwargs.items() if k != "type" and k != "polymorphic_child"}
             for child_spec in self.config.required_children_per_element.get("Identifier"):
                 if el:= self._flatten_element(
                         element_id=f"{element_id}.{child_spec.id}",
@@ -1475,9 +1477,7 @@ class FlatteningLookupGenerator:
             if ext_flattening_lookup_elements:
                 flat_lookup_els.update(ext_flattening_lookup_elements)
 
-            # flat_lookup_els.update({**res, **ext_flattening_lookup_elements})
-
-        return pruning_leafless_branches(element_id, flat_lookup_els)
+        return prune_leafless_branches(element_id, flat_lookup_els)
 
     def generate_flattening_lookup_for_profile(
         self,
