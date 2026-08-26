@@ -1,17 +1,30 @@
 import itertools
 import re
+from collections.abc import Iterator
 from datetime import UTC, datetime
-from itertools import groupby
-from typing import List, Optional
 
 from antlr4.ParserRuleContext import ParserRuleContext
+from dataportal_generator.common.constants.fhir import EXT_DATA_ABSENT_REASON_URL
+from dataportal_generator.common.fhir.package_manager import FhirPackageManager
+from dataportal_generator.common.fhirpath import fhirpathParser, parse_expr
+from dataportal_generator.common.fhirpath.functions import (
+    fhirpath_filter_for_slice,
+    get_symbol,
+)
+from dataportal_generator.common.log.functions import get_logger
+from dataportal_generator.common.model.fhir.functions import get_reference_fields
+from dataportal_generator.common.model.fhir.nav_element_definition import (
+    NavElementDefinition,
+)
+from dataportal_generator.common.model.fhir.nav_structure_definition import (
+    NavStructureDefinition,
+    ensure_struct_def_is_navigable,
+)
+from dataportal_generator.common.model.project import Project
+from dataportal_generator.common.util.collections import first
 from fhir.resources.R4B import get_fhir_model_class
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.coding import Coding
-from fhir.resources.R4B.elementdefinition import (
-    ElementDefinitionType,
-    ElementDefinition,
-)
 from fhir.resources.R4B.expression import Expression
 from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.measure import (
@@ -23,76 +36,87 @@ from fhir.resources.R4B.measure import (
 from fhir.resources.R4B.meta import Meta
 from fhir.resources.R4B.structuredefinition import StructureDefinition
 
-from dataportal_generator.common.model.fhir.nav_structure_definition import ensure_struct_def_is_navigable
-from dataportal_generator.availability.constants.fhir import MII_CDS_PACKAGE_PATTERN
 from dataportal_generator.availability.constants.measure import (
     CC_IN_INITIAL_POPULATION,
     CC_MEASURE_OBSERVATION,
     CC_MEASURE_POPULATION,
 )
 from dataportal_generator.availability.core.exceptions import MissingSubjectRefError
-from dataportal_generator.common.constants.fhir import EXT_DATA_ABSENT_REASON_URL
-from dataportal_generator.common.exceptions import NotFoundError
-from dataportal_generator.common.model.fhir.functions import get_reference_fields
-from dataportal_generator.common.util.collections import first
-from dataportal_generator.common.fhir.enums import FhirPrimitiveDataType
-from dataportal_generator.common.fhir.package_manager import FhirPackageManager
-from dataportal_generator.common.fhirpath import fhirpathParser, parse_expr
-from dataportal_generator.common.fhirpath.functions import filter_for_slice, get_symbol
-from dataportal_generator.common.log.functions import get_logger
-from dataportal_generator.common.fhir.structure_definition import get_parent_element
-from dataportal_generator.common.model.fhir.nav_structure_definition import NavStructureDefinition
-from dataportal_generator.common.model.fhir.nav_element_definition import NavElementDefinition
-
 
 _logger = get_logger(__file__)
 
+# 'ElementDefinition.base.path' excluding an element definition from having a stratifier generated for it. Note that
+# this does not apply to special/dedicated type handling (e.g. Extension, Reference, etc.) which is handled separately
+# in the code
+_BASE_PATHS_EXCLUDED_FROM_STRATIFIER_GEN = {
+    "Element.id",
+    "Extension.url",
+    "Reference.referenceReference.type",
+    "Reference.identifierReference.display",
+}
 
-_EXCLUDED_BASE_PATHS = {"Extension.id", "Extension.url", "Resource.id", "Element.id"}
+
+_EXT_ELEM_BASE_PATHS = {
+    "Element.extension",
+    "DomainResource.extension",
+    "DomainResource.modifierExtension",
+}
 
 
-def _filter_elem_def(elem_def: ElementDefinition) -> bool:
-    if base := elem_def.base:
-        if base.path in _EXCLUDED_BASE_PATHS:
-            return False
-    return True
+def _supports_only_primitive_types(elem_def: NavElementDefinition) -> bool:
+    if not elem_def.type:
+        return False
+    return not any(t.code and t.code[0].isupper() for t in elem_def.type)
 
 
-def _find_subject_reference_elem_def(
-    profile: NavStructureDefinition,
-) -> Optional[NavElementDefinition]:
+def _could_be_complex_typed(elem_def: NavElementDefinition) -> bool:
     """
-    Tries to find the first-level element holding the reference to the Patient resource (that represent the patient to
-    which this type of clinical data applies)
+    Checks if the given element definition could appear with a complex data type in instance data. This check is
+    relevant since we assume no strict profile adherence. If the base definition of an element allows complex data
+    types then ``True`` is returned no matter what type constrains are defined by derived profiles
 
-    :param profile: `StructureDefinition` constraining a resource type
-    :return: `NavElementDefinition` defining a suitable element or `None` if no such element could be identified
+    :param elem_def: ``NavElementDefinition`` object
+    :return: ``True`` if the element could have a complex data type, ``False`` otherwise
     """
-    res_type = profile.type
-    if model_cls := get_fhir_model_class(res_type):
-        ref_fields = get_reference_fields(model_cls, {"Patient"})
-        match ref_fields:
-            case []:
-                return None
-            case [f]:
-                elem_path = f"{res_type}.{f.alias}"
-            case _:
-                # Try common names for such an element if there are multiple candidates
-                f_names = [f.alias for f in ref_fields]
-                if "subject" in f_names:
-                    elem_path = f"{res_type}.subject"
-                elif "patient" in f_names:
-                    elem_path = f"{res_type}.patient"
-                else:
-                    return None
-        return profile.get_element_by_id(elem_path)
+    if elem_def.id.endswith("[x]"):
+        return True
+    return not _supports_only_primitive_types(elem_def)
+
+
+def _resolve_polymorphism_in_expr(expr: str, fhir_type: str | None = None) -> str:
+    """
+    Resolves polymorphic element names with the given FHIRPath expression using the given FHIR type
+
+    :param expr: FHIRPath expression string
+    :param fhir_type: Optional FHIR type string to generate a type filter expression from that will be used to replace
+                      the '[x]' part of element names. If this is `None` then the polymorphic part will just be removed
+    :return: Cleansed FHIRPath expression string
+    """
+    if fhir_type:
+        return re.sub(r"\[x]", f".ofType({fhir_type})", expr)
     else:
-        raise ValueError(
-            f"Unknown FHIR resource type '{res_type}' constrained by profile '{profile}'"
-        )
+        return re.sub(r"\[x]", "", expr)
 
 
-def _add_data_absent_reason_clause(expr: Optional[ParserRuleContext] = None) -> str:
+def _selector_sub_expr_for_elem_def(
+    elem_def: NavElementDefinition, criteria_only: bool = False
+) -> str:
+    """
+    Generates a FHIRPath expression for the given element definition that can be used to select the element from a
+    resource
+
+    :param elem_def: Element definition to generate the expression for
+    :param criteria_only: Whether to generate only the criteria part of the expression if it is a ``where`` function
+                          invocation
+    :return: FHIRPath expression string
+    """
+    if elem_def.is_slice:
+        return fhirpath_filter_for_slice(elem_def, criteria_only)
+    else:
+        return elem_def.rel_path
+
+
+def _add_data_absent_reason_clause(expr: ParserRuleContext | None = None) -> str:
     """
     Adds a clause to the provided expression to check if any data-absent-reason extension is present in the element
 
@@ -102,7 +126,7 @@ def _add_data_absent_reason_clause(expr: Optional[ParserRuleContext] = None) -> 
     absent_reason_clause = f"extension('{EXT_DATA_ABSENT_REASON_URL}').empty()"
     if not expr:
         return absent_reason_clause
-    input_str = getattr(expr, "parser").getInputStream().getText()
+    input_str = expr.parser.getInputStream().getText()
     expr_str = input_str[expr.start.start : expr.stop.stop + 1]
     match expr:
         case fhirpathParser.OrExpressionContext():
@@ -156,6 +180,315 @@ def _ensure_trailing_existence_check(expr_str: str, is_primitive: bool = False) 
         return expr_str + ".hasValue()"
     else:
         return expr_str + f".exists({_add_data_absent_reason_clause()})"
+
+
+def _update_strat_identity(
+    strat: MeasureGroupStratifier, old: str, new: str
+) -> MeasureGroupStratifier:
+    """
+    Updates the ``MeasureGroupStratifier`` instances ID value FDE code by replacing any appearances of the old snippet
+    with the new one
+
+    :param strat: ``MeasureGroupStratifier`` object
+    :param old: Substring to replace
+    :param new: Substring to replace with
+    :return: Updated ``MeasureGroupStratifier`` object
+    """
+    strat.id = strat.id.replace(old, new)
+    if fde_coding := next(
+        filter(
+            lambda c: c.system == "http://fhir-data-evaluator/strat/system",
+            strat.code.coding,
+        )
+    ):
+        fde_coding.code = fde_coding.code.replace(old, new)
+    return strat
+
+
+def _generate_stratifier(expr: str, full_elem_id: str) -> MeasureGroupStratifier:
+    """
+    Generates a stratifier for a `Measure` group
+
+    :param expr: Stratifying FHIRPath expression
+    :param full_elem_id: Full ID of the element the stratifier is based on
+    :return: Stratifier
+    """
+    return MeasureGroupStratifier(
+        id=full_elem_id,
+        criteria=Expression(language="text/fhirpath", expression=expr),
+        code=CodeableConcept(
+            coding=[
+                Coding(
+                    system="http://fhir-data-evaluator/strat/system",
+                    code=full_elem_id,
+                )
+            ]
+        ),
+    )
+
+
+def _iter_resource_top_level_elem_defs(
+    struct_def: NavStructureDefinition,
+) -> Iterator[NavElementDefinition]:
+    """
+    Returns an iterator of the relevant top level elements of a resource definition, excluding the top level subject
+    reference element
+    """
+    if subject_ref_elem_def := _find_subject_reference_elem_def(struct_def):
+        subject_ref_elem_def_id = subject_ref_elem_def.id
+    else:
+        subject_ref_elem_def_id = None
+    for elem_def in struct_def.root.children:
+        if (
+            elem_def.base.path.startswith("Resource")
+            or elem_def.id == subject_ref_elem_def_id
+        ):
+            continue
+        yield elem_def
+
+
+def _iter_extension_top_level_elem_defs(
+    struct_def: NavStructureDefinition,
+) -> Iterator[NavElementDefinition]:
+    """
+    Returns an iterator of the relevant top level elements of an extension definition. If it defines a simple extension
+    then the ``Element.value[x]`` is included, otherwise the slice definitions of ``Extension.extension`` are included
+    """
+    value_elem_def = struct_def.get_element_by_id("Extension.value[x]")
+    assert value_elem_def is not None
+    if value_elem_def.max == "0":
+        # Complex extension definition
+        ext_elem_def = struct_def.get_element_by_id("Extension.extension")
+        assert ext_elem_def is not None
+        yield from ext_elem_def.slices
+    else:
+        # Simple extension definition
+        yield value_elem_def
+
+
+def _iter_relevant_top_level_elem_defs(
+    struct_def: NavStructureDefinition,
+) -> Iterator[NavElementDefinition]:
+    """
+    Using the provided structure definition the function provides an iterator over the relevant top level elements
+    (e.g. their element definitions) based on the type and kind of the structure it defines
+
+    :param struct_def: ``NavStructureDefinition`` object to iterate over the relevant top level element definitions for
+    :return: Iterator over the relevant top level element definitions
+    """
+    match struct_def.kind:
+        case "resource":
+            return _iter_resource_top_level_elem_defs(struct_def)
+        case "complex-type":
+            match struct_def.type:
+                case "Extension":
+                    return _iter_extension_top_level_elem_defs(struct_def)
+                case _:
+                    raise NotImplementedError(
+                        "Only 'complex-type' kinded structure definitions profiling type "
+                        "'Extension' are supported"
+                    )
+        case _ as v:
+            raise NotImplementedError(f"Unsupported structure definition kind '{v}'")
+
+
+class StratifierGenerator:
+    """
+    Given a structure definition instances of this class generate stratifiers for its elements (their definitions).
+    Instances are single-use and should be discarded after calling the ``generate`` method
+    """
+    def __init__(
+        self,
+        struct_def: NavStructureDefinition,
+        package_manager: FhirPackageManager,
+        root_exprs: str | dict[str, str] | None = None,
+    ):
+        self._struct_def = struct_def
+        self._package_manager = package_manager
+        if isinstance(root_exprs, str):
+            self._elem_expr_cache = {
+                struct_def.type: root_exprs if root_exprs else struct_def.type
+            }
+        elif isinstance(root_exprs, dict):
+            self._elem_expr_cache = root_exprs
+        else:
+            self._elem_expr_cache = {
+                struct_def.type: struct_def.type
+            }
+
+    def _generate_stratifiers_for_extension_elem_def(
+        self, elem_def: NavElementDefinition
+    ):
+        # Base extension element definition stratifier
+        rel_expr = _selector_sub_expr_for_elem_def(elem_def, criteria_only=True)
+        parent_expr = self._elem_expr_cache[elem_def.parent.id]
+        if elem_def.is_slice:
+            self._elem_expr_cache[elem_def.id] = (
+                parent_expr + ".where(" + rel_expr + ")"
+            )
+            expr = parent_expr + ".exists(" + rel_expr + ")"
+        else:
+            expr = parent_expr + "." + rel_expr
+            self._elem_expr_cache[elem_def.id] = expr
+            expr = expr + ".exists()"
+        strats = [_generate_stratifier(expr, elem_def.id)]
+
+        type_info = elem_def.type[0]
+        ext_profiles = type_info.profile
+        if ext_profiles:
+            # When the extension content is defined externally, resolve its structure definition and process its
+            # element definition
+            root_expr = self._elem_expr_cache[elem_def.id]
+            for url in ext_profiles:
+                struct_def = self._package_manager.find_struct_def(url)
+                if not struct_def:
+                    raise FileNotFoundError(
+                        f"Could not find StructureDefinition resource defining extension structure '{url}'"
+                    )
+                strats.extend(
+                    _update_strat_identity(
+                        strat,
+                        "Extension",
+                        elem_def.id,
+                    )
+                    for strat in StratifierGenerator(
+                        struct_def,
+                        self._package_manager,
+                        {"Extension": root_expr, "Extension.extension": f"{root_expr}.extension"},
+                    ).generate()
+                )
+        else:
+            # When the extension content is defined inline, process its element definitions normally
+            strats.extend(
+                strat
+                for ed in elem_def.children
+                for strat in self._generate_stratifiers_for_elem_def(ed)
+            )
+        return strats
+
+    def _generate_stratifier_for_reference_elem_def(
+        self, elem_def: NavElementDefinition
+    ) -> MeasureGroupStratifier:
+        rel_expr = (
+            _selector_sub_expr_for_elem_def(elem_def)
+            + (".ofType(Reference)" if elem_def.id.endswith("[x]") else "")
+            + ".reference.hasValue()"
+        )
+        expr = self._elem_expr_cache[elem_def.parent.id] + "." + rel_expr
+        self._elem_expr_cache[elem_def.id] = expr
+        return _generate_stratifier(expr, elem_def.id)
+
+    def _generate_stratifiers_for_single_typed_elem_def(
+        self, elem_def: NavElementDefinition
+    ) -> list[MeasureGroupStratifier]:
+        stratifiers = []
+        type_info = elem_def.type[0]
+        match type_info.code:
+            case "Reference":
+                stratifiers.append(
+                    self._generate_stratifier_for_reference_elem_def(elem_def)
+                )
+            case _ as type_code:
+                rel_expr = _selector_sub_expr_for_elem_def(elem_def)
+                if elem_def.id.endswith("[x]"):
+                    rel_expr = f"{rel_expr}.ofType({type_code})"
+                expr = self._elem_expr_cache[elem_def.parent.id] + "." + rel_expr
+                self._elem_expr_cache[elem_def.id] = expr
+                stratifiers.append(
+                    _generate_stratifier(
+                        _ensure_trailing_existence_check(expr, type_code[0].islower()),
+                        elem_def.id,
+                    )
+                )
+        return stratifiers
+
+    def _generate_stratifiers_for_elem_def(
+        self, elem_def: NavElementDefinition
+    ) -> list[MeasureGroupStratifier]:
+        stratifiers = []
+        if elem_def.max != "0":
+            # Dedicated (modifier) extension element definition handling
+            if elem_def.base.path in _EXT_ELEM_BASE_PATHS:
+                stratifiers.extend(
+                    self._generate_stratifiers_for_extension_elem_def(elem_def)
+                )
+            # All other element definitions
+            else:
+                if (
+                    elem_def.is_slice
+                    or elem_def.base.path
+                    not in _BASE_PATHS_EXCLUDED_FROM_STRATIFIER_GEN
+                ):
+                    if elem_def.type and len(elem_def.type) == 1:
+                        stratifiers.extend(
+                            self._generate_stratifiers_for_single_typed_elem_def(
+                                elem_def
+                            )
+                        )
+                    else:
+                        expr = (
+                            self._elem_expr_cache[elem_def.parent.id]
+                            + "."
+                            + _selector_sub_expr_for_elem_def(elem_def)
+                        )
+                        self._elem_expr_cache[elem_def.id] = expr
+                        stratifiers.append(
+                            _generate_stratifier(
+                                _ensure_trailing_existence_check(
+                                    expr, not _could_be_complex_typed(elem_def)
+                                ),
+                                elem_def.id,
+                            )
+                        )
+                for child_elem_def in elem_def.children:
+                    stratifiers.extend(
+                        self._generate_stratifiers_for_elem_def(child_elem_def)
+                    )
+        return stratifiers
+
+    def generate(self) -> list[MeasureGroupStratifier]:
+        """
+        Generates a list of stratifiers for the given structure definition
+        :return: List of stratifiers
+        """
+        stratifiers = []
+        for elem_def in _iter_relevant_top_level_elem_defs(self._struct_def):
+            stratifiers.extend(self._generate_stratifiers_for_elem_def(elem_def))
+        return stratifiers
+
+
+def _find_subject_reference_elem_def(
+    profile: NavStructureDefinition,
+) -> NavElementDefinition | None:
+    """
+    Tries to find the first-level element holding the reference to the Patient resource (that represent the patient to
+    which this type of clinical data applies)
+
+    :param profile: `StructureDefinition` constraining a resource type
+    :return: `NavElementDefinition` defining a suitable element or `None` if no such element could be identified
+    """
+    res_type = profile.type
+    if model_cls := get_fhir_model_class(res_type):
+        ref_fields = get_reference_fields(model_cls, {"Patient"})
+        match ref_fields:
+            case []:
+                return None
+            case [f]:
+                elem_path = f"{res_type}.{f.alias}"
+            case _:
+                # Try common names for such an element if there are multiple candidates
+                f_names = [f.alias for f in ref_fields]
+                if "subject" in f_names:
+                    elem_path = f"{res_type}.subject"
+                elif "patient" in f_names:
+                    elem_path = f"{res_type}.patient"
+                else:
+                    return None
+        return profile.get_element_by_id(elem_path)
+    else:
+        raise ValueError(
+            f"Unknown FHIR resource type '{res_type}' constrained by profile '{profile}'"
+        )
 
 
 def _add_populations(
@@ -217,517 +550,43 @@ def _add_populations(
     return group
 
 
-def _generate_stratifier(expr: str, full_elem_id: str) -> MeasureGroupStratifier:
+def generate_measure_group_for_struct_def(
+    struct_def: NavStructureDefinition, package_manager: FhirPackageManager, id_num: int
+) -> MeasureGroup:
     """
-    Generates a stratifier for a `Measure` group
+    Generates a `MeasureGroup` resource for the given `StructureDefinition` resource
 
-    :param expr: Stratifying FHIRPath expression
-    :param full_elem_id: Full ID of the element the stratifier is based on
-    :return: Stratifier
+    :param struct_def: StructureDefinition resource to generate the measure group for
+    :param package_manager: FHIR package manager to use for resolving references to other structure definitions
+    :param id_num: Unique number for the measure group
+    :return: MeasureGroup resource
     """
-    return MeasureGroupStratifier(
-        id=full_elem_id,
-        criteria=Expression(language="text/fhirpath", expression=expr),
-        code=CodeableConcept(
-            coding=[
-                Coding(
-                    system="http://fhir-data-evaluator/strat/system",
-                    code=full_elem_id,
-                )
-            ]
-        ),
+    subject_ref_elem_def = _find_subject_reference_elem_def(struct_def)
+    if not subject_ref_elem_def:
+        raise MissingSubjectRefError(
+            f"Profile '{struct_def.url}' has no suitable subject reference element and thus no measure group can be "
+            f"generated"
+        )
+    subject_ref_name = subject_ref_elem_def.path.split(".")[-1]
+    measure_group = MeasureGroup(
+        extension=[
+            Extension(
+                url="http://hl7.org/fhir/StructureDefinition/elementSource",
+                valueUri=struct_def.url
+                + (("#" + struct_def.version) if struct_def.version else ""),
+            )
+        ],
+        stratifier=[],
+        id=f"grp_{struct_def.name.replace('-', '_').lower()}",
+    )
+    _add_populations(
+        measure_group, struct_def.type, struct_def.url, subject_ref_name, id_num
     )
 
-
-def _get_full_element_id(
-    chained_elem_id: List[str],
-    type_code: Optional[str] = None,
-) -> str:
-    """
-    Builds the full element ID from the list of element IDs used to navigate to it along instance/structure boundaries
-
-    :param chained_elem_id: List of element IDs to be combined
-    :param type_code: (Optional) element type for resolving polymorphic element name placeholders
-    :return: Full element ID
-    """
-    field_name = ".".join(
-        [chained_elem_id[0], *[i.split(".", 1)[1] for i in chained_elem_id[1:]]]
-    )
-    if type_code:
-        con = type_code[:1].upper() + type_code[1:]
-        field_name = con.join(field_name.rsplit("[x]", 1))
-    return field_name
-
-
-def _resolve_polymorphism_in_expr(expr: str, fhir_type: Optional[str] = None) -> str:
-    """
-    Resolves polymorphic element names with the given FHIRPath expression using the given FHIR type
-
-    :param expr: FHIRPath expression string
-    :param fhir_type: Optional FHIR type string to generate a type filter expression from that will be used to replace
-                      the '[x]' part of element names. If this is `None` then the polymorphic part will just be removed
-    :return: Cleansed FHIRPath expression string
-    """
-    if fhir_type:
-        return re.sub(r"\[x]", f".ofType({fhir_type})", expr)
-    else:
-        return re.sub(r"\[x]", "", expr)
-
-
-class MeasureGroupGenerator:
-    def __init__(self, package_manager: FhirPackageManager):
-        self._package_manager = package_manager
-        self._elem_expr_cache = dict()
-
-    def _generate_stratifier_for_reference(
-        self,
-        ref_struct_def: NavStructureDefinition,
-        base_expr: str,
-        chained_elem_id: List[str],
-    ) -> List[MeasureGroupStratifier]:
-        """
-        Generates stratifiers from a reference
-
-        :param ref_struct_def: Referenced profile
-        :param base_expr: FHIRPath expression for navigating to the reference-containing element
-        :param chained_elem_id: Chain of IDs of elements from previous resource contexts leading to the element
-        :return: List of stratifiers
-        """
-        # We sort the list by the profiles URLs such that the order is the same between runs and to improve readability
-        resolved_profiles = sorted(
-            [
-                ref_struct_def,
-                *self._package_manager.dependents_of(
-                    ref_struct_def.url, MII_CDS_PACKAGE_PATTERN
-                ),
-            ],
-            key=lambda p: p.url,
-        )
-        strats = []
-        for t, ps in groupby(resolved_profiles, lambda p: p.type):
-            ps = list(ps)
-            expr = f"{base_expr}.resolve().ofType({ps[0].type}).meta.profile"
-            match len(ps):
-                case 1:
-                    expr = f"{expr} contains '{ps[0].url}'"
-                case _:
-                    clause = " or ".join([f"$this = '{p.url}'" for p in ps])
-                    expr = f"{expr}.exists({clause})"
-            strats.append(
-                _generate_stratifier(
-                    expr,
-                    _get_full_element_id(
-                        chained_elem_id,
-                        "Reference",
-                    )
-                    + "->"
-                    + ref_struct_def.type,
-                )
-            )
-        return strats
-
-    def _generate_stratifiers_for_extension_elements(
-        self,
-        ext_struct_def: NavStructureDefinition,
-        base_ext_expr: str,
-        chained_elem_id: List[str],
-    ) -> List[MeasureGroupStratifier]:
-        """
-        Generates stratifiers from the given extension defining structure definition by recursing over its value element or
-        the value element of the extension it contains. Note that this function only generates stratifiers for the "value"
-        carrying elements of the extension
-
-        :param ext_struct_def: `StructureDefinition` instance defining the extension
-        :param base_ext_expr: FHIRPath expression serving as the base for the FHIRPath expression for the generated stratifiers
-        :param chained_elem_id: Chain of IDs of elements from previous resource contexts leading to the extension
-        :return: List of stratifiers checking for the existence of the extensions sub-elements
-        """
-        stratifiers = []
-        # There is no need to define a stratifier for this element since its value will be used to filter for matching
-        # Extension instances already
-        relevant_elem_defs = sorted(
-            filter(
-                lambda e: (
-                    e.max != "0"
-                    and e.id != "Extension"
-                    and (e.id != "Extension.extension" or not e.slicing)
-                    and not e.id.endswith(".id")
-                    and not e.id.endswith(".url")
-                ),
-                ext_struct_def.snapshot.element,
-            ),
-            key=lambda e: e.id,
-        )
-        self._elem_expr_cache["Extension"] = base_ext_expr
-        self._elem_expr_cache["Extension.extension"] = f"{base_ext_expr}.extension"
-        for elem_def in relevant_elem_defs:
-            stratifiers.extend(
-                self._generate_stratifiers_for_elem_def(
-                    elem_def, ext_struct_def, chained_elem_id
-                )
-            )
-        return stratifiers
-
-    def _generate_stratifiers_from_extension_definitions(
-        self,
-        elem_def: NavElementDefinition,
-        parent_expr: str,
-        chained_elem_id: List[str],
-    ) -> List[MeasureGroupStratifier]:
-        """
-        Generates stratifiers from the referenced extension structure definitions supported by the given element definition
-
-        :param elem_def: ``NavElementDefinition`` instance supporting data type ``Extension``
-        :param parent_expr: FHIRPath expression for navigating to the parent element
-        :param chained_elem_id: Chain of IDs of elements from previous resource contexts leading to the extension
-        :return: List of stratifiers based on the referenced extension structure definitions
-        """
-        if not (ext_type := first(lambda e: e.code == "Extension", elem_def.type)):
-            raise ValueError(
-                f"Element definition {elem_def.id} does not support data type 'Extension'"
-            )
-        stratifiers = []
-        ext_profiles = ext_type.profile if ext_type.profile is not None else []
-        for url in ext_profiles:
-            struct_def = self._package_manager.find_struct_def(url)
-            if not struct_def or not isinstance(struct_def, StructureDefinition):
-                raise NotFoundError(
-                    f"Could not find StructureDefinition resource defining extension structure '{url}'"
-                )
-            stratifiers.extend(
-                self._generate_stratifiers_for_extension_elements(
-                    struct_def,
-                    parent_expr,
-                    chained_elem_id,
-                )
-            )
-        return stratifiers
-
-    def _generate_stratifiers_for_reference(
-        self, parent_expr: str, chained_elem_id: List[str]
-    ) -> List[MeasureGroupStratifier]:
-        """
-        Generates stratifiers for ``Reference`` typed element. Generated stratifiers check for the existence of a
-        technical reference (``Reference.reference``) and a logical one (``Reference.identifier``)
-
-        :param parent_expr: FHIRPath expression for navigating to the parent element
-        :param chained_elem_id: Chain of IDs of preceding elements resulting from context switches (reference resolution
-                                etc.)
-        :return: List of generated stratifiers
-        """
-        return [
-            _generate_stratifier(
-                _ensure_trailing_existence_check(
-                    parent_expr + ".reference.hasValue()", is_primitive=True
-                ),
-                _get_full_element_id(
-                    [*chained_elem_id[:-1], chained_elem_id[-1] + ".reference"]
-                ),
-            ),
-            _generate_stratifier(
-                _ensure_trailing_existence_check(
-                    parent_expr + ".identifier", is_primitive=True
-                ),
-                _get_full_element_id(
-                    [*chained_elem_id[:-1], chained_elem_id[-1] + ".identifier"]
-                ),
-            ),
-        ]
-
-    def _generate_stratifiers_for_typed_elem(
-        self,
-        elem_type: ElementDefinitionType,
-        parent_expr: str,
-        parent_elem_id: str,
-        chained_elem_id: List[str],
-    ) -> List[MeasureGroupStratifier]:
-        """
-        Generates stratifiers for the given element definition and FHIR data type
-
-        :param elem_type: FHIR data type supported by the element
-        :param parent_expr: FHIRPath expression for navigating to the parent element
-        :param parent_elem_id: Element ID of the parent element
-        :param chained_elem_id: Chain of IDs of preceding elements resulting from context switches (reference resolution
-                                etc.)
-        :return: List of stratifiers
-        """
-        match elem_type.code:
-            case "Reference":
-                # profile_urls = elem_type.targetProfile if elem_type.targetProfile else []
-                #stratifiers = [
-                #    _generate_stratifier(
-                #        _ensure_trailing_existence_check(
-                #            f"{parent_expr}.reference.hasValue()", is_primitive=True
-                #        ),
-                #        # _get_full_element_id(chained_elem_id, "Reference"),
-                #        _get_full_element_id(chained_elem_id),
-                #    )
-                #]
-                stratifiers = self._generate_stratifiers_for_reference(parent_expr, chained_elem_id)
-                # FIXME: Disabled for now since reference resolution in the FHIR Data Evaluator requires referenced resources
-                #        inclusion in the initial population which has to be done by either including all referenced
-                #        resources or by selecting all relevant ones via specific search parameters. The former option is
-                #        currently not supported by all FHIR server (e.g. blaze) and the later requires resolving search
-                #        parameters using the FHIRPath expression they use to select elements which is far from trivial (it
-                #        would require determining expression equivalence)
-                # for url in profile_urls:
-                #     index_pattern = {"url": url}
-                #     snapshot = manager.find(index_pattern)
-                #     if not snapshot or not isinstance(snapshot, StructureDefinition):
-                #         raise NotFoundError(
-                #             f"Could not find StructureDefinition resource defining structure '{url}'"
-                #         )
-                #     snapshot = StructureDefinitionSnapshot.model_validate(snapshot)
-                #     stratifiers.extend(
-                #         _generate_stratifier_for_reference(
-                #             snapshot,
-                #             _resolve_polymorphism_in_expr(parent_expr, "Reference"),
-                #             chained_elem_id,
-                #             manager,
-                #         )
-                #     )
-                return stratifiers
-            case _ as type_code:
-                expr = (
-                    _resolve_polymorphism_in_expr(
-                        (
-                            parent_expr
-                            if parent_expr.endswith("[x]")
-                            else (parent_expr + "[x]")
-                        ),
-                        type_code,
-                    )
-                    if parent_elem_id.endswith("[x]")
-                    and not re.search(r"ofType\([a-zA-Z]+\)$", parent_expr)
-                    else parent_expr
-                )
-                return [
-                    _generate_stratifier(
-                        _ensure_trailing_existence_check(
-                            expr, type_code in FhirPrimitiveDataType
-                        ),
-                        _get_full_element_id(chained_elem_id),
-                    )
-                ]
-
-    def _resolve_supported_types(
-        self,
-        elem_def: NavElementDefinition,
-        struct_def: NavStructureDefinition,
-    ) -> List[ElementDefinitionType]:
-        """
-        Resolves the types of the given element definition by returning the range of supported types listed in its
-        ``type`` element or by following any content references in the ``contentReference`` element to resolve their
-        types
-
-        :param elem_def: ``NavElementDefinition`` instance to resolve types of
-        :param struct_def: ``StructureDefinition`` containing the element definition
-        :return: List of ``NavElementDefinition.type`` instances representing supported types
-        """
-        if elem_def.type:
-            return elem_def.type
-        elif elem_def.contentReference:
-            content_ref_profile_url, content_ref_elem_id = (
-                elem_def.contentReference.split("#")
-            )
-            if content_ref_profile_url and len(content_ref_profile_url) > 0:
-                content_ref_struct_def = self._package_manager.find_struct_def(content_ref_profile_url)
-                content_ref_elem = content_ref_struct_def.get_element_by_id(
-                    content_ref_elem_id
-                )
-            else:
-                content_ref_elem = struct_def.get_element_by_id(content_ref_elem_id)
-            if not content_ref_elem:
-                raise Exception(
-                    f"Cannot resolve content reference '{elem_def.contentReference}'"
-                )
-            return self._resolve_supported_types(content_ref_elem, struct_def)
-        else:
-            return []
-
-    def _supports_extension_type(
-        self, elem_def: NavElementDefinition, struct_def: NavStructureDefinition
-    ) -> bool:
-        return any(
-            t.code == "Extension"
-            for t in self._resolve_supported_types(elem_def, struct_def)
-        )
-
-    def _generate_stratifiers_for_elem_def(
-        self,
-        elem_def: NavElementDefinition,
-        struct_def: NavStructureDefinition,
-        chained_elem_id: Optional[List[str]] = None,
-    ) -> List[MeasureGroupStratifier]:
-        """
-        Generates stratifiers for the given element definition
-
-        :param elem_def: `NavElementDefinition` instance to generate stratifiers for
-        :param struct_def: Structure definition snapshot containing the element definition
-        :param chained_elem_id: (Optional) Chain of IDs of preceding elements resulting from context switches (reference
-                                resolution etc.)
-        :return: List of stratifiers
-        """
-        if not chained_elem_id:
-            chained_elem_id = []
-        stratifiers = []
-        # Generate base stratifier
-        parent_elem_id = get_parent_element(struct_def, elem_def).id
-        base_expr = self._elem_expr_cache.get(parent_elem_id)
-        if not base_expr:
-            raise KeyError(
-                f"Missing expression entry for parent element '{parent_elem_id}' obtained from child element "
-                f"'{elem_def.id}'. This can be the result of a wrong element ID, the element not having been "
-                f"processed yet, or the element missing entirely"
-            )
-        # Handle slice presence
-        if elem_def.sliceName:
-            expr = filter_for_slice(
-                base_expr, elem_def, struct_def, MII_CDS_PACKAGE_PATTERN
-            )
-        else:
-            expr = base_expr + "." + elem_def.path.split(".")[-1]
-        # Do not generate stratifiers if the element does (or rather should) not occur in instance data
-        if elem_def.max == "0":
-            _logger.debug(
-                f"Skipping element '{elem_def.id}' since it has max cardinality '0'"
-            )
-            self._elem_expr_cache[elem_def.id] = expr
-            return stratifiers
-        # TODO: Add support for slices of reference typed elements. ATM this cannot be supported since the FHIRPath filter
-        #  generated from the discriminator cannot be processed by the FDE
-        if (
-            first(
-                lambda t: t.code == "Reference",
-                self._resolve_supported_types(elem_def, struct_def),
-            )
-            and elem_def.sliceName
-        ):
-            _logger.debug(
-                f"Skipping element definition {repr(elem_def.id)} since slices of Reference typed elements are currently not supported"
-            )
-            self._elem_expr_cache[elem_def.id] = expr
-            return stratifiers
-        # Handle type range
-        supported_types = self._resolve_supported_types(elem_def, struct_def)
-        match supported_types:
-            case []:
-                _logger.warning(
-                    f"Element '{elem_def.id}' supports no types => Skipping"
-                )
-                expr = _resolve_polymorphism_in_expr(expr, "")
-                self._elem_expr_cache[elem_def.id] = expr
-            case [t]:
-                if expr.endswith("[x]"):
-                    expr = _resolve_polymorphism_in_expr(expr, t.code)
-                else:
-                    expr = _resolve_polymorphism_in_expr(expr, "")
-                self._elem_expr_cache[elem_def.id] = expr
-                stratifiers.extend(
-                    strat
-                    for strat in self._generate_stratifiers_for_typed_elem(
-                        t, expr, elem_def.id, [*chained_elem_id, elem_def.id]
-                    )
-                )
-            case _:
-                expr = _resolve_polymorphism_in_expr(expr, "")
-                self._elem_expr_cache[elem_def.id] = expr
-                stratifiers.append(
-                    _generate_stratifier(
-                        _ensure_trailing_existence_check(expr),
-                        _get_full_element_id([*chained_elem_id, elem_def.id]),
-                    )
-                )
-                stratifiers.extend(
-                    [
-                        strat
-                        for t in supported_types
-                        for strat in self._generate_stratifiers_for_typed_elem(
-                            t,
-                            expr,
-                            elem_def.id,
-                            [
-                                *chained_elem_id,
-                                (
-                                    _get_full_element_id([elem_def.id], t.code)
-                                    if elem_def.id.endswith("[x]")
-                                    else elem_def.id
-                                ),
-                            ],
-                        )
-                    ]
-                )
-        return stratifiers
-
-    def generate(self, struct_def: NavStructureDefinition, id_num: int) -> MeasureGroup:
-        """
-        Generates a measure group for the given structure definition
-
-        :param struct_def: Structure definition snapshot to generated measure group for
-        :param id_num: Unique ID for the measure group
-        :return: `MeasureGroup` instance representing the profile
-        """
-        subject_ref_elem_def = _find_subject_reference_elem_def(struct_def)
-        if not subject_ref_elem_def:
-            raise MissingSubjectRefError(
-                f"Profile '{struct_def.url}' has no suitable subject reference element and thus no measure group can be "
-                f"generated"
-            )
-        subject_ref_name = subject_ref_elem_def.path.split(".")[-1]
-        measure_group = MeasureGroup(
-            extension=[
-                Extension(
-                    url="http://hl7.org/fhir/StructureDefinition/elementSource",
-                    valueUri=struct_def.url
-                    + (("#" + struct_def.version) if struct_def.version else ""),
-                )
-            ],
-            stratifier=[],
-            id=f"grp_{struct_def.name.replace('-', '_').lower()}",
-        )
-        _add_populations(
-            measure_group, struct_def.type, struct_def.url, subject_ref_name, id_num
-        )
-        # Used to store expression for every element ID encountered such that known expressions can be used to generate
-        # expressions for new element IDs due to the hierarchical nature of the FHIR data model
-        self._elem_expr_cache = dict()
-        # Store element definitions support data type `Extension` for additional processing after all element defintions
-        # contained within the snapshot are already processed. The reason for this is that we want to prioritize using
-        # element definitions within the snapshot (possibly containing constrains) over those defined externally in the
-        # referenced structure definition
-        extension_postprocessing = list()
-        # We sort the list of element definitions by their ID (in ascending order) to encounter elements in a descending
-        # hierarchical order regarding there appearance in the resource
-        for elem_def in sorted(struct_def.snapshot.element, key=lambda ed: ed.id):
-            if elem_def.id == struct_def.type or not _filter_elem_def(elem_def):
-                # Skip root and ID element processing
-                _logger.debug(f"Skipping element definition {repr(elem_def.id)}")
-                self._elem_expr_cache[elem_def.id] = elem_def.path
-                continue
-            _logger.debug(f"Generating stratifiers for element '{elem_def.id}'")
-            try:
-                elem_stratifiers = self._generate_stratifiers_for_elem_def(
-                    elem_def, struct_def
-                )
-                if self._supports_extension_type(elem_def, struct_def):
-                    extension_postprocessing.append(elem_def)
-            except Exception as exc:
-                _logger.warning(
-                    f"Failed to generate stratifiers for element '{elem_def.id}' in profile '{struct_def.url}' => Skipping"
-                )
-                _logger.debug("Details:", exc_info=exc)
-                continue
-            measure_group.stratifier.extend(elem_stratifiers)
-        # Extension postprocessing
-        strat_ids = set(s.id for s in measure_group.stratifier)
-        for elem_def in extension_postprocessing:
-            ext_strats = self._generate_stratifiers_from_extension_definitions(
-                elem_def, self._elem_expr_cache[elem_def.id], [elem_def.id]
-            )
-            measure_group.stratifier.extend(
-                filter(lambda s: s.id not in strat_ids, ext_strats)
-            )
-        return measure_group
+    stratifier_generator = StratifierGenerator(struct_def, package_manager)
+    grp_strats = stratifier_generator.generate()
+    measure_group.stratifier.extend(grp_strats)
+    return measure_group
 
 
 def make_stratifier_codes_fde_compatible(
@@ -782,11 +641,12 @@ def update_stratifier_ids(measure: Measure) -> Measure:
     return measure
 
 
-def generate_measure(manager: FhirPackageManager, **elements) -> Measure:
+def generate_element_availability_measure(project: Project, **elements) -> Measure:
     """
     Generates the Element Availability Measure resource
 
-    :param manager: FHIR package manager
+    :param project: Project to generate the measure for. The included profiles are determined using the
+                    ``profiles.include`` section
     :param elements: key value pairs for assigning element values of the generated `Measure` resource
     :return: `Measure` resource instance
     """
@@ -818,13 +678,7 @@ def generate_measure(manager: FhirPackageManager, **elements) -> Measure:
     measure_groups = measure.group
 
     counter = itertools.count()
-    content_pattern = {
-        "resourceType": "StructureDefinition",
-        "kind": "resource",
-    }
-    for struct_def in manager.iterate_cache(
-        MII_CDS_PACKAGE_PATTERN, content_pattern, skip_on_fail=True
-    ):
+    for struct_def in project.included_profiles(latest_only=True):
         if struct_def.type in ["SearchParameter"]:
             continue
         _logger.debug(f"Generating measure group for profile '{struct_def.url}'")
@@ -840,7 +694,9 @@ def generate_measure(manager: FhirPackageManager, **elements) -> Measure:
             group_id_num = next(counter)
             struct_def = ensure_struct_def_is_navigable(struct_def)
             measure_groups.append(
-                MeasureGroupGenerator(manager).generate(struct_def, group_id_num)
+                generate_measure_group_for_struct_def(
+                    struct_def, project.package_manager, group_id_num
+                )
             )
         except Exception as exc:
             match exc:
@@ -853,4 +709,5 @@ def generate_measure(manager: FhirPackageManager, **elements) -> Measure:
                         f"Failed to generate measure group for profile '{struct_def.url}' => Skipping",
                     )
             _logger.debug("Details:", exc_info=exc)
+    measure = make_stratifier_codes_fde_compatible(project.package_manager, measure)
     return update_stratifier_ids(measure)

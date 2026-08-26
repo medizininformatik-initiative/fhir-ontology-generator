@@ -10,8 +10,10 @@ def pytest_generate_tests(metafunc: Metafunc):
 
     sources = metafunc.cls.measures()
 
-    if ("test_stratifier_fhirpath_expression_validity" == metafunc.definition.name
-            or "test_measure_compatability_with_fde" == metafunc.definition.name):
+    if (
+        "test_stratifier_fhirpath_expression_validity" == metafunc.definition.name
+        or "test_measure_compatability_with_fde" == metafunc.definition.name
+    ):
         metafunc.parametrize(
             argnames=["measure"],
             argvalues=[(f,) for f in sources],
@@ -22,10 +24,18 @@ def pytest_generate_tests(metafunc: Metafunc):
 
     if "test_generating_measure_report" == metafunc.definition.name:
         metafunc.parametrize(
-            argnames=["measure", "availability_tmp_dir", "fhir_server_url"],
+            argnames=[
+                "measure",
+                "availability_test_tmp_dir",
+                "availability_test_fhir_server_url",
+            ],
             argvalues=[pytest.param(f, None, None) for f in sources],
             ids=[f.__name__ for f in sources],
-            indirect=["measure", "availability_tmp_dir", "fhir_server_url"],
+            indirect=[
+                "measure",
+                "availability_test_tmp_dir",
+                "availability_test_fhir_server_url",
+            ],
             scope="module",
         )
 

@@ -2,17 +2,15 @@ import abc
 import os
 import subprocess
 import warnings
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 from _pytest.fixtures import FixtureRequest
+from dataportal_generator.common.fhirpath import parse_expr
+from dataportal_generator.common.log.functions import get_logger
 from fhir.resources.R4B.measure import Measure
 from fhir.resources.R4B.measurereport import MeasureReport
 from pydantic import ValidationError
-
-from dataportal_generator.common.log.functions import get_logger
-from dataportal_generator.common.fhirpath import parse_expr
-
 
 _logger = get_logger(__name__)
 
@@ -37,9 +35,7 @@ def _duplicate_criteria_expression_is_allowed(
     # Check if trailing node ID (typed variant of the element) is equal to the slice name (typed slice of the element)
     if tail_1 == tail_2.rsplit(":", maxsplit=1)[-1]:
         return True
-    if tail_2 == tail_1.rsplit(":", maxsplit=1)[-1]:
-        return True
-    return False
+    return tail_2 == tail_1.rsplit(":", maxsplit=1)[-1]
 
 
 class MeasureContractTests(abc.ABC):
@@ -85,7 +81,7 @@ class MeasureContractTests(abc.ABC):
     def test_measure_compatability_with_fde(self, measure: Measure):
         ids = set()
         fde_codes = set()
-        errors = list()
+        errors = []
         for grp in measure.group:
             criteria = dict()
             for strat in grp.stratifier:
@@ -108,12 +104,12 @@ class MeasureContractTests(abc.ABC):
                         )
                     )
                     assert len(fde_codings) == 1, (
-                        f"Exactly one FDE stratifier coding should be present (group: {repr(grp.id)}, stratifier: "
-                        f"{strat.id})"
+                        f"Exactly one FDE stratifier coding should be present (group: {grp.id!r}, stratifier: "
+                        f"{strat.id!r})"
                     )
                     fde_code = fde_codings[0].code
                     assert fde_code not in fde_codes, (
-                        f"All stratifiers should have a unique FDE code (duplicate: {fde_code})"
+                        f"All stratifiers should have a unique FDE code (duplicate: {fde_code!r})"
                     )
                     fde_codes.add(fde_codings[0].code)
                 except AssertionError as err:
@@ -126,7 +122,7 @@ class MeasureContractTests(abc.ABC):
                         and c.language == "text/fhirpath"
                         and c.expression is not None
                     ), "Stratifier should have a FHIRPath criterion"
-                    if c.expression in criteria.keys():
+                    if c.expression in criteria:
                         encountered_fde_code = criteria[c.expression]
                         if _duplicate_criteria_expression_is_allowed(
                             fde_code, encountered_fde_code
@@ -145,24 +141,28 @@ class MeasureContractTests(abc.ABC):
                     errors.append(err)
         if errors:
             raise ExceptionGroup(
-                f"Measure {repr(measure.name)} is not compatible with FDE", errors
+                f"Measure {measure.name!r} is not compatible with FDE", errors
             )
 
     def test_generating_measure_report(
         self,
         measure: Measure,
-        availability_tmp_dir: Path,
-        fhir_server_url,
-        docker_compose_file: str,
-        docker_compose_project_name: str,
+        availability_test_tmp_dir: Path,
+        availability_test_fhir_server_url: str,
+        availability_test_docker_compose_file: str,
+        availability_test_docker_compose_project_name: str,
     ):
-        with (availability_tmp_dir / "input" / "measure.json").open(
+        with (availability_test_tmp_dir / "input" / "measure.json").open(
             mode="w+", encoding="utf-8"
         ) as f:
             f.write(measure.model_dump_json(indent=4))
-        self.run_fhir_data_evaluator(docker_compose_file, docker_compose_project_name, availability_tmp_dir)
+        self.run_fhir_data_evaluator(
+            availability_test_docker_compose_file,
+            availability_test_docker_compose_project_name,
+            availability_test_tmp_dir,
+        )
         report_file = next(
-            (availability_tmp_dir / "output").glob("**/measure-report.json"), None
+            (availability_test_tmp_dir / "output").glob("**/measure-report.json"), None
         )
         assert report_file.exists() and report_file.is_file(), (
             "A measure report file should be generated"

@@ -1,21 +1,20 @@
 import argparse
 import json
 from collections.abc import Mapping
-from datetime import datetime, UTC
-from typing import List
+from datetime import UTC, datetime
 
+from data_selection_extraction.model.detail import FieldDetail, ProfileDetail
+from dataportal_generator.common.log.functions import get_logger
+from dataportal_generator.common.model.project import Project
+from dataportal_generator.common.util.collections import first
 from fhir.resources.R4B.measure import Measure
 from fhir.resources.R4B.meta import Meta
 
 from dataportal_generator.availability.core.element_availability import (
-    generate_measure,
-    update_stratifier_ids,
+    generate_element_availability_measure,
     make_stratifier_codes_fde_compatible,
+    update_stratifier_ids,
 )
-from dataportal_generator.common.util.collections import first
-from dataportal_generator.common.log.functions import get_logger
-from dataportal_generator.common.model.project import Project
-from data_selection_extraction.model.detail import ProfileDetail, FieldDetail
 
 _logger = get_logger(__file__)
 
@@ -52,7 +51,7 @@ def _setup_project(project_name: str) -> Project:
     return project
 
 
-def _flatten_fields(detail: ProfileDetail | FieldDetail) -> List[FieldDetail]:
+def _flatten_fields(detail: ProfileDetail | FieldDetail) -> list[FieldDetail]:
     """
     Returns a flat list containing all field details listed in the provided tree
 
@@ -90,8 +89,8 @@ def run(project: Project) -> Measure:
         _logger = get_logger(__name__)
 
     _logger.info("Generating Measure resource")
-    measure = generate_measure(
-        project.package_manager,
+    measure = generate_element_availability_measure(
+        project,
         id="DseElementAvailabilityMeasure",
         meta=Meta(
             profile=[
