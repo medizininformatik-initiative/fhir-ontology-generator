@@ -1,16 +1,8 @@
 import re
-from typing import Any, List, Optional, Tuple
+from typing import Any
 
 from antlr4.ParserRuleContext import ParserRuleContext
 from antlr4.tree.Tree import TerminalNode
-from fhir.resources.R4B.element import Element
-from fhir.resources.R4B.elementdefinition import (
-    ElementDefinition,
-    ElementDefinitionBinding,
-    ElementDefinitionSlicingDiscriminator,
-)
-from pydantic import BaseModel, conlist
-
 from dataportal_generator.common.constants.fhir import ALL_FHIR_RESOURCE_TYPES_R4B
 from dataportal_generator.common.exceptions import NotFoundError, UnsupportedError
 from dataportal_generator.common.fhir.package_manager import FhirPackageManager
@@ -30,6 +22,13 @@ from dataportal_generator.common.model.fhir.nav_structure_definition import (
     NavStructureDefinition,
     ensure_struct_def_is_navigable,
 )
+from fhir.resources.R4B.element import Element
+from fhir.resources.R4B.elementdefinition import (
+    ElementDefinition,
+    ElementDefinitionBinding,
+    ElementDefinitionSlicingDiscriminator,
+)
+from pydantic import BaseModel, conlist
 
 _REGEX_MATCH_TRAILING_WHERE_FUNC = re.compile(r"where\((.*)\)$")
 _REGEX_MATCH_TRAILING_EXISTS_FUNC = re.compile(r"exists\((.*)\)$")
@@ -38,7 +37,7 @@ _REGEX_MATCH_TRAILING_EXISTS_FUNC = re.compile(r"exists\((.*)\)$")
 def unsupported_fhirpath_expr(
     c: ParserRuleContext,
     expected: str | conlist(str, min_length=1),
-    cause: Optional[Exception] = None,
+    cause: Exception | None = None,
 ) -> ValueError:
     """
     Builds a `ValueError` instance indicating that a given FHIRPath expression might be valid but is not supported
@@ -67,7 +66,7 @@ def unsupported_fhirpath_expr(
 
 
 def invalid_fhirpath_expr(
-    c: ParserRuleContext, reason: str, cause: Optional[Exception] = None
+    c: ParserRuleContext, reason: str, cause: Exception | None = None
 ) -> ValueError:
     """
     Builds a `ValueError` instance indicating that the provided FHIRPath expression is invalid
@@ -87,7 +86,7 @@ def invalid_fhirpath_expr(
     return err
 
 
-def get_symbol(expr: ParserRuleContext, strip: bool = True) -> Optional[str]:
+def get_symbol(expr: ParserRuleContext, strip: bool = True) -> str | None:
     """
     Retrieves the symbol of the given (nested) expression
 
@@ -104,7 +103,7 @@ def get_symbol(expr: ParserRuleContext, strip: bool = True) -> Optional[str]:
     return expr.symbol.text.strip("'") if strip else expr.symbol.text
 
 
-def get_path(expr: ParserRuleContext) -> tuple[Optional[ParserRuleContext], Optional[str]]:
+def get_path(expr: ParserRuleContext) -> tuple[ParserRuleContext | None, str | None]:
     """
     Retrieves the largest, uninterrupted subexpression representing pure element navigation starting at the end of the
     expression without function invocations
@@ -149,7 +148,22 @@ def join_fhirpath(*paths: str | None) -> str:
     return string if len(string) > 0 else "$this"
 
 
-def find_polymorphic_value(data: Element, element_name: str) -> Optional[Any]:
+def get_fhirpath_expression_root_node(
+    tree: fhirpathParser.ExpressionContext,
+) -> fhirpathParser.ExpressionContext:
+    """
+    Navigate down the left side of the parse tree to arrive at and return the expression node representing the root node
+    of the FHIRPath expression
+
+    :param tree: Parse tree to find the FHIRPath root node of
+    :return: FHIRPath root node
+    """
+    while isinstance(tree, fhirpathParser.InvocationExpressionContext):
+        tree = tree.getChild(0)
+    return tree
+
+
+def find_polymorphic_value(data: Element, element_name: str) -> Any | None:
     """
     Attempts to find the value of a polymorphic element by iterating over all possible data type-specific names
 
@@ -157,7 +171,7 @@ def find_polymorphic_value(data: Element, element_name: str) -> Optional[Any]:
     :param element_name: (Typeless) name of the polymorphic element in the structure
     :return: Value of the contained element or `None` if no such element exists/it has no value
     """
-    for field_name in data.__class__.model_fields.keys():
+    for field_name in data.__class__.model_fields:
         if field_name.startswith(element_name):
             v = getattr(data, field_name)
             if v:
@@ -238,7 +252,7 @@ def element_data_to_fhirpath_filter(key: str = "$this", data: Any = None) -> lis
                     exprs.extend(clause)
         case _:
             # TODO: Add handling for other simple FHIR data types
-            exprs.append(f"{key} = '{str(data)}'")
+            exprs.append(f"{key} = '{data!s}'")
     return exprs
 
 
@@ -333,8 +347,8 @@ def append_filter_from_profile_discriminated_elem(
 def fhirpath_filter_from_value_discriminated_elem_def(
     elem_def: NavElementDefinition,
     struct_def: NavStructureDefinition,
-    discr_path: Optional[str] = None,
-) -> Optional[str]:
+    discr_path: str | None = None,
+) -> str | None:
     """
     Creates a FHIRPath filter expression for the provided value-discriminated element definition
 
@@ -399,7 +413,7 @@ def fhirpath_filter_from_value_discriminated_elem_def(
 def find_discr_value_defining_elem_def(
     discr_path: str,
     snapshot: IdxStructureDefinition,
-    root_elem_def: Optional[ElementDefinition] = None,
+    root_elem_def: ElementDefinition | None = None,
 ) -> ElementDefinition:
     """
     Follows the discriminator path and at each node check for the discriminator value in the element at the current
@@ -420,7 +434,7 @@ def find_discr_value_defining_elem_def(
         root_elem_def = snapshot.get_element_by_id(snapshot.type)
     elem_def = root_elem_def
 
-    def get_val(path: List[str], data: Any) -> Optional[Any]:
+    def get_val(path: list[str], data: Any) -> Any | None:
         try:
             v = data
             for name in path:
@@ -554,7 +568,7 @@ def filter_for_slice(
     """
     parent_elem = get_parent_element(snapshot, slice_elem_def)
     discriminators = parent_elem.slicing.discriminator
-    exprs: List[str] = []
+    exprs: list[str] = []
     if len(discriminators) == 0:
         raise Exception(
             f"Cannot get filter for element '{slice_elem_def.id}'. Parent element '{parent_elem.id}' "
@@ -579,9 +593,8 @@ def filter_for_slice(
                         )
                     if t.profile:
                         checks = []
-                        if len(t.profile) == 1:
-                            if single_discriminator:
-                                return f"{base_expr}('{t.profile[0]}')"
+                        if len(t.profile) == 1 and single_discriminator:
+                            return f"{base_expr}('{t.profile[0]}')"
                         for url in t.profile:
                             index_pattern = {"url": url}
                             ext_snapshot = manager.find(index_pattern)
@@ -657,7 +670,7 @@ def filter_for_slice(
                     )
                 )
             case _ as t:
-                raise Exception(
+                raise ValueError(
                     f"Unknown discriminator type '{t}' in slicing definition"
                 )
     return f"{base_expr}.where({' and '.join(exprs)})"

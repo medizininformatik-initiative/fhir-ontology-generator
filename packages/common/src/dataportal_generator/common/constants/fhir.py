@@ -148,3 +148,27 @@ ALL_FHIR_RESOURCE_TYPES_R4B = {
     "VerificationResult",
     "VisionPrescription",
 }
+
+FHIR_PRIMITIVES = {
+    "base64Binary",
+    "boolean",
+    "canonical",
+    "code",
+    "date",
+    "dateTime",
+    "decimal",
+    "id",
+    "instant",
+    "integer",
+    "integer64",
+    "markdown",
+    "oid",
+    "positiveInt",
+    "string",
+    "time",
+    "unsignedInt",
+    "uri",
+    "url",
+    "uuid",
+    "xhtml",
+}

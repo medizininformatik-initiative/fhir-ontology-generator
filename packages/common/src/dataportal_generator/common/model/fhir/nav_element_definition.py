@@ -1,13 +1,14 @@
+from collections.abc import Mapping
 from functools import cached_property
-from typing import List, Mapping, Optional
 
-from fhir.resources.R4B.elementdefinition import ElementDefinition
-from pydantic import PrivateAttr, Field
+import cachetools
+from fhir.resources.R4B.elementdefinition import ElementDefinition, ElementDefinitionType
+from pydantic import Field, PrivateAttr
 
-from dataportal_generator.common.model.fhir.idx_structure_definition import IdxStructureDefinition
+from common.model.fhir.nav_structure_definition import NavStructureDefinition
 
 
-def _parent_elem_def_id(elem_def: ElementDefinition) -> Optional[str]:
+def _parent_elem_def_id(elem_def: ElementDefinition) -> str | None:
     """
     Computes the ID of the given element's parent element.
 
@@ -33,7 +34,7 @@ class NavElementDefinition(ElementDefinition):
     and builds model instances for descendant element definitions.
     """
 
-    _struct_def: IdxStructureDefinition = PrivateAttr()
+    _struct_def: NavStructureDefinition = PrivateAttr()
     _sub_elems_by_id: Mapping[str, "NavElementDefinition"] = PrivateAttr(
         default_factory=dict
     )
@@ -41,15 +42,15 @@ class NavElementDefinition(ElementDefinition):
         default_factory=dict
     )
 
-    parent: Optional["NavElementDefinition"] = Field(default=None, exclude=True)
+    parent: "NavElementDefinition | None" = Field(default=None, exclude=True)
 
     @classmethod
     def construct_from(
         cls,
-        struct_def: IdxStructureDefinition,
+        struct_def: NavStructureDefinition,
         elem_def: ElementDefinition,
-        realm: Optional[List[ElementDefinition]] = None,
-        parent: Optional["NavElementDefinition"] = None,
+        realm: list[ElementDefinition] | None = None,
+        parent: "NavElementDefinition | None" = None,
     ) -> "NavElementDefinition":
         """
         Builds a `NavElementDefinition` wrapping `elem_def`, linked to its owning
@@ -71,9 +72,9 @@ class NavElementDefinition(ElementDefinition):
 
     def _model_post_init(
         self,
-        struct_def: IdxStructureDefinition,
-        parent: Optional["NavElementDefinition"] = None,
-        realm: Optional[List[ElementDefinition]] = None,
+        struct_def: NavStructureDefinition,
+        parent: "NavElementDefinition | None" = None,
+        realm: list[ElementDefinition] | None = None,
     ) -> None:
         """
         Post-construction initialization method that builds the navigable element definition tree, and makes both the
@@ -117,12 +118,12 @@ class NavElementDefinition(ElementDefinition):
         }
 
     @property
-    def struct_def(self) -> IdxStructureDefinition:
+    def struct_def(self) -> NavStructureDefinition:
         return self._struct_def
 
     def element(
-        self, rel_id: Optional[str] = None, full_id: Optional[str] = None
-    ) -> Optional["NavElementDefinition"]:
+        self, rel_id: str | None = None, full_id: str | None = None
+    ) -> "NavElementDefinition | None":
         """
         Finds the definition of a direct child element, by ID segment relative to this element or by full element ID.
 
@@ -143,13 +144,13 @@ class NavElementDefinition(ElementDefinition):
             raise ValueError("Either 'rel_id' or 'full_id' has to be supplied")
 
     @property
-    def elements(self) -> List["NavElementDefinition"]:
+    def elements(self) -> list["NavElementDefinition"]:
         """All direct child elements of this element."""
         return list(self._sub_elems_by_id.values())
 
     def slice(
-        self, name: Optional[str] = None, full_id: Optional[str] = None
-    ) -> Optional["NavElementDefinition"]:
+        self, name: str | None = None, full_id: str | None = None
+    ) -> "NavElementDefinition | None":
         """
         Finds the definition of a direct slice of this element, by slice name or by full element ID.
 
@@ -168,13 +169,13 @@ class NavElementDefinition(ElementDefinition):
             raise ValueError("Either 'name' or 'full_id' has to be supplied")
 
     @property
-    def slices(self) -> List["NavElementDefinition"]:
+    def slices(self) -> list["NavElementDefinition"]:
         """All slices defined directly on this element."""
         return list(self._slices_by_name.values())
 
     def child(
-        self, rel_id: Optional[str] = None, full_id: Optional[str] = None
-    ) -> Optional["NavElementDefinition"]:
+        self, rel_id: str | None = None, full_id: str | None = None
+    ) -> "NavElementDefinition | None":
         """
         Finds a direct child element definition (both of elements and slices).
 
@@ -201,7 +202,7 @@ class NavElementDefinition(ElementDefinition):
             raise ValueError("Either 'rel_id' or 'full_id' has to be supplied")
 
     @property
-    def children(self) -> List["NavElementDefinition"]:
+    def children(self) -> list["NavElementDefinition"]:
         """All direct child elements and slices defined directly on this element."""
         return [*self.elements, *self.slices]
 
@@ -220,9 +221,20 @@ class NavElementDefinition(ElementDefinition):
         return self.rel_id[0] == ":"
 
     @cached_property
-    def rel_path(self) -> Optional[str]:
+    def rel_path(self) -> str | None:
         """Relative element path to parent element definition. Will be `None` for slice defining element definitions."""
         if self.is_slice:
             return None
         else:
             return self.path.rsplit(".", maxsplit=1)[-1].removesuffix("[x]")
+
+    def type_info_for(self, type_code: str) -> ElementDefinitionType | None:
+        """
+        If the element definition supports the requested type, the corresponding type info is returned and ``None``
+        otherwise.
+        """
+        return next((t for t in self.type if t.code == type_code), None)
+
+    def supports_type(self, type_code: str) -> bool:
+        """Checks if the element definition supports a given type code."""
+        return any(t.code == type_code for t in self.type)

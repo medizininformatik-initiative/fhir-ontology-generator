@@ -1,7 +1,8 @@
+from enum import StrEnum
+
 from antlr4.CommonTokenStream import CommonTokenStream
 from antlr4.InputStream import InputStream
 from antlr4.ParserRuleContext import ParserRuleContext
-
 from dataportal_generator.common.fhirpath.fhirpathLexer import fhirpathLexer
 from dataportal_generator.common.fhirpath.fhirpathListener import fhirpathListener
 from dataportal_generator.common.fhirpath.fhirpathParser import fhirpathParser
@@ -16,6 +17,17 @@ FhirPathParser = fhirpathParser
 _lexer = FhirPathLexer(InputStream(""))
 _parser = FhirPathParser(CommonTokenStream(_lexer))
 RULE_NAMES = _parser.ruleNames
+
+
+class ExternalConstant(StrEnum):
+    """
+    Special FHIRPath external constants that are already defined by the specification
+    """
+    UCUM = "%ucum"
+    CONTEXT = "%context"
+    RESOURCE = "%resource"
+    ROOT_RESOURCE = "%rootResource"
+    PROFILE = "%profile"
 
 
 def parser_for(fhir_path_expr: str) -> FhirPathParser:

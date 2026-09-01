@@ -4,24 +4,28 @@ import os
 import re
 from collections import namedtuple
 from pathlib import Path
-from typing import List, Optional, Generator, Tuple, Any, Set
+from typing import Any, Generator, List, Optional, Set, Tuple
 
+from dataportal_generator.common.exceptions.translation import (
+    MissingTranslationException,
+)
+from dataportal_generator.common.exceptions.typing import InvalidValueTypeException
+from dataportal_generator.common.fhir.enums import FhirDataType
+from dataportal_generator.common.log.functions import get_logger
+from dataportal_generator.common.model.fhir.idx_structure_definition import (
+    IdxStructureDefinition,
+)
+from dataportal_generator.common.model.localization import (
+    Translation,
+    TranslationDisplayElement,
+)
+from dataportal_generator.common.model.terminology import TermCode
+from dataportal_generator.common.util.collections import flatten
 from fhir.resources.R4B.elementdefinition import (
     ElementDefinition,
     ElementDefinitionType,
 )
 from typing_extensions import deprecated
-
-from dataportal_generator.common.exceptions.translation import MissingTranslationException
-from dataportal_generator.common.exceptions.typing import InvalidValueTypeException
-from dataportal_generator.common.model.fhir.idx_structure_definition import (
-    IdxStructureDefinition
-)
-from dataportal_generator.common.model.localization import TranslationDisplayElement, Translation
-from dataportal_generator.common.model.terminology import TermCode
-from dataportal_generator.common.util.collections import flatten
-from dataportal_generator.common.fhir.enums import FhirDataType
-from dataportal_generator.common.log.functions import get_logger
 
 ProcessedElementResult = namedtuple(
     "ProcessedElementResult",
