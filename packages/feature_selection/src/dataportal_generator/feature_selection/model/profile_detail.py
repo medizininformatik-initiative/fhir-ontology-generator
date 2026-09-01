@@ -4,7 +4,12 @@ import abc
 from functools import total_ordering
 from typing import Annotated, Literal, TypeAlias
 
-from common.model.pydantic.mixins import SerializeSorted
+from dataportal_generator.common.fhir.enums import (
+    FhirComplexDataType,
+    FhirDataType,
+    FhirSearchType,
+)
+from dataportal_generator.common.model.pydantic.mixins import SerializeSorted
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 from cohort_selection_ontology.model.ui_data import (
@@ -15,7 +20,7 @@ from cohort_selection_ontology.model.ui_data import (
 
 @total_ordering
 class Filter(BaseModel, SerializeSorted):
-    type: str
+    type: FhirSearchType
     name: str
     ui_type: Literal["code", "timeRestriction"]
     valueSetUrls: Annotated[
@@ -52,10 +57,10 @@ class ProfileReference(BaseModel, SerializeSorted):
 @total_ordering
 class FieldDetail(Detail):
     id: str
-    type: Annotated[str | None, Field(exclude=True, default=None)]
+    type: Annotated[FhirDataType | None, Field(exclude=True, default=None)]
     recommended: Annotated[bool, Field(default=False)]
     required: Annotated[bool, Field(default=False)]
-    children: Annotated[list[FieldDetail], Field(default=[])]
+    children: Annotated[list[FieldDetail], Field(default_factory=list)]
 
     model_config = ConfigDict(use_enum_values=True)
 
@@ -68,8 +73,8 @@ class FieldDetail(Detail):
 
 class ReferenceDetail(FieldDetail):
     type: Annotated[
-        Literal["Reference", "Extension"],
-        Field(exclude=True, init=False, default="Reference"),
+        FhirDataType,
+        Field(exclude=True, init=False, default=FhirComplexDataType.REFERENCE),
     ]
     referencedProfiles: Annotated[list[ProfileReference], Field(default=[])]
 
@@ -80,11 +85,11 @@ class ProfileDetail(Detail):
     filters: Annotated[
         list[Filter],
         Field(
-            default=[],
+            default_factory=list,
         ),
     ]
-    fields: Annotated[list[FieldDetail], Field(default=[])]
-    references: Annotated[list[ReferenceDetail], Field(default=[])]
+    fields: Annotated[list[FieldDetail], Field(default_factory=list)]
+    references: Annotated[list[ReferenceDetail], Field(default_factory=list)]
 
     def __eq__(self, other):
         return self.url == other.url
