@@ -3,7 +3,7 @@ import json
 from collections.abc import Mapping
 from datetime import UTC, datetime
 
-from data_selection_extraction.model.profile_detail import FieldDetail, ProfileDetail
+from data_selection_extraction.model.detail import FieldDetail, ProfileDetail
 from dataportal_generator.common.log.functions import get_logger
 from dataportal_generator.common.model.project import Project
 from dataportal_generator.common.util.collections import first
