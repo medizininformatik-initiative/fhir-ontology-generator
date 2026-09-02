@@ -276,7 +276,7 @@ def manage_docker_container(
     :return: The running Docker container.
     """
     client = docker.from_env()
-    existing_containers = client.containers.list(
+    existing_containers = client.containers().list(
         all=True, filters={"name": container_name}
     )
 
@@ -475,6 +475,7 @@ def main():
         else [module for module in os.listdir(input_modules_dir)]
     )
 
+    container = None
     for module in modules:
         try:
             logger.info(f"Generating ontology for module: {module}")
@@ -516,13 +517,14 @@ def main():
                 exc_info=True,
             )
         finally:
-            # Dump the database to the module's directory
-            if args.generate_ui_profiles:
-                dump_database(container)
+            if container:
+                # Dump the database to the module's directory
+                if args.generate_ui_profiles:
+                    dump_database(container)
 
-            # Stop and remove the container
-            container.stop()
-            container.remove()
+                # Stop and remove the container
+                container.stop()
+                container.remove()
 
 
 if __name__ == "__main__":

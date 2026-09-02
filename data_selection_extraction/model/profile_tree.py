@@ -1,8 +1,6 @@
-from typing import List
 from uuid import uuid4
 
-from pydantic import BaseModel, computed_field, Field, TypeAdapter
-from typing_extensions import Optional, Self
+from pydantic import BaseModel, Field, TypeAdapter, computed_field
 
 from cohort_selection_ontology.model.ui_data import (
     TranslationDisplayElement,
@@ -12,16 +10,16 @@ from cohort_selection_ontology.model.ui_data import (
 class ProfileTreeNode(BaseModel):
     id: str = str(uuid4())
     name: str
-    display: Optional[TranslationDisplayElement] = None
-    description: Optional[TranslationDisplayElement] = None
-    url: Optional[str] = None
-    module: Optional[TranslationDisplayElement] = None
+    display: TranslationDisplayElement | None = None
+    description: TranslationDisplayElement | None = None
+    url: str | None = None
+    module: TranslationDisplayElement | None = None
     selectable: bool = False
     fields: list[tuple[TranslationDisplayElement, TranslationDisplayElement | None]] = Field(
         default_factory=list
     )
-    children: List["ProfileTreeNode"] = []
-    resource_type: Optional[str] = Field(default=None)
+    children: list["ProfileTreeNode"] = Field(default_factory=list)
+    resource_type: str | None = Field(default=None)
 
     @computed_field
     @property

@@ -1,0 +1,35 @@
+[fhir-packages.manager]
+type = "github"
+
+[fhir-packages.manager.params]
+org = "medizininformatik-initiative"
+repo = "fhir-package-store"
+ref = "main"
+path = "package-tarballs"
+
+[http]
+timeout = "PT30S"
+backoff_factor = 1
+
+[profiles]
+include = [
+  { package = { name = "de.gematik.isik-basismodul", version = "4.0.3" } },
+  { package = { name = "de.gematik.isik-vitalparameter", version = "4.0.1" } },
+  { package = { name = "de.medizininformatikinitiative.kerndatensatz.bildgebung", version = "2025.0.2" } },
+  { package = { name = "de.medizininformatikinitiative.kerndatensatz.biobank", version = "2025.0.4" } },
+  { package = { name = "de.medizininformatikinitiative.kerndatensatz.consent", version = "2025.0.0" } },
+  { package = { name = "de.medizininformatikinitiative.kerndatensatz.diagnose", version = "2025.0.1" } },
+  { package = { name = "de.medizininformatikinitiative.kerndatensatz.fall", version = "2025.0.1" } },
+  { package = { name = "de.medizininformatikinitiative.kerndatensatz.icu", version = "2025.0.4" } },
+  { package = { name = "de.medizininformatikinitiative.kerndatensatz.laborbefund", version = "2025.0.2" } },
+  { package = { name = "de.medizininformatikinitiative.kerndatensatz.medikation", version = "2025.0.0" } },
+  { package = { name = "de.medizininformatikinitiative.kerndatensatz.meta", version = "2025.0.3" } },
+  { package = { name = "de.medizininformatikinitiative.kerndatensatz.mikrobiologie", version = "2025.0.1" } },
+  { package = { name = "de.medizininformatikinitiative.kerndatensatz.molgen", version = "2025.0.0" } },
+  { package = { name = "de.medizininformatikinitiative.kerndatensatz.mtb", version = "2025.0.0" } },
+  { package = { name = "de.medizininformatikinitiative.kerndatensatz.onkologie", version = "2025.1.0" } },
+  { package = { name = "de.medizininformatikinitiative.kerndatensatz.patho", version = "2025.0.2" } },
+  { package = { name = "de.medizininformatikinitiative.kerndatensatz.person", version = "2025.0.1" } },
+  { package = { name = "de.medizininformatikinitiative.kerndatensatz.prozedur", version = "2025.0.1" } },
+  { package = { name = "de.medizininformatikinitiative.kerndatensatz.studie", version = "2025.0.0" } }
+]

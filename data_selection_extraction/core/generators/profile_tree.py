@@ -1,36 +1,37 @@
-import uuid
-import re
-import os
 import json
+import os
+import re
 import shutil
+import uuid
+from collections.abc import Mapping
+from enum import Enum
 from os.path import basename
 from pathlib import Path
+from typing import Any
 
 import cachetools
 import pydantic
+from typing_extensions import deprecated
+
+from dataportal_generator.common.fhir.enums import (
+    FhirComplexDataType,
+    FhirPrimitiveDataType,
+)
+from dataportal_generator.common.fhir.structure_definition import (
+    get_types_supported_by_element,
+    supports_type,
+)
+from dataportal_generator.common.log.functions import get_logger
+from dataportal_generator.common.model.fhir.idx_structure_definition import (
+    IdxStructureDefinitionSnapshot,
+)
+from dataportal_generator.common.model.fhir.pydantic import construct_model
+from dataportal_generator.common.model.project import Project
 from fhir.resources.R4B.elementdefinition import ElementDefinition
-from fhir.resources.R4B.structuredefinition import StructureDefinition
 
 from cohort_selection_ontology.model.ui_data import (
-    TranslationDisplayElement,
     Translation,
-)
-from common.model.fhir.pydantic import construct_model
-from common.model.fhir.structure_definition import (
-    IndexedStructureDefinition,
-    idx_struct_def_discriminator,
-)
-from common.model.fhir.structure_definition import StructureDefinitionSnapshot
-from common.util.fhir.enums import FhirPrimitiveDataType, FhirComplexDataType
-from common.util.log.functions import get_logger
-
-from enum import Enum
-from typing import Mapping, Optional, Any, List
-
-from common.util.project import Project
-from common.util.structure_definition.functions import (
-    supports_type,
-    get_types_supported_by_element,
+    TranslationDisplayElement,
 )
 from data_selection_extraction.config.profile_detail import FieldsConfig
 from data_selection_extraction.model.profile_tree import ProfileTreeNode
@@ -49,7 +50,7 @@ class SnapshotPackageScope(str, Enum):
     DEFAULT = "default"
 
 
-def get_value_for_lang_code(data: ElementDefinition, lang_code: str) -> Optional[str]:
+def get_value_for_lang_code(data: ElementDefinition, lang_code: str) -> str | None:
     if data and (extensions := data.extension):
         for transl_ext in filter(
             lambda ext: ext.url
@@ -94,6 +95,32 @@ def _condense_profile_tree(
         # a leaf node
         _logger.info(f"Removing node {profile_tree.name!r} from the tree")
         return _condense_profile_tree(profile_tree.children[0], distance_from_root + 1)
+
+
+def get_profile_in_node(node: ProfileTreeNode, name: str):
+    children = node.children
+    for index in range(0, len(children)):
+        child = children[index]
+        if child.name == name:
+            return index
+    return -1
+
+
+def module_name_to_display(profile_name):
+    parts = profile_name.split("-")
+    if len(parts) > 1:
+        return parts[1].capitalize()
+    return profile_name
+
+
+def extract_module_string(path):
+    if path.startswith("https://www.medizininformatik-initiative.de"):
+        match = re.search(r"/(?P<module>modul-[^/]+)/", path)
+        if match:
+            return match.group("module")
+    elif path.startswith("https://gematik.de/fhir/isik"):
+        return "modul-isik-vitalparameter"
+    return None
 
 
 class ProfileTreeGenerator:
@@ -142,7 +169,7 @@ class ProfileTreeGenerator:
         key=lambda _, ed, pr: pr.url + "#" + ed.id,
     )
     def is_field_included(
-        self, elem_def: ElementDefinition, profile: IndexedStructureDefinition
+        self, elem_def: ElementDefinition, profile: IdxStructureDefinitionSnapshot
     ) -> bool:
         if profile.get_aggregated_max_cardinality(elem_def.id) == 0:
             return False
@@ -155,8 +182,8 @@ class ProfileTreeGenerator:
             return is_included
 
     def __get_profiles(
-        self, scope: Optional[str] = None
-    ) -> Mapping[str, Mapping[str, Any | StructureDefinitionSnapshot]]:
+        self, scope: str | None = None
+    ) -> Mapping[str, Mapping[str, Any]]:
         """
         Returns all profile entries in a certain scope or all if none is provided
         :param scope: Scope from which to return the profile entries
@@ -175,7 +202,7 @@ class ProfileTreeGenerator:
         return name
 
     def filter_element(
-        self, element: ElementDefinition, profile: IndexedStructureDefinition
+        self, element: ElementDefinition, profile: IdxStructureDefinitionSnapshot
     ) -> bool:
         # TODO: This is a temporary workaround to allow both the postal code and the country information to be selected
         #       during data selection. To preserve context, selecting elements with simple data types which are not on
@@ -221,9 +248,8 @@ class ProfileTreeGenerator:
         # Exclude all sub-elements of primitive FHIR data types
         if not supports_type(element, FhirComplexDataType.EXTENSION) and (
             types := get_types_supported_by_element(parent_elem)
-        ):
-            if all(map(lambda t: t.code in FhirPrimitiveDataType, types)):
-                return True
+        ) and all(t.code in FhirPrimitiveDataType for t in types):
+            return True
 
         if matches := [*_EXT_ELEM_PATTERN.finditer(element.id)]:
             # If the element is itself or a child of an unsliced 'extension' element it will be excluded
@@ -262,21 +288,8 @@ class ProfileTreeGenerator:
 
         return False
 
-    def is_field_included(
-        self,
-        elem_def: ElementDefinition,
-        profile: StructureDefinition,
-    ) -> bool:
-        is_included = self.fields_config.is_included(
-            elem_def, profile, self.__project.package_manager
-        )
-        if is_included is None:
-            return not self.filter_element(elem_def, profile)
-        else:
-            return is_included
-
     def get_fields_for_profile(
-        self, struct_def: StructureDefinitionSnapshot
+        self, struct_def: IdxStructureDefinitionSnapshot
     ) -> list[tuple[TranslationDisplayElement, TranslationDisplayElement | None]]:
         fields = []
 
@@ -329,29 +342,6 @@ class ProfileTreeGenerator:
             )
 
         return fields
-
-    def get_profile_in_node(self, node: ProfileTreeNode, name: str):
-        children = node.children
-        for index in range(0, len(children)):
-            child = children[index]
-            if child.name == name:
-                return index
-        return -1
-
-    def module_name_to_display(self, profile_name):
-        parts = profile_name.split("-")
-        if len(parts) > 1:
-            return parts[1].capitalize()
-        return profile_name
-
-    def extract_module_string(self, path):
-        if path.startswith("https://www.medizininformatik-initiative.de"):
-            match = re.search(r"/(?P<module>modul-[^/]+)/", path)
-            if match:
-                return match.group("module")
-        elif path.startswith("https://gematik.de/fhir/isik"):
-            return "modul-isik-vitalparameter"
-        return None
 
     def copy_profile_snapshots(self):
         # exclude_dirs = set(os.path.abspath(os.path.join(self.packages_dir, d)) for d in self.exclude_dirs)
@@ -409,6 +399,7 @@ class ProfileTreeGenerator:
                 except Exception as exc:
                     _logger.error(f"Failed to copy file '{file_path}'", exc_info=exc)
 
+    # TODO: Replace with package manager loading
     def get_profile_snapshots(self):
         for root, dirs, files in os.walk(self.snapshots_dir):
             dirs[:] = [d for d in dirs if os.path.abspath(os.path.join(root, d))]
@@ -421,7 +412,7 @@ class ProfileTreeGenerator:
                     with open(file_path, mode="r", encoding="utf-8") as f:
                         try:
                             content = construct_model(
-                                idx_struct_def_discriminator, **json.load(f)
+                                IdxStructureDefinitionSnapshot, **json.load(f)
                             )
                         except pydantic.ValidationError as e:
                             error_list = ""
@@ -450,7 +441,7 @@ class ProfileTreeGenerator:
                             )
                             and content.snapshot
                         ):
-                            module_extract = self.extract_module_string(content.url)
+                            module_extract = extract_module_string(content.url)
                             module = content.url
 
                             if module_extract:
@@ -492,11 +483,11 @@ class ProfileTreeGenerator:
         profiles = {}
         mii_profiles = self.profiles.get("mii", {})
         for url, profile in mii_profiles.items():
-            snapshot: StructureDefinitionSnapshot = profile.get("structureDefinition")
+            struct_def: IdxStructureDefinitionSnapshot = profile.get("structureDefinition")
             if (
-                snapshot.type != "Extension"
-                and snapshot.kind == "resource"
-                and snapshot.snapshot is not None
+                struct_def.type != "Extension"
+                and struct_def.kind == "resource"
+                and struct_def.snapshot is not None
             ):
                 profiles[url] = profile
         return profiles
@@ -576,14 +567,11 @@ class ProfileTreeGenerator:
 
             _logger.debug(f"Processing profile {profile.get('name')!r}")
             try:
-                profile_struct: StructureDefinitionSnapshot = profile[
+                profile_struct: IdxStructureDefinitionSnapshot = profile[
                     "structureDefinition"
                 ]
 
-                try:
-                    profile_field_names = self.get_fields_for_profile(profile_struct)
-                except KeyError as err:
-                    raise err
+                profile_field_names = self.get_fields_for_profile(profile_struct)
 
                 profile_module = profile["module"]
                 nodes.append(
