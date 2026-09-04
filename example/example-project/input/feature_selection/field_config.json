@@ -1,0 +1,623 @@
+{
+  "default": {
+    "include": [
+      {
+        "pattern": {
+          "mustSupport": true,
+          "type": [
+            {
+              "code": "Identifier"
+            }
+          ],
+          "base": {
+            "path": "?regex:(?!Reference\\.identifier).*"
+          }
+        },
+        "note": "Include all Identifier-typed elements apart from the Reference.identifier element"
+      }
+    ],
+    "exclude": [
+      {
+        "pattern": {
+          "base": {
+            "path": "Resource.id"
+          }
+        }
+      },
+      {
+        "pattern": {
+          "base": {
+            "path": "Resource.meta"
+          }
+        }
+      },
+      {
+        "pattern": {
+          "base": {
+            "path": "Resource.implicitRules"
+          }
+        }
+      },
+      {
+        "pattern": {
+          "base": {
+            "path": "Resource.language"
+          }
+        }
+      },
+      {
+        "pattern": {
+          "base": {
+            "path": "DomainResource.contained"
+          }
+        }
+      },
+      {
+        "pattern": {
+          "base": {
+            "path": "DomainResource.modifierExtension"
+          }
+        }
+      },
+      {
+        "pattern": {
+          "base": {
+            "path": "Element.id"
+          }
+        }
+      },
+      {
+        "pattern": {
+          "base": {
+            "path": "BackboneElement.modifierExtension"
+          }
+        }
+      },
+      {
+        "pattern": {
+          "base": {
+            "path": "?regex:Meta(?fhir:descendantsOrSelf())"
+          }
+        },
+        "note": "Exclude meta elements and their sub elements"
+      },
+      {
+        "pattern": {
+          "base": {
+            "path": "?regex:Identifier(?fhir:descendants())"
+          }
+        },
+        "note": "Exclude all sub elements of the Identifier data type"
+      },
+      {
+        "pattern": {
+          "type": [
+            {
+              "code": "Identifier"
+            }
+          ],
+          "base": {
+            "path": "?regex:Reference\\.identifier.*"
+          }
+        },
+        "note": "Exclude the Reference.identifier element and its descendants"
+      }
+    ],
+    "recommend": {
+      "always": [
+        {
+          "pattern": {
+            "mustSupport": true,
+            "type": [
+              {
+                "code": "Identifier"
+              }
+            ]
+          },
+          "note": "If included all must-support Identifier-typed elements are set as recommended"
+        }
+      ]
+    }
+  },
+  "profiles": {
+    "http://hl7.org/fhir/StructureDefinition/Condition": {
+      "recommend": {
+        "always": [
+          {
+            "pattern": {
+              "id": "Condition.extension:ReferenzPrimaerdiagnose"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Condition.clinicalStatus"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Condition.verificationStatus"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Condition.code"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Condition.onset[x]"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Condition.abatement[x]"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Condition.recordedDate"
+            }
+          }
+        ],
+        "never": [
+          {
+            "pattern": {
+              "id": "Condition.id"
+            },
+            "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
+          },
+          {
+            "pattern": {
+              "id": "Condition.subject"
+            },
+            "note": "is auto preselected for each resource in background"
+          }
+        ]
+      }
+    },
+    "http://hl7.org/fhir/StructureDefinition/Consent": {
+      "recommend": {
+        "always": [
+          {
+            "pattern": {
+              "id": "Consent.status"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Consent.dateTime"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Consent.source[x]"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Consent.policy"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Consent.provision"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Consent.category"
+            }
+          }
+        ],
+        "never": [
+          {
+            "pattern": {
+              "id": "Consent.id"
+            },
+            "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
+          },
+          {
+            "pattern": {
+              "id": "Consent.patient"
+            },
+            "note": "is auto preselected for each resource in background"
+          }
+        ]
+      }
+    },
+    "http://hl7.org/fhir/StructureDefinition/Encounter": {
+      "recommend": {
+        "always": [
+          {
+            "pattern": {
+              "id": "Encounter.status"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Encounter.type"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Encounter.class"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Encounter.serviceType"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Encounter.period"
+            },
+            "note": "is auto preselected for each resource in background"
+          }
+        ],
+        "never": [
+          {
+            "pattern": {
+              "id": "Encounter.id"
+            },
+            "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
+          },
+          {
+            "pattern": {
+              "id": "Encounter.subject"
+            },
+            "note": "is auto preselected for each resource in background"
+          }
+        ]
+      }
+    },
+    "http://hl7.org/fhir/StructureDefinition/Medication": {
+      "recommend": {
+        "always": [
+          {
+            "pattern": {
+              "id": "Medication.code"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Medication.ingredient"
+            }
+          }
+        ],
+        "never": [
+          {
+            "pattern": {
+              "id": "Medication.id"
+            },
+            "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
+          }
+        ]
+      }
+    },
+    "http://hl7.org/fhir/StructureDefinition/MedicationAdministration": {
+      "recommend": {
+        "always": [
+          {
+            "pattern": {
+              "id": "MedicationAdministration.status"
+            }
+          },
+          {
+            "pattern": {
+              "id": "MedicationAdministration.medication[x]"
+            },
+            "note": "the reference/link to medication is necessary to identify the Statement, as the code is in the Medication resource"
+          },
+          {
+            "pattern": {
+              "id": "MedicationAdministration.effective[x]"
+            }
+          }
+        ],
+        "never": [
+          {
+            "pattern": {
+              "id": "MedicationAdministration.id"
+            },
+            "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
+          },
+          {
+            "pattern": {
+              "id": "MedicationAdministration.subject"
+            },
+            "note": "is auto preselected for each resource in background"
+          }
+        ]
+      }
+    },
+    "http://hl7.org/fhir/StructureDefinition/MedicationRequest": {
+      "recommend": {
+        "always": [
+          {
+            "pattern": {
+              "id": "MedicationRequest.status"
+            }
+          },
+          {
+            "pattern": {
+              "id": "MedicationRequest.intent"
+            }
+          },
+          {
+            "pattern": {
+              "id": "MedicationRequest.medication[x]"
+            },
+            "note": "the reference/link to medication is necessary to identify the Statement, as the code is in the Medication resource"
+          },
+          {
+            "pattern": {
+              "id": "MedicationRequest.authoredOn"
+            }
+          }
+        ],
+        "never": [
+          {
+            "pattern": {
+              "id": "MedicationRequest.id"
+            },
+            "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
+          },
+          {
+            "pattern": {
+              "id": "MedicationRequest.subject"
+            },
+            "note": "is auto preselected for each resource in background"
+          }
+        ]
+      }
+    },
+    "http://hl7.org/fhir/StructureDefinition/MedicationStatement": {
+      "recommend": {
+        "always": [
+          {
+            "pattern": {
+              "id": "MedicationStatement.status"
+            }
+          },
+          {
+            "pattern": {
+              "id": "MedicationStatement.medication[x]"
+            },
+            "note": "the reference/link to medication is necessary to identify the Statement, as the code is in the Medication resource"
+          },
+          {
+            "pattern": {
+              "id": "MedicationStatement.effective[x]"
+            }
+          }
+        ],
+        "never": [
+          {
+            "pattern": {
+              "id": "MedicationStatement.id"
+            },
+            "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
+          },
+          {
+            "pattern": {
+              "id": "MedicationStatement.subject"
+            },
+            "note": "is auto preselected for each resource in background"
+          }
+        ]
+      }
+    },
+    "http://hl7.org/fhir/StructureDefinition/Observation": {
+      "recommend": {
+        "always": [
+          {
+            "pattern": {
+              "id": "Observation.code"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Observation.effective[x]"
+            },
+            "note": "for most use cases a date is relevant for context"
+          },
+          {
+            "pattern": {
+              "id": "Observation.value[x]"
+            },
+            "note": "value usually part of Observation - each type of value contains the same information -> no further specification necessary"
+          },
+          {
+            "pattern": {
+              "id": "Observation.dataAbsentReason"
+            },
+            "note": "Might change the interpretation of the value -> should be included"
+          },
+          {
+            "pattern": {
+              "id": "Observation.interpretation"
+            },
+            "note": "Interpretation is important as value and reference values can vary between sites for the same Observation value"
+          },
+          {
+            "pattern": {
+              "id": "Observation.referenceRange"
+            },
+            "note": "Part of a standard observation value"
+          }
+        ],
+        "never": [
+          {
+            "pattern": {
+              "id": "Observation.id"
+            },
+            "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
+          },
+          {
+            "pattern": {
+              "id": "Observation.subject"
+            },
+            "note": "is auto preselected for each resource in background"
+          }
+        ]
+      }
+    },
+    "http://hl7.org/fhir/StructureDefinition/Patient": {
+      "include": [
+        {
+          "pattern": {
+            "id": "Patient.address:Strassenanschrift.postalCode"
+          }
+        },
+        {
+          "pattern": {
+            "id": "Patient.address:Strassenanschrift.country"
+          }
+        }
+      ],
+      "exclude": [
+        {
+          "pattern": {
+            "id": "Patient.name"
+          }
+        },
+        {
+          "pattern": {
+            "id": "Patient.location"
+          }
+        },
+        {
+          "pattern": {
+            "id": "Patient.address"
+          }
+        },
+        {
+          "pattern": {
+            "id": "Patient.link"
+          }
+        }
+      ],
+      "recommend": {
+        "always": [
+          {
+            "pattern": {
+              "id": "Patient.deceased[x]"
+            }
+          }
+        ],
+        "never": [
+          {
+            "pattern": {
+              "id": "Patient.id"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Patient.gender"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Patient.birthDate"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Patient.name"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Patient.address"
+            }
+          }
+        ]
+      }
+    },
+    "http://hl7.org/fhir/StructureDefinition/Procedure": {
+      "recommend": {
+        "always": [
+          {
+            "pattern": {
+              "id": "Procedure.status"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Procedure.code"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Procedure.subject"
+            },
+            "note": "is auto preselected for each resource in background"
+          },
+          {
+            "pattern": {
+              "id": "Procedure.performed[x]"
+            },
+            "note": "is auto preselected for each resource in background"
+          },
+          {
+            "pattern": {
+              "id": "Procedure.bodySite"
+            }
+          }
+        ],
+        "never": [
+          {
+            "pattern": {
+              "id": "Procedure.id"
+            },
+            "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
+          },
+          {
+            "pattern": {
+              "id": "Procedure.subject"
+            },
+            "note": "is auto preselected for each resource in background"
+          }
+        ]
+      }
+    },
+    "http://hl7.org/fhir/StructureDefinition/Specimen": {
+      "exclude": [
+        {
+          "pattern": {
+            "id": "Specimen.extension:gehoertZu"
+          }
+        }
+      ],
+      "recommend": {
+        "always": [
+          {
+            "pattern": {
+              "id": "Specimen.type"
+            }
+          },
+          {
+            "pattern": {
+              "id": "Specimen.collection"
+            }
+          }
+        ],
+        "never": [
+          {
+            "pattern": {
+              "id": "Specimen.id"
+            },
+            "note": "is auto preselected for each resource in background - is the technical id - needed to link resources to a patient"
+          },
+          {
+            "pattern": {
+              "id": "Specimen.patient"
+            },
+            "note": "is auto preselected for each resource in background"
+          }
+        ]
+      }
+    }
+  }
+}

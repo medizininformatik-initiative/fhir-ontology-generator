@@ -10,6 +10,9 @@ dependencies = [
     "common>=5"
 ]
 
+[project.scripts]
+generate-feature-selection = "dataportal_generator.feature_selection.scripts.generate_feature_selection:main"
+
 [dependency-groups]
 dev = [
     { include-group = "lint" },

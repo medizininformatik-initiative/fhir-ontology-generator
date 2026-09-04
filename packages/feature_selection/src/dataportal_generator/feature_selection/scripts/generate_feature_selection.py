@@ -1,5 +1,4 @@
 import argparse
-import collections
 import json
 import os
 from collections.abc import Mapping
@@ -8,7 +7,6 @@ from urllib.parse import urlparse
 
 from dataportal_generator.common.log.functions import get_logger
 from dataportal_generator.common.model.project import Project
-from dataportal_generator.common.model.terminology import TermCode
 from dataportal_generator.common.util.http.exceptions import ClientError
 from dataportal_generator.common.util.http.terminology.client import (
     FhirTerminologyClient,
@@ -25,11 +23,7 @@ from dataportal_generator.feature_selection.model.profile_detail import (
 )
 from dataportal_generator.feature_selection.model.profile_tree import ProfileTreeTA
 
-from cohort_selection_ontology.core.terminology.client import (
-    CohortSelectionTerminologyClient,
-    remove_non_direct_ancestors,
-)
-from cohort_selection_ontology.model.tree_map import TermEntryNode, TreeMap
+from dataportal_generator.common.model.terminology import TreeMap
 
 _logger = get_logger(__file__)
 
@@ -191,60 +185,6 @@ def extract_concepts_from_value_set(
             )
 
 
-def generate_cs_tree_map(
-    system: str, version: str | None, concepts: set, project: Project
-) -> TreeMap:
-    _logger.debug("Initializing closure table")
-    client = CohortSelectionTerminologyClient(project)
-
-    closure_name = client.create_concept_map()
-    _logger.debug(f"Created closure table [name='{closure_name}']")
-    term_codes = [TermCode(system=system, code=t[0], display=t[1], version=version) for t in concepts]
-    treemap: TreeMap = TreeMap({}, None, system, version)
-    treemap.entries = {
-        term_code.code: TermEntryNode(term_code=term_code) for term_code in term_codes
-    }
-    _logger.debug("Building closure table")
-    try:
-        closure_map = client.get_closure_map(term_codes, closure_name)
-        if groups := closure_map.group:
-            if len(groups) > 1:
-                raise NotImplementedError(
-                    "Multiple groups in closure map. Currently not supported."
-                )
-            _logger.debug("Building tree map")
-            for group in groups:
-                mapping = group.element
-                subsumption_map = collections.defaultdict(list)  # Dict of lists
-                for item in mapping:
-                    for target in item.target:
-                        if target.code is not None:
-                            subsumption_map[item.code].append(target.code)
-                        else:
-                            _logger.warning(
-                                f"Coding [system={group.source}, code={item.code}] "
-                                f"has no target coding for system '{group.target}' and will not be "
-                                f"added [equivalence={target.equivalence}, "
-                                f"comment='{target.comment}']"
-                            )
-                # subsumption_map = {item['code']: [target['code'] for target in item['target']] for item in
-                #                   subsumption_map if 'code' in item}
-                for parents in subsumption_map.values():
-                    remove_non_direct_ancestors(parents, subsumption_map)
-                for (
-                    node,
-                    parents,
-                ) in subsumption_map.items():
-                    treemap.entries[node].parents += parents
-                    for parent in parents:
-                        treemap.entries[parent].children.append(node)
-    except Exception as e:
-        _logger.error(e)
-        _logger.debug("Traceback:\n", exc_info=e)
-
-    return treemap
-
-
 def generate_dse_mapping_trees(
     vs_dir_path: str | os.PathLike, project: Project
 ) -> list[TreeMap]:
@@ -288,9 +228,9 @@ def generate_dse_mapping_trees(
     tree_maps = []
     for system, version_map in code_systems.items():
         for version, concept_set in version_map.items():
-            _logger.info(f"Generating tree map [system='{system}',version='{version}']")
+            _logger.info(f"Generating tree map '{system}{('|' + version) if version else version}']")
             tree_maps.append(
-                generate_cs_tree_map(system, version, concept_set, project)
+                project.terminology_src.closure_map(system, version, concept_set)
             )
 
     return tree_maps
@@ -309,44 +249,22 @@ if __name__ == "__main__":
         module_config = json.load(f)
 
     module_translation = module_config.get("module_translation")
-    module_order = module_config.get("module_order")
-    reference_resolve_base_url = module_config.get("reference_resolve_base_url")
 
-    with open(dse_input_dir / "excluded-dirs.json", mode="r", encoding="utf-8") as f:
-        excluded_dirs = json.load(f)
-
-    with open(
-        dse_input_dir / "excluded-profiles.json", mode="r", encoding="utf-8"
-    ) as f:
-        excluded_profiles = json.load(f)
-
-    packages_dir = dse_input_dir / "dependencies"
-    snapshots_dir = dse_input_dir / "snapshots"
     # .extension cant be removed
     with (project.input.dse / "field_config.json").open(
         mode="r", encoding="utf-8"
     ) as f:
         fields_config = FieldsConfig.model_validate_json(f.read())
-    fields_to_exclude = ["meta", "id", "modifierExtension", "name", "address"]
-    field_trees_to_exclude = [
-        "Patient.name",
-        "Patient.location",
-        "Patient.identifier",
-        "Patient.address",
-        "Patient.link",
-    ]
+    #fields_to_exclude = ["meta", "id", "modifierExtension", "name", "address"]
+    #field_trees_to_exclude = [
+    #    "Patient.name",
+    #    "Patient.location",
+    #    "Patient.identifier",
+    #    "Patient.address",
+    #    "Patient.link",
+    #]
 
-    tree_generator = ProfileTreeGenerator(
-        packages_dir=packages_dir,
-        snapshots_dir=snapshots_dir,
-        excluded_dirs=excluded_dirs,
-        excluded_profiles=excluded_profiles,
-        module_order=module_order,
-        module_translation=module_translation,
-        fields_config=fields_config,
-        profiles_to_process=args.profiles,
-        project=project,
-    )
+    tree_generator = ProfileTreeGenerator(project=project)
 
     _logger.info("Generating profile tree")
     _logger.info("Generating profile tree nodes")
@@ -360,19 +278,14 @@ if __name__ == "__main__":
     ) as f:
         mapping_type_code = json.load(f)
 
-    blacklisted_value_sets = ["http://hl7.org/fhir/ValueSet/observation-codes"]
-
     if args.generate_profile_details:
         _logger.info("Loading fields config")
 
         profiles = tree_generator.profiles
         profile_detail_generator = ProfileDetailGenerator(
             project=project,
-            profiles=profiles,
             mapping_type_code=mapping_type_code,
-            blacklisted_value_sets=blacklisted_value_sets,
             fields_config=fields_config,
-            reference_base_url=reference_resolve_base_url,
             module_translation=module_translation,
         )
 

@@ -2,6 +2,7 @@ import re
 from operator import contains
 
 from dataportal_generator.common.log.functions import get_logger
+
 from dataportal_generator.feature_selection.model.profile_tree import ProfileTreeNode
 
 logger = get_logger(__file__)

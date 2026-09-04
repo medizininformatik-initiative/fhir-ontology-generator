@@ -1,8 +1,11 @@
 from collections.abc import Iterator
 
-from common.model.fhir.nav_structure_definition import NavStructureDefinition
 from dataportal_generator.common.log.functions import get_logger
+from dataportal_generator.common.model.fhir.nav_structure_definition import (
+    NavStructureDefinition,
+)
 from dataportal_generator.common.model.project import Project
+
 from dataportal_generator.feature_selection.core.exceptions import (
     ProfileTreeNodeGenerationException,
 )

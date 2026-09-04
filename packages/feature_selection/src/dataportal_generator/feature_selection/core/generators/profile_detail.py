@@ -1,7 +1,5 @@
 import json
 import re
-from collections.abc import Mapping
-from typing import Any
 
 import cachetools
 from common.constants.fhir import FHIR_PRIMITIVES
@@ -19,6 +17,7 @@ from dataportal_generator.common.model.fhir.nav_structure_definition import (
     NavStructureDefinition,
 )
 from dataportal_generator.common.model.project import Project
+from dataportal_generator.feature_selection.config.fields import FieldConfig
 from dataportal_generator.feature_selection.core.exceptions import (
     ProfileDetailFieldGenerationException,
     ProfileDetailGenerationException,
@@ -36,15 +35,14 @@ from cohort_selection_ontology.model.ui_data import (
     Translation,
     TranslationDisplayElement,
 )
-from data_selection_extraction.config.profile_detail import FieldsConfig
-from data_selection_extraction.model.detail import (
+from dataportal_generator.feature_selection.model.profile_detail import (
     FieldDetail,
     Filter,
     ProfileDetail,
     ProfileReference,
     ReferenceDetail,
 )
-from data_selection_extraction.model.profile_tree import ProfileTreeNode
+from dataportal_generator.feature_selection.model.profile_tree import ProfileTreeNode
 
 _logger = get_logger(__file__)
 
@@ -145,41 +143,23 @@ def _get_profile_title_display(
 
 
 class ProfileDetailGenerator:
-    blacklisted_values_sets: list[str]
-    profiles: Mapping[str, Mapping[str, Mapping[str, Any]]]
-    mapping_type_code: Mapping[str, dict]
-    fields_config: FieldsConfig
-    reference_base_url: str
-
     def __init__(
         self,
         project: Project,
-        profiles,
+        field_config: FieldConfig,
         mapping_type_code,
-        blacklisted_value_sets,
-        fields_config: FieldsConfig,
-        reference_base_url,
         module_translation,
     ):
         """
         Generate details for all given profiles
         :param project: project for which the details should be generated
-        :param profiles: list of profiles for which the details should be generated.
-            It should receive tree_generator.profiles
+        :param field_config: `FieldConfig` object describing what fields
         :param mapping_type_code: Mapping of FHIR resource types to their code FHIRPath filters
-        :param blacklisted_value_sets: list of valueSet-urls which should not be used
-        :param fields_config: `FieldsConfig` object describing what fields
-        :param reference_base_url: base url for resolving references for non fhir packages
         :param module_translation: mapping containing translation of module names
         """
         self.__project = project
-        self.blacklisted_value_sets = blacklisted_value_sets
-        self.profiles = profiles
-        # Prevents having to generate the mapping over and over again
-        self.__all_profiles = self.__get_profiles()
+        self.fields_config = field_config
         self.mapping_type_code = mapping_type_code
-        self.fields_config = fields_config
-        self.reference_base_url = reference_base_url
         self.module_translation = module_translation
 
         self.__included_struct_defs = {

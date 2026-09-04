@@ -11,6 +11,10 @@ path = "package-tarballs"
 timeout = "PT30S"
 backoff_factor = 1
 
+[terminology_source]
+base_url = "https://ontoserver.mii-termserv.de/fhir"
+ssl = { public = "path/to/public.key", private = "path/to/private.key" }
+
 [profiles]
 include = [
   { package = { name = "de.gematik.isik-basismodul", version = "4.0.3" } },
