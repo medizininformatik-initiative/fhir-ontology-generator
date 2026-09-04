@@ -1,7 +1,6 @@
 from collections.abc import Mapping
 from functools import cached_property
 
-import cachetools
 from fhir.resources.R4B.elementdefinition import ElementDefinition, ElementDefinitionType
 from pydantic import Field, PrivateAttr
 

@@ -11,6 +11,7 @@ import yaml
 from pydantic import BaseModel, Field, ValidationError, computed_field
 from yaml import Loader
 
+from common.terminology import TerminologySource
 from dataportal_generator.common.config.project import ProjectConfig
 from dataportal_generator.common.fhir.package_manager import (
     FhirPackageManager,
@@ -231,3 +232,18 @@ class Project(ProjectDir):
             )
             if any(f.match(pkg, res) for f in self.config.profiles.include)
         ]
+
+    @cached_property
+    def terminology_src(self) -> TerminologySource:
+        """
+        Returns a ``TerminologySource`` instance for the project, which can be used to access the terminology server
+        configured for the project.
+
+        :return: ``TerminologySource`` instance
+        """
+        term_src_conf = self.config.terminology_source
+        if ssl_conf := term_src_conf.ssl:
+            cert = (ssl_conf.public, ssl_conf.private)
+        else:
+            cert = None
+        return TerminologySource(term_src_conf.base_url.serialize_url(), cert=cert)

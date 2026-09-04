@@ -7,10 +7,11 @@ from pydantic import (
     Field,
     ValidationError,
     field_validator,
-    model_validator,
+    model_validator, HttpUrl,
 )
 from pydantic_core import InitErrorDetails
 
+from common.config.http import SSLConfig
 from dataportal_generator.common.config.profiles import ProfilesConfig
 from dataportal_generator.common.log.functions import get_logger
 
@@ -104,6 +105,17 @@ class HTTPConfig(BaseModel):
         return value
 
 
+class TerminologySourceConfig(BaseModel):
+    base_url: HttpUrl = Field(frozen=True, description="Base URL for the terminology server")
+    ssl: SSLConfig | None = Field(default=None, frozen=True, description="(Optional) public/private key pair for SSL "
+                                                                         "client authentication")
+
+    @classmethod
+    @field_validator("base_url", mode="before")
+    def _ensure_trailing_slash(cls, val: str) -> str:
+        return val if val.endswith("/") else val + "/"
+
+
 class ProjectConfig(BaseModel):
     model_config = ConfigDict(
         extra="allow"
@@ -134,6 +146,14 @@ class ProjectConfig(BaseModel):
             description="Configuration options determining what FHIR StructureDefinitions are used by the generator. "
                         "Note that some components might still use FHIR StructureDefinitions from outside this scope "
                         "that are in the package cache if for instance an included profile reference them etc."
+        )
+    ]
+    terminology_source: Annotated[
+        TerminologySourceConfig,
+        Field(
+            frozen=True,
+            description="Configuration options related to the terminology data source, most likely a FHIR terminology "
+                        "server",
         )
     ]
 
