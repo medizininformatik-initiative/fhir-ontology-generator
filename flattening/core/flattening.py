@@ -9,17 +9,18 @@ from fhir.resources.R4B.structuredefinition import StructureDefinition
 from availability.constants.fhir import (
     FLATTENING_PACKAGE_PATTERN,
 )
-from common.exceptions import NotFoundError
+from common.model.fhir.nav_element_definition import NavElementDefinition
 from common.model.fhir.structure_definition import StructureDefinitionSnapshot
 from common.util.collections.functions import first
 from common.util.fhir.package.manager import FhirPackageManager
-from common.util.fhirpath.functions import filter_for_slice
-from common.util.http.exceptions import ClientError
+from common.util.fhirpath.functions import (
+    fhirpath_filter_for_slice,
+    fhirpath_filter_from_value_discriminated_elem_def,
+)
 from common.util.http.terminology.client import FhirTerminologyClient
 from common.util.log.functions import get_logger
 from common.util.structure_definition.functions import (
     get_available_slices,
-    get_parent_element,
     get_parent_element_id,
 )
 from flattening import DEFAULT_CONFIG
@@ -154,8 +155,7 @@ def is_polymorphic(element: ElementDefinition) -> bool:
     :return: true if polymorphic
     """
     return (
-        element.type is not None
-        and "[x]" in element.id.split(".")[-1]
+        element.type is not None and "[x]" in element.id.split(".")[-1]
         # len > 1 does not apply as there are polymorphic elements with only one defined type
         # Laboruntersuchung.effective[x]
         # and len(element.type) > 1
@@ -221,6 +221,9 @@ def recontextualize_extension_lookup(
     """
     res_lookup = {}
 
+    if not ext_lookup:
+        return {}
+
     for key, lookup in ext_lookup.items():
         new_key = key.replace("Extension", element_id)
         new_lookup = lookup.model_copy(deep=True)
@@ -257,25 +260,67 @@ def recontextualize_extension_lookup(
             new_lookup.parent = lookup.parent.replace("Extension", element_id)
         else:
             new_lookup.parent = check_if_root(
-                get_parent_element_id(element_id), profile
+                element_id, profile
             )
         res_lookup[new_key] = new_lookup
 
     return res_lookup
 
 
+def flattening_get_parent(
+    flat_element_id: str, lookup_elements: Dict[str, FlatteningLookupElement]
+):
+    return next(
+        (k for k, v in lookup_elements.items() if flat_element_id in v.children),
+        None,
+    )
+
+
 def flattening_post_process(
     lookup_elements: Dict[str, FlatteningLookupElement],
 ) -> Dict[str, FlatteningLookupElement]:
     """
-    Applies postprocessing to give lookup:
-        1. Removes empty children arrays
-        2. Removes references to non-existing children
-        3. Sorts entries by index to enable easy comparison between versions
+    Applies postprocessing:
+        1. Prunes leafless branches
+        2. Removes elements and branches with "resolve()" in forEachOrNull as it's not supported
+        3. Removes empty children arrays
+        4. Removes references to non-existing children
+        5. Sorts entries by index to enable easy comparison between versions
     :param lookup_elements: Generated Lookup
     :return: Post processed lookup
     """
+    # 1 Prunes leafless branches and 2 Removes elements and branches with "resolve()"
+    for key in reversed(list(lookup_elements.keys())):
+        el: FlatteningLookupElement = lookup_elements.get(key)
+        if not el:
+            continue
+
+        if is_leafless_branch_root(key, lookup_elements) or (
+            el.view_definition
+            and el.view_definition.for_each_or_null
+            and "resolve()" in el.view_definition.for_each_or_null
+        ):
+            # remove itself and all children
+            for child_id in el.children:
+                lookup_elements.pop(child_id)
+
+            lookup_elements.pop(key)
+
+            # delete upward until parent is root or without any valid children
+            parent_key: str = key
+            while (
+                parent_key := flattening_get_parent(parent_key, lookup_elements)
+            ) and len(
+                [
+                    sibling_id
+                    for sibling_id in lookup_elements.get(parent_key).children
+                    if lookup_elements.get(sibling_id)
+                ]
+            ) == 0:
+                lookup_elements.pop(parent_key)
+
     res = lookup_elements
+    # 3 Remove empty children arrays and 4 remove refs to invalid children
     for key, el in lookup_elements.items():
         el: FlatteningLookupElement
         new_el = el.model_copy(deep=True)
@@ -287,7 +332,85 @@ def flattening_post_process(
 
         res[key] = new_el
 
+    # 5 Sorting by index
     return dict(sorted(res.items(), key=lambda item: item[0]))
+
+
+def is_leafless_branch_root(
+    element_id: str, lookup: Dict[str, FlatteningLookupElement]
+) -> bool:
+    """
+    LookupElement determined by ``element_id`` is *not* root of a
+    leafless branch if any of following conditions apply:
+        1. has at least one valid child
+        2. has column definition
+        3. has select which contains column definition (example below)
+    :param element_id: id of the element, root of the lookup
+    :param lookup: flatteningLookup with element_id at root
+    :return: {} is of correct structure
+    """
+    lookup_element: FlatteningLookupElement | None = lookup.get(element_id)
+    if not lookup_element:
+        return False
+
+    # if at least one referenced children exists
+    if lookup_element.children:
+        for child_id in lookup_element.children:
+            if lookup.get(child_id):
+                return False
+
+    # if lookupElement has columns
+    if  lookup_element.view_definition.column:
+        return False
+
+    # if non-empty select already carries its own content
+    # (e.g. columns wrapped for a polymorphic child like `value[x]:valueCoding`)
+    if lookup_element.view_definition and lookup_element.view_definition.select:
+        return False
+
+    return True
+
+
+def prune_leafless_branches(
+    element_id: str, lookup: Dict[str, FlatteningLookupElement]
+) -> Dict[str, FlatteningLookupElement]:
+    """
+    By using this function after each flattening function, deletion of leafless branches propagate up the tree
+    leaving no flatteningLookup branches without any valid leafs
+
+    LookupElement determined by ``element_id`` is *not* root of a
+    leafless branch if any of following conditions apply:
+        1. has at least one valid child
+        2. has column definition
+        3. has select which contains column definition (example below)
+    :param element_id: id of the element, root of the lookup
+    :param lookup: flatteningLookup with element_id at root
+    :return: {} is of correct structure
+    """
+    lookup_element: FlatteningLookupElement | None = lookup.get(element_id)
+    if not lookup_element:
+        return {}
+
+    # if at least one referenced children exists
+    if lookup_element.children:
+        for child_id in lookup_element.children:
+            if lookup.get(child_id):
+                return lookup
+        return {}
+
+    if not lookup_element.view_definition:
+        return {}
+
+    # if non-empty select already carries its own content
+    # (e.g. columns wrapped for a polymorphic child like `value[x]:valueCoding`)
+    if lookup_element.view_definition.select:
+        return lookup
+
+    # if lookupElement has columns
+    if lookup_element.view_definition.column is not None:
+        return lookup
+
+    return {}
 
 
 class FlatteningLookupGenerator:
@@ -349,120 +472,61 @@ class FlatteningLookupGenerator:
             for child_spec in self.config.required_children_per_element.get(type, [])
         ]
 
-    def _extract_where_clause_for_slice(
-        self, element: ElementDefinition, profile: StructureDefinitionSnapshot
-    ) -> str | None:
+    def _remove_subtree(
+        self, element_id: str, lookup: Dict[str, FlatteningLookupElement]
+    ) -> None:
         """
-        Extract codesystem for given element.
-            1. Extract from Pattern
-            2. Binding
-            3. coding:slice.system.fixedUri
-        :param element: ElementDefinition defining the element from which the codeSystem should be extracted
-        :param profile: profile of element
-        :return: codesystem url or None
+        Removes `element_id` and everything beneath it (its own `children`, recursively) from `lookup` in place
         """
-        code_system_el = profile.get_element_by_id(f"{element.id}.system")
-        if element.patternCoding or (code_system_el and code_system_el.patternUri):
-            return (
-                f"system = '{code_system_el.patternUri}'"
-                if code_system_el and code_system_el.patternUri
-                else f"system = '{element.patternCoding.system}'"
-            )
+        el = lookup.pop(element_id, None)
+        if el:
+            for child_id in el.children or []:
+                self._remove_subtree(child_id, lookup)
 
-        elif element.binding:
-            binding_url = element.binding.valueSet
-            if not self.client:
+    def _drop_indistinguishable_siblings(
+        self,
+        sibling_ids: List[str],
+        lookup: Dict[str, FlatteningLookupElement],
+        profile: StructureDefinitionSnapshot,
+    ) -> List[str]:
+        """
+        Detects slices among `sibling_ids` (each already flattened into its own top-level entry in `lookup`) whose
+        resulting ``for_each_or_null`` is identical to another sibling's. This happens when discriminator filter
+        generation "succeeds" for each slice individually but still can't actually tell them apart -- e.g. two
+        slices that both fall back to the same weak, non-required binding since neither has anything more
+        specific. Every slice in such a group is dropped (subtree and all) the same way an outright-failed
+        discriminator is, since keeping any of them would silently mix data from multiple slices under one column
+
+        :param sibling_ids: element IDs of the sibling slices to check
+        :param lookup: accumulated lookup, updated in place to remove colliding siblings
+        :param profile: Profile the siblings belong to, used to pick the log level
+        :return: `sibling_ids` with the colliding ones removed
+        """
+        by_for_each: Dict[str, List[str]] = {}
+        for sid in sibling_ids:
+            el = lookup.get(sid)
+            for_each = (
+                el.view_definition.for_each_or_null
+                if el and el.view_definition
+                else None
+            )
+            if for_each is not None:
+                by_for_each.setdefault(for_each, []).append(sid)
+
+        dropped = set()
+        for for_each, ids in by_for_each.items():
+            if len(ids) > 1:
                 _logger.error(
-                    f"No client provided. Without a FHIR client no binding can be extracted "
-                    f"=> defaulting to generic flattening"
-                    f"{element.id}: {binding_url}"
+                    profile,
+                    f"Slices {ids} in profile '{profile.url}' all resolve to the identical FHIRPath filter "
+                    f"'{for_each}' => nothing distinguishes them, dropping all of them",
                 )
-                return None
+                dropped.update(ids)
 
-            try:
-                value_set = self.client.expand_value_set(url=binding_url)
+        for sid in dropped:
+            self._remove_subtree(sid, lookup)
 
-                used_codes = [
-                    code.get("code")
-                    for code in value_set.get("expansion").get("contains")
-                ]
-                where_clause = " or ".join(f"code = '{code}'" for code in used_codes)
-                return where_clause
-            except ClientError as e:
-                _logger.error(f"Could not expand valueSet: {binding_url} \n{e}")
-
-        elif (
-            system_el := profile.get_element_by_id(f"{element.id}.system")
-        ) and system_el.fixedUri:
-            return f"system = '{system_el.fixedUri}'"
-
-        return None
-
-    def _extract_where_clause_for_slice_by_discriminator(
-        self, slice_element: ElementDefinition, profile: StructureDefinitionSnapshot
-    ) -> str | None:
-        try:
-            return filter_for_slice(
-                "$this",
-                slice_element,
-                profile,
-                self.package_manager,
-                FLATTENING_PACKAGE_PATTERN,
-            )
-        except NotFoundError as err:
-            _logger.warning(
-                f"Could not extract discriminator filter for {slice_element.id} "
-                f"=> defaulting to generic flattening. {err}"
-            )
-            return None
-
-    def _extract_code_system_for_identifier(
-        self, element: ElementDefinition, profile: StructureDefinitionSnapshot
-    ) -> str | None:
-        """
-        Attempts to extract code system of identifier slice from patterUri and fixedUri
-        :param element: ID of the element which represents the slice of the identifier for which the code system should be extracted
-        :param profile: profile containing element definition
-        :return: codesystem url or None
-        """
-
-        if element is None:
-            return None
-
-        if system_el := profile.get_element_by_id(f"{element.id}.system"):
-            if system_el.fixedUri:
-                return f"type.coding.system = '{system_el.fixedUri}'"
-            if system_el.patternUri:
-                return f"type.coding.system = '{system_el.patternUri}'"
-
-        if element.patternIdentifier:
-            if (
-                element.patternIdentifier.type
-                and element.patternIdentifier.type.coding
-                and element.patternIdentifier.type.coding[0].system
-            ):
-                return f"type.coding.system = '{element.patternIdentifier.type.coding[0].system}'"
-            if element.patternIdentifier.system:
-                return f"type.coding.system = '{element.patternIdentifier.system}'"
-        if element.sliceName and profile.get_element_by_id(f"{element.id}.type.coding"):
-            where_clause = self._extract_where_clause_for_slice(
-                profile.get_element_by_id(f"{element.id}.type.coding"), profile
-            )
-            if where_clause:
-                return where_clause
-
-        if (
-            element.type
-            and (type_el := profile.get_element_by_id(f"{element.id}.type"))
-            and type_el.patternCodeableConcept
-            and type_el.patternCodeableConcept.coding
-            and len(type_el.patternCodeableConcept.coding) > 0
-            and type_el.patternCodeableConcept.coding[0].system
-        ):
-            # edge case from Observation.identifier from profile: https://simplifier.net/mii-basismodul-labor-2025/mii_pr_labor_laboruntersuchung
-            return f"type.coding.system = '{type_el.patternCodeableConcept.coding[0].system}'"
-
-        return None
+        return [sid for sid in sibling_ids if sid not in dropped]
 
     def _render_generic_coding_columns(
         self, element_id: str
@@ -518,12 +582,13 @@ class FlatteningLookupGenerator:
             )
 
             flat_element.view_definition = ViewDefinitionSnippet(
-                for_each_or_null=element_id.split(".")[-1],
+                for_each_or_null=element_id.split(".")[-1].split(":")[0],
                 column=self._render_generic_coding_columns(element_id),
             )
             return {element_id: flat_element}
 
         else:
+            element: NavElementDefinition
             flat_element = FlatteningLookupElement(
                 parent=check_if_root(
                     (
@@ -535,24 +600,33 @@ class FlatteningLookupGenerator:
                 )
             )
             # columns based on the extracted code_system
-            if where_clause := self._extract_where_clause_for_slice(element, profile):
+            where_clause = None
+            if element.sliceName:
+                try:
+                    where_clause = fhirpath_filter_for_slice(
+                        element, manager=self.package_manager, client=self.client
+                    )
+                except Exception as err:
+                    _logger.error(
+                        f"Could not extract discriminator filter for '{element.id}' in profile "
+                        f"'{profile.url}' (status={profile.status}) => dropping slice. {err}",
+                    )
+                    return {}
+
+            if element.sliceName and where_clause:
                 flat_element.view_definition = ViewDefinitionSnippet(
-                    for_each_or_null=f"{element.path.split('.')[-1]}.where({where_clause})",
+                    for_each_or_null=f"{element.path.split('.')[-1]}.{where_clause}",
                     select=[],
                 )
 
-                flat_element.children = [
-                    el.id
-                    for el in profile.snapshot.element
-                    if element.id in el.id
-                    and get_parent_element(profile, el).id == element.id
-                    and el.id.split(".")[-1]
-                    in [
-                        child_spec.id
-                        for child_spec in self.config.required_children_per_element.get(
-                            "Coding", []
-                        )
-                    ]
+                required_child_ids = {
+                    child_spec.id
+                    for child_spec in self.config.required_children_per_element.get(
+                        "Coding", []
+                    )
+                }
+                children: List[str] = [
+                    el.id for el in element.elements if el.rel_id in required_child_ids
                 ]
 
                 clean_kwargs = {
@@ -561,12 +635,12 @@ class FlatteningLookupGenerator:
                     if k not in ["type", "polymorphic_child"]
                 }
                 lookup = {}
-                for child in flat_element.children:
-                    lookup.update(
-                        self._flatten_element(
-                            element_id=child, profile=profile, **clean_kwargs
-                        )
-                    )
+                for child_id in children:
+                    if el := self._flatten_element(
+                        element_id=child_id, profile=profile, **clean_kwargs
+                    ):
+                        flat_element.children.append(child_id)
+                        lookup.update(el)
 
                 for child_spec in self.config.required_children_per_element.get(
                     "Coding", []
@@ -574,14 +648,13 @@ class FlatteningLookupGenerator:
                     # filter for duplicates with .children
                     full_child_id = f"{element_id}.{child_spec.id}"
                     if full_child_id not in flat_element.children:
-                        flat_element.children.append(full_child_id)
-                        lookup.update(
-                            self._flatten_primitive(
-                                element_id=full_child_id,
-                                profile=profile,
-                                type=child_spec.type,
-                            )
-                        )
+                        if el := self._flatten_primitive(
+                            element_id=full_child_id,
+                            profile=profile,
+                            type=child_spec.type,
+                        ):
+                            flat_element.children.append(full_child_id)
+                            lookup.update(el)
 
                 lookup.update({element.id: flat_element})
 
@@ -592,7 +665,7 @@ class FlatteningLookupGenerator:
                 )
 
                 flat_element.view_definition = ViewDefinitionSnippet(
-                    for_each_or_null=element.id.split(".")[-1],
+                    for_each_or_null=element.path.split(".")[-1],
                     column=self._render_generic_coding_columns(element_id),
                 )
 
@@ -606,6 +679,7 @@ class FlatteningLookupGenerator:
     ) -> Dict[str, FlatteningLookupElement]:
         """
         Function to flatten a backboneElement. This element does not hold any information itself, but the children do.
+        Prunes itself if none of its children/slices produced anything.
         :param element_id: ID of element definition defining ``BackboneElement-typed`` element
         :param profile: profile of backboneElement
         :param kwargs: kwargs passing through things like the profile manager and the terminology client
@@ -616,7 +690,7 @@ class FlatteningLookupGenerator:
         flat_backbone = FlatteningLookupElement(
             parent=check_if_root(get_parent_element_id(element_id), profile),
             view_definition=ViewDefinitionSnippet(
-                for_each_or_null=element_id.split(".")[-1], select=[]
+                for_each_or_null=element_id.split(".")[-1].split(":")[0], select=[]
             ),
         )
 
@@ -624,7 +698,7 @@ class FlatteningLookupGenerator:
         # if backbone slices are available =>  flatten only slices
         # (flatten Obs.component:meanBP.value[x] and ignore Obs.component.value[x])
         if element and element.slicing:
-            list_of_children_slices = [
+            candidate_slices = [
                 slice_def.id
                 for slice_def in get_available_slices(element_id, profile)
                 if slice_def
@@ -633,39 +707,42 @@ class FlatteningLookupGenerator:
                 and "BackboneElement" in slice_def.type[0].code
             ]
 
-            flat_backbone.children = list_of_children_slices
-
-            for child in list_of_children_slices:
-                child: str
-                lookup.update(
-                    self._flatten_element(
-                        element_id=child,
-                        profile=profile,
-                        **clean_kwargs,
-                    )
-                )
+            for child in candidate_slices:
+                if el := self._flatten_element(
+                    element_id=child,
+                    profile=profile,
+                    **clean_kwargs,
+                ):
+                    lookup.update(el)
+                    flat_backbone.children.append(child)
+            flat_backbone.children = self._drop_indistinguishable_siblings(
+                flat_backbone.children, lookup, profile
+            )
         else:
             if element and element.sliceName:
                 # if slice name is available => for each needs to have where clause
-                if expr := self._extract_where_clause_for_slice_by_discriminator(
-                    element, profile
-                ):
-                    flat_backbone.view_definition = ViewDefinitionSnippet(
-                        for_each_or_null=f"{expr}",
-                        select=[],
+                try:
+                    expr = f"$this.{fhirpath_filter_for_slice(element, manager=self.package_manager, client=self.client)}"
+                except Exception as err:
+                    _logger.error(
+                        f"Could not extract discriminator filter for '{element.id}' in profile "
+                        f"'{profile.url}' (status={profile.status}) => dropping slice. {err}",
                     )
-
-            flat_backbone.children = get_direct_children_ids(element_id, profile)
-
-            for child in flat_backbone.children:
-                lookup.update(
-                    self._flatten_element(
-                        element_id=child, profile=profile, **clean_kwargs
-                    )
+                    return {}
+                flat_backbone.view_definition = ViewDefinitionSnippet(
+                    for_each_or_null=f"{expr}",
+                    select=[],
                 )
 
+            for child in get_direct_children_ids(element_id, profile):
+                if el := self._flatten_element(
+                    element_id=child, profile=profile, **clean_kwargs
+                ):
+                    lookup.update(el)
+                    flat_backbone.children.append(child)
+
         lookup.update({element_id: flat_backbone})
-        return lookup
+        return prune_leafless_branches(element_id, lookup)
 
     def _flatten_generic_complex_element(
         self,
@@ -678,6 +755,7 @@ class FlatteningLookupGenerator:
         This function flattens complex datatypes in a generic way. All types flattened should not contain any information
         themselves, but rather, similar to the backboneElements, the children contain all information.
         Also required children are checked (Period needs ".start" and ".end" to be flattened properly)
+        Prunes itself if none of its required children produced anything.
         :param element_id: ID of element definition defining a generic complex-typed element
         :param profile: StructureDefinition of profile of element
         :param type: type of the element, to check for required children (specified explicitly when flattening a 'pseudo' element)
@@ -693,7 +771,7 @@ class FlatteningLookupGenerator:
         )
 
         flat_generic_complex.view_definition = ViewDefinitionSnippet(
-            for_each_or_null=element_id.split(".")[-1], select=[]
+            for_each_or_null=element_id.split(".")[-1].split(":")[0], select=[]
         )
 
         clean_kwargs = {k: v for k, v in kwargs.items() if k != "polymorphic_child"}
@@ -701,8 +779,11 @@ class FlatteningLookupGenerator:
         lookup = {}
 
         required_children = []
+        is_slicing_case = bool(
+            element and element.slicing and not is_polymorphic(element)
+        )
         # add the defined required primitive children if element has no slicing
-        if element and element.slicing and not is_polymorphic(element):
+        if is_slicing_case:
             list_of_children_slices = [
                 slice_def.id
                 for slice_def in get_available_slices(element_id, profile)
@@ -715,15 +796,17 @@ class FlatteningLookupGenerator:
             for slice_id in list_of_children_slices:
                 required_children.append((slice_id, element_type, [], False))
         else:
-            if (
-                element
-                and element.sliceName
-                and (
-                    expr := self._extract_where_clause_for_slice_by_discriminator(
-                        slice_element=element, profile=profile
+            expr = None
+            if element and element.sliceName:
+                try:
+                    expr = f"$this.{fhirpath_filter_for_slice(element, manager=self.package_manager, client=self.client)}"
+                except Exception as err:
+                    _logger.error(
+                        f"Could not extract discriminator filter for '{element.id}' in profile "
+                        f"'{profile.url}' (status={profile.status}) => dropping slice. {err}",
                     )
-                )
-            ):
+                    return {}
+            if expr:
                 flat_generic_complex.view_definition = ViewDefinitionSnippet(
                     for_each_or_null=f"{expr}",
                     select=[],
@@ -732,40 +815,45 @@ class FlatteningLookupGenerator:
                 element_id, element_type
             )
 
+        flat_generic_complex.children = []
         for child_id, child_type, polymorph_types, max_card in required_children:
-            flat_generic_complex.children.append(child_id)
             if child_type == "Polymorphic" and polymorph_types:
-                lookup.update(
-                    self._flatten_polymorphic(
-                        element_id=child_id,
-                        profile=profile,
-                        type=child_type,
-                        required_types=polymorph_types,
-                        **clean_kwargs,
-                    )
-                )
+                if el := self._flatten_polymorphic(
+                    element_id=child_id,
+                    profile=profile,
+                    type=child_type,
+                    required_types=polymorph_types,
+                    **clean_kwargs,
+                ):
+                    flat_generic_complex.children.append(child_id)
+                    lookup.update(el)
             elif child_type in FHIR_PRIMITIVES:
-                lookup.update(
-                    self._flatten_primitive(
-                        element_id=child_id,
-                        profile=profile,
-                        type=child_type,
-                        max_cardinality_multiple=max_card,
-                        **clean_kwargs,
-                    )
-                )
+                if el := self._flatten_primitive(
+                    element_id=child_id,
+                    profile=profile,
+                    type=child_type,
+                    max_cardinality_multiple=max_card,
+                    **clean_kwargs,
+                ):
+                    lookup.update(el)
+                    flat_generic_complex.children.append(child_id)
             else:
-                lookup.update(
-                    self._flatten_element(
-                        element_id=child_id,
-                        profile=profile,
-                        type=child_type,
-                        **clean_kwargs,
-                    )
-                )
+                if el := self._flatten_element(
+                    element_id=child_id,
+                    profile=profile,
+                    type=child_type,
+                    **clean_kwargs,
+                ):
+                    lookup.update(el)
+                    flat_generic_complex.children.append(child_id)
+
+        if is_slicing_case:
+            flat_generic_complex.children = self._drop_indistinguishable_siblings(
+                flat_generic_complex.children, lookup, profile
+            )
 
         lookup.update({element_id: flat_generic_complex})
-        return lookup
+        return prune_leafless_branches(element_id, lookup)
 
     def _flatten_extension(
         self,
@@ -816,18 +904,18 @@ class FlatteningLookupGenerator:
                     ),
                     select=[],
                 ),
-                children=get_direct_children_ids(element.id, profile),
             )
 
             lookup = {}
-            if len(flat_ext.children) > 0:
-                lookup.update({element_id: flat_ext})
-            for child in flat_ext.children:
-                lookup.update(
-                    self._flatten_extension(element_id=child, profile=profile, **kwargs)
-                )
+            for child in get_direct_children_ids(element.id, profile):
+                if el := self._flatten_extension(
+                    element_id=child, profile=profile, **kwargs
+                ):
+                    lookup.update(el)
+                    flat_ext.children.append(child)
 
-            return lookup
+            lookup.update({element_id: flat_ext})
+            return prune_leafless_branches(element_id, lookup)
         else:
             # extension slices
             lookup = {}
@@ -863,6 +951,8 @@ class FlatteningLookupGenerator:
                             profile=ext_profile,
                             **kwargs,
                         )
+                        if not ext_lookup:
+                            return {}
                         ext_lookup["Extension.value[x]"].parent = "Extension"
                         lookup.update(
                             recontextualize_extension_lookup(
@@ -878,18 +968,19 @@ class FlatteningLookupGenerator:
                         ):
                             child = ext_profile.get_element_by_id(child_ext)
                             if get_element_type(child) == "Extension":
-                                flat_ext_el.children.append(child_ext)
                                 ext_lookup = self._flatten_extension(
                                     child_ext, ext_profile, **kwargs
                                 )
-                                flat_ext_el.children = [
-                                    child_ext.replace("Extension", element_id)
-                                ]
-                                lookup.update(
-                                    recontextualize_extension_lookup(
-                                        ext_lookup, element_id, profile
+                                if ext_lookup:
+                                    flat_ext_el.children.append(child_ext)
+                                    flat_ext_el.children = [
+                                        child_ext.replace("Extension", element_id)
+                                    ]
+                                    lookup.update(
+                                        recontextualize_extension_lookup(
+                                            ext_lookup, element_id, profile
+                                        )
                                     )
-                                )
                 else:
                     _logger.error(
                         f"Could not resolve Extension ({element_id}) profile: {ext_profile_url}"
@@ -911,15 +1002,14 @@ class FlatteningLookupGenerator:
                         select=[],
                     ),
                 )
-                lookup.update(
-                    self._flatten_polymorphic(
-                        element_id=f"{element.id}.value[x]", profile=profile, **kwargs
-                    )
-                )
-                flat_ext_el.children = [f"{element.id}.value[x]"]
-                lookup.update({element_id: flat_ext_el})
+                if ext_el := self._flatten_polymorphic(
+                    element_id=f"{element.id}.value[x]", profile=profile, **kwargs
+                ):
+                    lookup.update(ext_el)
+                    flat_ext_el.children = [f"{element.id}.value[x]"]
 
-            return lookup
+                lookup.update({element_id: flat_ext_el})
+            return prune_leafless_branches(element_id, lookup)
 
     def _flatten_codeable_concept(
         self,
@@ -941,7 +1031,7 @@ class FlatteningLookupGenerator:
         flat_element = FlatteningLookupElement(
             parent=check_if_root(get_parent_element_id(element_id), profile),
             view_definition=ViewDefinitionSnippet(
-                for_each_or_null=element_id.split(".")[-1], select=[]
+                for_each_or_null=element_id.split(".")[-1].split(":")[0], select=[]
             ),
         )
 
@@ -957,21 +1047,24 @@ class FlatteningLookupGenerator:
                 _logger.debug(
                     f"When flattening codeableConcept {element_id} \t found slices: {list_of_children_slices}"
                 )
-                flat_element.children = list_of_children_slices
 
                 clean_kwargs = {k: v for k, v in kwargs.items() if k != "type"}
                 lookup = {element_id: flat_element}
-                for child in flat_element.children:
-                    lookup.update(
-                        self._flatten_element(
-                            element_id=child,
-                            profile=profile,
-                            codeable_concept_parent=element_id,
-                            **clean_kwargs,
-                        )
-                    )
+                for child in list_of_children_slices:
+                    if el := self._flatten_element(
+                        element_id=child,
+                        profile=profile,
+                        codeable_concept_parent=element_id,
+                        **clean_kwargs,
+                    ):
+                        lookup.update(el)
+                        flat_element.children.append(child)
 
-                return lookup
+                flat_element.children = self._drop_indistinguishable_siblings(
+                    flat_element.children, lookup, profile
+                )
+
+                return prune_leafless_branches(element_id, lookup)
             else:
                 _logger.warning(
                     f"No slice has been found => defaulting to generic flattening "
@@ -999,7 +1092,7 @@ class FlatteningLookupGenerator:
             )
         )
 
-        return lookup
+        return prune_leafless_branches(element_id, lookup)
 
     def _generate_flattening_polymorphic_child(
         self,
@@ -1008,7 +1101,7 @@ class FlatteningLookupGenerator:
         polymorphic_parent_id: str,
         type: str = None,
         **kwargs,
-    ) -> Dict[str, FlatteningLookupElement] | None:
+    ) -> Dict[str, FlatteningLookupElement]:
         """
         Helper function for flattening polymorphic children. This is done by flattening the child (coding, quantity, etc.)
         the correct way and then inserting the generated "columns"
@@ -1064,7 +1157,7 @@ class FlatteningLookupGenerator:
                 else get_direct_children_ids(element_id, profile)
             )
             lookup_list.update({element_id: fle})
-            return lookup_list
+            return prune_leafless_branches(element_id, lookup_list)
 
         return {}
 
@@ -1135,19 +1228,18 @@ class FlatteningLookupGenerator:
         flat_ext_parent.children = []
         lookup_list = {}
         for child, child_type in unified_children:
-            flat_ext_parent.children.append(child)
-            lookup_list.update(
-                self._generate_flattening_polymorphic_child(
-                    element_id=child,
-                    profile=profile,
-                    polymorphic_parent_id=element_id,
-                    type=child_type,
-                    **clean_kwargs,
-                )
-            )
+            if el := self._generate_flattening_polymorphic_child(
+                element_id=child,
+                profile=profile,
+                polymorphic_parent_id=element_id,
+                type=child_type,
+                **clean_kwargs,
+            ):
+                flat_ext_parent.children.append(child)
+                lookup_list.update(el)
 
         lookup_list.update({element_id: flat_ext_parent})
-        return lookup_list
+        return prune_leafless_branches(element_id, lookup_list)
 
     def _flatten_identifier(
         self,
@@ -1170,35 +1262,40 @@ class FlatteningLookupGenerator:
             return {}
 
         if element.slicing:
+            candidate_slices = sorted(
+                set(
+                    [
+                        el.id
+                        for el in get_available_slices(element_id, profile)
+                        if el.id is not None
+                        and len(el.type) > 0
+                        and "Identifier" in el.type[0].code
+                        and el.sliceName is not None
+                    ]
+                )
+            )
+
             flat_ident_parent = FlatteningLookupElement(
                 parent=check_if_root(get_parent_element_id(element_id), profile),
                 view_definition=ViewDefinitionSnippet(
                     for_each_or_null=f"{element_id.split('.')[-1]}", select=[]
                 ),
-                children=sorted(
-                    set(
-                        [
-                            el.id
-                            for el in get_available_slices(element_id, profile)
-                            if el.id is not None
-                            and len(el.type) > 0
-                            and "Identifier" in el.type[0].code
-                            and el.sliceName is not None
-                        ]
-                    )
-                ),
             )
 
             clean_kwargs = {k: v for k, v in kwargs.items() if k != "type"}
-            for child_slice in flat_ident_parent.children:
-                lookup.update(
-                    self._flatten_element(
-                        element_id=child_slice,
-                        profile=profile,
-                        type="Identifier",
-                        **clean_kwargs,
-                    )
-                )
+            for child_slice in candidate_slices:
+                if el := self._flatten_element(
+                    element_id=child_slice,
+                    profile=profile,
+                    type="Identifier",
+                    **clean_kwargs,
+                ):
+                    lookup.update(el)
+                    flat_ident_parent.children.append(child_slice)
+
+            flat_ident_parent.children = self._drop_indistinguishable_siblings(
+                flat_ident_parent.children, lookup, profile
+            )
 
             lookup.update({element_id: flat_ident_parent})
 
@@ -1207,10 +1304,10 @@ class FlatteningLookupGenerator:
             # Can be handled together because the only difference is the forEachOrNull
 
             foreach = f"{element_id.split('.')[-1]}"
-            if where_clause := self._extract_code_system_for_identifier(
-                element, profile
+            if where_clause := fhirpath_filter_from_value_discriminated_elem_def(
+                element, profile, "$this", client=self.client
             ):
-                foreach = f"$this.where({where_clause})"
+                foreach = "$this." + where_clause
 
             flat_ident_child = FlatteningLookupElement(
                 parent=check_if_root(get_parent_element_id(element_id), profile),
@@ -1219,19 +1316,22 @@ class FlatteningLookupGenerator:
                     select=[],
                 ),
             )
-            clean_kwargs = {k: v for k, v in kwargs.items() if k != "type"}
+            clean_kwargs = {
+                k: v
+                for k, v in kwargs.items()
+                if k != "type" and k != "polymorphic_child"
+            }
             for child_spec in self.config.required_children_per_element.get(
                 "Identifier"
             ):
-                flat_ident_child.children.append(f"{element_id}.{child_spec.id}")
-                lookup.update(
-                    self._flatten_element(
-                        element_id=f"{element_id}.{child_spec.id}",
-                        profile=profile,
-                        type=child_spec.type,
-                        **clean_kwargs,
-                    )
-                )
+                if el := self._flatten_element(
+                    element_id=f"{element_id}.{child_spec.id}",
+                    profile=profile,
+                    type=child_spec.type,
+                    **clean_kwargs,
+                ):
+                    flat_ident_child.children.append(f"{element_id}.{child_spec.id}")
+                    lookup.update(el)
 
             lookup.update({element_id: flat_ident_child})
 
@@ -1332,7 +1432,9 @@ class FlatteningLookupGenerator:
         element_type = (
             type
             if type
-            else "Polymorphic" if is_polymorphic(element) else get_element_type(element)
+            else "Polymorphic"
+            if is_polymorphic(element)
+            else get_element_type(element)
         )
 
         if element_type in self.config.excluded_types or element_type is None:
@@ -1345,10 +1447,11 @@ class FlatteningLookupGenerator:
         res: Dict[str, FlatteningLookupElement] = {}
 
         if element_type == "Extension":
-            res = self._flatten_extension(
-                element_id=element_id, profile=profile, type=element_type, **kwargs
+            flat_lookup_els.update(
+                self._flatten_extension(
+                    element_id=element_id, profile=profile, type=element_type, **kwargs
+                )
             )
-            flat_lookup_els.update(res)
         else:
             match element_type:
                 case x if x in GENERIC_COMPLEX_TYPES:
@@ -1409,7 +1512,11 @@ class FlatteningLookupGenerator:
             # Handle possible slices of the 'extension' element
             # FIXME: We have to exclude all extension on primitively-typed elements since Pathling does not seem to
             #        support them ATM
-            if element and all(t.code not in FHIR_PRIMITIVES for t in element.type):
+            if (
+                element
+                and all(t.code not in FHIR_PRIMITIVES for t in element.type)
+                and len(res) > 1
+            ):
                 ext_elem_def_id = element_id + ".extension"
                 ext_flattening_lookup_elements = self._flatten_extension(
                     ext_elem_def_id, profile
@@ -1422,9 +1529,12 @@ class FlatteningLookupGenerator:
             else:
                 ext_flattening_lookup_elements = {}
 
-            flat_lookup_els.update({**res, **ext_flattening_lookup_elements})
+            if res:
+                flat_lookup_els.update(res)
+            if ext_flattening_lookup_elements:
+                flat_lookup_els.update(ext_flattening_lookup_elements)
 
-        return flat_lookup_els
+        return prune_leafless_branches(element_id, flat_lookup_els)
 
     def generate_flattening_lookup_for_profile(
         self,
@@ -1483,11 +1593,18 @@ class FlatteningLookupGenerator:
 
         # read all profiles from DSE
         _logger.info("Generating flattening lookup files")
-        content_pattern = {"resourceType": "StructureDefinition", "kind": "resource"}
+        content_pattern = {
+            "resourceType": "StructureDefinition",
+            "kind": "resource",
+            "status": "active",
+            # "url": "https://gematik.de/fhir/isik/StructureDefinition/ISiKEKG",
+        }
         lookup_file: List[FlatteningLookup] = []
 
         for profile in self.package_manager.iterate_cache(
-            FLATTENING_PACKAGE_PATTERN, content_pattern, skip_on_fail=False
+            FLATTENING_PACKAGE_PATTERN,
+            content_pattern,
+            skip_on_fail=False,
         ):
             if profile.type in ["SearchParameter"]:
                 continue

@@ -4,5 +4,5 @@ fhir-packages:
     params:
       org: "medizininformatik-initiative"
       repo: "fhir-package-store"
-      ref: "c7e7b8dfc78d9e41c69e3d60c9d95b6a55347af3"
+      ref: "9e7804722c9d96fc8507f9e5e283d9e06c519e23"
       path: "package-tarballs"

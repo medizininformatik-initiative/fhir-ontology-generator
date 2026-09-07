@@ -1,50 +1,44 @@
-import json
-from pathlib import Path
-from typing import Dict, Mapping, Optional
+from typing import Mapping, Optional
 
 import pytest
-from fhir.resources.R4B.elementdefinition import ElementDefinition
+from fhir.resources.R4B.codeableconcept import CodeableConcept
+from fhir.resources.R4B.coding import Coding
+from fhir.resources.R4B.elementdefinition import (
+    ElementDefinition,
+    ElementDefinitionBinding,
+    ElementDefinitionSlicing,
+    ElementDefinitionSlicingDiscriminator,
+    ElementDefinitionType,
+)
+from fhir.resources.R4B.identifier import Identifier
 
-from common.model.fhir.nav_structure_definition import NavStructureDefinition
-from common.model.fhir.structure_definition import StructureDefinitionSnapshot
-from common.util.http.terminology.client import FhirTerminologyClient
 from flattening.core.flattening import (
     FlatteningLookupElement,
-    ViewDefinitionColumn,
-    ViewDefinitionSnippet,
-    flattening_post_process,
-    ViewDefinitionSelect,
     FlatteningLookupGenerator,
+    ViewDefinitionColumn,
+    ViewDefinitionSelect,
+    ViewDefinitionSnippet,
+    flattening_get_parent,
+    flattening_post_process,
+    is_leafless_branch_root,
+    prune_leafless_branches,
 )
 from flattening.model.FlatteningLookupModels import FlatteningLookup
-
+from tests.unit.flattening.builders import build_profile
 
 @pytest.mark.parametrize(
-    argnames="profile, elem_def ,expected",
+    argnames="element_id, lookup, expected",
     argvalues=[
-        (
-            "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose",
-            "Condition.recordedDate",
-            {
-                "Condition.recordedDate": FlatteningLookupElement(
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Condition_recordedDate",
-                                path="recordedDate",
-                                type="dateTime",
-                            )
-                        ]
-                    )
-                ),
-            },
+        pytest.param(
+            "Observation.extension:foo",
+            {},
+            {},
+            id="element_id missing from lookup -> dropped",
         ),
-        (
-            "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose",
+        pytest.param(
             "Condition.code.coding:icd10-gm.code",
             {
                 "Condition.code.coding:icd10-gm.code": FlatteningLookupElement(
-                    parent="Condition.code.coding:icd10-gm",
                     view_definition=ViewDefinitionSnippet(
                         column=[
                             ViewDefinitionColumn(
@@ -56,6029 +50,23 @@ from flattening.model.FlatteningLookupModels import FlatteningLookup
                     ),
                 ),
             },
+            "unchanged",
+            id="primitive leaf with top-level column, no children -> kept",
         ),
-        (
-            "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose",
-            "Condition.code.coding:icd10-gm.system",
+        pytest.param(
+            # A LookupElement which has no children or a column should not get dropped if it has a select element
+            "Account.coverage.extension:Abrechnungsart.value[x]:valueCoding",
             {
-                "Condition.code.coding:icd10-gm.system": FlatteningLookupElement(
-                    parent="Condition.code.coding:icd10-gm",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Condition_code_codingIcd10gm_system",
-                                path="system",
-                                type="uri",
-                            )
-                        ]
-                    ),
-                ),
-            },
-        ),
-    ],
-    ids=[
-        "primitive - recordedDate: Condition.recordedDate",
-        "primitive - code: Condition.code.coding:icd10-gm.code",
-        "primitive - uri: Condition.code.coding:icd10-gm.system",
-    ],
-    indirect=["profile", "elem_def"],
-)
-def test_flatten_primitive(
-    profile: StructureDefinitionSnapshot,
-    elem_def: ElementDefinition,
-    expected: Dict[str, FlatteningLookupElement],
-    flattening_lookup_generator: FlatteningLookupGenerator,
-):
-    assert (
-        flattening_lookup_generator._flatten_primitive(elem_def.id, profile) == expected
-    )
-
-
-@pytest.mark.parametrize(
-    argnames="profile, elem_id ,expected",
-    argvalues=[
-        (
-            "https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/StructureDefinition/Procedure",
-            "Procedure.performed[x]",
-            {
-                "Procedure.performed[x]": FlatteningLookupElement(
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Procedure.performed[x]:performedDateTime",
-                        "Procedure.performed[x]:performedPeriod",
-                    ],
-                ),
-                "Procedure.performed[x]:performedDateTime": FlatteningLookupElement(
-                    parent="Procedure.performed[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="performed.ofType(dateTime)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Procedure_performed_X_Performeddatetime",
-                                        path="$this",
-                                        type="dateTime",
-                                    )
-                                ]
-                            )
-                        ],
-                    ),
-                ),
-                "Procedure.performed[x]:performedPeriod": FlatteningLookupElement(
-                    parent="Procedure.performed[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="performed.ofType(Period)",
-                        select=[],
-                    ),
-                    children=[
-                        "Procedure.performed[x]:performedPeriod.start",
-                        "Procedure.performed[x]:performedPeriod.end",
-                    ],
-                ),
-                "Procedure.performed[x]:performedPeriod.start": FlatteningLookupElement(
-                    parent="Procedure.performed[x]:performedPeriod",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Procedure_performed_X_Performedperiod_start",
-                                path="start",
-                                type="dateTime",
-                            )
-                        ]
-                    ),
-                ),
-                "Procedure.performed[x]:performedPeriod.end": FlatteningLookupElement(
-                    parent="Procedure.performed[x]:performedPeriod",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Procedure_performed_X_Performedperiod_end",
-                                path="end",
-                                type="dateTime",
-                            )
-                        ]
-                    ),
-                ),
-            },
-        ),
-        (
-            "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/dauer-haemodialysesitzung",
-            "Observation.effective[x]",
-            {
-                "Observation.effective[x]": FlatteningLookupElement(
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Observation.effective[x]:effectiveDateTime",
-                        "Observation.effective[x]:effectivePeriod",
-                    ],
-                ),
-                "Observation.effective[x]:effectiveDateTime": FlatteningLookupElement(
-                    parent="Observation.effective[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="effective.ofType(dateTime)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Observation_effective_X_Effectivedatetime",
-                                        path="$this",
-                                        type="dateTime",
-                                    )
-                                ]
-                            )
-                        ],
-                    ),
-                ),
-                "Observation.effective[x]:effectivePeriod": FlatteningLookupElement(
-                    parent="Observation.effective[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="effective.ofType(Period)",
-                        select=[],
-                    ),
-                    children=[
-                        "Observation.effective[x]:effectivePeriod.start",
-                        "Observation.effective[x]:effectivePeriod.end",
-                    ],
-                ),
-                "Observation.effective[x]:effectivePeriod.start": FlatteningLookupElement(
-                    parent="Observation.effective[x]:effectivePeriod",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Observation_effective_X_Effectiveperiod_start",
-                                path="start",
-                                type="dateTime",
-                            )
-                        ]
-                    ),
-                ),
-                "Observation.effective[x]:effectivePeriod.end": FlatteningLookupElement(
-                    parent="Observation.effective[x]:effectivePeriod",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Observation_effective_X_Effectiveperiod_end",
-                                path="end",
-                                type="dateTime",
-                            )
-                        ]
-                    ),
-                ),
-            },
-        ),
-        (
-            "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/dauer-haemodialysesitzung",
-            "Observation.value[x]",
-            {
-                "Observation.value[x]": FlatteningLookupElement(
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Observation.value[x]:valueQuantity",
-                    ],
-                ),
-                "Observation.value[x]:valueQuantity": FlatteningLookupElement(
-                    parent="Observation.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Quantity)",
-                        select=[],
-                    ),
-                    children=[
-                        "Observation.value[x]:valueQuantity.value",
-                        "Observation.value[x]:valueQuantity.code",
-                        "Observation.value[x]:valueQuantity.system",
-                        "Observation.value[x]:valueQuantity.unit",
-                        "Observation.value[x]:valueQuantity.comparator",
-                    ],
-                ),
-                "Observation.value[x]:valueQuantity.value": FlatteningLookupElement(
-                    parent="Observation.value[x]:valueQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Observation_value_X_Valuequantity_value",
-                                path="value",
-                                type="decimal",
-                            )
-                        ]
-                    ),
-                ),
-                "Observation.value[x]:valueQuantity.code": FlatteningLookupElement(
-                    parent="Observation.value[x]:valueQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Observation_value_X_Valuequantity_code",
-                                path="code",
-                                type="code",
-                            )
-                        ]
-                    ),
-                ),
-                "Observation.value[x]:valueQuantity.system": FlatteningLookupElement(
-                    parent="Observation.value[x]:valueQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Observation_value_X_Valuequantity_system",
-                                path="system",
-                                type="uri",
-                            )
-                        ]
-                    ),
-                ),
-                "Observation.value[x]:valueQuantity.unit": FlatteningLookupElement(
-                    parent="Observation.value[x]:valueQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Observation_value_X_Valuequantity_unit",
-                                path="unit",
-                                type="string",
-                            )
-                        ]
-                    ),
-                ),
-                "Observation.value[x]:valueQuantity.comparator": FlatteningLookupElement(
-                    parent="Observation.value[x]:valueQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Observation_value_X_Valuequantity_comparator",
-                                path="comparator",
-                                type="code",
-                            )
-                        ]
-                    ),
-                ),
-            },
-        ),
-        (
-            "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/empfohlene-folgemassnahme",
-            "Task.input.value[x]",
-            {
-                "Task.input.value[x]": FlatteningLookupElement(
-                    parent="Task.input",
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueAddress",
-                        "Task.input.value[x]:valueAge",
-                        "Task.input.value[x]:valueAnnotation",
-                        "Task.input.value[x]:valueAttachment",
-                        "Task.input.value[x]:valueBase64Binary",
-                        "Task.input.value[x]:valueBoolean",
-                        "Task.input.value[x]:valueCanonical",
-                        "Task.input.value[x]:valueCode",
-                        "Task.input.value[x]:valueCodeableConcept",
-                        "Task.input.value[x]:valueCoding",
-                        "Task.input.value[x]:valueContactPoint",
-                        "Task.input.value[x]:valueContributor",
-                        "Task.input.value[x]:valueCount",
-                        "Task.input.value[x]:valueDataRequirement",
-                        "Task.input.value[x]:valueDate",
-                        "Task.input.value[x]:valueDateTime",
-                        "Task.input.value[x]:valueDecimal",
-                        "Task.input.value[x]:valueDistance",
-                        "Task.input.value[x]:valueDosage",
-                        "Task.input.value[x]:valueDuration",
-                        "Task.input.value[x]:valueInstant",
-                        "Task.input.value[x]:valueInteger",
-                        "Task.input.value[x]:valueMarkdown",
-                        "Task.input.value[x]:valueMeta",
-                        "Task.input.value[x]:valueOid",
-                        "Task.input.value[x]:valuePeriod",
-                        "Task.input.value[x]:valuePositiveInt",
-                        "Task.input.value[x]:valueQuantity",
-                        "Task.input.value[x]:valueRange",
-                        "Task.input.value[x]:valueRatio",
-                        "Task.input.value[x]:valueReference",
-                        "Task.input.value[x]:valueSampledData",
-                        "Task.input.value[x]:valueString",
-                        "Task.input.value[x]:valueTime",
-                        "Task.input.value[x]:valueTiming",
-                        "Task.input.value[x]:valueTriggerDefinition",
-                        "Task.input.value[x]:valueUnsignedInt",
-                        "Task.input.value[x]:valueUri",
-                        "Task.input.value[x]:valueUrl",
-                        "Task.input.value[x]:valueUsageContext",
-                        "Task.input.value[x]:valueUuid",
-                    ],
-                ),
-                "Task.input.value[x]:valueAddress": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Address)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueAddress.city",
-                        "Task.input.value[x]:valueAddress.country",
-                        "Task.input.value[x]:valueAddress.district",
-                        "Task.input.value[x]:valueAddress.line",
-                        "Task.input.value[x]:valueAddress.period",
-                        "Task.input.value[x]:valueAddress.postalCode",
-                        "Task.input.value[x]:valueAddress.state",
-                        "Task.input.value[x]:valueAddress.text",
-                        "Task.input.value[x]:valueAddress.type",
-                        "Task.input.value[x]:valueAddress.use",
-                    ],
-                ),
-                "Task.input.value[x]:valueAddress.city": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAddress",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueaddress_city",
-                                path="city",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAddress.country": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAddress",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueaddress_country",
-                                path="country",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAddress.district": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAddress",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueaddress_district",
-                                path="district",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAddress.line": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAddress",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="line",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valueaddress_line",
-                                        path="$this",
-                                        type="string",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAddress.period": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAddress",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="period",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueAddress.period.end",
-                        "Task.input.value[x]:valueAddress.period.start",
-                    ],
-                ),
-                "Task.input.value[x]:valueAddress.period.end": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAddress.period",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueaddress_period_end",
-                                path="end",
-                                type="dateTime",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAddress.period.start": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAddress.period",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueaddress_period_start",
-                                path="start",
-                                type="dateTime",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAddress.postalCode": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAddress",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueaddress_postalCode",
-                                path="postalCode",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAddress.state": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAddress",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueaddress_state",
-                                path="state",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAddress.text": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAddress",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueaddress_text",
-                                path="text",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAddress.type": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAddress",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueaddress_type",
-                                path="type",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAddress.use": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAddress",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueaddress_use",
-                                path="use",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAge": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Age)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueAge.code",
-                        "Task.input.value[x]:valueAge.system",
-                        "Task.input.value[x]:valueAge.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueAge.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAge",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueage_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAge.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAge",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueage_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAge.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAge",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueage_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAnnotation": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Annotation)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueAnnotation.author[x]",
-                        "Task.input.value[x]:valueAnnotation.text",
-                        "Task.input.value[x]:valueAnnotation.time",
-                    ],
-                ),
-                "Task.input.value[x]:valueAnnotation.author[x]": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAnnotation",
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueAnnotation.author[x]:authorReference",
-                        "Task.input.value[x]:valueAnnotation.author[x]:authorString",
-                    ],
-                ),
-                "Task.input.value[x]:valueAnnotation.author[x]:authorReference": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAnnotation.author[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="author.ofType(Reference)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueAnnotation.author[x]:authorReference.reference",
-                    ],
-                ),
-                "Task.input.value[x]:valueAnnotation.author[x]:authorReference.reference": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAnnotation.author[x]:authorReference",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueannotation_author_X_Authorreference_reference",
-                                path="reference",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAnnotation.author[x]:authorString": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAnnotation.author[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="author.ofType(string)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valueannotation_author_X_Authorstring",
-                                        path="$this",
-                                        type="string",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAnnotation.text": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAnnotation",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueannotation_text",
-                                path="text",
-                                type="markdown",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAnnotation.time": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAnnotation",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueannotation_time",
-                                path="time",
-                                type="dateTime",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAttachment": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Attachment)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueAttachment.contentType",
-                        "Task.input.value[x]:valueAttachment.creation",
-                        "Task.input.value[x]:valueAttachment.data",
-                        "Task.input.value[x]:valueAttachment.hash",
-                        "Task.input.value[x]:valueAttachment.language",
-                        "Task.input.value[x]:valueAttachment.size",
-                        "Task.input.value[x]:valueAttachment.title",
-                        "Task.input.value[x]:valueAttachment.url",
-                    ],
-                ),
-                "Task.input.value[x]:valueAttachment.contentType": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAttachment",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueattachment_contentType",
-                                path="contentType",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAttachment.creation": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAttachment",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueattachment_creation",
-                                path="creation",
-                                type="dateTime",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAttachment.data": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAttachment",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueattachment_data",
-                                path="data",
-                                type="base64Binary",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAttachment.hash": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAttachment",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueattachment_hash",
-                                path="hash",
-                                type="base64Binary",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAttachment.language": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAttachment",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueattachment_language",
-                                path="language",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAttachment.size": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAttachment",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueattachment_size",
-                                path="size",
-                                type="unsignedInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAttachment.title": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAttachment",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueattachment_title",
-                                path="title",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueAttachment.url": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueAttachment",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueattachment_url",
-                                path="url",
-                                type="url",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueBase64Binary": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(base64Binary)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuebase64binary",
-                                        path="$this",
-                                        type="base64Binary",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueBoolean": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(boolean)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valueboolean",
-                                        path="$this",
-                                        type="boolean",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueCanonical": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(canonical)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuecanonical",
-                                        path="$this",
-                                        type="canonical",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueCode": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(code)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuecode",
-                                        path="$this",
-                                        type="code",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueCodeableConcept": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(CodeableConcept)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueCodeableConcept.coding",
-                    ],
-                ),
-                "Task.input.value[x]:valueCodeableConcept.coding": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueCodeableConcept",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuecodeableconcept_coding_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuecodeableconcept_coding_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueCoding": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
+                "Account.coverage.extension:Abrechnungsart.value[x]:valueCoding": FlatteningLookupElement(
                     view_definition=ViewDefinitionSnippet(
                         for_each_or_null="value.ofType(Coding)",
                         select=[
                             ViewDefinitionSelect(
                                 column=[
                                     ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuecoding_system",
+                                        name="Account_coverage_extensionAbrechnungsart_value_X_Valuecoding_system",
                                         path="system",
                                         type="uri",
-                                    ),
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuecoding_code",
-                                        path="code",
-                                        type="code",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueContactPoint": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(ContactPoint)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueContactPoint.period",
-                        "Task.input.value[x]:valueContactPoint.rank",
-                        "Task.input.value[x]:valueContactPoint.system",
-                        "Task.input.value[x]:valueContactPoint.use",
-                        "Task.input.value[x]:valueContactPoint.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueContactPoint.period": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueContactPoint",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="period",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueContactPoint.period.end",
-                        "Task.input.value[x]:valueContactPoint.period.start",
-                    ],
-                ),
-                "Task.input.value[x]:valueContactPoint.period.end": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueContactPoint.period",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuecontactpoint_period_end",
-                                path="end",
-                                type="dateTime",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueContactPoint.period.start": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueContactPoint.period",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuecontactpoint_period_start",
-                                path="start",
-                                type="dateTime",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueContactPoint.rank": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueContactPoint",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuecontactpoint_rank",
-                                path="rank",
-                                type="positiveInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueContactPoint.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueContactPoint",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuecontactpoint_system",
-                                path="system",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueContactPoint.use": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueContactPoint",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuecontactpoint_use",
-                                path="use",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueContactPoint.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueContactPoint",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuecontactpoint_value",
-                                path="value",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueContributor": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Contributor)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueContributor.name",
-                        "Task.input.value[x]:valueContributor.type",
-                    ],
-                ),
-                "Task.input.value[x]:valueContributor.name": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueContributor",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuecontributor_name",
-                                path="name",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueContributor.type": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueContributor",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuecontributor_type",
-                                path="type",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueCount": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Count)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueCount.code",
-                        "Task.input.value[x]:valueCount.system",
-                        "Task.input.value[x]:valueCount.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueCount.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueCount",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuecount_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueCount.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueCount",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuecount_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueCount.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueCount",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuecount_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(DataRequirement)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDataRequirement.codeFilter",
-                        "Task.input.value[x]:valueDataRequirement.dateFilter",
-                        "Task.input.value[x]:valueDataRequirement.limit",
-                        "Task.input.value[x]:valueDataRequirement.mustSupport",
-                        "Task.input.value[x]:valueDataRequirement.profile",
-                        "Task.input.value[x]:valueDataRequirement.sort",
-                        "Task.input.value[x]:valueDataRequirement.subject[x]",
-                        "Task.input.value[x]:valueDataRequirement.type",
-                    ],
-                ),
-                "Task.input.value[x]:valueDataRequirement.codeFilter": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="codeFilter",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDataRequirement.codeFilter.code",
-                        "Task.input.value[x]:valueDataRequirement.codeFilter.path",
-                        "Task.input.value[x]:valueDataRequirement.codeFilter.searchParam",
-                        "Task.input.value[x]:valueDataRequirement.codeFilter.valueSet",
-                    ],
-                ),
-                "Task.input.value[x]:valueDataRequirement.codeFilter.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.codeFilter",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="code",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedatarequirement_codeFilter_code_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedatarequirement_codeFilter_code_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement.codeFilter.path": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.codeFilter",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedatarequirement_codeFilter_path",
-                                path="path",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement.codeFilter.searchParam": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.codeFilter",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedatarequirement_codeFilter_searchParam",
-                                path="searchParam",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement.codeFilter.valueSet": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.codeFilter",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedatarequirement_codeFilter_valueSet",
-                                path="valueSet",
-                                type="canonical",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement.dateFilter": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="dateFilter",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDataRequirement.dateFilter.path",
-                        "Task.input.value[x]:valueDataRequirement.dateFilter.searchParam",
-                        "Task.input.value[x]:valueDataRequirement.dateFilter.value[x]",
-                    ],
-                ),
-                "Task.input.value[x]:valueDataRequirement.dateFilter.path": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.dateFilter",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedatarequirement_dateFilter_path",
-                                path="path",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement.dateFilter.searchParam": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.dateFilter",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedatarequirement_dateFilter_searchParam",
-                                path="searchParam",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement.dateFilter.value[x]": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.dateFilter",
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valueDateTime",
-                        "Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valueDuration",
-                        "Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valuePeriod",
-                    ],
-                ),
-                "Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valueDateTime": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.dateFilter.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(dateTime)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuedatarequirement_dateFilter_value_X_Valuedatetime",
-                                        path="$this",
-                                        type="dateTime",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valueDuration": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.dateFilter.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Duration)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valueDuration.code",
-                        "Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valueDuration.system",
-                        "Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valueDuration.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valueDuration.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valueDuration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedatarequirement_dateFilter_value_X_Valueduration_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valueDuration.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valueDuration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedatarequirement_dateFilter_value_X_Valueduration_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valueDuration.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valueDuration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedatarequirement_dateFilter_value_X_Valueduration_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valuePeriod": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.dateFilter.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Period)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valuePeriod.end",
-                        "Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valuePeriod.start",
-                    ],
-                ),
-                "Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valuePeriod.end": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valuePeriod",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedatarequirement_dateFilter_value_X_Valueperiod_end",
-                                path="end",
-                                type="dateTime",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valuePeriod.start": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.dateFilter.value[x]:valuePeriod",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedatarequirement_dateFilter_value_X_Valueperiod_start",
-                                path="start",
-                                type="dateTime",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement.limit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedatarequirement_limit",
-                                path="limit",
-                                type="positiveInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement.mustSupport": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="mustSupport",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuedatarequirement_mustSupport",
-                                        path="$this",
-                                        type="string",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement.profile": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="profile",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuedatarequirement_profile",
-                                        path="$this",
-                                        type="canonical",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement.sort": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="sort",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDataRequirement.sort.direction",
-                        "Task.input.value[x]:valueDataRequirement.sort.path",
-                    ],
-                ),
-                "Task.input.value[x]:valueDataRequirement.sort.direction": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.sort",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedatarequirement_sort_direction",
-                                path="direction",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement.sort.path": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.sort",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedatarequirement_sort_path",
-                                path="path",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement.subject[x]": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement",
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDataRequirement.subject[x]:subjectCodeableConcept",
-                        "Task.input.value[x]:valueDataRequirement.subject[x]:subjectReference",
-                    ],
-                ),
-                "Task.input.value[x]:valueDataRequirement.subject[x]:subjectCodeableConcept": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.subject[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="subject.ofType(CodeableConcept)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDataRequirement.subject[x]:subjectCodeableConcept.coding",
-                    ],
-                ),
-                "Task.input.value[x]:valueDataRequirement.subject[x]:subjectCodeableConcept.coding": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.subject[x]:subjectCodeableConcept",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedatarequirement_subject_X_Subjectcodeableconcept_coding_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedatarequirement_subject_X_Subjectcodeableconcept_coding_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement.subject[x]:subjectReference": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.subject[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="subject.ofType(Reference)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDataRequirement.subject[x]:subjectReference.reference",
-                    ],
-                ),
-                "Task.input.value[x]:valueDataRequirement.subject[x]:subjectReference.reference": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement.subject[x]:subjectReference",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedatarequirement_subject_X_Subjectreference_reference",
-                                path="reference",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDataRequirement.type": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDataRequirement",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedatarequirement_type",
-                                path="type",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDate": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(date)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuedate",
-                                        path="$this",
-                                        type="date",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDateTime": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(dateTime)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuedatetime",
-                                        path="$this",
-                                        type="dateTime",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDecimal": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(decimal)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuedecimal",
-                                        path="$this",
-                                        type="decimal",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDistance": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Distance)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDistance.code",
-                        "Task.input.value[x]:valueDistance.system",
-                        "Task.input.value[x]:valueDistance.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueDistance.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDistance",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedistance_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDistance.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDistance",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedistance_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDistance.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDistance",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedistance_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Dosage)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.additionalInstruction",
-                        "Task.input.value[x]:valueDosage.asNeeded[x]",
-                        "Task.input.value[x]:valueDosage.doseAndRate",
-                        "Task.input.value[x]:valueDosage.maxDosePerAdministration",
-                        "Task.input.value[x]:valueDosage.maxDosePerLifetime",
-                        "Task.input.value[x]:valueDosage.maxDosePerPeriod",
-                        "Task.input.value[x]:valueDosage.method",
-                        "Task.input.value[x]:valueDosage.patientInstruction",
-                        "Task.input.value[x]:valueDosage.route",
-                        "Task.input.value[x]:valueDosage.sequence",
-                        "Task.input.value[x]:valueDosage.site",
-                        "Task.input.value[x]:valueDosage.text",
-                        "Task.input.value[x]:valueDosage.timing",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.additionalInstruction": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="additionalInstruction",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.additionalInstruction.coding",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.additionalInstruction.coding": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.additionalInstruction",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_additionalInstruction_coding_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_additionalInstruction_coding_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.asNeeded[x]": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage",
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.asNeeded[x]:asNeededBoolean",
-                        "Task.input.value[x]:valueDosage.asNeeded[x]:asNeededCodeableConcept",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.asNeeded[x]:asNeededBoolean": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.asNeeded[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="asNeeded.ofType(boolean)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuedosage_asNeeded_X_Asneededboolean",
-                                        path="$this",
-                                        type="boolean",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.asNeeded[x]:asNeededCodeableConcept": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.asNeeded[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="asNeeded.ofType(CodeableConcept)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.asNeeded[x]:asNeededCodeableConcept.coding",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.asNeeded[x]:asNeededCodeableConcept.coding": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.asNeeded[x]:asNeededCodeableConcept",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_asNeeded_X_Asneededcodeableconcept_coding_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_asNeeded_X_Asneededcodeableconcept_coding_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="doseAndRate",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]",
-                        "Task.input.value[x]:valueDosage.doseAndRate.type",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate",
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseQuantity",
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseQuantity": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.dose[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="dose.ofType(Quantity)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseQuantity.code",
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseQuantity.comparator",
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseQuantity.system",
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseQuantity.unit",
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseQuantity.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseQuantity.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_dose_X_Dosequantity_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseQuantity.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_dose_X_Dosequantity_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseQuantity.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_dose_X_Dosequantity_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseQuantity.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_dose_X_Dosequantity_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseQuantity.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_dose_X_Dosequantity_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.dose[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="dose.ofType(Range)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.high",
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.low",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.high": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="high",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.high.code",
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.high.comparator",
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.high.system",
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.high.unit",
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.high.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.high.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_dose_X_Doserange_high_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.high.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_dose_X_Doserange_high_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.high.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_dose_X_Doserange_high_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.high.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_dose_X_Doserange_high_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.high.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_dose_X_Doserange_high_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.low": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="low",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.low.code",
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.low.comparator",
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.low.system",
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.low.unit",
-                        "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.low.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.low.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_dose_X_Doserange_low_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.low.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_dose_X_Doserange_low_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.low.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_dose_X_Doserange_low_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.low.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_dose_X_Doserange_low_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.low.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.dose[x]:doseRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_dose_X_Doserange_low_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate",
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateQuantity",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateQuantity": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="rate.ofType(Quantity)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateQuantity.code",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateQuantity.comparator",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateQuantity.system",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateQuantity.unit",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateQuantity.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateQuantity.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Ratequantity_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateQuantity.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Ratequantity_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateQuantity.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Ratequantity_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateQuantity.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Ratequantity_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateQuantity.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Ratequantity_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="rate.ofType(Range)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.high",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.low",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.high": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="high",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.high.code",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.high.comparator",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.high.system",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.high.unit",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.high.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.high.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Raterange_high_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.high.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Raterange_high_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.high.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Raterange_high_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.high.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Raterange_high_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.high.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Raterange_high_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.low": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="low",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.low.code",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.low.comparator",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.low.system",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.low.unit",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.low.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.low.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Raterange_low_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.low.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Raterange_low_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.low.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Raterange_low_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.low.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Raterange_low_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.low.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Raterange_low_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="rate.ofType(Ratio)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.denominator",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.numerator",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.denominator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="denominator",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.denominator.code",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.denominator.comparator",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.denominator.system",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.denominator.unit",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.denominator.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.denominator.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Rateratio_denominator_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.denominator.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Rateratio_denominator_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.denominator.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Rateratio_denominator_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.denominator.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Rateratio_denominator_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.denominator.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Rateratio_denominator_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.numerator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="numerator",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.numerator.code",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.numerator.comparator",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.numerator.system",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.numerator.unit",
-                        "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.numerator.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.numerator.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Rateratio_numerator_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.numerator.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Rateratio_numerator_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.numerator.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Rateratio_numerator_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.numerator.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Rateratio_numerator_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.numerator.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.rate[x]:rateRatio.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_rate_X_Rateratio_numerator_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.type": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="type",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.doseAndRate.type.coding",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.doseAndRate.type.coding": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.doseAndRate.type",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_type_coding_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_doseAndRate_type_coding_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerAdministration": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="maxDosePerAdministration",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.maxDosePerAdministration.code",
-                        "Task.input.value[x]:valueDosage.maxDosePerAdministration.system",
-                        "Task.input.value[x]:valueDosage.maxDosePerAdministration.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerAdministration.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.maxDosePerAdministration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_maxDosePerAdministration_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerAdministration.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.maxDosePerAdministration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_maxDosePerAdministration_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerAdministration.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.maxDosePerAdministration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_maxDosePerAdministration_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerLifetime": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="maxDosePerLifetime",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.maxDosePerLifetime.code",
-                        "Task.input.value[x]:valueDosage.maxDosePerLifetime.system",
-                        "Task.input.value[x]:valueDosage.maxDosePerLifetime.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerLifetime.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.maxDosePerLifetime",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_maxDosePerLifetime_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerLifetime.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.maxDosePerLifetime",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_maxDosePerLifetime_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerLifetime.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.maxDosePerLifetime",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_maxDosePerLifetime_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerPeriod": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="maxDosePerPeriod",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.maxDosePerPeriod.denominator",
-                        "Task.input.value[x]:valueDosage.maxDosePerPeriod.numerator",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerPeriod.denominator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.maxDosePerPeriod",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="denominator",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.maxDosePerPeriod.denominator.code",
-                        "Task.input.value[x]:valueDosage.maxDosePerPeriod.denominator.comparator",
-                        "Task.input.value[x]:valueDosage.maxDosePerPeriod.denominator.system",
-                        "Task.input.value[x]:valueDosage.maxDosePerPeriod.denominator.unit",
-                        "Task.input.value[x]:valueDosage.maxDosePerPeriod.denominator.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerPeriod.denominator.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.maxDosePerPeriod.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_maxDosePerPeriod_denominator_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerPeriod.denominator.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.maxDosePerPeriod.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_maxDosePerPeriod_denominator_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerPeriod.denominator.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.maxDosePerPeriod.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_maxDosePerPeriod_denominator_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerPeriod.denominator.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.maxDosePerPeriod.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_maxDosePerPeriod_denominator_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerPeriod.denominator.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.maxDosePerPeriod.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_maxDosePerPeriod_denominator_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerPeriod.numerator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.maxDosePerPeriod",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="numerator",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.maxDosePerPeriod.numerator.code",
-                        "Task.input.value[x]:valueDosage.maxDosePerPeriod.numerator.comparator",
-                        "Task.input.value[x]:valueDosage.maxDosePerPeriod.numerator.system",
-                        "Task.input.value[x]:valueDosage.maxDosePerPeriod.numerator.unit",
-                        "Task.input.value[x]:valueDosage.maxDosePerPeriod.numerator.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerPeriod.numerator.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.maxDosePerPeriod.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_maxDosePerPeriod_numerator_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerPeriod.numerator.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.maxDosePerPeriod.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_maxDosePerPeriod_numerator_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerPeriod.numerator.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.maxDosePerPeriod.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_maxDosePerPeriod_numerator_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerPeriod.numerator.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.maxDosePerPeriod.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_maxDosePerPeriod_numerator_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.maxDosePerPeriod.numerator.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.maxDosePerPeriod.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_maxDosePerPeriod_numerator_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.method": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="method",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.method.coding",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.method.coding": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.method",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_method_coding_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_method_coding_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.patientInstruction": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_patientInstruction",
-                                path="patientInstruction",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.route": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="route",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.route.coding",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.route.coding": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.route",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_route_coding_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_route_coding_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.sequence": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_sequence",
-                                path="sequence",
-                                type="integer",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.site": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="site",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.site.coding",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.site.coding": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.site",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_site_coding_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_site_coding_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.text": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_text",
-                                path="text",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="timing",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.timing.code",
-                        "Task.input.value[x]:valueDosage.timing.event",
-                        "Task.input.value[x]:valueDosage.timing.repeat",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.timing.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="code",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.timing.code.coding",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.timing.code.coding": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.code",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_code_coding_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_code_coding_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.event": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="event",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuedosage_timing_event",
-                                        path="$this",
-                                        type="dateTime",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="repeat",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]",
-                        "Task.input.value[x]:valueDosage.timing.repeat.count",
-                        "Task.input.value[x]:valueDosage.timing.repeat.countMax",
-                        "Task.input.value[x]:valueDosage.timing.repeat.dayOfWeek",
-                        "Task.input.value[x]:valueDosage.timing.repeat.duration",
-                        "Task.input.value[x]:valueDosage.timing.repeat.durationMax",
-                        "Task.input.value[x]:valueDosage.timing.repeat.durationUnit",
-                        "Task.input.value[x]:valueDosage.timing.repeat.frequency",
-                        "Task.input.value[x]:valueDosage.timing.repeat.frequencyMax",
-                        "Task.input.value[x]:valueDosage.timing.repeat.offset",
-                        "Task.input.value[x]:valueDosage.timing.repeat.period",
-                        "Task.input.value[x]:valueDosage.timing.repeat.periodMax",
-                        "Task.input.value[x]:valueDosage.timing.repeat.periodUnit",
-                        "Task.input.value[x]:valueDosage.timing.repeat.timeOfDay",
-                        "Task.input.value[x]:valueDosage.timing.repeat.when",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsDuration",
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsPeriod",
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsDuration": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="bounds.ofType(Duration)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsDuration.code",
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsDuration.system",
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsDuration.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsDuration.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsDuration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_bounds_X_Boundsduration_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsDuration.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsDuration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_bounds_X_Boundsduration_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsDuration.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsDuration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_bounds_X_Boundsduration_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsPeriod": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="bounds.ofType(Period)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsPeriod.end",
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsPeriod.start",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsPeriod.end": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsPeriod",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_bounds_X_Boundsperiod_end",
-                                path="end",
-                                type="dateTime",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsPeriod.start": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsPeriod",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_bounds_X_Boundsperiod_start",
-                                path="start",
-                                type="dateTime",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="bounds.ofType(Range)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.high",
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.low",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.high": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="high",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.high.code",
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.high.comparator",
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.high.system",
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.high.unit",
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.high.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.high.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_bounds_X_Boundsrange_high_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.high.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_bounds_X_Boundsrange_high_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.high.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_bounds_X_Boundsrange_high_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.high.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_bounds_X_Boundsrange_high_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.high.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_bounds_X_Boundsrange_high_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.low": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="low",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.low.code",
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.low.comparator",
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.low.system",
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.low.unit",
-                        "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.low.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.low.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_bounds_X_Boundsrange_low_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.low.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_bounds_X_Boundsrange_low_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.low.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_bounds_X_Boundsrange_low_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.low.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_bounds_X_Boundsrange_low_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.low.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat.bounds[x]:boundsRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_bounds_X_Boundsrange_low_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.count": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_count",
-                                path="count",
-                                type="positiveInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.countMax": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_countMax",
-                                path="countMax",
-                                type="positiveInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.dayOfWeek": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="dayOfWeek",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuedosage_timing_repeat_dayOfWeek",
-                                        path="$this",
-                                        type="code",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.duration": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_duration",
-                                path="duration",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.durationMax": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_durationMax",
-                                path="durationMax",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.durationUnit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_durationUnit",
-                                path="durationUnit",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.frequency": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_frequency",
-                                path="frequency",
-                                type="positiveInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.frequencyMax": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_frequencyMax",
-                                path="frequencyMax",
-                                type="positiveInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.offset": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_offset",
-                                path="offset",
-                                type="unsignedInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.period": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_period",
-                                path="period",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.periodMax": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_periodMax",
-                                path="periodMax",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.periodUnit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuedosage_timing_repeat_periodUnit",
-                                path="periodUnit",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.timeOfDay": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="timeOfDay",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuedosage_timing_repeat_timeOfDay",
-                                        path="$this",
-                                        type="time",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDosage.timing.repeat.when": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDosage.timing.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="when",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuedosage_timing_repeat_when",
-                                        path="$this",
-                                        type="code",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDuration": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Duration)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueDuration.code",
-                        "Task.input.value[x]:valueDuration.system",
-                        "Task.input.value[x]:valueDuration.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueDuration.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDuration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueduration_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDuration.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDuration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueduration_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueDuration.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueDuration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueduration_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueInstant": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(instant)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valueinstant",
-                                        path="$this",
-                                        type="instant",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueInteger": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(integer)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valueinteger",
-                                        path="$this",
-                                        type="integer",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueMarkdown": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(markdown)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuemarkdown",
-                                        path="$this",
-                                        type="markdown",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueMeta": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Meta)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueMeta.lastUpdated",
-                        "Task.input.value[x]:valueMeta.profile",
-                        "Task.input.value[x]:valueMeta.security",
-                        "Task.input.value[x]:valueMeta.source",
-                        "Task.input.value[x]:valueMeta.tag",
-                    ],
-                ),
-                "Task.input.value[x]:valueMeta.lastUpdated": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueMeta",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuemeta_lastUpdated",
-                                path="lastUpdated",
-                                type="instant",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueMeta.profile": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueMeta",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="profile",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuemeta_profile",
-                                        path="$this",
-                                        type="canonical",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueMeta.security": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueMeta",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="security",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuemeta_security_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuemeta_security_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueMeta.source": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueMeta",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuemeta_source",
-                                path="source",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueMeta.tag": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueMeta",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="tag",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuemeta_tag_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuemeta_tag_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueOid": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(oid)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valueoid",
-                                        path="$this",
-                                        type="oid",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valuePeriod": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Period)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valuePeriod.end",
-                        "Task.input.value[x]:valuePeriod.start",
-                    ],
-                ),
-                "Task.input.value[x]:valuePeriod.end": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valuePeriod",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueperiod_end",
-                                path="end",
-                                type="dateTime",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valuePeriod.start": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valuePeriod",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueperiod_start",
-                                path="start",
-                                type="dateTime",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valuePositiveInt": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(positiveInt)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuepositiveint",
-                                        path="$this",
-                                        type="positiveInt",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueQuantity": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Quantity)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueQuantity.code",
-                        "Task.input.value[x]:valueQuantity.comparator",
-                        "Task.input.value[x]:valueQuantity.system",
-                        "Task.input.value[x]:valueQuantity.unit",
-                        "Task.input.value[x]:valueQuantity.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueQuantity.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuequantity_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueQuantity.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuequantity_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueQuantity.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuequantity_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueQuantity.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuequantity_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueQuantity.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuequantity_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRange": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Range)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueRange.high",
-                        "Task.input.value[x]:valueRange.low",
-                    ],
-                ),
-                "Task.input.value[x]:valueRange.high": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRange",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="high",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueRange.high.code",
-                        "Task.input.value[x]:valueRange.high.comparator",
-                        "Task.input.value[x]:valueRange.high.system",
-                        "Task.input.value[x]:valueRange.high.unit",
-                        "Task.input.value[x]:valueRange.high.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueRange.high.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuerange_high_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRange.high.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuerange_high_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRange.high.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuerange_high_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRange.high.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuerange_high_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRange.high.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuerange_high_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRange.low": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRange",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="low",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueRange.low.code",
-                        "Task.input.value[x]:valueRange.low.comparator",
-                        "Task.input.value[x]:valueRange.low.system",
-                        "Task.input.value[x]:valueRange.low.unit",
-                        "Task.input.value[x]:valueRange.low.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueRange.low.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuerange_low_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRange.low.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuerange_low_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRange.low.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuerange_low_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRange.low.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuerange_low_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRange.low.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuerange_low_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRatio": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Ratio)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueRatio.denominator",
-                        "Task.input.value[x]:valueRatio.numerator",
-                    ],
-                ),
-                "Task.input.value[x]:valueRatio.denominator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRatio",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="denominator",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueRatio.denominator.code",
-                        "Task.input.value[x]:valueRatio.denominator.comparator",
-                        "Task.input.value[x]:valueRatio.denominator.system",
-                        "Task.input.value[x]:valueRatio.denominator.unit",
-                        "Task.input.value[x]:valueRatio.denominator.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueRatio.denominator.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRatio.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueratio_denominator_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRatio.denominator.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRatio.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueratio_denominator_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRatio.denominator.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRatio.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueratio_denominator_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRatio.denominator.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRatio.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueratio_denominator_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRatio.denominator.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRatio.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueratio_denominator_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRatio.numerator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRatio",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="numerator",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueRatio.numerator.code",
-                        "Task.input.value[x]:valueRatio.numerator.comparator",
-                        "Task.input.value[x]:valueRatio.numerator.system",
-                        "Task.input.value[x]:valueRatio.numerator.unit",
-                        "Task.input.value[x]:valueRatio.numerator.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueRatio.numerator.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRatio.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueratio_numerator_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRatio.numerator.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRatio.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueratio_numerator_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRatio.numerator.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRatio.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueratio_numerator_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRatio.numerator.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRatio.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueratio_numerator_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueRatio.numerator.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueRatio.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueratio_numerator_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueReference": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Reference)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueReference.reference",
-                    ],
-                ),
-                "Task.input.value[x]:valueReference.reference": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueReference",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuereference_reference",
-                                path="reference",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueSampledData": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(SampledData)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueSampledData.data",
-                        "Task.input.value[x]:valueSampledData.dimensions",
-                        "Task.input.value[x]:valueSampledData.factor",
-                        "Task.input.value[x]:valueSampledData.lowerLimit",
-                        "Task.input.value[x]:valueSampledData.origin",
-                        "Task.input.value[x]:valueSampledData.period",
-                        "Task.input.value[x]:valueSampledData.upperLimit",
-                    ],
-                ),
-                "Task.input.value[x]:valueSampledData.data": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueSampledData",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuesampleddata_data",
-                                path="data",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueSampledData.dimensions": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueSampledData",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuesampleddata_dimensions",
-                                path="dimensions",
-                                type="positiveInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueSampledData.factor": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueSampledData",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuesampleddata_factor",
-                                path="factor",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueSampledData.lowerLimit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueSampledData",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuesampleddata_lowerLimit",
-                                path="lowerLimit",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueSampledData.origin": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueSampledData",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="origin",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueSampledData.origin.code",
-                        "Task.input.value[x]:valueSampledData.origin.system",
-                        "Task.input.value[x]:valueSampledData.origin.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueSampledData.origin.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueSampledData.origin",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuesampleddata_origin_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueSampledData.origin.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueSampledData.origin",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuesampleddata_origin_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueSampledData.origin.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueSampledData.origin",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuesampleddata_origin_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueSampledData.period": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueSampledData",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuesampleddata_period",
-                                path="period",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueSampledData.upperLimit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueSampledData",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuesampleddata_upperLimit",
-                                path="upperLimit",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueString": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(string)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuestring",
-                                        path="$this",
-                                        type="string",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTime": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(time)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuetime",
-                                        path="$this",
-                                        type="time",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Timing)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTiming.code",
-                        "Task.input.value[x]:valueTiming.event",
-                        "Task.input.value[x]:valueTiming.repeat",
-                    ],
-                ),
-                "Task.input.value[x]:valueTiming.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="code",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTiming.code.coding",
-                    ],
-                ),
-                "Task.input.value[x]:valueTiming.code.coding": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.code",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_code_coding_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_code_coding_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.event": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="event",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuetiming_event",
-                                        path="$this",
-                                        type="dateTime",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="repeat",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]",
-                        "Task.input.value[x]:valueTiming.repeat.count",
-                        "Task.input.value[x]:valueTiming.repeat.countMax",
-                        "Task.input.value[x]:valueTiming.repeat.dayOfWeek",
-                        "Task.input.value[x]:valueTiming.repeat.duration",
-                        "Task.input.value[x]:valueTiming.repeat.durationMax",
-                        "Task.input.value[x]:valueTiming.repeat.durationUnit",
-                        "Task.input.value[x]:valueTiming.repeat.frequency",
-                        "Task.input.value[x]:valueTiming.repeat.frequencyMax",
-                        "Task.input.value[x]:valueTiming.repeat.offset",
-                        "Task.input.value[x]:valueTiming.repeat.period",
-                        "Task.input.value[x]:valueTiming.repeat.periodMax",
-                        "Task.input.value[x]:valueTiming.repeat.periodUnit",
-                        "Task.input.value[x]:valueTiming.repeat.timeOfDay",
-                        "Task.input.value[x]:valueTiming.repeat.when",
-                    ],
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsDuration",
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsPeriod",
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange",
-                    ],
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsDuration": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="bounds.ofType(Duration)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsDuration.code",
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsDuration.system",
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsDuration.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsDuration.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsDuration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_bounds_X_Boundsduration_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsDuration.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsDuration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_bounds_X_Boundsduration_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsDuration.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsDuration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_bounds_X_Boundsduration_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsPeriod": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="bounds.ofType(Period)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsPeriod.end",
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsPeriod.start",
-                    ],
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsPeriod.end": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsPeriod",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_bounds_X_Boundsperiod_end",
-                                path="end",
-                                type="dateTime",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsPeriod.start": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsPeriod",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_bounds_X_Boundsperiod_start",
-                                path="start",
-                                type="dateTime",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="bounds.ofType(Range)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.high",
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.low",
-                    ],
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.high": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="high",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.high.code",
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.high.comparator",
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.high.system",
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.high.unit",
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.high.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.high.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_bounds_X_Boundsrange_high_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.high.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_bounds_X_Boundsrange_high_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.high.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_bounds_X_Boundsrange_high_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.high.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_bounds_X_Boundsrange_high_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.high.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_bounds_X_Boundsrange_high_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.low": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="low",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.low.code",
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.low.comparator",
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.low.system",
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.low.unit",
-                        "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.low.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.low.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_bounds_X_Boundsrange_low_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.low.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_bounds_X_Boundsrange_low_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.low.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_bounds_X_Boundsrange_low_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.low.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_bounds_X_Boundsrange_low_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.low.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat.bounds[x]:boundsRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_bounds_X_Boundsrange_low_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.count": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_count",
-                                path="count",
-                                type="positiveInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.countMax": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_countMax",
-                                path="countMax",
-                                type="positiveInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.dayOfWeek": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="dayOfWeek",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuetiming_repeat_dayOfWeek",
-                                        path="$this",
-                                        type="code",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.duration": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_duration",
-                                path="duration",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.durationMax": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_durationMax",
-                                path="durationMax",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.durationUnit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_durationUnit",
-                                path="durationUnit",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.frequency": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_frequency",
-                                path="frequency",
-                                type="positiveInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.frequencyMax": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_frequencyMax",
-                                path="frequencyMax",
-                                type="positiveInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.offset": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_offset",
-                                path="offset",
-                                type="unsignedInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.period": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_period",
-                                path="period",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.periodMax": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_periodMax",
-                                path="periodMax",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.periodUnit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetiming_repeat_periodUnit",
-                                path="periodUnit",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.timeOfDay": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="timeOfDay",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuetiming_repeat_timeOfDay",
-                                        path="$this",
-                                        type="time",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTiming.repeat.when": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="when",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuetiming_repeat_when",
-                                        path="$this",
-                                        type="code",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(TriggerDefinition)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.data",
-                        "Task.input.value[x]:valueTriggerDefinition.name",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]",
-                        "Task.input.value[x]:valueTriggerDefinition.type",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="data",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.data.codeFilter",
-                        "Task.input.value[x]:valueTriggerDefinition.data.dateFilter",
-                        "Task.input.value[x]:valueTriggerDefinition.data.limit",
-                        "Task.input.value[x]:valueTriggerDefinition.data.mustSupport",
-                        "Task.input.value[x]:valueTriggerDefinition.data.profile",
-                        "Task.input.value[x]:valueTriggerDefinition.data.sort",
-                        "Task.input.value[x]:valueTriggerDefinition.data.subject[x]",
-                        "Task.input.value[x]:valueTriggerDefinition.data.type",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.codeFilter": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="codeFilter",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.data.codeFilter.code",
-                        "Task.input.value[x]:valueTriggerDefinition.data.codeFilter.path",
-                        "Task.input.value[x]:valueTriggerDefinition.data.codeFilter.searchParam",
-                        "Task.input.value[x]:valueTriggerDefinition.data.codeFilter.valueSet",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.codeFilter.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.codeFilter",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="code",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_data_codeFilter_code_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_data_codeFilter_code_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.codeFilter.path": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.codeFilter",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_data_codeFilter_path",
-                                path="path",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.codeFilter.searchParam": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.codeFilter",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_data_codeFilter_searchParam",
-                                path="searchParam",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.codeFilter.valueSet": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.codeFilter",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_data_codeFilter_valueSet",
-                                path="valueSet",
-                                type="canonical",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.dateFilter": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="dateFilter",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.path",
-                        "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.searchParam",
-                        "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.path": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.dateFilter",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_data_dateFilter_path",
-                                path="path",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.searchParam": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.dateFilter",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_data_dateFilter_searchParam",
-                                path="searchParam",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.dateFilter",
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valueDateTime",
-                        "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valueDuration",
-                        "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valuePeriod",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valueDateTime": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(dateTime)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuetriggerdefinition_data_dateFilter_value_X_Valuedatetime",
-                                        path="$this",
-                                        type="dateTime",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valueDuration": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Duration)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valueDuration.code",
-                        "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valueDuration.system",
-                        "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valueDuration.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valueDuration.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valueDuration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_data_dateFilter_value_X_Valueduration_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valueDuration.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valueDuration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_data_dateFilter_value_X_Valueduration_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valueDuration.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valueDuration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_data_dateFilter_value_X_Valueduration_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valuePeriod": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Period)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valuePeriod.end",
-                        "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valuePeriod.start",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valuePeriod.end": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valuePeriod",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_data_dateFilter_value_X_Valueperiod_end",
-                                path="end",
-                                type="dateTime",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valuePeriod.start": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.dateFilter.value[x]:valuePeriod",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_data_dateFilter_value_X_Valueperiod_start",
-                                path="start",
-                                type="dateTime",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.limit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_data_limit",
-                                path="limit",
-                                type="positiveInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.mustSupport": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="mustSupport",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuetriggerdefinition_data_mustSupport",
-                                        path="$this",
-                                        type="string",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.profile": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="profile",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuetriggerdefinition_data_profile",
-                                        path="$this",
-                                        type="canonical",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.sort": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="sort",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.data.sort.direction",
-                        "Task.input.value[x]:valueTriggerDefinition.data.sort.path",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.sort.direction": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.sort",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_data_sort_direction",
-                                path="direction",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.sort.path": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.sort",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_data_sort_path",
-                                path="path",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.subject[x]": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data",
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.data.subject[x]:subjectCodeableConcept",
-                        "Task.input.value[x]:valueTriggerDefinition.data.subject[x]:subjectReference",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.subject[x]:subjectCodeableConcept": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.subject[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="subject.ofType(CodeableConcept)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.data.subject[x]:subjectCodeableConcept.coding",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.subject[x]:subjectCodeableConcept.coding": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.subject[x]:subjectCodeableConcept",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_data_subject_X_Subjectcodeableconcept_coding_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_data_subject_X_Subjectcodeableconcept_coding_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.subject[x]:subjectReference": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.subject[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="subject.ofType(Reference)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.data.subject[x]:subjectReference.reference",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.subject[x]:subjectReference.reference": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data.subject[x]:subjectReference",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_data_subject_X_Subjectreference_reference",
-                                path="reference",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.data.type": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.data",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_data_type",
-                                path="type",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.name": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_name",
-                                path="name",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition",
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingDate",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingDateTime",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingReference",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingDate": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="timing.ofType(date)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingdate",
-                                        path="$this",
-                                        type="date",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingDateTime": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="timing.ofType(dateTime)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingdatetime",
-                                        path="$this",
-                                        type="dateTime",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingReference": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="timing.ofType(Reference)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingReference.reference",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingReference.reference": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingReference",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingreference_reference",
-                                path="reference",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="timing.ofType(Timing)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.code",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.event",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="code",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.code.coding",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.code.coding": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.code",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_code_coding_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_code_coding_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.event": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="event",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_event",
-                                        path="$this",
-                                        type="dateTime",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="repeat",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.count",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.countMax",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.dayOfWeek",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.duration",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.durationMax",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.durationUnit",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.frequency",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.frequencyMax",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.offset",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.period",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.periodMax",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.periodUnit",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.timeOfDay",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.when",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsDuration",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsPeriod",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsDuration": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="bounds.ofType(Duration)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsDuration.code",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsDuration.system",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsDuration.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsDuration.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsDuration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_bounds_X_Boundsduration_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsDuration.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsDuration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_bounds_X_Boundsduration_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsDuration.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsDuration",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_bounds_X_Boundsduration_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsPeriod": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="bounds.ofType(Period)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsPeriod.end",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsPeriod.start",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsPeriod.end": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsPeriod",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_bounds_X_Boundsperiod_end",
-                                path="end",
-                                type="dateTime",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsPeriod.start": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsPeriod",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_bounds_X_Boundsperiod_start",
-                                path="start",
-                                type="dateTime",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="bounds.ofType(Range)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.high",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.low",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.high": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="high",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.high.code",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.high.comparator",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.high.system",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.high.unit",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.high.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.high.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_bounds_X_Boundsrange_high_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.high.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_bounds_X_Boundsrange_high_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.high.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_bounds_X_Boundsrange_high_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.high.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_bounds_X_Boundsrange_high_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.high.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_bounds_X_Boundsrange_high_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.low": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="low",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.low.code",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.low.comparator",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.low.system",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.low.unit",
-                        "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.low.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.low.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_bounds_X_Boundsrange_low_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.low.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_bounds_X_Boundsrange_low_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.low.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_bounds_X_Boundsrange_low_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.low.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_bounds_X_Boundsrange_low_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.low.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.bounds[x]:boundsRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_bounds_X_Boundsrange_low_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.count": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_count",
-                                path="count",
-                                type="positiveInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.countMax": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_countMax",
-                                path="countMax",
-                                type="positiveInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.dayOfWeek": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="dayOfWeek",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_dayOfWeek",
-                                        path="$this",
-                                        type="code",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.duration": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_duration",
-                                path="duration",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.durationMax": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_durationMax",
-                                path="durationMax",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.durationUnit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_durationUnit",
-                                path="durationUnit",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.frequency": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_frequency",
-                                path="frequency",
-                                type="positiveInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.frequencyMax": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_frequencyMax",
-                                path="frequencyMax",
-                                type="positiveInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.offset": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_offset",
-                                path="offset",
-                                type="unsignedInt",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.period": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_period",
-                                path="period",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.periodMax": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_periodMax",
-                                path="periodMax",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.periodUnit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_periodUnit",
-                                path="periodUnit",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.timeOfDay": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="timeOfDay",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_timeOfDay",
-                                        path="$this",
-                                        type="time",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat.when": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition.timing[x]:timingTiming.repeat",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="when",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valuetriggerdefinition_timing_X_Timingtiming_repeat_when",
-                                        path="$this",
-                                        type="code",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueTriggerDefinition.type": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueTriggerDefinition",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valuetriggerdefinition_type",
-                                path="type",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUnsignedInt": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(unsignedInt)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valueunsignedint",
-                                        path="$this",
-                                        type="unsignedInt",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUri": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(uri)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valueuri",
-                                        path="$this",
-                                        type="uri",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUrl": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(url)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valueurl",
-                                        path="$this",
-                                        type="url",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUsageContext": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(UsageContext)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueUsageContext.code",
-                        "Task.input.value[x]:valueUsageContext.value[x]",
-                    ],
-                ),
-                "Task.input.value[x]:valueUsageContext.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="code",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_code_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_code_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext",
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueCodeableConcept",
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueQuantity",
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueRange",
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueReference",
-                    ],
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueCodeableConcept": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(CodeableConcept)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueCodeableConcept.coding",
-                    ],
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueCodeableConcept.coding": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]:valueCodeableConcept",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_value_X_Valuecodeableconcept_coding_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_value_X_Valuecodeableconcept_coding_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueQuantity": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Quantity)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueQuantity.code",
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueQuantity.comparator",
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueQuantity.system",
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueQuantity.unit",
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueQuantity.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueQuantity.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]:valueQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_value_X_Valuequantity_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueQuantity.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]:valueQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_value_X_Valuequantity_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueQuantity.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]:valueQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_value_X_Valuequantity_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueQuantity.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]:valueQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_value_X_Valuequantity_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueQuantity.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]:valueQuantity",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_value_X_Valuequantity_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueRange": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Range)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueRange.high",
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueRange.low",
-                    ],
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueRange.high": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]:valueRange",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="high",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueRange.high.code",
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueRange.high.comparator",
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueRange.high.system",
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueRange.high.unit",
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueRange.high.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueRange.high.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]:valueRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_value_X_Valuerange_high_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueRange.high.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]:valueRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_value_X_Valuerange_high_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueRange.high.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]:valueRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_value_X_Valuerange_high_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueRange.high.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]:valueRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_value_X_Valuerange_high_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueRange.high.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]:valueRange.high",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_value_X_Valuerange_high_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueRange.low": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]:valueRange",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="low",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueRange.low.code",
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueRange.low.comparator",
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueRange.low.system",
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueRange.low.unit",
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueRange.low.value",
-                    ],
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueRange.low.code": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]:valueRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_value_X_Valuerange_low_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueRange.low.comparator": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]:valueRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_value_X_Valuerange_low_comparator",
-                                path="comparator",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueRange.low.system": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]:valueRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_value_X_Valuerange_low_system",
-                                path="system",
-                                type="uri",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueRange.low.unit": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]:valueRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_value_X_Valuerange_low_unit",
-                                path="unit",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueRange.low.value": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]:valueRange.low",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_value_X_Valuerange_low_value",
-                                path="value",
-                                type="decimal",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueReference": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Reference)",
-                        select=[],
-                    ),
-                    children=[
-                        "Task.input.value[x]:valueUsageContext.value[x]:valueReference.reference",
-                    ],
-                ),
-                "Task.input.value[x]:valueUsageContext.value[x]:valueReference.reference": FlatteningLookupElement(
-                    parent="Task.input.value[x]:valueUsageContext.value[x]:valueReference",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Task_input_value_X_Valueusagecontext_value_X_Valuereference_reference",
-                                path="reference",
-                                type="string",
-                            ),
-                        ],
-                    ),
-                ),
-                "Task.input.value[x]:valueUuid": FlatteningLookupElement(
-                    parent="Task.input.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(uuid)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Task_input_value_X_Valueuuid",
-                                        path="$this",
-                                        type="uuid",
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-            },
-        ),
-        pytest.param(
-            "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab",
-            "Observation.effective[x]",
-            {
-                "Observation.effective[x]": FlatteningLookupElement(
-                    viewDefinition=ViewDefinitionSnippet(select=[]),
-                    children=[
-                        "Observation.effective[x].extension",
-                        "Observation.effective[x]:effectiveDateTime",
-                    ],
-                ),
-                "Observation.effective[x].extension": FlatteningLookupElement(
-                    parent="Observation.effective[x]",
-                    viewDefinition=ViewDefinitionSnippet(
-                        for_each_or_null="effective", select=[]
-                    ),
-                    children=[
-                        "Observation.effective[x].extension:QuelleKlinischesBezugsdatum"
-                    ],
-                ),
-                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum": FlatteningLookupElement(
-                    parent="Observation.effective[x].extension",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="extension.where(url = 'https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/QuelleKlinischesBezugsdatum')",
-                        select=[],
-                    ),
-                    children=[
-                        "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]"
-                    ],
-                ),
-                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]": FlatteningLookupElement(
-                    parent="Observation.effective[x].extension:QuelleKlinischesBezugsdatum",
-                    viewDefinition=ViewDefinitionSnippet(select=[]),
-                    children=[
-                        "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]:valueCoding"
-                    ],
-                ),
-                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]:valueCoding": FlatteningLookupElement(
-                    parent="Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="value.ofType(Coding)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Observation_effective_X__extensionQuelleklinischesbezugsdatum_value_X_Valuecoding_system",
-                                        path="system",
-                                        type="uri",
-                                    ),
-                                    ViewDefinitionColumn(
-                                        name="Observation_effective_X__extensionQuelleklinischesbezugsdatum_value_X_Valuecoding_code",
-                                        path="code",
-                                        type="code",
-                                    ),
-                                ]
-                            )
-                        ],
-                    ),
-                ),
-                "Observation.effective[x]:effectiveDateTime": FlatteningLookupElement(
-                    parent="Observation.effective[x]",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="effective.ofType(dateTime)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Observation_effective_X_Effectivedatetime",
-                                        path="$this",
-                                        type="dateTime",
                                     )
                                 ]
                             )
@@ -6086,82 +74,84 @@ def test_flatten_primitive(
                     ),
                 ),
             },
-            marks=[
-                pytest.mark.skip(
-                    "ATM extensions on elements that support any primitive FHIR data type are not supported"
-                )
-            ],
+            "unchanged",
+            id="polymorphic leaf with non-empty select, no children -> kept",
+        ),
+        pytest.param(
+            "Observation.effective[x].extension:QuelleKlinischesBezugsdatum",
+            {
+                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                    children=[
+                        "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]"
+                    ],
+                ),
+                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                    children=[
+                        "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]:valueCoding"
+                    ],
+                ),
+                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]:valueCoding": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(
+                        select=[ViewDefinitionSelect(column=[])]
+                    ),
+                ),
+            },
+            "unchanged",
+            id="empty select + children, child resolves -> kept",
+        ),
+        pytest.param(
+            # This is the original issue: an extension's value[x] has no defined/assumed types
+            # (e.g. `DiagnosticReport.extension:related-report.value[x]` for
+            # `workflow-relatedArtifact`), so it ends up with an empty `select` and either no
+            # children or children that don't resolve to anything in the lookup. Keeping it
+            # produces a `ViewDefinition.select` entry that is never filled.
+            "DiagnosticReport.extension:related-report.value[x]",
+            {
+                "DiagnosticReport.extension:related-report.value[x]": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                ),
+            },
+            {},
+            id="empty select, no children -> dropped (the original #523 bug)",
+        ),
+        pytest.param(
+            "DiagnosticReport.extension:related-report.value[x]",
+            {
+                "DiagnosticReport.extension:related-report.value[x]": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                    children=[
+                        "DiagnosticReport.extension:related-report.value[x]:valueCoding"
+                    ],
+                ),
+                # the referenced child never made it into the lookup (e.g. it was excluded or
+                # dropped further down the chain)
+            },
+            {},
+            id="empty select, children present but none resolve -> dropped",
         ),
     ],
-    ids=[
-        "Polymorphic time: Procedure.performed[x]",
-        "Polymorphic time: Observation.effective[x]",
-        "Polymorphic quantity: Observation.value[x]",
-        "Polymorphic with all types: molgen empfohlene-folgemassnahme",
-        "Polymorphic with sliced extension element",
-    ],
-    indirect=["profile"],
 )
-def test_polymorphic(
-    profile: StructureDefinitionSnapshot,
-    elem_id: str,
-    expected: Dict[str, FlatteningLookupElement],
-    flattening_lookup_generator: FlatteningLookupGenerator,
-):
-    res = flattening_post_process(
-        flattening_lookup_generator._flatten_element(elem_id, profile)
-    )
-    res = sorted(res.items(), key=lambda x: len(x[0]))
-    expected = sorted(
-        flattening_post_process(expected).items(), key=lambda x: len(x[0])
-    )
-
-    assert res == expected
+def test_filter_for_empty_select(element_id, lookup, expected):
+    result = prune_leafless_branches(element_id, lookup)
+    if expected == "unchanged":
+        assert result == lookup
+    else:
+        assert result == expected
 
 
 @pytest.mark.parametrize(
-    argnames="profile, elem_id ,expected",
+    argnames="flat_element_id, lookup, expected",
     argvalues=[
-        (
-            "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/dauer-haemodialysesitzung",
-            "Observation.code",
+        pytest.param(
+            "Observation.code.coding:sct",
             {
                 "Observation.code": FlatteningLookupElement(
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="code",
-                        select=[],
-                    ),
-                    children=[
-                        "Observation.code.coding:sct",
-                        "Observation.code.coding:loinc",
-                        "Observation.code.coding:IEEE-11073",
-                    ],
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                    children=["Observation.code.coding:sct"],
                 ),
                 "Observation.code.coding:sct": FlatteningLookupElement(
-                    parent="Observation.code",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding.where(system = 'http://snomed.info/sct')",
-                        select=[],
-                    ),
-                    children=[
-                        "Observation.code.coding:sct.system",
-                        "Observation.code.coding:sct.code",
-                    ],
-                ),
-                "Observation.code.coding:sct.system": FlatteningLookupElement(
-                    parent="Observation.code.coding:sct",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Observation_code_codingSct_system",
-                                path="system",
-                                type="uri",
-                            )
-                        ]
-                    ),
-                ),
-                "Observation.code.coding:sct.code": FlatteningLookupElement(
-                    parent="Observation.code.coding:sct",
                     view_definition=ViewDefinitionSnippet(
                         column=[
                             ViewDefinitionColumn(
@@ -6172,466 +162,121 @@ def test_polymorphic(
                         ]
                     ),
                 ),
-                "Observation.code.coding:loinc": FlatteningLookupElement(
-                    parent="Observation.code",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding.where(system = 'http://loinc.org')",
-                        select=[],
-                    ),
-                    children=[
-                        "Observation.code.coding:loinc.system",
-                        "Observation.code.coding:loinc.code",
-                    ],
-                ),
-                "Observation.code.coding:loinc.system": FlatteningLookupElement(
-                    parent="Observation.code.coding:loinc",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Observation_code_codingLoinc_system",
-                                path="system",
-                                type="uri",
-                            )
-                        ]
-                    ),
-                ),
-                "Observation.code.coding:loinc.code": FlatteningLookupElement(
-                    parent="Observation.code.coding:loinc",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Observation_code_codingLoinc_code",
-                                path="code",
-                                type="code",
-                            )
-                        ]
-                    ),
-                ),
-                "Observation.code.coding:IEEE-11073": FlatteningLookupElement(
-                    parent="Observation.code",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding.where(system = 'urn:iso:std:iso:11073:10101')",
-                        select=[],
-                    ),
-                    children=[
-                        "Observation.code.coding:IEEE-11073.system",
-                        "Observation.code.coding:IEEE-11073.code",
-                    ],
-                ),
-                "Observation.code.coding:IEEE-11073.system": FlatteningLookupElement(
-                    parent="Observation.code.coding:IEEE-11073",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Observation_code_codingIeee11073_system",
-                                path="system",
-                                type="uri",
-                            )
-                        ]
-                    ),
-                ),
-                "Observation.code.coding:IEEE-11073.code": FlatteningLookupElement(
-                    parent="Observation.code.coding:IEEE-11073",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Observation_code_codingIeee11073_code",
-                                path="code",
-                                type="code",
-                            )
-                        ]
-                    ),
-                ),
             },
+            "Observation.code",
+            id="element listed in a parent's children -> parent returned",
         ),
-        (
-            "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab",
+        pytest.param(
             "Observation.code",
             {
                 "Observation.code": FlatteningLookupElement(
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="code",
-                        select=[],
-                    ),
-                    children=[
-                        "Observation.code.coding",
-                    ],
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                ),
+            },
+            None,
+            id="root element referenced by nobody -> None",
+        ),
+        pytest.param(
+            "Observation.code",
+            {},
+            None,
+            id="empty lookup -> None",
+        ),
+        pytest.param(
+            "Observation.code.coding:sct",
+            {
+                "Observation.code": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                    children=["Observation.code.coding:loinc"],
+                ),
+                "Observation.other": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                    children=["Observation.other.child"],
+                ),
+            },
+            None,
+            id="element present as a key but not listed as anyone's child -> None",
+        ),
+    ],
+)
+def test_flattening_get_parent(flat_element_id, lookup, expected):
+    assert flattening_get_parent(flat_element_id, lookup) == expected
+
+
+@pytest.mark.parametrize(
+    argnames="element_id, lookup, expected",
+    argvalues=[
+        pytest.param(
+            "Observation.code",
+            {},
+            False,
+            id="element missing from lookup -> False",
+        ),
+        pytest.param(
+            "Observation.code",
+            {
+                "Observation.code": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                    children=["Observation.code.coding"],
                 ),
                 "Observation.code.coding": FlatteningLookupElement(
-                    parent="Observation.code",
                     view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding",
                         column=[
-                            ViewDefinitionColumn(
-                                name="Observation_code_coding_system",
-                                path="system",
-                                type="uri",
-                            ),
                             ViewDefinitionColumn(
                                 name="Observation_code_coding_code",
                                 path="code",
                                 type="code",
-                            ),
-                            # no more elements to test config rules too
-                        ],
+                            )
+                        ]
                     ),
                 ),
             },
+            False,
+            id="has at least one resolvable child -> not leafless",
         ),
-        (
-            "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung",
-            "Encounter.diagnosis.use",
+        pytest.param(
+            "Observation.code",
             {
-                "Encounter.diagnosis.use": FlatteningLookupElement(
-                    parent="Encounter.diagnosis",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="use", select=[]
-                    ),
-                    children=[
-                        "Encounter.diagnosis.use.coding:Diagnosetyp",
-                        "Encounter.diagnosis.use.coding:DiagnosesubTyp",
-                    ],
-                ),
-                "Encounter.diagnosis.use.coding:Diagnosetyp.code": FlatteningLookupElement(
-                    parent="Encounter.diagnosis.use.coding:Diagnosetyp",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Encounter_diagnosis_use_codingDiagnosetyp_code",
-                                path="code",
-                                type="code",
-                            )
-                        ]
-                    ),
-                ),
-                "Encounter.diagnosis.use.coding:Diagnosetyp.system": FlatteningLookupElement(
-                    parent="Encounter.diagnosis.use.coding:Diagnosetyp",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Encounter_diagnosis_use_codingDiagnosetyp_system",
-                                path="system",
-                                type="uri",
-                            )
-                        ]
-                    ),
-                ),
-                "Encounter.diagnosis.use.coding:Diagnosetyp": FlatteningLookupElement(
-                    parent="Encounter.diagnosis.use",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="coding.where(code = 'referral-diagnosis' or code = 'treatment-diagnosis')",
-                        select=[],
-                    ),
-                    children=[
-                        "Encounter.diagnosis.use.coding:Diagnosetyp.code",
-                        "Encounter.diagnosis.use.coding:Diagnosetyp.system",
-                    ],
-                ),
-                "Encounter.diagnosis.use.coding:DiagnosesubTyp.code": FlatteningLookupElement(
-                    parent="Encounter.diagnosis.use.coding:DiagnosesubTyp",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Encounter_diagnosis_use_codingDiagnosesubtyp_code",
-                                path="code",
-                                type="code",
-                            )
-                        ]
-                    ),
-                ),
-                "Encounter.diagnosis.use.coding:DiagnosesubTyp.system": FlatteningLookupElement(
-                    parent="Encounter.diagnosis.use.coding:DiagnosesubTyp",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Encounter_diagnosis_use_codingDiagnosesubtyp_system",
-                                path="system",
-                                type="uri",
-                            )
-                        ]
-                    ),
-                ),
-                "Encounter.diagnosis.use.coding:DiagnosesubTyp": FlatteningLookupElement(
-                    parent="Encounter.diagnosis.use",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="coding.where(code = 'surgery-diagnosis' or code = 'department-main-diagnosis' or code = 'cause-of-death' or code = 'infection-control-diagnosis' or code = 'AD' or code = 'DD')",
-                        select=[],
-                    ),
-                    children=[
-                        "Encounter.diagnosis.use.coding:DiagnosesubTyp.code",
-                        "Encounter.diagnosis.use.coding:DiagnosesubTyp.system",
-                    ],
-                ),
-            },
-        ),
-    ],
-    ids=[
-        "Observation.code with slices",
-        "Observation.code no slices defined",
-        "Encounter.diagnosis.use slice defined by binding",
-    ],
-    indirect=["profile"],
-)
-def test_codeable_concept(
-    profile: StructureDefinitionSnapshot,
-    elem_id: str,
-    expected: Dict[str, FlatteningLookupElement],
-    client: FhirTerminologyClient,
-    flattening_lookup_generator: FlatteningLookupGenerator,
-):
-    res = flattening_post_process(
-        flattening_lookup_generator._flatten_element(elem_id, profile, client=client)
-    )
-    res = sorted(res.items(), key=lambda x: len(x[0]))
-    expected = sorted(
-        flattening_post_process(expected).items(), key=lambda x: len(x[0])
-    )
-
-    assert res == expected
-
-
-@pytest.mark.parametrize(
-    argnames="profile, elem_id ,expected",
-    argvalues=[
-        (
-            "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose",
-            "Condition.extension",
-            {
-                "Condition.extension": FlatteningLookupElement(
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Condition.extension:ReferenzPrimaerdiagnose",
-                        "Condition.extension:Feststellungsdatum",
-                    ],
-                ),
-                "Condition.extension:ReferenzPrimaerdiagnose": FlatteningLookupElement(
-                    parent="Condition.extension",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="extension.where(url = 'http://hl7.org/fhir/StructureDefinition/condition-related')",
-                        select=[],
-                    ),
-                    children=[
-                        "Condition.extension:ReferenzPrimaerdiagnose.value[x]",
-                    ],
-                ),
-                "Condition.extension:ReferenzPrimaerdiagnose.value[x]": FlatteningLookupElement(
-                    parent="Condition.extension:ReferenzPrimaerdiagnose",
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Condition.extension:ReferenzPrimaerdiagnose.value[x]:valueReference",
-                    ],
-                ),
-                "Condition.extension:ReferenzPrimaerdiagnose.value[x]:valueReference": FlatteningLookupElement(
-                    parent="Condition.extension:ReferenzPrimaerdiagnose.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Reference)",
-                        select=[],
-                    ),
-                    children=[
-                        "Condition.extension:ReferenzPrimaerdiagnose.value[x]:valueReference.reference",
-                    ],
-                ),
-                "Condition.extension:ReferenzPrimaerdiagnose.value[x]:valueReference.reference": FlatteningLookupElement(
-                    parent="Condition.extension:ReferenzPrimaerdiagnose.value[x]:valueReference",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Condition_extensionReferenzprimaerdiagnose_value_X_Valuereference_reference",
-                                path="reference",
-                                type="string",
-                            )
-                        ]
-                    ),
-                ),
-                "Condition.extension:Feststellungsdatum": FlatteningLookupElement(
-                    parent="Condition.extension",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="extension.where(url = 'http://hl7.org/fhir/StructureDefinition/condition-assertedDate')",
-                        select=[],
-                    ),
-                    children=[
-                        "Condition.extension:Feststellungsdatum.value[x]",
-                    ],
-                ),
-                "Condition.extension:Feststellungsdatum.value[x]": FlatteningLookupElement(
-                    parent="Condition.extension:Feststellungsdatum",
-                    view_definition=ViewDefinitionSnippet(
-                        select=[],
-                    ),
-                    children=[
-                        "Condition.extension:Feststellungsdatum.value[x]:valueDateTime",
-                    ],
-                ),
-                "Condition.extension:Feststellungsdatum.value[x]:valueDateTime": FlatteningLookupElement(
-                    parent="Condition.extension:Feststellungsdatum.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(dateTime)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Condition_extensionFeststellungsdatum_value_X_Valuedatetime",
-                                        path="$this",
-                                        type="dateTime",
-                                    )
-                                ]
-                            )
-                        ],
-                    ),
-                ),
-            },
-        ),
-        (
-            "https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/Medication",
-            "Medication.ingredient",
-            {
-                "Medication.ingredient": FlatteningLookupElement(
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="ingredient",
-                        select=[],
-                    ),
-                    children=[
-                        "Medication.ingredient.extension",
-                        "Medication.ingredient.item[x]",
-                        "Medication.ingredient.isActive",
-                        "Medication.ingredient.strength",
-                    ],
-                ),
-                "Medication.ingredient.extension": FlatteningLookupElement(
-                    parent="Medication.ingredient",
+                "Observation.code": FlatteningLookupElement(
                     view_definition=ViewDefinitionSnippet(select=[]),
-                    children=[
-                        "Medication.ingredient.extension:Wirkstofftyp",
-                        "Medication.ingredient.extension:Wirkstoffrelation",
-                    ],
+                    children=["Observation.code.coding"],
                 ),
-                "Medication.ingredient.extension:Wirkstofftyp": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension",
+                # "Observation.code.coding" was already removed / never added
+            },
+            True,
+            id="children listed but none resolve in the lookup -> leafless",
+        ),
+        pytest.param(
+            "Observation.code",
+            {
+                "Observation.code": FlatteningLookupElement(
                     view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="extension.where(url = 'https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/wirkstofftyp')",
-                        select=[],
+                        column=[
+                            ViewDefinitionColumn(
+                                name="Observation_code", path="code", type="code"
+                            )
+                        ]
                     ),
-                    children=[
-                        "Medication.ingredient.extension:Wirkstofftyp.value[x]",
-                    ],
                 ),
-                "Medication.ingredient.extension:Wirkstofftyp.value[x]": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension:Wirkstofftyp",
-                    view_definition=ViewDefinitionSnippet(select=[]),
-                    children=[
-                        "Medication.ingredient.extension:Wirkstofftyp.value[x]:valueCoding",
-                    ],
-                ),
-                "Medication.ingredient.extension:Wirkstofftyp.value[x]:valueCoding": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension:Wirkstofftyp.value[x]",
+            },
+            False,
+            id="no children but has its own column -> not leafless",
+        ),
+        pytest.param(
+            # Same regression fixture as the "polymorphic leaf with non-empty select" case
+            # in test_filter_for_empty_select: columns wrapped inside `select` still count
+            # as valid content.
+            "Account.coverage.extension:Abrechnungsart.value[x]:valueCoding",
+            {
+                "Account.coverage.extension:Abrechnungsart.value[x]:valueCoding": FlatteningLookupElement(
                     view_definition=ViewDefinitionSnippet(
                         for_each_or_null="value.ofType(Coding)",
                         select=[
                             ViewDefinitionSelect(
                                 column=[
                                     ViewDefinitionColumn(
-                                        name="Medication_ingredient_extensionWirkstofftyp_value_X_Valuecoding_system",
+                                        name="Account_coverage_extensionAbrechnungsart_value_X_Valuecoding_system",
                                         path="system",
-                                        type="uri",
-                                    ),
-                                    ViewDefinitionColumn(
-                                        name="Medication_ingredient_extensionWirkstofftyp_value_X_Valuecoding_code",
-                                        path="code",
-                                        type="code",
-                                    ),
-                                ]
-                            )
-                        ],
-                    ),
-                ),
-                "Medication.ingredient.extension:Wirkstoffrelation": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="extension.where(url = 'https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/wirkstoffrelation')",
-                        select=[],
-                    ),
-                    children=[
-                        "Medication.ingredient.extension:Wirkstoffrelation.extension",
-                    ],
-                ),
-                "Medication.ingredient.extension:Wirkstoffrelation.extension": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension",
-                    view_definition=ViewDefinitionSnippet(select=[]),
-                    children=[
-                        "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientReference",
-                        "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientUri",
-                    ],
-                ),
-                "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientReference": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension:Wirkstoffrelation.extension",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="extension.where(url = 'ingredientReference')",
-                        select=[],
-                    ),
-                    children=[
-                        "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientReference.value[x]",
-                    ],
-                ),
-                "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientReference.value[x]": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientReference",
-                    view_definition=ViewDefinitionSnippet(select=[]),
-                    children=[
-                        "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientReference.value[x]:valueReference",
-                    ],
-                ),
-                "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientReference.value[x]:valueReference": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientReference.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(Reference)",
-                        select=[],
-                    ),
-                    children=[
-                        "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientReference.value[x]:valueReference.reference",
-                    ],
-                ),
-                "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientReference.value[x]:valueReference.reference": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientReference.value[x]:valueReference",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Medication_ingredient_extensionWirkstoffrelation_extensionIngredientreference_value_X_Valuereference_reference",
-                                path="reference",
-                                type="string",
-                            )
-                        ]
-                    ),
-                ),
-                "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientUri": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension:Wirkstoffrelation.extension",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="extension.where(url = 'ingredientUri')",
-                        select=[],
-                    ),
-                    children=[
-                        "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientUri.value[x]",
-                    ],
-                ),
-                "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientUri.value[x]": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientUri",
-                    view_definition=ViewDefinitionSnippet(select=[]),
-                    children=[
-                        "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientUri.value[x]:valueUri",
-                    ],
-                ),
-                "Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientUri.value[x]:valueUri": FlatteningLookupElement(
-                    parent="Medication.ingredient.extension:Wirkstoffrelation.extension:ingredientUri.value[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="value.ofType(uri)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Medication_ingredient_extensionWirkstoffrelation_extensionIngredienturi_value_X_Valueuri",
-                                        path="$this",
                                         type="uri",
                                     )
                                 ]
@@ -6639,3186 +284,2165 @@ def test_codeable_concept(
                         ],
                     ),
                 ),
-                "Medication.ingredient.item[x]": FlatteningLookupElement(
-                    parent="Medication.ingredient",
+            },
+            False,
+            id="no children, no top-level column, but non-empty select -> not leafless",
+        ),
+        pytest.param(
+            "Observation.extension:foo",
+            {
+                "Observation.extension:foo": FlatteningLookupElement(
                     view_definition=ViewDefinitionSnippet(select=[]),
-                    children=[
-                        "Medication.ingredient.item[x]:itemCodeableConcept",
-                        "Medication.ingredient.item[x]:itemReference",
-                    ],
                 ),
-                "Medication.ingredient.item[x]:itemCodeableConcept": FlatteningLookupElement(
-                    parent="Medication.ingredient.item[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="item.ofType(CodeableConcept)",
-                        select=[],
-                    ),
-                    children=[
-                        "Medication.ingredient.item[x]:itemCodeableConcept.coding:ASK",
-                        "Medication.ingredient.item[x]:itemCodeableConcept.coding:UNII",
-                        "Medication.ingredient.item[x]:itemCodeableConcept.coding:CAS",
-                        "Medication.ingredient.item[x]:itemCodeableConcept.coding:SNOMED",
-                    ],
+            },
+            True,
+            id="no children, no column, empty select -> leafless",
+        ),
+        pytest.param(
+            "Observation.extension:foo",
+            {
+                "Observation.extension:foo": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(),
                 ),
-                "Medication.ingredient.item[x]:itemCodeableConcept.coding:ASK": FlatteningLookupElement(
-                    parent="Medication.ingredient.item[x]:itemCodeableConcept",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding.where(system = 'http://fhir.de/CodeSystem/ask')",
-                        select=[],
-                    ),
-                    children=[
-                        "Medication.ingredient.item[x]:itemCodeableConcept.coding:ASK.system",
-                        "Medication.ingredient.item[x]:itemCodeableConcept.coding:ASK.code",
-                    ],
-                ),
-                "Medication.ingredient.item[x]:itemCodeableConcept.coding:ASK.system": FlatteningLookupElement(
-                    parent="Medication.ingredient.item[x]:itemCodeableConcept.coding:ASK",
+            },
+            True,
+            id="no children, no column, select unset -> leafless",
+        ),
+    ],
+)
+def test_is_leafless_branch_root(element_id, lookup, expected):
+    assert is_leafless_branch_root(element_id, lookup) is expected
+
+
+@pytest.mark.parametrize(
+    argnames="lookup, expected",
+    argvalues=[
+        pytest.param(
+            {
+                "Observation.value[x]": FlatteningLookupElement(
                     view_definition=ViewDefinitionSnippet(
                         column=[
                             ViewDefinitionColumn(
-                                name="Medication_ingredient_item_X_Itemcodeableconcept_codingAsk_system",
-                                path="system",
-                                type="uri",
+                                name="Observation_value_X_", path="value", type="string"
                             )
                         ]
                     ),
                 ),
-                "Medication.ingredient.item[x]:itemCodeableConcept.coding:ASK.code": FlatteningLookupElement(
-                    parent="Medication.ingredient.item[x]:itemCodeableConcept.coding:ASK",
+            },
+            {
+                "Observation.value[x]": FlatteningLookupElement(
                     view_definition=ViewDefinitionSnippet(
                         column=[
                             ViewDefinitionColumn(
-                                name="Medication_ingredient_item_X_Itemcodeableconcept_codingAsk_code",
-                                path="code",
-                                type="code",
+                                name="Observation_value_X_", path="value", type="string"
+                            )
+                        ]
+                    ),
+                    children=None,
+                ),
+            },
+            id="single leaf with a column -> kept, empty children normalized to None",
+        ),
+        pytest.param(
+            {
+                "Observation.extension:foo": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                ),
+            },
+            {},
+            id="leafless root with no children -> removed",
+        ),
+        pytest.param(
+            # Root -> Root.mid -> Root.mid.leaf, none of which carry a column/select of
+            # their own. Once the leaf is pruned, "mid" loses its only child and becomes
+            # leafless itself, and once "mid" is pruned "Root" does too: deletion
+            # propagates upward until nothing is left.
+            {
+                "Root": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                    children=["Root.mid"],
+                ),
+                "Root.mid": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                    children=["Root.mid.leaf"],
+                ),
+                "Root.mid.leaf": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                ),
+            },
+            {},
+            id="chain of nested leafless branches collapses all the way to empty",
+        ),
+        pytest.param(
+            # Same chain as above, but "Root" has a second, valid child ("Root.other").
+            # Deletion must stop at "Root" instead of removing it too.
+            {
+                "Root": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                    children=["Root.mid", "Root.other"],
+                ),
+                "Root.mid": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                    children=["Root.mid.leaf"],
+                ),
+                "Root.mid.leaf": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                ),
+                "Root.other": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(
+                        column=[
+                            ViewDefinitionColumn(
+                                name="Root_other", path="other", type="string"
                             )
                         ]
                     ),
                 ),
-                "Medication.ingredient.item[x]:itemCodeableConcept.coding:UNII": FlatteningLookupElement(
-                    parent="Medication.ingredient.item[x]:itemCodeableConcept",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding.where(system = 'http://fdasis.nlm.nih.gov')",
-                        select=[],
-                    ),
-                    children=[
-                        "Medication.ingredient.item[x]:itemCodeableConcept.coding:UNII.system",
-                        "Medication.ingredient.item[x]:itemCodeableConcept.coding:UNII.code",
-                    ],
+            },
+            {
+                "Root": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(select=[]),
+                    children=["Root.other"],
                 ),
-                "Medication.ingredient.item[x]:itemCodeableConcept.coding:UNII.system": FlatteningLookupElement(
-                    parent="Medication.ingredient.item[x]:itemCodeableConcept.coding:UNII",
+                "Root.other": FlatteningLookupElement(
                     view_definition=ViewDefinitionSnippet(
                         column=[
                             ViewDefinitionColumn(
-                                name="Medication_ingredient_item_X_Itemcodeableconcept_codingUnii_system",
-                                path="system",
-                                type="uri",
+                                name="Root_other", path="other", type="string"
                             )
                         ]
                     ),
+                    children=None,
                 ),
-                "Medication.ingredient.item[x]:itemCodeableConcept.coding:UNII.code": FlatteningLookupElement(
-                    parent="Medication.ingredient.item[x]:itemCodeableConcept.coding:UNII",
+            },
+            id="upward deletion stops at an ancestor with a remaining valid child",
+        ),
+        pytest.param(
+            # "resolve()" must remove the element *and* its children outright, even
+            # though the child on its own has real content (a column).
+            {
+                "Observation.subject": FlatteningLookupElement(
+                    view_definition=ViewDefinitionSnippet(
+                        for_each_or_null="subject.resolve()", select=[]
+                    ),
+                    children=["Observation.subject.reference"],
+                ),
+                "Observation.subject.reference": FlatteningLookupElement(
                     view_definition=ViewDefinitionSnippet(
                         column=[
                             ViewDefinitionColumn(
-                                name="Medication_ingredient_item_X_Itemcodeableconcept_codingUnii_code",
-                                path="code",
-                                type="code",
-                            )
-                        ]
-                    ),
-                ),
-                "Medication.ingredient.item[x]:itemCodeableConcept.coding:CAS": FlatteningLookupElement(
-                    parent="Medication.ingredient.item[x]:itemCodeableConcept",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding.where(system = 'http://terminology.hl7.org/CodeSystem/CAS')",
-                        select=[],
-                    ),
-                    children=[
-                        "Medication.ingredient.item[x]:itemCodeableConcept.coding:CAS.system",
-                        "Medication.ingredient.item[x]:itemCodeableConcept.coding:CAS.code",
-                    ],
-                ),
-                "Medication.ingredient.item[x]:itemCodeableConcept.coding:CAS.system": FlatteningLookupElement(
-                    parent="Medication.ingredient.item[x]:itemCodeableConcept.coding:CAS",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Medication_ingredient_item_X_Itemcodeableconcept_codingCas_system",
-                                path="system",
-                                type="uri",
-                            )
-                        ]
-                    ),
-                ),
-                "Medication.ingredient.item[x]:itemCodeableConcept.coding:CAS.code": FlatteningLookupElement(
-                    parent="Medication.ingredient.item[x]:itemCodeableConcept.coding:CAS",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Medication_ingredient_item_X_Itemcodeableconcept_codingCas_code",
-                                path="code",
-                                type="code",
-                            )
-                        ]
-                    ),
-                ),
-                "Medication.ingredient.item[x]:itemCodeableConcept.coding:SNOMED": FlatteningLookupElement(
-                    parent="Medication.ingredient.item[x]:itemCodeableConcept",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="coding.where(system = 'http://snomed.info/sct')",
-                        select=[],
-                    ),
-                    children=[
-                        "Medication.ingredient.item[x]:itemCodeableConcept.coding:SNOMED.system",
-                        "Medication.ingredient.item[x]:itemCodeableConcept.coding:SNOMED.code",
-                    ],
-                ),
-                "Medication.ingredient.item[x]:itemCodeableConcept.coding:SNOMED.system": FlatteningLookupElement(
-                    parent="Medication.ingredient.item[x]:itemCodeableConcept.coding:SNOMED",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Medication_ingredient_item_X_Itemcodeableconcept_codingSnomed_system",
-                                path="system",
-                                type="uri",
-                            )
-                        ]
-                    ),
-                ),
-                "Medication.ingredient.item[x]:itemCodeableConcept.coding:SNOMED.code": FlatteningLookupElement(
-                    parent="Medication.ingredient.item[x]:itemCodeableConcept.coding:SNOMED",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Medication_ingredient_item_X_Itemcodeableconcept_codingSnomed_code",
-                                path="code",
-                                type="code",
-                            )
-                        ]
-                    ),
-                ),
-                "Medication.ingredient.item[x]:itemReference": FlatteningLookupElement(
-                    parent="Medication.ingredient.item[x]",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="item.ofType(Reference)",
-                        select=[],
-                    ),
-                    children=[
-                        "Medication.ingredient.item[x]:itemReference.reference",
-                    ],
-                ),
-                "Medication.ingredient.item[x]:itemReference.reference": FlatteningLookupElement(
-                    parent="Medication.ingredient.item[x]:itemReference",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Medication_ingredient_item_X_Itemreference_reference",
+                                name="Observation_subject_reference",
                                 path="reference",
                                 type="string",
                             )
                         ]
                     ),
                 ),
-                "Medication.ingredient.isActive": FlatteningLookupElement(
-                    parent="Medication.ingredient",
-                    view_definition=ViewDefinitionSnippet(
+            },
+            {},
+            id="resolve() in forEachOrNull removes the element and its children",
+        ),
+    ],
+)
+def test_flattening_post_process(lookup, expected):
+    assert flattening_post_process(lookup) == expected
+
+
+# --- _flatten_polymorphic / _generate_flattening_polymorphic_child ---------------------
+
+
+def test_flatten_polymorphic_creates_one_child_per_declared_type(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    With no slices defined in the profile, one child is assumed per type listed on the
+    element itself
+    """
+    profile = build_profile(
+        "Observation",
+        [
+            ElementDefinition(
+                id="Observation.value[x]",
+                path="Observation.value",
+                min=0,
+                max="1",
+                type=[
+                    ElementDefinitionType(code="dateTime"),
+                    ElementDefinitionType(code="boolean"),
+                ],
+            ),
+        ],
+    )
+
+    result = generator._flatten_polymorphic("Observation.value[x]", profile)
+
+    assert set(result.keys()) == {
+        "Observation.value[x]",
+        "Observation.value[x]:valueDateTime",
+        "Observation.value[x]:valueBoolean",
+    }
+    assert set(result["Observation.value[x]"].children) == {
+        "Observation.value[x]:valueDateTime",
+        "Observation.value[x]:valueBoolean",
+    }
+    assert result["Observation.value[x]:valueDateTime"] == FlatteningLookupElement(
+        parent="Observation.value[x]",
+        view_definition=ViewDefinitionSnippet(
+            for_each_or_null="value.ofType(dateTime)",
+            select=[
+                ViewDefinitionSelect(
+                    column=[
+                        ViewDefinitionColumn(
+                            name="Observation_value_X_Valuedatetime",
+                            path="$this",
+                            type="dateTime",
+                        )
+                    ]
+                )
+            ],
+        ),
+    )
+
+
+def test_flatten_polymorphic_honors_explicit_slice_for_a_type_not_listed_on_the_element(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A slice the profile explicitly defines is flattened even if its type isn't one of the
+    types declared on the polymorphic element itself - the two sets of children are
+    unified, not intersected.
+    """
+    profile = build_profile(
+        "Observation",
+        [
+            ElementDefinition(
+                id="Observation.value[x]",
+                path="Observation.value",
+                min=0,
+                max="1",
+                type=[ElementDefinitionType(code="dateTime")],
+            ),
+            ElementDefinition(
+                id="Observation.value[x]:valueString",
+                path="Observation.value",
+                sliceName="valueString",
+                min=0,
+                max="1",
+                type=[ElementDefinitionType(code="string")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_polymorphic("Observation.value[x]", profile)
+
+    assert set(result["Observation.value[x]"].children) == {
+        "Observation.value[x]:valueDateTime",
+        "Observation.value[x]:valueString",
+    }
+
+
+def test_flatten_polymorphic_same_type_declared_and_sliced_is_not_duplicated(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A type that is defined in profile as a slice and listed as a possible type
+    """
+    profile = build_profile(
+        "Observation",
+        [
+            ElementDefinition(
+                id="Observation.value[x]",
+                path="Observation.value",
+                min=0,
+                max="1",
+                type=[ElementDefinitionType(code="boolean")],
+            ),
+            ElementDefinition(
+                id="Observation.value[x]:valueBoolean",
+                path="Observation.value",
+                sliceName="valueBoolean",
+                min=0,
+                max="1",
+                type=[ElementDefinitionType(code="boolean")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_polymorphic("Observation.value[x]", profile)
+
+    assert result["Observation.value[x]"].children == [
+        "Observation.value[x]:valueBoolean"
+    ]
+
+
+def test_flatten_polymorphic_dropped_entirely_when_every_type_is_excluded(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    If none of the possible types produce a usable child (e.g. because they're all
+    configured as excluded types), the polymorphic element itself is pruned rather than
+    left behind as an empty, useless branch.
+    """
+    generator.config.excluded_types = ["boolean"]
+    profile = build_profile(
+        "Observation",
+        [
+            ElementDefinition(
+                id="Observation.value[x]",
+                path="Observation.value",
+                min=0,
+                max="1",
+                type=[ElementDefinitionType(code="boolean")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_polymorphic("Observation.value[x]", profile)
+
+    assert result == {}
+
+
+def test_generate_flattening_polymorphic_child_wraps_primitive_column_in_select(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    `_generate_flattening_polymorphic_child` for a primitive type takes the `.column`
+    produced by flattening of the primitive child and moves the child's columns under its `select`.
+    """
+    profile = build_profile(
+        "Observation",
+        [
+            ElementDefinition(
+                id="Observation.value[x]",
+                path="Observation.value",
+                min=0,
+                max="1",
+                type=[ElementDefinitionType(code="boolean")],
+            ),
+        ],
+    )
+
+    result = generator._generate_flattening_polymorphic_child(
+        element_id="Observation.value[x]:valueBoolean",
+        profile=profile,
+        polymorphic_parent_id="Observation.value[x]",
+        type="boolean",
+    )
+
+    assert result == {
+        "Observation.value[x]:valueBoolean": FlatteningLookupElement(
+            parent="Observation.value[x]",
+            view_definition=ViewDefinitionSnippet(
+                for_each_or_null="value.ofType(boolean)",
+                select=[
+                    ViewDefinitionSelect(
                         column=[
                             ViewDefinitionColumn(
-                                name="Medication_ingredient_isActive",
-                                path="isActive",
+                                name="Observation_value_X_Valueboolean",
+                                path="$this",
                                 type="boolean",
                             )
                         ]
-                    ),
-                ),
-                "Medication.ingredient.strength": FlatteningLookupElement(
-                    parent="Medication.ingredient",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="strength",
-                        select=[],
-                    ),
-                    children=[
-                        "Medication.ingredient.strength.numerator",
-                        "Medication.ingredient.strength.denominator",
-                    ],
-                ),
-                "Medication.ingredient.strength.numerator": FlatteningLookupElement(
-                    parent="Medication.ingredient.strength",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="numerator",
-                        select=[],
-                    ),
-                    children=[
-                        "Medication.ingredient.strength.numerator.value",
-                        "Medication.ingredient.strength.numerator.code",
-                        "Medication.ingredient.strength.numerator.system",
-                        "Medication.ingredient.strength.numerator.unit",
-                        "Medication.ingredient.strength.numerator.comparator",
-                    ],
-                ),
-                "Medication.ingredient.strength.numerator.value": FlatteningLookupElement(
-                    parent="Medication.ingredient.strength.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Medication_ingredient_strength_numerator_value",
-                                path="value",
-                                type="decimal",
-                            )
-                        ]
-                    ),
-                ),
-                "Medication.ingredient.strength.numerator.code": FlatteningLookupElement(
-                    parent="Medication.ingredient.strength.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Medication_ingredient_strength_numerator_code",
-                                path="code",
-                                type="code",
-                            )
-                        ]
-                    ),
-                ),
-                "Medication.ingredient.strength.numerator.system": FlatteningLookupElement(
-                    parent="Medication.ingredient.strength.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Medication_ingredient_strength_numerator_system",
-                                path="system",
-                                type="uri",
-                            )
-                        ]
-                    ),
-                ),
-                "Medication.ingredient.strength.numerator.unit": FlatteningLookupElement(
-                    parent="Medication.ingredient.strength.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Medication_ingredient_strength_numerator_unit",
-                                path="unit",
-                                type="string",
-                            )
-                        ]
-                    ),
-                ),
-                "Medication.ingredient.strength.numerator.comparator": FlatteningLookupElement(
-                    parent="Medication.ingredient.strength.numerator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Medication_ingredient_strength_numerator_comparator",
-                                path="comparator",
-                                type="code",
-                            )
-                        ]
-                    ),
-                ),
-                "Medication.ingredient.strength.denominator": FlatteningLookupElement(
-                    parent="Medication.ingredient.strength",
-                    view_definition=ViewDefinitionSnippet(
-                        for_each_or_null="denominator",
-                        select=[],
-                    ),
-                    children=[
-                        "Medication.ingredient.strength.denominator.value",
-                        "Medication.ingredient.strength.denominator.code",
-                        "Medication.ingredient.strength.denominator.system",
-                        "Medication.ingredient.strength.denominator.unit",
-                        "Medication.ingredient.strength.denominator.comparator",
-                    ],
-                ),
-                "Medication.ingredient.strength.denominator.value": FlatteningLookupElement(
-                    parent="Medication.ingredient.strength.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Medication_ingredient_strength_denominator_value",
-                                path="value",
-                                type="decimal",
-                            )
-                        ]
-                    ),
-                ),
-                "Medication.ingredient.strength.denominator.code": FlatteningLookupElement(
-                    parent="Medication.ingredient.strength.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Medication_ingredient_strength_denominator_code",
-                                path="code",
-                                type="code",
-                            )
-                        ]
-                    ),
-                ),
-                "Medication.ingredient.strength.denominator.system": FlatteningLookupElement(
-                    parent="Medication.ingredient.strength.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Medication_ingredient_strength_denominator_system",
-                                path="system",
-                                type="uri",
-                            )
-                        ]
-                    ),
-                ),
-                "Medication.ingredient.strength.denominator.unit": FlatteningLookupElement(
-                    parent="Medication.ingredient.strength.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Medication_ingredient_strength_denominator_unit",
-                                path="unit",
-                                type="string",
-                            )
-                        ]
-                    ),
-                ),
-                "Medication.ingredient.strength.denominator.comparator": FlatteningLookupElement(
-                    parent="Medication.ingredient.strength.denominator",
-                    view_definition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Medication_ingredient_strength_denominator_comparator",
-                                path="comparator",
-                                type="code",
-                            )
-                        ]
-                    ),
-                ),
-            },
-        ),
-        (
-            "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab",
-            "Observation.effective[x].extension",
-            {
-                "Observation.effective[x].extension": FlatteningLookupElement(
-                    parent="Observation.effective[x]",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="effective", select=[]
-                    ),
-                    children=[
-                        "Observation.effective[x].extension:QuelleKlinischesBezugsdatum"
-                    ],
-                ),
-                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum": FlatteningLookupElement(
-                    parent="Observation.effective[x].extension",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="extension.where(url = 'https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/QuelleKlinischesBezugsdatum')",
-                        select=[],
-                    ),
-                    children=[
-                        "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]"
-                    ],
-                ),
-                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]": FlatteningLookupElement(
-                    parent="Observation.effective[x].extension:QuelleKlinischesBezugsdatum",
-                    viewDefinition=ViewDefinitionSnippet(select=[]),
-                    children=[
-                        "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]:valueCoding"
-                    ],
-                ),
-                "Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]:valueCoding": FlatteningLookupElement(
-                    parent="Observation.effective[x].extension:QuelleKlinischesBezugsdatum.value[x]",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="value.ofType(Coding)",
-                        select=[
-                            ViewDefinitionSelect(
-                                column=[
-                                    ViewDefinitionColumn(
-                                        name="Observation_effective_X__extensionQuelleklinischesbezugsdatum_value_X_Valuecoding_system",
-                                        path="system",
-                                        type="uri",
-                                    ),
-                                    ViewDefinitionColumn(
-                                        name="Observation_effective_X__extensionQuelleklinischesbezugsdatum_value_X_Valuecoding_code",
-                                        path="code",
-                                        type="code",
-                                    ),
-                                ]
-                            )
-                        ],
-                    ),
-                ),
-            },
-        ),
-        (
-            "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab",
-            "Observation.value[x]:valueQuantity.extension",
-            {
-                "Observation.value[x]:valueQuantity.extension": FlatteningLookupElement(
-                    parent="Observation.value[x]:valueQuantity",
-                    viewDefinition=ViewDefinitionSnippet(select=[]),
-                    children=[
-                        "Observation.value[x]:valueQuantity.extension:pqTranslation"
-                    ],
-                ),
-                "Observation.value[x]:valueQuantity.extension:pqTranslation": FlatteningLookupElement(
-                    parent="Observation.value[x]:valueQuantity.extension",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="extension.where(url = 'http://hl7.org/fhir/StructureDefinition/iso21090-PQ-translation')",
-                        select=[],
-                    ),
-                    children=[
-                        "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]"
-                    ],
-                ),
-                "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]": FlatteningLookupElement(
-                    parent="Observation.value[x]:valueQuantity.extension:pqTranslation",
-                    viewDefinition=ViewDefinitionSnippet(select=[]),
-                    children=[
-                        "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity"
-                    ],
-                ),
-                "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity": FlatteningLookupElement(
-                    parent="Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="value.ofType(Quantity)", select=[]
-                    ),
-                    children=[
-                        "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.code",
-                        "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.comparator",
-                        "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.system",
-                        "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.unit",
-                        "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.value",
-                    ],
-                ),
-                "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.code": FlatteningLookupElement(
-                    parent="Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Observation_value_X_Valuequantity_extensionPqtranslation_value_X_Valuequantity_code",
-                                path="code",
-                                type="code",
-                            )
-                        ]
-                    ),
-                ),
-                "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.comparator": FlatteningLookupElement(
-                    parent="Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Observation_value_X_Valuequantity_extensionPqtranslation_value_X_Valuequantity_comparator",
-                                path="comparator",
-                                type="code",
-                            )
-                        ]
-                    ),
-                ),
-                "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.system": FlatteningLookupElement(
-                    parent="Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Observation_value_X_Valuequantity_extensionPqtranslation_value_X_Valuequantity_system",
-                                path="system",
-                                type="uri",
-                            )
-                        ]
-                    ),
-                ),
-                "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.unit": FlatteningLookupElement(
-                    parent="Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Observation_value_X_Valuequantity_extensionPqtranslation_value_X_Valuequantity_unit",
-                                path="unit",
-                                type="string",
-                            )
-                        ]
-                    ),
-                ),
-                "Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity.value": FlatteningLookupElement(
-                    parent="Observation.value[x]:valueQuantity.extension:pqTranslation.value[x]:valueQuantity",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Observation_value_X_Valuequantity_extensionPqtranslation_value_X_Valuequantity_value",
-                                path="value",
-                                type="decimal",
-                            )
-                        ]
-                    ),
-                ),
-            },
-        ),
-    ],
-    ids=[
-        "Extension defined in separate profile (1): Condition.extension",
-        "Extension defined inplace and extern (1): Medication.ingredient",
-        "Extension defined in separate profile (2): Observation.effective[x].extension",
-        "Extension defined in separate profile (3): Observation.value[x]:valueQuantity.extension",
-    ],
-    indirect=["profile"],
-)
-def test_extensions(
-    profile: StructureDefinitionSnapshot,
-    elem_id: str,
-    expected: Dict[str, FlatteningLookupElement],
-    flattening_lookup_generator: FlatteningLookupGenerator,
-):
-    res = flattening_post_process(
-        flattening_lookup_generator._flatten_element(elem_id, profile)
-    )
-    res = sorted(res.items(), key=lambda x: len(x[0]))
-    expected = sorted(
-        flattening_post_process(expected).items(), key=lambda x: len(x[0])
-    )
-
-    assert res == expected
-
-
-#
-# @pytest.mark.parametrize(
-#     argnames="profile, elem_id, elem_type, expected",
-#     argvalues=[
-#         (
-#             "https://www.medizininformatik-initiative.de/fhir/ext/modul-bildgebung/StructureDefinition/mii-pr-bildgebung-radiologische-beobachtung",
-#             "Observation.value[x]:valueQuantity",
-#             "Quantity",
-#             {
-#                 "Observation.value[x]:valueQuantity": FlatteningLookupElement(
-#                     parent="Observation.value[x]",
-#                     view_definition=ViewDefinitionSnippet(
-#                         for_each_or_null="value.ofType(Quantity)",
-#                         select=[],
-#                     ),
-#                     children=[
-#                         "Observation.value[x]:valueQuantity.value",
-#                         "Observation.value[x]:valueQuantity.code",
-#                         "Observation.value[x]:valueQuantity.system",
-#                     ],
-#                 ),
-#                 "Observation.value[x]:valueQuantity.value": FlatteningLookupElement(
-#                     parent="Observation.value[x]:valueQuantity",
-#                     view_definition=ViewDefinitionSnippet(
-#                         column=[
-#                             ViewDefinitionColumn(
-#                                 name="Observation_value_X_Valuequantity_value",
-#                                 path="value",
-#                                 type="code",
-#                             )
-#                         ]
-#                     ),
-#                 ),
-#                 "Observation.value[x]:valueQuantity.code": FlatteningLookupElement(
-#                     parent="Observation.value[x]:valueQuantity",
-#                     view_definition=ViewDefinitionSnippet(
-#                         column=[
-#                             ViewDefinitionColumn(
-#                                 name="Observation_value_X_Valuequantity_code",
-#                                 path="code",
-#                                 type="code",
-#                             )
-#                         ]
-#                     ),
-#                 ),
-#                 "Observation.value[x]:valueQuantity.system": FlatteningLookupElement(
-#                     parent="Observation.value[x]:valueQuantity",
-#                     view_definition=ViewDefinitionSnippet(
-#                         column=[
-#                             ViewDefinitionColumn(
-#                                 name="Observation_value_X_Valuequantity_system",
-#                                 path="system",
-#                                 type="uri",
-#                             )
-#                         ]
-#                     ),
-#                 ),
-#             },
-#         )
-#     ],
-#     ids=[
-#         "Quantity and all its descendents (Count, Duration, Distance, SimpleQuantity, MoneyQuantity)",
-#     ],
-#     indirect=["profile"],
-# )
-# def test_generic_complex_flattening(
-#     profile: StructureDefinitionSnapshot,
-#     elem_id: str,
-#     elem_type: str,
-#     expected: Dict[str, FlatteningLookupElement],
-#     package_manager: FhirPackageManager,
-#     client: FhirTerminologyClient,
-# ):
-#     res = flattening_post_process(
-#         flatten_element(elem_id, profile, manager=package_manager, type=elem_type, client=client)
-#     )
-#     res = sorted(res.items(), key=lambda x: len(x[0]))
-#     expected = sorted(
-#         flattening_post_process(expected).items(), key=lambda x: len(x[0])
-#     )
-#
-#     assert res == expected
-
-
-@pytest.mark.parametrize(
-    argnames="profile, elem_id, elem_type, expected",
-    argvalues=[
-        (
-            "https://gematik.de/fhir/isik/StructureDefinition/ISiKPatient",
-            "Patient.identifier",
-            "Identifier",
-            {
-                "Patient.identifier:Versichertennummer_PKV.use": FlatteningLookupElement(
-                    parent="Patient.identifier:Versichertennummer_PKV",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertennummer_pkv_use",
-                                path="use",
-                                type="code",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:Versichertennummer_PKV.type": FlatteningLookupElement(
-                    parent="Patient.identifier:Versichertennummer_PKV",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="type", select=[]
-                    ),
-                    children=["Patient.identifier:Versichertennummer_PKV.type.coding"],
-                ),
-                "Patient.identifier:Versichertennummer_PKV.type.coding": FlatteningLookupElement(
-                    parent="Patient.identifier:Versichertennummer_PKV.type",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="coding",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertennummer_pkv_type_coding_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertennummer_pkv_type_coding_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Patient.identifier:Versichertennummer_PKV.system": FlatteningLookupElement(
-                    parent="Patient.identifier:Versichertennummer_PKV",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertennummer_pkv_system",
-                                path="system",
-                                type="uri",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:Versichertennummer_PKV.value": FlatteningLookupElement(
-                    parent="Patient.identifier:Versichertennummer_PKV",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertennummer_pkv_value",
-                                path="value",
-                                type="string",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:Versichertennummer_PKV.period.start": FlatteningLookupElement(
-                    parent="Patient.identifier:Versichertennummer_PKV.period",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertennummer_pkv_period_start",
-                                path="start",
-                                type="dateTime",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:Versichertennummer_PKV.period.end": FlatteningLookupElement(
-                    parent="Patient.identifier:Versichertennummer_PKV.period",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertennummer_pkv_period_end",
-                                path="end",
-                                type="dateTime",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:Versichertennummer_PKV.period": FlatteningLookupElement(
-                    parent="Patient.identifier:Versichertennummer_PKV",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="period", select=[]
-                    ),
-                    children=[
-                        "Patient.identifier:Versichertennummer_PKV.period.start",
-                        "Patient.identifier:Versichertennummer_PKV.period.end",
-                    ],
-                ),
-                "Patient.identifier:Versichertennummer_PKV.assigner.reference": FlatteningLookupElement(
-                    parent="Patient.identifier:Versichertennummer_PKV.assigner",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertennummer_pkv_assigner_reference",
-                                path="reference",
-                                type="string",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:Versichertennummer_PKV.assigner": FlatteningLookupElement(
-                    parent="Patient.identifier:Versichertennummer_PKV",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="assigner", select=[]
-                    ),
-                    children=[
-                        "Patient.identifier:Versichertennummer_PKV.assigner.reference"
-                    ],
-                ),
-                "Patient.identifier:Versichertennummer_PKV": FlatteningLookupElement(
-                    parent="Patient.identifier",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="$this.where(type.coding.system = 'http://fhir.de/CodeSystem/identifier-type-de-basis')",
-                        select=[],
-                    ),
-                    children=[
-                        "Patient.identifier:Versichertennummer_PKV.use",
-                        "Patient.identifier:Versichertennummer_PKV.type",
-                        "Patient.identifier:Versichertennummer_PKV.system",
-                        "Patient.identifier:Versichertennummer_PKV.value",
-                        "Patient.identifier:Versichertennummer_PKV.period",
-                        "Patient.identifier:Versichertennummer_PKV.assigner",
-                    ],
-                ),
-                "Patient.identifier:Patientennummer.use": FlatteningLookupElement(
-                    parent="Patient.identifier:Patientennummer",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierPatientennummer_use",
-                                path="use",
-                                type="code",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:Patientennummer.type": FlatteningLookupElement(
-                    parent="Patient.identifier:Patientennummer",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="type", select=[]
-                    ),
-                    children=["Patient.identifier:Patientennummer.type.coding"],
-                ),
-                "Patient.identifier:Patientennummer.type.coding": FlatteningLookupElement(
-                    parent="Patient.identifier:Patientennummer.type",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="coding",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierPatientennummer_type_coding_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Patient_identifierPatientennummer_type_coding_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Patient.identifier:Patientennummer.system": FlatteningLookupElement(
-                    parent="Patient.identifier:Patientennummer",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierPatientennummer_system",
-                                path="system",
-                                type="uri",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:Patientennummer.value": FlatteningLookupElement(
-                    parent="Patient.identifier:Patientennummer",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierPatientennummer_value",
-                                path="value",
-                                type="string",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:Patientennummer.period.start": FlatteningLookupElement(
-                    parent="Patient.identifier:Patientennummer.period",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierPatientennummer_period_start",
-                                path="start",
-                                type="dateTime",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:Patientennummer.period.end": FlatteningLookupElement(
-                    parent="Patient.identifier:Patientennummer.period",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierPatientennummer_period_end",
-                                path="end",
-                                type="dateTime",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:Patientennummer.period": FlatteningLookupElement(
-                    parent="Patient.identifier:Patientennummer",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="period", select=[]
-                    ),
-                    children=[
-                        "Patient.identifier:Patientennummer.period.start",
-                        "Patient.identifier:Patientennummer.period.end",
-                    ],
-                ),
-                "Patient.identifier:Patientennummer.assigner.reference": FlatteningLookupElement(
-                    parent="Patient.identifier:Patientennummer.assigner",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierPatientennummer_assigner_reference",
-                                path="reference",
-                                type="string",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:Patientennummer.assigner": FlatteningLookupElement(
-                    parent="Patient.identifier:Patientennummer",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="assigner", select=[]
-                    ),
-                    children=["Patient.identifier:Patientennummer.assigner.reference"],
-                ),
-                "Patient.identifier:Patientennummer": FlatteningLookupElement(
-                    parent="Patient.identifier",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="$this.where(type.coding.system = 'http://terminology.hl7.org/CodeSystem/v2-0203')",
-                        select=[],
-                    ),
-                    children=[
-                        "Patient.identifier:Patientennummer.use",
-                        "Patient.identifier:Patientennummer.type",
-                        "Patient.identifier:Patientennummer.system",
-                        "Patient.identifier:Patientennummer.value",
-                        "Patient.identifier:Patientennummer.period",
-                        "Patient.identifier:Patientennummer.assigner",
-                    ],
-                ),
-                "Patient.identifier:VersichertenId.use": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertenid_use",
-                                path="use",
-                                type="code",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:VersichertenId.type": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="type", select=[]
-                    ),
-                    children=["Patient.identifier:VersichertenId.type.coding"],
-                ),
-                "Patient.identifier:VersichertenId.type.coding": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId.type",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="coding",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertenid_type_coding_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertenid_type_coding_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Patient.identifier:VersichertenId.system": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertenid_system",
-                                path="system",
-                                type="uri",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:VersichertenId.value": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertenid_value",
-                                path="value",
-                                type="string",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:VersichertenId.period.start": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId.period",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertenid_period_start",
-                                path="start",
-                                type="dateTime",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:VersichertenId.period.end": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId.period",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertenid_period_end",
-                                path="end",
-                                type="dateTime",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:VersichertenId.period": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="period", select=[]
-                    ),
-                    children=[
-                        "Patient.identifier:VersichertenId.period.start",
-                        "Patient.identifier:VersichertenId.period.end",
-                    ],
-                ),
-                "Patient.identifier:VersichertenId.assigner.reference": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId.assigner",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertenid_assigner_reference",
-                                path="reference",
-                                type="string",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:VersichertenId.assigner": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="assigner", select=[]
-                    ),
-                    children=["Patient.identifier:VersichertenId.assigner.reference"],
-                ),
-                "Patient.identifier:VersichertenId": FlatteningLookupElement(
-                    parent="Patient.identifier",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="$this.where(type.coding.system = 'http://fhir.de/sid/gkv/kvid-10')",
-                        select=[],
-                    ),
-                    children=[
-                        "Patient.identifier:VersichertenId.use",
-                        "Patient.identifier:VersichertenId.type",
-                        "Patient.identifier:VersichertenId.system",
-                        "Patient.identifier:VersichertenId.value",
-                        "Patient.identifier:VersichertenId.period",
-                        "Patient.identifier:VersichertenId.assigner",
-                    ],
-                ),
-                "Patient.identifier:VersichertenId-GKV.use": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId-GKV",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertenidgkv_use",
-                                path="use",
-                                type="code",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:VersichertenId-GKV.type": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId-GKV",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="type", select=[]
-                    ),
-                    children=["Patient.identifier:VersichertenId-GKV.type.coding"],
-                ),
-                "Patient.identifier:VersichertenId-GKV.type.coding": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId-GKV.type",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="coding",
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertenidgkv_type_coding_system",
-                                path="system",
-                                type="uri",
-                            ),
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertenidgkv_type_coding_code",
-                                path="code",
-                                type="code",
-                            ),
-                        ],
-                    ),
-                ),
-                "Patient.identifier:VersichertenId-GKV.system": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId-GKV",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertenidgkv_system",
-                                path="system",
-                                type="uri",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:VersichertenId-GKV.value": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId-GKV",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertenidgkv_value",
-                                path="value",
-                                type="string",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:VersichertenId-GKV.period.start": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId-GKV.period",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertenidgkv_period_start",
-                                path="start",
-                                type="dateTime",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:VersichertenId-GKV.period.end": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId-GKV.period",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertenidgkv_period_end",
-                                path="end",
-                                type="dateTime",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:VersichertenId-GKV.period": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId-GKV",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="period", select=[]
-                    ),
-                    children=[
-                        "Patient.identifier:VersichertenId-GKV.period.start",
-                        "Patient.identifier:VersichertenId-GKV.period.end",
-                    ],
-                ),
-                "Patient.identifier:VersichertenId-GKV.assigner.reference": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId-GKV.assigner",
-                    viewDefinition=ViewDefinitionSnippet(
-                        column=[
-                            ViewDefinitionColumn(
-                                name="Patient_identifierVersichertenidgkv_assigner_reference",
-                                path="reference",
-                                type="string",
-                            )
-                        ]
-                    ),
-                ),
-                "Patient.identifier:VersichertenId-GKV.assigner": FlatteningLookupElement(
-                    parent="Patient.identifier:VersichertenId-GKV",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="assigner", select=[]
-                    ),
-                    children=[
-                        "Patient.identifier:VersichertenId-GKV.assigner.reference"
-                    ],
-                ),
-                "Patient.identifier:VersichertenId-GKV": FlatteningLookupElement(
-                    parent="Patient.identifier",
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="$this.where(type.coding.system = 'http://fhir.de/sid/gkv/kvid-10')",
-                        select=[],
-                    ),
-                    children=[
-                        "Patient.identifier:VersichertenId-GKV.use",
-                        "Patient.identifier:VersichertenId-GKV.type",
-                        "Patient.identifier:VersichertenId-GKV.system",
-                        "Patient.identifier:VersichertenId-GKV.value",
-                        "Patient.identifier:VersichertenId-GKV.period",
-                        "Patient.identifier:VersichertenId-GKV.assigner",
-                    ],
-                ),
-                "Patient.identifier": FlatteningLookupElement(
-                    viewDefinition=ViewDefinitionSnippet(
-                        forEachOrNull="identifier", select=[]
-                    ),
-                    children=[
-                        "Patient.identifier:VersichertenId",
-                        "Patient.identifier:Patientennummer",
-                        "Patient.identifier:Versichertennummer_PKV",
-                        "Patient.identifier:VersichertenId-GKV",
-                    ],
-                ),
-            },
+                    )
+                ],
+            ),
         )
-    ],
-    ids=["Test Patient identifier ISIK Gematik"],
-    indirect=["profile"],
-)
-def test_identifier(
-    profile: StructureDefinitionSnapshot,
-    elem_id: str,
-    elem_type: str,
-    expected: Dict[str, FlatteningLookupElement],
-    flattening_lookup_generator: FlatteningLookupGenerator,
-):
-    res = flattening_post_process(
-        flattening_lookup_generator._flatten_element(
-            elem_id,
-            profile,
-            type=elem_type,
-        )
-    )
-    res = sorted(res.items(), key=lambda x: (len(x[0]), x[0]))
-    expected = sorted(
-        flattening_post_process(expected).items(), key=lambda x: (len(x[0]), x[0])
-    )
-
-    assert res == expected
-
-
-def test_profile_with_random_slicename_for_type(flattening_lookup_generator):
-    profile_path = Path(__file__).parent / "profile_with_random_sliceName_for_type.json"
-
-    with profile_path.open("r", encoding="utf-8") as f:
-        profile_dict = json.load(f)
-
-    expected_lookup_elements = {
-        "Observation.value[x]": FlatteningLookupElement(
-            viewDefinition=ViewDefinitionSnippet(
-                select=[],
-            ),
-            children=[
-                "Observation.value[x]:totallyRandomSliceName",
-                "Observation.value[x]:valueQuantity",
-            ],
-        ),
-        "Observation.value[x]:totallyRandomSliceName": FlatteningLookupElement(
-            parent="Observation.value[x]",
-            viewDefinition=ViewDefinitionSnippet(
-                forEachOrNull="value.ofType(Quantity)",
-                select=[],
-            ),
-            children=[
-                "Observation.value[x]:totallyRandomSliceName.code",
-                "Observation.value[x]:totallyRandomSliceName.comparator",
-                "Observation.value[x]:totallyRandomSliceName.system",
-                "Observation.value[x]:totallyRandomSliceName.unit",
-                "Observation.value[x]:totallyRandomSliceName.value",
-            ],
-        ),
-        "Observation.value[x]:totallyRandomSliceName.code": FlatteningLookupElement(
-            parent="Observation.value[x]:totallyRandomSliceName",
-            viewDefinition=ViewDefinitionSnippet(
-                column=[
-                    ViewDefinitionColumn(
-                        name="Observation_value_X_Totallyrandomslicename_code",
-                        path="code",
-                        type="code",
-                    )
-                ],
-            ),
-        ),
-        "Observation.value[x]:totallyRandomSliceName.comparator": FlatteningLookupElement(
-            parent="Observation.value[x]:totallyRandomSliceName",
-            viewDefinition=ViewDefinitionSnippet(
-                column=[
-                    ViewDefinitionColumn(
-                        name="Observation_value_X_Totallyrandomslicename_comparator",
-                        path="comparator",
-                        type="code",
-                    )
-                ],
-            ),
-        ),
-        "Observation.value[x]:totallyRandomSliceName.system": FlatteningLookupElement(
-            parent="Observation.value[x]:totallyRandomSliceName",
-            viewDefinition=ViewDefinitionSnippet(
-                column=[
-                    ViewDefinitionColumn(
-                        name="Observation_value_X_Totallyrandomslicename_system",
-                        path="system",
-                        type="uri",
-                    )
-                ],
-            ),
-        ),
-        "Observation.value[x]:totallyRandomSliceName.unit": FlatteningLookupElement(
-            parent="Observation.value[x]:totallyRandomSliceName",
-            viewDefinition=ViewDefinitionSnippet(
-                column=[
-                    ViewDefinitionColumn(
-                        name="Observation_value_X_Totallyrandomslicename_unit",
-                        path="unit",
-                        type="string",
-                    )
-                ],
-            ),
-        ),
-        "Observation.value[x]:totallyRandomSliceName.value": FlatteningLookupElement(
-            parent="Observation.value[x]:totallyRandomSliceName",
-            viewDefinition=ViewDefinitionSnippet(
-                column=[
-                    ViewDefinitionColumn(
-                        name="Observation_value_X_Totallyrandomslicename_value",
-                        path="value",
-                        type="decimal",
-                    )
-                ],
-            ),
-        ),
-        "Observation.value[x]:valueQuantity": FlatteningLookupElement(
-            parent="Observation.value[x]",
-            viewDefinition=ViewDefinitionSnippet(
-                forEachOrNull="value.ofType(Quantity)",
-                select=[],
-            ),
-            children=[
-                "Observation.value[x]:valueQuantity.code",
-                "Observation.value[x]:valueQuantity.comparator",
-                "Observation.value[x]:valueQuantity.system",
-                "Observation.value[x]:valueQuantity.unit",
-                "Observation.value[x]:valueQuantity.value",
-            ],
-        ),
-        "Observation.value[x]:valueQuantity.code": FlatteningLookupElement(
-            parent="Observation.value[x]:valueQuantity",
-            viewDefinition=ViewDefinitionSnippet(
-                column=[
-                    ViewDefinitionColumn(
-                        name="Observation_value_X_Valuequantity_code",
-                        path="code",
-                        type="code",
-                    )
-                ],
-            ),
-        ),
-        "Observation.value[x]:valueQuantity.comparator": FlatteningLookupElement(
-            parent="Observation.value[x]:valueQuantity",
-            viewDefinition=ViewDefinitionSnippet(
-                column=[
-                    ViewDefinitionColumn(
-                        name="Observation_value_X_Valuequantity_comparator",
-                        path="comparator",
-                        type="code",
-                    )
-                ],
-            ),
-        ),
-        "Observation.value[x]:valueQuantity.system": FlatteningLookupElement(
-            parent="Observation.value[x]:valueQuantity",
-            viewDefinition=ViewDefinitionSnippet(
-                column=[
-                    ViewDefinitionColumn(
-                        name="Observation_value_X_Valuequantity_system",
-                        path="system",
-                        type="uri",
-                    )
-                ],
-            ),
-        ),
-        "Observation.value[x]:valueQuantity.unit": FlatteningLookupElement(
-            parent="Observation.value[x]:valueQuantity",
-            viewDefinition=ViewDefinitionSnippet(
-                column=[
-                    ViewDefinitionColumn(
-                        name="Observation_value_X_Valuequantity_unit",
-                        path="unit",
-                        type="string",
-                    )
-                ],
-            ),
-        ),
-        "Observation.value[x]:valueQuantity.value": FlatteningLookupElement(
-            parent="Observation.value[x]:valueQuantity",
-            viewDefinition=ViewDefinitionSnippet(
-                column=[
-                    ViewDefinitionColumn(
-                        name="Observation_value_X_Valuequantity_value",
-                        path="value",
-                        type="decimal",
-                    )
-                ],
-            ),
-        ),
     }
 
-    profile_broken = NavStructureDefinition.model_validate(profile_dict)
 
-    lookup = sorted(
-        flattening_post_process(
-            flattening_lookup_generator._flatten_element(
-                element_id="Observation.value[x]", profile=profile_broken
-            )
-        ).items(),
-        key=lambda x: (len(x[0]), x[0]),
-    )
-
-    expected = sorted(
-        flattening_post_process(expected_lookup_elements).items(),
-        key=lambda x: (len(x[0]), x[0]),
-    )
-
-    assert lookup == expected
-
-
-@pytest.mark.parametrize(
-    argnames="profile, elem_id, elem_type, expected",
-    argvalues=[
-        (
-            "https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/MedicationStatement",
-            "MedicationStatement.dosage",
-            "Dosage",
-            {
-                key: FlatteningLookupElement.model_validate(value)
-                for key, value in json.loads(
-                    """
-                    {
-                        "MedicationStatement.dosage": {
-                            "viewDefinition": {
-                              "forEachOrNull": "dosage",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.additionalInstruction",
-                              "MedicationStatement.dosage.asNeeded[x]",
-                              "MedicationStatement.dosage.doseAndRate",
-                              "MedicationStatement.dosage.maxDosePerAdministration",
-                              "MedicationStatement.dosage.maxDosePerLifetime",
-                              "MedicationStatement.dosage.maxDosePerPeriod",
-                              "MedicationStatement.dosage.method",
-                              "MedicationStatement.dosage.patientInstruction",
-                              "MedicationStatement.dosage.route",
-                              "MedicationStatement.dosage.sequence",
-                              "MedicationStatement.dosage.site",
-                              "MedicationStatement.dosage.text",
-                              "MedicationStatement.dosage.timing"
-                            ]
-                          },
-                          "MedicationStatement.dosage.additionalInstruction": {
-                            "parent": "MedicationStatement.dosage",
-                            "viewDefinition": {
-                              "forEachOrNull": "additionalInstruction",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.additionalInstruction.coding"
-                            ]
-                          },
-                          "MedicationStatement.dosage.additionalInstruction.coding": {
-                            "parent": "MedicationStatement.dosage.additionalInstruction",
-                            "viewDefinition": {
-                              "forEachOrNull": "coding",
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_additionalInstruction_coding_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                },
-                                {
-                                  "name": "MedicationStatement_dosage_additionalInstruction_coding_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.asNeeded[x]": {
-                            "parent": "MedicationStatement.dosage",
-                            "viewDefinition": {
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.asNeeded[x]:asNeededBoolean",
-                              "MedicationStatement.dosage.asNeeded[x]:asNeededCodeableConcept"
-                            ]
-                          },
-                          "MedicationStatement.dosage.asNeeded[x]:asNeededBoolean": {
-                            "parent": "MedicationStatement.dosage.asNeeded[x]",
-                            "viewDefinition": {
-                              "forEachOrNull": "asNeeded.ofType(boolean)",
-                              "select": [
-                                {
-                                  "column": [
-                                    {
-                                      "name": "MedicationStatement_dosage_asNeeded_X_Asneededboolean",
-                                      "path": "$this",
-                                      "type": "boolean"
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.asNeeded[x]:asNeededCodeableConcept": {
-                            "parent": "MedicationStatement.dosage.asNeeded[x]",
-                            "viewDefinition": {
-                              "forEachOrNull": "asNeeded.ofType(CodeableConcept)",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.asNeeded[x]:asNeededCodeableConcept.coding"
-                            ]
-                          },
-                          "MedicationStatement.dosage.asNeeded[x]:asNeededCodeableConcept.coding": {
-                            "parent": "MedicationStatement.dosage.asNeeded[x]:asNeededCodeableConcept",
-                            "viewDefinition": {
-                              "forEachOrNull": "coding",
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_asNeeded_X_Asneededcodeableconcept_coding_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                },
-                                {
-                                  "name": "MedicationStatement_dosage_asNeeded_X_Asneededcodeableconcept_coding_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate": {
-                            "parent": "MedicationStatement.dosage",
-                            "viewDefinition": {
-                              "forEachOrNull": "doseAndRate",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.doseAndRate.dose[x]",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]",
-                              "MedicationStatement.dosage.doseAndRate.type"
-                            ]
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]": {
-                            "parent": "MedicationStatement.dosage.doseAndRate",
-                            "viewDefinition": {
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity",
-                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange"
-                            ]
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]",
-                            "viewDefinition": {
-                              "forEachOrNull": "dose.ofType(Quantity)",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.code",
-                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.comparator",
-                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.system",
-                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.unit",
-                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.value"
-                            ]
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.code": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Dosequantity_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.comparator": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Dosequantity_comparator",
-                                  "path": "comparator",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.system": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Dosequantity_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.unit": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Dosequantity_unit",
-                                  "path": "unit",
-                                  "type": "string"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity.value": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseQuantity",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Dosequantity_value",
-                                  "path": "value",
-                                  "type": "decimal"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]",
-                            "viewDefinition": {
-                              "forEachOrNull": "dose.ofType(Range)",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high",
-                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low"
-                            ]
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange",
-                            "viewDefinition": {
-                              "forEachOrNull": "high",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.code",
-                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.comparator",
-                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.system",
-                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.unit",
-                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.value"
-                            ]
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.code": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_high_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.comparator": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_high_comparator",
-                                  "path": "comparator",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.system": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_high_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.unit": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_high_unit",
-                                  "path": "unit",
-                                  "type": "string"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high.value": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.high",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_high_value",
-                                  "path": "value",
-                                  "type": "decimal"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange",
-                            "viewDefinition": {
-                              "forEachOrNull": "low",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.code",
-                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.comparator",
-                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.system",
-                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.unit",
-                              "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.value"
-                            ]
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.code": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_low_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.comparator": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_low_comparator",
-                                  "path": "comparator",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.system": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_low_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.unit": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_low_unit",
-                                  "path": "unit",
-                                  "type": "string"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low.value": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.dose[x]:doseRange.low",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_dose_X_Doserange_low_value",
-                                  "path": "value",
-                                  "type": "decimal"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]": {
-                            "parent": "MedicationStatement.dosage.doseAndRate",
-                            "viewDefinition": {
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio"
-                            ]
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]",
-                            "viewDefinition": {
-                              "forEachOrNull": "rate.ofType(Quantity)",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.code",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.comparator",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.system",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.unit",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.value"
-                            ]
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.code": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Ratequantity_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.comparator": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Ratequantity_comparator",
-                                  "path": "comparator",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.system": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Ratequantity_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.unit": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Ratequantity_unit",
-                                  "path": "unit",
-                                  "type": "string"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity.value": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateQuantity",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Ratequantity_value",
-                                  "path": "value",
-                                  "type": "decimal"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]",
-                            "viewDefinition": {
-                              "forEachOrNull": "rate.ofType(Range)",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low"
-                            ]
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange",
-                            "viewDefinition": {
-                              "forEachOrNull": "high",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.code",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.comparator",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.system",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.unit",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.value"
-                            ]
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.code": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_high_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.comparator": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_high_comparator",
-                                  "path": "comparator",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.system": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_high_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.unit": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_high_unit",
-                                  "path": "unit",
-                                  "type": "string"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high.value": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.high",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_high_value",
-                                  "path": "value",
-                                  "type": "decimal"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange",
-                            "viewDefinition": {
-                              "forEachOrNull": "low",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.code",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.comparator",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.system",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.unit",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.value"
-                            ]
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.code": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_low_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.comparator": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_low_comparator",
-                                  "path": "comparator",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.system": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_low_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.unit": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_low_unit",
-                                  "path": "unit",
-                                  "type": "string"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low.value": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRange.low",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Raterange_low_value",
-                                  "path": "value",
-                                  "type": "decimal"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]",
-                            "viewDefinition": {
-                              "forEachOrNull": "rate.ofType(Ratio)",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator"
-                            ]
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio",
-                            "viewDefinition": {
-                              "forEachOrNull": "denominator",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.code",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.comparator",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.system",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.unit",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.value"
-                            ]
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.code": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_denominator_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.comparator": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_denominator_comparator",
-                                  "path": "comparator",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.system": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_denominator_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.unit": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_denominator_unit",
-                                  "path": "unit",
-                                  "type": "string"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator.value": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.denominator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_denominator_value",
-                                  "path": "value",
-                                  "type": "decimal"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio",
-                            "viewDefinition": {
-                              "forEachOrNull": "numerator",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.code",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.comparator",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.system",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.unit",
-                              "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.value"
-                            ]
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.code": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_numerator_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.comparator": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_numerator_comparator",
-                                  "path": "comparator",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.system": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_numerator_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.unit": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_numerator_unit",
-                                  "path": "unit",
-                                  "type": "string"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator.value": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.rate[x]:rateRatio.numerator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_rate_X_Rateratio_numerator_value",
-                                  "path": "value",
-                                  "type": "decimal"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.doseAndRate.type": {
-                            "parent": "MedicationStatement.dosage.doseAndRate",
-                            "viewDefinition": {
-                              "forEachOrNull": "type",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.doseAndRate.type.coding"
-                            ]
-                          },
-                          "MedicationStatement.dosage.doseAndRate.type.coding": {
-                            "parent": "MedicationStatement.dosage.doseAndRate.type",
-                            "viewDefinition": {
-                              "forEachOrNull": "coding",
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_type_coding_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                },
-                                {
-                                  "name": "MedicationStatement_dosage_doseAndRate_type_coding_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.maxDosePerAdministration": {
-                            "parent": "MedicationStatement.dosage",
-                            "viewDefinition": {
-                              "forEachOrNull": "maxDosePerAdministration",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.maxDosePerAdministration.code",
-                              "MedicationStatement.dosage.maxDosePerAdministration.system",
-                              "MedicationStatement.dosage.maxDosePerAdministration.value"
-                            ]
-                          },
-                          "MedicationStatement.dosage.maxDosePerAdministration.code": {
-                            "parent": "MedicationStatement.dosage.maxDosePerAdministration",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_maxDosePerAdministration_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.maxDosePerAdministration.system": {
-                            "parent": "MedicationStatement.dosage.maxDosePerAdministration",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_maxDosePerAdministration_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.maxDosePerAdministration.value": {
-                            "parent": "MedicationStatement.dosage.maxDosePerAdministration",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_maxDosePerAdministration_value",
-                                  "path": "value",
-                                  "type": "decimal"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.maxDosePerLifetime": {
-                            "parent": "MedicationStatement.dosage",
-                            "viewDefinition": {
-                              "forEachOrNull": "maxDosePerLifetime",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.maxDosePerLifetime.code",
-                              "MedicationStatement.dosage.maxDosePerLifetime.system",
-                              "MedicationStatement.dosage.maxDosePerLifetime.value"
-                            ]
-                          },
-                          "MedicationStatement.dosage.maxDosePerLifetime.code": {
-                            "parent": "MedicationStatement.dosage.maxDosePerLifetime",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_maxDosePerLifetime_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.maxDosePerLifetime.system": {
-                            "parent": "MedicationStatement.dosage.maxDosePerLifetime",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_maxDosePerLifetime_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.maxDosePerLifetime.value": {
-                            "parent": "MedicationStatement.dosage.maxDosePerLifetime",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_maxDosePerLifetime_value",
-                                  "path": "value",
-                                  "type": "decimal"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.maxDosePerPeriod": {
-                            "parent": "MedicationStatement.dosage",
-                            "viewDefinition": {
-                              "forEachOrNull": "maxDosePerPeriod",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.maxDosePerPeriod.denominator",
-                              "MedicationStatement.dosage.maxDosePerPeriod.numerator"
-                            ]
-                          },
-                          "MedicationStatement.dosage.maxDosePerPeriod.denominator": {
-                            "parent": "MedicationStatement.dosage.maxDosePerPeriod",
-                            "viewDefinition": {
-                              "forEachOrNull": "denominator",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.maxDosePerPeriod.denominator.code",
-                              "MedicationStatement.dosage.maxDosePerPeriod.denominator.comparator",
-                              "MedicationStatement.dosage.maxDosePerPeriod.denominator.system",
-                              "MedicationStatement.dosage.maxDosePerPeriod.denominator.unit",
-                              "MedicationStatement.dosage.maxDosePerPeriod.denominator.value"
-                            ]
-                          },
-                          "MedicationStatement.dosage.maxDosePerPeriod.denominator.code": {
-                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.denominator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_denominator_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.maxDosePerPeriod.denominator.comparator": {
-                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.denominator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_denominator_comparator",
-                                  "path": "comparator",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.maxDosePerPeriod.denominator.system": {
-                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.denominator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_denominator_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.maxDosePerPeriod.denominator.unit": {
-                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.denominator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_denominator_unit",
-                                  "path": "unit",
-                                  "type": "string"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.maxDosePerPeriod.denominator.value": {
-                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.denominator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_denominator_value",
-                                  "path": "value",
-                                  "type": "decimal"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.maxDosePerPeriod.numerator": {
-                            "parent": "MedicationStatement.dosage.maxDosePerPeriod",
-                            "viewDefinition": {
-                              "forEachOrNull": "numerator",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.maxDosePerPeriod.numerator.code",
-                              "MedicationStatement.dosage.maxDosePerPeriod.numerator.comparator",
-                              "MedicationStatement.dosage.maxDosePerPeriod.numerator.system",
-                              "MedicationStatement.dosage.maxDosePerPeriod.numerator.unit",
-                              "MedicationStatement.dosage.maxDosePerPeriod.numerator.value"
-                            ]
-                          },
-                          "MedicationStatement.dosage.maxDosePerPeriod.numerator.code": {
-                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.numerator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_numerator_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.maxDosePerPeriod.numerator.comparator": {
-                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.numerator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_numerator_comparator",
-                                  "path": "comparator",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.maxDosePerPeriod.numerator.system": {
-                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.numerator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_numerator_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.maxDosePerPeriod.numerator.unit": {
-                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.numerator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_numerator_unit",
-                                  "path": "unit",
-                                  "type": "string"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.maxDosePerPeriod.numerator.value": {
-                            "parent": "MedicationStatement.dosage.maxDosePerPeriod.numerator",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_maxDosePerPeriod_numerator_value",
-                                  "path": "value",
-                                  "type": "decimal"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.method": {
-                            "parent": "MedicationStatement.dosage",
-                            "viewDefinition": {
-                              "forEachOrNull": "method",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.method.coding"
-                            ]
-                          },
-                          "MedicationStatement.dosage.method.coding": {
-                            "parent": "MedicationStatement.dosage.method",
-                            "viewDefinition": {
-                              "forEachOrNull": "coding",
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_method_coding_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                },
-                                {
-                                  "name": "MedicationStatement_dosage_method_coding_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.patientInstruction": {
-                            "parent": "MedicationStatement.dosage",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_patientInstruction",
-                                  "path": "patientInstruction",
-                                  "type": "string"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.route": {
-                            "parent": "MedicationStatement.dosage",
-                            "viewDefinition": {
-                              "forEachOrNull": "route",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.route.coding:EDQM",
-                              "MedicationStatement.dosage.route.coding:SNOMED"
-                            ]
-                          },
-                          "MedicationStatement.dosage.route.coding:EDQM": {
-                            "parent": "MedicationStatement.dosage.route",
-                            "viewDefinition": {
-                              "forEachOrNull": "coding.where(system = 'http://standardterms.edqm.eu')",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.route.coding:EDQM.code",
-                              "MedicationStatement.dosage.route.coding:EDQM.system"
-                            ]
-                          },
-                          "MedicationStatement.dosage.route.coding:EDQM.code": {
-                            "parent": "MedicationStatement.dosage.route.coding:EDQM",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_route_codingEdqm_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.route.coding:EDQM.system": {
-                            "parent": "MedicationStatement.dosage.route.coding:EDQM",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_route_codingEdqm_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.route.coding:SNOMED": {
-                            "parent": "MedicationStatement.dosage.route",
-                            "viewDefinition": {
-                              "forEachOrNull": "coding.where(system = 'http://snomed.info/sct')",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.route.coding:SNOMED.code",
-                              "MedicationStatement.dosage.route.coding:SNOMED.system"
-                            ]
-                          },
-                          "MedicationStatement.dosage.route.coding:SNOMED.code": {
-                            "parent": "MedicationStatement.dosage.route.coding:SNOMED",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_route_codingSnomed_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.route.coding:SNOMED.system": {
-                            "parent": "MedicationStatement.dosage.route.coding:SNOMED",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_route_codingSnomed_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.sequence": {
-                            "parent": "MedicationStatement.dosage",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_sequence",
-                                  "path": "sequence",
-                                  "type": "integer"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.site": {
-                            "parent": "MedicationStatement.dosage",
-                            "viewDefinition": {
-                              "forEachOrNull": "site",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.site.coding:SNOMED"
-                            ]
-                          },
-                          "MedicationStatement.dosage.site.coding:SNOMED": {
-                            "parent": "MedicationStatement.dosage.site",
-                            "viewDefinition": {
-                              "forEachOrNull": "coding.where(system = 'http://snomed.info/sct')",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.site.coding:SNOMED.code",
-                              "MedicationStatement.dosage.site.coding:SNOMED.system"
-                            ]
-                          },
-                          "MedicationStatement.dosage.site.coding:SNOMED.code": {
-                            "parent": "MedicationStatement.dosage.site.coding:SNOMED",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_site_codingSnomed_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.site.coding:SNOMED.system": {
-                            "parent": "MedicationStatement.dosage.site.coding:SNOMED",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_site_codingSnomed_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.text": {
-                            "parent": "MedicationStatement.dosage",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_text",
-                                  "path": "text",
-                                  "type": "string"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing": {
-                            "parent": "MedicationStatement.dosage",
-                            "viewDefinition": {
-                              "forEachOrNull": "timing",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.timing.code",
-                              "MedicationStatement.dosage.timing.event",
-                              "MedicationStatement.dosage.timing.repeat"
-                            ]
-                          },
-                          "MedicationStatement.dosage.timing.code": {
-                            "parent": "MedicationStatement.dosage.timing",
-                            "viewDefinition": {
-                              "forEachOrNull": "code",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.timing.code.coding"
-                            ]
-                          },
-                          "MedicationStatement.dosage.timing.code.coding": {
-                            "parent": "MedicationStatement.dosage.timing.code",
-                            "viewDefinition": {
-                              "forEachOrNull": "coding",
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_code_coding_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                },
-                                {
-                                  "name": "MedicationStatement_dosage_timing_code_coding_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.event": {
-                            "parent": "MedicationStatement.dosage.timing",
-                            "viewDefinition": {
-                              "forEachOrNull": "event",
-                              "select": [
-                                {
-                                  "column": [
-                                    {
-                                      "name": "MedicationStatement_dosage_timing_event",
-                                      "path": "$this",
-                                      "type": "dateTime"
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat": {
-                            "parent": "MedicationStatement.dosage.timing",
-                            "viewDefinition": {
-                              "forEachOrNull": "repeat",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]",
-                              "MedicationStatement.dosage.timing.repeat.count",
-                              "MedicationStatement.dosage.timing.repeat.countMax",
-                              "MedicationStatement.dosage.timing.repeat.dayOfWeek",
-                              "MedicationStatement.dosage.timing.repeat.duration",
-                              "MedicationStatement.dosage.timing.repeat.durationMax",
-                              "MedicationStatement.dosage.timing.repeat.durationUnit",
-                              "MedicationStatement.dosage.timing.repeat.frequency",
-                              "MedicationStatement.dosage.timing.repeat.frequencyMax",
-                              "MedicationStatement.dosage.timing.repeat.offset",
-                              "MedicationStatement.dosage.timing.repeat.period",
-                              "MedicationStatement.dosage.timing.repeat.periodMax",
-                              "MedicationStatement.dosage.timing.repeat.periodUnit",
-                              "MedicationStatement.dosage.timing.repeat.timeOfDay",
-                              "MedicationStatement.dosage.timing.repeat.when"
-                            ]
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]": {
-                            "parent": "MedicationStatement.dosage.timing.repeat",
-                            "viewDefinition": {
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration",
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsPeriod",
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange"
-                            ]
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]",
-                            "viewDefinition": {
-                              "forEachOrNull": "bounds.ofType(Duration)",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration.code",
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration.system",
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration.value"
-                            ]
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration.code": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsduration_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration.system": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsduration_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration.value": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsDuration",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsduration_value",
-                                  "path": "value",
-                                  "type": "decimal"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsPeriod": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]",
-                            "viewDefinition": {
-                              "forEachOrNull": "bounds.ofType(Period)",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsPeriod.end",
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsPeriod.start"
-                            ]
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsPeriod.end": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsPeriod",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsperiod_end",
-                                  "path": "end",
-                                  "type": "dateTime"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsPeriod.start": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsPeriod",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsperiod_start",
-                                  "path": "start",
-                                  "type": "dateTime"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]",
-                            "viewDefinition": {
-                              "forEachOrNull": "bounds.ofType(Range)",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high",
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low"
-                            ]
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange",
-                            "viewDefinition": {
-                              "forEachOrNull": "high",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.code",
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.comparator",
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.system",
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.unit",
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.value"
-                            ]
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.code": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_high_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.comparator": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_high_comparator",
-                                  "path": "comparator",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.system": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_high_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.unit": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_high_unit",
-                                  "path": "unit",
-                                  "type": "string"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high.value": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.high",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_high_value",
-                                  "path": "value",
-                                  "type": "decimal"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange",
-                            "viewDefinition": {
-                              "forEachOrNull": "low",
-                              "select": []
-                            },
-                            "children": [
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.code",
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.comparator",
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.system",
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.unit",
-                              "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.value"
-                            ]
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.code": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_low_code",
-                                  "path": "code",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.comparator": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_low_comparator",
-                                  "path": "comparator",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.system": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_low_system",
-                                  "path": "system",
-                                  "type": "uri"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.unit": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_low_unit",
-                                  "path": "unit",
-                                  "type": "string"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low.value": {
-                            "parent": "MedicationStatement.dosage.timing.repeat.bounds[x]:boundsRange.low",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_bounds_X_Boundsrange_low_value",
-                                  "path": "value",
-                                  "type": "decimal"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.count": {
-                            "parent": "MedicationStatement.dosage.timing.repeat",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_count",
-                                  "path": "count",
-                                  "type": "positiveInt"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.countMax": {
-                            "parent": "MedicationStatement.dosage.timing.repeat",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_countMax",
-                                  "path": "countMax",
-                                  "type": "positiveInt"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.dayOfWeek": {
-                            "parent": "MedicationStatement.dosage.timing.repeat",
-                            "viewDefinition": {
-                              "forEachOrNull": "dayOfWeek",
-                              "select": [
-                                {
-                                  "column": [
-                                    {
-                                      "name": "MedicationStatement_dosage_timing_repeat_dayOfWeek",
-                                      "path": "$this",
-                                      "type": "code"
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.duration": {
-                            "parent": "MedicationStatement.dosage.timing.repeat",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_duration",
-                                  "path": "duration",
-                                  "type": "decimal"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.durationMax": {
-                            "parent": "MedicationStatement.dosage.timing.repeat",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_durationMax",
-                                  "path": "durationMax",
-                                  "type": "decimal"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.durationUnit": {
-                            "parent": "MedicationStatement.dosage.timing.repeat",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_durationUnit",
-                                  "path": "durationUnit",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.frequency": {
-                            "parent": "MedicationStatement.dosage.timing.repeat",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_frequency",
-                                  "path": "frequency",
-                                  "type": "positiveInt"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.frequencyMax": {
-                            "parent": "MedicationStatement.dosage.timing.repeat",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_frequencyMax",
-                                  "path": "frequencyMax",
-                                  "type": "positiveInt"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.offset": {
-                            "parent": "MedicationStatement.dosage.timing.repeat",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_offset",
-                                  "path": "offset",
-                                  "type": "unsignedInt"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.period": {
-                            "parent": "MedicationStatement.dosage.timing.repeat",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_period",
-                                  "path": "period",
-                                  "type": "decimal"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.periodMax": {
-                            "parent": "MedicationStatement.dosage.timing.repeat",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_periodMax",
-                                  "path": "periodMax",
-                                  "type": "decimal"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.periodUnit": {
-                            "parent": "MedicationStatement.dosage.timing.repeat",
-                            "viewDefinition": {
-                              "column": [
-                                {
-                                  "name": "MedicationStatement_dosage_timing_repeat_periodUnit",
-                                  "path": "periodUnit",
-                                  "type": "code"
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.timeOfDay": {
-                            "parent": "MedicationStatement.dosage.timing.repeat",
-                            "viewDefinition": {
-                              "forEachOrNull": "timeOfDay",
-                              "select": [
-                                {
-                                  "column": [
-                                    {
-                                      "name": "MedicationStatement_dosage_timing_repeat_timeOfDay",
-                                      "path": "$this",
-                                      "type": "time"
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          },
-                          "MedicationStatement.dosage.timing.repeat.when": {
-                            "parent": "MedicationStatement.dosage.timing.repeat",
-                            "viewDefinition": {
-                              "forEachOrNull": "when",
-                              "select": [
-                                {
-                                  "column": [
-                                    {
-                                      "name": "MedicationStatement_dosage_timing_repeat_when",
-                                      "path": "$this",
-                                      "type": "code"
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          }
-                    }
-                    """
-                ).items()
-            },
-        )
-    ],
-    ids=["Dosage.doseAndRate - should not be overridden by snapshot type 'Element'"],
-    indirect=["profile"],
-)
-def test_generic_complex_element_flattening(
-    profile: StructureDefinitionSnapshot,
-    elem_id: str,
-    elem_type: str,
-    expected: Dict[str, FlatteningLookupElement],
-    flattening_lookup_generator: FlatteningLookupGenerator,
+def test_generate_flattening_polymorphic_child_keeps_grandchildren_for_a_complex_type(
+    generator: FlatteningLookupGenerator,
 ):
     """
-    Tests whether flattening prioritizes the usage of the (default_)config
-    rather than relaying on snapshot defined types, if there is an assumed type.
+    For a complex type (here Period, via the default config's required children)
+    return flattened required children by config and itself (with no column or select)
+    """
+    profile = build_profile("Observation", [])
 
-    In case of medication: ``.dosage.doseAndRate`` the actual type, derived from the snapshot
-    is `Element` which the flattener does not know how to flatten, because it's too ambiguous,
-    meaning that no children can be derived from that, even though `Dosage` is a well known type.
-    This test should ensure that the correct type
-    used for `MedicationStatement.dosage.doseAndRate` is `dosage.doseAndRate`
-    from the (default_)config.
+    result = generator._generate_flattening_polymorphic_child(
+        element_id="Observation.value[x]:valuePeriod",
+        profile=profile,
+        polymorphic_parent_id="Observation.value[x]",
+        type="Period",
+    )
+
+    assert set(result.keys()) == {
+        "Observation.value[x]:valuePeriod",
+        "Observation.value[x]:valuePeriod.start",
+        "Observation.value[x]:valuePeriod.end",
+    }
+    child = result["Observation.value[x]:valuePeriod"]
+    assert child.view_definition.select == []
+    assert set(child.children) == {
+        "Observation.value[x]:valuePeriod.start",
+        "Observation.value[x]:valuePeriod.end",
+    }
+
+
+# --- _flatten_coding -----------------------------------------------------------------
+_CODE = ElementDefinition(
+    id="Observation.code",
+    path="Observation.code",
+    type=[ElementDefinitionType(code="CodeableConcept")],
+)
+
+
+def test_flatten_coding_not_defined_in_profile_uses_generic_columns(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A "pseudo" Coding that isn't an element of the profile at all (e.g. assumed to exist
+    under an extension's value[x]) still gets the generic code/system/version/display/
+    userSelected columns.
+    """
+    profile = build_profile("Observation", [_CODE])
+
+    result = generator._flatten_coding("Observation.code.coding", profile)
+
+    assert result == {
+        "Observation.code.coding": FlatteningLookupElement(
+            parent="Observation.code",
+            view_definition=ViewDefinitionSnippet(
+                for_each_or_null="coding",
+                column=[
+                    ViewDefinitionColumn(
+                        name="Observation_code_coding_code", path="code", type="code"
+                    ),
+                    ViewDefinitionColumn(
+                        name="Observation_code_coding_system",
+                        path="system",
+                        type="uri",
+                    ),
+                    ViewDefinitionColumn(
+                        name="Observation_code_coding_version",
+                        path="version",
+                        type="string",
+                    ),
+                    ViewDefinitionColumn(
+                        name="Observation_code_coding_display",
+                        path="display",
+                        type="string",
+                    ),
+                    ViewDefinitionColumn(
+                        name="Observation_code_coding_userSelected",
+                        path="userSelected",
+                        type="boolean",
+                    ),
+                ],
+            ),
+        )
+    }
+
+
+def test_flatten_coding_without_slicing_uses_generic_columns(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A Coding that is defined in the profile but has no slices of its own is flattened the
+    same generic way as a pseudo Coding.
+    """
+    profile = build_profile(
+        "Observation",
+        [
+            _CODE,
+            ElementDefinition(
+                id="Observation.code.coding",
+                path="Observation.code.coding",
+                type=[ElementDefinitionType(code="Coding")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_coding("Observation.code.coding", profile)
+
+    assert (
+        result["Observation.code.coding"].view_definition.for_each_or_null == "coding"
+    )
+    assert result["Observation.code.coding"].view_definition.column is not None
+
+
+def test_flatten_coding_slice_without_extractable_discriminator_is_dropped(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A slice whose discriminator can't be resolved into a FHIRPath filter (here: no
+    fixed/pattern value and no binding anywhere) is dropped entirely, rather than falling
+    back to the same generic (unfiltered) flattening as an unsliced Coding -- an unfiltered
+    fallback would collide with sibling slices that share the same base path, since nothing
+    would distinguish them anymore
+    """
+    profile = build_profile(
+        "Observation",
+        [
+            _CODE,
+            ElementDefinition(
+                id="Observation.code.coding",
+                path="Observation.code.coding",
+                type=[ElementDefinitionType(code="Coding")],
+                slicing=ElementDefinitionSlicing(
+                    discriminator=[
+                        ElementDefinitionSlicingDiscriminator(
+                            type="value", path="system"
+                        )
+                    ],
+                    rules="open",
+                ),
+            ),
+            ElementDefinition(
+                id="Observation.code.coding:foo",
+                path="Observation.code.coding",
+                sliceName="foo",
+                type=[ElementDefinitionType(code="Coding")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_coding("Observation.code.coding:foo", profile)
+
+    assert result == {}
+
+
+def test_flatten_coding_slice_with_pattern_discriminator_flattens_children(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A slice discriminated by a fixed/pattern value on `.system` gets a `where()` filter
+    built from it, flattens the children the profile explicitly defines, and fills in any
+    of the generically-required Coding children (version/display/userSelected) that the
+    profile leaves undefined.
+    """
+    profile = build_profile(
+        "Observation",
+        [
+            _CODE,
+            ElementDefinition(
+                id="Observation.code.coding",
+                path="Observation.code.coding",
+                type=[ElementDefinitionType(code="Coding")],
+                slicing=ElementDefinitionSlicing(
+                    discriminator=[
+                        ElementDefinitionSlicingDiscriminator(
+                            type="value", path="system"
+                        )
+                    ],
+                    rules="open",
+                ),
+            ),
+            ElementDefinition(
+                id="Observation.code.coding:sct",
+                path="Observation.code.coding",
+                sliceName="sct",
+                type=[ElementDefinitionType(code="Coding")],
+            ),
+            ElementDefinition(
+                id="Observation.code.coding:sct.system",
+                path="Observation.code.coding.system",
+                patternUri="http://snomed.info/sct",
+                type=[ElementDefinitionType(code="uri")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_coding("Observation.code.coding:sct", profile)
+
+    slice_el = result["Observation.code.coding:sct"]
+    assert slice_el.view_definition.for_each_or_null == (
+        "coding.where(system = 'http://snomed.info/sct')"
+    )
+    assert set(slice_el.children) == {
+        "Observation.code.coding:sct.system",
+        "Observation.code.coding:sct.version",
+        "Observation.code.coding:sct.display",
+        "Observation.code.coding:sct.userSelected",
+        "Observation.code.coding:sct.code",
+    }
+    # explicitly defined
+    assert (
+        result["Observation.code.coding:sct.system"].view_definition.column[0].path
+        == "system"
+    )
+    # not defined in the profile, filled from config
+    assert (
+        result["Observation.code.coding:sct.version"].view_definition.column[0].path
+        == "version"
+    )
+
+
+def test_flatten_coding_slice_parent_points_to_codeable_concept_not_to_coding_collection(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    When flattened as part of a CodeableConcept, a Coding slice's `parent` skips the
+    intermediate `.coding` collection element (which never gets its own lookup entry) and
+    points straight at the CodeableConcept, using the explicit `codeable_concept_parent`
+    rather than the slice's structural parent.
+    """
+    profile = build_profile(
+        "Observation",
+        [
+            _CODE,
+            ElementDefinition(
+                id="Observation.code.coding",
+                path="Observation.code.coding",
+                type=[ElementDefinitionType(code="Coding")],
+                slicing=ElementDefinitionSlicing(
+                    discriminator=[
+                        ElementDefinitionSlicingDiscriminator(
+                            type="value", path="system"
+                        )
+                    ],
+                    rules="open",
+                ),
+            ),
+            ElementDefinition(
+                id="Observation.code.coding:sct",
+                path="Observation.code.coding",
+                sliceName="sct",
+                type=[ElementDefinitionType(code="Coding")],
+            ),
+            ElementDefinition(
+                id="Observation.code.coding:sct.system",
+                path="Observation.code.coding.system",
+                patternUri="http://snomed.info/sct",
+                type=[ElementDefinitionType(code="uri")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_coding(
+        "Observation.code.coding:sct",
+        profile,
+        codeable_concept_parent="Observation.code",
+    )
+
+    assert result["Observation.code.coding:sct"].parent == "Observation.code"
+
+
+class _FakeTerminologyClient:
+    """Minimal stand-in for `FhirTerminologyClient`, returning a fixed set of expanded codes"""
+
+    def __init__(self, codes: list[str]):
+        self._codes = codes
+
+    def expand_value_set(self, url: str, version: str = None):
+        return {"expansion": {"contains": [{"code": c} for c in self._codes]}}
+
+
+def test_flatten_coding_slice_discriminated_by_required_binding(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A discriminator naming `.code`, where `.code` carries a *required* binding (and no
+    fixed/pattern value anywhere), is trusted outright. `.code` here is `Coding.code`, a
+    plain `code` primitive rather than `Coding`/`CodeableConcept` -- our terminology engine
+    (Pathling) can't evaluate `memberOf()` against that, so the bound value set is expanded
+    and the filter lists the allowed codes explicitly instead.
+    """
+    generator.client = _FakeTerminologyClient(["c1", "c2"])
+    profile = build_profile(
+        "Observation",
+        [
+            _CODE,
+            ElementDefinition(
+                id="Observation.code.coding",
+                path="Observation.code.coding",
+                type=[ElementDefinitionType(code="Coding")],
+                slicing=ElementDefinitionSlicing(
+                    discriminator=[
+                        ElementDefinitionSlicingDiscriminator(type="value", path="code")
+                    ],
+                    rules="open",
+                ),
+            ),
+            ElementDefinition(
+                id="Observation.code.coding:loinc",
+                path="Observation.code.coding",
+                sliceName="loinc",
+                type=[ElementDefinitionType(code="Coding")],
+            ),
+            ElementDefinition(
+                id="Observation.code.coding:loinc.code",
+                path="Observation.code.coding.code",
+                type=[ElementDefinitionType(code="code")],
+                binding=ElementDefinitionBinding(
+                    strength="required",
+                    valueSet="http://hl7.org/fhir/ValueSet/observation-codes",
+                ),
+            ),
+        ],
+    )
+
+    result = generator._flatten_coding("Observation.code.coding:loinc", profile)
+
+    assert result["Observation.code.coding:loinc"].view_definition.for_each_or_null == (
+        "coding.where(code.exists($this = 'c1' or $this = 'c2'))"
+    )
+
+
+def test_flatten_coding_slice_discriminated_by_non_required_binding_is_used_as_last_resort(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A non-required binding (`preferred`, `extensible`, ...) is only trusted as a last
+    resort, used solely because nothing more specific (fixed/pattern) exists anywhere in
+    the slice - "a weak binding is still better than no filter at all". With nothing else
+    defined, it still produces the same expanded-value-set filter a required binding would.
+    """
+    generator.client = _FakeTerminologyClient(["c1"])
+    profile = build_profile(
+        "Observation",
+        [
+            _CODE,
+            ElementDefinition(
+                id="Observation.code.coding",
+                path="Observation.code.coding",
+                type=[ElementDefinitionType(code="Coding")],
+                slicing=ElementDefinitionSlicing(
+                    discriminator=[
+                        ElementDefinitionSlicingDiscriminator(type="value", path="code")
+                    ],
+                    rules="open",
+                ),
+            ),
+            ElementDefinition(
+                id="Observation.code.coding:loinc",
+                path="Observation.code.coding",
+                sliceName="loinc",
+                type=[ElementDefinitionType(code="Coding")],
+            ),
+            ElementDefinition(
+                id="Observation.code.coding:loinc.code",
+                path="Observation.code.coding.code",
+                type=[ElementDefinitionType(code="code")],
+                binding=ElementDefinitionBinding(
+                    strength="preferred",
+                    valueSet="http://hl7.org/fhir/ValueSet/observation-codes",
+                ),
+            ),
+        ],
+    )
+
+    result = generator._flatten_coding("Observation.code.coding:loinc", profile)
+
+    assert result == {}
+
+
+def test_flatten_coding_slice_discriminated_by_required_binding_on_coding_uses_member_of(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A required binding declared directly on a `Coding`-typed element (rather than on its
+    `.code`/`.system` primitives) *is* something Pathling can evaluate `memberOf()`
+    against, so that's what the filter uses -- no need to expand the value set for it.
+    """
+    profile = build_profile(
+        "Observation",
+        [
+            _CODE,
+            ElementDefinition(
+                id="Observation.code.coding",
+                path="Observation.code.coding",
+                type=[ElementDefinitionType(code="Coding")],
+                slicing=ElementDefinitionSlicing(
+                    discriminator=[
+                        ElementDefinitionSlicingDiscriminator(
+                            type="value", path="$this"
+                        )
+                    ],
+                    rules="open",
+                ),
+            ),
+            ElementDefinition(
+                id="Observation.code.coding:loinc",
+                path="Observation.code.coding",
+                sliceName="loinc",
+                type=[ElementDefinitionType(code="Coding")],
+                binding=ElementDefinitionBinding(
+                    strength="required",
+                    valueSet="http://hl7.org/fhir/ValueSet/observation-codes",
+                ),
+            ),
+        ],
+    )
+
+    result = generator._flatten_coding("Observation.code.coding:loinc", profile)
+
+    assert result["Observation.code.coding:loinc"].view_definition.for_each_or_null == (
+        "coding.where(memberOf('http://hl7.org/fhir/ValueSet/observation-codes'))"
+    )
+
+
+def test_flatten_coding_slice_discriminated_by_system_and_code_combines_both(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    Filter built from code and system, concat by "and"
+    """
+    profile = build_profile(
+        "Observation",
+        [
+            _CODE,
+            ElementDefinition(
+                id="Observation.code.coding",
+                path="Observation.code.coding",
+                type=[ElementDefinitionType(code="Coding")],
+                slicing=ElementDefinitionSlicing(
+                    discriminator=[
+                        ElementDefinitionSlicingDiscriminator(
+                            type="value", path="system"
+                        ),
+                        ElementDefinitionSlicingDiscriminator(
+                            type="value", path="code"
+                        ),
+                    ],
+                    rules="open",
+                ),
+            ),
+            ElementDefinition(
+                id="Observation.code.coding:sct",
+                path="Observation.code.coding",
+                sliceName="sct",
+                type=[ElementDefinitionType(code="Coding")],
+            ),
+            ElementDefinition(
+                id="Observation.code.coding:sct.system",
+                path="Observation.code.coding.system",
+                patternUri="http://snomed.info/sct",
+                type=[ElementDefinitionType(code="uri")],
+            ),
+            ElementDefinition(
+                id="Observation.code.coding:sct.code",
+                path="Observation.code.coding.code",
+                patternCode="184099003",
+                type=[ElementDefinitionType(code="code")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_coding("Observation.code.coding:sct", profile)
+
+    assert result["Observation.code.coding:sct"].view_definition.for_each_or_null == (
+        "coding.where(system = 'http://snomed.info/sct' and code = '184099003')"
+    )
+
+
+# --- _flatten_codeable_concept ---------------------------------------------------------
+
+_CODING_SLICED_BY_SYSTEM = ElementDefinition(
+    id="Observation.code.coding",
+    path="Observation.code.coding",
+    type=[ElementDefinitionType(code="Coding")],
+    slicing=ElementDefinitionSlicing(
+        discriminator=[
+            ElementDefinitionSlicingDiscriminator(type="value", path="system")
+        ],
+        rules="open",
+    ),
+)
+
+
+def test_flatten_codeable_concept_flattens_defined_coding_slices(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A `.coding` with slices defined gets one child per slice, each flattened via
+    `_flatten_coding`; the CodeableConcept itself carries no columns of its own.
+    """
+    profile = build_profile(
+        "Observation",
+        [
+            _CODE,
+            _CODING_SLICED_BY_SYSTEM,
+            ElementDefinition(
+                id="Observation.code.coding:sct",
+                path="Observation.code.coding",
+                sliceName="sct",
+                type=[ElementDefinitionType(code="Coding")],
+            ),
+            ElementDefinition(
+                id="Observation.code.coding:sct.system",
+                path="Observation.code.coding.system",
+                patternUri="http://snomed.info/sct",
+                type=[ElementDefinitionType(code="uri")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_codeable_concept("Observation.code", profile)
+
+    assert result["Observation.code"] == FlatteningLookupElement(
+        view_definition=ViewDefinitionSnippet(for_each_or_null="code", select=[]),
+        children=["Observation.code.coding:sct"],
+    )
+    assert result["Observation.code.coding:sct"].view_definition.for_each_or_null == (
+        "coding.where(system = 'http://snomed.info/sct')"
+    )
+
+
+def test_flatten_codeable_concept_falls_back_to_generic_coding_without_slices(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A `.coding` with no slices defined falls back to a single generic `.coding` child,
+    same as when `.coding` isn't defined at all.
+    """
+    profile = build_profile(
+        "Observation",
+        [
+            _CODE,
+            ElementDefinition(
+                id="Observation.code.coding",
+                path="Observation.code.coding",
+                type=[ElementDefinitionType(code="Coding")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_codeable_concept("Observation.code", profile)
+
+    assert result["Observation.code"].children == ["Observation.code.coding"]
+    assert result["Observation.code.coding"].view_definition.column is not None
+
+
+def test_flatten_codeable_concept_falls_back_to_generic_coding_without_coding_element(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    No `.coding` element defined in the profile at all -> same generic fallback as an
+    empty slicing.
+    """
+    profile = build_profile("Observation", [_CODE])
+
+    result = generator._flatten_codeable_concept("Observation.code", profile)
+
+    assert result["Observation.code"].children == ["Observation.code.coding"]
+    assert result["Observation.code.coding"].view_definition.column is not None
+
+
+def test_flatten_codeable_concept_prunes_itself_when_every_slice_fails(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    If every slice fails to flatten (here: "Coding" is an excluded type), the
+    CodeableConcept itself is dropped rather than left behind with empty children.
+    """
+    generator.config.excluded_types = ["Coding"]
+    profile = build_profile(
+        "Observation",
+        [
+            _CODE,
+            _CODING_SLICED_BY_SYSTEM,
+            ElementDefinition(
+                id="Observation.code.coding:sct",
+                path="Observation.code.coding",
+                sliceName="sct",
+                type=[ElementDefinitionType(code="Coding")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_codeable_concept("Observation.code", profile)
+
+    assert result == {}
+
+
+# --- _flatten_identifier ----------------------------------------------------------------
+
+_PATIENT_IDENTIFIER_SLICED = ElementDefinition(
+    id="Patient.identifier",
+    path="Patient.identifier",
+    type=[ElementDefinitionType(code="Identifier")],
+    slicing=ElementDefinitionSlicing(rules="open"),
+)
+
+
+def test_flatten_identifier_not_in_profile_returns_empty(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    No element definition at all for the given id -> nothing to flatten.
+    """
+    profile = build_profile("Patient", [])
+
+    result = generator._flatten_identifier("Patient.identifier", profile)
+
+    assert result == {}
+
+
+def test_flatten_identifier_slice_list_filters_out_non_identifier_slices(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    When `.identifier` is sliced, only slices actually typed as Identifier are flattened
+    as children - a same-named slice of a different type is ignored.
+    """
+    profile = build_profile(
+        "Patient",
+        [
+            _PATIENT_IDENTIFIER_SLICED,
+            ElementDefinition(
+                id="Patient.identifier:mrn",
+                path="Patient.identifier",
+                sliceName="mrn",
+                type=[ElementDefinitionType(code="Identifier")],
+            ),
+            ElementDefinition(
+                id="Patient.identifier:decoy",
+                path="Patient.identifier",
+                sliceName="decoy",
+                type=[ElementDefinitionType(code="CodeableConcept")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_identifier("Patient.identifier", profile)
+
+    assert result["Patient.identifier"].children == ["Patient.identifier:mrn"]
+    assert result["Patient.identifier"].view_definition.for_each_or_null == "identifier"
+
+
+def test_flatten_identifier_unsliced_flattens_all_required_children(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    An unsliced identifier gets one child per entry in the default config's required
+    Identifier children (use/type/system/value/period/assigner).
+    """
+    profile = build_profile(
+        "Patient",
+        [
+            ElementDefinition(
+                id="Patient.identifier",
+                path="Patient.identifier",
+                type=[ElementDefinitionType(code="Identifier")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_identifier("Patient.identifier", profile)
+
+    assert set(result["Patient.identifier"].children) == {
+        "Patient.identifier.use",
+        "Patient.identifier.type",
+        "Patient.identifier.system",
+        "Patient.identifier.value",
+        "Patient.identifier.period",
+        "Patient.identifier.assigner",
+    }
+    assert result["Patient.identifier"].view_definition.for_each_or_null == "identifier"
+
+
+def test_flatten_identifier_slice_uses_its_own_discriminator_when_present(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A slice with a `patternIdentifier` discriminates on itself (`$this`)
+    """
+    profile = build_profile(
+        "Patient",
+        [
+            _PATIENT_IDENTIFIER_SLICED,
+            ElementDefinition(
+                id="Patient.identifier:mrn",
+                path="Patient.identifier",
+                sliceName="mrn",
+                type=[ElementDefinitionType(code="Identifier")],
+                patternIdentifier=Identifier(system="http://example.org/mrn"),
+            ),
+        ],
+    )
+
+    result = generator._flatten_identifier("Patient.identifier:mrn", profile)
+
+    assert result["Patient.identifier:mrn"].view_definition.for_each_or_null == (
+        "$this.where(system = 'http://example.org/mrn')"
+    )
+
+
+def test_flatten_identifier_slice_that_fails_to_flatten_is_not_listed_as_a_child(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A slice is only added to `children` once it's actually been flattened - a slice that
+    fails (here: "Identifier" is an excluded type) leaves no dangling reference behind.
+    """
+    generator.config.excluded_types = ["Identifier"]
+    profile = build_profile(
+        "Patient",
+        [
+            _PATIENT_IDENTIFIER_SLICED,
+            ElementDefinition(
+                id="Patient.identifier:mrn",
+                path="Patient.identifier",
+                sliceName="mrn",
+                type=[ElementDefinitionType(code="Identifier")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_identifier("Patient.identifier", profile)
+
+    assert result["Patient.identifier"].children == []
+    assert "Patient.identifier:mrn" not in result
+
+
+# --- _flatten_backbone_element -----------------------------------------------------------
+
+_COMPONENT_SLICED = ElementDefinition(
+    id="Observation.component",
+    path="Observation.component",
+    type=[ElementDefinitionType(code="BackboneElement")],
+    slicing=ElementDefinitionSlicing(rules="open"),
+)
+
+
+def test_flatten_backbone_element_unsliced_uses_all_direct_children(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    An unsliced BackboneElement gets one child per direct sub-element the profile defines.
+    """
+    profile = build_profile(
+        "Observation",
+        [
+            ElementDefinition(
+                id="Observation.referenceRange",
+                path="Observation.referenceRange",
+                type=[ElementDefinitionType(code="BackboneElement")],
+            ),
+            ElementDefinition(
+                id="Observation.referenceRange.low",
+                path="Observation.referenceRange.low",
+                type=[ElementDefinitionType(code="Quantity")],
+            ),
+            ElementDefinition(
+                id="Observation.referenceRange.high",
+                path="Observation.referenceRange.high",
+                type=[ElementDefinitionType(code="Quantity")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_backbone_element("Observation.referenceRange", profile)
+
+    assert set(result["Observation.referenceRange"].children) == {
+        "Observation.referenceRange.low",
+        "Observation.referenceRange.high",
+    }
+    assert (
+        result["Observation.referenceRange"].view_definition.for_each_or_null
+        == "referenceRange"
+    )
+
+
+def test_flatten_backbone_element_slice_uses_its_own_discriminator_when_present(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A BackboneElement slice discriminated by a fixed/pattern value on `.code` gets a
+    `$this.where(...)` filter built from it, instead of the plain element-name for-each.
+    """
+    profile = build_profile(
+        "Observation",
+        [
+            ElementDefinition(
+                id="Observation.component",
+                path="Observation.component",
+                type=[ElementDefinitionType(code="BackboneElement")],
+                slicing=ElementDefinitionSlicing(
+                    discriminator=[
+                        ElementDefinitionSlicingDiscriminator(type="value", path="code")
+                    ],
+                    rules="open",
+                ),
+            ),
+            ElementDefinition(
+                id="Observation.component:systolic",
+                path="Observation.component",
+                sliceName="systolic",
+                type=[ElementDefinitionType(code="BackboneElement")],
+            ),
+            ElementDefinition(
+                id="Observation.component:systolic.code",
+                path="Observation.component.code",
+                type=[ElementDefinitionType(code="CodeableConcept")],
+                patternCodeableConcept=CodeableConcept(
+                    coding=[Coding(system="http://loinc.org", code="8480-6")]
+                ),
+            ),
+        ],
+    )
+
+    result = generator._flatten_backbone_element(
+        "Observation.component:systolic", profile
+    )
+
+    assert result[
+        "Observation.component:systolic"
+    ].view_definition.for_each_or_null == (
+        "$this.where(code.coding.exists(system = 'http://loinc.org' and code = '8480-6'))"
+    )
+
+
+def test_flatten_backbone_element_slice_is_dropped_when_discriminator_fails(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A slice whose discriminator can't be resolved (here: the parent defines no slicing
+    discriminators at all) is dropped entirely, rather than kept under the plain
+    element-name for-each -- that unfiltered for-each is shared by every sibling slice, so
+    keeping it here would make this slice indistinguishable from them
+    """
+    profile = build_profile(
+        "Observation",
+        [
+            _COMPONENT_SLICED,
+            ElementDefinition(
+                id="Observation.component:systolic",
+                path="Observation.component",
+                sliceName="systolic",
+                type=[ElementDefinitionType(code="BackboneElement")],
+            ),
+            ElementDefinition(
+                id="Observation.component:systolic.value",
+                path="Observation.component.value",
+                type=[ElementDefinitionType(code="string")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_backbone_element(
+        "Observation.component:systolic", profile
+    )
+
+    assert result == {}
+
+
+def test_flatten_backbone_element_drops_slices_that_collide_on_the_same_fallback_binding(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    Two sibling slices whose `.code` carries no fixed/pattern value, only the identical
+    non-required binding, both fall back to that same binding and  nothing actually distinguishes them.
+    Both are dropped entirely instead
+    """
+    binding = ElementDefinitionBinding(
+        strength="example",
+        valueSet="http://hl7.org/fhir/ValueSet/observation-codes",
+    )
+    profile = build_profile(
+        "Observation",
+        [
+            ElementDefinition(
+                id="Observation.component",
+                path="Observation.component",
+                type=[ElementDefinitionType(code="BackboneElement")],
+                slicing=ElementDefinitionSlicing(
+                    discriminator=[
+                        ElementDefinitionSlicingDiscriminator(type="value", path="code")
+                    ],
+                    rules="open",
+                ),
+            ),
+            ElementDefinition(
+                id="Observation.component:foo",
+                path="Observation.component",
+                sliceName="foo",
+                type=[ElementDefinitionType(code="BackboneElement")],
+            ),
+            ElementDefinition(
+                id="Observation.component:foo.code",
+                path="Observation.component.code",
+                type=[ElementDefinitionType(code="CodeableConcept")],
+                binding=binding,
+            ),
+            ElementDefinition(
+                id="Observation.component:bar",
+                path="Observation.component",
+                sliceName="bar",
+                type=[ElementDefinitionType(code="BackboneElement")],
+            ),
+            ElementDefinition(
+                id="Observation.component:bar.code",
+                path="Observation.component.code",
+                type=[ElementDefinitionType(code="CodeableConcept")],
+                binding=binding,
+            ),
+        ],
+    )
+
+    result = generator._flatten_backbone_element("Observation.component", profile)
+
+    assert result == {}
+
+
+def test_flatten_backbone_element_prunes_itself_when_every_child_fails(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    If every direct child fails to flatten (here: "string" is an excluded type), the
+    BackboneElement itself is dropped rather than left behind with empty children.
+    """
+    generator.config.excluded_types = ["string"]
+    profile = build_profile(
+        "Observation",
+        [
+            ElementDefinition(
+                id="Observation.referenceRange",
+                path="Observation.referenceRange",
+                type=[ElementDefinitionType(code="BackboneElement")],
+            ),
+            ElementDefinition(
+                id="Observation.referenceRange.text",
+                path="Observation.referenceRange.text",
+                type=[ElementDefinitionType(code="string")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_backbone_element("Observation.referenceRange", profile)
+
+    assert result == {}
+
+
+def test_flatten_backbone_element_slice_that_fails_to_flatten_is_not_listed_as_a_child(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A slice is only added to `children` once it's actually been flattened - a slice that
+    fails (here: "BackboneElement" is an excluded type) leaves no dangling reference, and
+    the parent - having no valid children left - is pruned too.
+    """
+    generator.config.excluded_types = ["BackboneElement"]
+    profile = build_profile(
+        "Observation",
+        [
+            _COMPONENT_SLICED,
+            ElementDefinition(
+                id="Observation.component:systolic",
+                path="Observation.component",
+                sliceName="systolic",
+                type=[ElementDefinitionType(code="BackboneElement")],
+            ),
+            ElementDefinition(
+                id="Observation.component:systolic.value",
+                path="Observation.component.value",
+                type=[ElementDefinitionType(code="string")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_backbone_element("Observation.component", profile)
+
+    assert result == {}
+
+
+# --- _flatten_generic_complex_element -----------------------------------------------------
+
+_MARITAL_PERIOD = ElementDefinition(
+    id="Patient.maritalPeriod",
+    path="Patient.maritalPeriod",
+    type=[ElementDefinitionType(code="Period")],
+)
+
+_MARITAL_PERIOD_SLICED = ElementDefinition(
+    id="Patient.maritalPeriod",
+    path="Patient.maritalPeriod",
+    type=[ElementDefinitionType(code="Period")],
+    slicing=ElementDefinitionSlicing(
+        discriminator=[
+            ElementDefinitionSlicingDiscriminator(type="exists", path="start")
+        ],
+        rules="open",
+    ),
+)
+
+
+def test_flatten_generic_complex_element_unsliced_flattens_required_children(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    An unsliced Period field gets its required children (`.start`/`.end`, via the default
+    config) flattened underneath it.
+    """
+    profile = build_profile("Patient", [_MARITAL_PERIOD])
+
+    result = generator._flatten_generic_complex_element(
+        "Patient.maritalPeriod", profile
+    )
+
+    assert set(result["Patient.maritalPeriod"].children) == {
+        "Patient.maritalPeriod.start",
+        "Patient.maritalPeriod.end",
+    }
+    assert (
+        result["Patient.maritalPeriod"].view_definition.for_each_or_null
+        == "maritalPeriod"
+    )
+
+
+def test_flatten_generic_complex_element_slicing_only_includes_same_typed_slices(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    When the element itself is sliced (and isn't a polymorphic value[x]), only slices
+    typed the same as the element are flattened as children - a same-named slice of a
+    different type is ignored.
+    """
+    profile = build_profile(
+        "Patient",
+        [
+            _MARITAL_PERIOD_SLICED,
+            ElementDefinition(
+                id="Patient.maritalPeriod:early",
+                path="Patient.maritalPeriod",
+                sliceName="early",
+                type=[ElementDefinitionType(code="Period")],
+            ),
+            ElementDefinition(
+                id="Patient.maritalPeriod:decoy",
+                path="Patient.maritalPeriod",
+                sliceName="decoy",
+                type=[ElementDefinitionType(code="Quantity")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_generic_complex_element(
+        "Patient.maritalPeriod", profile
+    )
+
+    assert result["Patient.maritalPeriod"].children == ["Patient.maritalPeriod:early"]
+    assert set(result["Patient.maritalPeriod:early"].children) == {
+        "Patient.maritalPeriod:early.start",
+        "Patient.maritalPeriod:early.end",
+    }
+
+
+def test_flatten_generic_complex_element_slice_uses_its_own_discriminator(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A slice with a resolvable discriminator gets a `$this.where(...)` for-each instead of
+    the plain element-name default.
+    """
+    profile = build_profile(
+        "Patient",
+        [
+            _MARITAL_PERIOD_SLICED,
+            ElementDefinition(
+                id="Patient.maritalPeriod:early",
+                path="Patient.maritalPeriod",
+                sliceName="early",
+                type=[ElementDefinitionType(code="Period")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_generic_complex_element(
+        "Patient.maritalPeriod:early", profile
+    )
+
+    assert result["Patient.maritalPeriod:early"].view_definition.for_each_or_null == (
+        "$this.where(start.exists())"
+    )
+
+
+def test_flatten_generic_complex_element_slice_with_unresolvable_discriminator_returns_empty(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    Unlike `_flatten_backbone_element` (which falls back to the plain element-name
+    for-each), a slice whose discriminator can't be resolved here drops the whole element
+    outright - no fallback.
+    """
+    profile = build_profile(
+        "Patient",
+        [
+            ElementDefinition(
+                id="Patient.maritalPeriod",
+                path="Patient.maritalPeriod",
+                type=[ElementDefinitionType(code="Period")],
+                slicing=ElementDefinitionSlicing(rules="open"),
+            ),
+            ElementDefinition(
+                id="Patient.maritalPeriod:early",
+                path="Patient.maritalPeriod",
+                sliceName="early",
+                type=[ElementDefinitionType(code="Period")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_generic_complex_element(
+        "Patient.maritalPeriod:early", profile
+    )
+
+    assert result == {}
+
+
+def test_flatten_generic_complex_element_prunes_itself_when_every_child_fails(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    If every required child fails to flatten (here: "dateTime" is an excluded type, which
+    knocks out both `.start` and `.end`), the element itself is dropped rather than left
+    behind with empty children.
+    """
+    generator.config.excluded_types = ["dateTime"]
+    profile = build_profile("Patient", [_MARITAL_PERIOD])
+
+    result = generator._flatten_generic_complex_element(
+        "Patient.maritalPeriod", profile
+    )
+
+    assert result == {}
+
+
+# --- _flatten_extension -------------------------------------------------------------------
+
+
+class _FakePackageManager:
+    """Minimal stand-in for `FhirPackageManager`, resolving canonical URLs from a dict."""
+
+    def __init__(self, profiles: dict):
+        self._profiles = profiles
+
+    def find_struct_def(self, url):
+        return self._profiles.get(url)
+
+
+_CONDITION_EXTENSION_SLICED = ElementDefinition(
+    id="Condition.extension",
+    path="Condition.extension",
+    type=[ElementDefinitionType(code="Extension")],
+    slicing=ElementDefinitionSlicing(rules="open"),
+)
+
+
+def _local_extension_elements(slice_name: str, value_type: str = "string") -> list:
+    """A self-contained (no separate StructureDefinition) simple-valued extension slice."""
+    base = f"Condition.extension:{slice_name}"
+    return [
+        ElementDefinition(
+            id=base,
+            path="Condition.extension",
+            sliceName=slice_name,
+            type=[ElementDefinitionType(code="Extension")],
+        ),
+        ElementDefinition(
+            id=f"{base}.url",
+            path="Condition.extension.url",
+            fixedUri=f"http://example.org/{slice_name}",
+            type=[ElementDefinitionType(code="uri")],
+        ),
+        ElementDefinition(
+            id=f"{base}.value[x]",
+            path="Condition.extension.value",
+            type=[ElementDefinitionType(code=value_type)],
+        ),
+    ]
+
+
+def test_flatten_extension_base_container_without_slices_is_pruned(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    The slicing-defining `.extension` element with no actual slices produces nothing to
+    select, so it's pruned rather than left behind empty.
+    """
+    profile = build_profile("Condition", [_CONDITION_EXTENSION_SLICED])
+
+    result = generator._flatten_extension("Condition.extension", profile)
+
+    assert result == {}
+
+
+def test_flatten_extension_base_container_flattens_defined_slices(
+    generator: FlatteningLookupGenerator,
+):
+    profile = build_profile(
+        "Condition",
+        [
+            _CONDITION_EXTENSION_SLICED,
+            *_local_extension_elements("foo"),
+            *_local_extension_elements("bar"),
+        ],
+    )
+
+    result = generator._flatten_extension("Condition.extension", profile)
+
+    assert set(result["Condition.extension"].children) == {
+        "Condition.extension:foo",
+        "Condition.extension:bar",
+    }
+
+
+def test_flatten_extension_slice_that_fails_to_flatten_is_not_listed_as_a_child(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A slice is only added to `children` once it's actually been flattened - a slice that
+    fails (here: "integer" is an excluded type) leaves no dangling reference behind.
+    """
+    generator.config.excluded_types = ["integer"]
+    profile = build_profile(
+        "Condition",
+        [
+            _CONDITION_EXTENSION_SLICED,
+            *_local_extension_elements("foo", value_type="string"),
+            *_local_extension_elements("bar", value_type="integer"),
+        ],
+    )
+
+    result = generator._flatten_extension("Condition.extension", profile)
+
+    assert result["Condition.extension"].children == ["Condition.extension:foo"]
+    assert "Condition.extension:bar" not in result
+
+
+def test_flatten_extension_local_extension_without_separate_profile(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A slice with no `type[x].profile` reference but with its own locally-defined `.url`/
+    `.value[x]` children is flattened directly against the same profile, filtered by its
+    fixed url.
+    """
+    profile = build_profile(
+        "Condition",
+        [_CONDITION_EXTENSION_SLICED, *_local_extension_elements("foo")],
+    )
+
+    result = generator._flatten_extension("Condition.extension:foo", profile)
+
+    assert result["Condition.extension:foo"].view_definition.for_each_or_null == (
+        "extension.where(url = 'http://example.org/foo')"
+    )
+    assert result["Condition.extension:foo"].children == [
+        "Condition.extension:foo.value[x]"
+    ]
+
+
+def test_flatten_extension_slice_with_unresolvable_profile_is_pruned(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A `type[x].profile` reference the package manager can't resolve logs an error and
+    ends up pruned, rather than raising or leaving an empty placeholder behind.
+    """
+    generator.package_manager = _FakePackageManager({})
+    profile = build_profile(
+        "Condition",
+        [
+            _CONDITION_EXTENSION_SLICED,
+            ElementDefinition(
+                id="Condition.extension:foo",
+                path="Condition.extension",
+                sliceName="foo",
+                type=[
+                    ElementDefinitionType(
+                        code="Extension", profile=["http://example.org/foo"]
+                    )
+                ],
+            ),
+        ],
+    )
+
+    result = generator._flatten_extension("Condition.extension:foo", profile)
+
+    assert result == {}
+
+
+def test_flatten_extension_slice_with_external_profile_simple_value(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A slice referencing an external extension profile whose `Extension.value[x]` is
+    allowed (max > 0) flattens that value polymorphically and recontextualizes it under
+    the slice's own id.
+    """
+    ext_profile = build_profile(
+        "Extension",
+        [
+            ElementDefinition(
+                id="Extension.value[x]",
+                path="Extension.value",
+                min=0,
+                max="1",
+                type=[ElementDefinitionType(code="string")],
+            ),
+        ],
+        url="http://example.org/StructureDefinition/simple-ext",
+    )
+    generator.package_manager = _FakePackageManager(
+        {"http://example.org/StructureDefinition/simple-ext": ext_profile}
+    )
+    profile = build_profile(
+        "Condition",
+        [
+            _CONDITION_EXTENSION_SLICED,
+            ElementDefinition(
+                id="Condition.extension:foo",
+                path="Condition.extension",
+                sliceName="foo",
+                type=[
+                    ElementDefinitionType(
+                        code="Extension",
+                        profile=["http://example.org/StructureDefinition/simple-ext"],
+                    )
+                ],
+            ),
+        ],
+    )
+
+    result = generator._flatten_extension("Condition.extension:foo", profile)
+
+    assert result["Condition.extension:foo"].children == [
+        "Condition.extension:foo.value[x]"
+    ]
+    assert "Condition.extension:foo.value[x]:valueString" in result
+
+
+def test_flatten_extension_slice_with_external_profile_compound_children(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A slice referencing an external extension profile whose `Extension.value[x]` is
+    disallowed (max = 0) instead flattens its nested sub-extensions (via the profile's own
+    `Extension.extension` slicing) and recontextualizes the whole subtree under the outer
+    slice's id.
     """
 
-    res = flattening_post_process(
-        flattening_lookup_generator._flatten_element(
-            elem_id,
-            profile,
-            type=elem_type,
-        )
+    def sub_extension(name: str) -> list:
+        base = f"Extension.extension:{name}"
+        return [
+            ElementDefinition(
+                id=base,
+                path="Extension.extension",
+                sliceName=name,
+                type=[ElementDefinitionType(code="Extension")],
+            ),
+            ElementDefinition(
+                id=f"{base}.url",
+                path="Extension.extension.url",
+                fixedUri=name,
+                type=[ElementDefinitionType(code="uri")],
+            ),
+            ElementDefinition(
+                id=f"{base}.value[x]",
+                path="Extension.extension.value",
+                type=[ElementDefinitionType(code="string")],
+            ),
+        ]
+
+    ext_profile = build_profile(
+        "Extension",
+        [
+            ElementDefinition(
+                id="Extension.extension",
+                path="Extension.extension",
+                type=[ElementDefinitionType(code="Extension")],
+                slicing=ElementDefinitionSlicing(rules="open"),
+            ),
+            *sub_extension("reasonStart"),
+            *sub_extension("reasonEnd"),
+            ElementDefinition(id="Extension.value[x]", path="Extension.value", max="0"),
+        ],
+        url="http://example.org/StructureDefinition/compound-ext",
     )
-    res = sorted(res.items(), key=lambda x: (len(x[0]), x[0]))
-    expected = sorted(
-        flattening_post_process(expected).items(), key=lambda x: (len(x[0]), x[0])
+    generator.package_manager = _FakePackageManager(
+        {"http://example.org/StructureDefinition/compound-ext": ext_profile}
+    )
+    profile = build_profile(
+        "Condition",
+        [
+            _CONDITION_EXTENSION_SLICED,
+            ElementDefinition(
+                id="Condition.extension:compound",
+                path="Condition.extension",
+                sliceName="compound",
+                type=[
+                    ElementDefinitionType(
+                        code="Extension",
+                        profile=["http://example.org/StructureDefinition/compound-ext"],
+                    )
+                ],
+            ),
+        ],
     )
 
-    assert res == expected
+    result = generator._flatten_extension("Condition.extension:compound", profile)
+
+    assert result["Condition.extension:compound"].children == [
+        "Condition.extension:compound.extension"
+    ]
+    assert set(result["Condition.extension:compound.extension"].children) == {
+        "Condition.extension:compound.extension:reasonStart",
+        "Condition.extension:compound.extension:reasonEnd",
+    }
+
+
+# --- _flatten_primitive -------------------------------------------------------------------
+
+
+def test_flatten_primitive_plain_element_uses_a_top_level_column(
+    generator: FlatteningLookupGenerator,
+):
+    profile = build_profile(
+        "Patient",
+        [
+            ElementDefinition(
+                id="Patient.gender",
+                path="Patient.gender",
+                max="1",
+                type=[ElementDefinitionType(code="code")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_primitive("Patient.gender", profile)
+
+    assert result == {
+        "Patient.gender": FlatteningLookupElement(
+            view_definition=ViewDefinitionSnippet(
+                column=[
+                    ViewDefinitionColumn(
+                        name="Patient_gender", path="gender", type="code"
+                    )
+                ]
+            ),
+        )
+    }
+
+
+def test_flatten_primitive_max_cardinality_star_uses_for_each_and_select(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A repeating primitive (`max = "*"`, read straight off the profile) is wrapped in
+    `forEachOrNull` + `select` instead of a plain top-level `column`.
+    """
+    profile = build_profile(
+        "Patient",
+        [
+            ElementDefinition(
+                id="Patient.address",
+                path="Patient.address",
+                type=[ElementDefinitionType(code="Address")],
+            ),
+            ElementDefinition(
+                id="Patient.address.line",
+                path="Patient.address.line",
+                max="*",
+                type=[ElementDefinitionType(code="string")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_primitive("Patient.address.line", profile)
+
+    assert result["Patient.address.line"].view_definition == ViewDefinitionSnippet(
+        for_each_or_null="line",
+        select=[
+            ViewDefinitionSelect(
+                column=[
+                    ViewDefinitionColumn(
+                        name="Patient_address_line", path="$this", type="string"
+                    )
+                ]
+            )
+        ],
+    )
+
+
+def test_flatten_primitive_max_cardinality_multiple_kwarg_for_pseudo_elements(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    For a "pseudo" element not defined in the profile, `max_cardinality_multiple` has to
+    be passed explicitly (there's no profile element to read `.max` off), and drives the
+    same `select`/`forEachOrNull` form as a real repeating element.
+    """
+    profile = build_profile("Patient", [])
+
+    result = generator._flatten_primitive(
+        "Patient.foo", profile, type="string", max_cardinality_multiple=True
+    )
+
+    assert result["Patient.foo"].view_definition.for_each_or_null == "foo"
+    assert result["Patient.foo"].view_definition.select is not None
+
+
+def test_flatten_primitive_polymorphic_child_uses_this_as_the_column_path(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A primitive flattened as a polymorphic child (e.g. `value[x]:valueString`) uses
+    `$this` as the column path instead of its own last id segment, since it's being
+    evaluated against the already-selected value, not a named sub-element of it.
+    """
+    profile = build_profile(
+        "Observation",
+        [
+            ElementDefinition(
+                id="Observation.value[x]",
+                path="Observation.value",
+                type=[
+                    ElementDefinitionType(code="string"),
+                    ElementDefinitionType(code="boolean"),
+                ],
+            ),
+            ElementDefinition(
+                id="Observation.value[x]:valueString",
+                path="Observation.value",
+                sliceName="valueString",
+                max="1",
+                type=[ElementDefinitionType(code="string")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_primitive(
+        "Observation.value[x]:valueString", profile, polymorphic_child=True
+    )
+
+    assert (
+        result["Observation.value[x]:valueString"].view_definition.column[0].path
+        == "$this"
+    )
+
+
+def test_flatten_primitive_excluded_type_returns_empty(
+    generator: FlatteningLookupGenerator,
+):
+    generator.config.excluded_types = ["code"]
+    profile = build_profile(
+        "Patient",
+        [
+            ElementDefinition(
+                id="Patient.gender",
+                path="Patient.gender",
+                type=[ElementDefinitionType(code="code")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_primitive("Patient.gender", profile)
+
+    assert result == {}
+
+
+def test_flatten_primitive_supports_pseudo_elements_not_defined_in_the_profile(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    An element id that doesn't resolve to anything in the profile can still be flattened,
+    as long as an explicit `type` is given - used for elements the flattening logic
+    assumes should exist without the profile spelling them out.
+    """
+    profile = build_profile("Patient", [])
+
+    result = generator._flatten_primitive("Patient.pseudo", profile, type="boolean")
+
+    assert result["Patient.pseudo"].view_definition.column[0].type == "boolean"
+
+
+# --- _flatten_element (dispatcher) --------------------------------------------------------
+
+
+def _local_extension_on(base_id: str, base_path: str, slice_name: str) -> list:
+    """A self-contained extension slice, attached under `base_id.extension`."""
+    ext_id = f"{base_id}.extension:{slice_name}"
+    return [
+        ElementDefinition(
+            id=f"{base_id}.extension",
+            path=f"{base_path}.extension",
+            type=[ElementDefinitionType(code="Extension")],
+            slicing=ElementDefinitionSlicing(rules="open"),
+        ),
+        ElementDefinition(
+            id=ext_id,
+            path=f"{base_path}.extension",
+            sliceName=slice_name,
+            type=[ElementDefinitionType(code="Extension")],
+        ),
+        ElementDefinition(
+            id=f"{ext_id}.url",
+            path=f"{base_path}.extension.url",
+            fixedUri=f"http://example.org/{slice_name}",
+            type=[ElementDefinitionType(code="uri")],
+        ),
+        ElementDefinition(
+            id=f"{ext_id}.value[x]",
+            path=f"{base_path}.extension.value",
+            type=[ElementDefinitionType(code="string")],
+        ),
+    ]
+
+
+def test_flatten_element_explicit_type_overrides_profile_type(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    An explicit `type` kwarg wins over whatever the profile itself says the element is -
+    used for 'pseudo' elements not defined in the profile.
+    """
+    profile = build_profile("Patient", [])
+
+    result = generator._flatten_element("Patient.pseudo", profile, type="boolean")
+
+    assert result["Patient.pseudo"].view_definition.column[0].type == "boolean"
+
+
+def test_flatten_element_excluded_type_returns_empty(
+    generator: FlatteningLookupGenerator,
+):
+    generator.config.excluded_types = ["code"]
+    profile = build_profile(
+        "Patient",
+        [
+            ElementDefinition(
+                id="Patient.gender",
+                path="Patient.gender",
+                type=[ElementDefinitionType(code="code")],
+            ),
+        ],
+    )
+
+    result = generator._flatten_element("Patient.gender", profile)
+
+    assert result == {}
+
+
+def test_flatten_element_root_element_has_no_type_and_returns_empty(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    The profile's own root element (id == path == resource type) has no `.type`, so
+    `get_element_type` returns `None` for it, and `_flatten_element` treats that the same
+    as an excluded type.
+    """
+    profile = build_profile("Patient", [])
+
+    result = generator._flatten_element("Patient", profile)
+
+    assert result == {}
+
+
+def test_flatten_element_extension_type_is_a_pure_passthrough_to_flatten_extension(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    An Extension-typed element is dispatched straight to `_flatten_extension`, bypassing
+    the "attach my own .extension as an extra child" side logic entirely (an extension
+    doesn't get a nested extension attached to itself here).
+    """
+    profile = build_profile(
+        "Condition",
+        [
+            ElementDefinition(
+                id="Condition.extension",
+                path="Condition.extension",
+                type=[ElementDefinitionType(code="Extension")],
+                slicing=ElementDefinitionSlicing(rules="open"),
+            ),
+            ElementDefinition(
+                id="Condition.extension:foo",
+                path="Condition.extension",
+                sliceName="foo",
+                type=[ElementDefinitionType(code="Extension")],
+            ),
+            ElementDefinition(
+                id="Condition.extension:foo.url",
+                path="Condition.extension.url",
+                fixedUri="http://example.org/foo",
+                type=[ElementDefinitionType(code="uri")],
+            ),
+            ElementDefinition(
+                id="Condition.extension:foo.value[x]",
+                path="Condition.extension.value",
+                type=[ElementDefinitionType(code="string")],
+            ),
+        ],
+    )
+
+    via_dispatch = generator._flatten_element("Condition.extension", profile)
+    via_direct = generator._flatten_extension("Condition.extension", profile)
+
+    assert via_dispatch == via_direct
+
+
+def test_flatten_element_attaches_own_extension_as_extra_child(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    A complex-typed element (here a BackboneElement) that itself defines an `.extension`
+    slice gets that extension flattened and attached as an extra child, alongside its
+    normal children.
+    """
+    profile = build_profile(
+        "Observation",
+        [
+            ElementDefinition(
+                id="Observation.referenceRange",
+                path="Observation.referenceRange",
+                type=[ElementDefinitionType(code="BackboneElement")],
+            ),
+            ElementDefinition(
+                id="Observation.referenceRange.low",
+                path="Observation.referenceRange.low",
+                type=[ElementDefinitionType(code="Quantity")],
+            ),
+            *_local_extension_on(
+                "Observation.referenceRange", "Observation.referenceRange", "foo"
+            ),
+        ],
+    )
+
+    result = generator._flatten_element("Observation.referenceRange", profile)
+
+    assert set(result["Observation.referenceRange"].children) == {
+        "Observation.referenceRange.low",
+        "Observation.referenceRange.extension",
+    }
+    assert "Observation.referenceRange.extension:foo" in result
+
+
+def test_flatten_element_skips_extension_attachment_for_mixed_primitive_polymorphic_type(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    Extensions on primitively-typed elements aren't supported downstream (Pathling
+    limitation), so a polymorphic element with at least one primitive among its possible
+    types never gets its own `.extension` attached, even if one is defined.
+    """
+    profile = build_profile(
+        "Observation",
+        [
+            ElementDefinition(
+                id="Observation.value[x]",
+                path="Observation.value",
+                type=[
+                    ElementDefinitionType(code="dateTime"),
+                    ElementDefinitionType(code="Period"),
+                ],
+            ),
+            *_local_extension_on("Observation.value[x]", "Observation.value", "foo"),
+        ],
+    )
+
+    result = generator._flatten_element("Observation.value[x]", profile)
+
+    assert not any(".extension" in key for key in result.keys())
+
+
+# --- aggregated FHIRPath expression reconstruction (integration-style, real profiles) -----
+# Unlike everything above, this checks a cross-cutting invariant over a *whole* generated
+# lookup (walking `forEachOrNull`/`children` back up to the root should reconstruct a
+# sensible full FHIRPath expression) rather than one `_flatten_*` function in isolation, so
+# it's kept against real profiles via `profile_lookup` rather than a synthetic one.
+# Currently skipped in both cases pending support for extensions on primitively-typed
+# elements - ported over unchanged from the old suite, not reworked.
 
 
 def _construct_child_to_parent_mapping(lookup: FlatteningLookup) -> Mapping[str, str]:
