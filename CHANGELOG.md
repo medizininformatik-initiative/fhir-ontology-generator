@@ -15,6 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+# [v5.0.1] - 2026-09-08
+
+## Fixed
+
+- Fix missing select snippets in flattening lookup (#523 @Frontman50)
+- Fix parent child mismatch in flattening lookup (#534 @Frontman50)
+- Fix missing translations by updating translation supplements on the terminology data source (#532 @paulolaup)
+
 # [v5.0.0] - 2026-08-17
 
 ## Added
