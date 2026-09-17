@@ -13,6 +13,7 @@ from cohort_selection_ontology.model.ui_data import (
     TranslationDisplayElement,
     BulkTranslationDisplayElement,
     Translation,
+    BulkTranslation,
 )
 from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot,
@@ -452,15 +453,6 @@ class ProfileDetailGenerator:
                 return element
         return None
 
-    @staticmethod
-    def get_value_for_lang_code(data: ElementDefinition, lang_code: str) -> None | str:
-        if data is None:
-            return None
-        for ext in data.extension:
-            if any(e.url == "lang" and e.valueCode == lang_code for e in ext.extension):
-                return next(e.valueString for e in ext.extension if e.url == "content")
-        return None
-
     def resource_type_to_date_param(self, resource_type: str) -> Optional[str]:
         if resource_type in self.__search_filter_mapping:
             # NOTE: Having an explicit null value in the mapping indicates that there is no applicable search parameter
@@ -714,7 +706,7 @@ class ProfileDetailGenerator:
             )
 
     def generate_detail_for_profile(
-        self, profile: Mapping[str, any], profile_tree: Optional[ProfileTreeNode] = None
+        self, profile: Mapping[str, Any], profile_tree: list[ProfileTreeNode]
     ) -> Optional[ProfileDetail]:
         profile_url = profile.get("url")
         self.__logger.info(f"Generating profile detail [url='{profile_url}']")
@@ -752,13 +744,13 @@ class ProfileDetailGenerator:
                     translations=[
                         Translation(
                             language="de-DE",
-                            value=self.get_value_for_lang_code(
+                            value=get_value_for_lang_code(
                                 struct_def.title__ext, "de-DE"
                             ),
                         ),
                         Translation(
                             language="en-US",
-                            value=self.get_value_for_lang_code(
+                            value=get_value_for_lang_code(
                                 struct_def.title__ext, "en-US"
                             ),
                         ),
@@ -927,8 +919,10 @@ class ProfileDetailGenerator:
                                             "structureDefinition"
                                         )
                                     ),
-                                    fields=self.__get_fields_for_profile(
-                                        url, profile_tree
+                                    fields=self.__get_field_names_for_profile(
+                                        self.__all_profiles.get(url).get(
+                                            "structureDefinition"
+                                        )
                                     ),
                                 )
                                 for url in referenced_mii_profiles
@@ -960,15 +954,11 @@ class ProfileDetailGenerator:
                     translations=[
                         Translation(
                             language="de-DE",
-                            value=self.get_value_for_lang_code(
-                                element.short__ext, "de-DE"
-                            ),
+                            value=get_value_for_lang_code(element.short__ext, "de-DE"),
                         ),
                         Translation(
                             language="en-US",
-                            value=self.get_value_for_lang_code(
-                                element.short__ext, "en-US"
-                            ),
+                            value=get_value_for_lang_code(element.short__ext, "en-US"),
                         ),
                     ],
                 )
@@ -977,13 +967,13 @@ class ProfileDetailGenerator:
                     translations=[
                         Translation(
                             language="de-DE",
-                            value=self.get_value_for_lang_code(
+                            value=get_value_for_lang_code(
                                 element.definition__ext, "de-DE"
                             ),
                         ),
                         Translation(
                             language="en-US",
-                            value=self.get_value_for_lang_code(
+                            value=get_value_for_lang_code(
                                 element.definition__ext, "en-US"
                             ),
                         ),
@@ -1002,7 +992,7 @@ class ProfileDetailGenerator:
 
     @staticmethod
     def __find_profile_in_tree(
-        profile_url: str, profile_tree: ProfileTreeNode
+        profile_url: str, profile_tree: list[ProfileTreeNode]
     ) -> Optional[ProfileTreeNode]:
         """
         Searches for a profile in the given profile tree by its URL
@@ -1010,19 +1000,20 @@ class ProfileDetailGenerator:
         :param profile_tree: Profile tree to search in
         :return: Profile tree entry representing the profile or `None` if no entry matches
         """
-        if profile_tree.url == profile_url:
-            return profile_tree
-        else:
-            results = [
-                ProfileDetailGenerator.__find_profile_in_tree(profile_url, tree)
-                for tree in profile_tree.children
-            ]
-            results = list(filter(lambda t: t is not None, results))
-            return results[0] if len(results) > 0 else None
+        for tree_node in profile_tree:
+            if tree_node.url == profile_url:
+                return tree_node
+            else:
+                node = ProfileDetailGenerator.__find_profile_in_tree(
+                    profile_url, tree_node.children
+                )
+                if node:
+                    return node
+        return None
 
     @staticmethod
     def __is_profile_selectable(
-        profile_url: str, profile_tree: ProfileTreeNode
+        profile_url: str, profile_tree: list[ProfileTreeNode]
     ) -> bool:
         """
         Searches the profile tree to determine whether a profile (identified by the provided URL) is selectable. Returns
@@ -1036,26 +1027,39 @@ class ProfileDetailGenerator:
         )
         return profile.selectable if profile is not None else False
 
-    @staticmethod
-    def __get_fields_for_profile(
-        profile_url: str, profile_tree: ProfileTreeNode
+    def __get_field_names_for_profile(
+        self, struct_def: StructureDefinitionSnapshot
     ) -> BulkTranslationDisplayElement:
-        """
-        Searches for the profile with the given profile URL in the given profile tree and returns its supported fields
-        :param profile_url: URL of the profile to return the supported fields of
-        :param profile_tree: Profile tree to search
-        :return: `BulkTranslationDisplayElement` instances representing the supported fields names
-        """
-        profile = ProfileDetailGenerator.__find_profile_in_tree(
-            profile_url, profile_tree
+        names_original = []
+        names_en = []
+        names_de = []
+
+        for element in struct_def.snapshot.element:
+            element: ElementDefinition
+            if not self.is_field_included(element, struct_def):
+                continue
+
+            elem_name_de = get_value_for_lang_code(element.short__ext, "de-DE")
+            elem_name_en = get_value_for_lang_code(element.short__ext, "en-US")
+
+            names_original.append(self.get_name_from_id(element.id))
+
+            names_de.append(elem_name_de)
+            names_en.append(elem_name_en)
+
+        return BulkTranslationDisplayElement(
+            original=names_original,
+            translations=[
+                BulkTranslation(language="de-DE", value=names_de),
+                BulkTranslation(language="en-US", value=names_en),
+            ],
         )
-        return profile.fields
 
     def generate_profile_details_for_profiles_in_scope(
         self,
         scope: str,
         cond: Optional[Callable[[Mapping[str, Any]], bool]] = None,
-        profile_tree: ProfileTreeNode = None,
+        profile_tree: list[ProfileTreeNode] | None = None,
     ) -> List[ProfileDetail]:
         """
         Generate profile details for all profiles within the given scope
@@ -1066,6 +1070,7 @@ class ProfileDetailGenerator:
                             profile based on whether it is selectable
         :return: List of profile details for the given scope
         """
+        profile_tree = profile_tree if profile_tree else []
         self.__logger.info(
             f"Generating profile details for profiles in scope '{scope}'"
         )

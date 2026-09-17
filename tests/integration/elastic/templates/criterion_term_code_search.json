@@ -1,0 +1,56 @@
+{
+  "query": {
+    "function_score": {
+      "boost_mode": "replace",
+      "functions": [
+        {
+          "script_score": {
+            "script": {
+              "source": "doc['availability'].value == 0 ? _score : _score + 100"
+            }
+          }
+        }
+      ],
+      "query": {
+        "bool": {
+          "filter": [
+            {
+              "terms": {
+                "context.code": [
+                  "$context_code"
+                ]
+              }
+            },
+            {
+              "terms": {
+                "kds_module": [
+                  "$cds_module"
+                ]
+              }
+            },
+            {
+              "terms": {
+                "terminology": [
+                  "$terminology"
+                ]
+              }
+            }
+          ],
+          "must": [
+            {
+              "multi_match": {
+                "fields": [
+                  "display.de",
+                  "display.en",
+                  "termcode^2",
+                  "display.original^0.5"
+                ],
+                "query": "$termcode"
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

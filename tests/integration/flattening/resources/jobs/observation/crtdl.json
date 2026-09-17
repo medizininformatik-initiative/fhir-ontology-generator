@@ -1,0 +1,103 @@
+{
+    "version": "http://json-schema.org/to-be-done/schema#",
+    "display": "",
+    "cohortDefinition": {
+        "version": "http://to_be_decided.com/draft-1/schema#",
+        "display": "Ausgewählte Merkmale",
+        "inclusionCriteria": [
+            [
+                {
+                    "termCodes": [
+                        {
+                            "code": "263495000",
+                            "display": "Geschlecht",
+                            "system": "http://snomed.info/sct",
+                            "version": ""
+                        }
+                    ],
+                    "context": {
+                        "code": "Patient",
+                        "display": "Patient",
+                        "system": "fdpg.mii.cds",
+                        "version": "1.0.0"
+                    },
+                    "valueFilter": {
+                        "selectedConcepts": [
+                            {
+                                "code": "male",
+                                "display": "Male",
+                                "system": "http://hl7.org/fhir/administrative-gender",
+                                "version": "2099"
+                            },
+                            {
+                                "code": "female",
+                                "display": "Female",
+                                "system": "http://hl7.org/fhir/administrative-gender",
+                                "version": "2099"
+                            }
+                        ],
+                        "type": "concept"
+                    }
+                }
+            ]
+        ]
+    },
+    "dataExtraction": {
+        "attributeGroups": [
+            {
+                "attributes": [
+                    {
+                        "attributeRef": "Patient.deceased[x]",
+                        "mustHave": false
+                    },
+                    {
+                        "attributeRef": "Patient.identifier",
+                        "mustHave": false
+                    }
+                ],
+                "id": "9112f9be-add2-4f5e-8026-e7c4eea5b66b",
+                "groupReference": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/PatientPseudonymisiert",
+                "name": "MII PR Person Patient (Pseudonymisiert)"
+            },
+            {
+                "attributes": [
+                    {
+                        "attributeRef": "Observation.code",
+                        "mustHave": false
+                    },
+                    {
+                        "attributeRef": "Observation.dataAbsentReason",
+                        "mustHave": false
+                    },
+                    {
+                        "attributeRef": "Observation.effective[x]",
+                        "mustHave": false
+                    },
+                    {
+                        "attributeRef": "Observation.identifier",
+                        "mustHave": false
+                    },
+                    {
+                        "attributeRef": "Observation.interpretation",
+                        "mustHave": false
+                    },
+                    {
+                        "attributeRef": "Observation.referenceRange",
+                        "mustHave": false
+                    },
+                    {
+                        "attributeRef": "Observation.value[x]",
+                        "mustHave": false
+                    },
+                    {
+                        "attributeRef": "Observation.effective[x].extension:QuelleKlinischesBezugsdatum",
+                        "mustHave": false
+                    }
+                ],
+                "id": "89fcdfbd-54b7-46eb-a87f-6037a46820cd",
+                "groupReference": "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab",
+                "name": "MII PR Labor Laboruntersuchung"
+            }
+        ]
+    }
+}

@@ -1,0 +1,38 @@
+{
+  "context": {
+    "code": "Molekulargenetische Studienanalyse",
+    "display": "Molekulargenetische Studienanalyse",
+    "system": "fdpg.mii.cds",
+    "version": "1.0.0"
+  },
+  "module": {
+    "code": "mii-cds-molgen",
+    "display": "Molgen"
+  },
+  "name": "MolekulargenetischeStudienanalyse",
+  "resource_type": "Procedure",
+  "term_code_defining_id": "Procedure.code",
+  "time_restriction_defining_id": "Procedure.performed[x]",
+  "attribute_defining_id_type_map": {
+    "(Procedure.extension:method-type).value[x]": {
+      "type": "",
+      "optional": true
+    },
+    "(Procedure.extension:change-type).value[x]": {
+      "type": "",
+      "optional": true
+    },
+    "(Procedure.extension:genome-build).value[x]": {
+      "type": "",
+      "optional": true
+    },
+    "(Procedure.extension:genomic-source-class).value[x]": {
+      "type": "",
+      "optional": true
+    },
+    "((Procedure.extension:specimen).value[x]).type": {
+      "type": "reference",
+      "optional": true
+    }
+  }
+}

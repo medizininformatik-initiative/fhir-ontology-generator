@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from functools import reduce
 from importlib.resources import files
-from typing import Tuple, List, Dict, Set
+from typing import Tuple, List, Dict
 
 from fhir.resources.R4B.elementdefinition import ElementDefinition
 from lxml import etree
@@ -30,6 +30,7 @@ from common.exceptions.typing import UnsupportedTypingException
 from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot,
     CQL_TYPES_TO_VALUE_TYPES,
+    IndexedStructureDefinition,
 )
 from common.typing.fhir import FHIRPathlike
 from common.util.log.functions import get_class_logger
@@ -52,7 +53,7 @@ from common.util.structure_definition.functions import (
 
 
 class CQLMappingGenerator(object):
-    __allowed_time_restriction_fhir_types = {"date", "dateTime", "Period"}
+    __allowed_time_restriction_fhir_types = {"date", "dateTime", "Period", "instant"}
     __allowed_defining_code_fhir_types = {"Coding", "CodeableConcept", "Reference"}
     __allowed_defining_value_fhir_types = {
         "code",
@@ -111,21 +112,26 @@ class CQLMappingGenerator(object):
             Dict[Tuple[TermCode, TermCode]] | dict
         ) = {}
         full_cql_mapping_name_cql_mapping: Dict[str, CQLMapping] | dict = {}
-        files = [
-            file for file in snapshot_dir.rglob("*-snapshot.json") if file.is_file()
-        ]
+        files = [file for file in snapshot_dir.rglob("*.json") if file.is_file()]
         for file in files:
             with open(file, mode="r", encoding="utf8") as f:
-                snapshot = StructureDefinitionSnapshot.model_validate_json(f.read())
-                context_tc_to_mapping_name, cql_mapping_name_to_mapping = (
-                    self.generate_normalized_term_code_cql_mapping(
-                        snapshot, module_name
+                profile = IndexedStructureDefinition.validate_json(f.read())
+                if profile.snapshot:
+                    context_tc_to_mapping_name, cql_mapping_name_to_mapping = (
+                        self.generate_normalized_term_code_cql_mapping(
+                            profile, module_name
+                        )
                     )
-                )
-                full_context_term_code_cql_mapping_name_mapping.update(
-                    context_tc_to_mapping_name
-                )
-                full_cql_mapping_name_cql_mapping.update(cql_mapping_name_to_mapping)
+                    full_context_term_code_cql_mapping_name_mapping.update(
+                        context_tc_to_mapping_name
+                    )
+                    full_cql_mapping_name_cql_mapping.update(
+                        cql_mapping_name_to_mapping
+                    )
+                else:
+                    self.__logger.debug(
+                        f"Profile '{profile.url}' @ {file} not in snapshot form => Skipping"
+                    )
         return (
             full_context_term_code_cql_mapping_name_mapping,
             full_cql_mapping_name_cql_mapping,

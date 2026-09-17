@@ -197,6 +197,11 @@ class FeasibilityBackendClient(BaseClient):
             "/query/feasibility/{query_id}/summary-result", path_params={"query_id": query_id}
         ).json()
 
+    def get_query_detailed_result(self, query_id: str) -> QueryStatus:
+        return self.get(
+            "/query/feasibility/{query_id}/detailed-result", path_params={"query_id": query_id}
+        ).json()
+
     def delete_saved_query(self, query_id: str) -> QuerySlots:
         return self.delete(
             "/query/data/{query_id}/saved", path_params={"query_id": query_id}

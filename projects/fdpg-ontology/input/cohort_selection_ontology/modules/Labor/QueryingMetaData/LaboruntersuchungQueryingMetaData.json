@@ -12,5 +12,11 @@
     "version": "1.0.0"
   },
   "term_code_defining_id": "Observation.code",
-  "time_restriction_defining_id": "Observation.effective[x]"
+  "time_restriction_defining_id": "Observation.effective[x]",
+  "attribute_defining_id_type_map": {
+    "Observation.interpretation": {
+      "type": "",
+      "optional": true
+    }
+  }
 }

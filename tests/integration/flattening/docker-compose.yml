@@ -1,0 +1,90 @@
+services:
+  fhir-server:
+    image: samply/blaze:1.7.0
+    environment:
+      - BASE_URL=http://fhir-server:8080
+      - LOG_LEVEL=debug
+      - JAVA_TOOL_OPTIONS=-Xmx2g
+      - DB_BLOCK_CACHE_SIZE=256
+      - DB_RESOURCE_CACHE_SIZE=2000000
+      - CQL_EXPR_CACHE_SIZE=128
+      - DB_SEARCH_PARAM_BUNDLE=/app/custom-search-parameters.json
+      - PORT_FHIR_SERVER_LOCALHOST=127.0.0.1:8081
+      - ENFORCE_REFERENTIAL_INTEGRITY=true
+    ports:
+      - "8081:8080"
+    volumes:
+      - "${TEST_INTEGRATION_FLATTENING_CUSTOM_SEARCH_PARAMS_FILE:-./resources/custom-search-parameters.json}:/app/custom-search-parameters.json:ro"
+      - "blaze-data:/app/data"
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "http://127.0.0.1:8080/health" ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  torch-nginx:
+    image: nginxinc/nginx-unprivileged:1.27-alpine
+    ports:
+      - "8085:8080"
+    volumes:
+      - "${TEST_INTEGRATION_FLATTENING_TORCH_NGINX_CONF_FILE:-./resources/torch.nginx.conf}:/etc/nginx/nginx.conf:ro"
+      - "torch-data:/app/output"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent --fail http://127.0.0.1:8080/health > /dev/null || exit 1" ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  torch:
+    image: ghcr.io/medizininformatik-initiative/torch:1.0.0-beta.4
+    ports:
+      - "8086:8080"
+    environment:
+      - TORCH_RESULTS_PERSISTENCE=PT12H30M5S
+      - TORCH_DATA_VOLUME=./output
+      - TORCH_ENABLED=true
+      # Connection Config
+      - TORCH_BASE_URL=http://localhost:8086
+      - TORCH_OUTPUT_FILE_SERVER_URL=http://localhost:8085
+      - TORCH_FLARE_URL=
+      - TORCH_FHIR_URL=http://fhir-server:8080/fhir
+      - TORCH_FHIR_USER=
+      - TORCH_FHIR_PASSWORD=
+      - TORCH_FHIR_OAUTH_ISSUER_URI=
+      - TORCH_FHIR_OAUTH_CLIENT_ID=
+      - TORCH_FHIR_OAUTH_CLIENT_SECRET=
+      - TORCH_RESULTS_DIR=/app/output
+      # Execution Variables
+      - JAVA_TOOL_OPTIONS=-Xmx2g
+      - TORCH_USE_CQL=true
+      - TORCH_FHIR_DISABLE_ASYNC=true
+      - TORCH_BATCHSIZE=500
+      - TORCH_FHIR_PAGE_COUNT=500
+      - TORCH_FHIR_MAX_CONNECTIONS=5
+      - TORCH_MAXCONCURRENCY=4
+      - SPRING_CODEC_MAX_IN_MEMORY_SIZE="100MB"
+      # Logging
+      - LOG_LEVEL=debug
+    volumes:
+      - "torch-data:/app/output"
+
+  fhir-flattener:
+    image: ghcr.io/medizininformatik-initiative/fhir-flattener:0.1.0-alpha.7
+    environment:
+      - FLATTENING_ENABLED=true
+      - ENABLED_OPEN_TYPES="boolean,code,date,dateTime,decimal,integer,string,Coding,CodeableConcept,Address,Identifier,Reference,Quantity,uri"
+    working_dir: /app
+    ports:
+      - "8088:8000"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent --fail http://127.0.0.1:8000/fhir/metadata > /dev/null || exit 1" ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+volumes:
+  blaze-data:
+  torch-data:

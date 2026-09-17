@@ -1,54 +1,46 @@
 from contextlib import nullcontext
-from typing import Any, List, Optional
+from pathlib import Path
+from typing import List, Optional
 
 import fhir.resources.R4B.structuredefinition
 import pytest
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.coding import Coding
-from fhir.resources.R4B.element import Element
 from fhir.resources.R4B.elementdefinition import (
     ElementDefinition,
-    ElementDefinitionBinding,
+    ElementDefinitionSlicing,
     ElementDefinitionSlicingDiscriminator,
+    ElementDefinitionType,
 )
 from fhir.resources.R4B.expression import Expression
-from fhir.resources.R4B.elementdefinition import ElementDefinitionType
 from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.measure import (
-    MeasureGroupStratifier,
+    Measure,
     MeasureGroup,
     MeasureGroupPopulation,
-    Measure,
+    MeasureGroupStratifier,
 )
-from fhir.resources.R4B.parameters import ParametersParameter
 from fhir.resources.R4B.structuredefinition import StructureDefinition
 
 from availability.core.element_availability import (
-    _find_polymorphic_value,
-    _find_value_for_discriminator_pattern_or_value,
-    _element_to_fhirpath_filter,
-    _element_data_to_fhirpath_filter,
-    _append_filter_from_profile_discriminated_elem,
-    _append_filter_for_slice,
-    _get_filter_from_pattern_or_value_discriminated_elem,
-    _generate_stratifier,
-    _get_full_element_id,
-    _resolve_polymorphism_in_expr,
-    _generate_stratifier_for_reference,
-    _generate_stratifiers_for_extension_elements,
-    _generate_stratifiers_for_typed_elem,
-    _resolve_supported_types,
-    _generate_stratifiers_for_elem_def,
-    _generate_measure_group_for_profile,
-    update_stratifier_ids,
     _add_data_absent_reason_clause,
     _ensure_trailing_existence_check,
-    generate_measure,
     _find_subject_reference_elem_def,
+    _generate_measure_group_for_profile,
+    _generate_stratifier,
+    _generate_stratifier_for_reference,
+    _generate_stratifiers_for_elem_def,
+    _generate_stratifiers_for_extension_elements,
+    _generate_stratifiers_for_typed_elem,
+    _get_full_element_id,
+    _resolve_polymorphism_in_expr,
+    _resolve_supported_types,
+    generate_measure,
+    update_stratifier_ids,
 )
 from common.model.fhir.structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.package.manager import FhirPackageManager
-from common.util.fhirpath import parse_expr, fhirpathParser
+from common.util.fhirpath import fhirpathParser, parse_expr
 
 
 @pytest.mark.parametrize(
@@ -190,217 +182,6 @@ def test__ensure_trailing_existence_check(
     assert value == expected
 
 
-@pytest.mark.parametrize(
-    "elem, elem_name, expected",
-    [
-        (ParametersParameter(name="test1", valueCode="abc"), "value", "abc"),
-        (ParametersParameter(name="test2", valueUri="abc"), "value", "abc"),
-        (Coding(system="http://code-system.org", code="abc"), "value", None),
-    ],
-)
-def test__find_polymorphic_value(elem: Element, elem_name: str, expected):
-    value = _find_polymorphic_value(elem, elem_name)
-    assert expected == value
-
-
-@pytest.mark.parametrize(
-    "elem_def, expected",
-    [
-        (ElementDefinition(path="a.b.c", fixedCode="abc"), ("fixed", "abc")),
-        (ElementDefinition(path="a.b.c", patternCode="abc"), ("pattern", "abc")),
-        (
-            ElementDefinition(
-                path="a.b.c", binding=ElementDefinitionBinding(strength="required")
-            ),
-            ("binding", ElementDefinitionBinding(strength="required")),
-        ),
-        (ElementDefinition(path="a.b.c"), None),
-    ],
-)
-def test__find_value_for_discriminator_pattern_or_value(elem_def, expected):
-    value = _find_value_for_discriminator_pattern_or_value(elem_def)
-    assert expected == value
-
-
-@pytest.mark.parametrize(
-    "key, data, expected",
-    [
-        ("$this", "abc", ["$this = 'abc'"]),
-        ("element", "abc", ["element = 'abc'"]),
-        ("$this", [], []),
-        (
-            "$this",
-            ["a"],
-            ["$this = 'a'"],
-        ),
-        (
-            "$this",
-            ["a", "b", "c"],
-            ["exists($this = 'a') and exists($this = 'b') and exists($this = 'c')"],
-        ),
-        ("$this", {}, []),
-        (
-            "$this",
-            {"a": "1"},
-            ["a = '1'"],
-        ),
-        (
-            "element",
-            {"a": "1"},
-            ["element.exists(a = '1')"],
-        ),
-        (
-            "$this",
-            {"a": "1", "b": "2", "c": "3"},
-            ["a = '1' and b = '2' and c = '3'"],
-        ),
-        (
-            "element",
-            {"a": "1", "b": "2", "c": "3"},
-            ["element.exists(a = '1' and b = '2' and c = '3')"],
-        ),
-        (
-            "element",
-            {"coding": [{"system": "http://codesystem.org", "code": "abc"}]},
-            [
-                "element.coding.exists(system = 'http://codesystem.org' and code = 'abc')"
-            ],
-        ),
-    ],
-)
-def test__element_data_to_fhirpath_filter(key: str, data: Any, expected: List[str]):
-    value = _element_data_to_fhirpath_filter(key, data)
-    assert expected == value
-
-
-@pytest.mark.parametrize(
-    "key, data, expected",
-    [
-        ("$this", "abc", "where($this = 'abc')"),
-        ("element", "abc", "where(element = 'abc')"),
-        (
-            "$this",
-            ["a"],
-            "where($this = 'a')",
-        ),
-        (
-            "$this",
-            ["a", "b", "c"],
-            "where(exists($this = 'a') and exists($this = 'b') and exists($this = 'c'))",
-        ),
-        (
-            "$this",
-            {"a": "1"},
-            "where(a = '1')",
-        ),
-        (
-            "element",
-            {"a": "1"},
-            "where(element.exists(a = '1'))",
-        ),
-        (
-            "$this",
-            {"a": "1", "b": "2", "c": "3"},
-            "where(a = '1' and b = '2' and c = '3')",
-        ),
-        (
-            "element",
-            {"a": "1", "b": "2", "c": "3"},
-            "where(element.exists(a = '1' and b = '2' and c = '3'))",
-        ),
-        (
-            "element",
-            {"coding": [{"system": "http://codesystem.org", "code": "abc"}]},
-            "where(element.coding.exists(system = 'http://codesystem.org' and code = 'abc'))",
-        ),
-    ],
-)
-def test__element_to_fhirpath_filter(key: str, data: Any, expected: str):
-    value = _element_to_fhirpath_filter(key, data)
-    assert value == expected
-
-
-def test__append_filter_from_profile_discriminated_elem(
-    base_expr: str,
-    elem_def: ElementDefinition,
-    discr: ElementDefinitionSlicingDiscriminator,
-    snapshot: StructureDefinitionSnapshot,
-    manager: FhirPackageManager,
-    expected,
-):
-    value = _append_filter_from_profile_discriminated_elem(
-        base_expr, elem_def, discr, snapshot, manager
-    )
-    assert value == expected
-
-
-def test__get_filter_from_pattern_or_value_discriminated_elem(
-    elem_def: ElementDefinition,
-    discr_path: str,
-    snapshot: StructureDefinitionSnapshot,
-    expected: str,
-    package_manager: FhirPackageManager,
-):
-    value = _get_filter_from_pattern_or_value_discriminated_elem(
-        elem_def, discr_path, snapshot, package_manager
-    )
-    assert value == expected
-
-
-@pytest.mark.parametrize(
-    argnames="base_expr, elem_def, profile, expected",
-    argvalues=[
-        (
-            "Specimen.processing",
-            "Specimen.processing:lagerprozess",
-            "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
-            "Specimen.processing.where(procedure.coding.exists(system = 'http://snomed.info/sct' and code = '1186936003'))",
-        ),
-        (
-            "Specimen.collection.fastingStatus",
-            "Specimen.collection.fastingStatus[x]:fastingStatusCodeableConcept",
-            "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
-            "Specimen.collection.fastingStatus.ofType(CodeableConcept)",
-        ),
-        (
-            "Specimen.collection.extension",
-            "Specimen.collection.extension:einstellungBlutversorgung",
-            "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Specimen",
-            "Specimen.collection.extension('https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/EinstellungBlutversorgung')",
-        ),
-        (
-            "Observation.effective",
-            "Observation.effective[x]:effectiveDateTime",
-            "https://www.medizininformatik-initiative.de/fhir/ext/modul-icu/StructureDefinition/kopfumfang",
-            "Observation.effective.where($this is dateTime or $this is Period)",
-        ),
-        (
-            "Composition.section",
-            "Composition.section:diagRep",
-            "https://www.medizininformatik-initiative.de/fhir/ext/modul-bildgebung/StructureDefinition/mii-pr-bildgebung-semistrukt-befundbericht",
-            "Composition.section.where(entry.resolve().meta.profile.exists($this = 'https://www.medizininformatik-initiative.de/fhir/ext/modul-bildgebung/StructureDefinition/mii-pr-bildgebung-radiologischer-befund'))",
-        ),
-    ],
-    ids=[
-        "pattern_slicing_with_pattern_in_subelement",
-        "type_slicing",
-        "profile_slicing_with_single_profile",
-        # "profile_slicing_with_multiple_profiles"  # We have no such example in the package cache ATM
-        "type_slicing_with_multiple_types",
-        "profile_slicing",
-    ],
-    indirect=["elem_def", "profile"],
-)
-def test__append_filter_for_slice(
-    base_expr: str,
-    elem_def: ElementDefinition,
-    profile: StructureDefinitionSnapshot,
-    expected: str,
-    package_manager: FhirPackageManager,
-):
-    value = _append_filter_for_slice(base_expr, elem_def, profile, package_manager)
-    assert value == expected
-
 
 @pytest.mark.parametrize(
     "expr, field_name, expected",
@@ -409,6 +190,7 @@ def test__append_filter_for_slice(
             "Resource.element1.where(element2 = 'abc').element3.exists()",
             "Resource.element1.element3",
             {
+                "id": "Resource.element1.element3",
                 "criteria": {
                     "language": "text/fhirpath",
                     "expression": "Resource.element1.where(element2 = 'abc').element3.exists()",
@@ -427,6 +209,7 @@ def test__append_filter_for_slice(
             "Resource.element1.exists()",
             "Resource.element1",
             {
+                "id": "Resource.element1",
                 "criteria": {
                     "language": "text/fhirpath",
                     "expression": "Resource.element1.exists()",
@@ -445,6 +228,7 @@ def test__append_filter_for_slice(
             "Resource.element1.exists(element2 = 'abc')",
             "Resource.element1",
             {
+                "id": "Resource.element1",
                 "criteria": {
                     "language": "text/fhirpath",
                     "expression": "Resource.element1.exists(element2 = 'abc')",
@@ -529,6 +313,7 @@ def test__resolve_polymorphism_in_expr(
             ["Resource.element1"],
             [
                 MeasureGroupStratifier(
+                    id="Resource.element1->Condition",
                     criteria=Expression(
                         language="text/fhirpath",
                         expression="Resource.element1.resolve().ofType(Condition).meta.profile contains 'http://organization.org/fhir/StructureDefinition/profile1'",
@@ -550,6 +335,7 @@ def test__resolve_polymorphism_in_expr(
             ["Specimen.extension:festgestellteDiagnose", "Extension.value[x]"],
             [
                 MeasureGroupStratifier(
+                    id="Specimen.extension:festgestellteDiagnose.valueReference->Condition",
                     criteria=Expression(
                         language="text/fhirpath",
                         expression="Specimen.extension('https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Diagnose').value.ofType(Reference).resolve().ofType(Condition).meta.profile.exists($this = 'http://hl7.org/fhir/StructureDefinition/Condition' or $this = 'https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose' or $this = 'https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Todesursache' or $this = 'https://www.medizininformatik-initiative.de/fhir/ext/modul-onko/StructureDefinition/mii-pr-onko-diagnose-primaertumor' or $this = 'https://www.medizininformatik-initiative.de/fhir/ext/modul-patho/StructureDefinition/mii-pr-patho-problem-list-item')",
@@ -594,6 +380,7 @@ def test__generate_stratifier_for_reference(
             ["Specimen.collection.extension:einstellungBlutversorgung"],
             [
                 MeasureGroupStratifier(
+                    id="Specimen.collection.extension:einstellungBlutversorgung.value[x]",
                     criteria=Expression(
                         language="text/fhirpath",
                         expression="Specimen.collection.extension('https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/EinstellungBlutversorgung').value.ofType(dateTime).hasValue()",
@@ -615,6 +402,7 @@ def test__generate_stratifier_for_reference(
             ["Specimen.extension:festgestellteDiagnose"],
             [
                 MeasureGroupStratifier(
+                    id="Specimen.extension:festgestellteDiagnose.value[x]",
                     criteria=Expression(
                         language="text/fhirpath",
                         expression="Specimen.extension('https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Diagnose').value.ofType(Reference).reference.hasValue()",
@@ -665,6 +453,7 @@ def test__generate_stratifiers_for_extension_elements(
             ["Specimen.extension:festgestellteDiagnose"],
             [
                 MeasureGroupStratifier(
+                    id="Specimen.extension:festgestellteDiagnose",
                     criteria=Expression(
                         language="text/fhirpath",
                         expression="Specimen.extension('https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Diagnose').exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
@@ -674,20 +463,6 @@ def test__generate_stratifiers_for_extension_elements(
                             Coding(
                                 system="http://fhir-data-evaluator/strat/system",
                                 code="Specimen.extension:festgestellteDiagnose",
-                            )
-                        ]
-                    ),
-                ),
-                MeasureGroupStratifier(
-                    criteria=Expression(
-                        language="text/fhirpath",
-                        expression="Specimen.extension('https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Diagnose').value.ofType(Reference).reference.hasValue()",
-                    ),
-                    code=CodeableConcept(
-                        coding=[
-                            Coding(
-                                system="http://fhir-data-evaluator/strat/system",
-                                code="Specimen.extension:festgestellteDiagnose.value[x]",
                             )
                         ]
                     ),
@@ -704,6 +479,7 @@ def test__generate_stratifiers_for_extension_elements(
             ["Encounter.extension:Aufnahmegrund"],
             [
                 MeasureGroupStratifier(
+                    id="Encounter.extension:Aufnahmegrund",
                     code=CodeableConcept(
                         coding=[
                             Coding(
@@ -714,90 +490,6 @@ def test__generate_stratifiers_for_extension_elements(
                     ),
                     criteria=Expression(
                         expression="Encounter.extension('http://fhir.de/StructureDefinition/Aufnahmegrund').exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
-                        language="text/fhirpath",
-                    ),
-                ),
-                MeasureGroupStratifier(
-                    code=CodeableConcept(
-                        coding=[
-                            Coding(
-                                code="Encounter.extension:Aufnahmegrund.extension:DritteStelle",
-                                system="http://fhir-data-evaluator/strat/system",
-                            )
-                        ],
-                    ),
-                    criteria=Expression(
-                        expression="Encounter.extension('http://fhir.de/StructureDefinition/Aufnahmegrund').extension('DritteStelle').exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
-                        language="text/fhirpath",
-                    ),
-                ),
-                MeasureGroupStratifier(
-                    code=CodeableConcept(
-                        coding=[
-                            Coding(
-                                code="Encounter.extension:Aufnahmegrund.extension:DritteStelle.value[x]",
-                                system="http://fhir-data-evaluator/strat/system",
-                            )
-                        ],
-                    ),
-                    criteria=Expression(
-                        expression="Encounter.extension('http://fhir.de/StructureDefinition/Aufnahmegrund').extension('DritteStelle').value.ofType(Coding).exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
-                        language="text/fhirpath",
-                    ),
-                ),
-                MeasureGroupStratifier(
-                    code=CodeableConcept(
-                        coding=[
-                            Coding(
-                                code="Encounter.extension:Aufnahmegrund.extension:ErsteUndZweiteStelle",
-                                system="http://fhir-data-evaluator/strat/system",
-                            )
-                        ],
-                    ),
-                    criteria=Expression(
-                        expression="Encounter.extension('http://fhir.de/StructureDefinition/Aufnahmegrund').extension('ErsteUndZweiteStelle').exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
-                        language="text/fhirpath",
-                    ),
-                ),
-                MeasureGroupStratifier(
-                    code=CodeableConcept(
-                        coding=[
-                            Coding(
-                                code="Encounter.extension:Aufnahmegrund.extension:ErsteUndZweiteStelle.value[x]",
-                                system="http://fhir-data-evaluator/strat/system",
-                            )
-                        ],
-                    ),
-                    criteria=Expression(
-                        expression="Encounter.extension('http://fhir.de/StructureDefinition/Aufnahmegrund').extension('ErsteUndZweiteStelle').value.ofType(Coding).exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
-                        language="text/fhirpath",
-                    ),
-                ),
-                MeasureGroupStratifier(
-                    code=CodeableConcept(
-                        coding=[
-                            Coding(
-                                code="Encounter.extension:Aufnahmegrund.extension:VierteStelle",
-                                system="http://fhir-data-evaluator/strat/system",
-                            )
-                        ],
-                    ),
-                    criteria=Expression(
-                        expression="Encounter.extension('http://fhir.de/StructureDefinition/Aufnahmegrund').extension('VierteStelle').exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
-                        language="text/fhirpath",
-                    ),
-                ),
-                MeasureGroupStratifier(
-                    code=CodeableConcept(
-                        coding=[
-                            Coding(
-                                code="Encounter.extension:Aufnahmegrund.extension:VierteStelle.value[x]",
-                                system="http://fhir-data-evaluator/strat/system",
-                            )
-                        ],
-                    ),
-                    criteria=Expression(
-                        expression="Encounter.extension('http://fhir.de/StructureDefinition/Aufnahmegrund').extension('VierteStelle').value.ofType(Coding).exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
                         language="text/fhirpath",
                     ),
                 ),
@@ -816,6 +508,7 @@ def test__generate_stratifiers_for_extension_elements(
             ["Observation.subject"],
             [
                 MeasureGroupStratifier(
+                    id="Observation.subject",
                     criteria=Expression(
                         language="text/fhirpath",
                         expression="Observation.subject.reference.hasValue()",
@@ -838,6 +531,7 @@ def test__generate_stratifiers_for_extension_elements(
             ["Observation.value[x]"],
             [
                 MeasureGroupStratifier(
+                    id="Observation.value[x]",
                     criteria=Expression(
                         language="text/fhirpath",
                         expression="Observation.value.ofType(CodeableConcept).exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
@@ -938,6 +632,7 @@ def test__resolve_supported_types(
             None,
             [
                 MeasureGroupStratifier(
+                    id="Observation.status",
                     criteria=Expression(
                         language="text/fhirpath",
                         expression="Observation.status.hasValue()",
@@ -960,6 +655,7 @@ def test__resolve_supported_types(
             None,
             [
                 MeasureGroupStratifier(
+                    id="Condition.onset[x]",
                     criteria=Expression(
                         language="text/fhirpath",
                         expression="Condition.onset.exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
@@ -974,6 +670,7 @@ def test__resolve_supported_types(
                     ),
                 ),
                 MeasureGroupStratifier(
+                    id="Condition.onsetDateTime",
                     criteria=Expression(
                         language="text/fhirpath",
                         expression="Condition.onset.ofType(dateTime).hasValue()",
@@ -988,6 +685,7 @@ def test__resolve_supported_types(
                     ),
                 ),
                 MeasureGroupStratifier(
+                    id="Condition.onsetPeriod",
                     criteria=Expression(
                         language="text/fhirpath",
                         expression="Condition.onset.ofType(Age).exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())"
@@ -1149,34 +847,7 @@ def test__generate_stratifiers_for_elem_def(
                     ],
                     stratifier=[
                         MeasureGroupStratifier(
-                            code=CodeableConcept(
-                                coding=[
-                                    Coding(
-                                        system="http://fhir-data-evaluator/strat/system",
-                                        code="Condition.element1[x]",
-                                    )
-                                ]
-                            ),
-                            criteria=Expression(
-                                language="text/fhirpath",
-                                expression="Condition.element1.exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
-                            ),
-                        ),
-                        MeasureGroupStratifier(
-                            code=CodeableConcept(
-                                coding=[
-                                    Coding(
-                                        system="http://fhir-data-evaluator/strat/system",
-                                        code="Condition.element1String",
-                                    )
-                                ]
-                            ),
-                            criteria=Expression(
-                                language="text/fhirpath",
-                                expression="Condition.element1.ofType(string).hasValue()",
-                            ),
-                        ),
-                        MeasureGroupStratifier(
+                            id="Condition.element1Boolean",
                             code=CodeableConcept(
                                 coding=[
                                     Coding(
@@ -1191,6 +862,37 @@ def test__generate_stratifiers_for_elem_def(
                             ),
                         ),
                         MeasureGroupStratifier(
+                            id="Condition.element1String",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://fhir-data-evaluator/strat/system",
+                                        code="Condition.element1String",
+                                    )
+                                ]
+                            ),
+                            criteria=Expression(
+                                language="text/fhirpath",
+                                expression="Condition.element1.ofType(string).hasValue()",
+                            ),
+                        ),
+                        MeasureGroupStratifier(
+                            id="Condition.element1[x]",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://fhir-data-evaluator/strat/system",
+                                        code="Condition.element1[x]",
+                                    )
+                                ]
+                            ),
+                            criteria=Expression(
+                                language="text/fhirpath",
+                                expression="Condition.element1.exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
+                            ),
+                        ),
+                        MeasureGroupStratifier(
+                            id="Condition.subject",
                             criteria=Expression(
                                 language="text/fhirpath",
                                 expression="Condition.subject.reference.hasValue()",
@@ -1209,15 +911,439 @@ def test__generate_stratifiers_for_elem_def(
             ),
         ),
         (
+            StructureDefinitionSnapshot(
+                url="http://organization.org/fhir/StructureDefinition/profile2",
+                version="1.0.0",
+                name="profile2",
+                status="active",
+                kind="resource",
+                abstract=False,
+                type="Specimen",
+                snapshot=fhir.resources.R4B.structuredefinition.StructureDefinitionSnapshot(
+                    element=[
+                        ElementDefinition(
+                            id="Specimen",
+                            path="Specimen",
+                        ),
+                        ElementDefinition(
+                            id="Specimen.subject",
+                            path="Specimen.subject",
+                            type=[
+                                ElementDefinitionType(
+                                    code="Reference",
+                                ),
+                            ],
+                        ),
+                        ElementDefinition(
+                            id="Specimen.extension",
+                            path="Specimen.extension",
+                            type=[
+                                ElementDefinitionType(
+                                    code="Extension",
+                                ),
+                            ],
+                            slicing=ElementDefinitionSlicing(
+                                discriminator=[
+                                    ElementDefinitionSlicingDiscriminator(
+                                        type="value", path="url"
+                                    )
+                                ],
+                                rules="open",
+                            ),
+                        ),
+                        ElementDefinition(
+                            id="Specimen.extension:festgestellteDiagnose",
+                            path="Specimen.extension",
+                            sliceName="festgestellteDiagnose",
+                            type=[
+                                ElementDefinitionType(
+                                    code="Extension",
+                                    profile=[
+                                        "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Diagnose"
+                                    ],
+                                ),
+                            ],
+                        ),
+                    ]
+                ),
+            ),
+            0,
+            nullcontext(
+                MeasureGroup(
+                    id="grp_profile2",
+                    extension=[
+                        Extension(
+                            url="http://hl7.org/fhir/StructureDefinition/elementSource",
+                            valueUri="http://organization.org/fhir/StructureDefinition/profile2#1.0.0",
+                        )
+                    ],
+                    population=[
+                        MeasureGroupPopulation(
+                            id="initial-population-identifier-0",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://terminology.hl7.org/CodeSystem/measure-population",
+                                        code="initial-population",
+                                        display="Initial Population",
+                                    )
+                                ]
+                            ),
+                            criteria=Expression(
+                                language="text/x-fhir-query",
+                                expression="Specimen?_profile:below=http://organization.org/fhir/StructureDefinition/profile2",
+                            ),
+                        ),
+                        MeasureGroupPopulation(
+                            id="measure-population-identifier-0",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://terminology.hl7.org/CodeSystem/measure-population",
+                                        code="measure-population",
+                                        display="Measure Population",
+                                    )
+                                ]
+                            ),
+                            criteria=Expression(
+                                language="text/fhirpath",
+                                expression="Specimen",
+                            ),
+                        ),
+                        MeasureGroupPopulation(
+                            id="measure-observation-identifier-0",
+                            extension=[
+                                Extension(
+                                    url="http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-aggregateMethod",
+                                    valueCode="unique-count",
+                                ),
+                                Extension(
+                                    url="http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-criteriaReference",
+                                    valueString="measure-population-identifier-0",
+                                ),
+                            ],
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://terminology.hl7.org/CodeSystem/measure-population",
+                                        code="measure-observation",
+                                        display="Measure Observation",
+                                    )
+                                ]
+                            ),
+                            criteria=Expression(
+                                language="text/fhirpath",
+                                expression="Specimen.subject.reference",
+                            ),
+                        ),
+                    ],
+                    stratifier=[
+                        MeasureGroupStratifier(
+                            id="Specimen.extension",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://fhir-data-evaluator/strat/system",
+                                        code="Specimen.extension",
+                                    )
+                                ]
+                            ),
+                            criteria=Expression(
+                                language="text/fhirpath",
+                                expression="Specimen.extension.exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
+                            ),
+                        ),
+                        MeasureGroupStratifier(
+                            id="Specimen.extension:festgestellteDiagnose",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://fhir-data-evaluator/strat/system",
+                                        code="Specimen.extension:festgestellteDiagnose",
+                                    )
+                                ]
+                            ),
+                            criteria=Expression(
+                                language="text/fhirpath",
+                                expression="Specimen.extension('https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Diagnose').exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
+                            ),
+                        ),
+                        MeasureGroupStratifier(
+                            id="Specimen.extension:festgestellteDiagnose.value[x]",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://fhir-data-evaluator/strat/system",
+                                        code="Specimen.extension:festgestellteDiagnose.value[x]",
+                                    )
+                                ]
+                            ),
+                            criteria=Expression(
+                                language="text/fhirpath",
+                                expression="Specimen.extension('https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Diagnose').value.ofType(Reference).reference.hasValue()",
+                            ),
+                        ),
+                        MeasureGroupStratifier(
+                            id="Specimen.subject",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://fhir-data-evaluator/strat/system",
+                                        code="Specimen.subject",
+                                    )
+                                ]
+                            ),
+                            criteria=Expression(
+                                language="text/fhirpath",
+                                expression="Specimen.subject.reference.hasValue()",
+                            ),
+                        ),
+                    ],
+                )
+            ),
+        ),
+        (
+            Path("struct_def_with_internally_defined_extension.json"),
+            0,
+            nullcontext(
+                MeasureGroup(
+                    id="grp_mii_pr_fall_kontaktgesundheitseinrichtung",
+                    extension=[
+                        Extension(
+                            url="http://hl7.org/fhir/StructureDefinition/elementSource",
+                            valueUri="https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung#2025.0.1",
+                        )
+                    ],
+                    population=[
+                        MeasureGroupPopulation(
+                            id="initial-population-identifier-0",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://terminology.hl7.org/CodeSystem/measure-population",
+                                        code="initial-population",
+                                        display="Initial Population",
+                                    )
+                                ]
+                            ),
+                            criteria=Expression(
+                                language="text/x-fhir-query",
+                                expression="Encounter?_profile:below=https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung",
+                            ),
+                        ),
+                        MeasureGroupPopulation(
+                            id="measure-population-identifier-0",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://terminology.hl7.org/CodeSystem/measure-population",
+                                        code="measure-population",
+                                        display="Measure Population",
+                                    )
+                                ]
+                            ),
+                            criteria=Expression(
+                                language="text/fhirpath",
+                                expression="Encounter",
+                            ),
+                        ),
+                        MeasureGroupPopulation(
+                            id="measure-observation-identifier-0",
+                            extension=[
+                                Extension(
+                                    url="http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-aggregateMethod",
+                                    valueCode="unique-count",
+                                ),
+                                Extension(
+                                    url="http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-criteriaReference",
+                                    valueString="measure-population-identifier-0",
+                                ),
+                            ],
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://terminology.hl7.org/CodeSystem/measure-population",
+                                        code="measure-observation",
+                                        display="Measure Observation",
+                                    )
+                                ]
+                            ),
+                            criteria=Expression(
+                                language="text/fhirpath",
+                                expression="Encounter.subject.reference",
+                            ),
+                        ),
+                    ],
+                    stratifier=[
+                        MeasureGroupStratifier(
+                            id="Encounter.extension",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        code="Encounter.extension",
+                                        system="http://fhir-data-evaluator/strat/system",
+                                    )
+                                ],
+                            ),
+                            criteria=Expression(
+                                expression="Encounter.extension.exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
+                                language="text/fhirpath",
+                            ),
+                        ),
+                        MeasureGroupStratifier(
+                            id="Encounter.extension:Aufnahmegrund",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        code="Encounter.extension:Aufnahmegrund",
+                                        system="http://fhir-data-evaluator/strat/system",
+                                    )
+                                ],
+                            ),
+                            criteria=Expression(
+                                expression="Encounter.extension('http://fhir.de/StructureDefinition/Aufnahmegrund').exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
+                                language="text/fhirpath",
+                            ),
+                        ),
+                        MeasureGroupStratifier(
+                            id="Encounter.extension:Aufnahmegrund.extension",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        code="Encounter.extension:Aufnahmegrund.extension",
+                                        system="http://fhir-data-evaluator/strat/system",
+                                    )
+                                ],
+                            ),
+                            criteria=Expression(
+                                expression="Encounter.extension('http://fhir.de/StructureDefinition/Aufnahmegrund').extension.exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
+                                language="text/fhirpath",
+                            ),
+                        ),
+                        MeasureGroupStratifier(
+                            id="Encounter.extension:Aufnahmegrund.extension:DritteStelle",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        code="Encounter.extension:Aufnahmegrund.extension:DritteStelle",
+                                        system="http://fhir-data-evaluator/strat/system",
+                                    )
+                                ],
+                            ),
+                            criteria=Expression(
+                                expression="Encounter.extension('http://fhir.de/StructureDefinition/Aufnahmegrund').extension('DritteStelle').exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
+                                language="text/fhirpath",
+                            ),
+                        ),
+                        MeasureGroupStratifier(
+                            id="Encounter.extension:Aufnahmegrund.extension:DritteStelle.value[x]",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        code="Encounter.extension:Aufnahmegrund.extension:DritteStelle.value[x]",
+                                        system="http://fhir-data-evaluator/strat/system",
+                                    )
+                                ],
+                            ),
+                            criteria=Expression(
+                                expression="Encounter.extension('http://fhir.de/StructureDefinition/Aufnahmegrund').extension('DritteStelle').value.ofType(Coding).exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
+                                language="text/fhirpath",
+                            ),
+                        ),
+                        MeasureGroupStratifier(
+                            id="Encounter.extension:Aufnahmegrund.extension:ErsteUndZweiteStelle",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        code="Encounter.extension:Aufnahmegrund.extension:ErsteUndZweiteStelle",
+                                        system="http://fhir-data-evaluator/strat/system",
+                                    )
+                                ],
+                            ),
+                            criteria=Expression(
+                                expression="Encounter.extension('http://fhir.de/StructureDefinition/Aufnahmegrund').extension('ErsteUndZweiteStelle').exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
+                                language="text/fhirpath",
+                            ),
+                        ),
+                        MeasureGroupStratifier(
+                            id="Encounter.extension:Aufnahmegrund.extension:ErsteUndZweiteStelle.value[x]",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        code="Encounter.extension:Aufnahmegrund.extension:ErsteUndZweiteStelle.value[x]",
+                                        system="http://fhir-data-evaluator/strat/system",
+                                    )
+                                ],
+                            ),
+                            criteria=Expression(
+                                expression="Encounter.extension('http://fhir.de/StructureDefinition/Aufnahmegrund').extension('ErsteUndZweiteStelle').value.ofType(Coding).exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
+                                language="text/fhirpath",
+                            ),
+                        ),
+                        MeasureGroupStratifier(
+                            id="Encounter.extension:Aufnahmegrund.extension:VierteStelle",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        code="Encounter.extension:Aufnahmegrund.extension:VierteStelle",
+                                        system="http://fhir-data-evaluator/strat/system",
+                                    )
+                                ],
+                            ),
+                            criteria=Expression(
+                                expression="Encounter.extension('http://fhir.de/StructureDefinition/Aufnahmegrund').extension('VierteStelle').exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
+                                language="text/fhirpath",
+                            ),
+                        ),
+                        MeasureGroupStratifier(
+                            id="Encounter.extension:Aufnahmegrund.extension:VierteStelle.value[x]",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        code="Encounter.extension:Aufnahmegrund.extension:VierteStelle.value[x]",
+                                        system="http://fhir-data-evaluator/strat/system",
+                                    )
+                                ],
+                            ),
+                            criteria=Expression(
+                                expression="Encounter.extension('http://fhir.de/StructureDefinition/Aufnahmegrund').extension('VierteStelle').value.ofType(Coding).exists(extension('http://hl7.org/fhir/StructureDefinition/data-absent-reason').empty())",
+                                language="text/fhirpath",
+                            ),
+                        ),
+                        MeasureGroupStratifier(
+                            id="Encounter.subject",
+                            code=CodeableConcept(
+                                coding=[
+                                    Coding(
+                                        system="http://fhir-data-evaluator/strat/system",
+                                        code="Encounter.subject",
+                                    )
+                                ]
+                            ),
+                            criteria=Expression(
+                                language="text/fhirpath",
+                                expression="Encounter.subject.reference.hasValue()",
+                            ),
+                        ),
+                    ],
+                )
+            ),
+        ),
+        (
             "http://hl7.org/fhir/StructureDefinition/Parameters",
             0,
             pytest.raises(
                 ValueError,
-                match="no suitable subject reference element and is thus no measure group can be generated",
+                match="no suitable subject reference element and thus no measure group can be generated",
             ),
         ),
     ],
-    ids=["basic", "profile-without-subject-ref-elem"],
+    ids=[
+        "basic",
+        "profile-with-contrained-but-externally-defined-extension",
+        "profile-with-internally-defined-extension",
+        "profile-without-subject-ref-elem",
+    ],
     indirect=["profile"],
 )
 def test__generate_measure_group_for_profile(
@@ -1228,6 +1354,7 @@ def test__generate_measure_group_for_profile(
 ):
     with expected as e:
         value = _generate_measure_group_for_profile(profile, package_manager, id_num)
+        value.stratifier = sorted(value.stratifier, key=lambda s: s.id)
         assert value.model_dump_json() == e.model_dump_json()
 
 

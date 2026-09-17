@@ -4,7 +4,7 @@ import shutil
 from common.util.log.functions import get_logger
 from common.util.project import Project
 
-logger = get_logger(__file__)
+_logger = get_logger(__file__)
 
 
 if __name__ == "__main__":
@@ -14,12 +14,12 @@ if __name__ == "__main__":
 
     project = Project(name=args.project)
 
-    logger.info(f"Parceling the generated ontology for project '{project.name}'")
+    _logger.info(f"Parceling the generated ontology for project '{project.name}'")
 
     ontology_dir = project.output / "merged_ontology"
     temp_ontology_dir = project.output.mkdirs("merged_ontology", "temp")
 
-    logger.info("Generating mapping archive")
+    _logger.info("Generating mapping archive")
     mapping_dir = ontology_dir / "mapping"
     temp_mapping_dir = project.output.mkdirs("merged_ontology", "temp", "mapping")
 
@@ -27,12 +27,9 @@ if __name__ == "__main__":
     shutil.make_archive(str(mapping_dir), "zip", temp_ontology_dir)
     shutil.rmtree(temp_mapping_dir)
 
-    logger.info("Generating backend archive")
+    _logger.info("Generating backend archive")
     temp_backend_dir = project.output.mkdirs("merged_ontology", "temp", "backend")
 
-    shutil.copy(
-        ontology_dir / "profile_tree.json", temp_backend_dir / "profile_tree.json"
-    )
     shutil.copy(
         project.output.terminology / "terminology_systems.json",
         temp_backend_dir / "terminology_systems.json",
@@ -48,22 +45,36 @@ if __name__ == "__main__":
     shutil.make_archive(str(ontology_dir / "backend"), "zip", temp_backend_dir)
     shutil.rmtree(temp_backend_dir)
 
-    logger.info("Generating elastic archive")
+    _logger.info("Generating elastic archive")
     elastic_input_dir = project.input.elastic
     elastic_output_dir = ontology_dir / "elastic"
     temp_elastic_dir = project.output.mkdirs("merged_ontology", "temp", "elastic")
 
-    shutil.copytree(elastic_output_dir, temp_elastic_dir, dirs_exist_ok=True)
-    shutil.copy(
-        elastic_input_dir / "codeable_concept_index.json",
-        temp_elastic_dir / "codeable_concept_index.json",
-    )
-    shutil.copy(
-        elastic_input_dir / "ontology_index.json",
-        temp_elastic_dir / "ontology_index.json",
-    )
+    if elastic_output_dir.is_dir() and any(elastic_output_dir.iterdir()):
+        content_dir = temp_elastic_dir / "content"
+        content_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(elastic_output_dir, content_dir, dirs_exist_ok=True)
+    else:
+        raise FileNotFoundError(f"Missing Elasticsearch index documents @ {repr(elastic_output_dir)}")
+
+    input_index_dir = project.input.elastic / "index"
+    if input_index_dir.is_dir() and any(input_index_dir.iterdir()):
+        index_dir = temp_elastic_dir / "index"
+        index_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(input_index_dir, index_dir, dirs_exist_ok=True)
+    else:
+        _logger.warning("No Elasticsearch index definitions found. Make sure this is correct")
+
+    input_pipeline_dir = project.input.elastic / "pipeline"
+    if input_pipeline_dir.is_dir() and any(input_pipeline_dir.iterdir()):
+        pipeline_dir = temp_elastic_dir / "pipeline"
+        pipeline_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(input_pipeline_dir, pipeline_dir, dirs_exist_ok=True)
+    else:
+        _logger.info("No Elasticsearch pipeline definitions found")
+
     shutil.make_archive(str(elastic_output_dir), "zip", temp_ontology_dir)
     shutil.rmtree(temp_elastic_dir)
 
-    logger.info("Cleaning up output")
+    _logger.info("Cleaning up output")
     shutil.rmtree(temp_ontology_dir)

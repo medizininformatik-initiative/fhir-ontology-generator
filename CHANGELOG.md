@@ -15,6 +15,98 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+# [v5.0.1] - 2026-09-08
+
+## Fixed
+
+- Fix missing select snippets in flattening lookup (#523 @Frontman50)
+- Fix parent child mismatch in flattening lookup (#534 @Frontman50)
+- Fix missing translations by updating translation supplements on the terminology data source (#532 @paulolaup)
+
+# [v5.0.0] - 2026-08-17
+
+## Added
+
+- Add Elasticsearch index definition, pipeline definitions, and file generation for (profile detail) feature selection 
+  indexing and searching (#513 @paulolaup)
+
+## Changed
+
+- Change file extension of Elasticsearch import documents to '.ndjson' and update Elasticsearch archvie layout to 
+  distinguish between index definitions, pipelines, and import documents (#513 @paulolaup)
+
+## Fixed
+
+- Fix localization extraction in feature selection caused by broken translation extension detection (#513 @paulolaup)
+
+## Removed
+
+- Removed profile tree from release artifacts. All information is now part of the profile index documents 
+  (#513 @paulolaup)
+
+# [v4.3.0] - 2026-08-07
+
+## Added
+
+- Implement first version of CDS module **Molekulargenetischer Befundbericht** 2026 for cohort selection (#488 @Frontman50, @paulolaup)
+- Add support for extraction of patient medical record number (#456 @Frontman50)
+
+## Fixed
+
+- Fix flattening of medication dosage information (#510 @Frontman50)
+- Fix flattening lookup elements based on slices in FHIR `StructureDefinition`s having multiple parents (#519 @Frontman50)
+- Fix extensions not being handled for element types during flattening lookup generation. Extension (slices) defined on
+  primitively-typed elements will be **excluded** from the flattening lookup due to lack of support by *Pathling*
+  (#512 @paulolaup)
+
+## Deprecated
+
+- Deprecate `parent` field of `FlatteningLookupElement` model class since it can be inferred via the `children` field. 
+  Will be removed with major release **v5.0.0** (#512 @paulolaup)
+
+# [v4.2.2] - 2026-07-02
+
+## Added
+
+- Support flattening of sliced generic complex elements (#495 @Frontman50)
+
+# [v4.2.1] - 2026-07-01
+
+## Added
+
+- Support flattening of sliced backboneElements (#493 @Frontman50)
+
+# [v4.2.0] - 2026-06-19
+
+## Added
+
+- Support flattening of additional data types and make process configurable (#468 @Frontman)
+- Include `Quantity.comparator`, `Quantity.unit`, and `Coding.version` in flattening of these data types (#483 @Frontman)
+
+## Fixed
+
+- Fix generation of coded stratifier identifiers for DSE availability measure (#484 @paulolaup)
+
+# [v4.1.1] - 2026-06-03
+
+## Fixed
+
+- Replace incorrect time filter search parameter config entry for Condition resource type (#473 @paulolaup)
+- Fix consent flattening (#470 @paulolaup)
+
+# [v4.1.0] - 2026-05-04
+
+## Added 
+- Flattening lookup file generation based on profiles in DSE (#406 #456 @Frontman50)
+- Module onkologie (#236 @BoehmDo)
+
+# [v4.0.1] - 2026-04-28
+
+## Fixed
+
+- Fix incorrect display for MII CDS MedicationAdministration profile in DSE by upgrading to minor version 2025.0.1
+  of module (#449 @paulolaup)
+
 # [v4.0.0] - 2026-02-26
 
 ## Changed

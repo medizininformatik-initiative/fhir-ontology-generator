@@ -1,0 +1,79 @@
+{
+  "resourceType": "StructureDefinition",
+  "id": "profile-with-random-slicename-for-type",
+  "url": "http://example.org/fhir/StructureDefinition/profile-with-random-slicename-for-type",
+  "version": "1.0.0",
+  "name": "ProfileWithRandomSliceNameForType",
+  "status": "draft",
+  "description": "Minimal Observation profile for testing a polymorphic type slice with a random sliceName.",
+  "fhirVersion": "4.0.1",
+  "kind": "resource",
+  "abstract": false,
+  "type": "Observation",
+  "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Observation",
+  "derivation": "constraint",
+  "snapshot": {
+    "element": [
+      {
+        "id": "Observation",
+        "path": "Observation",
+        "short": "Observation",
+        "definition": "Minimal Observation profile for testing.",
+        "min": 0,
+        "max": "*",
+        "base": {
+          "path": "Observation",
+          "min": 0,
+          "max": "*"
+        }
+      },
+      {
+        "id": "Observation.value[x]",
+        "path": "Observation.value[x]",
+        "short": "Actual result",
+        "definition": "The value of the observation.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "Observation.value[x]",
+          "min": 0,
+          "max": "1"
+        },
+        "slicing": {
+          "discriminator": [
+            {
+              "type": "type",
+              "path": "$this"
+            }
+          ],
+          "ordered": false,
+          "rules": "open"
+        },
+        "type": [
+          {
+            "code": "Quantity"
+          }
+        ]
+      },
+      {
+        "id": "Observation.value[x]:totallyRandomSliceName",
+        "path": "Observation.value[x]",
+        "sliceName": "totallyRandomSliceName",
+        "short": "Randomly named Quantity slice",
+        "definition": "A Quantity slice on Observation.value[x] with a deliberately random sliceName.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "Observation.value[x]",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "Quantity"
+          }
+        ]
+      }
+    ]
+  }
+}

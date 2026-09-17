@@ -1,0 +1,38 @@
+services:
+  elastic:
+    image: docker.elastic.co/elasticsearch/elasticsearch@sha256:5dbf405a97e008f3024cf6f8f4a314d91b765d82954530893dcc13f8e87d21f4 # 8.19.19
+    ports:
+      - '9200:9200'
+      - '9300:9300'
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent --fail localhost:9200/_cluster/health || exit 1" ]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: -Xmx512m -Xms512m
+      node.name: es01
+      cluster.name: elasticsearch
+      xpack.security.enabled: false
+    volumes:
+      - type: volume
+        source: elastic-data
+        target: /usr/share/elasticsearch/data
+
+  elastic-init:
+    depends_on:
+      - elastic
+    image: ghcr.io/medizininformatik-initiative/dataportal-es-init@sha256:6f7b1836fa974a2f9af537517d9344e4839219f5e6724be57735fbf51ec0f341 # 3.0.2
+    environment:
+      ES_HOST: elastic
+      MODE: mount # change this to mount when using own generated ontology
+      LOCAL_PATH: /work/mounted_onto.zip
+    volumes:
+      - type: bind
+        source: "../.tmp/elastic.zip"
+        target: "/work/mounted_onto.zip"
+        read_only: true
+
+volumes:
+  elastic-data:
