@@ -1,0 +1,382 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "MII PR Medikation Medikationsliste",
+  "status": "draft",
+  "resource": "List",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        },
+        {
+          "name": "patient",
+          "path": "subject.reference"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "List_identifier_assigner_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "assigner"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "List_identifier_period_end",
+                  "path": "end",
+                  "type": "dateTime"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "List_identifier_period_start",
+                  "path": "start",
+                  "type": "dateTime"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "period"
+        },
+        {
+          "column": [
+            {
+              "name": "List_identifier_system",
+              "path": "system",
+              "type": "uri"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "List_identifier_type_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "List_identifier_type_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "List_identifier_type_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "type"
+        },
+        {
+          "column": [
+            {
+              "name": "List_identifier_use",
+              "path": "use",
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "List_identifier_value",
+              "path": "value",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "identifier"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "List_code_codingContextcode_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "List_code_codingContextcode_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "List_code_codingContextcode_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://ihe-d.de/CodeSystems/FallkontextBeiDokumentenerstellung')"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "List_code_codingMedcode_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "List_code_codingMedcode_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "List_code_codingMedcode_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://terminology.hl7.org/CodeSystem/list-example-use-codes' and code = 'medications')"
+        }
+      ],
+      "forEachOrNull": "code"
+    },
+    {
+      "column": [
+        {
+          "name": "List_date",
+          "path": "date",
+          "type": "dateTime"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "List_emptyReason_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "List_emptyReason_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "List_emptyReason_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "emptyReason"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "List_entry_date",
+              "path": "date",
+              "type": "dateTime"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "List_entry_deleted",
+              "path": "deleted",
+              "type": "boolean"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "List_entry_flag_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "List_entry_flag_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "List_entry_flag_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "flag"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "List_entry_item_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "item"
+        }
+      ],
+      "forEachOrNull": "entry"
+    },
+    {
+      "column": [
+        {
+          "name": "List_mode",
+          "path": "mode",
+          "type": "code"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "List_note_author_X_Authorreference_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "author.ofType(Reference)"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "List_note_author_X_Authorstring",
+                  "path": "$this",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "author.ofType(string)"
+        },
+        {
+          "column": [
+            {
+              "name": "List_note_text",
+              "path": "text",
+              "type": "markdown"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "List_note_time",
+              "path": "time",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "note"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "List_orderedBy_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "List_orderedBy_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "List_orderedBy_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "orderedBy"
+    },
+    {
+      "column": [
+        {
+          "name": "List_status",
+          "path": "status",
+          "type": "code"
+        }
+      ]
+    },
+    {
+      "column": [
+        {
+          "name": "List_title",
+          "path": "title",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

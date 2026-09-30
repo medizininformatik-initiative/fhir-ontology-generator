@@ -1,0 +1,41 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "Profile - Substance - Additiv",
+  "status": "draft",
+  "resource": "Substance",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Substance_category_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Substance_category_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Substance_category_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "category"
+    }
+  ]
+}

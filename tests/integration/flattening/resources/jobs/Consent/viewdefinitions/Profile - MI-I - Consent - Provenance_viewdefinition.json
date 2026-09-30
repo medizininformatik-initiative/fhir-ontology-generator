@@ -1,0 +1,237 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "Profile - MI-I - Consent - Provenance",
+  "status": "draft",
+  "resource": "Provenance",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Provenance_activity_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Provenance_activity_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Provenance_activity_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "activity"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Provenance_agent_onBehalfOf_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "onBehalfOf"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Provenance_agent_role_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "Provenance_agent_role_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "Provenance_agent_role_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "role"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Provenance_agent_type_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "Provenance_agent_type_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "Provenance_agent_type_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "type"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Provenance_agent_who_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "who"
+        }
+      ],
+      "forEachOrNull": "agent"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Provenance_entity_role",
+              "path": "role",
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Provenance_entity_what_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "what"
+        }
+      ],
+      "forEachOrNull": "entity"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Provenance_occurred_X_Occurreddatetime",
+              "path": "$this",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "occurred.ofType(dateTime)"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Provenance_occurred_X_Occurredperiod_end",
+              "path": "end",
+              "type": "dateTime"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "Provenance_occurred_X_Occurredperiod_start",
+              "path": "start",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "occurred.ofType(Period)"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Provenance_policy",
+              "path": "$this",
+              "type": "uri"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "policy"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Provenance_reason_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Provenance_reason_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Provenance_reason_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "reason"
+    },
+    {
+      "column": [
+        {
+          "name": "Provenance_recorded",
+          "path": "recorded",
+          "type": "instant"
+        }
+      ]
+    }
+  ]
+}

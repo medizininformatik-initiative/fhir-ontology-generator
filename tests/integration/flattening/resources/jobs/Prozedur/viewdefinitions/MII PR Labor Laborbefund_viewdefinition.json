@@ -1,0 +1,131 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "MII PR Labor Laborbefund",
+  "status": "draft",
+  "resource": "DiagnosticReport",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        },
+        {
+          "name": "patient",
+          "path": "subject.reference"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "DiagnosticReport_identifierBefund_assigner_reference",
+                      "path": "reference",
+                      "type": "string"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "assigner"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "DiagnosticReport_identifierBefund_period_end",
+                      "path": "end",
+                      "type": "dateTime"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "DiagnosticReport_identifierBefund_period_start",
+                      "path": "start",
+                      "type": "dateTime"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "period"
+            },
+            {
+              "column": [
+                {
+                  "name": "DiagnosticReport_identifierBefund_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "select": [
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "DiagnosticReport_identifierBefund_type_codingFillerv2_code",
+                          "path": "code",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "DiagnosticReport_identifierBefund_type_codingFillerv2_system",
+                          "path": "system",
+                          "type": "uri"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "DiagnosticReport_identifierBefund_type_codingFillerv2_version",
+                          "path": "version",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "coding.where(system = 'http://terminology.hl7.org/CodeSystem/v2-0203' and code = 'FILL')"
+                }
+              ],
+              "forEachOrNull": "type"
+            },
+            {
+              "column": [
+                {
+                  "name": "DiagnosticReport_identifierBefund_use",
+                  "path": "use",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DiagnosticReport_identifierBefund_value",
+                  "path": "value",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "$this.where(type.coding.exists(system = 'http://terminology.hl7.org/CodeSystem/v2-0203' and code = 'FILL'))"
+        }
+      ],
+      "forEachOrNull": "identifier"
+    }
+  ]
+}

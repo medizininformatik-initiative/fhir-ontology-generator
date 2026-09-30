@@ -1,0 +1,131 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "MII PR Labor Laboranforderung",
+  "status": "draft",
+  "resource": "ServiceRequest",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        },
+        {
+          "name": "patient",
+          "path": "subject.reference"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "ServiceRequest_identifierAnforderung_assigner_reference",
+                      "path": "reference",
+                      "type": "string"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "assigner"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "ServiceRequest_identifierAnforderung_period_end",
+                      "path": "end",
+                      "type": "dateTime"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "ServiceRequest_identifierAnforderung_period_start",
+                      "path": "start",
+                      "type": "dateTime"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "period"
+            },
+            {
+              "column": [
+                {
+                  "name": "ServiceRequest_identifierAnforderung_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "select": [
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "ServiceRequest_identifierAnforderung_type_codingPlacerv2_code",
+                          "path": "code",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "ServiceRequest_identifierAnforderung_type_codingPlacerv2_system",
+                          "path": "system",
+                          "type": "uri"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "ServiceRequest_identifierAnforderung_type_codingPlacerv2_version",
+                          "path": "version",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "coding.where(system = 'http://terminology.hl7.org/CodeSystem/v2-0203' and code = 'PLAC')"
+                }
+              ],
+              "forEachOrNull": "type"
+            },
+            {
+              "column": [
+                {
+                  "name": "ServiceRequest_identifierAnforderung_use",
+                  "path": "use",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "ServiceRequest_identifierAnforderung_value",
+                  "path": "value",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "$this.where(type.coding.exists(system = 'http://terminology.hl7.org/CodeSystem/v2-0203' and code = 'PLAC'))"
+        }
+      ],
+      "forEachOrNull": "identifier"
+    }
+  ]
+}

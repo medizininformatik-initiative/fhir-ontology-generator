@@ -1,0 +1,452 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "SD MII ICU Arterieller Blutdruck",
+  "status": "draft",
+  "resource": "Observation",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        },
+        {
+          "name": "patient",
+          "path": "subject.reference"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_code_codingLoinc_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_code_codingLoinc_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_code_codingLoinc_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://loinc.org' and code = '85354-9')"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_code_codingSct_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_code_codingSct_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_code_codingSct_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://snomed.info/sct' and code = '364090009')"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_code_codingSnomed_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_code_codingSnomed_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_code_codingSnomed_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://snomed.info/sct' and code = '75367002')"
+        }
+      ],
+      "forEachOrNull": "code"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Observation_effective_X_Effectivedatetime",
+              "path": "$this",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "effective.ofType(dateTime)"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Observation_effective_X_Effectiveperiod_end",
+              "path": "end",
+              "type": "dateTime"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "Observation_effective_X_Effectiveperiod_start",
+              "path": "start",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "effective.ofType(Period)"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Observation_interpretation_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Observation_interpretation_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Observation_interpretation_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "interpretation"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_high_code",
+                      "path": "code",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_high_comparator",
+                      "path": "comparator",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_high_system",
+                      "path": "system",
+                      "type": "uri"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_high_unit",
+                      "path": "unit",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_high_value",
+                      "path": "value",
+                      "type": "decimal"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "high"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_low_code",
+                      "path": "code",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_low_comparator",
+                      "path": "comparator",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_low_system",
+                      "path": "system",
+                      "type": "uri"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_low_unit",
+                      "path": "unit",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Observation_referenceRange_age_low_value",
+                      "path": "value",
+                      "type": "decimal"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "low"
+            }
+          ],
+          "forEachOrNull": "age"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_appliesTo_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "Observation_referenceRange_appliesTo_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "Observation_referenceRange_appliesTo_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "appliesTo"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_high_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_high_comparator",
+                  "path": "comparator",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_high_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_high_unit",
+                  "path": "unit",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_high_value",
+                  "path": "value",
+                  "type": "decimal"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "high"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_low_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_low_comparator",
+                  "path": "comparator",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_low_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_low_unit",
+                  "path": "unit",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_low_value",
+                  "path": "value",
+                  "type": "decimal"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "low"
+        },
+        {
+          "column": [
+            {
+              "name": "Observation_referenceRange_text",
+              "path": "text",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_referenceRange_type_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "Observation_referenceRange_type_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "Observation_referenceRange_type_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "type"
+        }
+      ],
+      "forEachOrNull": "referenceRange"
+    }
+  ]
+}

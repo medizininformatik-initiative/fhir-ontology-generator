@@ -1,6 +1,6 @@
 services:
   fhir-server:
-    image: samply/blaze:1.7.0
+    image: samply/blaze:1.11.0
     environment:
       - BASE_URL=http://fhir-server:8080
       - LOG_LEVEL=debug
@@ -38,7 +38,7 @@ services:
       start_period: 30s
 
   torch:
-    image: ghcr.io/medizininformatik-initiative/torch:1.0.0-beta.4
+    image: ghcr.io/medizininformatik-initiative/torch:1.0.1
     ports:
       - "8086:8080"
     environment:
@@ -71,10 +71,10 @@ services:
       - "torch-data:/app/output"
 
   fhir-flattener:
-    image: ghcr.io/medizininformatik-initiative/fhir-flattener:0.1.0-alpha.7
+    image: ghcr.io/medizininformatik-initiative/fhir-flattener:0.1.0-alpha.9
     environment:
       - FLATTENING_ENABLED=true
-      - ENABLED_OPEN_TYPES="boolean,code,date,dateTime,decimal,integer,string,Coding,CodeableConcept,Address,Identifier,Reference,Quantity,uri"
+      - ENABLED_OPEN_TYPES=boolean,code,date,dateTime,decimal,integer,string,Coding,CodeableConcept,Address,Identifier,Reference,Quantity,uri,base64Binary
     working_dir: /app
     ports:
       - "8088:8000"

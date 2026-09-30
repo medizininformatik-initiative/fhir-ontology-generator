@@ -1,0 +1,767 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "MII PR Prozedur Procedure",
+  "status": "draft",
+  "resource": "Procedure",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        },
+        {
+          "name": "patient",
+          "path": "subject.reference"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Procedure_bodySite_codingSnomedct_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Procedure_bodySite_codingSnomedct_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Procedure_bodySite_codingSnomedct_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://snomed.info/sct')"
+        }
+      ],
+      "forEachOrNull": "bodySite"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Procedure_code_codingOps_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "select": [
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "Procedure_code_codingOps_extensionSeitenlokalisation_value_X_Valuecoding_system",
+                          "path": "system",
+                          "type": "uri"
+                        },
+                        {
+                          "name": "Procedure_code_codingOps_extensionSeitenlokalisation_value_X_Valuecoding_code",
+                          "path": "code",
+                          "type": "code"
+                        },
+                        {
+                          "name": "Procedure_code_codingOps_extensionSeitenlokalisation_value_X_Valuecoding_version",
+                          "path": "version",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "value.ofType(Coding)"
+                }
+              ],
+              "forEachOrNull": "extension.where(url = 'http://fhir.de/StructureDefinition/seitenlokalisation')"
+            },
+            {
+              "column": [
+                {
+                  "name": "Procedure_code_codingOps_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Procedure_code_codingOps_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://fhir.de/CodeSystem/bfarm/ops')"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Procedure_code_codingSct_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Procedure_code_codingSct_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Procedure_code_codingSct_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://snomed.info/sct')"
+        }
+      ],
+      "forEachOrNull": "code"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Procedure_performed_X_Performeddatetime",
+              "path": "$this",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "performed.ofType(dateTime)"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Procedure_performed_X_Performedperiod_end",
+              "path": "end",
+              "type": "dateTime"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "Procedure_performed_X_Performedperiod_start",
+              "path": "start",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "performed.ofType(Period)"
+    },
+    {
+      "column": [
+        {
+          "name": "Procedure_status",
+          "path": "status",
+          "type": "code"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Procedure_category_codingSct_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Procedure_category_codingSct_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Procedure_category_codingSct_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://snomed.info/sct')"
+        }
+      ],
+      "forEachOrNull": "category"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Procedure_complication_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Procedure_complication_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Procedure_complication_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "complication"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Procedure_extensionDokumentationsdatum_value_X_Valuedatetime",
+                  "path": "$this",
+                  "type": "dateTime"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "value.ofType(dateTime)"
+        }
+      ],
+      "forEachOrNull": "extension.where(url = 'http://fhir.de/StructureDefinition/ProzedurDokumentationsdatum')"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Procedure_extensionDurchfuehrungsabsicht_value_X_Valuecoding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "Procedure_extensionDurchfuehrungsabsicht_value_X_Valuecoding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "Procedure_extensionDurchfuehrungsabsicht_value_X_Valuecoding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "value.ofType(Coding)"
+        }
+      ],
+      "forEachOrNull": "extension.where(url = 'https://www.medizininformatik-initiative.de/fhir/core/modul-prozedur/StructureDefinition/Durchfuehrungsabsicht')"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Procedure_focalDevice_action_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "Procedure_focalDevice_action_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "Procedure_focalDevice_action_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "action"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Procedure_focalDevice_manipulated_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "manipulated"
+        }
+      ],
+      "forEachOrNull": "focalDevice"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Procedure_followUp_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Procedure_followUp_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Procedure_followUp_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "followUp"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Procedure_identifier_assigner_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "assigner"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Procedure_identifier_period_end",
+                  "path": "end",
+                  "type": "dateTime"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Procedure_identifier_period_start",
+                  "path": "start",
+                  "type": "dateTime"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "period"
+        },
+        {
+          "column": [
+            {
+              "name": "Procedure_identifier_system",
+              "path": "system",
+              "type": "uri"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Procedure_identifier_type_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "Procedure_identifier_type_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "Procedure_identifier_type_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "type"
+        },
+        {
+          "column": [
+            {
+              "name": "Procedure_identifier_use",
+              "path": "use",
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "Procedure_identifier_value",
+              "path": "value",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "identifier"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Procedure_instantiatesCanonical",
+              "path": "$this",
+              "type": "canonical"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "instantiatesCanonical"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Procedure_instantiatesUri",
+              "path": "$this",
+              "type": "uri"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "instantiatesUri"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Procedure_note_author_X_Authorreference_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "author.ofType(Reference)"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Procedure_note_author_X_Authorstring",
+                  "path": "$this",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "author.ofType(string)"
+        },
+        {
+          "column": [
+            {
+              "name": "Procedure_note_text",
+              "path": "text",
+              "type": "markdown"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "Procedure_note_time",
+              "path": "time",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "note"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Procedure_outcome_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Procedure_outcome_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Procedure_outcome_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "outcome"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Procedure_performer_actor_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "actor"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Procedure_performer_function_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "Procedure_performer_function_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "Procedure_performer_function_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "function"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Procedure_performer_onBehalfOf_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "onBehalfOf"
+        }
+      ],
+      "forEachOrNull": "performer"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Procedure_reasonCode_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Procedure_reasonCode_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Procedure_reasonCode_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "reasonCode"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Procedure_statusReason_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Procedure_statusReason_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Procedure_statusReason_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "statusReason"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Procedure_usedCode_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Procedure_usedCode_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Procedure_usedCode_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "usedCode"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Procedure_basedOn_reference",
+              "path": "reference",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "basedOn"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Procedure_complicationDetail_reference",
+              "path": "reference",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "complicationDetail"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Procedure_report_reference",
+              "path": "reference",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "report"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Procedure_usedReference_reference",
+              "path": "reference",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "usedReference"
+    }
+  ]
+}

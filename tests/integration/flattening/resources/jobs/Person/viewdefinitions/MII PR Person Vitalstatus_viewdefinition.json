@@ -1,0 +1,373 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "MII PR Person Vitalstatus",
+  "status": "draft",
+  "resource": "Observation",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        },
+        {
+          "name": "patient",
+          "path": "subject.reference"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_code_codingLoinc_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_code_codingLoinc_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_code_codingLoinc_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://loinc.org' and code = '67162-8')"
+        }
+      ],
+      "forEachOrNull": "code"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Observation_dataAbsentReason_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Observation_dataAbsentReason_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Observation_dataAbsentReason_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "dataAbsentReason"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Observation_effective_X_Effectivedatetime",
+              "path": "$this",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "effective.ofType(dateTime)"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Observation_interpretation_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Observation_interpretation_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Observation_interpretation_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "interpretation"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Observation_value_X_Valuecodeableconcept_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Observation_value_X_Valuecodeableconcept_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Observation_value_X_Valuecodeableconcept_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "value.ofType(CodeableConcept)"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Observation_category_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Observation_category_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Observation_category_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "category"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_identifier_assigner_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "assigner"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_identifier_period_end",
+                  "path": "end",
+                  "type": "dateTime"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Observation_identifier_period_start",
+                  "path": "start",
+                  "type": "dateTime"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "period"
+        },
+        {
+          "column": [
+            {
+              "name": "Observation_identifier_system",
+              "path": "system",
+              "type": "uri"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_identifier_type_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "Observation_identifier_type_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "Observation_identifier_type_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "type"
+        },
+        {
+          "column": [
+            {
+              "name": "Observation_identifier_use",
+              "path": "use",
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "Observation_identifier_value",
+              "path": "value",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "identifier"
+    },
+    {
+      "column": [
+        {
+          "name": "Observation_issued",
+          "path": "issued",
+          "type": "instant"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Observation_method_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Observation_method_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Observation_method_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "method"
+    },
+    {
+      "column": [
+        {
+          "name": "Observation_status",
+          "path": "status",
+          "type": "code"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_note_author_X_Authorreference_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "author.ofType(Reference)"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Observation_note_author_X_Authorstring",
+                  "path": "$this",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "author.ofType(string)"
+        },
+        {
+          "column": [
+            {
+              "name": "Observation_note_text",
+              "path": "text",
+              "type": "markdown"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "Observation_note_time",
+              "path": "time",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "note"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Observation_focus_reference",
+              "path": "reference",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "focus"
+    }
+  ]
+}

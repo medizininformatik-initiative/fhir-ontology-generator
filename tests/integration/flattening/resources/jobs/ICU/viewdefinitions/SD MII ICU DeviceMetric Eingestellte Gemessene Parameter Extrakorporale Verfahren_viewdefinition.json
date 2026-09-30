@@ -1,0 +1,569 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "SD MII ICU DeviceMetric Eingestellte Gemessene Parameter Extrakorporale Verfahren",
+  "status": "draft",
+  "resource": "DeviceMetric",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "DeviceMetric_calibration_state",
+              "path": "state",
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "DeviceMetric_calibration_time",
+              "path": "time",
+              "type": "instant"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "DeviceMetric_calibration_type",
+              "path": "type",
+              "type": "code"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "calibration"
+    },
+    {
+      "column": [
+        {
+          "name": "DeviceMetric_category",
+          "path": "category",
+          "type": "code"
+        }
+      ]
+    },
+    {
+      "column": [
+        {
+          "name": "DeviceMetric_color",
+          "path": "color",
+          "type": "code"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DeviceMetric_identifier_assigner_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "assigner"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DeviceMetric_identifier_period_end",
+                  "path": "end",
+                  "type": "dateTime"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DeviceMetric_identifier_period_start",
+                  "path": "start",
+                  "type": "dateTime"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "period"
+        },
+        {
+          "column": [
+            {
+              "name": "DeviceMetric_identifier_system",
+              "path": "system",
+              "type": "uri"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DeviceMetric_identifier_type_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "DeviceMetric_identifier_type_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "DeviceMetric_identifier_type_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "type"
+        },
+        {
+          "column": [
+            {
+              "name": "DeviceMetric_identifier_use",
+              "path": "use",
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "DeviceMetric_identifier_value",
+              "path": "value",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "identifier"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DeviceMetric_measurementPeriod_code_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "DeviceMetric_measurementPeriod_code_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "DeviceMetric_measurementPeriod_code_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "code"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DeviceMetric_measurementPeriod_event",
+                  "path": "$this",
+                  "type": "dateTime"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "event"
+        },
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "DeviceMetric_measurementPeriod_repeat_bounds_X_Boundsduration_code",
+                      "path": "code",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "DeviceMetric_measurementPeriod_repeat_bounds_X_Boundsduration_system",
+                      "path": "system",
+                      "type": "uri"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "DeviceMetric_measurementPeriod_repeat_bounds_X_Boundsduration_value",
+                      "path": "value",
+                      "type": "decimal"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "bounds.ofType(Duration)"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "DeviceMetric_measurementPeriod_repeat_bounds_X_Boundsperiod_end",
+                      "path": "end",
+                      "type": "dateTime"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "DeviceMetric_measurementPeriod_repeat_bounds_X_Boundsperiod_start",
+                      "path": "start",
+                      "type": "dateTime"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "bounds.ofType(Period)"
+            },
+            {
+              "select": [
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "DeviceMetric_measurementPeriod_repeat_bounds_X_Boundsrange_high_code",
+                          "path": "code",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "DeviceMetric_measurementPeriod_repeat_bounds_X_Boundsrange_high_comparator",
+                          "path": "comparator",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "DeviceMetric_measurementPeriod_repeat_bounds_X_Boundsrange_high_system",
+                          "path": "system",
+                          "type": "uri"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "DeviceMetric_measurementPeriod_repeat_bounds_X_Boundsrange_high_unit",
+                          "path": "unit",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "DeviceMetric_measurementPeriod_repeat_bounds_X_Boundsrange_high_value",
+                          "path": "value",
+                          "type": "decimal"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "high"
+                },
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "DeviceMetric_measurementPeriod_repeat_bounds_X_Boundsrange_low_code",
+                          "path": "code",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "DeviceMetric_measurementPeriod_repeat_bounds_X_Boundsrange_low_comparator",
+                          "path": "comparator",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "DeviceMetric_measurementPeriod_repeat_bounds_X_Boundsrange_low_system",
+                          "path": "system",
+                          "type": "uri"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "DeviceMetric_measurementPeriod_repeat_bounds_X_Boundsrange_low_unit",
+                          "path": "unit",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "DeviceMetric_measurementPeriod_repeat_bounds_X_Boundsrange_low_value",
+                          "path": "value",
+                          "type": "decimal"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "low"
+                }
+              ],
+              "forEachOrNull": "bounds.ofType(Range)"
+            },
+            {
+              "column": [
+                {
+                  "name": "DeviceMetric_measurementPeriod_repeat_count",
+                  "path": "count",
+                  "type": "positiveInt"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DeviceMetric_measurementPeriod_repeat_countMax",
+                  "path": "countMax",
+                  "type": "positiveInt"
+                }
+              ]
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "DeviceMetric_measurementPeriod_repeat_dayOfWeek",
+                      "path": "$this",
+                      "type": "code"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "dayOfWeek"
+            },
+            {
+              "column": [
+                {
+                  "name": "DeviceMetric_measurementPeriod_repeat_duration",
+                  "path": "duration",
+                  "type": "decimal"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DeviceMetric_measurementPeriod_repeat_durationMax",
+                  "path": "durationMax",
+                  "type": "decimal"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DeviceMetric_measurementPeriod_repeat_durationUnit",
+                  "path": "durationUnit",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DeviceMetric_measurementPeriod_repeat_frequency",
+                  "path": "frequency",
+                  "type": "positiveInt"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DeviceMetric_measurementPeriod_repeat_frequencyMax",
+                  "path": "frequencyMax",
+                  "type": "positiveInt"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DeviceMetric_measurementPeriod_repeat_offset",
+                  "path": "offset",
+                  "type": "unsignedInt"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DeviceMetric_measurementPeriod_repeat_period",
+                  "path": "period",
+                  "type": "decimal"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DeviceMetric_measurementPeriod_repeat_periodMax",
+                  "path": "periodMax",
+                  "type": "decimal"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DeviceMetric_measurementPeriod_repeat_periodUnit",
+                  "path": "periodUnit",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "DeviceMetric_measurementPeriod_repeat_timeOfDay",
+                      "path": "$this",
+                      "type": "time"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "timeOfDay"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "DeviceMetric_measurementPeriod_repeat_when",
+                      "path": "$this",
+                      "type": "code"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "when"
+            }
+          ],
+          "forEachOrNull": "repeat"
+        }
+      ],
+      "forEachOrNull": "measurementPeriod"
+    },
+    {
+      "column": [
+        {
+          "name": "DeviceMetric_operationalStatus",
+          "path": "operationalStatus",
+          "type": "code"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "DeviceMetric_type_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "DeviceMetric_type_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "DeviceMetric_type_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "type"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "DeviceMetric_unit_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "DeviceMetric_unit_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "DeviceMetric_unit_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "unit"
+    }
+  ]
+}

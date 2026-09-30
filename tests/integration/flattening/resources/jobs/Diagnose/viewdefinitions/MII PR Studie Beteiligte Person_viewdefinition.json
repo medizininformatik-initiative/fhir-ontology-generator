@@ -1,0 +1,25 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "MII PR Studie Beteiligte Person",
+  "status": "draft",
+  "resource": "PractitionerRole",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        }
+      ]
+    },
+    {
+      "column": [
+        {
+          "name": "PractitionerRole_active",
+          "path": "active",
+          "type": "boolean"
+        }
+      ]
+    }
+  ]
+}

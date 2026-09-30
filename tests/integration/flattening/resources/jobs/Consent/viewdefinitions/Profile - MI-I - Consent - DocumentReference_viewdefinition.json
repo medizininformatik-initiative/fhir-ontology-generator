@@ -1,0 +1,594 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "Profile - MI-I - Consent - DocumentReference",
+  "status": "draft",
+  "resource": "DocumentReference",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        },
+        {
+          "name": "patient",
+          "path": "subject.reference"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "DocumentReference_category_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "DocumentReference_category_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "DocumentReference_category_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "category"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_content_attachment_contentType",
+                  "path": "contentType",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_content_attachment_creation",
+                  "path": "creation",
+                  "type": "dateTime"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_content_attachment_data",
+                  "path": "data",
+                  "type": "base64Binary"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_content_attachment_hash",
+                  "path": "hash",
+                  "type": "base64Binary"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_content_attachment_language",
+                  "path": "language",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_content_attachment_size",
+                  "path": "size",
+                  "type": "unsignedInt"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_content_attachment_title",
+                  "path": "title",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_content_attachment_url",
+                  "path": "url",
+                  "type": "url"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "attachment"
+        },
+        {
+          "column": [
+            {
+              "name": "DocumentReference_content_format_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "DocumentReference_content_format_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "DocumentReference_content_format_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "format"
+        }
+      ],
+      "forEachOrNull": "content"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_context_encounter_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "encounter"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_context_event_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "DocumentReference_context_event_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "DocumentReference_context_event_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "event"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_context_facilityType_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "DocumentReference_context_facilityType_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "DocumentReference_context_facilityType_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "facilityType"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_context_period_end",
+                  "path": "end",
+                  "type": "dateTime"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_context_period_start",
+                  "path": "start",
+                  "type": "dateTime"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "period"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_context_practiceSetting_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "DocumentReference_context_practiceSetting_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "DocumentReference_context_practiceSetting_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "practiceSetting"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_context_related_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "related"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_context_sourcePatientInfo_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "sourcePatientInfo"
+        }
+      ],
+      "forEachOrNull": "context"
+    },
+    {
+      "column": [
+        {
+          "name": "DocumentReference_date",
+          "path": "date",
+          "type": "instant"
+        }
+      ]
+    },
+    {
+      "column": [
+        {
+          "name": "DocumentReference_description",
+          "path": "description",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "column": [
+        {
+          "name": "DocumentReference_docStatus",
+          "path": "docStatus",
+          "type": "code"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_identifier_assigner_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "assigner"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_identifier_period_end",
+                  "path": "end",
+                  "type": "dateTime"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_identifier_period_start",
+                  "path": "start",
+                  "type": "dateTime"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "period"
+        },
+        {
+          "column": [
+            {
+              "name": "DocumentReference_identifier_system",
+              "path": "system",
+              "type": "uri"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_identifier_type_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "DocumentReference_identifier_type_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "DocumentReference_identifier_type_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "type"
+        },
+        {
+          "column": [
+            {
+              "name": "DocumentReference_identifier_use",
+              "path": "use",
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "DocumentReference_identifier_value",
+              "path": "value",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "identifier"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_masterIdentifier_assigner_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "assigner"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_masterIdentifier_period_end",
+                  "path": "end",
+                  "type": "dateTime"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_masterIdentifier_period_start",
+                  "path": "start",
+                  "type": "dateTime"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "period"
+        },
+        {
+          "column": [
+            {
+              "name": "DocumentReference_masterIdentifier_system",
+              "path": "system",
+              "type": "uri"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_masterIdentifier_type_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "DocumentReference_masterIdentifier_type_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "DocumentReference_masterIdentifier_type_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "type"
+        },
+        {
+          "column": [
+            {
+              "name": "DocumentReference_masterIdentifier_use",
+              "path": "use",
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "DocumentReference_masterIdentifier_value",
+              "path": "value",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "masterIdentifier"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "DocumentReference_relatesTo_code",
+              "path": "code",
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DocumentReference_relatesTo_target_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "target"
+        }
+      ],
+      "forEachOrNull": "relatesTo"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "DocumentReference_securityLabel_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "DocumentReference_securityLabel_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "DocumentReference_securityLabel_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "securityLabel"
+    },
+    {
+      "column": [
+        {
+          "name": "DocumentReference_status",
+          "path": "status",
+          "type": "code"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "DocumentReference_type_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "DocumentReference_type_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "DocumentReference_type_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "type"
+    }
+  ]
+}

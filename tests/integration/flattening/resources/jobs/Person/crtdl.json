@@ -1,0 +1,181 @@
+{
+  "version": "http://json-schema.org/to-be-done/schema#",
+  "display": "",
+  "cohortDefinition": {
+    "version": "http://to_be_decided.com/draft-1/schema#",
+    "display": "Ausgewählte Merkmale",
+    "inclusionCriteria": [
+      [
+        {
+          "termCodes": [
+            {
+              "code": "263495000",
+              "display": "Geschlecht",
+              "system": "http://snomed.info/sct",
+              "version": ""
+            }
+          ],
+          "context": {
+            "code": "Patient",
+            "display": "Patient",
+            "system": "fdpg.mii.cds",
+            "version": "1.0.0"
+          },
+          "valueFilter": {
+            "selectedConcepts": [
+              {
+                "code": "female",
+                "display": "Female",
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "version": "2099"
+              },
+              {
+                "code": "male",
+                "display": "Male",
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "version": "2099"
+              },
+              {
+                "code": "other",
+                "display": "Other",
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "version": "2099"
+              },
+              {
+                "code": "unknown",
+                "display": "Unknown",
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "version": "2099"
+              }
+            ],
+            "type": "concept"
+          }
+        }
+      ]
+    ]
+  },
+  "dataExtraction": {
+    "attributeGroups": [
+      {
+        "attributes": [
+          { "attributeRef": "Patient.deceased[x]", "mustHave": false },
+          { "attributeRef": "Patient.identifier", "mustHave": false },
+          { "attributeRef": "Patient.active", "mustHave": false },
+          {
+            "attributeRef": "Patient.address:Strassenanschrift",
+            "mustHave": false
+          },
+          { "attributeRef": "Patient.birthDate", "mustHave": false },
+          { "attributeRef": "Patient.communication", "mustHave": false },
+          { "attributeRef": "Patient.contact", "mustHave": false },
+          { "attributeRef": "Patient.gender", "mustHave": false },
+          { "attributeRef": "Patient.maritalStatus", "mustHave": false },
+          { "attributeRef": "Patient.multipleBirth[x]", "mustHave": false },
+          { "attributeRef": "Patient.photo", "mustHave": false },
+          { "attributeRef": "Patient.telecom", "mustHave": false },
+          { "attributeRef": "Patient.text", "mustHave": false },
+          {
+            "attributeRef": "Patient.contact.organization",
+            "mustHave": false,
+            "linkedGroups": ["f255e39d-c6ef-4fa3-8ec7-2f271ef7903a"]
+          },
+          {
+            "attributeRef": "Patient.generalPractitioner",
+            "mustHave": false,
+            "linkedGroups": ["a4736831-1691-4543-bb00-374ee3d72ac4"]
+          },
+          {
+            "attributeRef": "Patient.managingOrganization",
+            "mustHave": false,
+            "linkedGroups": ["f8df2513-9653-4694-b042-977f15c12fb4"]
+          }
+        ],
+        "id": "8ee3ea27-ec9d-4b80-96c5-f9d54f1da5ff",
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/PatientPseudonymisiert",
+        "name": "MII PR Person Patient (Pseudonymisiert)"
+      },
+      {
+        "attributes": [
+          { "attributeRef": "Condition.abatement[x]", "mustHave": false },
+          { "attributeRef": "Condition.clinicalStatus", "mustHave": false },
+          { "attributeRef": "Condition.code", "mustHave": false },
+          { "attributeRef": "Condition.onset[x]", "mustHave": false },
+          { "attributeRef": "Condition.recordedDate", "mustHave": false },
+          { "attributeRef": "Condition.verificationStatus", "mustHave": false },
+          { "attributeRef": "Condition.bodySite", "mustHave": false },
+          { "attributeRef": "Condition.category", "mustHave": false },
+          { "attributeRef": "Condition.evidence", "mustHave": false },
+          { "attributeRef": "Condition.identifier", "mustHave": false },
+          { "attributeRef": "Condition.note", "mustHave": false },
+          { "attributeRef": "Condition.severity", "mustHave": false },
+          { "attributeRef": "Condition.stage", "mustHave": false },
+          { "attributeRef": "Condition.text", "mustHave": false },
+          {
+            "attributeRef": "Condition.evidence.detail",
+            "mustHave": false,
+            "linkedGroups": ["bd440c72-cb6b-4415-a27e-ac942847ee5f"]
+          },
+          {
+            "attributeRef": "Condition.stage.assessment",
+            "mustHave": false,
+            "linkedGroups": ["bd440c72-cb6b-4415-a27e-ac942847ee5f"]
+          }
+        ],
+        "id": "65f009da-c056-4531-934a-12932332997e",
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Todesursache",
+        "name": "MII PR Person Todesursache"
+      },
+      {
+        "attributes": [
+          { "attributeRef": "Observation.code", "mustHave": false },
+          { "attributeRef": "Observation.dataAbsentReason", "mustHave": false },
+          { "attributeRef": "Observation.effective[x]", "mustHave": false },
+          { "attributeRef": "Observation.interpretation", "mustHave": false },
+          { "attributeRef": "Observation.value[x]", "mustHave": false },
+          { "attributeRef": "Observation.category", "mustHave": false },
+          { "attributeRef": "Observation.identifier", "mustHave": false },
+          { "attributeRef": "Observation.issued", "mustHave": false },
+          { "attributeRef": "Observation.method", "mustHave": false },
+          { "attributeRef": "Observation.status", "mustHave": false },
+          { "attributeRef": "Observation.note", "mustHave": false },
+          { "attributeRef": "Observation.text", "mustHave": false },
+          {
+            "attributeRef": "Observation.focus",
+            "mustHave": false,
+            "linkedGroups": ["65f009da-c056-4531-934a-12932332997e"]
+          }
+        ],
+        "id": "bd440c72-cb6b-4415-a27e-ac942847ee5f",
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Vitalstatus",
+        "name": "MII PR Person Vitalstatus"
+      },
+      {
+        "attributes": [
+          { "attributeRef": "Organization.identifier", "mustHave": false }
+        ],
+        "id": "f255e39d-c6ef-4fa3-8ec7-2f271ef7903a",
+        "includeReferenceOnly": true,
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Organization",
+        "name": "Profile - Organization - Sammlung/Biobank1"
+      },
+      {
+        "attributes": [
+          { "attributeRef": "Organization.identifier", "mustHave": false }
+        ],
+        "id": "a4736831-1691-4543-bb00-374ee3d72ac4",
+        "includeReferenceOnly": true,
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Organization",
+        "name": "Profile - Organization - Sammlung/Biobank2"
+      },
+      {
+        "attributes": [
+          { "attributeRef": "Organization.identifier", "mustHave": false }
+        ],
+        "id": "f8df2513-9653-4694-b042-977f15c12fb4",
+        "includeReferenceOnly": true,
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Organization",
+        "name": "Profile - Organization - Sammlung/Biobank3"
+      }
+    ]
+  }
+}

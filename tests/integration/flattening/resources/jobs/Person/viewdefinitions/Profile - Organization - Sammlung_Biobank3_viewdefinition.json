@@ -1,0 +1,115 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "Profile - Organization - Sammlung/Biobank3",
+  "status": "draft",
+  "resource": "Organization",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Organization_identifierBbmriericid_assigner_reference",
+                      "path": "reference",
+                      "type": "string"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "assigner"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Organization_identifierBbmriericid_period_end",
+                      "path": "end",
+                      "type": "dateTime"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Organization_identifierBbmriericid_period_start",
+                      "path": "start",
+                      "type": "dateTime"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "period"
+            },
+            {
+              "column": [
+                {
+                  "name": "Organization_identifierBbmriericid_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Organization_identifierBbmriericid_type_coding_system",
+                      "path": "system",
+                      "type": "uri"
+                    },
+                    {
+                      "name": "Organization_identifierBbmriericid_type_coding_code",
+                      "path": "code",
+                      "type": "code"
+                    },
+                    {
+                      "name": "Organization_identifierBbmriericid_type_coding_version",
+                      "path": "version",
+                      "type": "string"
+                    }
+                  ],
+                  "forEachOrNull": "coding"
+                }
+              ],
+              "forEachOrNull": "type"
+            },
+            {
+              "column": [
+                {
+                  "name": "Organization_identifierBbmriericid_use",
+                  "path": "use",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Organization_identifierBbmriericid_value",
+                  "path": "value",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "$this.where(system = 'http://www.bbmri-eric.eu/')"
+        }
+      ],
+      "forEachOrNull": "identifier"
+    }
+  ]
+}

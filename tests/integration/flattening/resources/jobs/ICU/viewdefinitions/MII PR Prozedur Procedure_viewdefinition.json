@@ -1,0 +1,201 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "MII PR Prozedur Procedure",
+  "status": "draft",
+  "resource": "Procedure",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        },
+        {
+          "name": "patient",
+          "path": "subject.reference"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Procedure_bodySite_codingSnomedct_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Procedure_bodySite_codingSnomedct_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Procedure_bodySite_codingSnomedct_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://snomed.info/sct')"
+        }
+      ],
+      "forEachOrNull": "bodySite"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Procedure_code_codingOps_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "select": [
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "Procedure_code_codingOps_extensionSeitenlokalisation_value_X_Valuecoding_system",
+                          "path": "system",
+                          "type": "uri"
+                        },
+                        {
+                          "name": "Procedure_code_codingOps_extensionSeitenlokalisation_value_X_Valuecoding_code",
+                          "path": "code",
+                          "type": "code"
+                        },
+                        {
+                          "name": "Procedure_code_codingOps_extensionSeitenlokalisation_value_X_Valuecoding_version",
+                          "path": "version",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "value.ofType(Coding)"
+                }
+              ],
+              "forEachOrNull": "extension.where(url = 'http://fhir.de/StructureDefinition/seitenlokalisation')"
+            },
+            {
+              "column": [
+                {
+                  "name": "Procedure_code_codingOps_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Procedure_code_codingOps_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://fhir.de/CodeSystem/bfarm/ops')"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Procedure_code_codingSct_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Procedure_code_codingSct_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Procedure_code_codingSct_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://snomed.info/sct')"
+        }
+      ],
+      "forEachOrNull": "code"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Procedure_performed_X_Performeddatetime",
+              "path": "$this",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "performed.ofType(dateTime)"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Procedure_performed_X_Performedperiod_end",
+              "path": "end",
+              "type": "dateTime"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "Procedure_performed_X_Performedperiod_start",
+              "path": "start",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "performed.ofType(Period)"
+    },
+    {
+      "column": [
+        {
+          "name": "Procedure_status",
+          "path": "status",
+          "type": "code"
+        }
+      ]
+    }
+  ]
+}

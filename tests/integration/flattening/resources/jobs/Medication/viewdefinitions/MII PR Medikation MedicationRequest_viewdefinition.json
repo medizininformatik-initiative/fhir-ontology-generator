@@ -1,0 +1,2135 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "MII PR Medikation MedicationRequest",
+  "status": "draft",
+  "resource": "MedicationRequest",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        },
+        {
+          "name": "patient",
+          "path": "subject.reference"
+        }
+      ]
+    },
+    {
+      "column": [
+        {
+          "name": "MedicationRequest_authoredOn",
+          "path": "authoredOn",
+          "type": "dateTime"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_identifier_assigner_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "assigner"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_identifier_period_end",
+                  "path": "end",
+                  "type": "dateTime"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_identifier_period_start",
+                  "path": "start",
+                  "type": "dateTime"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "period"
+        },
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_identifier_system",
+              "path": "system",
+              "type": "uri"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_identifier_type_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "MedicationRequest_identifier_type_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "MedicationRequest_identifier_type_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "type"
+        },
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_identifier_use",
+              "path": "use",
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_identifier_value",
+              "path": "value",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "identifier"
+    },
+    {
+      "column": [
+        {
+          "name": "MedicationRequest_intent",
+          "path": "intent",
+          "type": "code"
+        }
+      ]
+    },
+    {
+      "column": [
+        {
+          "name": "MedicationRequest_status",
+          "path": "status",
+          "type": "code"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_category_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "MedicationRequest_category_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "MedicationRequest_category_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "category"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_courseOfTherapyType_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "MedicationRequest_courseOfTherapyType_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "MedicationRequest_courseOfTherapyType_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "courseOfTherapyType"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dispenseRequest_dispenseInterval_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dispenseRequest_dispenseInterval_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dispenseRequest_dispenseInterval_value",
+                  "path": "value",
+                  "type": "decimal"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "dispenseInterval"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dispenseRequest_expectedSupplyDuration_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dispenseRequest_expectedSupplyDuration_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dispenseRequest_expectedSupplyDuration_value",
+                  "path": "value",
+                  "type": "decimal"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "expectedSupplyDuration"
+        },
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dispenseRequest_initialFill_duration_code",
+                      "path": "code",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dispenseRequest_initialFill_duration_system",
+                      "path": "system",
+                      "type": "uri"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dispenseRequest_initialFill_duration_value",
+                      "path": "value",
+                      "type": "decimal"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "duration"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dispenseRequest_initialFill_quantity_code",
+                      "path": "code",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dispenseRequest_initialFill_quantity_comparator",
+                      "path": "comparator",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dispenseRequest_initialFill_quantity_system",
+                      "path": "system",
+                      "type": "uri"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dispenseRequest_initialFill_quantity_unit",
+                      "path": "unit",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dispenseRequest_initialFill_quantity_value",
+                      "path": "value",
+                      "type": "decimal"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "quantity"
+            }
+          ],
+          "forEachOrNull": "initialFill"
+        },
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_dispenseRequest_numberOfRepeatsAllowed",
+              "path": "numberOfRepeatsAllowed",
+              "type": "unsignedInt"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dispenseRequest_performer_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "performer"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dispenseRequest_quantity_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dispenseRequest_quantity_comparator",
+                  "path": "comparator",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dispenseRequest_quantity_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dispenseRequest_quantity_unit",
+                  "path": "unit",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dispenseRequest_quantity_value",
+                  "path": "value",
+                  "type": "decimal"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "quantity"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dispenseRequest_validityPeriod_end",
+                  "path": "end",
+                  "type": "dateTime"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dispenseRequest_validityPeriod_start",
+                  "path": "start",
+                  "type": "dateTime"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "validityPeriod"
+        }
+      ],
+      "forEachOrNull": "dispenseRequest"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dosageInstruction_additionalInstruction_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "MedicationRequest_dosageInstruction_additionalInstruction_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "MedicationRequest_dosageInstruction_additionalInstruction_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "additionalInstruction"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dosageInstruction_asNeeded_X_Asneededboolean",
+                  "path": "$this",
+                  "type": "boolean"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "asNeeded.ofType(boolean)"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dosageInstruction_asNeeded_X_Asneededcodeableconcept_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "MedicationRequest_dosageInstruction_asNeeded_X_Asneededcodeableconcept_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "MedicationRequest_dosageInstruction_asNeeded_X_Asneededcodeableconcept_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "asNeeded.ofType(CodeableConcept)"
+        },
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_doseAndRate_dose_X_Dosequantity_code",
+                      "path": "code",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_doseAndRate_dose_X_Dosequantity_comparator",
+                      "path": "comparator",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_doseAndRate_dose_X_Dosequantity_system",
+                      "path": "system",
+                      "type": "uri"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_doseAndRate_dose_X_Dosequantity_unit",
+                      "path": "unit",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_doseAndRate_dose_X_Dosequantity_value",
+                      "path": "value",
+                      "type": "decimal"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "dose.ofType(Quantity)"
+            },
+            {
+              "select": [
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_dose_X_Doserange_high_code",
+                          "path": "code",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_dose_X_Doserange_high_comparator",
+                          "path": "comparator",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_dose_X_Doserange_high_system",
+                          "path": "system",
+                          "type": "uri"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_dose_X_Doserange_high_unit",
+                          "path": "unit",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_dose_X_Doserange_high_value",
+                          "path": "value",
+                          "type": "decimal"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "high"
+                },
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_dose_X_Doserange_low_code",
+                          "path": "code",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_dose_X_Doserange_low_comparator",
+                          "path": "comparator",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_dose_X_Doserange_low_system",
+                          "path": "system",
+                          "type": "uri"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_dose_X_Doserange_low_unit",
+                          "path": "unit",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_dose_X_Doserange_low_value",
+                          "path": "value",
+                          "type": "decimal"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "low"
+                }
+              ],
+              "forEachOrNull": "dose.ofType(Range)"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Ratequantity_code",
+                      "path": "code",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Ratequantity_comparator",
+                      "path": "comparator",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Ratequantity_system",
+                      "path": "system",
+                      "type": "uri"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Ratequantity_unit",
+                      "path": "unit",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Ratequantity_value",
+                      "path": "value",
+                      "type": "decimal"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "rate.ofType(Quantity)"
+            },
+            {
+              "select": [
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Raterange_high_code",
+                          "path": "code",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Raterange_high_comparator",
+                          "path": "comparator",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Raterange_high_system",
+                          "path": "system",
+                          "type": "uri"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Raterange_high_unit",
+                          "path": "unit",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Raterange_high_value",
+                          "path": "value",
+                          "type": "decimal"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "high"
+                },
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Raterange_low_code",
+                          "path": "code",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Raterange_low_comparator",
+                          "path": "comparator",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Raterange_low_system",
+                          "path": "system",
+                          "type": "uri"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Raterange_low_unit",
+                          "path": "unit",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Raterange_low_value",
+                          "path": "value",
+                          "type": "decimal"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "low"
+                }
+              ],
+              "forEachOrNull": "rate.ofType(Range)"
+            },
+            {
+              "select": [
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Rateratio_denominator_code",
+                          "path": "code",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Rateratio_denominator_comparator",
+                          "path": "comparator",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Rateratio_denominator_system",
+                          "path": "system",
+                          "type": "uri"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Rateratio_denominator_unit",
+                          "path": "unit",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Rateratio_denominator_value",
+                          "path": "value",
+                          "type": "decimal"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "denominator"
+                },
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Rateratio_numerator_code",
+                          "path": "code",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Rateratio_numerator_comparator",
+                          "path": "comparator",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Rateratio_numerator_system",
+                          "path": "system",
+                          "type": "uri"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Rateratio_numerator_unit",
+                          "path": "unit",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_doseAndRate_rate_X_Rateratio_numerator_value",
+                          "path": "value",
+                          "type": "decimal"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "numerator"
+                }
+              ],
+              "forEachOrNull": "rate.ofType(Ratio)"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_doseAndRate_type_coding_system",
+                      "path": "system",
+                      "type": "uri"
+                    },
+                    {
+                      "name": "MedicationRequest_dosageInstruction_doseAndRate_type_coding_code",
+                      "path": "code",
+                      "type": "code"
+                    },
+                    {
+                      "name": "MedicationRequest_dosageInstruction_doseAndRate_type_coding_version",
+                      "path": "version",
+                      "type": "string"
+                    }
+                  ],
+                  "forEachOrNull": "coding"
+                }
+              ],
+              "forEachOrNull": "type"
+            }
+          ],
+          "forEachOrNull": "doseAndRate"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dosageInstruction_maxDosePerAdministration_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dosageInstruction_maxDosePerAdministration_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dosageInstruction_maxDosePerAdministration_value",
+                  "path": "value",
+                  "type": "decimal"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "maxDosePerAdministration"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dosageInstruction_maxDosePerLifetime_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dosageInstruction_maxDosePerLifetime_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dosageInstruction_maxDosePerLifetime_value",
+                  "path": "value",
+                  "type": "decimal"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "maxDosePerLifetime"
+        },
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_maxDosePerPeriod_denominator_code",
+                      "path": "code",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_maxDosePerPeriod_denominator_comparator",
+                      "path": "comparator",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_maxDosePerPeriod_denominator_system",
+                      "path": "system",
+                      "type": "uri"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_maxDosePerPeriod_denominator_unit",
+                      "path": "unit",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_maxDosePerPeriod_denominator_value",
+                      "path": "value",
+                      "type": "decimal"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "denominator"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_maxDosePerPeriod_numerator_code",
+                      "path": "code",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_maxDosePerPeriod_numerator_comparator",
+                      "path": "comparator",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_maxDosePerPeriod_numerator_system",
+                      "path": "system",
+                      "type": "uri"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_maxDosePerPeriod_numerator_unit",
+                      "path": "unit",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_maxDosePerPeriod_numerator_value",
+                      "path": "value",
+                      "type": "decimal"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "numerator"
+            }
+          ],
+          "forEachOrNull": "maxDosePerPeriod"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_dosageInstruction_method_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "MedicationRequest_dosageInstruction_method_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "MedicationRequest_dosageInstruction_method_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "method"
+        },
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_dosageInstruction_patientInstruction",
+              "path": "patientInstruction",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_route_codingEdqm_code",
+                      "path": "code",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_route_codingEdqm_system",
+                      "path": "system",
+                      "type": "uri"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_route_codingEdqm_version",
+                      "path": "version",
+                      "type": "string"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "coding.where(system = 'http://standardterms.edqm.eu')"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_route_codingSnomed_code",
+                      "path": "code",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_route_codingSnomed_system",
+                      "path": "system",
+                      "type": "uri"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_route_codingSnomed_version",
+                      "path": "version",
+                      "type": "string"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "coding.where(system = 'http://snomed.info/sct')"
+            }
+          ],
+          "forEachOrNull": "route"
+        },
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_dosageInstruction_sequence",
+              "path": "sequence",
+              "type": "integer"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_site_codingSnomed_code",
+                      "path": "code",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_site_codingSnomed_system",
+                      "path": "system",
+                      "type": "uri"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_site_codingSnomed_version",
+                      "path": "version",
+                      "type": "string"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "coding.where(system = 'http://snomed.info/sct')"
+            }
+          ],
+          "forEachOrNull": "site"
+        },
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_dosageInstruction_text",
+              "path": "text",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_timing_code_coding_system",
+                      "path": "system",
+                      "type": "uri"
+                    },
+                    {
+                      "name": "MedicationRequest_dosageInstruction_timing_code_coding_code",
+                      "path": "code",
+                      "type": "code"
+                    },
+                    {
+                      "name": "MedicationRequest_dosageInstruction_timing_code_coding_version",
+                      "path": "version",
+                      "type": "string"
+                    }
+                  ],
+                  "forEachOrNull": "coding"
+                }
+              ],
+              "forEachOrNull": "code"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_timing_event",
+                      "path": "$this",
+                      "type": "dateTime"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "event"
+            },
+            {
+              "select": [
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_timing_repeat_bounds_X_Boundsduration_code",
+                          "path": "code",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_timing_repeat_bounds_X_Boundsduration_system",
+                          "path": "system",
+                          "type": "uri"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_timing_repeat_bounds_X_Boundsduration_value",
+                          "path": "value",
+                          "type": "decimal"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "bounds.ofType(Duration)"
+                },
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_timing_repeat_bounds_X_Boundsperiod_end",
+                          "path": "end",
+                          "type": "dateTime"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_timing_repeat_bounds_X_Boundsperiod_start",
+                          "path": "start",
+                          "type": "dateTime"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "bounds.ofType(Period)"
+                },
+                {
+                  "select": [
+                    {
+                      "select": [
+                        {
+                          "column": [
+                            {
+                              "name": "MedicationRequest_dosageInstruction_timing_repeat_bounds_X_Boundsrange_high_code",
+                              "path": "code",
+                              "type": "code"
+                            }
+                          ]
+                        },
+                        {
+                          "column": [
+                            {
+                              "name": "MedicationRequest_dosageInstruction_timing_repeat_bounds_X_Boundsrange_high_comparator",
+                              "path": "comparator",
+                              "type": "code"
+                            }
+                          ]
+                        },
+                        {
+                          "column": [
+                            {
+                              "name": "MedicationRequest_dosageInstruction_timing_repeat_bounds_X_Boundsrange_high_system",
+                              "path": "system",
+                              "type": "uri"
+                            }
+                          ]
+                        },
+                        {
+                          "column": [
+                            {
+                              "name": "MedicationRequest_dosageInstruction_timing_repeat_bounds_X_Boundsrange_high_unit",
+                              "path": "unit",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "column": [
+                            {
+                              "name": "MedicationRequest_dosageInstruction_timing_repeat_bounds_X_Boundsrange_high_value",
+                              "path": "value",
+                              "type": "decimal"
+                            }
+                          ]
+                        }
+                      ],
+                      "forEachOrNull": "high"
+                    },
+                    {
+                      "select": [
+                        {
+                          "column": [
+                            {
+                              "name": "MedicationRequest_dosageInstruction_timing_repeat_bounds_X_Boundsrange_low_code",
+                              "path": "code",
+                              "type": "code"
+                            }
+                          ]
+                        },
+                        {
+                          "column": [
+                            {
+                              "name": "MedicationRequest_dosageInstruction_timing_repeat_bounds_X_Boundsrange_low_comparator",
+                              "path": "comparator",
+                              "type": "code"
+                            }
+                          ]
+                        },
+                        {
+                          "column": [
+                            {
+                              "name": "MedicationRequest_dosageInstruction_timing_repeat_bounds_X_Boundsrange_low_system",
+                              "path": "system",
+                              "type": "uri"
+                            }
+                          ]
+                        },
+                        {
+                          "column": [
+                            {
+                              "name": "MedicationRequest_dosageInstruction_timing_repeat_bounds_X_Boundsrange_low_unit",
+                              "path": "unit",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "column": [
+                            {
+                              "name": "MedicationRequest_dosageInstruction_timing_repeat_bounds_X_Boundsrange_low_value",
+                              "path": "value",
+                              "type": "decimal"
+                            }
+                          ]
+                        }
+                      ],
+                      "forEachOrNull": "low"
+                    }
+                  ],
+                  "forEachOrNull": "bounds.ofType(Range)"
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_timing_repeat_count",
+                      "path": "count",
+                      "type": "positiveInt"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_timing_repeat_countMax",
+                      "path": "countMax",
+                      "type": "positiveInt"
+                    }
+                  ]
+                },
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_timing_repeat_dayOfWeek",
+                          "path": "$this",
+                          "type": "code"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "dayOfWeek"
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_timing_repeat_duration",
+                      "path": "duration",
+                      "type": "decimal"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_timing_repeat_durationMax",
+                      "path": "durationMax",
+                      "type": "decimal"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_timing_repeat_durationUnit",
+                      "path": "durationUnit",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_timing_repeat_frequency",
+                      "path": "frequency",
+                      "type": "positiveInt"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_timing_repeat_frequencyMax",
+                      "path": "frequencyMax",
+                      "type": "positiveInt"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_timing_repeat_offset",
+                      "path": "offset",
+                      "type": "unsignedInt"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_timing_repeat_period",
+                      "path": "period",
+                      "type": "decimal"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_timing_repeat_periodMax",
+                      "path": "periodMax",
+                      "type": "decimal"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "MedicationRequest_dosageInstruction_timing_repeat_periodUnit",
+                      "path": "periodUnit",
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_timing_repeat_timeOfDay",
+                          "path": "$this",
+                          "type": "time"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "timeOfDay"
+                },
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "MedicationRequest_dosageInstruction_timing_repeat_when",
+                          "path": "$this",
+                          "type": "code"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "when"
+                }
+              ],
+              "forEachOrNull": "repeat"
+            }
+          ],
+          "forEachOrNull": "timing"
+        }
+      ],
+      "forEachOrNull": "dosageInstruction"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_groupIdentifier_assigner_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "assigner"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_groupIdentifier_period_end",
+                  "path": "end",
+                  "type": "dateTime"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_groupIdentifier_period_start",
+                  "path": "start",
+                  "type": "dateTime"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "period"
+        },
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_groupIdentifier_system",
+              "path": "system",
+              "type": "uri"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_groupIdentifier_type_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "MedicationRequest_groupIdentifier_type_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "MedicationRequest_groupIdentifier_type_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "type"
+        },
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_groupIdentifier_use",
+              "path": "use",
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_groupIdentifier_value",
+              "path": "value",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "groupIdentifier"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_instantiatesCanonical",
+              "path": "$this",
+              "type": "canonical"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "instantiatesCanonical"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_instantiatesUri",
+              "path": "$this",
+              "type": "uri"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "instantiatesUri"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_note_author_X_Authorreference_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "author.ofType(Reference)"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_note_author_X_Authorstring",
+                  "path": "$this",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "author.ofType(string)"
+        },
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_note_text",
+              "path": "text",
+              "type": "markdown"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_note_time",
+              "path": "time",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "note"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_performerType_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "MedicationRequest_performerType_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "MedicationRequest_performerType_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "performerType"
+    },
+    {
+      "column": [
+        {
+          "name": "MedicationRequest_priority",
+          "path": "priority",
+          "type": "code"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_reasonCode_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "MedicationRequest_reasonCode_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "MedicationRequest_reasonCode_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "reasonCode"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_statusReason_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "MedicationRequest_statusReason_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "MedicationRequest_statusReason_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "statusReason"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_substitution_allowed_X_Allowedboolean",
+                  "path": "$this",
+                  "type": "boolean"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "allowed.ofType(boolean)"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_substitution_allowed_X_Allowedcodeableconcept_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "MedicationRequest_substitution_allowed_X_Allowedcodeableconcept_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "MedicationRequest_substitution_allowed_X_Allowedcodeableconcept_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "allowed.ofType(CodeableConcept)"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_substitution_reason_coding_system",
+                  "path": "system",
+                  "type": "uri"
+                },
+                {
+                  "name": "MedicationRequest_substitution_reason_coding_code",
+                  "path": "code",
+                  "type": "code"
+                },
+                {
+                  "name": "MedicationRequest_substitution_reason_coding_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ],
+              "forEachOrNull": "coding"
+            }
+          ],
+          "forEachOrNull": "reason"
+        }
+      ],
+      "forEachOrNull": "substitution"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_medication_X_Medicationcodeableconcept_codingPharmazentralnummer_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_medication_X_Medicationcodeableconcept_codingPharmazentralnummer_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_medication_X_Medicationcodeableconcept_codingPharmazentralnummer_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://fhir.de/CodeSystem/ifa/pzn')"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_medication_X_Medicationcodeableconcept_codingUnii_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_medication_X_Medicationcodeableconcept_codingUnii_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_medication_X_Medicationcodeableconcept_codingUnii_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://fdasis.nlm.nih.gov')"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_medication_X_Medicationcodeableconcept_codingAtcclassde_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_medication_X_Medicationcodeableconcept_codingAtcclassde_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_medication_X_Medicationcodeableconcept_codingAtcclassde_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://fhir.de/CodeSystem/bfarm/atc')"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_medication_X_Medicationcodeableconcept_codingAtcclassen_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_medication_X_Medicationcodeableconcept_codingAtcclassen_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "MedicationRequest_medication_X_Medicationcodeableconcept_codingAtcclassen_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://www.whocc.no/atc')"
+        }
+      ],
+      "forEachOrNull": "medication.ofType(CodeableConcept)"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_medication_X_Medicationreference_reference",
+              "path": "reference",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "medication.ofType(Reference)"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_priorPrescription_reference",
+              "path": "reference",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "priorPrescription"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "MedicationRequest_supportingInformation_reference",
+              "path": "reference",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "supportingInformation"
+    }
+  ]
+}

@@ -1,0 +1,232 @@
+{
+  "version": "http://json-schema.org/to-be-done/schema#",
+  "display": "",
+  "cohortDefinition": {
+    "version": "http://to_be_decided.com/draft-1/schema#",
+    "display": "Ausgewählte Merkmale",
+    "inclusionCriteria": [
+      [
+        {
+          "termCodes": [
+            {
+              "code": "263495000",
+              "display": "Geschlecht",
+              "system": "http://snomed.info/sct",
+              "version": ""
+            }
+          ],
+          "context": {
+            "code": "Patient",
+            "display": "Patient",
+            "system": "fdpg.mii.cds",
+            "version": "1.0.0"
+          },
+          "valueFilter": {
+            "selectedConcepts": [
+              {
+                "code": "female",
+                "display": "Female",
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "version": "2099"
+              },
+              {
+                "code": "male",
+                "display": "Male",
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "version": "2099"
+              },
+              {
+                "code": "other",
+                "display": "Other",
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "version": "2099"
+              },
+              {
+                "code": "unknown",
+                "display": "Unknown",
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "version": "2099"
+              }
+            ],
+            "type": "concept"
+          }
+        }
+      ]
+    ]
+  },
+  "dataExtraction": {
+    "attributeGroups": [
+      {
+        "attributes": [
+          { "attributeRef": "Patient.deceased[x]", "mustHave": false },
+          { "attributeRef": "Patient.identifier", "mustHave": false }
+        ],
+        "id": "578af4ba-a9f9-4361-839f-255d639056b2",
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/PatientPseudonymisiert",
+        "name": "MII PR Person Patient (Pseudonymisiert)"
+      },
+      {
+        "attributes": [
+          { "attributeRef": "Encounter.class", "mustHave": false },
+          { "attributeRef": "Encounter.identifier", "mustHave": false },
+          { "attributeRef": "Encounter.period", "mustHave": false },
+          { "attributeRef": "Encounter.serviceType", "mustHave": false },
+          { "attributeRef": "Encounter.status", "mustHave": false },
+          { "attributeRef": "Encounter.type", "mustHave": false },
+          { "attributeRef": "Encounter.classHistory", "mustHave": false },
+          { "attributeRef": "Encounter.diagnosis", "mustHave": false },
+          {
+            "attributeRef": "Encounter.extension:Aufnahmegrund",
+            "mustHave": false
+          },
+          {
+            "attributeRef": "Encounter.extension:plannedStartDate",
+            "mustHave": false
+          },
+          {
+            "attributeRef": "Encounter.extension:plannedEndDate",
+            "mustHave": false
+          },
+          { "attributeRef": "Encounter.hospitalization", "mustHave": false },
+          { "attributeRef": "Encounter.length", "mustHave": false },
+          { "attributeRef": "Encounter.location", "mustHave": false },
+          { "attributeRef": "Encounter.participant", "mustHave": false },
+          { "attributeRef": "Encounter.priority", "mustHave": false },
+          { "attributeRef": "Encounter.reasonCode", "mustHave": false },
+          { "attributeRef": "Encounter.statusHistory", "mustHave": false },
+          { "attributeRef": "Encounter.text", "mustHave": false },
+          {
+            "attributeRef": "Encounter.basedOn",
+            "mustHave": false,
+            "linkedGroups": ["49e137be-1b08-4fcc-aa10-f0716f1f0827"]
+          },
+          {
+            "attributeRef": "Encounter.diagnosis.condition",
+            "mustHave": false,
+            "linkedGroups": ["72188a99-1925-4c94-a223-85c6e6087fa3"]
+          },
+          {
+            "attributeRef": "Encounter.hospitalization.destination",
+            "mustHave": false,
+            "linkedGroups": ["f2ac14b9-1ae7-4075-8d53-f37f3793340a"]
+          },
+          {
+            "attributeRef": "Encounter.hospitalization.origin",
+            "mustHave": false,
+            "linkedGroups": ["98b725ea-ba9d-444c-b256-008165cb8587"]
+          },
+          {
+            "attributeRef": "Encounter.partOf",
+            "mustHave": false,
+            "linkedGroups": ["c07b4201-3f68-4f31-90fd-546c2518e50a"]
+          },
+          {
+            "attributeRef": "Encounter.participant.individual",
+            "mustHave": false,
+            "linkedGroups": ["cde623bc-de5b-4786-a522-1f344d07067f"]
+          },
+          {
+            "attributeRef": "Encounter.reasonReference",
+            "mustHave": false,
+            "linkedGroups": ["ae51fc7e-44b9-455a-b2bb-f63e40a27937"]
+          },
+          {
+            "attributeRef": "Encounter.serviceProvider",
+            "mustHave": false,
+            "linkedGroups": ["6d7ae3ce-8d93-475f-b926-a681e97ae31c"]
+          }
+        ],
+        "id": "40ae531c-6e27-494b-8460-f7f160dd4dc3",
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung",
+        "name": "MII PR Fall Kontakt mit einer Gesundheitseinrichtung2"
+      },
+      {
+        "attributes": [
+          { "attributeRef": "ServiceRequest.identifier", "mustHave": false }
+        ],
+        "id": "49e137be-1b08-4fcc-aa10-f0716f1f0827",
+        "includeReferenceOnly": true,
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ServiceRequestLab",
+        "name": "MII PR Labor Laboranforderung"
+      },
+      {
+        "attributes": [
+          { "attributeRef": "Condition.abatement[x]", "mustHave": false },
+          { "attributeRef": "Condition.clinicalStatus", "mustHave": false },
+          { "attributeRef": "Condition.code", "mustHave": false },
+          { "attributeRef": "Condition.onset[x]", "mustHave": false },
+          { "attributeRef": "Condition.recordedDate", "mustHave": false },
+          { "attributeRef": "Condition.verificationStatus", "mustHave": false }
+        ],
+        "id": "72188a99-1925-4c94-a223-85c6e6087fa3",
+        "includeReferenceOnly": true,
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose",
+        "name": "MII PR Diagnose Condition"
+      },
+      {
+        "attributes": [
+          { "attributeRef": "Organization.identifier", "mustHave": false }
+        ],
+        "id": "f2ac14b9-1ae7-4075-8d53-f37f3793340a",
+        "includeReferenceOnly": true,
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Organization",
+        "name": "Profile - Organization - Sammlung/Biobank3"
+      },
+      {
+        "attributes": [
+          { "attributeRef": "Organization.identifier", "mustHave": false }
+        ],
+        "id": "98b725ea-ba9d-444c-b256-008165cb8587",
+        "includeReferenceOnly": true,
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Organization",
+        "name": "Profile - Organization - Sammlung/Biobank2"
+      },
+      {
+        "attributes": [
+          { "attributeRef": "Encounter.class", "mustHave": false },
+          { "attributeRef": "Encounter.identifier", "mustHave": false },
+          { "attributeRef": "Encounter.period", "mustHave": false },
+          { "attributeRef": "Encounter.serviceType", "mustHave": false },
+          { "attributeRef": "Encounter.status", "mustHave": false },
+          { "attributeRef": "Encounter.type", "mustHave": false }
+        ],
+        "id": "c07b4201-3f68-4f31-90fd-546c2518e50a",
+        "includeReferenceOnly": true,
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung",
+        "name": "MII PR Fall Kontakt mit einer Gesundheitseinrichtung1"
+      },
+      {
+        "attributes": [
+          { "attributeRef": "PractitionerRole.active", "mustHave": false }
+        ],
+        "id": "cde623bc-de5b-4786-a522-1f344d07067f",
+        "includeReferenceOnly": true,
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/modul-studie/StructureDefinition/mii-pr-studie-beteiligte-person",
+        "name": "MII PR Studie Beteiligte Person"
+      },
+      {
+        "attributes": [
+          { "attributeRef": "Condition.abatement[x]", "mustHave": false },
+          { "attributeRef": "Condition.clinicalStatus", "mustHave": false },
+          { "attributeRef": "Condition.code", "mustHave": false },
+          { "attributeRef": "Condition.onset[x]", "mustHave": false },
+          { "attributeRef": "Condition.recordedDate", "mustHave": false },
+          { "attributeRef": "Condition.verificationStatus", "mustHave": false }
+        ],
+        "id": "ae51fc7e-44b9-455a-b2bb-f63e40a27937",
+        "includeReferenceOnly": true,
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose",
+        "name": "Diagnose_2"
+      },
+      {
+        "attributes": [
+          { "attributeRef": "Organization.identifier", "mustHave": false }
+        ],
+        "id": "6d7ae3ce-8d93-475f-b926-a681e97ae31c",
+        "includeReferenceOnly": true,
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Organization",
+        "name": "Profile - Organization - Sammlung/Biobank1"
+      }
+    ]
+  }
+}

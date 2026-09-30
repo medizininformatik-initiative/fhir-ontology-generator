@@ -1,0 +1,436 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "MII PR Labor Laborbefund",
+  "status": "draft",
+  "resource": "DiagnosticReport",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        },
+        {
+          "name": "patient",
+          "path": "subject.reference"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "DiagnosticReport_identifierBefund_assigner_reference",
+                      "path": "reference",
+                      "type": "string"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "assigner"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "DiagnosticReport_identifierBefund_period_end",
+                      "path": "end",
+                      "type": "dateTime"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "DiagnosticReport_identifierBefund_period_start",
+                      "path": "start",
+                      "type": "dateTime"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "period"
+            },
+            {
+              "column": [
+                {
+                  "name": "DiagnosticReport_identifierBefund_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "select": [
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "DiagnosticReport_identifierBefund_type_codingFillerv2_code",
+                          "path": "code",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "DiagnosticReport_identifierBefund_type_codingFillerv2_system",
+                          "path": "system",
+                          "type": "uri"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "DiagnosticReport_identifierBefund_type_codingFillerv2_version",
+                          "path": "version",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "coding.where(system = 'http://terminology.hl7.org/CodeSystem/v2-0203' and code = 'FILL')"
+                }
+              ],
+              "forEachOrNull": "type"
+            },
+            {
+              "column": [
+                {
+                  "name": "DiagnosticReport_identifierBefund_use",
+                  "path": "use",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DiagnosticReport_identifierBefund_value",
+                  "path": "value",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "$this.where(type.coding.exists(system = 'http://terminology.hl7.org/CodeSystem/v2-0203' and code = 'FILL'))"
+        }
+      ],
+      "forEachOrNull": "identifier"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DiagnosticReport_category_codingDiagnosticservicesections_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DiagnosticReport_category_codingDiagnosticservicesections_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DiagnosticReport_category_codingDiagnosticservicesections_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://terminology.hl7.org/CodeSystem/v2-0074' and code = 'LAB')"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DiagnosticReport_category_codingLoinclab_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DiagnosticReport_category_codingLoinclab_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DiagnosticReport_category_codingLoinclab_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://loinc.org' and code = '26436-6')"
+        }
+      ],
+      "forEachOrNull": "category"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DiagnosticReport_code_codingLoinclabreport_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DiagnosticReport_code_codingLoinclabreport_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "DiagnosticReport_code_codingLoinclabreport_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://loinc.org' and code = '11502-2')"
+        }
+      ],
+      "forEachOrNull": "code"
+    },
+    {
+      "column": [
+        {
+          "name": "DiagnosticReport_conclusion",
+          "path": "conclusion",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "DiagnosticReport_conclusionCode_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "DiagnosticReport_conclusionCode_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "DiagnosticReport_conclusionCode_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "conclusionCode"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "DiagnosticReport_effective_X_Effectivedatetime",
+              "path": "$this",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "effective.ofType(dateTime)"
+    },
+    {
+      "column": [
+        {
+          "name": "DiagnosticReport_issued",
+          "path": "issued",
+          "type": "instant"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "DiagnosticReport_media_comment",
+              "path": "comment",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "DiagnosticReport_media_link_reference",
+                  "path": "reference",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "link"
+        }
+      ],
+      "forEachOrNull": "media"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "DiagnosticReport_presentedForm_contentType",
+              "path": "contentType",
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "DiagnosticReport_presentedForm_creation",
+              "path": "creation",
+              "type": "dateTime"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "DiagnosticReport_presentedForm_data",
+              "path": "data",
+              "type": "base64Binary"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "DiagnosticReport_presentedForm_hash",
+              "path": "hash",
+              "type": "base64Binary"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "DiagnosticReport_presentedForm_language",
+              "path": "language",
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "DiagnosticReport_presentedForm_size",
+              "path": "size",
+              "type": "unsignedInt"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "DiagnosticReport_presentedForm_title",
+              "path": "title",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "DiagnosticReport_presentedForm_url",
+              "path": "url",
+              "type": "url"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "presentedForm"
+    },
+    {
+      "column": [
+        {
+          "name": "DiagnosticReport_status",
+          "path": "status",
+          "type": "code"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "DiagnosticReport_basedOn_reference",
+              "path": "reference",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "basedOn"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "DiagnosticReport_result_reference",
+              "path": "reference",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "result"
+    }
+  ]
+}

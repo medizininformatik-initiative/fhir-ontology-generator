@@ -1,0 +1,586 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "Diagnose_Primär",
+  "status": "draft",
+  "resource": "Condition",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        },
+        {
+          "name": "patient",
+          "path": "subject.reference"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Condition_abatement_X_Abatementage_code",
+              "path": "code",
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "Condition_abatement_X_Abatementage_system",
+              "path": "system",
+              "type": "uri"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "Condition_abatement_X_Abatementage_value",
+              "path": "value",
+              "type": "decimal"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "abatement.ofType(Age)"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Condition_abatement_X_Abatementdatetime",
+              "path": "$this",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "abatement.ofType(dateTime)"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Condition_abatement_X_Abatementperiod_end",
+              "path": "end",
+              "type": "dateTime"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "Condition_abatement_X_Abatementperiod_start",
+              "path": "start",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "abatement.ofType(Period)"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Condition_abatement_X_Abatementrange_high_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Condition_abatement_X_Abatementrange_high_comparator",
+                  "path": "comparator",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Condition_abatement_X_Abatementrange_high_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Condition_abatement_X_Abatementrange_high_unit",
+                  "path": "unit",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Condition_abatement_X_Abatementrange_high_value",
+                  "path": "value",
+                  "type": "decimal"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "high"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Condition_abatement_X_Abatementrange_low_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Condition_abatement_X_Abatementrange_low_comparator",
+                  "path": "comparator",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Condition_abatement_X_Abatementrange_low_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Condition_abatement_X_Abatementrange_low_unit",
+                  "path": "unit",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Condition_abatement_X_Abatementrange_low_value",
+                  "path": "value",
+                  "type": "decimal"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "low"
+        }
+      ],
+      "forEachOrNull": "abatement.ofType(Range)"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Condition_abatement_X_Abatementstring",
+              "path": "$this",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "abatement.ofType(string)"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Condition_clinicalStatus_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Condition_clinicalStatus_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Condition_clinicalStatus_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "clinicalStatus"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Condition_code_codingAlphaid_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Condition_code_codingAlphaid_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Condition_code_codingAlphaid_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://fhir.de/CodeSystem/bfarm/alpha-id')"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Condition_code_codingIcd10gm_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "select": [
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "Condition_code_codingIcd10gm_extensionDiagnosesicherheit_value_X_Valuecoding_system",
+                          "path": "system",
+                          "type": "uri"
+                        },
+                        {
+                          "name": "Condition_code_codingIcd10gm_extensionDiagnosesicherheit_value_X_Valuecoding_code",
+                          "path": "code",
+                          "type": "code"
+                        },
+                        {
+                          "name": "Condition_code_codingIcd10gm_extensionDiagnosesicherheit_value_X_Valuecoding_version",
+                          "path": "version",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "value.ofType(Coding)"
+                }
+              ],
+              "forEachOrNull": "extension.where(url = 'http://fhir.de/StructureDefinition/icd-10-gm-diagnosesicherheit')"
+            },
+            {
+              "select": [
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "Condition_code_codingIcd10gm_extensionMehrfachcodierungskennzeichen_value_X_Valuecoding_system",
+                          "path": "system",
+                          "type": "uri"
+                        },
+                        {
+                          "name": "Condition_code_codingIcd10gm_extensionMehrfachcodierungskennzeichen_value_X_Valuecoding_code",
+                          "path": "code",
+                          "type": "code"
+                        },
+                        {
+                          "name": "Condition_code_codingIcd10gm_extensionMehrfachcodierungskennzeichen_value_X_Valuecoding_version",
+                          "path": "version",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "value.ofType(Coding)"
+                }
+              ],
+              "forEachOrNull": "extension.where(url = 'http://fhir.de/StructureDefinition/icd-10-gm-mehrfachcodierungs-kennzeichen')"
+            },
+            {
+              "select": [
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "Condition_code_codingIcd10gm_extensionSeitenlokalisation_value_X_Valuecoding_system",
+                          "path": "system",
+                          "type": "uri"
+                        },
+                        {
+                          "name": "Condition_code_codingIcd10gm_extensionSeitenlokalisation_value_X_Valuecoding_code",
+                          "path": "code",
+                          "type": "code"
+                        },
+                        {
+                          "name": "Condition_code_codingIcd10gm_extensionSeitenlokalisation_value_X_Valuecoding_version",
+                          "path": "version",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "value.ofType(Coding)"
+                }
+              ],
+              "forEachOrNull": "extension.where(url = 'http://fhir.de/StructureDefinition/seitenlokalisation')"
+            },
+            {
+              "column": [
+                {
+                  "name": "Condition_code_codingIcd10gm_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Condition_code_codingIcd10gm_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://fhir.de/CodeSystem/bfarm/icd-10-gm')"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Condition_code_codingOrphanet_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Condition_code_codingOrphanet_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Condition_code_codingOrphanet_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://www.orpha.net')"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Condition_code_codingSct_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Condition_code_codingSct_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Condition_code_codingSct_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://snomed.info/sct')"
+        }
+      ],
+      "forEachOrNull": "code"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Condition_onset_X_Onsetage_code",
+              "path": "code",
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Condition_onset_X_Onsetage_extensionLebensphasebeginn_value_X_Valuecodeableconcept_coding_system",
+                      "path": "system",
+                      "type": "uri"
+                    },
+                    {
+                      "name": "Condition_onset_X_Onsetage_extensionLebensphasebeginn_value_X_Valuecodeableconcept_coding_code",
+                      "path": "code",
+                      "type": "code"
+                    },
+                    {
+                      "name": "Condition_onset_X_Onsetage_extensionLebensphasebeginn_value_X_Valuecodeableconcept_coding_version",
+                      "path": "version",
+                      "type": "string"
+                    }
+                  ],
+                  "forEachOrNull": "coding"
+                }
+              ],
+              "forEachOrNull": "value.ofType(CodeableConcept)"
+            }
+          ],
+          "forEachOrNull": "extension.where(url = 'http://fhir.de/StructureDefinition/lebensphase')"
+        },
+        {
+          "column": [
+            {
+              "name": "Condition_onset_X_Onsetage_system",
+              "path": "system",
+              "type": "uri"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "Condition_onset_X_Onsetage_value",
+              "path": "value",
+              "type": "decimal"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "onset.ofType(Age)"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Condition_onset_X_Onsetdatetime",
+              "path": "$this",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "onset.ofType(dateTime)"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Condition_onset_X_Onsetperiod_end",
+              "path": "end",
+              "type": "dateTime"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "Condition_onset_X_Onsetperiod_start",
+              "path": "start",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "onset.ofType(Period)"
+    },
+    {
+      "column": [
+        {
+          "name": "Condition_recordedDate",
+          "path": "recordedDate",
+          "type": "dateTime"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Condition_verificationStatus_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Condition_verificationStatus_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Condition_verificationStatus_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "verificationStatus"
+    }
+  ]
+}

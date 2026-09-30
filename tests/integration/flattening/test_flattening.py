@@ -31,16 +31,20 @@ def _run_aether(
 
 
 def _actual() -> tuple[list[Path], list[Path]]:
-    result_dir = sorted(
-        [p for p in _TMP_JOBS_DIR.iterdir() if p.is_dir()], key=lambda p: p.name
-    )[0]
+    """
+    Selects the entry that was last modified, since we cant rely on aether's naming
+    """
+    result_dir = max(
+        (p for p in _TMP_JOBS_DIR.iterdir() if p.is_dir()),
+        key=lambda p: p.stat().st_mtime,
+    )
     return (
         [p for p in (result_dir / "csv").iterdir() if p.is_file()],
         [p for p in (result_dir / "viewdefinitions").iterdir() if p.is_file()],
     )
 
 
-def _assert_csv_tables_are_equal(actual_t: str, expected_t: str):
+def _assert_csv_tables_are_equal(actual_t: str, expected_t: str, name: str):
     actual_t_lines = actual_t.splitlines()
     expected_t_lines = expected_t.splitlines()
 
@@ -61,7 +65,7 @@ def _assert_csv_tables_are_equal(actual_t: str, expected_t: str):
         except Exception as exc:
             errors.append(exc)
     if errors:
-        raise ExceptionGroup("Tables are not equal", errors)
+        raise ExceptionGroup(f"Tables {name} are not equal", errors)
 
 
 def test_extraction_pipeline(
@@ -91,7 +95,7 @@ def test_extraction_pipeline(
             actual_data = f.read()
         with expected_p.open(mode="r", encoding="utf-8") as f:
             expected_data = f.read()
-        _assert_csv_tables_are_equal(actual_data, expected_data)
+        _assert_csv_tables_are_equal(actual_data, expected_data, actual_p.name)
 
     for actual_p in actual_view_defs_d:
         expected_p = first(lambda p: p.name == actual_p.name, expected_view_defs_d)

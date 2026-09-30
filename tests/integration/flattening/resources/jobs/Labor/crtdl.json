@@ -1,0 +1,204 @@
+{
+  "version": "http://json-schema.org/to-be-done/schema#",
+  "display": "",
+  "cohortDefinition": {
+    "version": "http://to_be_decided.com/draft-1/schema#",
+    "display": "Ausgewählte Merkmale",
+    "inclusionCriteria": [
+      [
+        {
+          "termCodes": [
+            {
+              "code": "263495000",
+              "display": "Geschlecht",
+              "system": "http://snomed.info/sct",
+              "version": ""
+            }
+          ],
+          "context": {
+            "code": "Patient",
+            "display": "Patient",
+            "system": "fdpg.mii.cds",
+            "version": "1.0.0"
+          },
+          "valueFilter": {
+            "selectedConcepts": [
+              {
+                "code": "female",
+                "display": "Female",
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "version": "2099"
+              },
+              {
+                "code": "male",
+                "display": "Male",
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "version": "2099"
+              },
+              {
+                "code": "other",
+                "display": "Other",
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "version": "2099"
+              },
+              {
+                "code": "unknown",
+                "display": "Unknown",
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "version": "2099"
+              }
+            ],
+            "type": "concept"
+          }
+        }
+      ]
+    ]
+  },
+  "dataExtraction": {
+    "attributeGroups": [
+      {
+        "attributes": [
+          { "attributeRef": "Patient.deceased[x]", "mustHave": false },
+          { "attributeRef": "Patient.identifier", "mustHave": false }
+        ],
+        "id": "4d38644b-27cd-4fec-bcf6-1e7ef1dd7207",
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/PatientPseudonymisiert",
+        "name": "MII PR Person Patient (Pseudonymisiert)"
+      },
+      {
+        "attributes": [
+          { "attributeRef": "DiagnosticReport.identifier", "mustHave": false },
+          { "attributeRef": "DiagnosticReport.category", "mustHave": false },
+          { "attributeRef": "DiagnosticReport.code", "mustHave": false },
+          { "attributeRef": "DiagnosticReport.conclusion", "mustHave": false },
+          {
+            "attributeRef": "DiagnosticReport.conclusionCode",
+            "mustHave": false
+          },
+          {
+            "attributeRef": "DiagnosticReport.effective[x]",
+            "mustHave": false
+          },
+          { "attributeRef": "DiagnosticReport.issued", "mustHave": false },
+          { "attributeRef": "DiagnosticReport.media", "mustHave": false },
+          {
+            "attributeRef": "DiagnosticReport.presentedForm",
+            "mustHave": false
+          },
+          { "attributeRef": "DiagnosticReport.status", "mustHave": false },
+          { "attributeRef": "DiagnosticReport.text", "mustHave": false },
+          {
+            "attributeRef": "DiagnosticReport.basedOn",
+            "mustHave": false,
+            "linkedGroups": ["40e492d5-16b2-47bd-a73b-4c47b4fddef0"]
+          },
+          {
+            "attributeRef": "DiagnosticReport.result",
+            "mustHave": false,
+            "linkedGroups": ["de8c9842-a257-4e6c-b049-a692cac28f51"]
+          }
+        ],
+        "id": "2a1f83a4-bdeb-4291-993a-d72efb3f1ddd",
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/DiagnosticReportLab",
+        "name": "MII PR Labor Laborbefund"
+      },
+      {
+        "attributes": [
+          { "attributeRef": "Observation.code", "mustHave": false },
+          { "attributeRef": "Observation.dataAbsentReason", "mustHave": false },
+          { "attributeRef": "Observation.effective[x]", "mustHave": false },
+          { "attributeRef": "Observation.identifier", "mustHave": false },
+          { "attributeRef": "Observation.interpretation", "mustHave": false },
+          { "attributeRef": "Observation.referenceRange", "mustHave": false },
+          { "attributeRef": "Observation.value[x]", "mustHave": false },
+          { "attributeRef": "Observation.category", "mustHave": false },
+          { "attributeRef": "Observation.component", "mustHave": false },
+          { "attributeRef": "Observation.issued", "mustHave": false },
+          { "attributeRef": "Observation.method", "mustHave": false },
+          { "attributeRef": "Observation.note", "mustHave": false },
+          { "attributeRef": "Observation.status", "mustHave": false },
+          { "attributeRef": "Observation.text", "mustHave": false },
+          {
+            "attributeRef": "Observation.basedOn",
+            "mustHave": false,
+            "linkedGroups": ["40e492d5-16b2-47bd-a73b-4c47b4fddef0"]
+          },
+          {
+            "attributeRef": "Observation.focus",
+            "mustHave": false,
+            "linkedGroups": [
+              "2a1f83a4-bdeb-4291-993a-d72efb3f1ddd",
+              "40e492d5-16b2-47bd-a73b-4c47b4fddef0"
+            ]
+          }
+        ],
+        "id": "de8c9842-a257-4e6c-b049-a692cac28f51",
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab",
+        "name": "MII PR Labor Laboruntersuchung"
+      },
+      {
+        "attributes": [
+          { "attributeRef": "ServiceRequest.identifier", "mustHave": false },
+          { "attributeRef": "ServiceRequest.asNeeded[x]", "mustHave": false },
+          { "attributeRef": "ServiceRequest.authoredOn", "mustHave": false },
+          { "attributeRef": "ServiceRequest.category", "mustHave": false },
+          { "attributeRef": "ServiceRequest.code", "mustHave": false },
+          { "attributeRef": "ServiceRequest.doNotPerform", "mustHave": false },
+          {
+            "attributeRef": "ServiceRequest.instantiatesCanonical",
+            "mustHave": false
+          },
+          {
+            "attributeRef": "ServiceRequest.instantiatesUri",
+            "mustHave": false
+          },
+          { "attributeRef": "ServiceRequest.intent", "mustHave": false },
+          { "attributeRef": "ServiceRequest.locationCode", "mustHave": false },
+          { "attributeRef": "ServiceRequest.note", "mustHave": false },
+          { "attributeRef": "ServiceRequest.occurrence[x]", "mustHave": false },
+          { "attributeRef": "ServiceRequest.orderDetail", "mustHave": false },
+          { "attributeRef": "ServiceRequest.performerType", "mustHave": false },
+          { "attributeRef": "ServiceRequest.priority", "mustHave": false },
+          { "attributeRef": "ServiceRequest.quantity[x]", "mustHave": false },
+          { "attributeRef": "ServiceRequest.reasonCode", "mustHave": false },
+          { "attributeRef": "ServiceRequest.requisition", "mustHave": false },
+          { "attributeRef": "ServiceRequest.status", "mustHave": false },
+          { "attributeRef": "ServiceRequest.text", "mustHave": false },
+          {
+            "attributeRef": "ServiceRequest.reasonReference",
+            "mustHave": false,
+            "linkedGroups": [
+              "2a1f83a4-bdeb-4291-993a-d72efb3f1ddd",
+              "de8c9842-a257-4e6c-b049-a692cac28f51"
+            ]
+          },
+          {
+            "attributeRef": "ServiceRequest.relevantHistory",
+            "mustHave": false,
+            "linkedGroups": ["62a7c08e-7354-4d52-b398-c3806000f6db"]
+          },
+          {
+            "attributeRef": "ServiceRequest.supportingInfo",
+            "mustHave": false,
+            "linkedGroups": [
+              "2a1f83a4-bdeb-4291-993a-d72efb3f1ddd",
+              "de8c9842-a257-4e6c-b049-a692cac28f51"
+            ]
+          }
+        ],
+        "id": "40e492d5-16b2-47bd-a73b-4c47b4fddef0",
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ServiceRequestLab",
+        "name": "MII PR Labor Laboranforderung"
+      },
+      {
+        "attributes": [
+          { "attributeRef": "Provenance.activity", "mustHave": false }
+        ],
+        "id": "62a7c08e-7354-4d52-b398-c3806000f6db",
+        "includeReferenceOnly": true,
+        "groupReference": "https://www.medizininformatik-initiative.de/fhir/modul-consent/StructureDefinition/mii-pr-consent-provenance",
+        "name": "Profile - MI-I - Consent - Provenance"
+      }
+    ]
+  }
+}

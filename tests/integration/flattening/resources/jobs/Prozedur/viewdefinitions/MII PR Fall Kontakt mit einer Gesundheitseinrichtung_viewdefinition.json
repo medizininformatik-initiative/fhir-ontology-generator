@@ -1,0 +1,277 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "MII PR Fall Kontakt mit einer Gesundheitseinrichtung",
+  "status": "draft",
+  "resource": "Encounter",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        },
+        {
+          "name": "patient",
+          "path": "subject.reference"
+        }
+      ]
+    },
+    {
+      "column": [
+        {
+          "name": "Encounter_class_system",
+          "path": "system",
+          "type": "uri"
+        },
+        {
+          "name": "Encounter_class_code",
+          "path": "code",
+          "type": "code"
+        },
+        {
+          "name": "Encounter_class_version",
+          "path": "version",
+          "type": "string"
+        }
+      ],
+      "forEachOrNull": "class"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Encounter_identifierAufnahmenummer_assigner_reference",
+                      "path": "reference",
+                      "type": "string"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "assigner"
+            },
+            {
+              "select": [
+                {
+                  "column": [
+                    {
+                      "name": "Encounter_identifierAufnahmenummer_period_end",
+                      "path": "end",
+                      "type": "dateTime"
+                    }
+                  ]
+                },
+                {
+                  "column": [
+                    {
+                      "name": "Encounter_identifierAufnahmenummer_period_start",
+                      "path": "start",
+                      "type": "dateTime"
+                    }
+                  ]
+                }
+              ],
+              "forEachOrNull": "period"
+            },
+            {
+              "column": [
+                {
+                  "name": "Encounter_identifierAufnahmenummer_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "select": [
+                {
+                  "select": [
+                    {
+                      "column": [
+                        {
+                          "name": "Encounter_identifierAufnahmenummer_type_codingVntype_code",
+                          "path": "code",
+                          "type": "code"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "Encounter_identifierAufnahmenummer_type_codingVntype_system",
+                          "path": "system",
+                          "type": "uri"
+                        }
+                      ]
+                    },
+                    {
+                      "column": [
+                        {
+                          "name": "Encounter_identifierAufnahmenummer_type_codingVntype_version",
+                          "path": "version",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  ],
+                  "forEachOrNull": "coding.where(system = 'http://terminology.hl7.org/CodeSystem/v2-0203' and code = 'VN')"
+                }
+              ],
+              "forEachOrNull": "type"
+            },
+            {
+              "column": [
+                {
+                  "name": "Encounter_identifierAufnahmenummer_use",
+                  "path": "use",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Encounter_identifierAufnahmenummer_value",
+                  "path": "value",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "$this.where(type.coding.exists(system = 'http://terminology.hl7.org/CodeSystem/v2-0203' and code = 'VN'))"
+        }
+      ],
+      "forEachOrNull": "identifier"
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Encounter_period_end",
+              "path": "end",
+              "type": "dateTime"
+            }
+          ]
+        },
+        {
+          "column": [
+            {
+              "name": "Encounter_period_start",
+              "path": "start",
+              "type": "dateTime"
+            }
+          ]
+        }
+      ],
+      "forEachOrNull": "period"
+    },
+    {
+      "select": [
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Encounter_serviceType_codingErweiterterfachabteilungsschluessel_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Encounter_serviceType_codingErweiterterfachabteilungsschluessel_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Encounter_serviceType_codingErweiterterfachabteilungsschluessel_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://fhir.de/CodeSystem/dkgev/Fachabteilungsschluessel-erweitert')"
+        },
+        {
+          "select": [
+            {
+              "column": [
+                {
+                  "name": "Encounter_serviceType_codingFachabteilungsschluessel_code",
+                  "path": "code",
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Encounter_serviceType_codingFachabteilungsschluessel_system",
+                  "path": "system",
+                  "type": "uri"
+                }
+              ]
+            },
+            {
+              "column": [
+                {
+                  "name": "Encounter_serviceType_codingFachabteilungsschluessel_version",
+                  "path": "version",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "forEachOrNull": "coding.where(system = 'http://fhir.de/CodeSystem/dkgev/Fachabteilungsschluessel')"
+        }
+      ],
+      "forEachOrNull": "serviceType"
+    },
+    {
+      "column": [
+        {
+          "name": "Encounter_status",
+          "path": "status",
+          "type": "code"
+        }
+      ]
+    },
+    {
+      "select": [
+        {
+          "column": [
+            {
+              "name": "Encounter_type_coding_system",
+              "path": "system",
+              "type": "uri"
+            },
+            {
+              "name": "Encounter_type_coding_code",
+              "path": "code",
+              "type": "code"
+            },
+            {
+              "name": "Encounter_type_coding_version",
+              "path": "version",
+              "type": "string"
+            }
+          ],
+          "forEachOrNull": "coding"
+        }
+      ],
+      "forEachOrNull": "type"
+    }
+  ]
+}

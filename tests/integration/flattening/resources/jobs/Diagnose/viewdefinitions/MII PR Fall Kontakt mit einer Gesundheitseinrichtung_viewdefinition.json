@@ -1,0 +1,40 @@
+{
+  "resourceType": "https://sql-on-fhir.org/ig/StructureDefinition/ViewDefinition",
+  "name": "MII PR Fall Kontakt mit einer Gesundheitseinrichtung",
+  "status": "draft",
+  "resource": "Encounter",
+  "select": [
+    {
+      "column": [
+        {
+          "name": "id",
+          "path": "id"
+        },
+        {
+          "name": "patient",
+          "path": "subject.reference"
+        }
+      ]
+    },
+    {
+      "column": [
+        {
+          "name": "Encounter_class_system",
+          "path": "system",
+          "type": "uri"
+        },
+        {
+          "name": "Encounter_class_code",
+          "path": "code",
+          "type": "code"
+        },
+        {
+          "name": "Encounter_class_version",
+          "path": "version",
+          "type": "string"
+        }
+      ],
+      "forEachOrNull": "class"
+    }
+  ]
+}
