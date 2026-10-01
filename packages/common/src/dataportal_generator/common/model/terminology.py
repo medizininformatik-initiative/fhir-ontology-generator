@@ -94,9 +94,9 @@ class TermEntryNode(BaseModel):
 
 class TreeMap(BaseModel):
     entries: dict[str, TermEntryNode] = Field(default_factory=dict)
-    context: TermCode
+    context: TermCode | None = None
     system: str
-    version: str
+    version: str | None = None
 
     @classmethod
     @field_serializer("entries", mode="plain")

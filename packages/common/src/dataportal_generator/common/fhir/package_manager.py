@@ -21,6 +21,7 @@ import fhir.resources
 import semver
 from fhir.resources.R4B.resource import Resource
 from fhir.resources.R4B.structuredefinition import StructureDefinition
+from fhir.resources.R4B.valueset import ValueSet
 from fhir_core.fhirabstractmodel import FHIRAbstractModel
 from requests import Request
 from requests.auth import AuthBase
@@ -234,10 +235,27 @@ class FhirPackageManager(abc.ABC):
         :param url: ``StructureDefinition.url`` value to match
         :return: ``NavStructureDefinition`` object or ``None`` if no match was found
         """
-        return ensure_struct_def_is_navigable(self.find({
+        struct_def = self.find({
             "resourceType": "StructureDefinition",
             "url": url
-        }, latest_only=False))
+        }, latest_only=False)
+        return ensure_struct_def_is_navigable(struct_def) if struct_def else None
+
+    def find_value_set(self, canonical: str) -> ValueSet | None:
+        """
+        Attempts to find a matching FHIR ValueSet in the package cache
+
+        :param canonical: Value set URI to match with optional version suffix (`|<version>`)
+        :return: ``ValueSet`` object or ``None`` if no match was found
+        """
+        pattern = {"resourceType": "ValueSet"}
+        split = canonical.split("|")
+        if len(split) == 1:
+            pattern["url"] = canonical
+        else:
+            pattern["url"] = split[0]
+            pattern["version"] = split[1]
+        return self.find(pattern, latest_only=False)
 
     @cachetools.cached(cache={}, key=_profile_cache_key)
     def dependents_of(

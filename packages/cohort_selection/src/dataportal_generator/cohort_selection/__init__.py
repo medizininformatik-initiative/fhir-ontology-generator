@@ -1,0 +1,5 @@
+from dataportal_generator.cohort_selection.config import CohortSelectionConfig
+from dataportal_generator.common.config.project import register_config_module
+
+# Config module registration
+register_config_module("cohort_selection", CohortSelectionConfig)

@@ -1,0 +1,15 @@
+name: "MedicationAdministration"
+
+context:
+  system: "https://www.medizininformatik-initiative.de/fhir/fdpg/CodeSystem/criterion-context"
+  code: "medication"
+  display: "Medication"
+module: "Example"
+
+definitionSource:
+  structureDefinition: "https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/MedicationAdministration"
+
+identifier:
+  type: "binding"
+  definition: "MedicationAdministration.medication.slice(%profile, medicationReference).resolve().code"
+timeRestriction: "MedicationAdministration.effective"

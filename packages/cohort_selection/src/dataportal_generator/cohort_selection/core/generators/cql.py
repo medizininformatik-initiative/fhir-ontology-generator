@@ -1,22 +1,30 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from functools import reduce
 from importlib.resources import files
+from pathlib import Path
 from typing import Tuple, List, Dict
+from xml import etree
 
+from coverage.numbits import numbits_to_nums
 from fhir.resources.R4B.elementdefinition import ElementDefinition
-from lxml import etree
-from typing_extensions import LiteralString
 
-import cohort_selection_ontology.resources.cql as cql_resources
 from cohort_selection_ontology.core.resolvers.querying_metadata import (
     ResourceQueryingMetaDataResolver,
 )
 from cohort_selection_ontology.core.terminology.client import (
     CohortSelectionTerminologyClient,
 )
-from cohort_selection_ontology.model.mapping import (
+
+from common.exceptions.fhir import ResourceNotFoundError
+from common.fhir.structure_definition import select_element_compatible_with_cql_operations
+from common.fhirpath.resolvers import FHIRPathResolver
+from common.model.fhir.nav_element_definition import NavElementDefinition
+from common.model.fhir.nav_structure_definition import NavStructureDefinition
+from dataportal_generator.cohort_selection.model.criterion import CriterionDefinition
+from dataportal_generator.cohort_selection.model.mapping import (
     CQLMapping,
     CQLAttributeSearchParameter,
     CQLTimeRestrictionParameter,
@@ -48,8 +56,33 @@ from common.util.structure_definition.functions import (
     get_term_code_by_id,
     is_element_in_snapshot,
     get_fixed_term_codes,
-    select_element_compatible_with_cql_operations,
 )
+
+from common.model.project import Project
+from dataportal_generator.common.log.functions import get_logger
+
+_logger = get_logger(__file__)
+
+
+def _get_primary_paths_per_resource() -> Mapping[str, str]:
+    primary_paths = {}
+    with (
+        files("dataport_generator.cohort_selection.core")
+        .joinpath("resources/elm-modelinfo.xml")
+        .open(mode="r", encoding="utf-8") as f
+    ):
+        _logger.info("Loading CQL ELM FHIR model info")
+        root = etree.parse(f)
+        namespace_map = {"elm": "urn:hl7-org:elm-modelinfo:r1"}
+        for type_info in root.xpath(".//elm:typeInfo", namespaces=namespace_map):
+            resource_type = type_info.get("name")
+            primary_path = type_info.get("primaryCodePath")
+            if resource_type and primary_path:
+                primary_paths[resource_type] = primary_path
+    return primary_paths
+
+
+_RESOURCE_TYPE_PRIMARY_PATHS: Mapping[str, str] = _get_primary_paths_per_resource()
 
 
 class CQLMappingGenerator(object):
@@ -62,81 +95,179 @@ class CQLMappingGenerator(object):
         "CodeableConcept",
         "Quantity",
     }
-    __logger = get_class_logger("CQLMappingGenerator")
 
     def __init__(
         self,
         project: Project,
-        querying_meta_data_resolver: ResourceQueryingMetaDataResolver,
     ):
         """
         :param project: Project to operate on
-        :param querying_meta_data_resolver: resolves the for the query relevant metadata for a given FHIR profile
-        snapshot
         """
         self.__project = project
-        self.__client = CohortSelectionTerminologyClient(self.__project)
-        self.querying_meta_data_resolver = querying_meta_data_resolver
-        self.primary_paths = self.get_primary_paths_per_resource()
-        self.generated_mappings = []
+        self.__package_manager = project.package_manager
+        self.__terminology_src = project.terminology_src
+        self.__fp_resolver = FHIRPathResolver(self.__package_manager)
 
-    @staticmethod
-    def get_primary_paths_per_resource() -> Dict[str, str]:
-        primary_paths = {}
-        with (
-            files(cql_resources)
-            .joinpath("elm-modelinfo.xml")
-            .open(mode="r", encoding="utf-8") as f
-        ):
-            root = etree.parse(f)
-            namespace_map = {"elm": "urn:hl7-org:elm-modelinfo:r1"}
-            for type_info in root.xpath(".//elm:typeInfo", namespaces=namespace_map):
-                resource_type = type_info.get("name")
-                primary_path = type_info.get("primaryCodePath")
-                if resource_type and primary_path:
-                    primary_paths[resource_type] = primary_path
-        return primary_paths
+    def _load_criterion_definitions(self, module: str) -> list[CriterionDefinition]:
+        module_dir = self.__project.input.cso / "modules" / module
+        _logger.debug(f"Loading criterion definitions for module '{module}' @ {module_dir!r}")
+        cds = []
+        for cd_fp in (module_dir / "criteria").rglob("*.{yml,yaml}"):
+            _logger.debug(f"Found criterion definition '{cd_fp.name}' @ {cd_fp!r}")
+            with open(cd_fp, mode="rb") as fd:
+                cds.append(CriterionDefinition.model_validate_yaml(fd))
+        return cds
 
     def generate_mapping(
-        self, module_name: str
-    ) -> tuple[dict[tuple[TermCode, TermCode], str], dict[str, CQLMapping]]:
+        self, module: str | Path
+    ) -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, CQLMapping]]:
         """
         Generates the CQL mappings for the given module
-        :param module_name: Name of the module to generate the mapping for
+        :param module: Name of or path to the module to generate the mapping for
         :return: normalized term code CQL mapping
         """
-        snapshot_dir = self.__project.input.cso.mkdirs(
-            "modules", module_name, "differential", "package"
-        )
-        full_context_term_code_cql_mapping_name_mapping: dict[tuple[TermCode, TermCode], str] = {}
-        full_cql_mapping_name_cql_mapping: dict[str, CQLMapping] = {}
-        files = [file for file in snapshot_dir.rglob("*.json") if file.is_file()]
-        for file in files:
-            with open(file, mode="r", encoding="utf8") as f:
-                profile = IndexedStructureDefinition.validate_json(f.read())
-                if profile.snapshot:
-                    context_tc_to_mapping_name, cql_mapping_name_to_mapping = (
-                        self.generate_normalized_term_code_cql_mapping(
-                            profile, module_name
-                        )
-                    )
-                    full_context_term_code_cql_mapping_name_mapping.update(
-                        context_tc_to_mapping_name
-                    )
-                    full_cql_mapping_name_cql_mapping.update(
-                        cql_mapping_name_to_mapping
-                    )
-                else:
-                    self.__logger.debug(
-                        f"Profile '{profile.url}' @ {file} not in snapshot form => Skipping"
-                    )
+        module = module.name if isinstance(module, Path) else module
+        criterion_defs = self._load_criterion_definitions(module)
+        for criterion_def in criterion_defs:
+            _logger.info(f"Generating CQL mapping for criterion '{criterion_def.name}'")
+
+        #snapshot_dir = self.__project.input.cso.mkdirs(
+        #    "modules", module, "differential", "package"
+        #)
+        full_context_term_code_cql_mapping_name_mapping: (
+            Dict[Tuple[TermCode, TermCode]] | dict
+        ) = {}
+        full_cql_mapping_name_cql_mapping = {}
+        for crit_def in criterion_defs:
+            struct_def = self.__package_manager.find_struct_def(crit_def.definition_source.structure_definition)
+            if not struct_def:
+                raise FileNotFoundError(f"Structure definition '{crit_def.definition_source.structure_definition}' not found")
+            context_tc_to_mapping_name, cql_mapping_name_to_mapping = (
+                self.generate_normalized_term_code_cql_mapping(
+                    crit_def
+                )
+            )
+            full_context_term_code_cql_mapping_name_mapping.update(
+                context_tc_to_mapping_name
+            )
+            full_cql_mapping_name_cql_mapping.update(
+                cql_mapping_name_to_mapping
+            )
         return (
             full_context_term_code_cql_mapping_name_mapping,
             full_cql_mapping_name_cql_mapping,
         )
 
+    def _get_code_system_uris_composing_value_set(self, canonical: str) -> list[str]:
+        """
+        Finds code systems composing a value set. Since only the URIs need to be returned, the method uses the package
+        cache to find ValueSet resources locally first before querying the terminology data source.
+
+        :param canonical: Value set canonical with optional version suffix (``<uri>|<version>``)
+        :return: List of code system URIs
+        """
+        vs = self.__package_manager.find_value_set(canonical)
+        if not vs:
+            vs = self.__terminology_src.value_set(canonical=canonical)
+        if not vs:
+            raise ResourceNotFoundError(f"Could not find FHIR ValueSet resource '{canonical}'")
+
+        cs_uris = set()
+        if compose := vs.compose:
+            for inc in compose.include:
+                cs_uris.add(inc.system) \
+                    if inc.system \
+                    else cs_uris.update(self._get_code_system_uris_composing_value_set(vs_ref) for vs_ref in inc.valueSet)
+        elif expansion := vs.expansion:
+            return list({contains.system for contains in expansion.contains})
+        else:
+            return []
+
+    def _get_term_codes_from_code_elem_def(self, elem_def: NavElementDefinition) -> list[TermCode]:
+        pass
+
+    def _get_term_codes_from_coding_elem_def(self, elem_def: NavElementDefinition) -> list[TermCode]:
+        pass
+
+    def _get_term_codes_from_codeable_concept_elem_def(self, elem_def: NavElementDefinition) -> list[TermCode]:
+        pass
+
+    def _get_term_codes_from_crit_identifier(self, struct_def: NavStructureDefinition, crit_ident_expr: str) -> list[TermCode]:
+        """
+        Retrieves the term codes identifying the provided criterion by either
+        1) Returning the fixed term code defined via pattern[x] or fixed[x] on the criterion identifier element
+           (or its children), or else
+        2) Returning the content of the value set bound to the criterion identifier element, or
+        3) Otherwise raises and exception
+
+        :param struct_def: Root structure definition used as context for the FHIRPath expression resolution
+        :param crit_ident_expr: FHIRPath expression identifying the criterion
+        :return: List of term codes identifying the criterion
+        """
+        t = self.__fp_resolver.resolve_leaf(struct_def, crit_ident_expr)
+        if not t:
+            raise KeyError(f"Criterion identifier expression '{crit_ident_expr}' could not be resolved")
+        _, elem_def = t
+        if not elem_def.type:
+            raise ValueError(f"Criterion identifier expression '{crit_ident_expr}' resolves to an element definition "
+                             f"with no types, which is not supported")
+        if len(elem_def.type) > 1:
+            raise ValueError(f"Criterion identifier expression '{crit_ident_expr}' resolves to an element definition "
+                             f"with multiple types {[ti.code for ti in elem_def.type]}, which is not supported")
+        match elem_def.type[0].code:
+            case "CodeableConcept":
+                pass
+            case "Coding":
+                pass
+            case "code":
+                fixed_val = elem_def.fixedCode if elem_def.fixedCode else elem_def.patternCode
+                if not fixed_val:
+                    raise ValueError(f"Criterion identifier expression '{crit_ident_expr}' resolves to an element definition "
+                                     f"with no fixed or pattern code")
+                binding = elem_def.binding
+                if not binding:
+                    raise ValueError(f"Criterion identifier expression '{crit_ident_expr}' resolves to a code-type "
+                                     f"element definition with no binding. A binding is required to determine the "
+                                     f"defining code system")
+
+            case _:
+                raise TypeError(f"Criterion identifier expression '{crit_ident_expr}' resolves to an element definition "
+                                f"with unsupported type '{elem_def.type[0].code}'. Should be one of ['CodeableConcept', "
+                                f"'Coding', 'code']")
+
+
+    def _get_criterion_def_term_codes(self, crit_def: CriterionDefinition) -> list[TermCode]:
+        """
+        Retrieves the term codes identifying the provided criterion by either
+        1) Returning the fixed set of term codes defined in the criterion definition if present, or
+        2.1) Returning the fixed term code defined via pattern[x] or fixed[x] on the criterion identifier element
+             (or its children), or else
+        2.2) Returning the content of the value set bound to the criterion identifier element, or
+        3) Otherwise raises and exception
+
+        :param crit_def: Criterion definition to get identifying term codes for
+        :return: List of term codes identifying the criterion
+        """
+        crit_ident = crit_def.identifier
+        if crit_ident.type == "fixed":
+            return crit_ident.definition
+        else:
+            struct_def = self.__package_manager.find_struct_def(crit_def.definition_source.structure_definition)
+            if not struct_def:
+                raise FileNotFoundError(f"Structure definition '{crit_def.definition_source.structure_definition}' not found")
+            term_codes = get_fixed_term_codes(
+                struct_def,
+                crit_ident.definition,
+                self.__project.input.cso / "modules",
+                crit_def.module.code,
+                self.__terminology_src.client,
+            )
+            if not term_codes:
+                raise ValueError(f"No term codes could be resolved for criterion '{crit_def.name}'")
+            return term_codes
+
     def generate_normalized_term_code_cql_mapping(
-        self, profile_snapshot: StructureDefinitionSnapshot, module_name: str
+        self, criterion_def: CriterionDefinition
     ) -> Tuple[Dict[Tuple[TermCode, TermCode], str], Dict[str, CQLMapping]]:
         """
         Generates the normalized term code to CQL mapping for the given FHIR profile snapshot
@@ -144,51 +275,37 @@ class CQLMappingGenerator(object):
         :param module_name: name of the module the profile belongs to
         :return: normalized term code to CQL mapping
         """
-        modules_dir = self.__project.input.cso / "modules"
-        querying_meta_data: List[ResourceQueryingMetaData] = (
-            self.querying_meta_data_resolver.get_query_meta_data(
-                profile_snapshot, module_name
+        cql_mapping = self.generate_cql_mapping(criterion_def)
+        #self.generated_mappings.append(criterion_def.name)
+        mapping_name = cql_mapping.name
+        mapping_name_cql_mapping[mapping_name] = cql_mapping
+        # The logic to get the term_codes here always has to be identical with the mapping
+        term_codes = (
+            querying_meta_data_entry.term_codes
+            if querying_meta_data_entry.term_codes
+            else get_term_code_by_id(
+                profile_snapshot,
+                querying_meta_data_entry.term_code_defining_id,
+                modules_dir,
+                module_name,
+                self.__client,
             )
         )
-        term_code_mapping_name_mapping: Dict[Tuple[TermCode, TermCode], str] | dict = {}
-        mapping_name_cql_mapping: Dict[str, CQLMapping] | dict = {}
-        for querying_meta_data_entry in querying_meta_data:
-            if querying_meta_data_entry.name not in self.generated_mappings:
-                cql_mapping = self.generate_cql_mapping(
-                    profile_snapshot, querying_meta_data_entry, module_name
-                )
-                self.generated_mappings.append(querying_meta_data_entry.name)
-                mapping_name = cql_mapping.name
-                mapping_name_cql_mapping[mapping_name] = cql_mapping
-            else:
-                mapping_name = querying_meta_data_entry.name
-            # The logic to get the term_codes here always has to be identical with the mapping
-            term_codes = (
-                querying_meta_data_entry.term_codes
-                if querying_meta_data_entry.term_codes
-                else get_term_code_by_id(
-                    profile_snapshot,
-                    querying_meta_data_entry.term_code_defining_id,
-                    modules_dir,
-                    module_name,
-                    self.__client,
-                )
-            )
-            primary_keys = [
-                (querying_meta_data_entry.context, term_code)
-                for term_code in term_codes
-            ]
-            mapping_names = [mapping_name] * len(primary_keys)
-            table = dict(zip(primary_keys, mapping_names))
-            term_code_mapping_name_mapping.update(table)
+        primary_keys = [
+            (querying_meta_data_entry.context, term_code)
+            for term_code in term_codes
+        ]
+        mapping_names = [mapping_name] * len(primary_keys)
+        table = dict(zip(primary_keys, mapping_names))
+        term_code_mapping_name_mapping.update(table)
         return term_code_mapping_name_mapping, mapping_name_cql_mapping
 
-    def is_primary_path(self, resource_type, fhir_path: str) -> bool:
+    def __is_primary_path(self, resource_type: str, fhir_path: str) -> bool:
         """
         Checks if the given fhir path is not a primary path according to the cql elm modelinfo
-        :param resource_type: resource type
-        :param fhir_path: fhir path
-        :return: true if the given fhir path is not a primary path, false otherwise
+        :param resource_type: FHIR resource type
+        :param fhir_path: FHIRPath expression to check if it represents the primary path
+        :return: ``True`` if the given fhir path is not a primary path, ``False`` otherwise
         """
         if resource_type in self.primary_paths:
             return self.sub_path_equals(self.primary_paths[resource_type], fhir_path)
@@ -196,9 +313,7 @@ class CQLMappingGenerator(object):
 
     def generate_cql_mapping(
         self,
-        profile_snapshot: StructureDefinitionSnapshot,
-        querying_meta_data: ResourceQueryingMetaData,
-        module_dir_name: str,
+        criterion_def: CriterionDefinition
     ) -> CQLMapping:
         """
         Generates the CQL mapping for the given FHIR profile snapshot and querying metadata entry
@@ -207,61 +322,53 @@ class CQLMappingGenerator(object):
         :param module_dir_name: Name of the module where the QueryingMetadata file and profiles snapshot are located
         :return: CQL mapping
         """
-        modules_dir = self.__project.input.cso.mkdirs("modules")
-        cql_mapping = CQLMapping(querying_meta_data.name)
-        cql_mapping.resourceType = querying_meta_data.resource_type
-        if tc_defining_id := querying_meta_data.term_code_defining_id:
+        cql_mapping = CQLMapping(criterion_def.name)
+        if defining_id := criterion_def.identifier:
+            struct_def = self.__package_manager.find_struct_def(criterion_def.definition_source.structure_definition)
             # TODO: Temporary fix by filtering out CDS Medication querying metadata since they receive special
-            #       treatment in sq2cql
+            #       treatment in the CCTB CQL translation logic. This should not be handled by the generator. Instead
+            #       the criterion definition and mapping should be able to express this handling by themselves
             if (
-                not self.is_primary_path(
-                    querying_meta_data.resource_type,
-                    self.remove_fhir_resource_type(tc_defining_id),
+                not self.__is_primary_path(
+                    struct_def.resource_type,
+                    self.remove_fhir_resource_type(defining_id),
                 )
-                and not querying_meta_data.module.code == "mii-cds-medikation"
+                and not criterion_def.module.code == "mii-cds-medikation"
             ):
-                if is_element_in_snapshot(profile_snapshot, tc_defining_id):
-                    element = profile_snapshot.get_element_by_id(tc_defining_id)
-                else:
-                    element = get_element_defining_elements(
-                        profile_snapshot, tc_defining_id, module_dir_name, modules_dir
-                    )[-1]
-                element, types = select_element_compatible_with_cql_operations(
-                    element, profile_snapshot
-                )
-                element_id = element.id
+                chain = self.__fp_resolver.resolve_path(struct_def, defining_id.definition.expression)
+                struct_def, elem_def = chain[-1]
+                elem_def, types = select_element_compatible_with_cql_operations(elem_def)
                 if not types:
                     raise KeyError(
                         "ElementDefinition.type cannot be empty as at least one type is required for CQL "
-                        f"translation [profile='{profile_snapshot.name}, "
-                        f"element_id='{element_id}']"
+                        f"translation ('{struct_def.name}|{elem_def.id}')]"
                     )
                 types = self.__allowed_defining_code_fhir_types.intersection(types)
                 if len(types) == 0:
                     raise UnsupportedTypingException(
-                        f"Supported type range of element '{element_id}' has no "
+                        f"Supported type range of element '{elem_def.id}' has no "
                         f"overlap with the expected type range of a time restricting "
                         f"element in the CQL mapping [present={types}, "
                         f"allowed={self.__allowed_defining_code_fhir_types}]"
                     )
                 term_code_fhir_path = (
                     self.translate_term_element_id_to_fhir_path_expression(
-                        element_id, profile_snapshot, module_dir_name
+                        elem_def.id, struct_def, module_dir_name
                     )
                 )
                 card = CQLMappingGenerator.__aggregate_cardinality_using_element(
-                    element, profile_snapshot
+                    elem_def, struct_def
                 )
                 cql_mapping.termCode = CQLTypeParameter(
                     path=term_code_fhir_path, types=types, cardinality=card
                 )
 
         if val_defining_id := querying_meta_data.value_defining_id:
-            element = profile_snapshot.get_element_by_id(val_defining_id)
-            element, types = select_element_compatible_with_cql_operations(
-                element, profile_snapshot
+            elem_def = profile_snapshot.get_element_by_id(val_defining_id)
+            elem_def, types = select_element_compatible_with_cql_operations(
+                elem_def, profile_snapshot
             )
-            element_id = element.id
+            element_id = elem_def.id
             if not types:
                 raise KeyError(
                     "ElementDefinition.type cannot be empty as at least one type is required for CQL "
@@ -280,18 +387,18 @@ class CQLMappingGenerator(object):
                 element_id, profile_snapshot, module_dir_name
             )
             card = CQLMappingGenerator.__aggregate_cardinality_using_element(
-                element, profile_snapshot
+                elem_def, profile_snapshot
             )
             cql_mapping.value = CQLTypeParameter(
                 path=value_fhir_path, types=types, cardinality=card
             )
 
         if time_defining_id := querying_meta_data.time_restriction_defining_id:
-            element = profile_snapshot.get_element_by_id(time_defining_id)
-            element, types = select_element_compatible_with_cql_operations(
-                element, profile_snapshot
+            elem_def = profile_snapshot.get_element_by_id(time_defining_id)
+            elem_def, types = select_element_compatible_with_cql_operations(
+                elem_def, profile_snapshot
             )
-            element_id = element.id
+            element_id = elem_def.id
             if not types:
                 raise KeyError(
                     "ElementDefinition.type cannot be empty as at least one type is required for CQL "
@@ -313,7 +420,7 @@ class CQLMappingGenerator(object):
             )
 
             card = CQLMappingGenerator.__aggregate_cardinality_using_element(
-                element, profile_snapshot
+                elem_def, profile_snapshot
             )
             cql_mapping.timeRestriction = CQLTimeRestrictionParameter(
                 types=types, cardinality=card, path=FHIRPathlike(fhir_path)
@@ -526,25 +633,20 @@ class CQLMappingGenerator(object):
 
     def translate_term_element_id_to_fhir_path_expression(
         self,
-        element_id: str,
-        profile_snapshot: StructureDefinitionSnapshot,
-        module_dir_name: str,
+        elem_def: NavElementDefinition
     ) -> str:
-        modules_dir = self.__project.input.cso.mkdirs("modules")
-        elements = get_element_defining_elements(
-            profile_snapshot, element_id, module_dir_name, modules_dir
-        )
+        chain = self.__fp_resolver.resolve_path(elem_def.struct_def, elem_def)
         # TODO: Revisit and evaluate if this really the way to go.
-        for element in elements:
-            element, types = select_element_compatible_with_cql_operations(
-                element, profile_snapshot
+        for struct_def, elem_def in chain:
+            elem_def, types = select_element_compatible_with_cql_operations(
+                elem_def, struct_def
             )
             for element_type in types:
                 if element_type == "Reference":
                     return (
                         self.get_cql_optimized_path_expression(
                             translate_element_to_fhir_path_expression(
-                                profile_snapshot, elements
+                                struct_def, elem_def
                             )[0]
                         )
                         + ".reference"
@@ -555,21 +657,14 @@ class CQLMappingGenerator(object):
 
     def translate_element_id_to_fhir_path_expressions(
         self,
-        element_id: str,
-        profile_snapshot: StructureDefinitionSnapshot,
-        module_dir_name: str,
+        elem_def: NavElementDefinition,
     ) -> str:
         """
         Translates an element id to a fhir search parameter
-        :param element_id: element id
-        :param profile_snapshot: FHIR profile snapshot containing the element id
-        :param module_dir_name: Name of the module directory
+        :param elem_def: ``NavElementDefinition`` instance to translate to FHIRPath expression
         :return: fhir search parameter
         """
-        modules_dir = self.__project.input.cso.mkdirs("modules")
-        elements = get_element_defining_elements(
-            profile_snapshot, element_id, module_dir_name, modules_dir
-        )
+        chain = self.__fp_resolver.resolve_path(elem_def.struct_def, elem_def)
         expressions = translate_element_to_fhir_path_expression(
             profile_snapshot, elements
         )

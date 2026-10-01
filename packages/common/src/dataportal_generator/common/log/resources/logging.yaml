@@ -2,6 +2,7 @@
 #    Logging
 # ======================================================================================================================
 version: 1
+disable_existing_loggers: false  # Important to prevent discarding of loggers created during module initialization
 
 root:
   level: "NOTSET"

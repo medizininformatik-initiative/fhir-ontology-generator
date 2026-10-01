@@ -6,6 +6,8 @@ from collections import namedtuple
 from pathlib import Path
 from typing import Any, Generator, List, Optional, Set, Tuple
 
+from dataportal_generator.common.model.fhir.nav_element_definition import NavElementDefinition
+from dataportal_generator.common.model.fhir.nav_structure_definition import NavStructureDefinition
 from dataportal_generator.common.exceptions.translation import (
     MissingTranslationException,
 )
@@ -499,14 +501,12 @@ def get_element_type(element: ElementDefinition) -> str:
     return element_types[0].code
 
 
-def get_extension_url(element: ElementDefinition):
-    # TODO: unit .tests
-
-    extension_profiles = element.type[0].profile
+def get_extension_url(elem_def: NavElementDefinition):
+    extension_profiles = elem_def.type_info_for("Extension").profile
     if len(extension_profiles) > 1:
         raise Exception("More than one extension found")
     if not extension_profiles:
-        raise Exception("No extension profile url found in element: \n" + element.id)
+        raise Exception(f"No extension profile url found in elem '{elem_def.struct_def.url}|{elem_def.id}'")
     return extension_profiles[0]
 
 
@@ -681,34 +681,32 @@ def get_parent_element_type(
 
 
 def translate_element_to_fhir_path_expression(
-    profile_snapshot: IdxStructureDefinition,
-    elements: List[ElementDefinition],
+    chain: list[tuple[NavStructureDefinition, NavElementDefinition]],
     is_composite: bool = False,
-) -> List[str]:
-    # TODO: unit .tests
-
+) -> list[str]:
     """
     Translates an element to a fhir search parameter. Be aware not every element is translated alone to a
     fhir path expression. I.E. Extensions elements are translated together with the prior element.
-    :param elements: Elements for which the fhir path expressions should be obtained
-    :param profile_snapshot: Snapshot of the profile
+    :param chain: Elements for which the fhir path expressions should be obtained
     :param is_composite: special case for when its composite attribute.  .value.ofType(<valueType>)
     :return: FHIR path expressions
     """
-    element = elements.pop(0)
-    element_path = element.path
-    element_type = get_element_type(element)
-    if element_type == "Extension":
-        if elements[0].id == "Extension.value[x]":
-            element_type = get_element_type(elements[0])
+    struct_def, elem_def = chain[0]
+    if elem_def.supports_type("Extension"):
+        ext_struct_def, ext_elem_def = chain[1]
+        if ext_elem_def.id == "Extension.value[x]":
+            if len(ext_elem_def.type) < 1:
+                raise ValueError(f"Only single-typed Extension value elements are supported "
+                                 f"('{ext_struct_def.url}|{ext_elem_def.id}')")
+            else:
+                elem_def_type = ext_elem_def.type[0].code
             element_path = (
-                f"{element_path}.where(url='{get_extension_url(element)}').value[x]"
+                f"{elem_def.path}.where(url='{get_extension_url(elem_def)}').value.ofType({elem_def_type})"
             )
-            element_path = replace_x_with_cast_expression(element_path, element_type)
         # FIXME: Currently hard coded should be generalized
-        elif elements[0].id == "Extension.extension:age.value[x]":
-            element_path = f"{element_path}.where(url='{get_extension_url(element)}').extension.where(url='age').value[x]"
-            element_path = replace_x_with_cast_expression(element_path, element_type)
+        #elif elements[0].id == "Extension.extension:age.value[x]":
+        #    element_path = f"{element_path}.where(url='{get_extension_url(element)}').extension.where(url='age').value[x]"
+        #    element_path = replace_x_with_cast_expression(element_path, element_type)
     if "[x]" in element_path and "Extension" not in element_path:
         element_type = get_parent_element_type(profile_snapshot, element.id)
         element_path = replace_x_with_cast_expression(element_path, element_type)
@@ -925,47 +923,47 @@ def get_parent_slice_id(element_id: str) -> str | None:
 
 
 def select_element_compatible_with_cql_operations(
-    element: ElementDefinition, snapshot: IdxStructureDefinition
-) -> (ElementDefinition, Set[str]):
+    elem_def: NavElementDefinition
+) -> tuple[NavElementDefinition, set[str]]:
     """
     Uses the given element to determine - if necessary - an element which is more suitable for generating the CQL
     mapping
-    :param element: ElementDefinition instance to possibly replace
-    :param snapshot: StructureDefinition instance in snapshot form to which the element belongs
+    :param elem_def: ``NavElementDefinition`` instance to possibly replace
     :return: Alternative element and targeted type if a more compatible element could be identified or the given
              element and its type if not
     """
     ### Select element were the slicing is defined and is of type Coding
-    if element.sliceName is not None and "Coding" in {t.code for t in element.type}:
+    if elem_def.sliceName is not None and "Coding" in {t.code for t in elem_def.type}:
         return select_element_compatible_with_cql_operations(
-            get_parent_element(snapshot, element), snapshot
+            #get_parent_element(snapshot, element), snapshot
+            elem_def.parent, elem_def.struct_def
         )
 
-    element_types = element.type if element.type else []
+    element_types = elem_def.type if elem_def.type else []
     element_type_codes = {t.code for t in element_types}
-    compatible_element = element
+    compatible_element = elem_def
     targeted_types = element_type_codes
     ### Coding -> CodeableConcept
     if len(element_types) == 1 and "Coding" in element_type_codes:
         # If the given element has type Coding which is part of the CodeableConcept type, the parent element is
         # returned to allow the CQL generation to use this information for query optimization
         # element_base_path = element.base.path
-        if element.base and (element_base_path := element.base.path):
+        if elem_def.base and (element_base_path := elem_def.base.path):
             targeted_type = element_base_path.split(".")[0]
             if targeted_type in {"CodeableConcept", "Reference"}:
-                parent_element = get_parent_element(snapshot, element)
+                parent_element = elem_def.parent
                 if parent_element:
                     # Recurse until the actual ancestor element is reached. Slicing element definitions do not have
                     # such an element as their parent (direct ancestor)
                     compatible_element, _ = (
                         select_element_compatible_with_cql_operations(
-                            parent_element, snapshot
+                            parent_element, elem_def.struct_def
                         )
                     )
                     targeted_types = {targeted_type}
         else:
             raise KeyError(
-                f"Element [id='{element.id}'] is missing required 'ElementDefinition.base.path' "
+                f"Element [id='{elem_def.id}'] is missing required 'ElementDefinition.base.path' "
                 f"element which is required in snapshots"
             )
-    return compatible_element if compatible_element else element, targeted_types
+    return compatible_element if compatible_element else elem_def, targeted_types

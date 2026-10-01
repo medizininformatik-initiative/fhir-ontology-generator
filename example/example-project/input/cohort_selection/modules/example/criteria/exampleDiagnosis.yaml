@@ -1,0 +1,15 @@
+name: "Diagnosis"
+
+context:
+  system: "fdpg.mii.cds"
+  code: "diagnosis"
+  display: "Diagnosis"
+module: "Example"
+
+definitionSource:
+  structureDefinition: "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose"
+
+identifier:
+  type: "binding"
+  definition: "Condition.code"
+timeRestriction: "Condition.onset"

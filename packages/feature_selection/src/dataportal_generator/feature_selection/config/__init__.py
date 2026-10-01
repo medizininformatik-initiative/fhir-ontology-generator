@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Annotated, Any
 
-from dataportal_generator.common.config.project import register_config_module
 from pydantic import BaseModel, BeforeValidator
 
 from dataportal_generator.feature_selection.config.fields import FieldsConfig

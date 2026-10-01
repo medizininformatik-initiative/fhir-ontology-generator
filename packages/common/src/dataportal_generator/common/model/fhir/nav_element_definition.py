@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from functools import cached_property
+from typing import TYPE_CHECKING
 
 from fhir.resources.R4B.elementdefinition import ElementDefinition, ElementDefinitionType
 from pydantic import Field, PrivateAttr
 
-from common.model.fhir.nav_structure_definition import NavStructureDefinition
+if TYPE_CHECKING:
+    # Import only for type checking to avoid a circular import with ``nav_structure_definition``
+    from dataportal_generator.common.model.fhir.nav_structure_definition import NavStructureDefinition
 
 
 def _parent_elem_def_id(elem_def: ElementDefinition) -> str | None:
@@ -232,8 +237,12 @@ class NavElementDefinition(ElementDefinition):
         If the element definition supports the requested type, the corresponding type info is returned and ``None``
         otherwise.
         """
+        if not self.type:
+            return None
         return next((t for t in self.type if t.code == type_code), None)
 
     def supports_type(self, type_code: str) -> bool:
         """Checks if the element definition supports a given type code."""
+        if not self.type:
+            return False
         return any(t.code == type_code for t in self.type)

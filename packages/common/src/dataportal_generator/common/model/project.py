@@ -11,7 +11,7 @@ import yaml
 from pydantic import BaseModel, Field, ValidationError, computed_field
 from yaml import Loader
 
-from common.terminology import TerminologySource
+from dataportal_generator.common.terminology import TerminologySource
 from dataportal_generator.common.config.project import ProjectConfig
 from dataportal_generator.common.fhir.package_manager import (
     FhirPackageManager,
@@ -72,13 +72,13 @@ class IODir(ProjectDir, abc.ABC):
 
     @computed_field
     @property
-    def dse(self) -> ProjectDir:
-        return _sub_dir("data_selection_extraction", self.path)
+    def feature_selection(self) -> ProjectDir:
+        return _sub_dir("feature_selection", self.path)
 
     @computed_field
     @property
-    def cso(self) -> ProjectDir:
-        return _sub_dir("cohort_selection_ontology", self.path)
+    def cohort_selection(self) -> ProjectDir:
+        return _sub_dir("cohort_selection", self.path)
 
     @computed_field
     @property
@@ -133,7 +133,7 @@ class Project(ProjectDir):
             description="Environment variables in the scope of the project",
         ),
     ]
-    config: Annotated[ProjectConfig, Field(frozen=True, default=ProjectConfig())]
+    config: Annotated[ProjectConfig, Field(frozen=True)]
     path: Annotated[Path | None, Field(init_var=True)] = None
 
     @classmethod
@@ -175,7 +175,7 @@ class Project(ProjectDir):
         super().__init__(_path, name=_name, env=_env, config=_conf)
         if not os.path.exists(self.path):
             raise FileNotFoundError(f"No project {self.name!r} exists @ {self.path!r}")
-        configure_logging(self.path)
+        configure_logging(self.path.resolve())
 
     @staticmethod
     def __create_dirs(path: Path):
@@ -241,9 +241,4 @@ class Project(ProjectDir):
 
         :return: ``TerminologySource`` instance
         """
-        term_src_conf = self.config.terminology_source
-        if ssl_conf := term_src_conf.ssl:
-            cert = (ssl_conf.public, ssl_conf.private)
-        else:
-            cert = None
-        return TerminologySource(term_src_conf.base_url.serialize_url(), cert=cert)
+        return TerminologySource(self)

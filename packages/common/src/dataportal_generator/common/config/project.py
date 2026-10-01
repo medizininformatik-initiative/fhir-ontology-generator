@@ -11,7 +11,7 @@ from pydantic import (
 )
 from pydantic_core import InitErrorDetails
 
-from common.config.http import SSLConfig
+from dataportal_generator.common.config.http import SSLConfig
 from dataportal_generator.common.config.profiles import ProfilesConfig
 from dataportal_generator.common.log.functions import get_logger
 
