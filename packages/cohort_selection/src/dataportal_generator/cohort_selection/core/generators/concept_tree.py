@@ -7,7 +7,7 @@ from itertools import groupby, chain
 from fhir.resources.R4B.coding import Coding
 from fhir.resources.R4B.valueset import ValueSetExpansion
 
-from common.exceptions.fhir import ResourceNotFoundError
+from dataportal_generator.common.exceptions.fhir import ResourceNotFoundError
 from dataportal_generator.common.fhirpath.resolvers import FHIRPathResolver
 from dataportal_generator.common.log.functions import get_logger
 from dataportal_generator.common.model.fhir.nav_element_definition import (
@@ -55,10 +55,16 @@ class ConceptTreeGenerationError(Exception):
 
 
 def _canonical(url: str, version: str | None = None) -> str:
+    """
+    Builds the FHIR canonical from the provided URL and (optional) version as ``<url>[|<version>]``
+    """
     return url + (("|" + version) if version else "")
 
 
 def _split_canonical(canonical: str) -> tuple[str, str | None]:
+    """
+    Splits a FHIR canonical value into its URL and (optional) version component, e.g. ``<url>[|<version>]``
+    """
     split = canonical.split("|")
     return split[0], split[1] if len(split) > 1 else None
 
@@ -72,22 +78,16 @@ def _merge_codings(a: Coding, b: Coding) -> Coding:
     return Coding.model_validate({**a.model_dump(exclude_none=True), **b.model_dump(exclude_none=True)})
 
 
-def _constraining_binding(elem_def: ElementDefinition | None) -> str | None:
-    if elem_def is not None and (binding := elem_def.binding) and binding.valueSet:
-        if binding.strength in _CONSTRAINING_BINDING_STRENGTHS:
-            return binding.valueSet
-        _logger.debug(
-            f"Ignoring binding of element '{elem_def.id}' to value set '{binding.valueSet}' due to non-constraining "
-            f"strength '{binding.strength}'"
-        )
-    return None
-
-
 def _fixed_concept_tree_identifier(crit_def: CriterionDefinition, attr_name: str) -> str:
+    """Generates an identifier for a fixed concept tree group"""
     return f"{crit_def.module}.{crit_def.name}.{attr_name}"
 
 
 def _cmp_binding_strength(a: Binding | None, b: Binding | None) -> int:
+    """
+    Compares FHIR ValueSet binding strengths. Return value is ``> 0`` if ``a > b``, ``0`` if ``a = b`` and ``< 0``
+    otherwise
+    """
     return _BINDING_STRENGTH_MAGNITUDE[a.strength if a else None] - _BINDING_STRENGTH_MAGNITUDE[
         b.strength if b else None]
 
@@ -313,8 +313,8 @@ class CriterionConceptTreeGenerator:
         :param canonical: Canonical of the value set to generate concept tree group for
         :return: Concept tree group identifier
         """
-        url, version = _split_canonical(canonical)
-        vs = self.__terminology_src.expand_value_set(url, version)
+        vs_url, vs_version = _split_canonical(canonical)
+        vs = self.__terminology_src.expand_value_set(vs_url, vs_version)
         expansion = vs.expansion
         trees = {}
         # Get default code system version used in the expansion to supply version data if the concepts in the expansion
@@ -322,57 +322,58 @@ class CriterionConceptTreeGenerator:
         default_cs_version_map = {}
         for s, v in _code_systems_used_in_expansion(expansion):
             cur_v = default_cs_version_map.get(s)
-            default_cs_version_map[s] = max(cur_v, v) if cur_v else None
+            default_cs_version_map[s] = max(cur_v, v) if cur_v else v
         # Group by code system version
         key_func = lambda c: (c.system, c.version)
         for key, grp in groupby(sorted(expansion.contains, key=key_func), key=key_func):
-            url, version = key
-            if not version:
-                version = default_cs_version_map[url]  # Choose latest version as default
-            if self._is_hierarchical(url, version):
-                codings = [Coding(system=url, version=version, code=c.code, display=c.display) for c in grp]
+            cs_url, cs_version = key
+            if not cs_version:
+                cs_version = default_cs_version_map[cs_url]  # Choose latest version as default
+            if self._is_hierarchical(cs_url, cs_version):
+                codings = [Coding(system=cs_url, version=cs_version, code=c.code, display=c.display) for c in grp]
                 cm = self.__terminology_src.closure(codings)
                 if not cm.group:
-                    _logger.warning(f"Code system {_canonical(url, version)} defines supported hierarchy meaning but "
-                                    f"no hierarchy was found. Defaulting to flat concept list")
+                    _logger.warning(
+                        f"Code system {_canonical(cs_url, cs_version)} defines supported hierarchy meaning but "
+                        f"no hierarchy was found. Defaulting to flat concept list")
                     tree = ConceptTree(
-                        system=url,
-                        version=version,
+                        system=cs_url,
+                        version=cs_version,
                         entries=[ConceptTreeEntry(code=c.code) for c in codings]
                     )
                 else:
+                    concept_entries = {c.code: ConceptTreeEntry(code=c.code) for c in codings}
                     # According to the operations definition, the ConceptMap resource should contain exactly one group
-                    subsumption_map = {elem.code: ([t.code for t in elem.target], []) for elem in cm.group[0].element}
+                    subsumption_map = {elem.code: [t.code for t in elem.target] for elem in cm.group[0].element}
                     # Remove non-immediate ancestors and aggregate children
-                    for code, relations in subsumption_map.items():
-                        ancestors, children = relations
+                    for code, ancestors in subsumption_map.items():
                         parents = ancestors.copy()
                         for a in ancestors:
                             # There are cases where the closure table does not contain entries for parent concepts.
                             # Presumably because they do not have parents. Such concepts cannot and do not need to be
                             # processed further (under that assumption)
                             # TODO: Check the assumption described above
-                            if a in parents and (a_relations := subsumption_map.get(a)):
-                                a_ancestors, a_children = a_relations
+                            if a in parents and (a_ancestors := subsumption_map.get(a)):
                                 for aa in a_ancestors:
                                     if aa in parents:
                                         parents.remove(aa)
-                        subsumption_map[code] = (parents, children)
+                        concept_entries[code].parents = parents
+                        subsumption_map[code] = parents
+                        # Add as child to all true parents
+                        for p in parents:
+                            concept_entries[p].children.append(code)
                     tree = ConceptTree(
-                        system=url,
-                        version=version,
-                        entries=[
-                            ConceptTreeEntry(code=code, parents=relations[0], children=relations[1])
-                            for code, relations in subsumption_map.items()
-                        ]
+                        system=cs_url,
+                        version=cs_version,
+                        entries=list(concept_entries.values())
                     )
             else:
                 tree = ConceptTree(
-                    system=url,
-                    version=version,
+                    system=cs_url,
+                    version=cs_version,
                     entries=[ConceptTreeEntry(code=c.code) for c in grp]
                 )
-            trees[url + (("|" + version) if version else "")] = tree
+            trees[cs_url + (("|" + cs_version) if cs_version else "")] = tree
         concept_tree_grp = ConceptTreeGroup(
             identifier=canonical,
             valueSet=f"{vs.url}|{vs.version}",
@@ -449,12 +450,15 @@ class CriterionConceptTreeGenerator:
         )
 
     def generate(self) -> _AttributeTreeMapping:
+        _logger.debug(f"Generating concept trees for criterion identifier of criterion '%s'", self.__crit_def.name)
         crit_ident_trees = self._generate_for_crit_identifier()
         if not crit_ident_trees:
             raise ConceptTreeGenerationError(f"Failed determine concept trees for identifier of criterion "
                                              f"'{self.__crit_def.name}'")
         attr_mapping = {CRITERION_IDENTIFIER_KEY: crit_ident_trees}
         for attribute in self.__crit_def.attributes:
+            _logger.debug("Generating concept trees for criterion attribute '%s' of criterion '%s'", attribute.name,
+                          self.__crit_def.name)
             attr_trees = self._generate_for_crit_attribute(attribute)
             if not attr_trees:
                 raise ConceptTreeGenerationError(f"Failed to determine concept trees for attribute '{attribute.name}' "

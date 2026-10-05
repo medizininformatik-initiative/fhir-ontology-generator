@@ -6,10 +6,16 @@
     "ghcr.io/devcontainers/features/python:1": {
       "version": "3.12"
     },
-    "ghcr.io/devcontainers/features/node:2": {}
+    "ghcr.io/devcontainers/features/node:2": {},
+    "ghcr.io/devcontainers/features/dotnet:2": {
+      "version": "8.0",
+      "dotnetRuntimeVersions": ["8.0"],
+      "aspNetCoreRuntimeVersions": ["8.0"]
+    }
   },
   "onCreateCommand": {
     "uv": "curl -LsSf https://astral.sh/uv/install.sh | sh",
-    "sushi": "npm install -g fsh-sushi"
+    "sushi": "npm install -g fsh-sushi",
+    "firely-terminal": "dotnet tool install -g firely.terminal"
   }
 }

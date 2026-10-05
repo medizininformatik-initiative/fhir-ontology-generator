@@ -14,12 +14,13 @@ from fhir.resources.R4B.coding import Coding
 from fhir.resources.R4B.conceptmap import ConceptMap
 from fhir.resources.R4B.parameters import ParametersParameter, Parameters
 from fhir.resources.R4B.valueset import ValueSet, ValueSetExpansionContains
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel
 from requests import Response
 from requests.sessions import Session
 
 from dataportal_generator.common.cache import disk_cache_method
 from dataportal_generator.common.log.functions import get_logger
+from dataportal_generator.common.model.fhir.pydantic import construct_model
 from dataportal_generator.common.model.terminology import TermCode, TreeMap, TermEntryNode
 
 if TYPE_CHECKING:
@@ -203,7 +204,10 @@ class TerminologySource:
             params["valueSetVersion"] = version
         params["offset"] = offset
         resp = self.__session.get(urljoin(self.__base_url, "ValueSet/$expand"), params=params)
-        return _check_and_parse_response(resp, ValueSet)
+        # We cannot use pydantic validation here since ValueSet instances returned by the ValueSet-expand operation do
+        # not contain the status field that is normally required
+        resp.raise_for_status()
+        return construct_model(ValueSet, **resp.json())
 
     def expand_value_set(self, url: str, version: str | None = None) -> ValueSet:
         """
