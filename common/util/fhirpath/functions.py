@@ -34,8 +34,9 @@ _logger = get_logger(__file__)
 _REGEX_MATCH_TRAILING_WHERE_FUNC = re.compile(r"where\((.*)\)$")
 _REGEX_MATCH_TRAILING_EXISTS_FUNC = re.compile(r"exists\((.*)\)$")
 
-# Types `memberOf()` can actually be evaluated against -- Pathling only supports `Coding`/`CodeableConcept` there
-_MEMBER_OF_CAPABLE_TYPES = {"Coding", "CodeableConcept"}
+# Types `memberOf()` can actually be evaluated against -- Pathling only supports `Coding`/`CodeableConcept`
+# Empty because the fhir-flattener does not support custom (FHIR) terminology server
+_MEMBER_OF_CAPABLE_TYPES = {}
 
 ALL_FHIR_RESOURCE_TYPES_R4B = {
     "ChargeItem",
@@ -746,8 +747,8 @@ def _filter_from_binding(
     """
     Builds a FHIRPath filter expression testing `target` against the ValueSet bound to `elem_def`.
 
-    `memberOf()` is only used when `elem_def` is `Coding`/`CodeableConcept`-typed
-    For any other type the ValueSet is expanded instead and the filter lists the allowed codes explicitly.
+    `memberOf()` is only used when no terminology client is available (or `elem_def`'s type is listed in
+    `_MEMBER_OF_CAPABLE_TYPES`). Otherwise the ValueSet is expanded and the filter lists the allowed codes explicitly.
 
     :param elem_def: Element definition the binding is declared on
     :param binding: The binding itself
@@ -761,19 +762,29 @@ def _filter_from_binding(
     ):
         return f"{target}.memberOf('{binding.valueSet}')".replace("$this.", "")
     try:
-        expansion = client.expand_value_set(url=binding.valueSet)
+
+        if "|" in binding.valueSet:
+            url, _, version = binding.valueSet.partition("|")
+            expansion = client.expand_value_set(url=url, version=version)
+        else:
+            expansion = client.expand_value_set(url=binding.valueSet)
         codes = [
             c["code"]
             for c in (expansion or {}).get("expansion", {}).get("contains", [])
             if c.get("code")
         ]
     except ClientError as err:
-        _logger.warning(
+        _logger.error(
             f"Could not expand ValueSet '{binding.valueSet}' bound to '{elem_def.id}': {err}"
         )
         return None
     if not codes:
         return None
+    # Expanded codes are plain strings, so a `Coding`/`CodeableConcept` has to be compared via its `code` child
+    type_codes = {t.code for t in (elem_def.type or [])}
+    if "Coding" in type_codes or "CodeableConcept" in type_codes:
+        code_path = "code" if "Coding" in type_codes else "coding.code"
+        target = code_path if target == "$this" else f"{target}.{code_path}"
     return _valueset_codes_filter(target, codes)
 
 
