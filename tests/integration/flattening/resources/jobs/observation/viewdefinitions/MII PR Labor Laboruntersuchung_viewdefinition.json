@@ -135,34 +135,39 @@
                 {
                   "select": [
                     {
-                      "column": [
+                      "select": [
                         {
-                          "name": "Observation_identifierAnalysebefundcode_type_codingObservationinstancev2_code",
-                          "path": "code",
-                          "type": "code"
-                        }
-                      ]
-                    },
-                    {
-                      "column": [
+                          "column": [
+                            {
+                              "name": "Observation_identifierAnalysebefundcode_type_codingObservationinstancev2_code",
+                              "path": "code",
+                              "type": "code"
+                            }
+                          ]
+                        },
                         {
-                          "name": "Observation_identifierAnalysebefundcode_type_codingObservationinstancev2_system",
-                          "path": "system",
-                          "type": "uri"
-                        }
-                      ]
-                    },
-                    {
-                      "column": [
+                          "column": [
+                            {
+                              "name": "Observation_identifierAnalysebefundcode_type_codingObservationinstancev2_system",
+                              "path": "system",
+                              "type": "uri"
+                            }
+                          ]
+                        },
                         {
-                          "name": "Observation_identifierAnalysebefundcode_type_codingObservationinstancev2_version",
-                          "path": "version",
-                          "type": "string"
+                          "column": [
+                            {
+                              "name": "Observation_identifierAnalysebefundcode_type_codingObservationinstancev2_version",
+                              "path": "version",
+                              "type": "string"
+                            }
+                          ]
                         }
-                      ]
+                      ],
+                      "forEachOrNull": "$this.where(system = 'http://terminology.hl7.org/CodeSystem/v2-0203' and code = 'OBI')"
                     }
                   ],
-                  "forEachOrNull": "coding.where(system = 'http://terminology.hl7.org/CodeSystem/v2-0203' and code = 'OBI')"
+                  "forEachOrNull": "coding"
                 }
               ],
               "forEachOrNull": "type"
