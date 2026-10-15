@@ -44,6 +44,10 @@
     "expected": 1
   },
   {
+    "query": "Observation_Patient1_Q2.json",
+    "expected": 1
+  },
+  {
     "query": "MedicationAdministration_Patient1_Q1.json",
     "expected": 1
   },

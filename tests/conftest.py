@@ -3,12 +3,12 @@ import shutil
 import zipfile
 from pathlib import Path
 from types import ModuleType
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
 import cachetools
 import pytest
 import requests
-from _pytest.fixtures import FixtureRequest, FixtureLookupError
+from _pytest.fixtures import FixtureLookupError, FixtureRequest
 from fhir.resources.R4B.bundle import Bundle
 from fhir.resources.R4B.elementdefinition import ElementDefinition
 from fhir.resources.R4B.structuredefinition import StructureDefinition
