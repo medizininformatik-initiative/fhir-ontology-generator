@@ -1,8 +1,7 @@
 import json
-from typing import Dict
-
-from pydantic import BaseModel, Field, ConfigDict
 from importlib.resources import files
+
+from pydantic import BaseModel, ConfigDict, Field
 
 import cohort_selection_ontology.model.ui_data
 from data_selection_extraction.model.profile_tree import ProfileTreeNode
@@ -17,7 +16,7 @@ _RESOURCE_TYPE_LOCALIZATIONS = json.loads(
 # TODO: Apply this new translation data model throughout the entire repository
 class TranslationDisplayElement(BaseModel):
     original: str
-    localization: Dict[str, str] = Field(default_factory=dict)
+    localization: dict[str, str] = Field(default_factory=dict)
 
     def update_translations(self, **kwargs: tuple[str, str | None]):
         """

@@ -12,7 +12,7 @@ from common.util.fhir.bundle import create_bundle, BundleType
 from common.util.http.terminology.client import FhirTerminologyClient
 from common.util.log.functions import get_class_logger, get_logger
 from common.util.project import Project
-
+from elasticsearch.model import IndexDocDisplay
 
 _logger = get_logger(__file__)
 
@@ -493,7 +493,7 @@ class TerminologyDesignationResolver:
                     else:
                         self.code_systems[url] = codesystem
 
-    def resolve_term(self, term_code) -> Mapping[str, Any]:
+    def resolve_term(self, term_code) -> IndexDocDisplay:
         """
         Generates the 'display' property of a term_code
         providing the ability of multilingual search.
@@ -508,7 +508,7 @@ class TerminologyDesignationResolver:
                 "de": "<language-display>"
             }
         """
-        display = {"original": term_code["display"], "en": "", "de": ""}
+        display = IndexDocDisplay(original=term_code["display"], en="", de="")
         if self.code_systems.get(term_code["system"]):
             concept = (
                 self.code_systems.get(term_code["system"])
@@ -517,13 +517,13 @@ class TerminologyDesignationResolver:
             )
             if concept:
                 if "en" in concept:
-                    display["en"] = concept.get("en")
+                    display.en = concept.get("en")
                     if concept.get("en") is None:
                         self.__logger.warning(
                             f"Did not find English version of code '{term_code['code']}'"
                         )
                 if "de" in concept:
-                    display["de"] = concept.get("de")
+                    display.de = concept.get("de")
                     if concept.get("de") is None:
                         self.__logger.warning(
                             f"Did not find German version of code '{term_code['code']}'"

@@ -78,7 +78,7 @@ def validate_mapping_tree(tree_name: str, mapping_tree_folder="mapping-tree"):
 
 
 def write_ui_trees_to_files(
-    trees: List,
+    trees: list,
     module_name: str,
     directory: str | Path = "ui-trees",
 ):
@@ -113,7 +113,7 @@ def write_term_code_info_to_file(
 
 
 def write_used_value_sets_to_files(
-    ui_profiles: List[UIProfile], directory: str | Path = "value-sets"
+    ui_profiles: list[UIProfile], directory: str | Path = "value-sets"
 ):
     """
     Writes the value sets used in the UI profiles to the specified directory.
@@ -172,7 +172,7 @@ def remove_reserved_characters(file_name: str) -> str:
 
 
 def write_ui_profiles_to_files(
-    profiles: List[UIProfile] | ValuesView[UIProfile],
+    profiles: list[UIProfile] | ValuesView[UIProfile],
     folder: str | Path = "ui-profiles",
 ):
     """
@@ -186,7 +186,7 @@ def write_ui_profiles_to_files(
         file_path = os.path.join(folder, sanitized_name)
         os.makedirs(folder, exist_ok=True)
         with open(file_path, mode="w", encoding="utf-8") as f:
-            f.write(profile.to_json())
+            f.write(profile.model_dump_json(exclude_none=True))
 
 
 def denormalize_mapping_to_old_format(

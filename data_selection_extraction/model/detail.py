@@ -1,98 +1,116 @@
-from __future__ import annotations
-
 import abc
 from functools import total_ordering
-from typing import Optional, List, Literal, Annotated, TypeAlias
+from typing import Annotated, Literal, TypeAlias
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
+from pydantic import ConfigDict, Field, TypeAdapter
 
-from cohort_selection_ontology.model.ui_data import (
-    TranslationDisplayElement,
-    BulkTranslationDisplayElement,
-)
-from common.model.pydantic.mixins import SerializeSorted
-from common.util.fhir.enums import FhirDataType, FhirSearchType, FhirComplexDataType
+from versiondiff.core.markers import DiffRule, Identity
+from versiondiff.core.models import DiffModel
+
+
+class Translation(DiffModel):
+    language: Annotated[str, Identity()]
+    value: str | None = Field(default=None)
+
+
+class BulkTranslation(DiffModel):
+    language: Annotated[str, Identity()]
+    value: list[str | None] = Field(default_factory=list)
+
+
+class TranslationDisplayElement(DiffModel):
+    original: Annotated[str, Identity()]
+    translations: list[Translation]
+
+
+class BulkTranslationDisplayElement(DiffModel):
+    original: list[str] = Field(default_factory=list)
+    translations: list[BulkTranslation] = Field(default_factory=list)
 
 
 @total_ordering
-class Filter(BaseModel, SerializeSorted):
-    type: FhirSearchType
-    name: str
+class Filter(DiffModel):
+    type: str
+    name: Annotated[str, Identity()]
     ui_type: Literal["code", "timeRestriction"]
-    valueSetUrls: Annotated[
-        Optional[List[str]],
-        Field(default=None),
-    ]
+    valueSetUrls: list[str] | None = Field(default=None)
 
-    def __eq__(self, other):
-        return self.name == other.name
-
-    def __lt__(self, other):
+    def __lt__(self, other: "Filter"):
+        if not isinstance(other, Filter):
+            return NotImplemented
         return self.name < other.name
 
+    def __eq__(self, other: object):
+        if not isinstance(other, Filter):
+            return NotImplemented
+        return self.name == other.name
 
-class Detail(BaseModel, abc.ABC, SerializeSorted):
-    display: Annotated[Optional[TranslationDisplayElement], Field(default=None)]
-    description: Annotated[Optional[TranslationDisplayElement], Field(default=None)]
-    module: Annotated[Optional[TranslationDisplayElement], Field(default=None)]
+
+class Detail(DiffModel, abc.ABC):
+    display: Annotated[TranslationDisplayElement | None, DiffRule(ignore=True)] = Field(default=None)
+    description: Annotated[TranslationDisplayElement | None, DiffRule(ignore=True)] = Field(default=None)
+    module: Annotated[TranslationDisplayElement | None, DiffRule(ignore=True)] = Field(default=None)
 
 
-@total_ordering
-class ProfileReference(BaseModel, SerializeSorted):
-    url: str
-    display: TranslationDisplayElement
-    fields: BulkTranslationDisplayElement
+class ProfileReference(DiffModel):
+    url: Annotated[str, Identity()]
+    display: Annotated[TranslationDisplayElement, DiffRule(ignore=True)]
+    fields: Annotated[BulkTranslationDisplayElement, DiffRule(ignore=True)]
 
-    def __eq__(self, other):
-        return self.url == other.url
-
-    def __lt__(self, other):
+    def __lt__(self, other: "ProfileReference"):
+        if not isinstance(other, ProfileReference):
+            return NotImplemented
         return self.url < other.url
 
+    def __eq__(self, other: object):
+        if not isinstance(other, ProfileReference):
+            return NotImplemented
+        return self.url == other.url
 
-@total_ordering
+
 class FieldDetail(Detail):
-    id: str
-    type: Annotated[Optional[FhirDataType], Field(exclude=True, default=None)]
-    recommended: Annotated[bool, Field(default=False)]
-    required: Annotated[bool, Field(default=False)]
-    children: Annotated[List[FieldDetail], Field(default=[])]
+    id: Annotated[str, Identity()]
+    type: str | None = Field(default=None, exclude=True)
+    recommended: bool = Field(default=False)
+    required: bool = Field(default=False)
+    children: list["FieldDetail"] = Field(default_factory=list)
 
     model_config = ConfigDict(use_enum_values=True)
 
-    def __eq__(self, other):
-        return self.id == other.id
-
-    def __lt__(self, other):
+    def __lt__(self, other: "FieldDetail"):
+        if not isinstance(other, FieldDetail):
+            return NotImplemented
         return self.id < other.id
+
+    def __eq__(self, other: object):
+        if not isinstance(other, FieldDetail):
+            return NotImplemented
+        return self.id == other.id
 
 
 class ReferenceDetail(FieldDetail):
-    type: Annotated[
-        FhirDataType,
-        Field(exclude=True, init=False, default=FhirComplexDataType.REFERENCE),
-    ]
-    referencedProfiles: Annotated[List[ProfileReference], Field(default=[])]
+    type: str | None = Field(
+        default="reference", exclude=True
+    )
+    referencedProfiles: list[ProfileReference] = Field(default_factory=list)
 
 
-@total_ordering
 class ProfileDetail(Detail):
-    url: str
-    filters: Annotated[
-        List[Filter],
-        Field(
-            default=[],
-        ),
-    ]
-    fields: Annotated[List[FieldDetail], Field(default=[])]
-    references: Annotated[List[ReferenceDetail], Field(default=[])]
+    url: Annotated[str, Identity()]
+    filters: list[Filter] = Field(default_factory=list)
+    fields: list[FieldDetail] = Field(default_factory=list)
+    references: list[ReferenceDetail] = Field(default_factory=list)
 
-    def __eq__(self, other):
-        return self.url == other.url
-
-    def __lt__(self, other):
+    def __lt__(self, other: "ProfileDetail"):
+        if not isinstance(other, ProfileDetail):
+            return NotImplemented
         return self.url < other.url
 
+    def __eq__(self, other: object):
+        if not isinstance(other, ProfileDetail):
+            return NotImplemented
+        return self.url == other.url
 
-ProfileDetailList: TypeAlias = List[ProfileDetail]
+
+ProfileDetailList: TypeAlias = list[ProfileDetail]
 ProfileDetailListTA = TypeAdapter(ProfileDetailList)

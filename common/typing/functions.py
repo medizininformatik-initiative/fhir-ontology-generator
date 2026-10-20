@@ -35,7 +35,7 @@ def resolve_type(ann: Any) -> Tuple[Any, bool]:
         case "Union":
             # TODO: Add handling for union types beside those representing typing.Optional e.g. <type> | None
             return resolve_type(get_args(ann)[0])
-        case "List":
+        case "list" | "List":
             t, _ = resolve_type(get_args(ann)[0])
             return t, True
         case "Literal":

@@ -125,7 +125,7 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         self.__logger.debug(f"Generating tree map for value set '{canonical_url}'")
         closure_name = self.create_concept_map()
         vs = self.expand_value_set(canonical_url)
-        treemap: TreeMap = TreeMap({}, None, None, None)
+        treemap: TreeMap = TreeMap.model_construct(entries={}, context=None, system=None, version=None)
         treemap.entries = {
             term_code.code: TermEntryNode(term_code=term_code) for term_code in vs
         }

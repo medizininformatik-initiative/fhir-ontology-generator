@@ -1,6 +1,6 @@
 from typing import Final
 
-from pydantic import BaseModel, model_serializer
+from pydantic import model_serializer
 from pydantic.v1.utils import to_lower_camel
 from pydantic_core.core_schema import SerializerFunctionWrapHandler
 

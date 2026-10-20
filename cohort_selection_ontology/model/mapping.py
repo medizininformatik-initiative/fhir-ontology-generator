@@ -1,19 +1,18 @@
 from __future__ import annotations
 
 import json
-from abc import ABC
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Optional, Set, Union, Any
+from typing import Any, List, Optional, Set, Union
 
 from pydantic import BaseModel, model_validator
 from sortedcontainers import SortedSet
 
-from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS
 from cohort_selection_ontology.model.ui_data import TermCode
+from cohort_selection_ontology.model.ui_profile import VALUE_TYPE_OPTIONS
+from common.typing.fhir import FHIRPath
 from common.util.codec.functions import del_none
 from common.util.codec.json import JSONFhirOntoEncoder
-from common.typing.fhir import FHIRPath
 
 
 class AttributeSearchParameter(BaseModel):

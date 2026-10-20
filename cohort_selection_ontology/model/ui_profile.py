@@ -1,115 +1,84 @@
-import copy
-import json
-from dataclasses import field, asdict
-from typing import Literal, List, Tuple, ClassVar, Optional, Mapping, Any
+from collections.abc import Mapping
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import Field, field_serializer
+from typing_extensions import deprecated
 
 from cohort_selection_ontology.model.ui_data import TermCode, TranslationDisplayElement
-from common.util.codec.functions import del_none
-from common.util.codec.json import JSONFhirOntoEncoder
-
-UI_PROFILES = set()
+from versiondiff.core.markers import DiffIgnore, Identity
+from versiondiff.core.models import DiffModel
 
 VALUE_TYPE_OPTIONS = Literal[
     "concept", "quantity", "reference", "date", "composite", "Age"
 ]
 
 
-class CriteriaSet(BaseModel):
-    url: str
-    contextualized_term_codes: List[Tuple[TermCode, TermCode]] = Field(
+class CriteriaSet(DiffModel):
+    url: Annotated[str, Identity()]
+    contextualized_term_codes: list[tuple[TermCode, TermCode]] = Field(
         default_factory=list
     )
-
-    def to_json(self):
-        def custom_serializer(obj):
-            if isinstance(obj, BaseModel):
-                return obj.model_dump()
-            raise TypeError(f"Type {type(obj)} not serializable")
-
-        criteria_dict = self.model_dump()
-        return json.dumps(criteria_dict, default=custom_serializer, indent=4)
+    
+    @deprecated("Use ``CriteriaSet.model_dump_json()`` instead")
+    def to_json(self) -> str:
+        return self.model_dump_json()
 
 
-class ValueSet(BaseModel):
-    url: str
-    valueSet: Mapping[str, Any] = {}
+class ValueSet(DiffModel):
+    url: Annotated[str, Identity()]
+    valueSet: Mapping[str, Any] = Field(default_factory=dict)
 
-    def to_json(self):
-        return json.dumps(self, default=lambda o: del_none(self.valueSet), indent=4)
+    @deprecated("Use ``ValueSet.model_dump_json(exclude_none=True)`` instead")
+    def to_json(self) -> str:
+        return self.model_dump_json(exclude_none=True)
 
 
-class ValueDefinition(BaseModel):
+class ValueDefinition(DiffModel):
     type: VALUE_TYPE_OPTIONS
-    referencedValueSet: List[ValueSet] = Field(default_factory=list)
-    allowedUnits: List[TermCode] = Field(default_factory=list)
-    precision: int = 1
-    min: float = None
-    max: float = None
-    referencedCriteriaSet: List[CriteriaSet] = Field(default_factory=list)
-    optional: bool = True
-    display: TranslationDisplayElement = None
+    referencedValueSet: list[ValueSet | str] = Field(default_factory=list)
+    allowedUnits: list[TermCode] = Field(default_factory=list)
+    precision: int = Field(default=1)
+    min: float | None = Field(default=None)
+    max: float | None = Field(default=None)
+    referencedCriteriaSet: list[CriteriaSet | str] = Field(default_factory=list)
+    optional: bool = Field(default=True)
+    display: Annotated[TranslationDisplayElement | None, DiffIgnore()] = Field(default=None)
 
-    def to_dict(self):
-        data = self.model_dump()
-        if self.referencedCriteriaSet:
-            data["referencedCriteriaSet"] = sorted([x.url for x in self.referencedCriteriaSet])
-        if self.referencedValueSet:
-            data["referencedValueSet"] = sorted([x.url for x in self.referencedValueSet])
-        return data
+    @field_serializer("referencedValueSet")
+    def _serialize_referenced_value_set(self, data: list[ValueSet]) -> list[object]:
+        return sorted((x.url if isinstance(x, ValueSet) else x) for x in data)
+
+    @field_serializer("referencedCriteriaSet")
+    def _serialize_referenced_criteria_set(self, data: list[CriteriaSet]) -> list[object]:
+        return sorted((x.url if isinstance(x, ValueSet) else x) for x in data)
+
+    @deprecated("Use ``ValueDefinition.model_dump(exclude_none=True)`` instead")
+    def to_dict(self) -> dict:
+        return self.model_dump(exclude_none=True)
 
 
 class AttributeDefinition(ValueDefinition):
-    attributeCode: TermCode = None
-
-    # TODO: This is not best practice. See python dataclass non-default argument follows default argument
-    # However would require a lot of refactoring
-    # def __init__(self, attribute_code, value_type, optional: bool = True):
-    #     super().__init__(value_type, optional=optional)
-    #     self.attributeCode = attribute_code
+    attributeCode: Annotated[TermCode, Identity()]
 
 
-class Unit:
-    def __init__(self, display, code):
-        self.display = display
-        self.code = code
-
-
-def del_keys(dictionary, keys):
-    result = copy.deepcopy(dictionary)
-    for k in keys:
-        result.pop(k, None)
-    return result
-
-
-class UIProfile(BaseModel):
-    name: str
-    timeRestrictionAllowed: bool = True
-    valueDefinition: ValueDefinition = None
-    attributeDefinitions: List[AttributeDefinition] = Field(default_factory=list)
-    DO_NOT_SERIALIZE: ClassVar[List[str]] = (
-        []
-    )  # ClassVar indicates that it's a class-level variable
+class UIProfile(DiffModel):
+    name: Annotated[str, Identity()]
+    timeRestrictionAllowed: bool = Field(default=True)
+    valueDefinition: ValueDefinition | None = Field(default=None)
+    attributeDefinitions: list[AttributeDefinition] = Field(default_factory=list)
 
     @classmethod
-    def from_json(cls, json_string):
-        return cls(**json.loads(json_string))
+    @deprecated("Use ``UIProfile.model_validate_json()`` instead")
+    def from_json(cls, json_string: str) -> "UIProfile":
+        return cls.model_validate_json(json_string)
 
-    def to_json(self):
-        return json.dumps(
-            self.to_dict(), sort_keys=True, indent=4, cls=JSONFhirOntoEncoder
-        )
+    @deprecated("Use ``UIProfile.model_dump_json()`` instead")
+    def to_json(self) -> str:
+        return self.model_dump_json()
 
-    def to_dict(self):
-        data = self.model_dump()
-        if self.valueDefinition:
-            data["valueDefinition"] = self.valueDefinition.to_dict()
-        if self.attributeDefinitions:
-            data["attributeDefinitions"] = [
-                attr.to_dict() for attr in self.attributeDefinitions
-            ]
-        return data
+    @deprecated("Use ``UIProfile.model_dump()`` instead")
+    def to_dict(self) -> dict:
+        return self.model_dump()
 
     def __eq__(self, other):
         return self.name == other.name

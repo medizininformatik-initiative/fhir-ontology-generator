@@ -1,12 +1,9 @@
-from __future__ import annotations
-
-import copy
-import json
-import random as rd
-import uuid
-from typing import List, Optional
+from typing import Annotated
 
 from pydantic import BaseModel, Field
+from typing_extensions import deprecated
+
+from versiondiff import DiffModel, DiffRule, Identity
 
 
 def del_none(dictionary):
@@ -36,50 +33,9 @@ def del_none(dictionary):
     return dictionary
 
 
-def del_keys(dictionary, keys):
-    """
-    Deletes the keys in a copy of the dictionary and returns said copy
-    :param dictionary: the dictionary to delete the keys from
-    :param keys: the keys to delete
-    :return: the copy of the dictionary without the keys
-    """
-    result = copy.deepcopy(dictionary)
-    for k in keys:
-        result.pop(k, None)
-    return result
-
-
-class CategoryEntry:
-    # TODO: is this class still in use? else mark as deprecated
-    DO_NOT_SERIALIZE = ["path", "DO_NOT_SERIALIZE"]
-
-    def __init__(self, entry_id, display, path):
-        self.entryId = entry_id  # References TerminologyEntry
-        self.display = display
-        self.path = path  # not shared in json
-        self.shortDisplay = display[0]  #
-
-    def __str__(self):
-        output = ""
-        for _, var in vars(self).items():
-            output += " " + str(var)
-        return output
-
-    def __repr__(self):
-        return self.display
-
-    def to_json(self):
-        return json.dumps(
-            self,
-            default=lambda o: del_none(del_keys(o.__dict__, self.DO_NOT_SERIALIZE)),
-            sort_keys=True,
-            indent=4,
-        )
-
-
-class Module(BaseModel):
-    code: str
-    display: str
+class Module(DiffModel):
+    code: Annotated[str, Identity()]
+    display: Annotated[str, DiffRule(ignore=True)]
 
     def to_dict(self):
         return {"code": self.code, "display": self.display}
@@ -92,34 +48,29 @@ class RelationalTermcode(BaseModel):
     term_code: str
     selectable: bool
 
+    @deprecated("Use ``RelationalTermcode.model_dump()`` instead")
     def to_dict(self):
-        return {
-            "contextualized_termcode_hash": self.contextualized_termcode_hash,
-            "display": self.display,
-            "terminology": self.terminology,
-            "term_code": self.term_code,
-            "selectable": self.selectable
-        }
+        return self.model_dump()
 
 
 class Translation(BaseModel):
     language: str
-    value: Optional[str] = Field(default=None)
+    value: str | None = Field(default=None)
 
 
 class BulkTranslation(BaseModel):
     language: str
-    value: List[Optional[str]] = []
+    value: list[str | None] = Field(default_factory=list)
 
 
 class TranslationDisplayElement(BaseModel):
     original: str
-    translations: List[Translation]
+    translations: list[Translation] = Field(default_factory=list)
 
 
 class BulkTranslationDisplayElement(BaseModel):
-    original: List[str] = []
-    translations: List[BulkTranslation] = []
+    original: list[str] = Field(default_factory=list)
+    translations: list[BulkTranslation] = Field(default_factory=list)
 
 
 class TermCode(BaseModel):
@@ -166,22 +117,9 @@ class TermCode(BaseModel):
             self.system + " " + self.code + " " + self.version if self.version else ""
         )
 
-    def to_dict(self):
-        if isinstance(self.display, str):
-            return {
-                "system": self.system,
-                "code": self.code,
-                "display": self.display,
-                "version": self.version,
-            }
-        if isinstance(self.display, TranslationDisplayElement):
-            return {
-                "system": self.system,
-                "code": self.code,
-                "display": self.display.model_dump_json(),
-                "version": self.version,
-            }
-        return None
+    @deprecated("Use ``TermCode.model_dump()`` instead")
+    def to_dict(self) -> dict:
+        return self.model_dump()
 
 
 class Unit(BaseModel):
@@ -193,107 +131,3 @@ class Unit(BaseModel):
     """
     display: str
     code: str
-
-    # def __init__(self, display, code):
-    #     self.display = display
-    #     self.code = code
-
-
-class TermEntry(object):
-    # TODO: is this still in use? else mark as deprecated
-    """
-    A TermEntry represents a medical concept. TermEntries are organized in a tree structure.
-    It's concept is defined by one or more TermCodes in a specific context.::
-
-        :param term_codes: A list of TermCodes that define the concept of this TermEntry
-        :param terminology_type
-        :param leaf: True if this TermEntry has no children
-        :param selectable: True if this TermEntry can be selected by the user
-        :param context: The context of this TermEntry. All children of this TermEntry will have the same context.
-    """
-    DO_NOT_SERIALIZE = [
-        "terminologyType",
-        "path",
-        "DO_NOT_SERIALIZE",
-        "fhirMapperType",
-        "termCode",
-        "valueDefinitions",
-        "root",
-    ]
-
-    # TODO: context should be after term_codes. This would be a breaking change -> requires updating all uses of this \
-    # class
-    def __init__(
-        self,
-        term_codes: List[TermCode],
-        terminology_type=None,
-        leaf=True,
-        selectable=True,
-        context: TermCode = None,
-        ui_profile=None,
-    ):
-        self.id = str(uuid.UUID(int=rd.getrandbits(128)))
-        self.termCodes = term_codes
-        self.termCode = term_codes[0]
-        for code in self.termCodes:
-            if code.system == "http://snomed.info/sct":
-                self.termCode = code
-        self.terminologyType = terminology_type
-        self.path = None
-        self.children = []
-        self.leaf = leaf
-        self.selectable = selectable
-        self.display = self.termCode.display if self.termCode else None
-        self.root = True
-        self.context = context
-
-    def __lt__(self, other):
-        if self.display and other.display:
-            return self.display.casefold() < other.display.casefold()
-        return self.termCode < other.termCode
-
-    def __repr__(self):
-        return self.termCode.display
-
-    def __len__(self):
-        return len(self.children) + 1
-
-    def __eq__(self, other):
-        return self.termCode == other.termCode and self.context == other.context
-
-    def __hash__(self):
-        return hash(
-            self.termCode.system
-            + self.termCode.code
-            + self.context.system
-            + self.context.code
-        )
-
-    def to_json(self):
-        """
-        Serializes the TermEntry to json
-        :return: The JSON representation of the TermEntry
-        """
-        return json.dumps(
-            self,
-            default=lambda o: del_none(del_keys(o.__dict__, self.DO_NOT_SERIALIZE)),
-            sort_keys=True,
-            indent=4,
-        )
-
-    def get_leaves(self) -> List[TermEntry]:
-        """
-        Returns all leaves of the TermEntry tree
-        :return: the leaves of the TermEntry tree
-        """
-        result = []
-        for child in self.children:
-            if child.children:
-                result += child.get_leaves()
-            else:
-                result += child
-        return result
-
-    def to_v1_entry(self, ui_profile) -> None:
-        for key, value in ui_profile.__dict__.items():
-            setattr(self, key, value)

@@ -1,18 +1,20 @@
-import os
 import json
+import os
+import re
 import shutil
 import uuid
+from collections.abc import Callable, Mapping
 from pathlib import Path
-from typing import Mapping, Any, Callable, TypeVar
-import re
+from typing import Any, TypeVar
 
-from cohort_selection_ontology.model.ui_data import RelationalTermcode
+from cohort_selection_ontology.model.ui_data import RelationalTermcode, TermCode
 from common.util.codec.json import JSONFhirOntoEncoder
-from data_selection_extraction.model.profile_tree import ProfileTreeNode, ProfileTreeTA
-from elasticsearch.core.resolvers.designation import TerminologyDesignationResolver
-
 from common.util.log.functions import get_logger
 from common.util.project import Project
+from data_selection_extraction.model.profile_tree import ProfileTreeNode, ProfileTreeTA
+from elasticsearch.core.resolvers.designation import TerminologyDesignationResolver
+from elasticsearch.model.codeable_concept_index import CodeableConceptIndexDoc
+from elasticsearch.model.ontology_index import OntologyIndexDoc
 from elasticsearch.model.profile_index import ProfileIndexDocument
 
 _logger = get_logger(__file__)
@@ -23,31 +25,29 @@ _logger = get_logger(__file__)
 ########################################################################################################################
 
 
-def _ontology_doc_ser(_, doc: Any) -> tuple[bytes, bytes]:
-    obj_hash = doc["hash"]
-    del doc["hash"]
+def _ontology_doc_ser(_, doc: OntologyIndexDoc) -> tuple[bytes, bytes]:
+    obj_hash = doc.hash
+    del doc.hash
     action_and_metadata_d = (
-        f'{{"index": {{"_index": "ontology", "_id": "{obj_hash}"}}}}\n'.encode("utf-8")
+        f'{{"index": {{"_index": "ontology", "_id": "{obj_hash}"}}}}\n'.encode()
     )
-    doc_b = (json.dumps(doc, cls=JSONFhirOntoEncoder) + "\n").encode("utf-8")
+    doc_b = (doc.model_dump_json() + "\n").encode(encoding="utf-8")
     return action_and_metadata_d, doc_b
 
 
-def _codeable_concept_doc_ser(_, doc: Any) -> tuple[bytes, bytes]:
-    obj_hash = doc["hash"]
-    del doc["hash"]
+def _codeable_concept_doc_ser(_, doc: CodeableConceptIndexDoc) -> tuple[bytes, bytes]:
+    obj_hash = doc.hash
+    del doc.hash
     action_and_metadata_d = (
-        f'{{"index": {{"_index": "codeable_concept", "_id": "{obj_hash}"}}}}\n'.encode(
-            "utf-8"
-        )
+        f'{{"index": {{"_index": "codeable_concept", "_id": "{obj_hash}"}}}}\n'.encode()
     )
-    doc_b = (json.dumps(doc, cls=JSONFhirOntoEncoder) + "\n").encode("utf-8")
+    doc_b = (doc.model_dump_json() + "\n").encode(encoding="utf-8")
     return action_and_metadata_d, doc_b
 
 
 def _profile_doc_ser(idx: int, doc: ProfileIndexDocument) -> tuple[bytes, bytes]:
     action_and_metadata_b = (
-        f'{{"index": {{"_index": "profile", "_id": "{idx}"}}}}\n'.encode("utf-8")
+        f'{{"index": {{"_index": "profile", "_id": "{idx}"}}}}\n'.encode()
     )
     doc_bytes_b = (doc.model_dump_json() + "\n").encode(encoding="utf-8")
     return action_and_metadata_b, doc_bytes_b
@@ -82,7 +82,7 @@ def _write_es_documents(
     :param max_file_size_mb: Maximum NDJSON file size (in MB)
     """
     if not documents:
-        _logger.warning(f"No documents to write for index {repr(index_name)}")
+        _logger.warning(f"No documents to write for index {index_name!r}")
         return
     max_file_size_bytes = max_file_size_mb * 1024 * 1024
     current_file_subindex = 0
@@ -112,7 +112,6 @@ def _write_es_documents(
 
 
 class ElasticSearchGenerator:
-
     def __init__(self, project: Project):
         self.__project = project
         self.__designation_resolver = TerminologyDesignationResolver(
@@ -241,25 +240,25 @@ class ElasticSearchGenerator:
                 term_code = term_code_info["term_code"]
                 context = term_code_info["context"]
                 selectable = self.__determine_if_termcode_selectable(term_code_info)
-                obj = {
-                    "hash": context_termcode_hash,
-                    "name": term_code["display"],
-                    "availability": 0,
-                    "terminology": term_code["system"],
-                    "termcode": term_code["code"],
-                    "selectable": selectable,
-                    "context": context,
-                    "termcodes": [term_code_info["term_code"]],
-                    "criteria_sets": [],
-                    "display": self.__designation_resolver.resolve_term(term_code),
-                    "parents": [],
-                    "children": [],
-                    "related_terms": [],
-                    "kds_module": term_code_info["module"]["display"],
-                }
+                obj = OntologyIndexDoc(
+                    hash=context_termcode_hash,
+                    name=term_code["display"],
+                    availability=0,
+                    terminology=term_code["system"],
+                    termcode=term_code["code"],
+                    selectable=selectable,
+                    context=context,
+                    termcodes=[term_code_info["term_code"]],
+                    criteria_sets=[],
+                    display=self.__designation_resolver.resolve_term(term_code),
+                    parents=[],
+                    children=[],
+                    related_kds_terms=[],
+                    kds_module=term_code_info["module"]["display"],
+                )
 
                 for parent_code in entry["parents"]:
-                    obj["parents"].append(
+                    obj.parents.append(
                         self.__get_relation_crit_object(
                             parent_code,
                             ui_tree["system"],
@@ -270,7 +269,7 @@ class ElasticSearchGenerator:
                     )
 
                 for child_code in entry["children"]:
-                    obj["children"].append(
+                    obj.children.append(
                         self.__get_relation_crit_object(
                             child_code,
                             ui_tree["system"],
@@ -284,9 +283,9 @@ class ElasticSearchGenerator:
                 # for sibling_code in term_code_info['siblings']:
                 #    obj['children'].append(ElasticSearchGenerator.__get_relation_crit_object(child_code,ui_tree['system'],term_code_info_map, namespace_uuid_str=namespace_uuid_str))
 
-                if obj["hash"] in context_termcode_hash_to_crit_set:
-                    obj["criteria_sets"] = context_termcode_hash_to_crit_set[
-                        obj["hash"]
+                if obj.hash in context_termcode_hash_to_crit_set:
+                    obj.criteria_sets = context_termcode_hash_to_crit_set[
+                        obj.hash
                     ]
 
                 target_elastic_crit_list.append(obj)
@@ -300,25 +299,24 @@ class ElasticSearchGenerator:
             return
 
         for termcode in value_set["expansion"]["contains"]:
-
             termcode_hash_input = f"{termcode['code']}{termcode['system']}"
             namespace_uuid = uuid.UUID(namespace_uuid_str)
             termcode_hash = str(uuid.uuid3(namespace_uuid, termcode_hash_input))
 
             if termcode_hash not in termcode_to_valueset:
-                tc = {
-                    "code": termcode["code"],
-                    "display": termcode["display"],
-                    "system": termcode["system"],
-                }
-                if v := termcode.get("version"):
-                    tc["version"] = v
-                termcode_to_valueset[termcode_hash] = {
-                    "hash": termcode_hash,
-                    "termcode": tc,
-                    "value_sets": [value_set["url"]],
-                    "display": self.__designation_resolver.resolve_term(termcode),
-                }
+                tc = TermCode(
+                    code=termcode["code"],
+                    display=termcode["display"],
+                    system=termcode["system"],
+                )
+                if v := termcode.version:
+                    tc.version = v
+                termcode_to_valueset[termcode_hash] = CodeableConceptIndexDoc(
+                    hash=termcode_hash,
+                    termcode=tc,
+                    value_sets=[value_set["url"]],
+                    display=self.__designation_resolver.resolve_term(termcode),
+                )
 
             else:
                 termcode_to_valueset[termcode_hash]["value_sets"].append(
@@ -339,7 +337,6 @@ class ElasticSearchGenerator:
         )
         _logger.debug(f"Writing to file {current_file_name}")
         with open(current_file_name, mode="w+", encoding="UTF-8") as current_file:
-
             for insert in es_availability_inserts:
                 count = count + 1
                 current_line = f"{json.dumps(insert, cls=JSONFhirOntoEncoder)}\n"
@@ -425,7 +422,6 @@ class ElasticSearchGenerator:
                     report = json.load(f)
 
                     for group in report["group"]:
-
                         for stratifier in group["stratifier"]:
                             if "stratum" in stratifier:
                                 strat_code = stratifier["code"][0]["coding"][0]["code"]
@@ -547,7 +543,7 @@ class ElasticSearchGenerator:
             _logger.debug("Updating availability on hash tree")
             self.__update_availability_on_hash_tree(avail_hash_tree, namespace_uuid_str)
 
-            for key, value in avail_hash_tree.items():
+            for key in avail_hash_tree:
                 sum_all_children = self.__get_avail_sum_for_all_children(
                     key, avail_hash_tree
                 )
