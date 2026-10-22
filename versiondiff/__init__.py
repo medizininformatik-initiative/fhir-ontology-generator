@@ -5,7 +5,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from versiondiff.core.engine import diff_value
+from versiondiff.core.engine import MISSING, diff_value
 from versiondiff.core.markers import DiffRule, Identity, Unordered
 from versiondiff.core.models import DiffModel
 from versiondiff.core.types import Category, Change, DiffReport, Kind
@@ -13,8 +13,14 @@ from versiondiff.core.types import Category, Change, DiffReport, Kind
 __all__ = ["Category", "Change", "DiffModel", "DiffReport", "DiffRule", "Identity", "Kind", "Unordered", "compare"]
 
 
-def compare(prev: str | bytes | Any, curr: BaseModel | list[BaseModel], *, model: type[BaseModel] | type[list[BaseModel]] | None = None) -> DiffReport:
+def compare(prev: str | bytes | Any, curr: BaseModel | list[BaseModel] | None, *, model: type[BaseModel] | type[list[BaseModel]] | None = None) -> DiffReport:
     """Diff `prev` (old-version JSON text or parsed JSON) against the current instance `curr`."""
-    prev_json = json.loads(prev) if isinstance(prev, (str, bytes)) else prev
-    curr_json = [e.model_dump(mode="json", by_alias=True) for e in curr] if isinstance(curr, list) else curr.model_dump(mode="json", by_alias=True)
+    if prev is None:
+        prev_json = MISSING
+    else:
+        prev_json = json.loads(prev) if isinstance(prev, (str, bytes)) else prev
+    if curr is None:
+        curr_json = MISSING
+    else:
+        curr_json = [e.model_dump(mode="json", by_alias=True) for e in curr] if isinstance(curr, list) else curr.model_dump(mode="json", by_alias=True)
     return DiffReport(changes=diff_value(model or type(curr), prev_json, curr_json, ""))

@@ -50,8 +50,6 @@ class Change(BaseModel):
 
 
 class DiffReport(BaseModel):
-    changes: list[Change] = []
-
     @computed_field
     @property
     def severity(self) -> Category | None:
@@ -62,3 +60,5 @@ class DiffReport(BaseModel):
     @property
     def counts(self) -> dict[Category, int]:
         return {cat: sum(c.category is cat for c in self.changes) for cat in Category}
+
+    changes: list[Change] = []

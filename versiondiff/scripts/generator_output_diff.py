@@ -13,7 +13,8 @@ from common.util.log.functions import get_logger
 from data_selection_extraction.model.detail import ProfileDetail
 from elasticsearch.model.codeable_concept_index import CodeableConceptIndexDoc
 from elasticsearch.model.ontology_index import OntologyIndexDoc
-from versiondiff import compare
+from tests.unit.versiondiff.models import Report
+from versiondiff import compare, Category, DiffReport
 
 _logger = get_logger(__file__)
 
@@ -45,6 +46,19 @@ def _configure_argparse() -> ArgumentParser:
         help="Output directory for reports",
     )
     parser.add_argument(
+        "-s",
+        "--severity",
+        action="store",
+        required=False,
+        choices=[
+            "breaking",
+            "informational",
+            "transparent"
+        ],
+        default="breaking",
+        help="Minimum change severity to include in the report. Defaults to 'breaking'"
+    )
+    parser.add_argument(
         "target",
         action="store",
         nargs="*",
@@ -57,6 +71,11 @@ def _configure_argparse() -> ArgumentParser:
         help="Types of output data to generate diff for. If none is supplied then diffs are generated for all types",
     )
     return parser
+
+
+def _filter_by_severity(report: DiffReport, severity: Category) -> DiffReport:
+    report.changes = [c for c in report.changes if c.category >= severity]
+    return report
 
 
 def _unpack_archive(path: Path) -> Path:
@@ -80,11 +99,11 @@ T = TypeVar("T", bound=BaseModel)
 
 def _load_elasticsearch_docs(path: Path, prefix: str, t: type[T]) -> Mapping[str, T]:
     mapping = {}
-    for file_path in path.glob(f"**/{prefix}*.ndjson"):
+    for file_path in path.glob(f"**/{prefix}*"):
         _logger.debug("Loading docs from elasticsearch file @ %s", file_path)
         with file_path.open(mode="rb") as fd:
             for header_line, doc_line in zip(fd, fd):
-                if not doc_line: # Last line is empty
+                if not doc_line:  # Last line is empty
                     break
                 header = json.loads(header_line)
                 entry_hash = header["index"]["_id"]
@@ -96,21 +115,21 @@ def _load_elasticsearch_docs(path: Path, prefix: str, t: type[T]) -> Mapping[str
 
 
 def _iter_elasticsearch_docs(path: Path, prefix: str) -> Iterator[Mapping[str, Any]]:
-    for file_path in path.glob(f"**/{prefix}*.ndjson"):
+    for file_path in path.glob(f"**/{prefix}*"):
         _logger.debug("Loading docs from elasticsearch file @ %s", file_path)
         with file_path.open(mode="rb") as fd:
             for header_line, doc_line in zip(fd, fd):
-                if not doc_line: # Last line is empty
+                if not doc_line:  # Last line is empty
                     break
                 header = json.loads(header_line)
-                entry_hash = header["_id"]
+                entry_hash = header["index"]["_id"]
                 doc_json = json.loads(doc_line)
                 doc_json["hash"] = entry_hash
                 yield doc_json
 
 
 # TODO: Add handling of doc-level additions
-def _compare_elasticsearch_codeable_concept_docs(prev: Path, curr: Path, out: Path):
+def _compare_elasticsearch_codeable_concept_docs(prev: Path, curr: Path, out: Path, severity: Category):
     prefix = "onto_es__codeable_concept"
     curr_docs = _load_elasticsearch_docs(
         curr / "elastic" / "content", prefix, CodeableConceptIndexDoc
@@ -123,8 +142,8 @@ def _compare_elasticsearch_codeable_concept_docs(prev: Path, curr: Path, out: Pa
         first = True
         for prev_doc in _iter_elasticsearch_docs(prev / "elastic", prefix):
             curr_doc = curr_docs.get(prev_doc["hash"])
-            if changes := compare(prev_doc, curr_doc, CodeableConceptIndexDoc).changes:
-                for change in changes:
+            if changes := compare(prev_doc, curr_doc, model=CodeableConceptIndexDoc).changes:
+                for change in filter(lambda c: c.category >= severity, changes):
                     if not first:
                         fd.write(",")
                     else:
@@ -133,13 +152,12 @@ def _compare_elasticsearch_codeable_concept_docs(prev: Path, curr: Path, out: Pa
         fd.write("]}")
 
 
-def _compare_elasticsearch_ontology_docs(prev: Path, curr: Path, out: Path):
+def _compare_elasticsearch_ontology_docs(prev: Path, curr: Path, out: Path, severity: Category):
     prefix = "onto_es__ontology"
     curr_docs = _load_elasticsearch_docs(
         curr / "elastic" / "content", prefix, OntologyIndexDoc
     )
-    updated = set()
-    # TODO: The current version on prod uses the old layout. This has to be changed once versions >= 5.x.x run on prod
+    # TODO: The current version on prod uses the old layout. This has to be changed once versions >= 5.x.x runs on prod
     report_path = out / "elasticsearch" / "ontology_index_docs.json"
     report_path.parent.mkdir(parents=True, exist_ok=True)
     with report_path.open(mode="w") as fd:
@@ -147,9 +165,8 @@ def _compare_elasticsearch_ontology_docs(prev: Path, curr: Path, out: Path):
         first = True
         for prev_doc in _iter_elasticsearch_docs(prev / "elastic", prefix):
             curr_doc = curr_docs.get(prev_doc["hash"])
-            updated.add(curr_doc.hash)
-            if changes := compare(prev_doc, curr_doc, OntologyIndexDoc).changes:
-                for change in changes:
+            if changes := compare(prev_doc, curr_doc, model=OntologyIndexDoc).changes:
+                for change in filter(lambda c: c.category >= severity, changes):
                     if not first:
                         fd.write(",")
                     else:
@@ -158,45 +175,65 @@ def _compare_elasticsearch_ontology_docs(prev: Path, curr: Path, out: Path):
         fd.write("]}")
 
 
-def _iter_sql_dump(sql_dump_path: Path, table_name: str) -> Iterator[str]:
-    _logger.debug("Loading table %s from SQL dump file @ %s", table_name, sql_dump_path)
+def _iter_ui_profile_sql_dump(sql_dump_path: Path) -> Iterator[str]:
+    _logger.debug(
+        "Loading table data from UI profile SQL dump file @ %s", sql_dump_path
+    )
     with sql_dump_path.open(mode="r", encoding="utf-8") as fd:
         for line in fd:
-            if line.startswith(f"COPY public.{table_name}"):
+            if line.startswith("COPY public.ui_profile"):
                 for line in fd:
                     if line.startswith("\\."):
                         break
+                    yield (
+                        line.strip()
+                        .split("\t")[2]
+                        .replace("\\n    ", "")
+                        .replace("\\n", "")
+                    )
+
+
+def _iter_dse_profile_sql_dump(sql_dump_path: Path) -> Iterator[str]:
+    _logger.debug(
+        "Loading table data from DSE profile SQL dump file @ %s", sql_dump_path
+    )
+    with sql_dump_path.open(mode="r", encoding="utf-8") as fd:
+        for line in fd:
+            if line.startswith("INSERT INTO dse_profile"):
+                for line in fd:
                     # Always accessing the third column works for now
-                    yield line.strip().split("\t")[2].replace("\\n    ", "").replace("\\n", "")
+                    yield line.strip()[:-1].lstrip("(").rstrip(")").split("','")[1][:-1]
+                    if line.endswith(";"):
+                        break
 
 
-def _compare_ui_profiles(prev: Path, curr: Path, out: Path):
+def _compare_ui_profiles(prev: Path, curr: Path, out: Path, severity: Category):
     file_name = "R__Load_latest_ui_profile.sql"
-    prev_data = [json.loads(row) for row in _iter_sql_dump(prev / file_name, "ui_profile")]
+    prev_data = [json.loads(row) for row in _iter_ui_profile_sql_dump(prev / file_name)]
     curr_data = [
         UIProfile.model_validate_json(row)
-        for row in _iter_sql_dump(curr / file_name, "ui_profile")
+        for row in _iter_ui_profile_sql_dump(curr / file_name)
     ]
-    report = compare(prev_data, curr_data, model=list[UIProfile])
+    report = _filter_by_severity(compare(prev_data, curr_data, model=list[UIProfile]), severity)
     out.mkdir(parents=True, exist_ok=True)
     with (out / "ui_profiles.json").open(mode="w", encoding="utf-8") as fd:
         fd.write(report.model_dump_json(exclude_none=True))
 
 
-def _compare_profile_details(prev: Path, curr: Path, out: Path):
+def _compare_profile_details(prev: Path, curr: Path, out: Path, severity: Category):
     file_name = "R__load_latest_dse_profiles.sql"
-    prev_data = [row for row in _iter_sql_dump(prev / file_name, "dse_profile")]
+    prev_data = [json.loads(row) for row in _iter_dse_profile_sql_dump(prev / file_name)]
     curr_data = [
         ProfileDetail.model_validate_json(row)
-        for row in _iter_sql_dump(curr / file_name, "dse_profile")
+        for row in _iter_dse_profile_sql_dump(curr / file_name)
     ]
-    report = compare(prev_data, curr_data, model=list[ProfileDetail])
+    report = _filter_by_severity(compare(prev_data, curr_data, model=list[ProfileDetail]), severity)
     out.mkdir(parents=True, exist_ok=True)
     with (out / "dse_profiles.json").open(mode="w", encoding="utf-8") as fd:
         fd.write(report.model_dump_json(exclude_none=True))
 
 
-def _compare_flattening_lookup(prev: Path, curr: Path, out: Path):
+def _compare_flattening_lookup(prev: Path, curr: Path, out: Path, severity: Category):
     # TODO
     pass
 
@@ -208,26 +245,27 @@ if __name__ == "__main__":
     prev = args.prev
     curr = args.curr
     out = args.output
+    severity = Category[args.severity.upper()]
     targets = getattr(args, "target", None)
 
     _logger.debug("Unpacking archives")
     prev = _unpack_archive(prev)
     curr = _unpack_archive(curr)
-    
+
     try:
         _logger.info("Generating diff reports")
         if not targets or "elasticsearch" in targets:
             _logger.info("Generating diff for Elasticsearch files")
-            _compare_elasticsearch_codeable_concept_docs(prev, curr, out)
-            _compare_elasticsearch_ontology_docs(prev, curr, out)
+            _compare_elasticsearch_codeable_concept_docs(prev, curr, out, severity)
+            _compare_elasticsearch_ontology_docs(prev, curr, out, severity)
         if not targets or "ui-profiles" in targets:
             _logger.info("Generating diff for UI profiles")
-            _compare_ui_profiles(prev, curr, out)
+            _compare_ui_profiles(prev, curr, out, severity)
         if not targets or "profile-details" in targets:
             _logger.info("Generating diff for profile details")
-            _compare_profile_details(prev, curr, out)
+            _compare_profile_details(prev, curr, out, severity)
         if not targets or "flattening-lookup" in targets:
             _logger.info("Generating diff for flattening lookup")
-            _compare_flattening_lookup(prev, curr, out)
+            _compare_flattening_lookup(prev, curr, out, severity)
     finally:
         _cleanup(prev, curr)

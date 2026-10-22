@@ -89,7 +89,7 @@ class UITreeGenerator:
         :param module_dir_name: Name of the module directory
         :return: root of the ui tree
         """
-        result_map: dict[(TermCode, str), TreeMap] = {}
+        result_map: dict[tuple[TermCode, str], TreeMap] = {}
         for qmd in applicable_querying_meta_data:
             tree_maps: List[TreeMap] = []
             if qmd.term_code_defining_id:
@@ -181,11 +181,11 @@ class UITreeGenerator:
                 term_code_defining_element, self.__client
             )
             return [
-                TreeMap(
-                    {term_code.code: TermEntryNode(term_code=term_code)},
-                    None,
-                    term_code.system,
-                    term_code.version,
+                TreeMap.model_construct(
+                    entries={term_code.code: TermEntryNode(term_code=term_code)},
+                    context=None,
+                    system=term_code.system,
+                    version=term_code.version,
                 )
             ]
         elif (
