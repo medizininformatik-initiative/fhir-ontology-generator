@@ -160,6 +160,8 @@ def _lookup(
             return k, data[k]
     if field.default is not PydanticUndefined:
         return field_name, field.default
+    elif (field_fac := field.default_factory) is not None:
+        return field_name, field_fac()
     else:
         return None, MISSING
 

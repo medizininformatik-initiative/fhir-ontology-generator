@@ -13,8 +13,7 @@ from common.util.log.functions import get_logger
 from data_selection_extraction.model.detail import ProfileDetail
 from elasticsearch.model.codeable_concept_index import CodeableConceptIndexDoc
 from elasticsearch.model.ontology_index import OntologyIndexDoc
-from tests.unit.versiondiff.models import Report
-from versiondiff import compare, Category, DiffReport
+from versiondiff import Category, DiffReport, compare
 
 _logger = get_logger(__file__)
 

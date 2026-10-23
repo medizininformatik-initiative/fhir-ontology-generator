@@ -4,7 +4,7 @@ from typing import Annotated, Any
 
 import pytest
 from _pytest.mark import param
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from versiondiff import Category, Change, DiffModel, DiffRule, Kind, compare
 
@@ -276,6 +276,44 @@ def test_custom_compare_and_override():
         category=Category.BREAKING,
         note="custom",
     )
+
+
+def test_prev_missing_field_with_default():
+    class ModelWithDefault(DiffModel):
+        id: int
+        field: str = Field(default="abc")
+    # Set by default
+    prev = {"id": 123}
+    curr = ModelWithDefault(id=123)
+    report = compare(prev, curr, model=ModelWithDefault)
+    assert len(report.changes) == 0
+    # Set explicitly
+    curr = ModelWithDefault(id=123, field="abc")
+    report = compare(prev, curr, model=ModelWithDefault)
+    assert len(report.changes) == 0
+    # Set non-default value explicitly
+    curr = ModelWithDefault(id=123, field="def")
+    report = compare(prev, curr, model=ModelWithDefault)
+    assert len(report.changes) == 1
+
+
+def test_prev_missing_field_with_default_factory():
+    class ModelWithDefaultFactory(DiffModel):
+        id: int
+        field: list[str] = Field(default_factory=list)
+    # Set by factory
+    prev = {"id": 123}
+    curr = ModelWithDefaultFactory(id=123)
+    report = compare(prev, curr, model=ModelWithDefaultFactory)
+    assert len(report.changes) == 0
+    # Set explicitly
+    curr = ModelWithDefaultFactory(id=123, field=[])
+    report = compare(prev, curr, model=ModelWithDefaultFactory)
+    assert len(report.changes) == 0
+    # Set non-default value explicitly
+    curr = ModelWithDefaultFactory(id=123, field=["def"])
+    report = compare(prev, curr, model=ModelWithDefaultFactory)
+    assert len(report.changes) == 1
 
 
 def test_plain_basemodel_nested():

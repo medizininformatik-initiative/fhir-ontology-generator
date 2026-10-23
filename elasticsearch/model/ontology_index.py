@@ -22,6 +22,7 @@ class OntologyIndexDoc(DiffModel):
     display: Annotated[IndexDocDisplay, DiffIgnore()]
     parents: list[RelationalTermcode] = Field(default_factory=list, exclude_if=is_empty)
     children: list[RelationalTermcode] = Field(default_factory=list, exclude_if=is_empty)
-    related_kds_terms: list = Field(default_factory=list, exclude_if=is_empty)
+    # Undo diff irrelevant if the field ever becomes relevant
+    related_terms: Annotated[list, DiffIgnore()] = Field(default_factory=list, exclude_if=is_empty)
     kds_module: str
 
