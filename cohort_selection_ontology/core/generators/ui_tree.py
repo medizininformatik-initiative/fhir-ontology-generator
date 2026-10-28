@@ -17,7 +17,8 @@ from cohort_selection_ontology.model.tree_map import (
     TreeMapList,
     TreeMap,
 )
-from cohort_selection_ontology.model.ui_data import TermCode
+from cohort_selection_ontology.model.ui_data import TermCode, Module
+from restore import restore_ui_trees, restore_term_code_infos
 from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot as StructureDefinition,
     StructureDefinitionSnapshot,
@@ -89,9 +90,9 @@ class UITreeGenerator:
         :param module_dir_name: Name of the module directory
         :return: root of the ui tree
         """
-        result_map: dict[(TermCode, str), TreeMap] = {}
+        result_map: dict[tuple[TermCode, str], TreeMap] = {}
         for qmd in applicable_querying_meta_data:
-            tree_maps: List[TreeMap] = []
+            tree_maps: list[TreeMap] = []
             if qmd.term_code_defining_id:
                 tree_maps = self.get_term_entries_by_id(
                     fhir_profile_snapshot, qmd.term_code_defining_id, module_dir_name
@@ -124,6 +125,11 @@ class UITreeGenerator:
         :param module_name: name of the module the profiles belong to
         :return:
         """
+        if self.__project.config.terminology.use_release is not None:
+            self.__logger.info(f"Restoring UI trees for module '{module_name}'")
+            if ui_trees := restore_ui_trees(self.__project, Module.model_construct(display=module_name)):
+                self.__logger.info(f"Successfully restored UI trees for module '{module_name}'")
+                return ui_trees
         files = [
             file.path
             for file in os.scandir(
@@ -182,10 +188,10 @@ class UITreeGenerator:
             )
             return [
                 TreeMap(
-                    {term_code.code: TermEntryNode(term_code=term_code)},
-                    None,
-                    term_code.system,
-                    term_code.version,
+                    entries={term_code.code: TermEntryNode(term_code=term_code)},
+                    context=None,
+                    system=term_code.system,
+                    version=term_code.version,
                 )
             ]
         elif (
@@ -198,10 +204,10 @@ class UITreeGenerator:
             )
             return [
                 TreeMap(
-                    {term_code.code: TermEntryNode(term_code=term_code)},
-                    None,
-                    term_code.system,
-                    term_code.version,
+                    entries={term_code.code: TermEntryNode(term_code=term_code)},
+                    context=None,
+                    system=term_code.system,
+                    version=term_code.version,
                 )
             ]
         elif (binding := term_code_defining_element.binding) is not None:
@@ -217,10 +223,10 @@ class UITreeGenerator:
             if term_code:
                 return [
                     TreeMap(
-                        {term_code.code: TermEntryNode(term_code=term_code)},
-                        None,
-                        term_code.system,
-                        term_code.version,
+                        entries={term_code.code: TermEntryNode(term_code=term_code)},
+                        context=None,
+                        system=term_code.system,
+                        version=term_code.version,
                     )
                 ]
             raise Exception(
@@ -236,6 +242,15 @@ class UITreeGenerator:
         :param module_name: Name of the module (directory)
         :return: ContextualizedTermCodeInfoList for all FHIR profiles in the differential directory
         """
+        if self.__project.config.terminology.use_release is not None:
+            self.__logger.info(f"Restoring contextualized term code lists for module '{module_name}'")
+            if ctc_list := restore_term_code_infos(
+                self.__project, Module.model_construct(display=module_name)
+            ):
+                self.__logger.info(
+                    f"Successfully restored contextualized term code lists for module '{module_name}'"
+                )
+                return [ctc_list]
         result: List[ContextualizedTermCodeInfoList] = []
         files = [
             file.path

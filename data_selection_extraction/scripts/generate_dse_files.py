@@ -28,6 +28,7 @@ from cohort_selection_ontology.model.ui_data import TermCode
 from common.util.log.functions import get_logger
 from data_selection_extraction.model.detail import ProfileDetailListTA
 from data_selection_extraction.model.profile_tree import ProfileTreeTA
+from restore import restore_dse_value_sets
 
 _logger = get_logger(__file__)
 
@@ -135,6 +136,14 @@ def download_all_value_sets(profile_details, project: Project):
                 value_set_urls.add(value_set_url)
 
     value_sets = []
+
+    if project.config.terminology.use_release is not None:
+        _logger.info(f"Restoring DSE value sets")
+        restored_value_sets = restore_dse_value_sets(project)
+        restored_urls = {vs.get("url") for vs in restored_value_sets}
+        value_set_urls = value_set_urls - restored_urls
+        value_sets.extend(restored_value_sets)
+
     for value_set_url in list(value_set_urls):
         vs = download_and_save_value_set(value_set_url, project)
         if vs:
@@ -216,7 +225,7 @@ def generate_cs_tree_map(
             concepts,
         )
     )
-    treemap: TreeMap = TreeMap({}, None, system, version)
+    treemap: TreeMap = TreeMap(system=system, version=version)
     treemap.entries = {
         term_code.code: TermEntryNode(term_code=term_code) for term_code in term_codes
     }
@@ -309,7 +318,7 @@ def generate_dse_mapping_trees(
                 generate_cs_tree_map(system, version, concept_set, project)
             )
 
-    return [tree_map.to_dict() for tree_map in tree_maps]
+    return [tree_map.model_dump() for tree_map in tree_maps]
 
 
 if __name__ == "__main__":
@@ -380,7 +389,7 @@ if __name__ == "__main__":
     profile_tree = tree_generator.generate_profiles_tree()
 
     with open(dse_output_dir / "profile_tree.json", mode="wb") as f:
-        f.write(ProfileTreeTA.dump_json(profile_tree, exclude_none=True))
+       f.write(ProfileTreeTA.dump_json(profile_tree, exclude_none=True))
 
     with open(
         dse_input_dir / "mapping-type-code.json", mode="r", encoding="utf-8"
@@ -404,25 +413,25 @@ if __name__ == "__main__":
         )
 
         profile_details = (
-            profile_detail_generator.generate_profile_details_for_profiles_in_scope(
-                SnapshotPackageScope.MII,
-                cond=lambda p: p.kind == "resource",
-                profile_tree=profile_tree,
-            )
+           profile_detail_generator.generate_profile_details_for_profiles_in_scope(
+               SnapshotPackageScope.MII,
+               cond=lambda p: p.kind == "resource",
+               profile_tree=profile_tree,
+           )
         )
 
         with open(
-            dse_output_dir / "profile_details_all.json", mode="wb+"
+           dse_output_dir / "profile_details_all.json", mode="wb+"
         ) as p_details_f:
-            p_details_f.write(ProfileDetailListTA.dump_json(profile_details))
-            # json.dump(
-            #    profile_details, p_details_f, default=pydantic_core.to_jsonable_python()
-            # )
+           p_details_f.write(ProfileDetailListTA.dump_json(profile_details))
+           # json.dump(
+           #    profile_details, p_details_f, default=pydantic_core.to_jsonable_python()
+           # )
 
         generate_r_load_sql(profile_details)
 
         if args.download_value_sets:
-            download_all_value_sets(profile_details, project)
+           download_all_value_sets(profile_details, project)
 
         if args.generate_mapping_trees:
             dse_mapping_trees = generate_dse_mapping_trees(
