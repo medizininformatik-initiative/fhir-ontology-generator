@@ -203,7 +203,7 @@ if __name__ == "__main__":
 
             cur_crit_set_dir = modules_dir / module / "criteria-sets"
             for filename in os.listdir(cur_crit_set_dir):
-                shutil.copy(cur_crit_set_dir / filename, output_crit_set_dir / filename)
+                shutil.copy(cur_crit_set_dir / filename, output_crit_set_dir / f"{cur_crit_set_dir.parent.name}_{filename}")
 
             cur_value_set_dir = modules_dir / module / "value-sets"
             for filename in os.listdir(cur_value_set_dir):
