@@ -10,3 +10,5 @@ http:
   timeout: "PT30S"
   retries: null
   backoff_factor: 1
+terminology:
+  use_release: "v4.0.0"

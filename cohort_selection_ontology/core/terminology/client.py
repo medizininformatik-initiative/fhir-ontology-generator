@@ -125,12 +125,11 @@ class CohortSelectionTerminologyClient(FhirTerminologyClient):
         self.__logger.debug(f"Generating tree map for value set '{canonical_url}'")
         closure_name = self.create_concept_map()
         vs = self.expand_value_set(canonical_url)
-        treemap: TreeMap = TreeMap({}, None, None, None)
-        treemap.entries = {
-            term_code.code: TermEntryNode(term_code=term_code) for term_code in vs
-        }
-        treemap.system = vs[0].system
-        treemap.version = vs[0].version
+        treemap = TreeMap(
+            entries={term_code.code: TermEntryNode(term_code=term_code) for term_code in vs},
+            system=vs[0].system,
+            version=vs[0].version
+        )
         try:
             closure_map_data = self.get_closure_map(vs, closure_name)
             if groups := closure_map_data.group:

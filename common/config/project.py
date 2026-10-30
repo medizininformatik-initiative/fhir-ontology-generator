@@ -1,8 +1,7 @@
-from typing import Annotated, Any, Dict
+from typing import Annotated, Any
 
 import isodate
-from pydantic import BaseModel
-from pydantic import Field, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class FhirPackageManagerConfig(BaseModel):
@@ -15,7 +14,7 @@ class FhirPackageManagerConfig(BaseModel):
         ),
     ]
     params: Annotated[
-        Dict[str, Any],
+        dict[str, Any],
         Field(
             frozen=True,
             init=True,
@@ -62,6 +61,13 @@ class HTTPConfig(BaseModel):
         return value
 
 
+class TerminologyConfig(BaseModel):
+    use_release: str | None = Field(
+        default=None,
+        description="The release of to reuse terminological data of if possible",
+    )
+
+
 class ProjectConfig(BaseModel):
     fhir_packages: Annotated[
         FhirPackagesConfig,
@@ -78,5 +84,13 @@ class ProjectConfig(BaseModel):
             frozen=True,
             default=HTTPConfig(),
             description="Configuration options related to HTTP clients",
+        ),
+    ]
+    terminology: Annotated[
+        TerminologyConfig,
+        Field(
+            frozen=True,
+            default=TerminologyConfig(),
+            description="Configuration options related to terminological data",
         ),
     ]
