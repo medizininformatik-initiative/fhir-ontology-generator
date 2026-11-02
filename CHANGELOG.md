@@ -15,6 +15,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+# [v5.2.0] - 2026-11-02
+
+## Added
+
+- Add status attribute for encounter criterion (#549 @paulolaup)
+- Add generation based on terminological data from previous release (#548 @paulolaup)
+
+## Fixed
+
+- Specimen criterion diagnosis reference now points to standard diagnosis criterion (#547 @paulolaup)
+
 # [v5.1.0] - 2026-10-11
 
 ## Added
