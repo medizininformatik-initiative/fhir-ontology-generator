@@ -259,9 +259,7 @@ def recontextualize_extension_lookup(
         if lookup.parent:
             new_lookup.parent = lookup.parent.replace("Extension", element_id)
         else:
-            new_lookup.parent = check_if_root(
-                element_id, profile
-            )
+            new_lookup.parent = check_if_root(element_id, profile)
         res_lookup[new_key] = new_lookup
 
     return res_lookup
@@ -360,7 +358,7 @@ def is_leafless_branch_root(
                 return False
 
     # if lookupElement has columns
-    if  lookup_element.view_definition.column:
+    if lookup_element.view_definition.column:
         return False
 
     # if non-empty select already carries its own content
@@ -615,7 +613,7 @@ class FlatteningLookupGenerator:
 
             if element.sliceName and where_clause:
                 flat_element.view_definition = ViewDefinitionSnippet(
-                    for_each_or_null=f"{element.path.split('.')[-1]}.{where_clause}",
+                    for_each_or_null=f"$this.{where_clause}",
                     select=[],
                 )
 
@@ -1048,21 +1046,39 @@ class FlatteningLookupGenerator:
                     f"When flattening codeableConcept {element_id} \t found slices: {list_of_children_slices}"
                 )
 
+                # insert .coding flat element
+
+                flat_element.children = [f"{element_id}.coding"]
+                coding_base_flat_element = FlatteningLookupElement(
+                    parent=check_if_root(element_id, profile),
+                    view_definition=ViewDefinitionSnippet(
+                        for_each_or_null="coding", select=[]
+                    ),
+                )
+
                 clean_kwargs = {k: v for k, v in kwargs.items() if k != "type"}
-                lookup = {element_id: flat_element}
+                lookup: Dict[str, FlatteningLookupElement] = {}
                 for child in list_of_children_slices:
                     if el := self._flatten_element(
                         element_id=child,
                         profile=profile,
-                        codeable_concept_parent=element_id,
+                        codeable_concept_parent=f"{element_id}.coding",
                         **clean_kwargs,
                     ):
                         lookup.update(el)
-                        flat_element.children.append(child)
+                        coding_base_flat_element.children.append(child)
 
-                flat_element.children = self._drop_indistinguishable_siblings(
-                    flat_element.children, lookup, profile
+                lookup[f"{element_id}.coding"] = coding_base_flat_element
+
+                coding_base_flat_element.children = (
+                    self._drop_indistinguishable_siblings(
+                        coding_base_flat_element.children, lookup, profile
+                    )
                 )
+
+                # prune .coding first, otherwise its mere existence keeps the CodeableConcept alive
+                lookup = prune_leafless_branches(f"{element_id}.coding", lookup)
+                lookup[element_id] = flat_element
 
                 return prune_leafless_branches(element_id, lookup)
             else:
@@ -1304,9 +1320,33 @@ class FlatteningLookupGenerator:
             # Can be handled together because the only difference is the forEachOrNull
 
             foreach = f"{element_id.split('.')[-1]}"
-            if where_clause := fhirpath_filter_from_value_discriminated_elem_def(
-                element, profile, "$this", client=self.client
+            slicing_parent = getattr(element, "parent", None)
+            if (
+                element.sliceName
+                and slicing_parent
+                and slicing_parent.slicing
+                and slicing_parent.slicing.discriminator
             ):
+                try:
+                    where_clause = fhirpath_filter_for_slice(
+                        element, manager=self.package_manager, client=self.client
+                    )
+                except Exception as err:
+                    _logger.error(
+                        f"Could not extract discriminator filter for '{element.id}' in profile "
+                        f"'{profile.url}' (status={profile.status}) => dropping slice. {err}",
+                    )
+                    return {}
+            else:
+                # Without a discriminator only a binding on the element itself is trusted, never one on its children
+                where_clause = fhirpath_filter_from_value_discriminated_elem_def(
+                    element,
+                    profile,
+                    "$this",
+                    client=self.client,
+                    _binding_target_id=element.id,
+                )
+            if where_clause:
                 foreach = "$this." + where_clause
 
             flat_ident_child = FlatteningLookupElement(

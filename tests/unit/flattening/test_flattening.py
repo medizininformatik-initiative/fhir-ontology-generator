@@ -846,7 +846,7 @@ def test_flatten_coding_slice_with_pattern_discriminator_flattens_children(
 
     slice_el = result["Observation.code.coding:sct"]
     assert slice_el.view_definition.for_each_or_null == (
-        "coding.where(system = 'http://snomed.info/sct')"
+        "$this.where(system = 'http://snomed.info/sct')"
     )
     assert set(slice_el.children) == {
         "Observation.code.coding:sct.system",
@@ -867,13 +867,12 @@ def test_flatten_coding_slice_with_pattern_discriminator_flattens_children(
     )
 
 
-def test_flatten_coding_slice_parent_points_to_codeable_concept_not_to_coding_collection(
+def test_flatten_coding_slice_parent_uses_codeable_concept_parent(
     generator: FlatteningLookupGenerator,
 ):
     """
-    When flattened as part of a CodeableConcept, a Coding slice's `parent` skips the
-    intermediate `.coding` collection element (which never gets its own lookup entry) and
-    points straight at the CodeableConcept, using the explicit `codeable_concept_parent`
+    When flattened as part of a CodeableConcept, a Coding slice's `parent` is the explicit
+    `codeable_concept_parent` (the `.coding` lookup element created by the CodeableConcept)
     rather than the slice's structural parent.
     """
     profile = build_profile(
@@ -911,13 +910,13 @@ def test_flatten_coding_slice_parent_points_to_codeable_concept_not_to_coding_co
     result = generator._flatten_coding(
         "Observation.code.coding:sct",
         profile,
-        codeable_concept_parent="Observation.code",
+        codeable_concept_parent="Observation.code.coding",
     )
 
-    assert result["Observation.code.coding:sct"].parent == "Observation.code"
+    assert result["Observation.code.coding:sct"].parent == "Observation.code.coding"
 
 
-class _FakeTerminologyClient:
+class _MockTerminologyClient:
     """Minimal stand-in for `FhirTerminologyClient`, returning a fixed set of expanded codes"""
 
     def __init__(self, codes: list[str]):
@@ -937,7 +936,7 @@ def test_flatten_coding_slice_discriminated_by_required_binding(
     (Pathling) can't evaluate `memberOf()` against that, so the bound value set is expanded
     and the filter lists the allowed codes explicitly instead.
     """
-    generator.client = _FakeTerminologyClient(["c1", "c2"])
+    generator.client = _MockTerminologyClient(["c1", "c2"])
     profile = build_profile(
         "Observation",
         [
@@ -974,7 +973,7 @@ def test_flatten_coding_slice_discriminated_by_required_binding(
     result = generator._flatten_coding("Observation.code.coding:loinc", profile)
 
     assert result["Observation.code.coding:loinc"].view_definition.for_each_or_null == (
-        "coding.where(code.exists($this = 'c1' or $this = 'c2'))"
+        "$this.where(code.exists($this = 'c1' or $this = 'c2'))"
     )
 
 
@@ -987,7 +986,7 @@ def test_flatten_coding_slice_discriminated_by_non_required_binding_is_used_as_l
     the slice - "a weak binding is still better than no filter at all". With nothing else
     defined, it still produces the same expanded-value-set filter a required binding would.
     """
-    generator.client = _FakeTerminologyClient(["c1"])
+    generator.client = _MockTerminologyClient(["c1"])
     profile = build_profile(
         "Observation",
         [
@@ -1026,14 +1025,16 @@ def test_flatten_coding_slice_discriminated_by_non_required_binding_is_used_as_l
     assert result == {}
 
 
-def test_flatten_coding_slice_discriminated_by_required_binding_on_coding_uses_member_of(
+def test_flatten_coding_slice_discriminated_by_required_binding_on_coding_expands_value_set(
     generator: FlatteningLookupGenerator,
 ):
     """
     A required binding declared directly on a `Coding`-typed element (rather than on its
-    `.code`/`.system` primitives) *is* something Pathling can evaluate `memberOf()`
-    against, so that's what the filter uses -- no need to expand the value set for it.
+    `.code`/`.system` primitives) is expanded as well, since the flattener does not support
+    `memberOf()` against a custom terminology server. The expanded codes are compared
+    against the Coding's `code` child.
     """
+    generator.client = _MockTerminologyClient(["c1", "c2"])
     profile = build_profile(
         "Observation",
         [
@@ -1067,7 +1068,7 @@ def test_flatten_coding_slice_discriminated_by_required_binding_on_coding_uses_m
     result = generator._flatten_coding("Observation.code.coding:loinc", profile)
 
     assert result["Observation.code.coding:loinc"].view_definition.for_each_or_null == (
-        "coding.where(memberOf('http://hl7.org/fhir/ValueSet/observation-codes'))"
+        "$this.where(code.exists($this = 'c1' or $this = 'c2'))"
     )
 
 
@@ -1121,7 +1122,7 @@ def test_flatten_coding_slice_discriminated_by_system_and_code_combines_both(
     result = generator._flatten_coding("Observation.code.coding:sct", profile)
 
     assert result["Observation.code.coding:sct"].view_definition.for_each_or_null == (
-        "coding.where(system = 'http://snomed.info/sct' and code = '184099003')"
+        "$this.where(system = 'http://snomed.info/sct' and code = '184099003')"
     )
 
 
@@ -1144,8 +1145,9 @@ def test_flatten_codeable_concept_flattens_defined_coding_slices(
     generator: FlatteningLookupGenerator,
 ):
     """
-    A `.coding` with slices defined gets one child per slice, each flattened via
-    `_flatten_coding`; the CodeableConcept itself carries no columns of its own.
+    A `.coding` with slices defined gets its own `.coding` lookup element (iterating the
+    `coding` collection) with one child per slice, each flattened via `_flatten_coding`;
+    neither the CodeableConcept nor `.coding` carries columns of its own.
     """
     profile = build_profile(
         "Observation",
@@ -1171,10 +1173,16 @@ def test_flatten_codeable_concept_flattens_defined_coding_slices(
 
     assert result["Observation.code"] == FlatteningLookupElement(
         view_definition=ViewDefinitionSnippet(for_each_or_null="code", select=[]),
+        children=["Observation.code.coding"],
+    )
+    assert result["Observation.code.coding"] == FlatteningLookupElement(
+        parent="Observation.code",
+        view_definition=ViewDefinitionSnippet(for_each_or_null="coding", select=[]),
         children=["Observation.code.coding:sct"],
     )
+    assert result["Observation.code.coding:sct"].parent == "Observation.code.coding"
     assert result["Observation.code.coding:sct"].view_definition.for_each_or_null == (
-        "coding.where(system = 'http://snomed.info/sct')"
+        "$this.where(system = 'http://snomed.info/sct')"
     )
 
 
@@ -1355,6 +1363,108 @@ def test_flatten_identifier_slice_uses_its_own_discriminator_when_present(
 
     assert result["Patient.identifier:mrn"].view_definition.for_each_or_null == (
         "$this.where(system = 'http://example.org/mrn')"
+    )
+
+
+def test_flatten_identifier_slice_ignores_bindings_outside_of_the_discriminator(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    Only the slicing's discriminator (here: `type`) contributes to the slice filter. A required binding on an
+    optional child like `.use` must not, since identifiers without `use` would otherwise never match the slice
+    """
+    generator.client = _MockTerminologyClient(["official", "usual"])
+    profile = build_profile(
+        "Observation",
+        [
+            ElementDefinition(
+                id="Observation.identifier",
+                path="Observation.identifier",
+                type=[ElementDefinitionType(code="Identifier")],
+                slicing=ElementDefinitionSlicing(
+                    discriminator=[
+                        ElementDefinitionSlicingDiscriminator(
+                            type="pattern", path="type"
+                        )
+                    ],
+                    rules="open",
+                ),
+            ),
+            ElementDefinition(
+                id="Observation.identifier:analyseBefundCode",
+                path="Observation.identifier",
+                sliceName="analyseBefundCode",
+                type=[ElementDefinitionType(code="Identifier")],
+            ),
+            ElementDefinition(
+                id="Observation.identifier:analyseBefundCode.use",
+                path="Observation.identifier.use",
+                type=[ElementDefinitionType(code="code")],
+                binding=ElementDefinitionBinding(
+                    strength="required",
+                    valueSet="http://hl7.org/fhir/ValueSet/identifier-use|4.0.1",
+                ),
+            ),
+            ElementDefinition(
+                id="Observation.identifier:analyseBefundCode.type",
+                path="Observation.identifier.type",
+                type=[ElementDefinitionType(code="CodeableConcept")],
+                patternCodeableConcept=CodeableConcept(
+                    coding=[
+                        Coding(
+                            system="http://terminology.hl7.org/CodeSystem/v2-0203",
+                            code="OBI",
+                        )
+                    ]
+                ),
+            ),
+        ],
+    )
+
+    result = generator._flatten_identifier(
+        "Observation.identifier:analyseBefundCode", profile
+    )
+
+    assert result[
+        "Observation.identifier:analyseBefundCode"
+    ].view_definition.for_each_or_null == (
+        "$this.where(type.coding.exists(system = 'http://terminology.hl7.org/CodeSystem/v2-0203' and code = 'OBI'))"
+    )
+
+
+def test_flatten_identifier_unsliced_ignores_bindings_on_its_children(
+    generator: FlatteningLookupGenerator,
+):
+    """
+    An unsliced identifier must not be filtered by a required binding on an optional child like `.use`, since every
+    identifier without `use` would be dropped otherwise
+    """
+    generator.client = _MockTerminologyClient(["official", "usual"])
+    profile = build_profile(
+        "Composition",
+        [
+            ElementDefinition(
+                id="Composition.identifier",
+                path="Composition.identifier",
+                type=[ElementDefinitionType(code="Identifier")],
+            ),
+            ElementDefinition(
+                id="Composition.identifier.use",
+                path="Composition.identifier.use",
+                type=[ElementDefinitionType(code="code")],
+                binding=ElementDefinitionBinding(
+                    strength="required",
+                    valueSet="http://hl7.org/fhir/ValueSet/identifier-use|4.0.1",
+                ),
+            ),
+        ],
+    )
+
+    result = generator._flatten_identifier("Composition.identifier", profile)
+
+    assert (
+        result["Composition.identifier"].view_definition.for_each_or_null
+        == "identifier"
     )
 
 

@@ -15,6 +15,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+# [v5.1.0] - 2026-10-11
+
+## Added
+
+- Add interpretation attribute to laboratory observation criterion (#535 @paulolaup)
+
+## Fixed
+
+- Flattening:
+  - Replace `memberOf` function invocations with explicit code list comparison to eliminate need for a terminology server
+    for value set expansion (#540 @Frontman50)
+  - Fix missing `CodeableConcept.coding` element in flattening lookup (#541 @Frontman50)
+
 # [v5.0.1] - 2026-09-08
 
 ## Fixed

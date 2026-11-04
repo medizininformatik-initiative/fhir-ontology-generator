@@ -103,7 +103,7 @@ def build_package_index(package_dir: Path) -> Mapping[str, Any]:
     files = []
     index = {"index-version": 2, "files": files}
     for file_path in package_dir.glob("package/**/[!.]*.json"):
-        bn = os.path.basename(file_path)
+        bn = file_path.relative_to(package_dir / "package").as_posix()
         content = load_json(file_path, encoding=["utf-8", "utf-8-sig"], fail=True)
         entry = {
             "filename": bn,

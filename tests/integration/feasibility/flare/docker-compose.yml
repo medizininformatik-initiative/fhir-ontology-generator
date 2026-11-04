@@ -1,0 +1,35 @@
+services:
+  fhir-server:
+    image: "ghcr.io/samply/blaze@sha256:d419ab733f79b6da1e92f39f03865a83adc754c832d142dcf3e92b5a1f96490f"  #v1.11.0
+    environment:
+      BASE_URL: "http://blaze:8080/fhir"
+      JAVA_TOOL_OPTIONS: "-Xmx1g"
+      LOG_LEVEL: "debug"
+      ENFORCE_REFERENTIAL_INTEGRITY: "false"
+      DB_SEARCH_PARAM_BUNDLE: "/app/custom-search-parameters.json"
+    ports:
+      - "8082:8080"
+    volumes:
+      - "blaze-data:/app/data"
+      - ".tmp/search_param_bundle.json:/app/custom-search-parameters.json:ro"
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "http://localhost:8080/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  flare:
+    image: "ghcr.io/medizininformatik-initiative/flare@sha256:d81ec773b4f8c6def5845f7d13df20d57ae3c4ef40b309b68a72e000065f1830"  #v2.9.0
+    environment:
+      FLARE_FHIR_SERVER: "http://fhir-server:8080/fhir"
+      FLARE_ENABLE_COHORT_ENDPOINT: "true"
+      FLARE_FHIR_STRICT_HANDLING: "true"
+      LOG_LEVEL: "debug"
+    ports:
+      - "8080:8080"
+    volumes:
+      - "${TEST_INTEGRATION_MAPPING_ZIP}:/app/ontology/mapping.zip:ro"
+
+volumes:
+  blaze-data:

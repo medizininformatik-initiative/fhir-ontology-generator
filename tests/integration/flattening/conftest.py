@@ -2,6 +2,7 @@ import os
 import shutil
 import subprocess
 import tarfile
+import zipfile
 from pathlib import Path
 from typing import Union, Iterator
 
@@ -24,7 +25,12 @@ _logger = get_logger(__name__)
 
 
 _AETHER_TOOL_PATH = Path(
-    os.environ.get("AETHER_TOOL_PATH", Path(__file__).parent / ".tmp" / "aether")
+    os.environ.get(
+        "AETHER_TOOL_PATH",
+        Path(__file__).parent
+        / ".tmp"
+        / ("aether.exe" if platform.system() == "Windows" else "aether"),
+    )
 )
 
 
@@ -162,6 +168,8 @@ def aether(request: FixtureRequest) -> Path:
         _logger.info(f"Tool aether already present @ {repr(_AETHER_TOOL_PATH)}")
         return _AETHER_TOOL_PATH
     aether_arch = None
+    archive_ext = "tar.gz"
+    executable_ext = ""
     match platform.system():
         case "Linux":
             _logger.info("On Linux 'amd64' is assumed to be the system architecture")
@@ -173,16 +181,18 @@ def aether(request: FixtureRequest) -> Path:
                 case _:
                     aether_arch = "darwin-amd64"
         case "Windows":
-            if "AETHER_TOOL_PATH" not in os.environ:
-                raise KeyError(
-                    "There is no release artifact of aether for Windows. You have to compile it yourself and provide a "
-                    "path to it via environment variable 'AETHER_TOOL_PATH'"
-                )
+            match platform.machine():
+                case "ARM64":
+                    aether_arch = "windows-arm64"
+                case _:
+                    aether_arch = "windows-amd64"
+            archive_ext = "zip"
+            executable_ext = ".exe"
     if aether_arch:
         aether_tool_url = (
             f"https://github.com/medizininformatik-initiative/aether/releases/download"
             f"/v{os.environ['AETHER_VERSION']}"
-            f"/aether-{os.environ['AETHER_VERSION']}-{aether_arch}.tar.gz"
+            f"/aether-{os.environ['AETHER_VERSION']}-{aether_arch}.{archive_ext}"
         )
         _logger.info(
             f"Missing aether tool. Downloading executable from {aether_tool_url}"
@@ -190,17 +200,21 @@ def aether(request: FixtureRequest) -> Path:
         with requests.get(aether_tool_url) as response:
             response.raise_for_status()
             _AETHER_TOOL_PATH.parent.mkdir(parents=True, exist_ok=True)
-            archive_path = _AETHER_TOOL_PATH.parent / "aether.tar.gz"
+            archive_path = _AETHER_TOOL_PATH.parent / f"aether.{archive_ext}"
             with archive_path.open("wb") as f:
                 for chunk in response.iter_content(chunk_size=8096):
                     f.write(chunk)
-        with tarfile.open(archive_path, mode="r|gz") as f:
-            f.extractall(path=_AETHER_TOOL_PATH.parent, filter="data")
+        if archive_ext == "zip":
+            with zipfile.ZipFile(archive_path) as f:
+                f.extractall(path=_AETHER_TOOL_PATH.parent)
+        else:
+            with tarfile.open(archive_path, mode="r|gz") as f:
+                f.extractall(path=_AETHER_TOOL_PATH.parent, filter="data")
         archive_path.unlink(missing_ok=True)
-        aether_tool_path = _AETHER_TOOL_PATH.parent / f"aether-{aether_arch}"
-        aether_tool_path = aether_tool_path.rename(
-            (_AETHER_TOOL_PATH.parent / f"aether").absolute()
+        aether_tool_path = (
+            _AETHER_TOOL_PATH.parent / f"aether-{aether_arch}{executable_ext}"
         )
+        aether_tool_path = aether_tool_path.replace(_AETHER_TOOL_PATH.absolute())
         return aether_tool_path
     else:
         raise FileNotFoundError(
