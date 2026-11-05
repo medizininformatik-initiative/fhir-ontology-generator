@@ -46,3 +46,4 @@ test.py
 # Project output files
 /projects/*/output
 /projects/*/input/**/dependencies
+/projects/*/input/restore

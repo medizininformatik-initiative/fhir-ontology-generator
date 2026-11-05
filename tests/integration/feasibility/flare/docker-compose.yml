@@ -1,4 +1,4 @@
-services:
+ services:
   fhir-server:
     image: "ghcr.io/samply/blaze@sha256:d419ab733f79b6da1e92f39f03865a83adc754c832d142dcf3e92b5a1f96490f"  #v1.11.0
     environment:

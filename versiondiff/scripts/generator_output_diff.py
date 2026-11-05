@@ -13,6 +13,7 @@ from common.util.log.functions import get_logger
 from data_selection_extraction.model.detail import ProfileDetail
 from elasticsearch.model.codeable_concept_index import CodeableConceptIndexDoc
 from elasticsearch.model.ontology_index import OntologyIndexDoc
+from flattening.model.FlatteningLookupModels import FlatteningLookupListTA, FlatteningLookup
 from versiondiff import Category, DiffReport, compare
 
 _logger = get_logger(__file__)
@@ -232,9 +233,35 @@ def _compare_profile_details(prev: Path, curr: Path, out: Path, severity: Catego
         fd.write(report.model_dump_json(exclude_none=True))
 
 
+def _load_flattening_lookup(path: Path) -> list[Any]:
+    file_path = next(path.glob("**/flatteningLookup.json"), None)
+    if file_path is None:
+        raise FileNotFoundError(f"No flatteningLookup.json found in {path}")
+
+    _logger.debug("Loading flattening lookup file @ %s", file_path)
+    with file_path.open(mode="r", encoding="utf-8") as fd:
+        return json.load(fd)
+
+
 def _compare_flattening_lookup(prev: Path, curr: Path, out: Path, severity: Category):
-    # TODO
-    pass
+    #prev_data = {profile["url"]: profile for profile in _load_flattening_lookup(prev)}
+    #curr_data = {
+    #    profile.url: profile for profile in FlatteningLookupListTA.validate_python(_load_flattening_lookup(curr))
+    #}
+
+    #changes = []
+    #for url in dict.fromkeys([*prev_data, *curr_data]):
+    #    # Paths of a single profile's diff are relative to it, so they are prefixed with its identity
+    #    path = join("", f"url={url}")
+    #    report = compare(prev_data.get(url), curr_data.get(url), model=FlatteningLookup)
+    #    changes += [change.model_copy(update={"path": path + change.path}) for change in report.changes]
+    prev_data = _load_flattening_lookup(prev)
+    curr_data = FlatteningLookupListTA.validate_python(_load_flattening_lookup(curr))
+    report = compare(prev_data, curr_data, model=list[FlatteningLookup])
+    report = _filter_by_severity(report, severity)
+    out.mkdir(parents=True, exist_ok=True)
+    with (out / "flattening_lookup.json").open(mode="w", encoding="utf-8") as fd:
+        fd.write(report.model_dump_json(exclude_none=True, indent=2))
 
 
 if __name__ == "__main__":

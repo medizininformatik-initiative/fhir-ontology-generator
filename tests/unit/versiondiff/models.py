@@ -19,7 +19,7 @@ class Square(DiffModel):
 class Item(DiffModel):
     id: Annotated[str, Identity()]
     name: str
-    value: float = Field(validation_alias=AliasChoices("value", "data"))  # was "cost"
+    value: float = Field(validation_alias=AliasChoices("value", "data"))
     tags: Annotated[list[str], Unordered()] = Field(default_factory=list)
     note: str | None = None
 

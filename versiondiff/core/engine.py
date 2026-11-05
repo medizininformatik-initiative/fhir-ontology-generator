@@ -293,7 +293,7 @@ def diff_model(
             consumed.add(prev_key)
         if rule.ignore:
             continue
-        c = curr.get(key, MISSING)
+        _, c = _lookup(curr, name, field)
         fpath = join(path, key)
         if p is MISSING and c is not MISSING:
             default = (
