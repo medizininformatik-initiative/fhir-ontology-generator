@@ -155,11 +155,11 @@ class ElasticSearchGenerator:
                     )
 
                     if cont_term_hash not in context_termcode_hash_to_crit_set:
-                        context_termcode_hash_to_crit_set[cont_term_hash] = [
+                        context_termcode_hash_to_crit_set[cont_term_hash] = {
                             crit_set_url
-                        ]
+                        }
                     else:
-                        context_termcode_hash_to_crit_set[cont_term_hash].append(
+                        context_termcode_hash_to_crit_set[cont_term_hash].add(
                             crit_set_url
                         )
 
@@ -285,9 +285,9 @@ class ElasticSearchGenerator:
                 #    obj['children'].append(ElasticSearchGenerator.__get_relation_crit_object(child_code,ui_tree['system'],term_code_info_map, namespace_uuid_str=namespace_uuid_str))
 
                 if obj["hash"] in context_termcode_hash_to_crit_set:
-                    obj["criteria_sets"] = context_termcode_hash_to_crit_set[
+                    obj["criteria_sets"] = list(context_termcode_hash_to_crit_set[
                         obj["hash"]
-                    ]
+                    ])
 
                 target_elastic_crit_list.append(obj)
 

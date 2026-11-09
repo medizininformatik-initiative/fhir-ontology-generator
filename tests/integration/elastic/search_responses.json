@@ -1817,5 +1817,55 @@
         "kds_module": "Molgen"
       }
     ]
+  },
+  {
+    "id": "Onkologie#Diagnose#http://fhir.de/CodeSystem/bfarm/icd-10-gm#0",
+    "results": [
+      {
+        "name": "(Teilweiser) Verlust der oberen Extremität, beidseitig",
+        "availability": 0,
+        "terminology": "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
+        "termcode": "Z89.3",
+        "selectable": true,
+        "context": {
+                "system": "fdpg.mii.cds",
+                "code": "MII_Onkologie_Diagnose",
+                "display": "MII Onkologie Diagnose",
+                "version": "1.0.0"
+            },
+        "termcodes": [
+          {
+                "system": "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
+                "code": "Z89.3",
+                "display": "(Teilweiser) Verlust der oberen Extremit\u00e4t, beidseitig",
+                "version": "2026"
+            }
+        ],
+        "criteria_sets": [
+          "http://fdpg.mii.cds/CriteriaSet/MII_Onkologie_Diagnose/icd-10-gm"
+        ],
+        "display": {
+          "original": "(Teilweiser) Verlust der oberen Extremität, beidseitig",
+          "en": "",
+          "de": ""
+        },
+        "parents": [
+          {
+            "contextualized_termcode_hash": "367bdb36-a201-381b-ba03-5dae3b542685",
+            "display": {
+              "original": "Hypotonie",
+              "en": "",
+              "de": ""
+            },
+            "terminology": "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
+            "term_code": "Z89",
+            "selectable": true
+          }
+        ],
+        "children": [],
+        "related_terms": [],
+        "kds_module": "Onkologie"
+      }
+    ]
   }
 ]

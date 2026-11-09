@@ -1,4 +1,5 @@
 import argparse
+import json
 import shutil
 
 from common.util.log.functions import get_logger
@@ -61,7 +62,14 @@ if __name__ == "__main__":
     if input_index_dir.is_dir() and any(input_index_dir.iterdir()):
         index_dir = temp_elastic_dir / "index"
         index_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copytree(input_index_dir, index_dir, dirs_exist_ok=True)
+        for pipeline_file_path in input_index_dir.glob("**/*.json"):
+            with pipeline_file_path.open(mode="r", encoding="utf-8") as fd:
+                doc = json.load(fd)
+            doc_metadata = doc["mappings"].get("_meta", {})
+            doc_metadata["version"] = f"v{project.config.version}"
+            doc["mappings"]["_meta"] = doc_metadata
+            with (index_dir / pipeline_file_path.name).open(mode="w", encoding="utf-8") as fd:
+                json.dump(doc, fd, indent=4)
     else:
         _logger.warning("No Elasticsearch index definitions found. Make sure this is correct")
 
@@ -69,7 +77,14 @@ if __name__ == "__main__":
     if input_pipeline_dir.is_dir() and any(input_pipeline_dir.iterdir()):
         pipeline_dir = temp_elastic_dir / "pipeline"
         pipeline_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copytree(input_pipeline_dir, pipeline_dir, dirs_exist_ok=True)
+        for pipeline_file_path in input_pipeline_dir.glob("**/*.json"):
+            with pipeline_file_path.open(mode="r", encoding="utf-8") as fd:
+                doc = json.load(fd)
+            doc_metadata = doc.get("_meta", {})
+            doc_metadata["version"] = f"v{project.config.version}"
+            doc["_meta"] = doc_metadata
+            with (pipeline_dir / pipeline_file_path.name).open(mode="w", encoding="utf-8") as fd:
+                json.dump(doc, fd, indent=4)
     else:
         _logger.info("No Elasticsearch pipeline definitions found")
 

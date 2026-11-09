@@ -439,9 +439,6 @@
         "type": "text",
         "index": false
       }
-    },
-    "_meta": {
-      "version": "v5.0.0"
     }
   }
 }
