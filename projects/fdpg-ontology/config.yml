@@ -1,3 +1,4 @@
+version: "5.2.0"
 fhir-packages:
   manager:
     type: "github"

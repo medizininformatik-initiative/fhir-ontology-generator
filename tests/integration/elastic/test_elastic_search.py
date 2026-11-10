@@ -69,6 +69,11 @@ def test_criterion_term_code_search(
         "selectable", actual_selectable, expected_selectable
     )
 
+    actual_criteria_sets = sorted(result.get("criteria_sets", []))
+    expected_criteria_sets = sorted(expected.get("criteria_sets", []))
+    assert actual_criteria_sets == expected_criteria_sets, mismatch_str(
+        "criteria_sets", actual_criteria_sets, expected_criteria_sets)
+
 
 def _query_es(url: str, query: Mapping[str, Any]) -> tuple[int, list[Any]]:
     response = requests.post(f"{url}/_search", json=query)

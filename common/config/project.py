@@ -69,6 +69,7 @@ class TerminologyConfig(BaseModel):
 
 
 class ProjectConfig(BaseModel):
+    version: str | None = Field(default=None)
     fhir_packages: Annotated[
         FhirPackagesConfig,
         Field(
