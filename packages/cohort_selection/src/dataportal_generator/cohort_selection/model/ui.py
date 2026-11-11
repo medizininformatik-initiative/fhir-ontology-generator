@@ -1,24 +1,48 @@
-from typing import Literal, Any
+from pydantic import BaseModel
+from typing_extensions import deprecated
 
-from pydantic import BaseModel, Field
+from typing import Literal, Any, ClassVar
+
+from pydantic import BaseModel, Field, field_serializer
 from typing_extensions import deprecated
 
 from common.model.localization import TranslationDisplayElement
-from common.model.pydantic.mixins import SerializeSorted
 from dataportal_generator.common.model.terminology import TermCode
 
-UI_PROFILES = set()
-
 VALUE_TYPE_OPTIONS = Literal[
-    "concept", "quantity", "reference", "date", "composite", "Age"
+    "concept", "quantity", "reference", "date", "composite", "age"
 ]
 
 
+class Module(BaseModel):
+    code: str
+    display: str
+
+    def to_dict(self):
+        return {"code": self.code, "display": self.display}
+
+
+class RelationalTermcode(BaseModel):
+    contextualized_termcode_hash: str
+    display: str | dict
+    terminology: str
+    term_code: str
+    selectable: bool
+
+    @deprecated("Use ``model_dump()``")
+    def to_dict(self, **kwargs):
+        return self.model_dump(**kwargs)
+
+
 class CriteriaSet(BaseModel):
+    UrlBase: ClassVar[str] = "https://forschen-fuer-gesundheit.de/CriteriaSet"
+
     url: str
-    contextualized_term_codes: list[tuple[TermCode, TermCode]] = Field(
-        default_factory=list
-    )
+    #contextualized_term_codes: list[tuple[TermCode, TermCode]] = Field(
+    #    default_factory=list
+    #)
+    context: TermCode
+    tree_groups: list[str] = Field(default_factory=list)
 
     @deprecated("Use ``model_dump_json()``")
     def to_json(self, **kwargs) -> str:
@@ -34,9 +58,10 @@ class ValueSet(BaseModel):
         return self.model_dump_json(**kwargs)
 
 
-class ValueDefinition(BaseModel, SerializeSorted):
+# TODO: Tailor model class via subclassing to the supported value variants (e.g. concept, quantity, etc.)
+class ValueDefinition(BaseModel):
     type: VALUE_TYPE_OPTIONS
-    referencedValueSet: list[ValueSet] = Field(default_factory=list)
+    referencedValueSet: list[str] = Field(default_factory=list)
     allowedUnits: list[TermCode] = Field(default_factory=list)
     precision: int = Field(default=1)
     min: int | None = Field(default=None)
@@ -45,9 +70,9 @@ class ValueDefinition(BaseModel, SerializeSorted):
     optional: bool = Field(default=True)
     display: TranslationDisplayElement | None = Field(default=None)
 
-    @deprecated("Use ``model_dump()``")
-    def to_dict(self, **kwargs) -> dict[str, Any]:
-        return self.model_dump(**kwargs)
+    @deprecated("Use ``ValueDefinition.model_dump(exclude_none=True)`` instead")
+    def to_dict(self) -> dict:
+        return self.model_dump(exclude_none=True)
 
 
 class AttributeDefinition(ValueDefinition):

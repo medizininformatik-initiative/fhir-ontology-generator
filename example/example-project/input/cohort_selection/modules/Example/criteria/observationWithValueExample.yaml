@@ -1,0 +1,18 @@
+name: "ObservationWithValue"
+
+context:
+  system: "fdpg.mii.cds"
+  code: "presence-microorganism"
+  display: "Presence of Microorganism"
+module: "Example"
+
+definitionSource:
+  structureDefinition: "https://www.medizininformatik-initiative.de/fhir/modul-mikrobio/StructureDefinition/mii-pr-mikrobio-molekulare-diagnostik"
+
+identifier:
+  type: "binding"
+  definition: "Observation.code"
+timeRestriction: "Observation.effective"
+value:
+  type: "concept"
+  definition: "Observation.value"

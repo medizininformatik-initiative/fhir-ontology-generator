@@ -1,11 +1,11 @@
 from abc import ABC
-from typing import Generic, Literal, TYPE_CHECKING
+from typing import Generic, Literal, TYPE_CHECKING, Annotated, Union
 
 if TYPE_CHECKING:
     from _typeshed import SupportsRead
 
 import yaml
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, SerializeAsAny
 from typing_extensions import deprecated, Any, TypeVar
 
 from dataportal_generator.common.model.terminology import TermCode
@@ -35,25 +35,27 @@ class CriterionDefinitionSource(BaseModel):
 T = TypeVar("T")
 
 
-class CriterionIdentifier(BaseModel, ABC, Generic[T]):
+class _CriterionIdentifier(BaseModel, ABC, Generic[T]):
     type: Literal["fixed", "binding"] = Field(default="binding")
-    definition: list[TermCode] | Expression | None = Field(default=None)
+    definition: T | None = Field(default=None)
 
-    @model_validator(mode="after")
-    @classmethod
-    def _validate_model(cls, data: "CriterionIdentifier") -> "CriterionIdentifier":
-        if data.type == "fixed" and not isinstance(data.definition, list):
-            raise ValueError("For type 'fixed', definition must be a list of TermCode.")
-        if data.type == "binding" and not isinstance(data.definition, Expression):
-            raise ValueError("For type 'binding', definition must be an Expression.")
-        return data
+
+class FixedCriterionIdentifier(_CriterionIdentifier[list[TermCode]]):
+    type: Literal["fixed"]
+
+
+class BindingCriterionIdentifier(_CriterionIdentifier[Expression]):
+    type: Literal["binding"]
+
+
+CriterionIdentifier = Annotated[Union[FixedCriterionIdentifier, BindingCriterionIdentifier], Field(discriminator="type")]
 
 
 class CriterionValue(BaseModel):
     # TODO: Is 'type' still needed? Can't we extract it from the element definition
-    type: Literal["code", "concept", "quantity", "Age", "reference", "integer", "calculated", "reference"]
+    type: Literal["code", "concept", "quantity", "age", "reference", "integer", "calculated", "reference"]
     definition: Expression
-    optional: bool = Field(default=True)
+    optional: bool = Field(default=False)
 
 
 class CriterionAttribute(BaseModel):
@@ -74,7 +76,7 @@ class CriterionDefinition(BaseModel):
     module: str
     definition_source: CriterionDefinitionSource = Field(alias="definitionSource")
 
-    identifier: CriterionIdentifier
+    identifier: SerializeAsAny[CriterionIdentifier]
     time_restriction: Expression | None = Field(default=None, alias="timeRestriction")
     value: CriterionValue | None = Field(default=None)
     attributes: list[CriterionAttribute] = Field(default_factory=list)

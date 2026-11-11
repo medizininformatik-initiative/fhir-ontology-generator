@@ -4,12 +4,17 @@ from typing import List, Tuple, Dict
 
 import psycopg2.extras
 import psycopg2
+from docker.models.containers import Container
 from typing_extensions import deprecated
 
 from cohort_selection_ontology.model.ui_profile import UIProfile, CriteriaSet
 from cohort_selection_ontology.model.ui_data import TermCode
 
 from common.util.log.functions import get_class_logger
+
+
+_logger = get_logger(__name__)
+
 
 NAMESPACE_UUID = uuid.UUID("00000000-0000-0000-0000-000000000000")
 
@@ -85,33 +90,34 @@ add_comment_on_context_termcode_hash = """
 """
 
 
+class DataBaseError(IOError):
+    pass
+
+
 class DataBaseWriter:
     """
     DataBaseWriter is a class that handles the connection to the database and the insertion of data into the database
     for the feasibility tool ontology.
     """
 
-    __logger = get_class_logger("DataBaseWriter")
-
-    def __init__(self, port=5432):
+    def __init__(self, host: str, port: int, database: str, user: str, password: str):
         self.db_connection = None
-        for _ in range(30):  # retry for 30 times
+        last_err = None
+        for _ in range(30):
             try:
                 self.db_connection = psycopg2.connect(
-                    database="codex_ui",
-                    user="codex-postgres",
-                    host="localhost",
-                    password="codex-password",
+                    host=host,
                     port=port,
+                    database=database,
+                    user=user,
+                    password=password
                 )
-                # if connection is established, break the loop
                 break
-            except psycopg2.OperationalError:
-                # wait for 1 second before trying again
+            except psycopg2.OperationalError as x:
+                last_err = x
                 sleep(1)
         else:
-            # raise error if connection could not be established after 30 attempts
-            raise Exception("Cannot connect to database")
+            raise DataBaseError(f"Failed to establish a connection to database {database!r} @ {host}:{port}", last_err)
         if self.db_connection:
             self.cursor = self.db_connection.cursor()
             self.cursor.execute(create_term_code_table)
@@ -128,6 +134,24 @@ class DataBaseWriter:
         if self.db_connection is not None:
             self.cursor.close()
             self.db_connection.close()
+
+    @staticmethod
+    def for_postgres_container(container: Container) -> "DataBaseWriter":
+        """
+        Creates an instance of this class connected to a database running in a Postgres Docker container
+
+        :param container: Postgres Docker container running the database server to connect to
+        :return: ``DataBaseWriter`` connected to the database in the Docker container
+        """
+        port = container.attrs["NetworkSettings"]["Ports"]["5432/tcp"][0]["HostPort"]
+        env = container.attrs["Config"]["Env"]
+        return DataBaseWriter(
+            host="localhost",
+            port=int(port),
+            database=next((e.split("=")[1] for e in env if e.startswith("POSTGRES_DB=")), "postgres"),
+            user=next((e.split("=")[1] for e in env if e.startswith("POSTGRES_USER=")), "postgres"),
+            password=next((e.split("=")[1] for e in env if e.startswith("POSTGRES_PASSWORD=")), "postgres")
+        )
 
     @staticmethod
     def calculate_context_term_code_hash(context: TermCode, term_code: TermCode) -> str:
@@ -236,7 +260,7 @@ class DataBaseWriter:
         Links a list of contextualized term codes to their corresponding ui profiles
         :param contextualized_term_codes: List of tuples each containing a context, a term code, and a UI profile name
         """
-        self.__logger.info("Linking contextualized term codes to UI profiles")
+        _logger.info("Linking contextualized term codes to UI profiles")
         values = [
             (
                 self.calculate_context_term_code_hash(context, term_code),
@@ -401,7 +425,7 @@ class DataBaseWriter:
             ),
         )
         result = self.cursor.fetchall()
-        self.__logger.debug(result)
+        _logger.debug(result)
         return result[0][0] if result else None
 
     def add_critieria_set(self, criteria_set: CriteriaSet):
@@ -542,7 +566,7 @@ class DataBaseWriter:
         row = self.cursor.fetchone()
         cnt = row[0] if row else 0
         if cnt > 0:
-            self.__logger.info(
+            _logger.info(
                 f"Removing {cnt} contextualized term code entries without reference to any UI profile"
             )
             self.cursor.execute(

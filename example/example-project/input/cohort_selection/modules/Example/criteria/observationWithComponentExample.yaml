@@ -1,0 +1,20 @@
+name: "ObservationWithComponent"
+
+context:
+  system: "fdpg.mii.cds"
+  code: "molgen"
+  display: "Molecular Genetics"
+module: "Example"
+
+definitionSource:
+  structureDefinition: "https://www.medizininformatik-initiative.de/fhir/ext/modul-molgen/StructureDefinition/variante"
+
+identifier:
+  type: "binding"
+  definition: "Observation.code"
+timeRestriction: "Observation.effective"
+attributes:
+  - name: "geneStudied"
+    type: "concept"
+    definition: "Observation.component.slice(%profile, 'gene-studied').value"
+    optional: false

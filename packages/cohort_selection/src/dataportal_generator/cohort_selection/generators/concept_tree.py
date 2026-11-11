@@ -1,12 +1,14 @@
 import json
-from collections.abc import Mapping
 from pathlib import Path
 
-from itertools import groupby, chain
+from itertools import groupby
 
+from cachetools import cachedmethod
 from fhir.resources.R4B.coding import Coding
 from fhir.resources.R4B.valueset import ValueSetExpansion
 
+from dataportal_generator.cohort_selection.util.fhir import split_canonical, canonical_of
+from dataportal_generator.cohort_selection.util.io import load_criterion_definitions
 from dataportal_generator.common.exceptions.fhir import ResourceNotFoundError
 from dataportal_generator.common.fhirpath.resolvers import FHIRPathResolver
 from dataportal_generator.common.log.functions import get_logger
@@ -19,7 +21,7 @@ from fhir.resources.R4B.elementdefinition import ElementDefinition, ElementDefin
 from dataportal_generator.cohort_selection.model.concept_tree import (
     ConceptTree,
     ConceptTreeEntry,
-    ConceptTreeGroup, CRITERION_IDENTIFIER_KEY, CriterionTreeMapping,
+    ConceptTreeGroup, CRITERION_IDENTIFIER_KEY, CriterionTreeMapping, CRITERION_VALUE_KEY,
 )
 from dataportal_generator.cohort_selection.model.criterion import CriterionDefinition, CriterionAttribute
 
@@ -54,21 +56,6 @@ class ConceptTreeGenerationError(Exception):
     pass
 
 
-def _canonical(url: str, version: str | None = None) -> str:
-    """
-    Builds the FHIR canonical from the provided URL and (optional) version as ``<url>[|<version>]``
-    """
-    return url + (("|" + version) if version else "")
-
-
-def _split_canonical(canonical: str) -> tuple[str, str | None]:
-    """
-    Splits a FHIR canonical value into its URL and (optional) version component, e.g. ``<url>[|<version>]``
-    """
-    split = canonical.split("|")
-    return split[0], split[1] if len(split) > 1 else None
-
-
 def _merge_codings(a: Coding, b: Coding) -> Coding:
     """Merges two partial codings. Raises ``ValueError`` if they are not compatible, i.e. contradict each other"""
     for key in _CODING_KEYS:
@@ -85,7 +72,7 @@ def _fixed_concept_tree_identifier(crit_def: CriterionDefinition, attr_name: str
 
 def _cmp_binding_strength(a: Binding | None, b: Binding | None) -> int:
     """
-    Compares FHIR ValueSet binding strengths. Return value is ``> 0`` if ``a > b``, ``0`` if ``a = b`` and ``< 0``
+    Compares FHIR ValueSet binding strengths. Return value is ``>0`` if ``a>b``, ``0`` if ``a=b`` and ``<0``
     otherwise
     """
     return _BINDING_STRENGTH_MAGNITUDE[a.strength if a else None] - _BINDING_STRENGTH_MAGNITUDE[
@@ -114,21 +101,22 @@ def _code_systems_used_in_expansion(vs_expansion: ValueSetExpansion) -> list[tup
     """
     code_systems = []
     for param in filter(lambda param: param.name == "used-codesystem", vs_expansion.parameter):
-        code_systems.append(_split_canonical(param.valueUri))
+        code_systems.append(split_canonical(param.valueUri))
     if not code_systems:
         raise ValueError("Value set expansion is missing expansion parameters 'used-codesystem'")
     return code_systems
 
 
 class CriterionConceptTreeGenerator:
+    __CS_DEFAULT_VERSION_CACHE = {}
+
+
     def __init__(
             self, project: Project, crit_def: CriterionDefinition
     ):
         """
         :param project: Project to operate on
         :param crit_def: Criterion definition to generate concept trees for
-        :param existing_tree_ids: (Optional) identifiers of already generated attribute concept trees. Value set based
-                                  concept trees with a matching identifier are reused instead of being generated again
         """
         self.__project = project
         self.__package_manager = project.package_manager
@@ -147,6 +135,36 @@ class CriterionConceptTreeGenerator:
     def _tree_group_exists(self, identifier: str) -> bool:
         return ConceptTreeGroup.uuid_of(identifier) in self.__tree_group_uuids
 
+    @cachedmethod(cache=lambda self: self.__CS_DEFAULT_VERSION_CACHE)
+    def _get_default_code_system_version(self, cs_url: str) -> str:
+        """
+        Returns the default version of the code system for the given code system URL. If multiple versions exist, the
+        latest one is returned.
+
+        :param cs_url: URL of the code system to get the default version for
+        :return: Default version of the code system
+        """
+        cs = self.__terminology_src.code_system(cs_url)
+        if not cs:
+            raise ResourceNotFoundError(f"Could not find any version of CodeSystem resource '{cs_url}'")
+        if not cs.version:
+            raise ValueError(f"CodeSystem resource {cs_url!r} does not have a version")
+        return cs.version
+
+    def _ensure_version(self, codings: list[Coding]) -> list[Coding]:
+        """
+        Ensures that all codings have a version. If a coding does not have a version, the default version of the code
+        system is used (the latest version know to the terminology source). Codings are not validated against that
+        version
+
+        :param codings: List of codings to ensure version for
+        :return: List of codings with ensured version
+        """
+        return [
+            (c if c.version else c.model_copy(update={"version": self._get_default_code_system_version(c.system)}))
+            for c in codings
+        ]
+
     def _get_composing_code_system_canonicals(self, vs_canonical: str) -> set[str]:
         vs = self.__package_manager.find_value_set(vs_canonical)
         if not vs:
@@ -157,8 +175,9 @@ class CriterionConceptTreeGenerator:
             cs_canonicals = set()
             for incl in compose.include:
                 if incl.valueSet:
-                    cs_canonicals.update(
-                        self._get_composing_code_system_canonicals(vs_canonical) for vs_canonical in incl.valueSet)
+                    cs_canonicals.update(cs_canonical
+                                         for vs_canonical in incl.valueSet
+                                         for cs_canonical in self._get_composing_code_system_canonicals(vs_canonical))
                 else:
                     cs_canonicals.add(incl.system + (("|" + incl.version) if incl.version else ""))
             return cs_canonicals
@@ -182,7 +201,7 @@ class CriterionConceptTreeGenerator:
             code_systems = {canonical.split("|", 1)[0] for canonical in
                             self._get_composing_code_system_canonicals(binding.valueSet)}
             if len(code_systems) == 1:
-                system = code_systems[0]
+                system = next(iter(code_systems))
         return Coding(
             system=system,
             code=fixed_val
@@ -210,12 +229,12 @@ class CriterionConceptTreeGenerator:
             systems = {canonical.split("|", 1)[0] for canonical in
                        self._get_composing_code_system_canonicals(b.valueSet)}
             if not system and len(systems) == 1:
-                system = systems[0]
+                system = next(iter(systems))
         # Further fixed code determination
         if not code and (code_elem_def := elem_def.child("code")):
             match self._code_restriction(code_elem_def):
                 case ElementDefinitionBinding() as b:
-                    binding = b if not binding or _cmp_binding_strength(b, binding) else binding
+                    binding = b if not binding or (_cmp_binding_strength(b, binding) > 0) else binding
                 case Coding() as c:
                     c = _merge_codings(c, Coding(system=system)) if system else c
                     system, code = c.system, c.code
@@ -295,7 +314,7 @@ class CriterionConceptTreeGenerator:
         code_system = self.__terminology_src.code_system(system, version)
         if not code_system:
             raise ResourceNotFoundError(
-                f"Could not find CodeSystem resource '{_canonical(system, version)}'")
+                f"Could not find CodeSystem resource '{canonical_of(system, version)}'")
         return code_system.hierarchyMeaning is not None
 
     def _write_concept_tree_group(self, group: ConceptTreeGroup) -> str:
@@ -313,7 +332,7 @@ class CriterionConceptTreeGenerator:
         :param canonical: Canonical of the value set to generate concept tree group for
         :return: Concept tree group identifier
         """
-        vs_url, vs_version = _split_canonical(canonical)
+        vs_url, vs_version = split_canonical(canonical)
         vs = self.__terminology_src.expand_value_set(vs_url, vs_version)
         expansion = vs.expansion
         trees = {}
@@ -334,7 +353,7 @@ class CriterionConceptTreeGenerator:
                 cm = self.__terminology_src.closure(codings)
                 if not cm.group:
                     _logger.warning(
-                        f"Code system {_canonical(cs_url, cs_version)} defines supported hierarchy meaning but "
+                        f"Code system {canonical_of(cs_url, cs_version)} defines supported hierarchy meaning but "
                         f"no hierarchy was found. Defaulting to flat concept list")
                     tree = ConceptTree(
                         system=cs_url,
@@ -393,7 +412,8 @@ class CriterionConceptTreeGenerator:
                 entries=[ConceptTreeEntry(code=c.code) for c in grp]
             ) for key, grp in cs_groups}
         )
-        return self._write_concept_tree_group(concept_tree_grp)
+        self._write_concept_tree_group(concept_tree_grp)
+        return identifier
 
     def _generate_for_implicit_definition(self, identifier: str, expr: str) -> list[str]:
         """
@@ -431,15 +451,15 @@ class CriterionConceptTreeGenerator:
             elif isinstance(restriction, Coding) and restriction.code and restriction.system:
                 codings.append(restriction)
         if codings:
-            self._generate_concept_tree_group_for_coding_list(identifier, codings)
+            self._generate_concept_tree_group_for_coding_list(identifier, self._ensure_version(codings))
             concept_tree_refs.append(identifier)
         return concept_tree_refs
 
     def _generate_for_crit_identifier(self) -> list[str]:
         crit_identifier = self.__crit_def.identifier
-        tree_id = _fixed_concept_tree_identifier(self.__crit_def, "identifier")
+        tree_id = _fixed_concept_tree_identifier(self.__crit_def, "$identifier")
         if crit_identifier.type == "fixed":
-            return [self._generate_concept_tree_group_for_coding_list(tree_id, crit_identifier.definition)]
+            return [self._generate_concept_tree_group_for_coding_list(tree_id, self._ensure_version(crit_identifier.definition))]
         else:
             return self._generate_for_implicit_definition(tree_id, crit_identifier.definition.expression)
 
@@ -451,12 +471,22 @@ class CriterionConceptTreeGenerator:
 
     def generate(self) -> _AttributeTreeMapping:
         _logger.debug(f"Generating concept trees for criterion identifier of criterion '%s'", self.__crit_def.name)
-        crit_ident_trees = self._generate_for_crit_identifier()
+        crit_ident_trees = self._generate_for_crit_identifier() # Criterion identifier
         if not crit_ident_trees:
             raise ConceptTreeGenerationError(f"Failed determine concept trees for identifier of criterion "
                                              f"'{self.__crit_def.name}'")
         attr_mapping = {CRITERION_IDENTIFIER_KEY: crit_ident_trees}
-        for attribute in self.__crit_def.attributes:
+        if (crit_value := self.__crit_def.value) and crit_value.type == "concept": # Criterion value
+            _logger.debug(f"Generating concept trees for criterion value of criterion '%s'", self.__crit_def.name)
+            crit_value_trees = self._generate_for_implicit_definition(
+                _fixed_concept_tree_identifier(self.__crit_def, CRITERION_VALUE_KEY),
+                crit_value.definition.expression
+            )
+            if not crit_value_trees:
+                raise ConceptTreeGenerationError(f"Failed determine concept trees for value of criterion "
+                                                 f"'{self.__crit_def.name}'")
+            attr_mapping[CRITERION_VALUE_KEY] = crit_value_trees
+        for attribute in self.__crit_def.attributes: # Criterion attributes
             _logger.debug("Generating concept trees for criterion attribute '%s' of criterion '%s'", attribute.name,
                           self.__crit_def.name)
             attr_trees = self._generate_for_crit_attribute(attribute)
@@ -465,33 +495,6 @@ class CriterionConceptTreeGenerator:
                                                  f"of criterion '{self.__crit_def.name}'")
             attr_mapping[attribute.name] = attr_trees
         return attr_mapping
-
-
-def _load_criterion_definitions(project: Project) -> Mapping[str, list[CriterionDefinition]]:
-    """
-    Loads all criterion definitions of the project, i.e. the YAML files in
-    ``<project>/input/cohort_selection/modules/<module>/criteria``
-
-    :param project: Project to load criterion definitions for
-    :return: List of criterion definitions
-    """
-    modules_dir = project.input.cohort_selection / "modules"
-    crit_defs = {}
-    for module_dir in sorted(modules_dir.iterdir()):
-        if module_dir.is_dir():
-            mod_crit_defs = []
-            criteria_dir = module_dir / "criteria"
-            for fp in sorted(chain(criteria_dir.glob("**/*.yml"), criteria_dir.glob("**/*.yaml"))):
-                if fp.is_file():
-                    _logger.debug(f"Loading criterion definition @ {fp}")
-                    with fp.open(mode="rb") as fd:
-                        crit_def = CriterionDefinition.model_validate_yaml(fd)
-                        if crit_def.name in mod_crit_defs:
-                            raise ConceptTreeGenerationError(f"Duplicate criterion name '{crit_def.name}' in module "
-                                                             f"'{module_dir.name}'")
-                        mod_crit_defs.append(crit_def)
-            crit_defs[module_dir.name] = mod_crit_defs
-    return crit_defs
 
 
 def _remove_unused_tree_sets(tree_dir: Path, mapping: CriterionTreeMapping):
@@ -508,22 +511,29 @@ def _remove_unused_tree_sets(tree_dir: Path, mapping: CriterionTreeMapping):
             path.unlink()
 
 
-def generate_concept_trees(project: Project, remove_unused: bool = True) -> CriterionTreeMapping:
+def generate_concept_trees(project: Project, remove_unused: bool = True, modules: list[str] | None = None) -> CriterionTreeMapping:
     """
     Generates concept trees for the identifiers and coded attributes of criterion definitions as well as a mapping
     associating them with the generated concept trees. Concept trees are persisted in the output directory and reused
     by subsequent runs. Concept trees no longer referenced by any criterion are removed at the end of each run
+
+    :param project: Project to generate concept trees for
+    :param remove_unused: Whether to remove concept trees that are no longer referenced by any criterion
+    :param modules: List of module names to generate concept trees for. If ``None`` then all modules are considered
+    :return: Mapping of criterion identifiers and attributes to concept tree identifiers
     """
     try:
-        criterion_defs = _load_criterion_definitions(project)
+        generate_ui_
+        criterion_defs = load_criterion_definitions(project)
         mapping = {}
         for module, crit_defs in criterion_defs.items():
-            _logger.info("Generating criterion concept trees for module '%s'", module)
-            mod_mapping = {}
-            mapping[module] = mod_mapping
-            for crit_def in crit_defs:
-                _logger.info(f"Generating concept trees for criterion '{crit_def.name}'")
-                mod_mapping[crit_def.name] = CriterionConceptTreeGenerator(project, crit_def).generate()
+            if not modules or module in modules:
+                _logger.info("Generating criterion concept trees for module '%s'", module)
+                mod_mapping = {}
+                mapping[module] = mod_mapping
+                for crit_def in crit_defs:
+                    _logger.info(f"Generating concept trees for criterion '{crit_def.name}'")
+                    mod_mapping[crit_def.name] = CriterionConceptTreeGenerator(project, crit_def).generate()
         with (project.output.cohort_selection.mkdirs("concept_trees") / "criterion_mapping.json").open(mode="w",
                                                                                                        encoding="utf-8") as fd:
             json.dump(mapping, fd, indent=4)

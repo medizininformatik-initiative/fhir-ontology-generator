@@ -84,7 +84,7 @@ v3.1.0+) and access to a FHIR terminology server.
 ```
 Individual stage scripts can also be run directly from their module dir, e.g.:
 ```bash
-cd cohort_selection_ontology && python3 scripts/generate_ontology.py --project fdpg-ontology \
+cd cohort_selection_ontology && python3 scripts/generate_cohort_selection.py --project fdpg-ontology \
   --generate_ui_trees --generate_ui_profiles --generate_mapping
 ```
 See `docs/DSE-README.md`, `docs/Merger-README.md`, `docs/Elastic-README.md`, `docs/Parcel-README.md` for each

@@ -1,0 +1,21 @@
+name: "PatientAge"
+
+context:
+  system: "fdpg.mii.cds"
+  code: "patient"
+  display: "Patient"
+module: "Example"
+
+definitionSource:
+  structureDefinition: "https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/PatientPseudonymisiert"
+
+identifier:
+  type: "fixed"
+  definition:
+    - system: "http://snomed.info/sct"
+      code: "424144002"
+      display: "Gegenwärtiges chronologisches Alter"
+
+value:
+  type: "age"
+  definition: "Patient.gender"

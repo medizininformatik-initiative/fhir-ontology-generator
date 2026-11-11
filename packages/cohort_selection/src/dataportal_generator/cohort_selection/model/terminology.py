@@ -3,7 +3,7 @@ from typing import List, Dict, Set, Mapping, Tuple, Any
 from pydantic import BaseModel, Field, model_serializer
 from pydantic_core.core_schema import SerializerFunctionWrapHandler
 
-from common.model.localization import TranslationDisplayElement
+from dataportal_generator.common.model.localization import TranslationDisplayElement
 from dataportal_generator.common.model.terminology import TermCode, TreeMapList, TreeMap
 from dataportal_generator.common.log.functions import get_logger
 from typing_extensions import deprecated

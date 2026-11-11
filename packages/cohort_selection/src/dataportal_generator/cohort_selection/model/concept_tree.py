@@ -1,18 +1,33 @@
 import uuid
 from collections.abc import Mapping
+from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator, model_serializer
+from pydantic_core.core_schema import SerializerFunctionWrapHandler
 
 
 class ConceptTreeEntry(BaseModel):
     """
     Concept within a concept tree listing the codes of its immediate parent and child concepts. Both lists are empty if
-    the code system does not define a hierarchy
+    the code system does not define a hierarchy. If that is the case, instances of this model class will be serialized
+    as a string representing the value of the ``code`` field.
     """
 
     code: str
     parents: list[str] = Field(default_factory=list, exclude_if=lambda v: len(v) == 0)
     children: list[str] = Field(default_factory=list, exclude_if=lambda v: len(v) == 0)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _deserialize(self, data: Any) -> Any:
+        if isinstance(data, str):
+            return {"code": data}
+        return data
+
+    @model_serializer(mode="wrap")
+    def _serialize(self, handler: SerializerFunctionWrapHandler) -> Any:
+        data = handler(self)
+        return data["code"] if len(data) == 1 and "code" in data else data
 
 
 class ConceptTree(BaseModel):
@@ -49,6 +64,7 @@ class ConceptTreeGroup(BaseModel):
 
 
 CRITERION_IDENTIFIER_KEY = "$identifier"
+CRITERION_VALUE_KEY = "$value"
 
 
 # Module -> Criterion -> Identifier/Attributes. Each attribute is associated with one or more trees. For instance, if
