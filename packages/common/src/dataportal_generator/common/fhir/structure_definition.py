@@ -34,11 +34,6 @@ ProcessedElementResult = namedtuple(
     ["element", "profile_snapshot", "module_dir", "last_short_desc"],
 )
 ShortDesc = namedtuple("ShortDesc", ["origin", "desc"])
-# FHIR_TYPES_TO_VALUE_TYPES = json.load(
-#     fp=(resources.files(fhir) / "fhir-types-to-value-types.json").open(
-#         "r", encoding="utf-8"
-#     )
-# )
 translation_map_default = {
     "de-DE": {"language": "de-DE", "value": ""},
     "en-US": {"language": "en-US", "value": ""},

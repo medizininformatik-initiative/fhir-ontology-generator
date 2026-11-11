@@ -19,8 +19,8 @@ class TermCode(BaseModel):
 
     system: str
     code: str
-    display: str | TranslationDisplayElement
-    version: str | None = None
+    display: str | TranslationDisplayElement | None = Field(default=None)
+    version: str | None = Field(default=None)
 
     def __eq__(self, other):
         if isinstance(other, TermCode):
@@ -46,10 +46,8 @@ class TermCode(BaseModel):
             return this_display.casefold() < other_display.casefold()
         return NotImplemented
 
-    def __repr__(self):
-        return (
-            self.system + " " + self.code + " " + self.version if self.version else ""
-        )
+    def __str__(self):
+        return self.system + "|" + self.code + (("|" + self.version) if self.version else "")
 
     def to_dict(self):
         if isinstance(self.display, str):

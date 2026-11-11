@@ -20,6 +20,7 @@ from requests.sessions import Session
 
 from dataportal_generator.common.cache import disk_cache_method
 from dataportal_generator.common.log.functions import get_logger
+from dataportal_generator.common.model.fhir.parameters import KeyedParameters
 from dataportal_generator.common.model.fhir.pydantic import construct_model
 from dataportal_generator.common.model.terminology import TermCode, TreeMap, TermEntryNode
 
@@ -245,3 +246,21 @@ class TerminologySource:
         if not bundle.entry:
             return None
         return max((entry.resource for entry in bundle.entry), key=lambda cs: cs.version or "")
+
+    def lookup_code(self, system: str, code: str, version: str | None = None) -> KeyedParameters | None:
+        """
+        Looks up a code in the terminology data source
+
+        :param system: URL of the code system
+        :param code: Code to look up
+        :param version: (Optional) version of the code system. If ``None`` the latest version is used
+        :return: ``KeyedParameters`` instance representing the code or ``None`` if not found
+        """
+        params = {"system": system, "code": code, "property": "*"}
+        if version:
+            params["version"] = version
+        resp = self.__session.get(urljoin(self.__base_url, "CodeSystem/$lookup"), params=params)
+        if resp.status_code == 404:
+            return None
+        return _check_and_parse_response(resp, KeyedParameters)
+
