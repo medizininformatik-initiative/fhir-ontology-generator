@@ -15,16 +15,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
-# [v5.2.0] - 2026-11-02
+# [v5.2.0] - 2026-11-11
 
 ## Added
 
 - Add status attribute for encounter criterion (#549 @paulolaup)
 - Add generation based on terminological data from previous release (#548 @paulolaup)
 
+## Changed
+
+- Revert to MII CDS Medication Medikation profile version 2025.0.0 in DSE to align with cohort selection (#558 @paulolaup)
+- Bump Firely Terminal version to 4.0.0 (#555 @paulolaup)
+
 ## Fixed
 
 - Specimen criterion diagnosis reference now points to standard diagnosis criterion (#547 @paulolaup)
+- Improved DSE profile detail code filter value set resolution (#556 @paulolaup)
+- Fix referenced criterion resolution (#555 @paulolaup)
 
 # [v5.1.0] - 2026-10-11
 
