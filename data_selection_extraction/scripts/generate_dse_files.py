@@ -2,9 +2,9 @@ import argparse
 import collections
 import os
 import json
+import uuid
 
-from typing import Union, Literal, Mapping, List, Any, Optional
-from urllib.parse import urlparse
+from typing import Union, Literal, Mapping, List, Any
 
 from common.util.codec.json import JSONFhirOntoEncoder
 from common.util.fhir.package.manager import FirelyPackageManager
@@ -103,28 +103,29 @@ def extend_terminology_display_mapping(
 
 def download_and_save_value_set(
     value_set_url, project: Project
-) -> Optional[Mapping[str, Any]]:
+) -> Mapping[str, Any] | None:
     value_set_folder = project.output.dse.mkdirs("value-sets")
     client = FhirTerminologyClient.from_project(project)
 
     try:
-        value_set = client.expand_value_set(value_set_url)
-        value_set_name = value_set.get(
-            "name",
-            urlparse(value_set.get("url"))
-            .path.split("/ValueSet/", 1)[-1]
-            .replace("/", ""),
-        )
+        versions = sorted(client.search_value_set(value_set_url), key=lambda vs: vs.version)
+        if versions:
+            value_set = versions[-1].model_dump(by_alias=True, exclude_none=True)
+            value_set["url"] = value_set_url
+            expanded_value_set = client.expand_value_set(value_set_url)
+            # Non-expanded ValueSet resource as a basis since ValueSet-expand return resources without the metadata
+            value_set["expansion"] = expanded_value_set.get("expansion")
+            value_set_name = value_set.get("name", str(uuid.uuid5(uuid.NAMESPACE_URL, value_set["url"])))
 
-        with open(
-            value_set_folder / f"{value_set_name}.json", mode="w+", encoding="utf-8"
-        ) as value_set_file:
-            json.dump(value_set, value_set_file)
+            with open(
+                value_set_folder / f"{value_set_name}.json", mode="w+", encoding="utf-8"
+            ) as value_set_file:
+                json.dump(value_set, value_set_file)
 
-        return value_set
+            return value_set
     except ClientError as ce:
         _logger.warning(f"Failed to download value set '{value_set_url}' <- {ce}")
-        return None
+    return None
 
 
 def download_all_value_sets(profile_details, project: Project):
