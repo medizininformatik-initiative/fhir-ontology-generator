@@ -15,16 +15,17 @@ from cohort_selection_ontology.model.ui_data import (
     Translation,
     BulkTranslation,
 )
+from common.model.fhir.nav_element_definition import NavElementDefinition
 from common.model.fhir.structure_definition import (
     StructureDefinitionSnapshot,
     IndexedStructureDefinition,
 )
+from common.util.http.terminology.client import FhirTerminologyClient
 from common.util.project import Project
 from common.util.structure_definition.functions import (
     get_types_supported_by_element,
     find_type_element,
     supports_type,
-    find_polymorphic_value,
     get_parent_element,
 )
 from data_selection_extraction.config.profile_detail import FieldsConfig
@@ -44,11 +45,13 @@ from common.util.fhir.enums import (
     FhirSearchType,
 )
 
-from common.util.log.functions import get_class_logger
+from common.util.log.functions import get_logger
 from data_selection_extraction.model.profile_tree import ProfileTreeNode
 from data_selection_extraction.util.fhir.profile import is_profile_selectable
 
 Profile = Mapping[str, Any]
+
+_logger = get_logger(__name__)
 
 _EXT_ELEM_PATTERN = re.compile(
     r".*extension(:(?P<slice_name>[a-zA-Z0-9\/\\\-_\[\]\@]+))?"
@@ -63,9 +66,7 @@ class SearchParamPathMapping(TypedDict):
 
 
 class ProfileDetailGenerator:
-    __logger = get_class_logger("ProfileDetailGenerator")
-
-    blacklisted_values_sets: List[str]
+    blacklisted_value_sets: List[str]
     profiles: Mapping[str, Mapping[str, Mapping[str, Any]]]
     mapping_type_code: Mapping[str, SearchParamPathMapping]
     # fields_to_exclude: List[str]
@@ -95,6 +96,7 @@ class ProfileDetailGenerator:
         :param module_translation: mapping containing translation of module names
         """
         self.__project = project
+        self.__client = FhirTerminologyClient.from_project(project)
         self.blacklisted_value_sets = blacklisted_value_sets
         self.profiles = profiles
         # Prevents having to generate the mapping over and over again
@@ -111,14 +113,60 @@ class ProfileDetailGenerator:
         self.__is_recommended_cache = {}
 
         if (path := project.input.dse / SEARCH_FILTER_MAPPING_FILE_NAME).exists():
-            self.__logger.info(f"Found search filter mapping @ {path}")
+            _logger.info(f"Found search filter mapping @ {path}")
             with path.open(mode="r", encoding="utf-8") as f:
                 self.__search_filter_mapping = json.load(f)
         else:
-            self.__logger.info(
+            _logger.info(
                 f"Found no search filter mapping @ {path} => Defaults will be used"
             )
             self.__search_filter_mapping = {}
+
+    def _implicit_cs_vs(self, url: str) -> str | None:
+        """
+        Searches for the implicit value set defined by a ``CodeSystem`` resource via ``CodeSystem.valueSet``. If the
+        ``CodeSystem`` resource is not found or does not define a value set, ``None`` is returned.
+
+        :param url: Code system URL
+        :return: Value set URL or ``None`` if none could be determined
+        """
+        bundle = self.__client.search_code_system(url=url)
+        if bundle.total == 0:
+            return None
+        cs = sorted((e.resource for e in bundle.entry), key=lambda cs: cs.version)[-1]
+        return cs.valueSet
+
+    def _bound_vs_for_concept_typed_elem(self, elem_def: NavElementDefinition) -> list[str]:
+        """
+        Searches for and aggregates all (recursively) bound value sets of a concept-typed element. Explicit bindings
+        and preferred over implicit bindings via fixed code systems. Bindings of ``Coding`` slices are preferred over
+        those of the base element definition.
+
+        :param elem_def: The element definition to search for bound value sets.
+        :return: A list of value set URLs.
+        """
+        elem_type = elem_def.type[0]
+        results = []
+        match elem_type.code:
+            case "Coding":
+                results = [vs for slice in elem_def.slices for vs in self._bound_vs_for_concept_typed_elem(slice)]
+                if not results:
+                    if (binding := elem_def.binding) and (vs := binding.valueSet):
+                        results.append(vs)
+                    elif (c := elem_def.patternCoding) and (system := c.system) and (vs := self._implicit_cs_vs(system)):
+                        results.append(vs)
+                    elif (child_ed := elem_def.child("system")) \
+                        and (system := (child_ed.fixedUri or child_ed.patternUri)) \
+                        and (vs := self._implicit_cs_vs(system)):
+                        results.append(vs)
+            case "CodeableConcept":
+                if child_ed := elem_def.child("coding"):
+                    results.extend(self._bound_vs_for_concept_typed_elem(child_ed))
+        if not results:
+            _logger.warning(f"Could not find any value set for concept-typed element/slice "
+                            f"'{elem_def.struct_def.url}|{elem_def.id}'")
+        return results
+
 
     @cachetools.cachedmethod(
         cache=lambda self: self.__is_included_cache,
@@ -219,9 +267,7 @@ class ProfileDetailGenerator:
         return None
 
     def get_value_sets_for_code_filter(self, struct_def, fhir_path):
-
         value_sets = []
-        elements = struct_def.snapshot.element
         part_match = re.search(r"\((.*?)\)", fhir_path)
 
         if part_match:
@@ -237,43 +283,10 @@ class ProfileDetailGenerator:
                 struct_def, f"{struct_def_type}.{fhir_path.split(').')[-1]}"
             )
 
-        pattern = rf"{fhir_path}[^.]*$"
+        if elem_def := struct_def.get_element_by_id(fhir_path):
+            value_sets = self._bound_vs_for_concept_typed_elem(elem_def)
 
-        for elem in (elem for elem in elements if re.search(pattern, elem.id)):
-            elem: ElementDefinition
-            if elem.binding is not None:
-                value_set = elem.binding.valueSet
-
-                if value_set not in self.blacklisted_value_sets:
-                    value_sets.append(value_set)
-
-            elif (
-                len(value_sets) == 0
-                and find_polymorphic_value(elem, "fixed") is not None
-            ):
-                return None
-
-        if len(value_sets) > 0:
-            return value_sets
-
-        pattern = rf"{fhir_path}($|\.coding$)"
-
-        for elem in (elem for elem in elements if re.search(pattern, elem.id)):
-            elem: ElementDefinition
-            if elem.binding is not None:
-                value_set = elem.binding.valueSet
-
-                if value_set not in self.blacklisted_value_sets:
-                    value_sets.append(value_set)
-
-            if (
-                elem.patternCoding is not None
-                or find_polymorphic_value(elem.fixedCoding, "fixed") is not None
-            ):
-                return None
-
-        if len(value_sets) == 0:
-            return None
+        value_sets = list(filter(lambda vs: vs not in self.blacklisted_value_sets, value_sets))
 
         return value_sets
 
@@ -355,7 +368,7 @@ class ProfileDetailGenerator:
             getattr(element, "subject", None) is not None
             or getattr(element, "patient", None) is not None
         ):
-            self.__logger.info(
+            _logger.info(
                 f"Excluding: {element['id']} as having references to patients"
             )
             return True
@@ -366,7 +379,7 @@ class ProfileDetailGenerator:
             t.code in FhirPrimitiveDataType
             for t in get_types_supported_by_element(element)
         ):
-            self.__logger.debug(
+            _logger.debug(
                 f"Excluding: {element.id} as primitively-typed on level > 2"
             )
             return True
@@ -458,7 +471,7 @@ class ProfileDetailGenerator:
             # NOTE: Having an explicit null value in the mapping indicates that there is no applicable search parameter
             return self.__search_filter_mapping[resource_type]
         else:
-            self.__logger.warning(
+            _logger.warning(
                 "No search parameter defined for resource type '%s' => No such filter will be supported",
                 resource_type,
             )
@@ -636,7 +649,7 @@ class ProfileDetailGenerator:
                                 mii_references.extend(references)
 
         if is_root and supports_reference and len(mii_references) == 0:
-            self.__logger.debug(
+            _logger.debug(
                 f"{field_type} element '{element.id}' does not support any selectable MII "
                 f"profile in the current scope. This could be fixed by adding snapshots to the "
                 f"DSE package snapshots directory, but can also be an indicator that no MII profile "
@@ -661,7 +674,7 @@ class ProfileDetailGenerator:
                         "structureDefinition"
                     )
                     if not profile:
-                        self.__logger.warning(
+                        _logger.warning(
                             f"Extension '{profile_url}' was not found. Consider adding it to "
                             f"'{self.__project.input.dse.mkdirs('snapshots')}' => "
                             f"Ignoring potential references"
@@ -677,7 +690,7 @@ class ProfileDetailGenerator:
                 if all(supports_references):
                     return True
                 elif any(supports_references):
-                    self.__logger.warning(
+                    _logger.warning(
                         f"Element '{element.id}' does not purely support Extensions containing "
                         f"references"
                     )
@@ -709,11 +722,11 @@ class ProfileDetailGenerator:
         self, profile: Mapping[str, Any], profile_tree: list[ProfileTreeNode]
     ) -> Optional[ProfileDetail]:
         profile_url = profile.get("url")
-        self.__logger.info(f"Generating profile detail [url='{profile_url}']")
+        _logger.info(f"Generating profile detail [url='{profile_url}']")
 
         try:
             if profile.get("structureDefinition").snapshot is None:
-                self.__logger.warning(
+                _logger.warning(
                     f"Profile has no snapshot [url='{profile_url}'] => Skipping"
                 )
                 return None
@@ -726,7 +739,7 @@ class ProfileDetailGenerator:
                 and profile_tree
                 and not self.__is_profile_selectable(profile_url, profile_tree)
             ):
-                self.__logger.info(
+                _logger.info(
                     f"Profile is not selectable according to profile tree [url='{profile_url}'] => "
                     f"Skipping"
                 )
@@ -852,7 +865,7 @@ class ProfileDetailGenerator:
                 supported_types = get_types_supported_by_element(element)
                 field_type = None
                 if len(supported_types) > 1:
-                    self.__logger.debug(
+                    _logger.debug(
                         f"Element '{element.id}' supports multiple types but only fixed typed "
                         f"elements can be represented faithfully at this point => Proceeding with "
                         f"first type listed"
@@ -928,14 +941,14 @@ class ProfileDetailGenerator:
                                 for url in referenced_mii_profiles
                             ]
                         except MissingProfileError as exc:
-                            self.__logger.warning(
+                            _logger.warning(
                                 f"Could not resolve referenced MII profiles [element_id='{field_id}']. "
                                 f"Reason: {exc}"
                             )
                             referenced_mii_profiles = []
 
                         if len(referenced_mii_profiles) == 0:
-                            self.__logger.debug(
+                            _logger.debug(
                                 f"Element '{element.id}' references profiles that do not match any "
                                 f"MII profile => Discarding"
                             )
@@ -1071,7 +1084,7 @@ class ProfileDetailGenerator:
         :return: List of profile details for the given scope
         """
         profile_tree = profile_tree if profile_tree else []
-        self.__logger.info(
+        _logger.info(
             f"Generating profile details for profiles in scope '{scope}'"
         )
         if cond is None:
@@ -1083,7 +1096,7 @@ class ProfileDetailGenerator:
         profile_details = []
         profiles_in_scope = self.__get_profiles(scope)
         if len(profiles_in_scope) == 0:
-            self.__logger.warning(
+            _logger.warning(
                 f"No profiles in scope '{scope}' => No profile details will be generated"
             )
             return profile_details
@@ -1095,7 +1108,7 @@ class ProfileDetailGenerator:
                 ):
                     profile_details.append(profile_detail)
             else:
-                self.__logger.debug(
+                _logger.debug(
                     f"Profile [url={sd.url}] did not match conditions => Skipping"
                 )
         return profile_details
