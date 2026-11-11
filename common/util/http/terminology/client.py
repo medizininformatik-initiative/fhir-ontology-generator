@@ -73,7 +73,7 @@ class FhirTerminologyClient(BaseClient):
             "/ValueSet", headers=dict([self.__accept_header]), query_params={"url": url}
         ).json()
         return [
-            ValueSet.model_validate(entry["resource"])
+            ValueSet.model_construct(entry["resource"])
             for entry in bundle.get("entry", [])
             if "resource" in entry
         ]
