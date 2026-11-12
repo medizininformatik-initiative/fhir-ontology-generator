@@ -21,7 +21,7 @@ _INDEX_VERSION = 2
 
 
 class PackageIndexFileEntry(BaseModel):
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True, extra="allow")
 
     filename: str
     resourceType: str | None = Field(default=None)
@@ -29,15 +29,20 @@ class PackageIndexFileEntry(BaseModel):
     url: str | None = Field(default=None)
     version: str | None = Field(default=None)
     kind: str | None = Field(default=None)
-    type: str | None = Field(default=None)
+    type: Any | None = Field(default=None)
     supplements: str | None = Field(default=None)
     content: str | None = Field(default=None)
 
     def __ge__(self, other: Any):
+
         for k, v in other.items():
-            if getattr(self, k) != v:
+            if getattr(self, k, self.__pydantic_extra__.get(k)) != v:
                 return False
         return True
+
+
+class StructDefPackageIndexFileEntry(PackageIndexFileEntry):
+    baseDefinition: str | None = Field(default=None)
 
 
 def _str_or_none(v: Any) -> str | None:
@@ -59,17 +64,20 @@ def _build_package_index(package_dir: Path) -> tuple[int, list[PackageIndexFileE
         if filename == "package.json" or filename.startswith("."):
             continue
         content = load_json(file_path, encoding=["utf-8", "utf-8-sig"], fail=True)
-        entry = PackageIndexFileEntry(
-            filename=filename,
-            resourceType=content.get("resourceType"),
-            id=content.get("id"),
-            url=content.get("url"),
-            version=content.get("version"),
-            kind=_str_or_none(content.get("kind")),
-            type=_str_or_none(content.get("type")),
-            supplements=_str_or_none(content.get("supplements")),
-            content=_str_or_none(content.get("content")),
-        )
+        res_type = content.get("resourceType")
+        keys = PackageIndexFileEntry.model_fields.keys()
+        if res_type:
+            # Include summary elements of the resource type
+            model_cls = get_fhir_model_class(res_type)
+            summary_elems = model_cls.summary_elements_sequence()
+            keys = set(summary_elems) | PackageIndexFileEntry.model_fields.keys()
+        # Only primitively valued fields are included
+        kwargs = dict(filter(
+            lambda t: not(isinstance(t[1], list) or isinstance(t[1], dict)),
+            ((k, content.get(k)) for k in keys)
+        ))
+        kwargs["filename"] = filename
+        entry = PackageIndexFileEntry(**kwargs)
         files.append(entry)
     return 2, files
 

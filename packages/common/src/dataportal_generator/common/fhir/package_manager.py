@@ -282,11 +282,11 @@ class FhirPackageManager(abc.ABC):
         if direct_only:
             return [
                 p
-                for p in self.iterate_cache(package_pattern, index_pattern, latest_only)
+                for _, p in self.iterate_cache(package_pattern, index_pattern, latest_only)
             ]
         return [
             p1
-            for p in self.iterate_cache(package_pattern, index_pattern, latest_only)
+            for _, p in self.iterate_cache(package_pattern, index_pattern, latest_only)
             for p1 in [p, *self.dependents_of(p.url, package_pattern, latest_only)]
         ]
 

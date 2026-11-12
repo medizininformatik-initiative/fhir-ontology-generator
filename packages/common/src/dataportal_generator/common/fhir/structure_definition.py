@@ -931,7 +931,7 @@ def select_element_compatible_with_cql_operations(
     if elem_def.sliceName is not None and "Coding" in {t.code for t in elem_def.type}:
         return select_element_compatible_with_cql_operations(
             #get_parent_element(snapshot, element), snapshot
-            elem_def.parent, elem_def.struct_def
+            elem_def.parent
         )
 
     element_types = elem_def.type if elem_def.type else []
@@ -952,7 +952,7 @@ def select_element_compatible_with_cql_operations(
                     # such an element as their parent (direct ancestor)
                     compatible_element, _ = (
                         select_element_compatible_with_cql_operations(
-                            parent_element, elem_def.struct_def
+                            parent_element
                         )
                     )
                     targeted_types = {targeted_type}
