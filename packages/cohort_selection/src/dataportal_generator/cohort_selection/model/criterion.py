@@ -60,7 +60,7 @@ class CriterionValue(BaseModel):
 
 class CriterionAttribute(BaseModel):
     name: str
-    type: str | None = Field(default=None)
+    type: Literal["concept", "reference"] = Field(default="concept")
     definition: Expression
     optional: bool = Field(default=True)
 

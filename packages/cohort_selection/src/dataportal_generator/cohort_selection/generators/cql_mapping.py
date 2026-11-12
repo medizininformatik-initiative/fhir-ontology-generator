@@ -27,7 +27,7 @@ from dataportal_generator.common.model.project import Project
 from dataportal_generator.common.log.functions import get_logger
 from importlib.resources import files
 
-_logger = get_logger(__file__)
+_logger = get_logger(__name__)
 
 _CRIT_ATTR_KEY_SYSTEM = "http://hl7.org/fhir/StructureDefinition"
 
@@ -107,9 +107,7 @@ def _aggregate_cardinality_using_element(
             parent_elem_def = get_parent_element(struct_def, elem_def)
             # when no slice
             if opt_element_path == parent_elem_def.id:
-                opt_parent_el, _ = select_element_compatible_with_cql_operations(
-                    parent_elem_def, struct_def
-                )
+                opt_parent_el, _ = select_element_compatible_with_cql_operations(parent_elem_def)
                 grand_parent_el = get_parent_element(struct_def, opt_parent_el)
                 if grand_parent_el is None and opt_element_path.count(".") == 0:
                     return SimpleCardinality.SINGLE
@@ -279,7 +277,7 @@ class CQLMappingGenerator(object):
                 struct_def.type,
                 crit_identifier.definition.expression.split(".", maxsplit=1)[-1],
             )
-                    and not criterion_def.module.code == "mii-cds-medikation"
+                    and not criterion_def.module == "Medikation"
             ):
                 chain = self.__fp_resolver.resolve_path(struct_def, crit_identifier.definition.expression)
                 struct_def, elem_def = chain[-1]

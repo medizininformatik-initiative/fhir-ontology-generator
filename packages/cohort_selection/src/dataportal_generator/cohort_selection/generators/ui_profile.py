@@ -318,8 +318,8 @@ class UIProfileGenerator:
             all_profiles.add(p_url)
             all_profiles.update(dep.url for dep in self.__project.package_manager.dependents_of(p_url))
         matching_crit_defs = []
-        for _, crit_defs in load_criterion_mapping(self.__project):
-            for crit_def in crit_defs.values():
+        for _, crit_defs in load_criterion_definitions(self.__project).items():
+            for crit_def in crit_defs:
                 if crit_def.definition_source.structure_definition in all_profiles:
                     matching_crit_defs.append(crit_def)
         return matching_crit_defs
@@ -336,12 +336,12 @@ class UIProfileGenerator:
         """
         ref_type = ref_def_elem_def.type_info_for("Reference")
         if not ref_type:
-            raise ValueError(f"Reference defining element/slice {ref_def_elem_def.struct_def.name!r}|"
-                             f"{ref_def_elem_def.id!r} does not support FHIR data type 'Reference'")
+            raise ValueError(f"Reference defining element/slice '{ref_def_elem_def.struct_def.name}|"
+                             f"{ref_def_elem_def.id}' does not support FHIR data type 'Reference'")
         crit_defs = self._criteria_for_profiles(ref_type.targetProfile)
         if not crit_defs:
             raise UIProfileGenerationError(f"No criteria can be the target of the reference defined in element/slice "
-                                           f"{ref_def_elem_def.struct_def.name!r}|{ref_def_elem_def.id!r}")
+                                           f"'{ref_def_elem_def.struct_def.name}|{ref_def_elem_def.id}'")
         crit_sets = []
         for crit_def in crit_defs:
             crit_sets.append(CriteriaSet(

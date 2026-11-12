@@ -23,7 +23,7 @@ from dataportal_generator.cohort_selection.model.concept_tree import (
     ConceptTreeEntry,
     ConceptTreeGroup, CRITERION_IDENTIFIER_KEY, CriterionTreeMapping, CRITERION_VALUE_KEY,
 )
-from dataportal_generator.cohort_selection.model.criterion import CriterionDefinition, CriterionAttribute
+from dataportal_generator.cohort_selection.model.criterion import CriterionDefinition, CriterionAttribute, Expression
 
 _logger = get_logger(__file__)
 
@@ -192,7 +192,7 @@ class CriterionConceptTreeGenerator:
         if not fixed_val:
             fixed_val = elem_def.patternCode
         binding = None
-        if (b := elem_def.binding) and b.valueSet and (b.strength in _CONSTRAINING_BINDING_STRENGTHS):
+        if (b := elem_def.binding) and b.valueSet: # and (b.strength in _CONSTRAINING_BINDING_STRENGTHS):
             binding = b
         if not fixed_val:
             return binding
@@ -224,7 +224,7 @@ class CriterionConceptTreeGenerator:
         # Further fixed system determination
         if not system and (system_elem_def := elem_def.child("system")):
             system = _system_restriction(system_elem_def)
-        if (b := elem_def.binding) and b.valueSet and (b.strength in _CONSTRAINING_BINDING_STRENGTHS):
+        if (b := elem_def.binding) and b.valueSet: # and (b.strength in _CONSTRAINING_BINDING_STRENGTHS):
             binding = b
             systems = {canonical.split("|", 1)[0] for canonical in
                        self._get_composing_code_system_canonicals(b.valueSet)}
@@ -271,7 +271,7 @@ class CriterionConceptTreeGenerator:
             return [r for s in elem_def.slices for r in
                     self._codeable_concept_restriction(s)] if elem_def.slicing else []
         if (val := elem_def.fixedCodeableConcept) and (codings := val.coding):
-            # If a fixed value is present we can return immediately since no deviation from it is allowed
+            # If a fixed value is present return immediately since no deviation from it is allowed
             if any(not c.system or not c.code for c in codings):
                 raise ValueError(f"CodeableConcept pattern of element definition '{elem_def.id}' in structure "
                                  f"definition '{elem_def.struct_def.url}' has incomplete Codings (system and code are "
@@ -282,7 +282,7 @@ class CriterionConceptTreeGenerator:
             # Add only "complete" codings
             codings.extend(filter(lambda c: c.system and c.code, val.coding))
         bindings = []
-        if (b := elem_def.binding) and b.valueSet and (b.strength in _CONSTRAINING_BINDING_STRENGTHS):
+        if (b := elem_def.binding) and b.valueSet: # and (b.strength in _CONSTRAINING_BINDING_STRENGTHS):
             bindings.append(b)
         if coding_elem_def := elem_def.child("coding"):
             for constraint in self._coding_restriction(coding_elem_def):
@@ -437,8 +437,12 @@ class CriterionConceptTreeGenerator:
             )
         restrictions = self._restrictions(elem_def)
         if not restrictions:
-            raise ConceptTreeGenerationError(f"Failed to determine restrictions of element definition '{elem_def.id}' "
-                                             f"defined in structure definition '{struct_def.url}'")
+            raise ConceptTreeGenerationError(f"Failed to determine sufficient restrictions for criterion attribute "
+                                             f"'{identifier}' using element/slice '{elem_def.id}' defined in structure "
+                                             f"definition '{struct_def.url}'")
+        elif any(isinstance(r, ElementDefinitionBinding) and r.strength not in _CONSTRAINING_BINDING_STRENGTHS for r in restrictions):
+            _logger.warning(f"Criterion attribute '{identifier}' has only very weak restrictions. Consider switching "
+                            f"to a fixed code list or change the target element")
         concept_tree_refs = []
         codings = []
         for restriction in restrictions:
@@ -469,6 +473,7 @@ class CriterionConceptTreeGenerator:
             crit_attr.definition.expression
         )
 
+
     def generate(self) -> _AttributeTreeMapping:
         _logger.debug(f"Generating concept trees for criterion identifier of criterion '%s'", self.__crit_def.name)
         crit_ident_trees = self._generate_for_crit_identifier() # Criterion identifier
@@ -487,13 +492,14 @@ class CriterionConceptTreeGenerator:
                                                  f"'{self.__crit_def.name}'")
             attr_mapping[CRITERION_VALUE_KEY] = crit_value_trees
         for attribute in self.__crit_def.attributes: # Criterion attributes
-            _logger.debug("Generating concept trees for criterion attribute '%s' of criterion '%s'", attribute.name,
-                          self.__crit_def.name)
-            attr_trees = self._generate_for_crit_attribute(attribute)
-            if not attr_trees:
-                raise ConceptTreeGenerationError(f"Failed to determine concept trees for attribute '{attribute.name}' "
-                                                 f"of criterion '{self.__crit_def.name}'")
-            attr_mapping[attribute.name] = attr_trees
+            if attribute.type == "concept":
+                _logger.debug("Generating concept trees for criterion attribute '%s' of criterion '%s'",
+                              attribute.name, self.__crit_def.name)
+                attr_trees = self._generate_for_crit_attribute(attribute)
+                if not attr_trees:
+                    raise ConceptTreeGenerationError(f"Failed to determine concept trees for attribute "
+                                                     f"'{attribute.name}' of criterion '{self.__crit_def.name}'")
+                attr_mapping[attribute.name] = attr_trees
         return attr_mapping
 
 
@@ -523,7 +529,6 @@ def generate_concept_trees(project: Project, remove_unused: bool = True, modules
     :return: Mapping of criterion identifiers and attributes to concept tree identifiers
     """
     try:
-        generate_ui_
         criterion_defs = load_criterion_definitions(project)
         mapping = {}
         for module, crit_defs in criterion_defs.items():
