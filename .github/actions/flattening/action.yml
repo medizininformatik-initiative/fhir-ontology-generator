@@ -40,10 +40,10 @@ runs:
         else
           echo "Installing tool firely.terminal"
           sudo apt-get update
-          sudo apt-get install -y dotnet-sdk-8.0
-          sudo apt-get install -y aspnetcore-runtime-8.0
-          sudo apt-get install -y dotnet-runtime-8.0
-          dotnet tool install -g firely.terminal
+          sudo apt-get install -y dotnet-sdk-10.0
+          sudo apt-get install -y aspnetcore-runtime-10.0
+          sudo apt-get install -y dotnet-runtime-10.0
+          dotnet tool install -g firely.terminal --version 4.0.0
         fi
         fhir --version
       shell: bash
