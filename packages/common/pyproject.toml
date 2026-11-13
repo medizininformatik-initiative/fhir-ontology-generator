@@ -8,7 +8,6 @@ version = "5.0.0"
 dependencies = [
     "antlr4-python3-runtime==4.9.3",
     "cachetools==7.1.6",
-    "docker==7.2.0",
     "fhir-resources==8.3.0",
     "isodate==0.7.2",
     "pydantic==2.13.5",
