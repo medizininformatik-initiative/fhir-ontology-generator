@@ -17,6 +17,10 @@
     "(Observation.focus).code.coding:icd10-gm": {
       "type": "reference",
       "optional": true
+    },
+    "Observation.interpretation:oBDS": {
+      "type": "",
+      "optional": true
     }
   }
 }

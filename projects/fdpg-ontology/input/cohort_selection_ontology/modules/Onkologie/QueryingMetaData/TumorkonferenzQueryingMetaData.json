@@ -16,6 +16,10 @@
     "(CarePlan.addresses).code.coding:icd10-gm": {
       "type": "reference",
       "optional": true
+    },
+    "CarePlan.activity.detail.code": {
+      "type": "",
+      "optional": true
     }
   }
 }

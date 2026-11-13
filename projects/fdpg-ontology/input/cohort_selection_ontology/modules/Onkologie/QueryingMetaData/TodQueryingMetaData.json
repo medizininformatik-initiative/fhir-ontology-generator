@@ -21,6 +21,10 @@
     "Observation.value[x]": {
       "type": "",
       "optional": true
+    },
+    "Observation.interpretation.coding": {
+      "type": "",
+      "optional": true
     }
   }
 }

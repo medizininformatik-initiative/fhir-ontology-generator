@@ -17,6 +17,10 @@
     "Condition.bodySite.coding:primaertumorSeitenlokalisation": {
       "type": "",
       "optional": true
+    },
+    "Condition.verificationStatus.coding:primaertumorDiagnosesicherung": {
+      "type": "",
+      "optional": true
     }
   }
 }
