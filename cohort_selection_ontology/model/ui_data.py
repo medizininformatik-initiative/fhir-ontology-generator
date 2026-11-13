@@ -7,6 +7,7 @@ import uuid
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
+from typing_extensions import deprecated
 
 
 def del_none(dictionary):
@@ -81,9 +82,9 @@ class Module(BaseModel):
     code: str
     display: str
 
+    @deprecated("Use ``model_dump()`` instead")
     def to_dict(self):
-        return {"code": self.code, "display": self.display}
-
+        return self.model_dump(exclude_none=True)
 
 class RelationalTermcode(BaseModel):
     contextualized_termcode_hash: str
@@ -92,14 +93,9 @@ class RelationalTermcode(BaseModel):
     term_code: str
     selectable: bool
 
+    @deprecated("Use ``model_dump()`` instead")
     def to_dict(self):
-        return {
-            "contextualized_termcode_hash": self.contextualized_termcode_hash,
-            "display": self.display,
-            "terminology": self.terminology,
-            "term_code": self.term_code,
-            "selectable": self.selectable
-        }
+        return self.model_dump()
 
 
 class Translation(BaseModel):

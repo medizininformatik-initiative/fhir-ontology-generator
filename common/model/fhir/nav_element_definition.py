@@ -1,7 +1,7 @@
 from functools import cached_property
 from typing import List, Mapping, Optional
 
-from fhir.resources.R4B.elementdefinition import ElementDefinition
+from fhir.resources.R4B.elementdefinition import ElementDefinition, ElementDefinitionType
 from pydantic import PrivateAttr, Field
 
 from common.model.fhir.structure_definition import IdxStructureDefinition
@@ -226,3 +226,18 @@ class NavElementDefinition(ElementDefinition):
             return None
         else:
             return self.path.rsplit(".", maxsplit=1)[-1].removesuffix("[x]")
+
+    def type_info_for(self, type_code: str) -> ElementDefinitionType | None:
+        """
+        If the element definition supports the requested type, the corresponding type info is returned and ``None``
+        otherwise.
+        """
+        if not self.type:
+            return None
+        return next((t for t in self.type if t.code == type_code), None)
+
+    def supports_type(self, type_code: str) -> bool:
+        """Checks if the element definition supports a given type code."""
+        if not self.type:
+            return False
+        return any(t.code == type_code for t in self.type)

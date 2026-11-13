@@ -97,7 +97,7 @@ def process_csv(csv_file: str | Path):
         display="Einwilligung",
         version="1.0.0",
     )
-    consent_mapping_tree = TreeMap({}, context, "fdpg.consent.combined", "1.0.0")
+    consent_mapping_tree = TreeMap(entries={}, context=context, system="fdpg.consent.combined", version="1.0.0")
 
     with open(csv_file, mode="r", newline="", encoding="utf-8") as file:
         reader = csv.DictReader(file, delimiter=";")

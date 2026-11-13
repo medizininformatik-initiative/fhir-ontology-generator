@@ -65,6 +65,7 @@ def docker_services(
     docker_compose_project_name: str,
     docker_setup: list[str],
     docker_cleanup: list[str],
+    copy_and_unpack_project_output,
 ) -> Iterator[Services]:
     # We overwrite this fixture to allow for the Docker container logs to be saved before `pytest-docker` removes them
     try:

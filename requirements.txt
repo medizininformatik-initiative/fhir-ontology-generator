@@ -2,7 +2,7 @@ antlr4-python3-runtime==4.9.3
 attrs~=26.1.0
 beautifulsoup4~=4.15.0
 black==26.5.1
-cachetools
+cachetools==7.2.0
 docker~=7.1.0
 fastjsonschema~=2.21.1
 fhir.resources==8.3.0

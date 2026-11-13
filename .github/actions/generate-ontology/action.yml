@@ -94,6 +94,12 @@ runs:
           done
         fi
 
+    - name: Download restore version
+      env:
+        PYTHONPATH: ${{ github.workspace }}
+      shell: bash
+      run: python3 .github/scripts/download_release.py ${{ inputs.project }} ${{ github.repository }}
+
     - name: Run ontology generation
       env:
         ONTOLOGY_SERVER_ADDRESS: ${{ inputs.term-server-url }}

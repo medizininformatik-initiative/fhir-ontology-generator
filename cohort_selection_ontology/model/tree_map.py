@@ -1,21 +1,26 @@
-from dataclasses import dataclass, field
-from logging import Logger
-from typing import List, Dict, Set, Mapping, Tuple
+from collections.abc import Mapping
+from typing import Any
 
-import json
+from pydantic import BaseModel, Field, field_serializer, model_serializer, ConfigDict
+from pydantic_core.core_schema import SerializationInfo, SerializerFunctionWrapHandler
+from typing_extensions import deprecated
 
-from pydantic import BaseModel, Field
-
-from cohort_selection_ontology.model.ui_profile import del_keys, del_none
 from cohort_selection_ontology.model.ui_data import Module, TermCode
-from common.util.codec.json import JSONSerializable
-from common.util.log.functions import get_class_logger
+from common.util.log.functions import get_logger
+
+_logger = get_logger(__name__)
 
 
 class TermEntryNode(BaseModel):
-    term_code: TermCode
-    parents: List[str] = Field(default_factory=list)
-    children: List[str] = Field(default_factory=list)
+    model_config = ConfigDict(serialize_by_alias=True)
+
+    term_code: TermCode = Field(serialization_alias="key")
+    parents: list[str] = Field(default_factory=list)
+    children: list[str] = Field(default_factory=list)
+
+    @field_serializer("term_code")
+    def _serialize_term_code(self, data: TermCode) -> str:
+        return data.code
 
     def __repr__(self) -> str:
         return f"{self.parents} {self.children}"
@@ -23,108 +28,101 @@ class TermEntryNode(BaseModel):
     def __hash__(self) -> int:
         return hash(self.term_code)
 
-    def to_ui_tree_entry(self):
-        return {
-            "key": self.term_code.code,
-            "parents": self.parents,
-            "children": self.children,
-        }
 
-
-@dataclass
-class TreeMap(JSONSerializable):
-    entries: Dict[str, TermEntryNode]
-    context: TermCode
+class TreeMap(BaseModel):
+    context: TermCode | None = Field(default=None)
     system: str
-    version: str
-    DO_NOT_SERIALIZE = ["DO_NOT_SERIALIZE"]
+    version: str | None = Field(default=None)
+    entries: Mapping[str, TermEntryNode] = Field(default_factory=dict)
 
     def __repr__(self) -> str:
         return f"{self.system} {self.version} {self.context} {self.entries}"
 
-    def to_dict(self):
-        data = self.__dict__.copy()
-        data["entries"] = list(
-            value.to_ui_tree_entry() for value in self.entries.values()
-        )
-        if self.context:
-            data["context"] = self.context.to_dict()
-        return del_none(del_keys(data, self.DO_NOT_SERIALIZE))
+    @field_serializer("entries")
+    def _serialize_entries(self, value: Mapping[str, TermEntryNode], info: SerializationInfo) -> list[object]:
+        return [v.model_dump(
+            mode=info.mode,
+            exclude_none=info.exclude_none,
+            exclude_unset=info.exclude_unset,
+            exclude_defaults=info.exclude_defaults,
+            context=info.context,
+        ) for v in value.values()]
+
+    @deprecated("Use ``model_dump()`` instead")
+    def to_dict(self) -> dict:
+        return self.model_dump(exclude_none=True)
 
 
-@dataclass
-class TreeMapList(JSONSerializable):
-    entries: List[TreeMap] = field(default_factory=list)
+class TreeMapList(BaseModel):
+    entries: list[TreeMap] = Field(default_factory=list)
     # For naming the files
-    module_name: str = None
+    module_name: str | None = Field(default=None)
 
-    def to_json(self):
-        return json.dumps([entry.to_dict() for entry in self.entries])
+    @model_serializer(mode="plain")
+    def _serialize_model(self, info: SerializationInfo) -> list[object]:
+        return [entry.model_dump(
+            mode=info.mode,
+            exclude_none=info.exclude_none,
+            exclude_unset=info.exclude_unset,
+            exclude_defaults=info.exclude_defaults,
+            context=info.context,
+        ) for entry in self.entries]
+
+    @deprecated("Use ``model_dump_json()`` instead")
+    def to_json(self) -> str:
+        return self.model_dump_json(exclude_none=True)
 
 
 class ContextualizedTermCode(BaseModel):
     context: TermCode
     term_code: TermCode
 
-    def to_dict(self):
-        return {
-            "context": self.context.to_dict(),
-            "term_code": self.term_code.to_dict(),
-        }
+    @deprecated("Use ``model_dump()`` instead")
+    def to_dict(self) -> dict:
+        return self.model_dump()
 
 
 class Designation(BaseModel):
     language: str
     display: str
 
-    def to_dict(self):
-        return {"language": self.language, "display": self.display}
+    @deprecated("Use ``model_dump()`` instead")
+    def to_dict(self) -> dict:
+        return self.model_dump()
 
 
 class ContextualizedTermCodeInfo(BaseModel):
     term_code: TermCode
-    context: TermCode = None
-    module: Module = None
-    children_count: int = 0
-    designations: List[Designation] = Field(default_factory=list)
-    siblings: List[ContextualizedTermCode] = Field(default_factory=list)
-    recalculated: bool = False
-    __logger: Logger = get_class_logger("ContextualizedTermCodeInfo")
+    context: TermCode | None = Field(default=None)
+    module: Module | None = Field(default=None)
+    children_count: int = Field(default=0)
+    designations: list[Designation] = Field(default_factory=list)
+    siblings: list[ContextualizedTermCode] = Field(default_factory=list)
+    recalculated: bool = Field(default=False, exclude=True)
 
-    def to_dict(self):
-        """
-        Builds a JSON string representation of this instance
-
-        :return: JSON string
-        """
+    @model_serializer(mode="wrap")
+    def _serialize_model(self, handler: SerializerFunctionWrapHandler) -> dict:
         if not self.designations:
             self.designations = [
                 Designation(language="default", display=self.term_code.display)
             ]
-        if not self.context:
-            raise ValueError("Context is required.")
-        if not self.module:
-            raise ValueError("Module is required.")
         if not self.recalculated:
-            self.__logger.warning(
+            _logger.warning(
                 f"Ensure you call update_children_count before calling to_dict, otherwise children_count will be incorrect."
             )
-        return {
-            "context": self.context.to_dict(),
-            "term_code": self.term_code.to_dict(),
-            "children_count": self.children_count,
-            "module": self.module.to_dict(),
-            "designations": [
-                designation.to_dict() for designation in self.designations
-            ],
-            "siblings": [sibling.to_dict() for sibling in self.siblings],
-        }
+        return handler(self)
+
+    @deprecated("Use ``ContextualizedTermCodeInfo.model_dump()`` instead")
+    def to_dict(self, **kwargs) -> dict:
+        return self.model_dump(**kwargs)
 
 
-@dataclass
-class ContextualizedTermCodeInfoList(JSONSerializable):
-    entries: List[ContextualizedTermCodeInfo] = field(default_factory=list)
-    __logger: Logger = get_class_logger("ContextualizedTermCodeInfoList")
+class ContextualizedTermCodeInfoList(BaseModel):
+    entries: list[ContextualizedTermCodeInfo] = Field(default_factory=list)
+
+    @model_serializer(mode="plain")
+    def _model_serializer(self) -> list[dict[str, Any]]:
+        return [entry.model_dump() for entry in self.entries]
 
     def update_descendant_count(self, tree_map_list: TreeMapList):
         """
@@ -133,20 +131,21 @@ class ContextualizedTermCodeInfoList(JSONSerializable):
         :param tree_map_list: List of tree maps to aggregate descendants in
         """
         count_maps = {
-            f"{tree_map.system}#{tree_map.version}": self.__get_descendant_or_self_count_map(
+            f"{tree_map.system}{('|' + tree_map.version) if tree_map.version else ''}": self.__get_descendant_or_self_count_map(
                 tree_map
             )
             for tree_map in tree_map_list.entries
         }
         for entry in self.entries:
             term_code = entry.term_code
-            if count_map := count_maps.get(f"{term_code.system}#{term_code.version}"):
+            if count_map := count_maps.get(f"{term_code.system}{('|' + term_code.version) if term_code.version else ''}"):
                 count = count_map.get(term_code.code, 0)
                 entry.children_count = count
                 entry.recalculated = True
             else:
-                self.__logger.warning(
-                    f"No tree map for code system '{term_code.system}' and version {term_code.version} => Skipping"
+                _logger.warning(
+                    f"No tree map for code system '{term_code.system}'"
+                    f"{('and version ' + term_code.version) if term_code.version else ''} => Skipping"
                 )
                 continue
 
@@ -172,9 +171,9 @@ class ContextualizedTermCodeInfoList(JSONSerializable):
     def __traverse_parent(
         self,
         parent_key: str,
-        descendants: Set[str],
+        descendants: set[str],
         tree_map: TreeMap,
-        count_map: Dict[str, Tuple[int, Set[str]] | int],
+        count_map: dict[str, tuple[int, set[str]] | int],
     ):
         """
         Internal method for traversing `tree_map` upwards and build up the descendant count map `count_map`. Note that
@@ -205,10 +204,11 @@ class ContextualizedTermCodeInfoList(JSONSerializable):
         else:
             count_map[parent_key] = (visits, p_descendants)
 
-    def to_json(self):
+    @deprecated("Use ``ContextualizedTermCodeInfoList.model_dump_json()`` directly")
+    def to_json(self, **kwargs):
         """
         Builds a JSON string representation of this instance
 
         :return: JSON string
         """
-        return json.dumps([entry.to_dict() for entry in self.entries])
+        return self.model_dump_json(**kwargs)

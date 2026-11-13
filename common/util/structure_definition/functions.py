@@ -320,10 +320,13 @@ def process_element_id(
                     )
                 target_resource_type = elem.targetProfile[0]
                 partial_id = element_ids.pop(0)
-                profiles = list(
-                    get_profiles_with_base_definition(
-                        modules_dir_path, target_resource_type
-                    )
+                profiles = sorted(
+                    list(
+                        get_profiles_with_base_definition(
+                            modules_dir_path, target_resource_type
+                        )
+                    ),
+                    key=lambda x: x[0].url # Sort by StructureDefinition URL to ensure consistent order
                 )
                 if len(profiles) == 0:
                     raise Exception(

@@ -15,6 +15,7 @@ from cohort_selection_ontology.model.ui_data import (
     TranslationDisplayElement,
     Translation,
 )
+from common.model.fhir.nav_structure_definition import NavStructureDefinition
 from common.model.fhir.pydantic import construct_model
 from common.model.fhir.structure_definition import (
     IndexedStructureDefinition,
@@ -420,9 +421,7 @@ class ProfileTreeGenerator:
                 try:
                     with open(file_path, mode="r", encoding="utf-8") as f:
                         try:
-                            content = construct_model(
-                                idx_struct_def_discriminator, **json.load(f)
-                            )
+                            content = NavStructureDefinition.model_validate_json(f.read())
                         except pydantic.ValidationError as e:
                             error_list = ""
                             for err in e.errors():
