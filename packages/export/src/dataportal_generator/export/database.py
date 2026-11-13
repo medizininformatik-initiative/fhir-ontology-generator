@@ -4,6 +4,7 @@ from typing import List, Tuple, Dict
 
 import psycopg2.extras
 import psycopg2
+from common.constants.terminology import NAMESPACE_CONTEXT_TERM_CODE
 from docker.models.containers import Container
 from typing_extensions import deprecated
 
@@ -15,8 +16,6 @@ from common.util.log.functions import get_class_logger
 
 _logger = get_logger(__name__)
 
-
-NAMESPACE_UUID = uuid.UUID("00000000-0000-0000-0000-000000000000")
 
 """
 creates the table TermCode:
@@ -90,6 +89,22 @@ add_comment_on_context_termcode_hash = """
 """
 
 
+def _calculate_context_term_code_hash(context: TermCode, term_code: TermCode) -> str:
+    """
+    Calculates the hash for the context term code
+    :param context: the context
+    :param term_code: the term code
+    :return: the hash
+    """
+    return str(
+        uuid.uuid3(
+            NAMESPACE_CONTEXT_TERM_CODE,
+            f"{context.system}{context.code}{context.version if context.version else ''}"
+            f"{term_code.system}{term_code.code}",
+        )
+    )
+
+
 class DataBaseError(IOError):
     pass
 
@@ -151,22 +166,6 @@ class DataBaseWriter:
             database=next((e.split("=")[1] for e in env if e.startswith("POSTGRES_DB=")), "postgres"),
             user=next((e.split("=")[1] for e in env if e.startswith("POSTGRES_USER=")), "postgres"),
             password=next((e.split("=")[1] for e in env if e.startswith("POSTGRES_PASSWORD=")), "postgres")
-        )
-
-    @staticmethod
-    def calculate_context_term_code_hash(context: TermCode, term_code: TermCode) -> str:
-        """
-        Calculates the hash for the context term code
-        :param context: the context
-        :param term_code: the term code
-        :return: the hash
-        """
-        return str(
-            uuid.uuid3(
-                NAMESPACE_UUID,
-                f"{context.system}{context.code}{context.version if context.version else ''}"
-                f"{term_code.system}{term_code.code}",
-            )
         )
 
     def insert_term_codes(self, term_codes: List[TermCode]):
