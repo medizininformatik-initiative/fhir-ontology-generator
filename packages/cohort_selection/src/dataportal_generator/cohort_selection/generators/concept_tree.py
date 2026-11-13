@@ -221,15 +221,6 @@ class CriterionConceptTreeGenerator:
         if fixed_val:
             system = fixed_val.system
             code = fixed_val.code
-        # Further fixed system determination
-        if not system and (system_elem_def := elem_def.child("system")):
-            system = _system_restriction(system_elem_def)
-        if (b := elem_def.binding) and b.valueSet: # and (b.strength in _CONSTRAINING_BINDING_STRENGTHS):
-            binding = b
-            systems = {canonical.split("|", 1)[0] for canonical in
-                       self._get_composing_code_system_canonicals(b.valueSet)}
-            if not system and len(systems) == 1:
-                system = next(iter(systems))
         # Further fixed code determination
         if not code and (code_elem_def := elem_def.child("code")):
             match self._code_restriction(code_elem_def):
@@ -240,6 +231,16 @@ class CriterionConceptTreeGenerator:
                     system, code = c.system, c.code
                 case _:  # None
                     pass
+        # Further fixed system determination
+        if not system and (system_elem_def := elem_def.child("system")):
+            system = _system_restriction(system_elem_def)
+        if (b := elem_def.binding) and b.valueSet: # and (b.strength in _CONSTRAINING_BINDING_STRENGTHS):
+            binding = b
+            if not system and code:
+                systems = {canonical.split("|", 1)[0] for canonical in
+                           self._get_composing_code_system_canonicals(b.valueSet)}
+                if len(systems) == 1:
+                    system = next(iter(systems))
         # Check external data type definitions if necessary
         coding = Coding(system=system, code=code)
         if not system or not code:
@@ -257,6 +258,8 @@ class CriterionConceptTreeGenerator:
                                 coding = _merge_codings(coding, c)
                             case _:  # None
                                 pass
+        if coding.system and coding.code:
+            return [coding]
         # Coding-level slicing handling
         restrictions = [r for s in elem_def.slices for r in self._coding_restriction(s)] if elem_def.slicing else []
         if coding.system or coding.code:
@@ -265,7 +268,7 @@ class CriterionConceptTreeGenerator:
             restrictions.append(binding)
         return restrictions
 
-    def _codeable_concept_restriction(self, elem_def: NavElementDefinition) -> list[Coding | Binding]:
+    def _codeable_concept_restriction(self, elem_def: NavElementDefinition, for_identifier: bool = False) -> list[Coding | Binding]:
         if elem_def.slicing:
             # CodeableConcept-level slicing handling
             return [r for s in elem_def.slices for r in
@@ -280,7 +283,12 @@ class CriterionConceptTreeGenerator:
         codings = []
         if (val := elem_def.patternCodeableConcept) and val.coding:
             # Add only "complete" codings
-            codings.extend(filter(lambda c: c.system and c.code, val.coding))
+            pattern_codings = [c for c in val.coding if c.system and c.code]
+            if for_identifier and pattern_codings:
+                # Return if constraints are used for a criterion identifier. In this case the possible range of concepts
+                # that can be part of the CodeableConcept is not relevant but a coding that is always present is
+                return pattern_codings
+            codings.extend(pattern_codings)
         bindings = []
         if (b := elem_def.binding) and b.valueSet: # and (b.strength in _CONSTRAINING_BINDING_STRENGTHS):
             bindings.append(b)
@@ -297,18 +305,20 @@ class CriterionConceptTreeGenerator:
                         codings.append(c)
         return [*codings, *bindings]
 
-    def _restrictions(self, elem_def: NavElementDefinition) -> list[Coding | Binding]:
+    def _restrictions(self, elem_def: NavElementDefinition, for_identifier: bool = False) -> list[Coding | Binding]:
         match elem_def.type[0].code:
             case "CodeableConcept":
-                return self._codeable_concept_restriction(elem_def)
+                restrictions = self._codeable_concept_restriction(elem_def, for_identifier)
             case "Coding":
-                return self._coding_restriction(elem_def)
+                restrictions = self._coding_restriction(elem_def)
             case "code":
                 restriction = self._code_restriction(elem_def)
-                return [restriction] if restriction else []
+                restrictions = [restriction] if restriction else []
             case _:
                 raise TypeError(f"Unsupported FHIR data type '{elem_def.type[0].code}'. Expected one of "
                                 f"'CodeableConcept', 'Coding' or 'code'")
+        # Filter out incomplete codings
+        return [r for r in restrictions if not isinstance(r, Coding) or (r.system and r.code)]
 
     def _is_hierarchical(self, system: str, version: str | None) -> bool:
         code_system = self.__terminology_src.code_system(system, version)
@@ -435,7 +445,7 @@ class CriterionConceptTreeGenerator:
                 f"Element definition '{elem_def.id}' targeted by expression '{expr}' has to support exactly one of the "
                 f"data types {sorted(_CODED_TYPES)} but instead supports {sorted(type_codes)}"
             )
-        restrictions = self._restrictions(elem_def)
+        restrictions = self._restrictions(elem_def, identifier.endswith(CRITERION_IDENTIFIER_KEY))
         if not restrictions:
             raise ConceptTreeGenerationError(f"Failed to determine sufficient restrictions for criterion attribute "
                                              f"'{identifier}' using element/slice '{elem_def.id}' defined in structure "
@@ -452,7 +462,7 @@ class CriterionConceptTreeGenerator:
                 if not self._tree_group_exists(canonical):
                     _logger.debug(f"Generating concept trees for value set {canonical!r}")
                     self._generate_concept_tree_group_for_vs_canonical(canonical)
-            elif isinstance(restriction, Coding) and restriction.code and restriction.system:
+            elif isinstance(restriction, Coding): # and restriction.code and restriction.system:
                 codings.append(restriction)
         if codings:
             self._generate_concept_tree_group_for_coding_list(identifier, self._ensure_version(codings))
@@ -475,6 +485,7 @@ class CriterionConceptTreeGenerator:
 
 
     def generate(self) -> _AttributeTreeMapping:
+        crit_def = self.__crit_def
         _logger.debug(f"Generating concept trees for criterion identifier of criterion '%s'", self.__crit_def.name)
         crit_ident_trees = self._generate_for_crit_identifier() # Criterion identifier
         if not crit_ident_trees:

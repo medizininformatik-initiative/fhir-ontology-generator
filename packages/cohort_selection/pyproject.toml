@@ -11,7 +11,7 @@ dependencies = [
 ]
 
 [project.scripts]
-generate-feature-selection = "dataportal_generator.feature_selection.scripts.generate_feature_selection:main"
+generate-cohort-selection = "dataportal_generator.cohort_selection.scripts.generate_cohort_selection:main"
 
 [dependency-groups]
 dev = [
