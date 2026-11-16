@@ -1637,7 +1637,6 @@ class FlatteningLookupGenerator:
             "resourceType": "StructureDefinition",
             "kind": "resource",
             "status": "active",
-            # "url": "https://gematik.de/fhir/isik/StructureDefinition/ISiKEKG",
         }
         lookup_file: List[FlatteningLookup] = []
 

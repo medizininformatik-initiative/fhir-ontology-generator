@@ -25,7 +25,7 @@ from common.util.fhir.enums import FhirPrimitiveDataType, FhirComplexDataType
 from common.util.log.functions import get_logger
 
 from enum import Enum
-from typing import Mapping, Optional, Any, List
+from typing import Mapping, Optional, Any
 
 from common.util.project import Project
 from common.util.structure_definition.functions import (
