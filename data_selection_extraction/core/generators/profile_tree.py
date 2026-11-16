@@ -15,11 +15,10 @@ from cohort_selection_ontology.model.ui_data import (
     TranslationDisplayElement,
     Translation,
 )
-from common.model.fhir.nav_structure_definition import NavStructureDefinition
+from common.model.fhir.nav_structure_definition import ensure_struct_def_is_navigable
 from common.model.fhir.pydantic import construct_model
 from common.model.fhir.structure_definition import (
     IndexedStructureDefinition,
-    idx_struct_def_discriminator,
 )
 from common.model.fhir.structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.enums import FhirPrimitiveDataType, FhirComplexDataType
@@ -421,7 +420,11 @@ class ProfileTreeGenerator:
                 try:
                     with open(file_path, mode="r", encoding="utf-8") as f:
                         try:
-                            content = NavStructureDefinition.model_validate_json(f.read())
+                            content = ensure_struct_def_is_navigable(
+                                construct_model(
+                                    StructureDefinition, **json.load(f)
+                                )
+                            )
                         except pydantic.ValidationError as e:
                             error_list = ""
                             for err in e.errors():

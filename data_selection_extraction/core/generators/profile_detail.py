@@ -162,9 +162,13 @@ class ProfileDetailGenerator:
             case "CodeableConcept":
                 if child_ed := elem_def.child("coding"):
                     results.extend(self._bound_vs_for_concept_typed_elem(child_ed))
-        if not results:
-            _logger.warning(f"Could not find any value set for concept-typed element/slice "
-                            f"'{elem_def.struct_def.url}|{elem_def.id}'")
+                if not results:
+                    if (binding := elem_def.binding) and (vs := binding.valueSet):
+                        results.append(vs)
+                    elif cc := elem_def.patternCodeableConcept:
+                        for c in (cc.coding or []):
+                            if system := c.system:
+                                results.append(self._implicit_cs_vs(system))
         return results
 
 
@@ -285,6 +289,10 @@ class ProfileDetailGenerator:
 
         if elem_def := struct_def.get_element_by_id(fhir_path):
             value_sets = self._bound_vs_for_concept_typed_elem(elem_def)
+
+        if not value_sets:
+            _logger.warning(f"Could not find any value set for code filter-defining element/slice "
+                            f"'{struct_def.url}|{elem_def.id if elem_def else fhir_path}'")
 
         value_sets = list(filter(lambda vs: vs not in self.blacklisted_value_sets, value_sets))
 
