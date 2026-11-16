@@ -1,5 +1,6 @@
 import json
 import re
+import unicodedata
 from typing import Dict, List, Mapping
 
 import yaml
@@ -95,6 +96,8 @@ FHIR_PRIMITIVES = [
     "id",
 ]
 
+_COLUMN_NAME_CHARACTER_FILTER = re.compile(r"[^A-Za-z0-9_]")
+
 
 def merge_config_with_default(project_flattening_config: FlatteningConfig) -> None:
     # if emtpy => copy default config
@@ -137,14 +140,23 @@ def id_to_column_name(element_id: str) -> str:
     :param element_id: ID of the element for which the column name should be returned
     :return: column name for the given element
     """
+    # Replace German special characters
+    el_id = element_id.replace("ä", "ae").replace("Ä", "Ae") \
+        .replace("ö", "oe").replace("Ö", "Oe") \
+        .replace("ü", "ue").replace("Ü", "Ue") \
+        .replace("ß", "ss")
+    # Handle slice names
     el_id = re.compile(r":([a-zA-Z][a-zA-Z0-9_-]*)").sub(
-        lambda m: ":" + m.group(1).capitalize(), element_id
+        lambda m: ":" + m.group(1).capitalize(), el_id
     )
     # ':' and '.' and '-' and '[x]' are not allowed by pathling in column names, using '#' and '_' instead
     el_id = el_id.replace(":", "")
     el_id = el_id.replace(".", "_")
     el_id = el_id.replace("-", "")
     el_id = el_id.replace("[x]", "_X_")
+    # Normalize using Unicode NFKD form and drop remaining forbidden characters
+    el_id = unicodedata.normalize("NFKD", el_id)
+    el_id = _COLUMN_NAME_CHARACTER_FILTER.sub("", el_id)
     return el_id
 
 
