@@ -28,6 +28,7 @@ services:
       ES_HOST: elastic
       MODE: mount # change this to mount when using own generated ontology
       LOCAL_PATH: /work/mounted_onto.zip
+      FORCE_REINSTALL: true
     volumes:
       - type: bind
         source: "../.tmp/elastic.zip"
