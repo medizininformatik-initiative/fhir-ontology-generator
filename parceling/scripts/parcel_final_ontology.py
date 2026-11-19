@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 import shutil
 
 from common.util.log.functions import get_logger
@@ -58,6 +59,8 @@ if __name__ == "__main__":
     else:
         raise FileNotFoundError(f"Missing Elasticsearch index documents @ {repr(elastic_output_dir)}")
 
+    project_version = os.environ.get("PROJECT_VERSION", f"v{project.config.version}")
+
     input_index_dir = project.input.elastic / "index"
     if input_index_dir.is_dir() and any(input_index_dir.iterdir()):
         index_dir = temp_elastic_dir / "index"
@@ -66,7 +69,7 @@ if __name__ == "__main__":
             with pipeline_file_path.open(mode="r", encoding="utf-8") as fd:
                 doc = json.load(fd)
             doc_metadata = doc["mappings"].get("_meta", {})
-            doc_metadata["version"] = f"v{project.config.version}"
+            doc_metadata["version"] = project_version
             doc["mappings"]["_meta"] = doc_metadata
             with (index_dir / pipeline_file_path.name).open(mode="w", encoding="utf-8") as fd:
                 json.dump(doc, fd, indent=4)
@@ -81,7 +84,7 @@ if __name__ == "__main__":
             with pipeline_file_path.open(mode="r", encoding="utf-8") as fd:
                 doc = json.load(fd)
             doc_metadata = doc.get("_meta", {})
-            doc_metadata["version"] = f"v{project.config.version}"
+            doc_metadata["version"] = project_version
             doc["_meta"] = doc_metadata
             with (pipeline_dir / pipeline_file_path.name).open(mode="w", encoding="utf-8") as fd:
                 json.dump(doc, fd, indent=4)

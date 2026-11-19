@@ -11,8 +11,11 @@ from fhir.resources.R4B.structuredefinition import StructureDefinition
 
 from availability.constants.fhir import MII_CDS_PACKAGE_PATTERN
 from common.exceptions import NotFoundError
+from common.model.fhir.nav_element_definition import NavElementDefinition
+from common.model.fhir.nav_structure_definition import NavStructureDefinition, ensure_struct_def_is_navigable
 from common.model.fhir.structure_definition import StructureDefinitionSnapshot
 from common.util.fhir.package.manager import FhirPackageManager
+from common.util.http.terminology.client import FhirTerminologyClient
 from common.util.project import Project
 from common.util.structure_definition.functions import get_parent_element
 
@@ -59,7 +62,7 @@ def test_profile(package_manager: FhirPackageManager) -> StructureDefinitionSnap
 
 
 @pytest.fixture
-def profile(request, package_manager: FhirPackageManager, resources_dir: Path):
+def profile(request, package_manager: FhirPackageManager, resources_dir: Path) -> NavStructureDefinition:
     """
     Fixture that can be used for indirect parameters named 'profile' to resolve any `string` typed value as a
     profile URL or pass on any `StructureDefinition` typed parameters
@@ -69,11 +72,11 @@ def profile(request, package_manager: FhirPackageManager, resources_dir: Path):
             return package_manager.find({"url": profile_url})
         case Path() as profile_f:
             f_path = resources_dir / profile_f
-            return StructureDefinitionSnapshot.model_validate_json(
+            return NavStructureDefinition.model_validate_json(
                 f_path.read_text(encoding="utf-8")
             )
         case StructureDefinition() as struct_def:
-            return struct_def
+            return ensure_struct_def_is_navigable(struct_def)
         case _ as param:
             raise ValueError(
                 f"Fixture 'profile' does not support indirect parameters of type {type(param)} "
@@ -82,7 +85,7 @@ def profile(request, package_manager: FhirPackageManager, resources_dir: Path):
 
 
 @pytest.fixture
-def elem_def(request, profile):
+def elem_def(request, profile) -> NavElementDefinition:
     """
     Fixture that can be used for indirect parameters named 'elem_def' to resolve any `string` typed value as a
     profile URL or pass on any `ElementDefinition` typed parameters
@@ -96,6 +99,11 @@ def elem_def(request, profile):
             raise ValueError(
                 f"Fixture 'elem_def' does not support indirect parameters of type {type(param)} [supported_types=[{type(str)}, {type(ElementDefinition)}]]"
             )
+
+
+@pytest.fixture
+def term_client(project: Project) -> FhirTerminologyClient:
+    return FhirTerminologyClient.from_project(project)
 
 
 def pytest_generate_tests(metafunc: Metafunc):

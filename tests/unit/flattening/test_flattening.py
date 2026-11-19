@@ -1,3 +1,4 @@
+import re
 from typing import Mapping, Optional
 
 import pytest
@@ -21,7 +22,7 @@ from flattening.core.flattening import (
     flattening_get_parent,
     flattening_post_process,
     is_leafless_branch_root,
-    prune_leafless_branches,
+    prune_leafless_branches, id_to_column_name,
 )
 from flattening.model.FlatteningLookupModels import FlatteningLookup
 from tests.unit.flattening.builders import build_profile
@@ -2660,3 +2661,53 @@ def test_aggregated_fhir_path_expression(
     mapping = _construct_child_to_parent_mapping(profile_lookup)
     elem = profile_lookup.elements[elem_id]
     assert _construct_fhirpaths(elem_id, elem, mapping, profile_lookup) == expected
+
+
+_COLUMN_NAME_ALLOWED_CHARACTERS = re.compile("^[A-Za-z0-9_]+$")
+
+
+@pytest.mark.parametrize(
+    argnames=["elem_def_id", "expected"],
+    argvalues=[
+        pytest.param(
+            "Condition.code.coding",
+            "Condition_code_coding",
+            id="basic"
+        ),
+        pytest.param(
+            "Observation.value[x]",
+            "Observation_value_X_",
+            id="polymorphic"
+        ),
+        pytest.param(
+            "Condition.code.coding:snomedCt",
+            "Condition_code_codingSnomedct",
+            id="slice"
+        ),
+        pytest.param(
+            "Condition.code.coding:snomed-Ct",
+            "Condition_code_codingSnomedct",
+            id="slice-name-with-dash"
+        ),
+        pytest.param(
+            "Observation.value[x]:valueQuantity",
+            "Observation_value_X_Valuequantity",
+            id="sliced-polymorphic"
+        ),
+        pytest.param(
+            "ResourceType.element1:sliceWithÄ",
+            "ResourceType_element1Slicewithae",
+            id="german-umlaut"
+        ),
+        pytest.param(
+            "ResourceType.element1:sliceWithNønAsciiCharacter",
+            "ResourceType_element1SlicewithnnAsciiCharacter",
+            id="non-ascii"
+        )
+    ]
+)
+def test_id_to_column_name(elem_def_id, expected):
+    actual = id_to_column_name(elem_def_id)
+    assert actual == expected
+    assert _COLUMN_NAME_ALLOWED_CHARACTERS.fullmatch(actual), \
+        f"Column name string {actual!r} contains invalid characters"

@@ -334,7 +334,7 @@ def fhirpath_filter_for_value_or_pattern_discriminated_slice(
     expr = fhirpath_filter_from_value_discriminated_elem_def(
         slice_elem_def,
         slice_elem_def.struct_def,
-        "$this",
+        discr_path if discr_path else "$this",
         client=client,
         manager=manager,
         _binding_target_id=binding_target_id,
@@ -367,7 +367,6 @@ def fhirpath_filter_for_slice(
     # specific path it names (see `fhirpath_filter_for_value_or_pattern_discriminated_slice`), so only the first
     # such discriminator needs to be evaluated -- evaluating every one would just AND that identical expression
     # with itself once per discriminator
-    value_or_pattern_expr_added = False
     for discr in discriminators:
         if discr.path == "$this":
             norm_discr_path = "$this"
@@ -388,17 +387,15 @@ def fhirpath_filter_for_slice(
         #    )
         match discr.type:
             case "value" | "pattern":
-                if not value_or_pattern_expr_added:
-                    exprs.append(
-                        fhirpath_filter_for_value_or_pattern_discriminated_slice(
-                            slice_elem_def,
-                            norm_discr_path,
-                            _criteria_only=True,
-                            manager=manager,
-                            client=client,
-                        )
+                exprs.append(
+                    fhirpath_filter_for_value_or_pattern_discriminated_slice(
+                        slice_elem_def,
+                        norm_discr_path,
+                        _criteria_only=True,
+                        manager=manager,
+                        client=client,
                     )
-                    value_or_pattern_expr_added = True
+                )
             case "exists":
                 exprs.append(
                     fhirpath_filter_for_exists_discriminated_slice(
@@ -883,6 +880,9 @@ def fhirpath_filter_from_value_discriminated_elem_def(
                 type_profile_url, manager
             )
 
+        if discr_path and discr_path != "$this":
+            children = [ed for ed in children if ed.rel_path == discr_path.split(".")[0]]
+
         for sub_elem in children:
             if sub_elem_expr := fhirpath_filter_from_value_discriminated_elem_def(
                 sub_elem,
@@ -893,7 +893,7 @@ def fhirpath_filter_from_value_discriminated_elem_def(
             ):
                 exprs.append(sub_elem_expr)
 
-    add_discr_path = discr_path is not None and discr_path != "$this"
+    add_discr_path = False # discr_path is not None and discr_path != "$this"
     match exprs:
         case []:
             return None
@@ -915,7 +915,6 @@ def fhirpath_filter_from_value_discriminated_elem_def(
                 return f"{elem_def.rel_path}.exists({join})"
             criteria = f"{discr_path}.exists({join})" if add_discr_path else join
             return f"where({criteria})".replace(".$this", "")
-
 
 def _find_discr_value_defining_elem_def(
     discr_path: str,

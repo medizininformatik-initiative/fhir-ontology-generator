@@ -15,6 +15,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Security
 -->
 
+# [v5.2.2] - 2026-11-17
+
+## Changed
+
+- Remove DSE profiles not inheriting form FHIR abstract class DomainResource since they are not supported by TORCH ATM (#563 @paulolaup)
+- Update flattening column name generation to handle non-ASCII characters in slice names (#564 @paulolaup)
+
+## Fixed
+
+- Fix FHIRPath filter generation for slices (#566 @paulolaup)
+
+# [v5.2.1] - 2026-11-12
+
+## Fixed
+
+- Fix missing DSE profile detail code filters for CodeableConcept-typed elements with value set-binding (#561 @paulolaup)
+
 # [v5.2.0] - 2026-11-02
 
 ## Added
