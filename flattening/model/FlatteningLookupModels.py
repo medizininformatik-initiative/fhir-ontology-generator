@@ -106,5 +106,11 @@ class FlatteningLookup(DiffModel):
             ))
         return changes
 
+class FlatteningLookupFile(DiffModel):
+    profiles: list[FlatteningLookup]
+    version: str
+
+
+
 
 FlatteningLookupListTA = TypeAdapter(list[FlatteningLookup])

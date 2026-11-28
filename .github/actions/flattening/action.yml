@@ -65,7 +65,7 @@ runs:
         ONTOLOGY_SERVER_ADDRESS: ${{ inputs.term-server-url }}
         SERVER_CERTIFICATE: ${{ steps.certificates.outputs.certificate }}
         PRIVATE_KEY: ${{ steps.certificates.outputs.privateKey }}
-      run: PYTHONPATH='.' python3 flattening/scripts/generate_lookup.py -p "${{ inputs.project }}"
+      run: PYTHONPATH='.' python3 flattening/scripts/generate_lookup.py -p "${{ inputs.project }}" -v "${{ inputs.tag }}"
       shell: bash
 
     - name: Upload log files

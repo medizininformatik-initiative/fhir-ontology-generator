@@ -240,7 +240,9 @@ def _load_flattening_lookup(path: Path) -> list[Any]:
 
     _logger.debug("Loading flattening lookup file @ %s", file_path)
     with file_path.open(mode="r", encoding="utf-8") as fd:
-        return json.load(fd)
+        data = json.load(fd)
+    # support both flatteningLookup file formats
+    return data["profiles"] if isinstance(data, dict) else data
 
 
 def _compare_flattening_lookup(prev: Path, curr: Path, out: Path, severity: Category):

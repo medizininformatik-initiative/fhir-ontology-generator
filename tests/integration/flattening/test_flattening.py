@@ -9,7 +9,7 @@ from flattening.core.flattening import check_if_root
 from flattening.model.FlatteningLookupModels import (
     FlatteningLookup,
     FlatteningLookupElement,
-    FlatteningLookupListTA,
+    FlatteningLookupFile,
 )
 
 _TMP_JOBS_DIR = Path(__file__).parent / ".tmp" / "jobs"
@@ -281,7 +281,7 @@ def find_parent_child_mismatches(lookups: List[FlatteningLookup]) -> List[str]:
 
 def test_lookup_file_validity(flattening_lookup: Path, package_manager):
     with flattening_lookup.open(mode="r", encoding="utf-8") as f:
-        flattening_lookups = FlatteningLookupListTA.validate_json(f.read())
+        flattening_lookups = FlatteningLookupFile.model_validate_json(f.read()).profiles
     errors = []
     for lookup in flattening_lookups:
         struct_def = package_manager.find({"url": lookup.url})
@@ -297,7 +297,7 @@ def test_lookup_file_validity(flattening_lookup: Path, package_manager):
 
 def test_no_parent_child_mismatches(flattening_lookup: Path):
     with flattening_lookup.open(mode="r", encoding="utf-8") as f:
-        flattening_lookups = FlatteningLookupListTA.validate_json(f.read())
+        flattening_lookups = FlatteningLookupFile.model_validate_json(f.read()).profiles
 
     findings = find_parent_child_mismatches(flattening_lookups)
 
@@ -341,7 +341,7 @@ def _assert_profile_with_no_empty_select_without_children(lookup: FlatteningLook
 
 def test_lookup_file_no_empty_select_without_children(flattening_lookup: Path):
     with flattening_lookup.open(mode="r", encoding="utf-8") as f:
-        flattening_lookups = FlatteningLookupListTA.validate_json(f.read())
+        flattening_lookups = FlatteningLookupFile.model_validate_json(f.read()).profiles
     errors = []
     for lookup in flattening_lookups:
         try:

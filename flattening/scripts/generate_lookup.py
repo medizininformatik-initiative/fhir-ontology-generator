@@ -1,13 +1,12 @@
 import argparse
 import json
-from typing import List
 
 from common.util.log.functions import get_logger
 from common.util.project import Project
 from flattening.core.flattening import (
-    FlatteningLookup,
     FlatteningLookupGenerator,
 )
+from flattening.model.FlatteningLookupModels import FlatteningLookupFile
 
 _logger = get_logger(__file__)
 
@@ -41,6 +40,12 @@ def _configure_argparser() -> argparse.ArgumentParser:
         required=True,
         help="Project to generate DSE element availability for. The measure will include the profiles it depends on",
     )
+    parser.add_argument(
+        "-v",
+        "--version",
+        required=True,
+        help="Version of the ontology this lookup file was generated with",
+    )
     return parser
 
 
@@ -51,13 +56,16 @@ if __name__ == "__main__":
     project = _setup_project(args.project)
     lookup_generator = FlatteningLookupGenerator(project)
 
-    lookup_file: List[FlatteningLookup] = lookup_generator.generate_flattening_lookup()
+    flattening_lookup_file: FlatteningLookupFile = FlatteningLookupFile(
+        version=args.version or "v0.0.0",
+        profiles=lookup_generator.generate_flattening_lookup(),
+    )
 
     with open(
         project.output.flattening / "flatteningLookup.json", mode="w", encoding="utf-8"
     ) as f:
         json.dump(
-            [x.model_dump(exclude_none=True, by_alias=True) for x in lookup_file],
+            flattening_lookup_file.model_dump(exclude_none=True, by_alias=True),
             f,
             indent=2,
         )
