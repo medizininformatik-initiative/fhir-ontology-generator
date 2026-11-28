@@ -68,4 +68,9 @@ class FlatteningLookup(BaseModel):
         return lookup
 
 
+class FlatteningLookupFile(BaseModel):
+    profiles: list[FlatteningLookup]
+    version: str
+
+
 FlatteningLookupListTA = TypeAdapter(list[FlatteningLookup])
